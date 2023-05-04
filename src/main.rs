@@ -9,7 +9,7 @@ fn main()
     if args().len() > 1
     {
         input = args().nth(1).unwrap().replace("pi", &std::f64::consts::PI.to_string()).replace('e', &std::f64::consts::E.to_string());
-        println!("{}", (do_math(get_func(input)) * 1e9).round() / 1e9);
+        println!("{}", (do_math(get_func(input)).parse::<f64>().unwrap() * 1e9).round() / 1e9);
         return;
     }
     loop
@@ -37,37 +37,100 @@ fn main()
         }
         input = input.replace('e', &std::f64::consts::E.to_string());
         println!("{}", start.elapsed().as_nanos());
-        println!("{}", (do_math(get_func(input)) * 1e9).round() / 1e9);
+        println!("{}", (do_math(get_func(input)).parse::<f64>().unwrap() * 1e9).round() / 1e9);
     }
 }
 fn get_func(input:String) -> Vec<String>
 {
+    let mut count = 0;
     let mut func:Vec<String> = Vec::new();
     let mut word:String = String::new();
-    for c in input.chars()
+    let chars = input.chars().collect::<Vec<char>>();
+    for i in 0..chars.len()
     {
-        if c.is_ascii_alphanumeric() || c == '.'
+        if chars[i] == '.'
         {
-            word += &c.to_string();
+            if word.is_empty()
+            {
+                word = "0".to_string();
+            }
+            if word.contains('.')
+            {
+                println!("Error: Invalid number");
+                func.clear();
+                func.push("0".to_string());
+                return func;
+            }
+            word.push(chars[i]);
         }
-        else if !word.is_empty()
+        else if chars[i] == '-'
         {
-            func.push(word.clone());
-            func.push(c.to_string());
-            word.clear();
+            func.push((-1.0).to_string());
+            func.push("*".to_string());
+        }
+        else if chars[i].is_ascii_alphabetic()
+        {
+            word.push(chars[i])
+        }
+        else if chars[i].is_ascii_digit()
+        {
+            if i != 0 && chars[i - 1].is_ascii_alphabetic()
+            {
+                func.push(word.clone());
+                word.clear();
+            }
+            word.push(chars[i])
         }
         else
         {
-            func.push(c.to_string());
+            if chars[i] == '('
+            {
+                if i != 0 && chars[i - 1].is_ascii_digit()
+                {
+                    func.push(word.clone());
+                    func.push("*".to_string());
+                    word.clear();
+                }
+                count += 1;
+            }
+            if !word.is_empty()
+            {
+                func.push(word.clone());
+                func.push(chars[i].to_string());
+                word.clear();
+            }
+            else
+            {
+                func.push(chars[i].to_string());
+            }
+            if chars[i] == ')'
+            {
+                if i < chars.len() - 1 && chars[i + 1].is_ascii_digit()
+                {
+                    func.push("*".to_string());
+                }
+                count -= 1;
+            }
         }
     }
     if !word.is_empty()
     {
-        func.push(word.clone());
+        func.push(word);
+    }
+    if count != 0
+    {
+        println!("Error: Parentheses mismatch");
+        func.clear();
+        func.push("0".to_string());
+    }
+    let last = func.last().unwrap().chars().last().unwrap();
+    if last == '*' || last == '/' || last == '+' || last == '-' || last == '^' || last.is_ascii_alphabetic()
+    {
+        func.push("0".to_string());
     }
     func
 }
-fn do_math(func:Vec<String>) -> f64
+fn do_math(func:Vec<String>) -> String
 {
     let mut func = func;
     let mut i = 0;
@@ -79,17 +142,16 @@ fn do_math(func:Vec<String>) -> f64
             let mut count = 1;
             while count > 0
             {
-                if func[j] == "("
+                match func[j].as_str()
                 {
-                    count += 1;
-                }
-                else if func[j] == ")"
-                {
-                    count -= 1;
+                    "(" => count += 1,
+                    ")" => count -= 1,
+                    _ =>
+                    {}
                 }
                 j += 1;
             }
-            func[i] = do_math(func[i + 1..j - 1].to_vec()).to_string();
+            func[i] = do_math(func[i + 1..j - 1].to_vec());
             func.drain(i + 1..j);
         }
         i += 1;
@@ -99,104 +161,32 @@ fn do_math(func:Vec<String>) -> f64
     {
         match func[i].as_str()
         {
-            "sin" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().sin()).to_string();
-                func.remove(i + 1);
-            }
-            "cos" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().cos()).to_string();
-                func.remove(i + 1);
-            }
-            "tan" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().tan()).to_string();
-                func.remove(i + 1);
-            }
-            "asin" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().asin()).to_string();
-                func.remove(i + 1);
-            }
-            "acos" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().acos()).to_string();
-                func.remove(i + 1);
-            }
-            "atan" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().atan()).to_string();
-                func.remove(i + 1);
-            }
-            "sinh" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().sinh()).to_string();
-                func.remove(i + 1);
-            }
-            "cosh" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().cosh()).to_string();
-                func.remove(i + 1);
-            }
-            "tanh" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().tanh()).to_string();
-                func.remove(i + 1);
-            }
-            "asinh" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().asinh()).to_string();
-                func.remove(i + 1);
-            }
-            "acosh" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().acosh()).to_string();
-                func.remove(i + 1);
-            }
-            "atanh" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().atanh()).to_string();
-                func.remove(i + 1);
-            }
-            "ln" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().ln()).to_string();
-                func.remove(i + 1);
-            }
-            "log" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().log10()).to_string();
-                func.remove(i + 1);
-            }
-            "sqrt" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().sqrt()).to_string();
-                func.remove(i + 1);
-            }
-            "abs" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().abs()).to_string();
-                func.remove(i + 1);
-            }
-            "dg" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().to_degrees()).to_string();
-                func.remove(i + 1);
-            }
-            "rd" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().to_radians()).to_string();
-                func.remove(i + 1);
-            }
-            "cbrt" =>
-            {
-                func[i] = (func[i + 1].parse::<f64>().unwrap().cbrt()).to_string();
-                func.remove(i + 1);
-            }
+            "sin" => func[i] = (func[i + 1].parse::<f64>().unwrap().sin()).to_string(),
+            "cos" => func[i] = (func[i + 1].parse::<f64>().unwrap().cos()).to_string(),
+            "tan" => func[i] = (func[i + 1].parse::<f64>().unwrap().tan()).to_string(),
+            "asin" => func[i] = (func[i + 1].parse::<f64>().unwrap().asin()).to_string(),
+            "acos" => func[i] = (func[i + 1].parse::<f64>().unwrap().acos()).to_string(),
+            "atan" => func[i] = (func[i + 1].parse::<f64>().unwrap().atan()).to_string(),
+            "sinh" => func[i] = (func[i + 1].parse::<f64>().unwrap().sinh()).to_string(),
+            "cosh" => func[i] = (func[i + 1].parse::<f64>().unwrap().cosh()).to_string(),
+            "tanh" => func[i] = (func[i + 1].parse::<f64>().unwrap().tanh()).to_string(),
+            "asinh" => func[i] = (func[i + 1].parse::<f64>().unwrap().asinh()).to_string(),
+            "acosh" => func[i] = (func[i + 1].parse::<f64>().unwrap().acosh()).to_string(),
+            "atanh" => func[i] = (func[i + 1].parse::<f64>().unwrap().atanh()).to_string(),
+            "ln" => func[i] = (func[i + 1].parse::<f64>().unwrap().ln()).to_string(),
+            "log" => func[i] = (func[i + 1].parse::<f64>().unwrap().log10()).to_string(),
+            "sqrt" => func[i] = (func[i + 1].parse::<f64>().unwrap().sqrt()).to_string(),
+            "abs" => func[i] = (func[i + 1].parse::<f64>().unwrap().abs()).to_string(),
+            "dg" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_degrees()).to_string(),
+            "rd" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_radians()).to_string(),
+            "cbrt" => func[i] = (func[i + 1].parse::<f64>().unwrap().cbrt()).to_string(),
             _ =>
-            {}
+            {
+                i += 1;
+                continue;
+            }
         }
+        func.remove(i + 1);
         i += 1;
     }
     i = 0;
@@ -259,5 +249,5 @@ fn do_math(func:Vec<String>) -> f64
         }
         i += 1;
     }
-    func[0].parse::<f64>().unwrap()
+    func[0].clone()
 }

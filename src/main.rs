@@ -20,7 +20,7 @@ fn main()
         {
             break;
         }
-        input = line.unwrap().unwrap().replace("pi", &std::f64::consts::PI.to_string());
+        input = line.unwrap().unwrap();
         if input == "exit"
         {
             break;
@@ -35,7 +35,6 @@ fn main()
         {
             continue;
         }
-        input = input.replace('e', &std::f64::consts::E.to_string());
         println!("{}", start.elapsed().as_nanos());
         println!("{}", (do_math(get_func(input)).parse::<f64>().unwrap() * 1e9).round() / 1e9);
     }
@@ -48,6 +47,20 @@ fn get_func(input:String) -> Vec<String>
     let chars = input.chars().collect::<Vec<char>>();
     for i in 0..chars.len()
     {
+        if chars[i] == 'e'
+        {
+            func.push(std::f64::consts::E.to_string());
+            continue;
+        }
+        if chars[i] == 'i' && i != 0 && chars[i - 1] == 'p'
+        {
+            func.push(std::f64::consts::PI.to_string());
+            continue;
+        }
+        if chars[i].is_whitespace() || chars[i] == 'p'
+        {
+            continue;
+        }
         if chars[i] == '.'
         {
             if word.is_empty()

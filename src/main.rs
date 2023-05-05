@@ -180,7 +180,7 @@ fn do_math(func:Vec<String>) -> String
 {
     let mut func = func;
     let mut i = 0;
-    while i < func.len()
+    while i < func.len() - 1
     {
         if func[i] == "("
         {
@@ -202,8 +202,7 @@ fn do_math(func:Vec<String>) -> String
         }
         i += 1;
     }
-    i = 0;
-    while i < func.len()
+    for i in 0..func.len() - 1
     {
         if func[i].len() > 1
         {
@@ -230,73 +229,55 @@ fn do_math(func:Vec<String>) -> String
                 "cbrt" => func[i] = (func[i + 1].parse::<f64>().unwrap().cbrt()).to_string(),
                 _ =>
                 {
-                    i += 1;
                     continue;
                 }
             }
             func.remove(i + 1);
         }
-        i += 1;
     }
-    i = 0;
-    while i < func.len()
+    i = 1;
+    while i < func.len() - 1
     {
-        if func[i] == "^"
+        if func[i] != "^"
         {
-            func[i] = (func[i - 1].parse::<f64>().unwrap().powf(func[i + 1].parse::<f64>().unwrap())).to_string();
-            func.remove(i + 1);
-            func.remove(i - 1);
-            i -= 1;
+            i += 1;
+            continue;
         }
-        i += 1;
+        func[i] = (func[i - 1].parse::<f64>().unwrap().powf(func[i + 1].parse::<f64>().unwrap())).to_string();
+        func.remove(i + 1);
+        func.remove(i - 1);
     }
-    i = 0;
-    while i < func.len()
-    {
-        match func[i].as_str()
-        {
-            "*" =>
-            {
-                func[i] = (func[i - 1].parse::<f64>().unwrap() * func[i + 1].parse::<f64>().unwrap()).to_string();
-                func.remove(i + 1);
-                func.remove(i - 1);
-                i -= 1;
-            }
-            "/" =>
-            {
-                func[i] = (func[i - 1].parse::<f64>().unwrap() / func[i + 1].parse::<f64>().unwrap()).to_string();
-                func.remove(i + 1);
-                func.remove(i - 1);
-                i -= 1;
-            }
-            _ =>
-            {}
-        }
-        i += 1;
-    }
-    i = 0;
-    while i < func.len()
+    i = 1;
+    while i < func.len() - 1
     {
         match func[i].as_str()
         {
-            "+" =>
-            {
-                func[i] = (func[i - 1].parse::<f64>().unwrap() + func[i + 1].parse::<f64>().unwrap()).to_string();
-                func.remove(i + 1);
-                func.remove(i - 1);
-                i -= 1;
-            }
-            "-" =>
-            {
-                func[i] = (func[i - 1].parse::<f64>().unwrap() - func[i + 1].parse::<f64>().unwrap()).to_string();
-                func.remove(i + 1);
-                func.remove(i - 1);
-                i -= 1;
-            }
+            "*" => func[i] = (func[i - 1].parse::<f64>().unwrap() * func[i + 1].parse::<f64>().unwrap()).to_string(),
+            "/" => func[i] = (func[i - 1].parse::<f64>().unwrap() / func[i + 1].parse::<f64>().unwrap()).to_string(),
             _ =>
-            {}
+            {
+                i += 1;
+                continue;
+            }
         }
-        i += 1;
+        func.remove(i + 1);
+        func.remove(i - 1);
+    }
+    i = 1;
+    while i < func.len() - 1
+    {
+        match func[i].as_str()
+        {
+            "+" => func[i] = (func[i - 1].parse::<f64>().unwrap() + func[i + 1].parse::<f64>().unwrap()).to_string(),
+            "-" => func[i] = (func[i - 1].parse::<f64>().unwrap() - func[i + 1].parse::<f64>().unwrap()).to_string(),
+            _ =>
+            {
+                i += 1;
+                continue;
+            }
+        }
+        func.remove(i + 1);
+        func.remove(i - 1);
     }
     func[0].clone()
 }

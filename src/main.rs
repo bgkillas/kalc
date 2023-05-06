@@ -523,7 +523,7 @@ fn do_math(func:Vec<String>) -> String
     i = 0;
     while i < func.len() - 1
     {
-        if (func[i].contains('i') || func[i + 1].contains('i')) && (func[i] != "+" && func[i] != "-") && (func[i + 1] != "+" && func[i + 1] != "-")
+        if (func[i].contains('i') || func[i + 1].contains('i')) && (func[i] != "+" && func[i] != "-") && (func[i + 1] != "+" && func[i + 1] != "-") && func[i] != "," && func[i + 1] != ","
         {
             let (a, b) = parse(&func[i]);
             let (c, d) = parse(&func[i + 1]);

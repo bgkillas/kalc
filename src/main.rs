@@ -1,6 +1,8 @@
 use std::env::args;
 use std::io::{BufRead, stdin, stdout, Write};
 use std::time::Instant;
+use std::f64::consts::PI;
+use std::f64::consts::E;
 fn main()
 {
     let mut start;
@@ -54,6 +56,12 @@ fn main()
             stdout().flush().unwrap();
             continue;
         }
+        if input == "help"
+        {
+            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
+            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log, abs, dg(to_degrees),rd(to_radians)");
+            continue;
+        }
         if input.is_empty()
         {
             continue;
@@ -93,7 +101,7 @@ fn get_func(input:String) -> Vec<String>
                 func.push(word.clone());
                 word.clear();
             }
-            func.push(std::f64::consts::E.to_string());
+            func.push(E.to_string());
         }
         else if *c == 'i'
         {
@@ -104,7 +112,7 @@ fn get_func(input:String) -> Vec<String>
                     func.push(word.clone());
                     word.clear()
                 }
-                func.push(std::f64::consts::PI.to_string());
+                func.push(PI.to_string());
             }
             else
             {
@@ -175,15 +183,7 @@ fn get_func(input:String) -> Vec<String>
             if chars[i] == ')' && chars[i - if chars[i - 2] == 'p' { 3 } else { 2 }] == '('
             {
                 let n = func.last().unwrap();
-                func.remove(func.len()
-                            - if n == "x" || n == &std::f64::consts::PI.to_string() || n == &std::f64::consts::E.to_string()
-                            {
-                                2
-                            }
-                            else
-                            {
-                                1
-                            });
+                func.remove(func.len() - if n == "x" || n == &PI.to_string() || n == &E.to_string() { 2 } else { 1 });
                 continue;
             }
             if !word.is_empty()
@@ -247,7 +247,7 @@ fn do_math(func:Vec<String>) -> String
     }
     for i in 0..func.len() - 1
     {
-        if func[i].len() > 1
+        if func[i].len() > 1 && func[i].chars().next().unwrap().is_ascii_alphabetic()
         {
             let (arg1, arg2) = parse(&func[i + 1]);
             match func[i].as_str()
@@ -255,17 +255,17 @@ fn do_math(func:Vec<String>) -> String
                 "sin" => func[i] = sin(arg1, arg2).to_string(),
                 "cos" => func[i] = cos(arg1, arg2).to_string(),
                 "tan" => func[i] = tan(arg1, arg2).to_string(),
-                "asin" => func[i] = (func[i + 1].parse::<f64>().unwrap().asin()).to_string(),
-                "acos" => func[i] = (func[i + 1].parse::<f64>().unwrap().acos()).to_string(),
-                "atan" => func[i] = (func[i + 1].parse::<f64>().unwrap().atan()).to_string(),
-                "sinh" => func[i] = (func[i + 1].parse::<f64>().unwrap().sinh()).to_string(),
-                "cosh" => func[i] = (func[i + 1].parse::<f64>().unwrap().cosh()).to_string(),
-                "tanh" => func[i] = (func[i + 1].parse::<f64>().unwrap().tanh()).to_string(),
-                "asinh" => func[i] = (func[i + 1].parse::<f64>().unwrap().asinh()).to_string(),
-                "acosh" => func[i] = (func[i + 1].parse::<f64>().unwrap().acosh()).to_string(),
-                "atanh" => func[i] = (func[i + 1].parse::<f64>().unwrap().atanh()).to_string(),
+                "asin" => func[i] = asin(arg1, arg2).to_string(),
+                "acos" => func[i] = acos(arg1, arg2).to_string(),
+                "atan" => func[i] = atan(arg1, arg2).to_string(),
+                "sinh" => func[i] = sinh(arg1, arg2).to_string(),
+                "cosh" => func[i] = cosh(arg1, arg2).to_string(),
+                "tanh" => func[i] = tanh(arg1, arg2).to_string(),
+                "asinh" => func[i] = asinh(arg1, arg2).to_string(),
+                "acosh" => func[i] = acosh(arg1, arg2).to_string(),
+                "atanh" => func[i] = atanh(arg1, arg2).to_string(),
                 "ln" => func[i] = ln(arg1, arg2).to_string(),
-                "log" => func[i] = (func[i + 1].parse::<f64>().unwrap().log10()).to_string(),
+                "log" => func[i] = log(10.0, arg1, arg2).to_string(),
                 "sqrt" => func[i] = pow(arg1, arg2, 0.5, 0.0).to_string(),
                 "abs" => func[i] = abs(arg1, arg2).to_string(),
                 "dg" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_degrees()).to_string(),
@@ -348,9 +348,32 @@ fn do_math(func:Vec<String>) -> String
         func.remove(i + 1);
         func.remove(i - 1);
     }
-    i = 1;
+    i = 0;
     while i < func.len() - 1
     {
+        if (func[i].contains('i') || func[i + 1].contains('i')) && (func[i] != "+" && func[i] != "-") && (func[i + 1] != "+" && func[i + 1] != "-")
+        {
+            let (a, b) = parse(&func[i]);
+            let (c, d) = parse(&func[i + 1]);
+            func[i] = add(a, b, c, d);
+            func.remove(i + 1);
+            i += 1;
+            continue;
+        }
+        if i == 0
+        {
+            i += 1;
+            continue;
+        }
+        if (func[i - 1].contains('i') || func[i + 1].contains('i')) && func[i] == "+"
+        {
+            let (a, b) = parse(&func[i - 1]);
+            let (c, d) = parse(&func[i + 1]);
+            func[i] = add(a, b, c, d);
+            func.remove(i + 1);
+            func.remove(i - 1);
+            continue;
+        }
         if func[i + 1].contains('i') || func[i - 1].contains('i')
         {
             i += 1;
@@ -399,6 +422,13 @@ fn parse(num:&String) -> (f64, f64)
         (num.parse::<f64>().unwrap(), 0.0)
     }
 }
+fn add(a:f64, b:f64, c:f64, d:f64) -> String
+{
+    // (a+bi)+(c+di)=(a+c)+(b+d)i
+    let im = (b + d).to_string();
+    let sign = if im.contains('-') { "" } else { "+" };
+    (a + c).to_string() + sign + im.as_str() + "i"
+}
 fn mul(a:f64, b:f64, c:f64, d:f64) -> String
 {
     // (a+bi)(c+di)=(ac-bd)+i(ad+bc)
@@ -419,9 +449,8 @@ fn pow(a:f64, b:f64, c:f64, d:f64) -> String
     // (a+bi)^(c+di)=e^((c+di)(ln(a^2+b^2)/2+i*atan2(b,a)))
     // re=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*cos(d*ln(a^2+b^2)/2+c*atan2(b,a))
     // im=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*sin(d*ln(a^2+b^2)/2+c*atan2(b,a))
-    let e = std::f64::consts::E;
     let r = c * (b.atan2(a)) + d * (0.5 * (a * a + b * b).ln());
-    let m = e.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
+    let m = E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
     let im = m * r.sin();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
     ((m * r.cos() * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
@@ -456,4 +485,84 @@ fn tan(a:f64, b:f64) -> String
 {
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
     div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh())
+}
+fn log(c:f64, a:f64, b:f64) -> String
+{
+    // log(c,a+bi)=ln(a+bi)/ln(c)
+    let (a, b) = parse(&ln(a, b));
+    let (d, c) = parse(&ln(c, 0.0));
+    div(a, b, d, c)
+}
+fn asin(a:f64, b:f64) -> String
+{
+    // asin(a+bi)=i*asinh(-i(a+bi))
+    let (a, b) = parse(&asinh(b, -a));
+    let sign = if a.to_string().contains('-') { "" } else { "+" };
+    ((b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
+}
+fn acos(a:f64, b:f64) -> String
+{
+    // acos(a+bi)=pi/2+i*asinh(i(a+bi))
+    let (a, b) = parse(&asinh(-b, a));
+    let sign = if a.to_string().contains('-') { "" } else { "+" };
+    (((-b + PI / 2.0) * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
+}
+fn atan(a:f64, b:f64) -> String
+{
+    // atan(a+bi)=i*atanh(-i(a+bi))
+    let (a, b) = parse(&atanh(b, -a));
+    let sign = if a.to_string().contains('-') { "" } else { "+" };
+    ((-b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
+}
+fn sinh(a:f64, b:f64) -> String
+{
+    // sinh(a+bi)=sinh(a)cos(b)+i*cosh(a)sin(b)
+    let im = a.cosh() * b.sin();
+    let sign = if im.to_string().contains('-') { "" } else { "+" };
+    (a.sinh() * b.cos()).to_string() + sign + im.to_string().as_str() + "i"
+}
+fn cosh(a:f64, b:f64) -> String
+{
+    // cosh(a+bi)=cosh(a)cos(b)+i*sinh(a)sin(b)
+    let im = a.sinh() * b.sin();
+    let sign = if im.to_string().contains('-') { "" } else { "+" };
+    (a.cosh() * b.cos()).to_string() + sign + im.to_string().as_str() + "i"
+}
+fn tanh(a:f64, b:f64) -> String
+{
+    // tanh(a+bi)=sinh(a+bi)/cosh(a+bi)
+    div(a.sinh() * b.cos(), a.cosh() * b.sin(), a.cosh() * b.cos(), a.sinh() * b.sin())
+}
+fn asinh(a:f64, b:f64) -> String
+{
+    // asinh(a+bi)=ln(sqrt(a^2+b^2)+a+bi)
+    let (c, d) = parse(&pow(a * a - b * b + 1.0, 2.0 * a * b, 0.5, 0.0));
+    let (a, b) = parse(&add(c, d, a, b));
+    let (re, im) = parse(&ln(a, b));
+    let sign = if im.to_string().contains('-') { "" } else { "+" };
+    ((re * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
+}
+fn acosh(a:f64, b:f64) -> String
+{
+    // acosh(a+bi)=ln(sqrt(a+ib-1)*sqrt(a+ib+1)+a+ib)
+    let (e, f) = parse(&pow(a - 1.0, b, 0.5, 0.0));
+    let (g, h) = parse(&pow(a + 1.0, b, 0.5, 0.0));
+    let (c, d) = parse(&mul(e, f, g, h));
+    let (a, b) = parse(&add(c, d, a, b));
+    let (re, im) = parse(&ln(a, b));
+    let sign = if im.to_string().contains('-') { "" } else { "+" };
+    ((re * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
+}
+fn atanh(a:f64, b:f64) -> String
+{
+    // atanh(a+bi)=ln(a+bi+1)/2-ln(-a-bi+1)/2
+    let (c, d) = parse(&add(a, b, 1.0, 0.0));
+    let (e, f) = parse(&add(-a, -b, 1.0, 0.0));
+    let (g, h) = parse(&ln(c, d));
+    let (i, j) = parse(&ln(e, f));
+    let (k, l) = parse(&div(g, h, 2.0, 0.0));
+    let (m, n) = parse(&div(i, j, 2.0, 0.0));
+    let (o, p) = parse(&add(k, l, -m, -n));
+    let sign = if p.to_string().contains('-') { "" } else { "+" };
+    ((o * 1e15).round() / 1e15).to_string() + sign + ((p * 1e15).round() / 1e15).to_string().as_str() + "i"
 }

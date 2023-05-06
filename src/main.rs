@@ -128,7 +128,8 @@ fn main()
     loop
     {
         input.clear();
-        print!("> ");
+        let fg = "\x1b[38;2;108;149;235m";
+        print!("{fg}");
         stdout().flush().unwrap();
         let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;
         let max = i;
@@ -139,7 +140,7 @@ fn main()
             {
                 '\n' =>
                 {
-                    println!();
+                    println!("\x1b[0m");
                     break;
                 }
                 '\x08' | '\x1B' =>
@@ -157,7 +158,7 @@ fn main()
                         continue;
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
-                    print!("\x1B[2K\x1B[1G> {}", input);
+                    print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1E' =>
                 {
@@ -165,13 +166,13 @@ fn main()
                     input.clear();
                     if i >= max
                     {
-                        print!("\x1B[2K\x1B[1G> ");
+                        print!("\x1B[2K\x1B[1G{fg}");
                         stdout().flush().unwrap();
                         i -= 1;
                         continue;
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
-                    print!("\x1B[2K\x1B[1G> {}", input);
+                    print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1C' => print!("\x1b[1C"),
                 _ =>

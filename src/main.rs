@@ -98,12 +98,11 @@ fn main()
         print_answer(func);
         return;
     }
-    let line;
     let mut input = String::new();
     #[cfg(target_os = "linux")]
     if !unsafe { isatty(STDIN_FILENO) != 0 }
     {
-        line = stdin().lock().lines().next();
+        let line = stdin().lock().lines().next();
         if line.as_ref().is_none()
         {
             return;

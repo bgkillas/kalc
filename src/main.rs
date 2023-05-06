@@ -9,16 +9,15 @@ fn main()
         let func = get_func(args().nth(1).unwrap());
         if func.contains(&"x".to_string())
         {
-            start = Instant::now();
             let mut modified;
-            for n in -10000..=10000
+            for n in -100000..=100000
             {
                 modified = func.clone();
                 for i in &mut modified
                 {
                     if i == "x"
                     {
-                        *i = (n as f64 / 1000.0).to_string();
+                        *i = (n as f64 / 10000.0).to_string();
                     }
                 }
                 let mut num = do_math(modified);
@@ -26,9 +25,8 @@ fn main()
                 {
                     num = ((num.parse::<f64>().unwrap() * 1e9).round() / 1e9).to_string();
                 }
-                println!("{}:{}", n as f64 / 1000.0, num);
+                println!("{}:{}", n as f64 / 10000.0, num);
             }
-            println!("{}", start.elapsed().as_nanos());
             return;
         }
         start = Instant::now();
@@ -251,11 +249,12 @@ fn do_math(func:Vec<String>) -> String
     {
         if func[i].len() > 1
         {
+            let (arg1, arg2) = parse(&func[i + 1]);
             match func[i].as_str()
             {
-                "sin" => func[i] = (func[i + 1].parse::<f64>().unwrap().sin()).to_string(),
-                "cos" => func[i] = (func[i + 1].parse::<f64>().unwrap().cos()).to_string(),
-                "tan" => func[i] = (func[i + 1].parse::<f64>().unwrap().tan()).to_string(),
+                "sin" => func[i] = sin(arg1, arg2).to_string(),
+                "cos" => func[i] = cos(arg1, arg2).to_string(),
+                "tan" => func[i] = tan(arg1, arg2).to_string(),
                 "asin" => func[i] = (func[i + 1].parse::<f64>().unwrap().asin()).to_string(),
                 "acos" => func[i] = (func[i + 1].parse::<f64>().unwrap().acos()).to_string(),
                 "atan" => func[i] = (func[i + 1].parse::<f64>().unwrap().atan()).to_string(),
@@ -265,13 +264,13 @@ fn do_math(func:Vec<String>) -> String
                 "asinh" => func[i] = (func[i + 1].parse::<f64>().unwrap().asinh()).to_string(),
                 "acosh" => func[i] = (func[i + 1].parse::<f64>().unwrap().acosh()).to_string(),
                 "atanh" => func[i] = (func[i + 1].parse::<f64>().unwrap().atanh()).to_string(),
-                "ln" => func[i] = (func[i + 1].parse::<f64>().unwrap().ln()).to_string(),
+                "ln" => func[i] = ln(arg1, arg2).to_string(),
                 "log" => func[i] = (func[i + 1].parse::<f64>().unwrap().log10()).to_string(),
-                "sqrt" => func[i] = (func[i + 1].parse::<f64>().unwrap().sqrt()).to_string(),
-                "abs" => func[i] = (func[i + 1].parse::<f64>().unwrap().abs()).to_string(),
+                "sqrt" => func[i] = pow(arg1, arg2, 0.5, 0.0).to_string(),
+                "abs" => func[i] = abs(arg1, arg2).to_string(),
                 "dg" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_degrees()).to_string(),
                 "rd" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_radians()).to_string(),
-                "cbrt" => func[i] = (func[i + 1].parse::<f64>().unwrap().cbrt()).to_string(),
+                "cbrt" => func[i] = pow(arg1, arg2, 1.0 / 3.0, 0.0).to_string(),
                 _ =>
                 {
                     continue;
@@ -295,14 +294,8 @@ fn do_math(func:Vec<String>) -> String
             func.remove(i - 1);
             continue;
         }
-        let first_im = func[i - 1].contains('i');
-        let second_im = func[i + 1].contains('i');
-        let mut a = 0.0;
-        let mut b = 0.0;
-        parse(&mut a, &mut b, first_im, &func[i - 1]);
-        let mut c = 0.0;
-        let mut d = 0.0;
-        parse(&mut c, &mut d, second_im, &func[i + 1]);
+        let (a, b) = parse(&func[i - 1]);
+        let (c, d) = parse(&func[i + 1]);
         func[i] = pow(a, b, c, d);
         func.remove(i + 1);
         func.remove(i - 1);
@@ -326,12 +319,8 @@ fn do_math(func:Vec<String>) -> String
         let second_im = func[i + 1].contains('i');
         if first_im || second_im
         {
-            let mut a = 0.0;
-            let mut b = 0.0;
-            parse(&mut a, &mut b, first_im, &func[i - 1]);
-            let mut c = 0.0;
-            let mut d = 0.0;
-            parse(&mut c, &mut d, second_im, &func[i + 1]);
+            let (a, b) = parse(&func[i - 1]);
+            let (c, d) = parse(&func[i + 1]);
             match func[i].as_str()
             {
                 "*" => func[i] = mul(a, b, c, d),
@@ -382,8 +371,9 @@ fn do_math(func:Vec<String>) -> String
     }
     func.join("")
 }
-fn parse(a:&mut f64, b:&mut f64, im:bool, num:&String)
+fn parse(num:&String) -> (f64, f64)
 {
+    let im = num.contains('i');
     let mut index = None;
     if let Some(i) = num.find('+')
     {
@@ -398,28 +388,27 @@ fn parse(a:&mut f64, b:&mut f64, im:bool, num:&String)
     }
     if let Some(i) = index
     {
-        *a = num[..i].parse::<f64>().unwrap();
-        *b = num[i..].replace('i', "").parse::<f64>().unwrap();
+        (num[..i].parse::<f64>().unwrap(), num[i..].replace('i', "").parse::<f64>().unwrap())
     }
     else if im
     {
-        *b = num[..num.len() - 1].parse::<f64>().unwrap();
+        (0.0, num[..num.len() - 1].parse::<f64>().unwrap())
     }
     else
     {
-        *a = num.parse::<f64>().unwrap();
+        (num.parse::<f64>().unwrap(), 0.0)
     }
 }
 fn mul(a:f64, b:f64, c:f64, d:f64) -> String
 {
-    //(a+bi)(c+di)=(ac-bd)+i(ad+bc)
+    // (a+bi)(c+di)=(ac-bd)+i(ad+bc)
     let im = (a * d + b * c).to_string();
     let sign = if im.contains('-') { "" } else { "+" };
     (a * c - b * d).to_string() + sign + im.as_str() + "i"
 }
 fn div(a:f64, b:f64, c:f64, d:f64) -> String
 {
-    //(a+bi)/(c+di)=(ac+bd)/(c^2+d^2)+i(bc-ad)/(c^2+d^2)
+    // (a+bi)/(c+di)=(ac+bd)/(c^2+d^2)+i(bc-ad)/(c^2+d^2)
     let im = b * c - a * d;
     let den = c * c + d * d;
     let sign = if im.to_string().contains('-') { "" } else { "+" };
@@ -427,7 +416,7 @@ fn div(a:f64, b:f64, c:f64, d:f64) -> String
 }
 fn pow(a:f64, b:f64, c:f64, d:f64) -> String
 {
-    //(a+bi)^(c+di)=e^((c+di)(ln(a^2+b^2)/2+i*atan2(b,a)))
+    // (a+bi)^(c+di)=e^((c+di)(ln(a^2+b^2)/2+i*atan2(b,a)))
     // re=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*cos(d*ln(a^2+b^2)/2+c*atan2(b,a))
     // im=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*sin(d*ln(a^2+b^2)/2+c*atan2(b,a))
     let e = std::f64::consts::E;
@@ -437,10 +426,34 @@ fn pow(a:f64, b:f64, c:f64, d:f64) -> String
     let sign = if im.to_string().contains('-') { "" } else { "+" };
     ((m * r.cos() * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
-// fn ln(a:f64, b:f64) -> String
-// {
-//     // ln(a+bi)=ln(a^2+b^2)/2+i*atan2(b,a)
-//     let i = b.atan2(a);
-//     let sign = if i.to_string().contains('-') { "" } else { "+" };
-//     (0.5 * (a * a + b * b).ln()).to_string() + sign + i.to_string().as_str() + "i"
-// }
+fn abs(a:f64, b:f64) -> String
+{
+    // abs(a+bi)=sqrt(a^2+b^2)
+    (a * a + b * b).sqrt().to_string()
+}
+fn ln(a:f64, b:f64) -> String
+{
+    // ln(a+bi)=ln(a^2+b^2)/2+i*atan2(b,a)
+    let i = b.atan2(a);
+    let sign = if i.to_string().contains('-') { "" } else { "+" };
+    (0.5 * (a * a + b * b).ln()).to_string() + sign + i.to_string().as_str() + "i"
+}
+fn sin(a:f64, b:f64) -> String
+{
+    // sin(a+bi)=sin(a)cosh(b)+i*cos(a)sinh(b)
+    let im = a.cos() * b.sinh();
+    let sign = if im.to_string().contains('-') { "" } else { "+" };
+    (a.sin() * b.cosh()).to_string() + sign + im.to_string().as_str() + "i"
+}
+fn cos(a:f64, b:f64) -> String
+{
+    // cos(a+bi)=cos(a)cosh(b)-i*sin(a)sinh(b)
+    let im = -a.sin() * b.sinh();
+    let sign = if im.to_string().contains('-') { "" } else { "+" };
+    (a.cos() * b.cosh()).to_string() + sign + im.to_string().as_str() + "i"
+}
+fn tan(a:f64, b:f64) -> String
+{
+    // tan(a+bi)=sin(a+bi)/cos(a+bi)
+    div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh())
+}

@@ -3,4 +3,5 @@ name = "calc"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
+num="*"
 #console = { version = "*", default-features = false }

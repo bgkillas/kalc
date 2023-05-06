@@ -22,17 +22,23 @@ fn main()
                         *i = (n as f64 / 10000.0).to_string();
                     }
                 }
-                let mut num = do_math(modified);
-                if num.parse::<f64>().is_ok()
-                {
-                    num = ((num.parse::<f64>().unwrap() * 1e9).round() / 1e9).to_string();
-                }
-                println!("{}:{}", n as f64 / 10000.0, num);
+                let num = do_math(modified);
+                let (a, b) = parse(&num);
+                let a = (a * 1e9).round() / 1e9;
+                let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
+                println!("{} {}{}",
+                         n as f64 / 10000.0,
+                         if a == 0.0 { "".to_string() } else { a.to_string() },
+                         if b == "-0i" || b == "+0i" { "".to_string() } else { b });
             }
             return;
         }
         start = Instant::now();
-        println!("{}", (do_math(func).parse::<f64>().unwrap() * 1e9).round() / 1e9);
+        let num = do_math(func);
+        let (a, b) = parse(&num);
+        let a = (a * 1e9).round() / 1e9;
+        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
+        println!("{}{}", if a == 0.0 { "".to_string() } else { a.to_string() }, if b == "-0i" || b == "+0i" { "".to_string() } else { b });
         println!("{}", start.elapsed().as_nanos());
         return;
     }
@@ -40,6 +46,8 @@ fn main()
     let mut input;
     loop
     {
+        print!("> ");
+        stdout().flush().unwrap();
         line = stdin().lock().lines().next();
         if line.as_ref().is_none()
         {
@@ -59,7 +67,7 @@ fn main()
         if input == "help"
         {
             println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
-            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log, abs, dg(to_degrees),rd(to_radians)");
+            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
             continue;
         }
         if input.is_empty()
@@ -67,12 +75,11 @@ fn main()
             continue;
         }
         start = Instant::now();
-        let mut num = do_math(get_func(input));
-        if num.parse::<f64>().is_ok()
-        {
-            num = ((num.parse::<f64>().unwrap() * 1e9).round() / 1e9).to_string();
-        }
-        println!("{}", num);
+        let num = do_math(get_func(input));
+        let (a, b) = parse(&num);
+        let a = (a * 1e9).round() / 1e9;
+        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
+        println!("{}{}", if a == 0.0 { "".to_string() } else { a.to_string() }, if b == "-0i" || b == "+0i" { "".to_string() } else { b });
         println!("{}", start.elapsed().as_nanos());
     }
 }
@@ -116,6 +123,10 @@ fn get_func(input:String) -> Vec<String>
             }
             else
             {
+                if word.is_empty()
+                {
+                    word = "1".to_string();
+                }
                 word.push(*c);
             }
         }
@@ -249,7 +260,7 @@ fn do_math(func:Vec<String>) -> String
     {
         if func[i].len() > 1 && func[i].chars().next().unwrap().is_ascii_alphabetic()
         {
-            let (arg1, arg2) = parse(&func[i + 1]);
+            let (arg1, arg2) = parse(&func[i + 1][if func[i + 1].contains(',') { func[i + 1].find(',').unwrap() + 1 } else { 0 }..].to_string());
             match func[i].as_str()
             {
                 "sin" => func[i] = sin(arg1, arg2).to_string(),
@@ -265,7 +276,18 @@ fn do_math(func:Vec<String>) -> String
                 "acosh" => func[i] = acosh(arg1, arg2).to_string(),
                 "atanh" => func[i] = atanh(arg1, arg2).to_string(),
                 "ln" => func[i] = ln(arg1, arg2).to_string(),
-                "log" => func[i] = log(10.0, arg1, arg2).to_string(),
+                "log" =>
+                {
+                    let (base_re, base_im) = if func[i + 1].contains(',')
+                    {
+                        parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string())
+                    }
+                    else
+                    {
+                        (10.0, 0.0)
+                    };
+                    func[i] = log(base_re, base_im, arg1, arg2).to_string()
+                }
                 "sqrt" => func[i] = pow(arg1, arg2, 0.5, 0.0).to_string(),
                 "abs" => func[i] = abs(arg1, arg2).to_string(),
                 "dg" => func[i] = arg1.to_degrees().to_string(),
@@ -486,12 +508,12 @@ fn tan(a:f64, b:f64) -> String
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
     div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh())
 }
-fn log(c:f64, a:f64, b:f64) -> String
+fn log(c:f64, d:f64, a:f64, b:f64) -> String
 {
     // log(c,a+bi)=ln(a+bi)/ln(c)
     let (a, b) = parse(&ln(a, b));
-    let (d, c) = parse(&ln(c, 0.0));
-    div(a, b, d, c)
+    let (c, d) = parse(&ln(c, d));
+    div(a, b, c, d)
 }
 fn asin(a:f64, b:f64) -> String
 {

@@ -1,11 +1,37 @@
 use std::env::args;
-use std::io::{BufRead, stdin, stdout, Write};
-use std::time::Instant;
+use std::io::{BufRead, BufReader, stdin, stdout, Write};
 use std::f64::consts::PI;
 use std::f64::consts::E;
+use console::{Key, Term};
+#[cfg(target_os = "linux")]
+use libc::{isatty, STDIN_FILENO};
+use std::fs::{File, OpenOptions};
+fn print_answer(func:Vec<String>)
+{
+    let num = do_math(func);
+    let (a, b) = parse(&num);
+    let a = (a * 1e9).round() / 1e9;
+    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
+    println!("{}{}", if a == 0.0 { "".to_string() } else { a.to_string() }, if b == "-0i" || b == "+0i" { "".to_string() } else { b });
+}
+fn read_single_char() -> char
+{
+    let term = Term::stdout();
+    let key = term.read_key().unwrap();
+    match key
+    {
+        Key::Char(c) => c,
+        Key::Enter => '\n',
+        Key::Backspace => '\x08',
+        Key::ArrowLeft => '\x1B',
+        Key::ArrowRight => '\x1C',
+        Key::ArrowUp => '\x1D',
+        Key::ArrowDown => '\x1E',
+        _ => read_single_char(),
+    }
+}
 fn main()
 {
-    let mut start;
     if args().len() > 1
     {
         let func = get_func(args().nth(1).unwrap());
@@ -33,27 +59,91 @@ fn main()
             }
             return;
         }
-        start = Instant::now();
-        let num = do_math(func);
-        let (a, b) = parse(&num);
-        let a = (a * 1e9).round() / 1e9;
-        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
-        println!("{}{}", if a == 0.0 { "".to_string() } else { a.to_string() }, if b == "-0i" || b == "+0i" { "".to_string() } else { b });
-        println!("{}", start.elapsed().as_nanos());
+        print_answer(func);
         return;
     }
-    let mut line;
-    let mut input;
+    let line;
+    let mut input = String::new();
+    #[cfg(target_os = "linux")]
+    if !unsafe { isatty(STDIN_FILENO) != 0 }
+    {
+        line = stdin().lock().lines().next();
+        if line.as_ref().is_none()
+        {
+            return;
+        }
+        input = line.unwrap().unwrap();
+        if input.is_empty()
+        {
+            return;
+        }
+        print_answer(get_func(input));
+        return;
+    }
+    #[cfg(target_os = "linux")]
+    let file_path = "/home/.config/calc.history";
+    #[cfg(target_os = "windows")]
+    let file_path = "C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history";
+    if File::open(file_path).is_err()
+    {
+        File::create(file_path).unwrap();
+    }
     loop
     {
         print!("> ");
         stdout().flush().unwrap();
-        line = stdin().lock().lines().next();
-        if line.as_ref().is_none()
+        let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;
+        let max = i;
+        loop
         {
-            break;
+            let c = read_single_char();
+            match c
+            {
+                '\n' =>
+                {
+                    println!();
+                    break;
+                }
+                '\x08' | '\x1B' =>
+                {
+                    input.pop();
+                    print!("\x08 \x08");
+                }
+                '\x1D' =>
+                {
+                    i -= 1;
+                    input.clear();
+                    if i == -1
+                    {
+                        i = 0;
+                        continue;
+                    }
+                    input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
+                    print!("\x1B[2K\x1B[1G> {}", input);
+                }
+                '\x1E' =>
+                {
+                    i += 1;
+                    input.clear();
+                    if i >= max
+                    {
+                        print!("\x1B[2K\x1B[1G> ");
+                        stdout().flush().unwrap();
+                        i -= 1;
+                        continue;
+                    }
+                    input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
+                    print!("\x1B[2K\x1B[1G> {}", input);
+                }
+                '\x1C' => print!("\x1b[1C"),
+                _ =>
+                {
+                    input.push(c);
+                    print!("{}", c);
+                }
+            }
+            stdout().flush().unwrap();
         }
-        input = line.unwrap().unwrap();
         if input == "exit"
         {
             break;
@@ -74,13 +164,10 @@ fn main()
         {
             continue;
         }
-        start = Instant::now();
-        let num = do_math(get_func(input));
-        let (a, b) = parse(&num);
-        let a = (a * 1e9).round() / 1e9;
-        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
-        println!("{}{}", if a == 0.0 { "".to_string() } else { a.to_string() }, if b == "-0i" || b == "+0i" { "".to_string() } else { b });
-        println!("{}", start.elapsed().as_nanos());
+        print_answer(get_func(input.clone()));
+        let mut file = OpenOptions::new().append(true).open(file_path).expect("Failed to open file");
+        file.write_all(input.as_bytes()).expect("Failed to write to file");
+        file.write_all(b"\n").expect("Failed to write to file");
     }
 }
 fn get_func(input:String) -> Vec<String>

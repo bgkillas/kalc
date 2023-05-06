@@ -78,6 +78,10 @@ pub fn ln(a:f64, b:f64) -> String
 pub fn sin(a:f64, b:f64) -> String
 {
     // sin(a+bi)=sin(a)cosh(b)+i*cos(a)sinh(b)
+    if b == 0.0
+    {
+        return a.sin().to_string();
+    }
     let im = a.cos() * b.sinh();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
     (a.sin() * b.cosh()).to_string() + sign + im.to_string().as_str() + "i"
@@ -85,6 +89,10 @@ pub fn sin(a:f64, b:f64) -> String
 pub fn cos(a:f64, b:f64) -> String
 {
     // cos(a+bi)=cos(a)cosh(b)-i*sin(a)sinh(b)
+    if b == 0.0
+    {
+        return a.cos().to_string();
+    }
     let im = -a.sin() * b.sinh();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
     (a.cos() * b.cosh()).to_string() + sign + im.to_string().as_str() + "i"
@@ -92,6 +100,10 @@ pub fn cos(a:f64, b:f64) -> String
 pub fn tan(a:f64, b:f64) -> String
 {
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
+    if b == 0.0
+    {
+        return (a.tan()).to_string();
+    }
     div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh())
 }
 pub fn log(c:f64, d:f64, a:f64, b:f64) -> String
@@ -103,21 +115,38 @@ pub fn log(c:f64, d:f64, a:f64, b:f64) -> String
 }
 pub fn asin(a:f64, b:f64) -> String
 {
-    // asin(a+bi)=i*asinh(-i(a+bi))
-    let (a, b) = parse(&asinh(b, -a));
-    let sign = if a.to_string().contains('-') { "" } else { "+" };
-    ((b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
+    // asin(a+bi)=-i*ln(i(a+bi)+sqrt(1-(a+bi)^2))
+    if b == 0.0
+    {
+        // asin(a)=-i*ln(sqrt(1-a^2)+ai)
+        let (d, c) = parse(&pow(1.0 - a * a, 0.0, 0.5, 0.0));
+        let (e, f) = parse(&add(d, c, 0.0, a));
+        let (x, y) = parse(&ln(e, f));
+        let (a, b) = parse(&mul(0.0, -1.0, x, y));
+        let sign = if b.to_string().contains('-') { "" } else { "+" };
+        return ((a * 1e15).round() / 1e15).to_string() + sign + ((b * 1e15).round() / 1e15).to_string().as_str() + "i";
+    }
+    let (c, d) = parse(&pow(1.0 - a * a + b * b, -2.0 * a * b, 0.5, 0.0));
+    let (a, b) = parse(&add(-b, a, c, d));
+    let (a, b) = parse(&ln(a, b));
+    let (a, b) = parse(&mul(a, b, 0.0, -1.0));
+    let sign = if b.to_string().contains('-') { "" } else { "+" };
+    ((a * 1e15).round() / 1e15).to_string() + sign + ((b * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn acos(a:f64, b:f64) -> String
 {
-    // acos(a+bi)=pi/2+i*asinh(i(a+bi))
-    let (a, b) = parse(&asinh(-b, a));
-    let sign = if a.to_string().contains('-') { "" } else { "+" };
-    (((-b + std::f64::consts::PI / 2.0) * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
+    // acos(a+bi)=pi/2-asin(a+bi)
+    let (a, b) = parse(&asin(a, b));
+    let sign = if !b.to_string().contains('-') { "" } else { "+" };
+    (((std::f64::consts::PI / 2.0 - a) * 1e15).round() / 1e15).to_string() + sign + ((-b * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn atan(a:f64, b:f64) -> String
 {
     // atan(a+bi)=i*atanh(-i(a+bi))
+    if b == 0.0
+    {
+        return (a.atan()).to_string();
+    }
     let (a, b) = parse(&atanh(b, -a));
     let sign = if a.to_string().contains('-') { "" } else { "+" };
     ((-b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
@@ -125,6 +154,10 @@ pub fn atan(a:f64, b:f64) -> String
 pub fn sinh(a:f64, b:f64) -> String
 {
     // sinh(a+bi)=sinh(a)cos(b)+i*cosh(a)sin(b)
+    if b == 0.0
+    {
+        return (a.sinh()).to_string();
+    }
     let im = a.cosh() * b.sin();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
     (a.sinh() * b.cos()).to_string() + sign + im.to_string().as_str() + "i"
@@ -132,6 +165,10 @@ pub fn sinh(a:f64, b:f64) -> String
 pub fn cosh(a:f64, b:f64) -> String
 {
     // cosh(a+bi)=cosh(a)cos(b)+i*sinh(a)sin(b)
+    if b == 0.0
+    {
+        return (a.cosh()).to_string();
+    }
     let im = a.sinh() * b.sin();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
     (a.cosh() * b.cos()).to_string() + sign + im.to_string().as_str() + "i"
@@ -139,12 +176,27 @@ pub fn cosh(a:f64, b:f64) -> String
 pub fn tanh(a:f64, b:f64) -> String
 {
     // tanh(a+bi)=sinh(a+bi)/cosh(a+bi)
+    if b == 0.0
+    {
+        return (a.tanh()).to_string();
+    }
     div(a.sinh() * b.cos(), a.cosh() * b.sin(), a.cosh() * b.cos(), a.sinh() * b.sin())
 }
 pub fn asinh(a:f64, b:f64) -> String
 {
     // asinh(a+bi)=ln(sqrt(a^2+b^2)+a+bi)
-    let (c, d) = parse(&pow(a * a - b * b + 1.0, 2.0 * a * b, 0.5, 0.0));
+    if b == 0.0
+    {
+        return (a.asinh()).to_string();
+    }
+    if a == 0.0
+    {
+        let (a, b) = parse(&asin(b, 0.0));
+        let sign = if a.to_string().contains('-') { "" } else { "+" };
+        return ((-b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i";
+    }
+    let (e, f) = parse(&pow(a, b, 2.0, 0.0));
+    let (c, d) = parse(&pow(e, (f * 1e10).round() / 1e10, 0.5, 0.0));
     let (a, b) = parse(&add(c, d, a, b));
     let (re, im) = parse(&ln(a, b));
     let sign = if im.to_string().contains('-') { "" } else { "+" };

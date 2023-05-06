@@ -1,10 +1,12 @@
 mod complex;
 use complex::{parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh};
 use std::env::args;
-use std::io::{BufRead, BufReader, stdin, stdout, Write};
+use std::io::{BufRead, BufReader, stdout, Write};
 use std::f64::consts::PI;
 use std::f64::consts::E;
 use console::{Key, Term};
+#[cfg(target_os = "linux")]
+use std::io::stdin;
 #[cfg(target_os = "linux")]
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};

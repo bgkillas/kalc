@@ -268,8 +268,8 @@ fn do_math(func:Vec<String>) -> String
                 "log" => func[i] = log(10.0, arg1, arg2).to_string(),
                 "sqrt" => func[i] = pow(arg1, arg2, 0.5, 0.0).to_string(),
                 "abs" => func[i] = abs(arg1, arg2).to_string(),
-                "dg" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_degrees()).to_string(),
-                "rd" => func[i] = (func[i + 1].parse::<f64>().unwrap().to_radians()).to_string(),
+                "dg" => func[i] = arg1.to_degrees().to_string(),
+                "rd" => func[i] = arg1.to_radians().to_string(),
                 "cbrt" => func[i] = pow(arg1, arg2, 1.0 / 3.0, 0.0).to_string(),
                 _ =>
                 {

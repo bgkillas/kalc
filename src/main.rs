@@ -12,7 +12,9 @@ fn print_answer(func:Vec<String>)
     let (a, b) = parse(&num);
     let a = (a * 1e9).round() / 1e9;
     let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
-    println!("{}{}", if a == 0.0 { "".to_string() } else { a.to_string() }, if b == "-0i" || b == "+0i" { "".to_string() } else { b });
+    println!("{}{}",
+             if a == 0.0 && !(b == "-0i" || b == "+0i" || b == "0i") { "".to_string() } else { a.to_string() },
+             if b == "-0i" || b == "+0i" || b == "0i" { "".to_string() } else { b });
 }
 fn read_single_char() -> char
 {
@@ -81,15 +83,17 @@ fn main()
         return;
     }
     #[cfg(target_os = "linux")]
-    let file_path = "/home/.config/calc.history";
+    let file_path:&str = &(std::env::var_os("HOME").unwrap().to_str().unwrap().to_owned() + "/.config/calc.history");
     #[cfg(target_os = "windows")]
     let file_path = "C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history";
     if File::open(file_path).is_err()
     {
         File::create(file_path).unwrap();
     }
+    let mut var:Vec<Vec<char>> = Vec::new();
     loop
     {
+        input.clear();
         print!("> ");
         stdout().flush().unwrap();
         let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;
@@ -144,6 +148,22 @@ fn main()
             }
             stdout().flush().unwrap();
         }
+        if input.contains('=')
+        {
+            for i in 0..var.len()
+            {
+                if var[i][0] == input.chars().next().unwrap()
+                {
+                    var.remove(i);
+                    break;
+                }
+            }
+            var.push(input.chars().collect());
+            let mut file = OpenOptions::new().append(true).open(file_path).expect("Failed to open file");
+            file.write_all(input.as_bytes()).expect("Failed to write to file");
+            file.write_all(b"\n").expect("Failed to write to file");
+            continue;
+        }
         if input == "exit"
         {
             break;
@@ -164,9 +184,23 @@ fn main()
         {
             continue;
         }
+        let unmodified = input.clone();
+        for i in &var
+        {
+            input = input.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
+                                  &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
+        }
+        if input.contains('x') || input.contains('y')
+        {
+            println!("{}", input);
+            let mut file = OpenOptions::new().append(true).open(file_path).expect("Failed to open file");
+            file.write_all(input.as_bytes()).expect("Failed to write to file");
+            file.write_all(b"\n").expect("Failed to write to file");
+            continue;
+        }
         print_answer(get_func(input.clone()));
         let mut file = OpenOptions::new().append(true).open(file_path).expect("Failed to open file");
-        file.write_all(input.as_bytes()).expect("Failed to write to file");
+        file.write_all(unmodified.as_bytes()).expect("Failed to write to file");
         file.write_all(b"\n").expect("Failed to write to file");
     }
 }
@@ -558,6 +592,10 @@ fn pow(a:f64, b:f64, c:f64, d:f64) -> String
     // (a+bi)^(c+di)=e^((c+di)(ln(a^2+b^2)/2+i*atan2(b,a)))
     // re=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*cos(d*ln(a^2+b^2)/2+c*atan2(b,a))
     // im=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*sin(d*ln(a^2+b^2)/2+c*atan2(b,a))
+    if b == 0.0 && d == 0.0 && c.fract() == 0.0
+    {
+        return (a.powf(c)).to_string();
+    }
     let r = c * (b.atan2(a)) + d * (0.5 * (a * a + b * b).ln());
     let m = E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
     let im = m * r.sin();

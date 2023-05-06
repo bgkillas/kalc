@@ -145,10 +145,15 @@ pub fn get_func(input:String) -> Vec<String>
         func.clear();
         func.push("0".to_string());
     }
+    let first = func.first().unwrap().chars().next().unwrap();
+    if first == '*' || first == '/' || first == '+' || first == '-' || first == '^'
+    {
+        func.insert(0, "1".to_string());
+    }
     let last = func.last().unwrap().chars().last().unwrap();
     if last == '*' || last == '/' || last == '+' || last == '-' || last == '^' || last.is_ascii_alphabetic()
     {
-        func.push("0".to_string());
+        func.push("1".to_string());
     }
     if last == 'x' || last == 'y' || last == 'i'
     {

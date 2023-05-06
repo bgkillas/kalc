@@ -4,7 +4,7 @@ mod parse;
 use parse::get_func;
 use complex::parse;
 use math::do_math;
-use std::env::args;
+use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};
 use console::{Key, Term};
 #[cfg(target_os = "linux")]
@@ -48,6 +48,12 @@ fn main()
 {
     if args().len() > 1
     {
+        if args().nth(1).unwrap() == "--help"
+        {
+            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
+            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
+            return;
+        }
         let func = get_func(args().nth(1).unwrap());
         if func.contains(&"x".to_string())
         {
@@ -116,9 +122,9 @@ fn main()
         return;
     }
     #[cfg(target_os = "linux")]
-    let file_path:&str = &(std::env::var_os("HOME").unwrap().to_str().unwrap().to_owned() + "/.config/calc.history");
+    let file_path = &(var("HOME").unwrap() + "/.config/calc.history");
     #[cfg(target_os = "windows")]
-    let file_path = "C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history";
+    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\calc.history", var("USERNAME").unwrap());
     if File::open(file_path).is_err()
     {
         File::create(file_path).unwrap();

@@ -11,6 +11,8 @@ a fast rust calculator that supports the following functions in the complex plan
 
 ``dg(to_degrees),rd(to_radians)``
 
+constants: ``pi, e``
+
 history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
 
 # usage

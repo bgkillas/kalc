@@ -24,7 +24,6 @@ fn main()
             return;
         }
         let func = get_func(&args().nth(1).unwrap(), true);
-        let mut data = Vec::new();
         if func.contains(&"x".to_string())
         {
             let mut modified:Vec<String>;
@@ -52,29 +51,7 @@ fn main()
                 }
                 return;
             }
-            for n in -50000..=50000
-            {
-                modified = func.iter().map(|i| i.replace('x', &(n as f64 / 5000.0).to_string())).collect();
-                let num = match do_math(modified)
-                {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("0");
-                        continue;
-                    }
-                };
-                let (a, b) = parse(&num);
-                data.push([n as f64 / 5000.0, a, b]);
-                // println!("{} {} {}", n as f64 / 10000.0, a, b);
-            }
-            let mut fg = Figure::new();
-            fg.axes2d()
-              .set_y_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
-              .set_x_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
-              .points(data.iter().map(|x| x[0]), data.iter().map(|x| x[1]), &[Caption("real"), PointSymbol('.')])
-              .points(data.iter().map(|x| x[0]), data.iter().map(|x| x[2]), &[Caption("imag"), PointSymbol('.')]);
-            fg.show().unwrap();
+            graph(&func);
             return;
         }
         print_answer(func);
@@ -210,6 +187,14 @@ fn main()
             }
             stdout().flush().unwrap();
         }
+        if !input.contains('=') && input.contains('x') && var.iter().all(|i| i[0] != 'x')
+        {
+            print!("\x1b[2K\x1b[1G");
+            stdout().flush().unwrap();
+            graph(&get_func(&input, true));
+            write_history(&input, file_path);
+            continue;
+        }
         if input.contains('=')
         {
             print!("\x1B[2K\x1B[1G");
@@ -336,4 +321,41 @@ fn read_single_char() -> char
         Key::ArrowDown => '\x1E',
         _ => read_single_char(),
     }
+}
+fn graph(func:&[String])
+{
+    let mut re = Vec::new();
+    let mut im = Vec::new();
+    for n in -50000..=50000
+    {
+        let modified = func.iter().map(|i| i.replace('x', &(n as f64 / 5000.0).to_string())).collect();
+        let num = match do_math(modified)
+        {
+            Ok(n) => n,
+            Err(_) =>
+            {
+                println!("0");
+                continue;
+            }
+        };
+        let (a, b) = parse(&num);
+        let a = (a * 1e9).round() / 1e9;
+        let b = (b * 1e9).round() / 1e9;
+        if a != 0.0
+        {
+            re.push([n as f64 / 5000.0, a]);
+        }
+        if b != 0.0
+        {
+            im.push([n as f64 / 5000.0, b]);
+        }
+        // println!("{} {} {}", n as f64 / 10000.0, a, b);
+    }
+    let mut fg = Figure::new();
+    fg.axes2d()
+      .set_y_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
+      .set_x_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
+      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[Caption("real"), PointSymbol('.')])
+      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[Caption("imag"), PointSymbol('.')]);
+    fg.show().unwrap();
 }

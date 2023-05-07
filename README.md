@@ -26,7 +26,7 @@ echo 1+1 | calc
 ```
 ```
 calc x^2
-gives graph data for x^2 from -10 to 10
+graphs x^2
 ```
 ```
 calc x^y
@@ -37,4 +37,9 @@ calc
 > x=4
 > x^2
 16
+```
+```
+calc
+> x^2
+graphs x^2
 ```

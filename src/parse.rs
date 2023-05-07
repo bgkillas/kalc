@@ -169,6 +169,10 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             }
         }
     }
+    if func.is_empty()
+    {
+        return vec!["0".to_string()];
+    }
     let first = func.first().unwrap().to_string();
     if first == "*" || first == "/" || first == "^" || first == "-"
     {

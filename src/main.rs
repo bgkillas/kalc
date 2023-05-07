@@ -17,10 +17,10 @@ fn print_answer(func:Vec<String>)
     let num = do_math(func);
     let (a, b) = parse(&num);
     let a = (a * 1e9).round() / 1e9;
-    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
+    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "\x1b[93mi";
     println!("{}{}",
-             if a == 0.0 && !(b == "-0i" || b == "+0i" || b == "0i") { "".to_string() } else { a.to_string() },
-             if b == "-0i" || b == "+0i" || b == "0i" { "".to_string() } else { b });
+             if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
+             if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
 }
 fn write_history(input:&str, file_path:&str)
 {
@@ -143,7 +143,7 @@ fn main()
     loop
     {
         input.clear();
-        let fg = "\x1b[38;2;108;149;235m";
+        let fg = "\x1b[96m";
         print!("{fg}");
         stdout().flush().unwrap();
         let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;

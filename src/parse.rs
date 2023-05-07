@@ -8,14 +8,14 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
     {
         if *c == 'x' || *c == 'y'
         {
+            if !word.is_empty()
+            {
+                func.push(word.clone());
+            }
+            word.clear();
             if i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == 'x' || chars[i - 1] == 'y')
             {
-                if !word.is_empty()
-                {
-                    func.push(word.clone());
-                }
                 func.push("*".to_string());
-                word.clear();
             }
             func.push(c.to_string());
         }
@@ -41,7 +41,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             }
             else
             {
-                if func.last().unwrap() == "x" || func.last().unwrap() == "y"
+                if !func.is_empty() && (func.last().unwrap() == "x" || func.last().unwrap() == "y")
                 {
                     func.push("*".to_string());
                 }
@@ -169,12 +169,12 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             }
         }
     }
-    let first = func.first().unwrap().chars().next().unwrap();
-    if first == '*' || first == '/' || (first == '-' && func[0] != "-1") || first == '^'
+    let first = func.first().unwrap().to_string();
+    if first == "*" || first == "/" || first == "^" || first == "-"
     {
         func.insert(0, "0".to_string());
     }
-    if first == '+'
+    if first == "+"
     {
         func.remove(0);
     }

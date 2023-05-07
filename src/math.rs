@@ -1,5 +1,5 @@
 use crate::complex::{parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh};
-pub fn do_math(func:Vec<String>) -> Result<String, u8>
+pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
     let mut func = func;
     let mut i = 0;
@@ -22,7 +22,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, u8>
             }
             if i + 1 == j - 1
             {
-                return Err(1);
+                return Err(());
             }
             func[i] = match do_math(func[i + 1..j - 1].to_vec())
                       {
@@ -139,8 +139,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, u8>
         }
         match func[i].as_str()
         {
-            "*" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? * func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
-            "/" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? / func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
+            "*" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? * func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
+            "/" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? / func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
             _ =>
             {
                 i += 1;
@@ -190,8 +190,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, u8>
         }
         match func[i].as_str()
         {
-            "+" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? + func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
-            "-" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? - func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
+            "+" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? + func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
+            "-" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? - func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
             _ =>
             {
                 i += 1;

@@ -17,9 +17,9 @@ fn print_answer(func:Vec<String>)
     let num = match do_math(func)
     {
         Ok(num) => num,
-        Err(e) =>
+        Err(_) =>
         {
-            println!("\x1b[91m{}\x1b[0m", e);
+            println!("\x1b[91m0\x1b[0m");
             return;
         }
     };
@@ -112,9 +112,9 @@ fn main()
                         let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / 10.0).to_string())).collect())
                         {
                             Ok(n) => n,
-                            Err(e) =>
+                            Err(_) =>
                             {
-                                println!("{}", e);
+                                println!("0");
                                 continue;
                             }
                         };
@@ -132,9 +132,9 @@ fn main()
                 let num = match do_math(modified)
                 {
                     Ok(n) => n,
-                    Err(e) =>
+                    Err(_) =>
                     {
-                        println!("{}", e);
+                        println!("0");
                         continue;
                     }
                 };

@@ -56,4 +56,3 @@ calc
 > x^y
 graphs x^y
 ```
-```

@@ -178,7 +178,26 @@ fn main()
             }
             stdout().flush().unwrap();
         }
-        #[cfg(target_os = "linux")]
+        if input == "exit"
+        {
+            break;
+        }
+        if input == "clear"
+        {
+            print!("\x1B[2J\x1B[1;1H");
+            stdout().flush().unwrap();
+            continue;
+        }
+        if input == "help"
+        {
+            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
+            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
+            continue;
+        }
+        if input.is_empty()
+        {
+            continue;
+        }
         if !input.contains('=') && input.contains('x') && var.iter().all(|i| i[0] != 'x')
         {
             print!("\x1b[2K\x1b[1G");
@@ -205,26 +224,6 @@ fn main()
             }
             var.push(input.chars().collect());
             write_history(&input, file_path);
-            continue;
-        }
-        if input == "exit"
-        {
-            break;
-        }
-        if input == "clear"
-        {
-            print!("\x1B[2J\x1B[1;1H");
-            stdout().flush().unwrap();
-            continue;
-        }
-        if input == "help"
-        {
-            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
-            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
-            continue;
-        }
-        if input.is_empty()
-        {
             continue;
         }
         let unmodified = input.clone();

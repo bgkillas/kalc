@@ -1,4 +1,6 @@
 # calc
+requires gnuplot for graphing
+
 a fast rust calculator that supports the following functions in the complex plane
 
 ``+,-,*,/,^,``

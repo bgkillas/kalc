@@ -12,7 +12,6 @@ use std::io::stdin;
 #[cfg(target_os = "linux")]
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
-#[cfg(target_os = "linux")]
 use gnuplot::{AxesCommon, Caption, Figure, PointSymbol};
 fn main()
 {
@@ -25,7 +24,6 @@ fn main()
             return;
         }
         let func = get_func(&args().nth(1).unwrap(), true);
-        #[cfg(target_os = "linux")]
         if func.contains(&"x".to_string())
         {
             if func.contains(&"y".to_string())
@@ -321,7 +319,6 @@ fn read_single_char() -> char
         _ => read_single_char(),
     }
 }
-#[cfg(target_os = "linux")]
 fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
 {
     let mut fg = Figure::new();

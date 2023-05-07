@@ -25,35 +25,28 @@ fn main()
             return;
         }
         let func = get_func(&args().nth(1).unwrap(), true);
+        #[cfg(target_os = "linux")]
         if func.contains(&"x".to_string())
         {
-            let mut modified:Vec<String>;
             if func.contains(&"y".to_string())
             {
-                for n in -100..=100
+                let mut re3d = true;
+                let mut im3d = true;
+                for i in 2..args().len()
                 {
-                    modified = func.iter().map(|i| i.replace('x', &(n as f64 / 10.0).to_string())).collect();
-                    for g in -100..=100
+                    if args().nth(i).unwrap() == "--nore"
                     {
-                        let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / 10.0).to_string())).collect())
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("0");
-                                continue;
-                            }
-                        };
-                        let (a, b) = parse(&num);
-                        let a = (a * 1e9).round() / 1e9;
-                        let b = ((b * 1e9).round() / 1e9).to_string() + "i";
-                        println!("{} {} {} {}", n as f64 / 10.0, g as f64 / 10.0, a, b);
+                        re3d = false;
+                    }
+                    if args().nth(i).unwrap() == "--noim"
+                    {
+                        im3d = false;
                     }
                 }
+                graph(&func, true, im3d, re3d);
                 return;
             }
-            #[cfg(target_os = "linux")]
-            graph(&func);
+            graph(&func, false, true, false);
             return;
         }
         print_answer(func);
@@ -89,7 +82,6 @@ fn main()
     {
         input.clear();
         let fg = "\x1b[96m";
-        print!("{fg}");
         stdout().flush().unwrap();
         let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;
         let max = i;
@@ -101,7 +93,7 @@ fn main()
             {
                 '\n' =>
                 {
-                    println!("\x1b[0m");
+                    println!();
                     break;
                 }
                 '\x08' =>
@@ -138,7 +130,7 @@ fn main()
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
                     cursor = input.len();
                     print_concurrent(&input, var.clone(), false);
-                    print!("\x1B[2K\x1B[1G{fg}{}", input);
+                    print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
                 {
@@ -146,7 +138,7 @@ fn main()
                     input.clear();
                     if i >= max
                     {
-                        print!("\x1B[2K\x1B[1G{fg}");
+                        print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
                         stdout().flush().unwrap();
                         i = max;
                         cursor = 0;
@@ -155,7 +147,7 @@ fn main()
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
                     cursor = input.len();
                     print_concurrent(&input, var.clone(), false);
-                    print!("\x1B[2K\x1B[1G{fg}{}", input);
+                    print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
                 {
@@ -177,7 +169,6 @@ fn main()
                 }
                 _ =>
                 {
-                    //"\x1b[B"
                     input.insert(cursor, c);
                     cursor += 1;
                     print_concurrent(&input, var.clone(), false);
@@ -194,8 +185,13 @@ fn main()
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            graph(&get_func(&input, true));
             write_history(&input, file_path);
+            if input.contains('y')
+            {
+                graph(&get_func(&input, true), true, true, true);
+                continue;
+            }
+            graph(&get_func(&input, true), false, false, false);
             continue;
         }
         if input.contains('=')
@@ -286,11 +282,11 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
     }
     if !del
     {
-        print!("\x1b[96m\x1B[2K\x1B[1G{}", input);
+        print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
     }
     else
     {
-        print!("\x1b[96m\x1B[2K\x1B[1G");
+        print!("\x1B[2K\x1B[1G");
     }
 }
 fn write_history(input:&str, file_path:&str)
@@ -326,8 +322,58 @@ fn read_single_char() -> char
     }
 }
 #[cfg(target_os = "linux")]
-fn graph(func:&[String])
+fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
 {
+    let mut fg = Figure::new();
+    if graph
+    {
+        let mut re = Vec::new();
+        let mut im = Vec::new();
+        let amount = 200;
+        for n in -amount..=amount
+        {
+            let modified:Vec<String> = func.iter().map(|i| i.replace('x', &(n as f64 / (amount as f64 / 10.0)).to_string())).collect();
+            for g in -amount..=amount
+            {
+                let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / (amount as f64 / 10.0)).to_string())).collect())
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("0");
+                        continue;
+                    }
+                };
+                let (a, b) = parse(&num);
+                let a = (a * 1e9).round() / 1e9;
+                let b = (b * 1e9).round() / 1e9;
+                if a != 0.0
+                {
+                    re.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), a]);
+                }
+                if b != 0.0
+                {
+                    im.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), b]);
+                }
+            }
+        }
+        if re3d && im3d
+        {
+            fg.axes3d()
+              .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
+              .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
+        }
+        else if re3d
+        {
+            fg.axes3d().points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
+        }
+        else if im3d
+        {
+            fg.axes3d().points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
+        }
+        fg.show().unwrap();
+        return;
+    }
     let mut re = Vec::new();
     let mut im = Vec::new();
     for n in -50000..=50000
@@ -353,9 +399,7 @@ fn graph(func:&[String])
         {
             im.push([n as f64 / 5000.0, b]);
         }
-        // println!("{} {} {}", n as f64 / 10000.0, a, b);
     }
-    let mut fg = Figure::new();
     fg.axes2d()
       .set_y_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
       .set_x_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))

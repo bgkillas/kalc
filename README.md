@@ -30,7 +30,15 @@ graphs x^2
 ```
 ```
 calc x^y
-gives graph data for x^y from x=-10..10 and y=-10..10
+graphs x^y
+```
+```
+calc x^y --nore
+displays the amiginary part of x^y
+```
+```
+calc x^y --noim
+displays the real part of x^y
 ```
 ```
 calc
@@ -42,4 +50,10 @@ calc
 calc
 > x^2
 graphs x^2
+```
+```
+calc
+> x^y
+graphs x^y
+```
 ```

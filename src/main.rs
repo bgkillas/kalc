@@ -12,6 +12,7 @@ use std::io::stdin;
 #[cfg(target_os = "linux")]
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
+#[cfg(target_os = "linux")]
 use gnuplot::{AxesCommon, Caption, Figure, PointSymbol};
 fn main()
 {
@@ -51,6 +52,7 @@ fn main()
                 }
                 return;
             }
+            #[cfg(target_os = "linux")]
             graph(&func);
             return;
         }
@@ -187,6 +189,7 @@ fn main()
             }
             stdout().flush().unwrap();
         }
+        #[cfg(target_os = "linux")]
         if !input.contains('=') && input.contains('x') && var.iter().all(|i| i[0] != 'x')
         {
             print!("\x1b[2K\x1b[1G");
@@ -322,6 +325,7 @@ fn read_single_char() -> char
         _ => read_single_char(),
     }
 }
+#[cfg(target_os = "linux")]
 fn graph(func:&[String])
 {
     let mut re = Vec::new();

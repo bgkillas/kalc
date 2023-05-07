@@ -3,8 +3,7 @@ name = "calc"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
-sdl2="*"
-vulkano="*"
+gnuplot="*"
 console = { version = "*", default-features = false }
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = { version = "*", default-features = false }

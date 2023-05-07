@@ -12,12 +12,7 @@ use std::io::stdin;
 #[cfg(target_os = "linux")]
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
-use sdl2::pixels::Color;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use std::time::Duration;
-use sdl2::rect::{Point, Rect};
-use sdl2::mouse::MouseButton;
+use gnuplot::{AxesCommon, Caption, Figure, PointSymbol};
 fn main()
 {
     if args().len() > 1
@@ -57,9 +52,9 @@ fn main()
                 }
                 return;
             }
-            for n in -100000..=100000
+            for n in -50000..=50000
             {
-                modified = func.iter().map(|i| i.replace('x', &(n as f64 / 10000.0).to_string())).collect();
+                modified = func.iter().map(|i| i.replace('x', &(n as f64 / 5000.0).to_string())).collect();
                 let num = match do_math(modified)
                 {
                     Ok(n) => n,
@@ -70,10 +65,16 @@ fn main()
                     }
                 };
                 let (a, b) = parse(&num);
-                data.push([n as f64 / 10000.0, a, b]);
+                data.push([n as f64 / 5000.0, a, b]);
                 // println!("{} {} {}", n as f64 / 10000.0, a, b);
             }
-            graph2d(data);
+            let mut fg = Figure::new();
+            fg.axes2d()
+              .set_y_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
+              .set_x_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
+              .points(data.iter().map(|x| x[0]), data.iter().map(|x| x[1]), &[Caption("real"), PointSymbol('.')])
+              .points(data.iter().map(|x| x[0]), data.iter().map(|x| x[2]), &[Caption("imag"), PointSymbol('.')]);
+            fg.show().unwrap();
             return;
         }
         print_answer(func);
@@ -259,121 +260,6 @@ fn main()
         write_history(&unmodified, file_path);
         println!();
     }
-}
-fn graph2d(data:Vec<[f64; 3]>)
-{
-    let sdl_context = sdl2::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let window = video_subsystem.window("graph", 1920, 1080).position_centered().build().unwrap();
-    let mut canvas = window.into_canvas().build().unwrap();
-    canvas.set_draw_color(Color::RGB(255, 255, 255));
-    canvas.clear();
-    canvas.present();
-    let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut is_zooming = false;
-    let mut zoom_rect:Option<Rect> = None;
-    let mut zoom_factor = 1.0;
-    let mut offset = (0.0, 0.0);
-    'running: loop
-    {
-        canvas.clear();
-        for event in event_pump.poll_iter()
-        {
-            match event
-            {
-                Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
-                Event::MouseButtonDown { mouse_btn: MouseButton::Right, x, y, .. } =>
-                {
-                    is_zooming = true;
-                    zoom_rect = Some(Rect::new(x, y, 0, 0));
-                }
-                Event::MouseButtonUp { mouse_btn: MouseButton::Right, .. } =>
-                {
-                    is_zooming = false;
-                    if zoom_rect.is_none()
-                    {
-                        continue;
-                    }
-                    let rect = zoom_rect.unwrap();
-                    let x = rect.x() as f64 * zoom_factor - 1920.0 / 2.0;
-                    let y = rect.y() as f64 * zoom_factor - 1080.0 / 2.0;
-                    let w = rect.width() as f64 * zoom_factor;
-                    let h = rect.height() as f64 * zoom_factor;
-                    let new_center = (x + w / 2.0, y + h / 2.0);
-                    zoom_factor *= 1920.0 / w;
-                    let new_offset = (1920.0 / 2.0 - new_center.0, 1080.0 / 2.0 - new_center.1);
-                    offset = (offset.0 + new_offset.0, offset.1 + new_offset.1);
-                    zoom_rect = None;
-                }
-                Event::MouseMotion { x, y, .. } if is_zooming =>
-                {
-                    if let Some(rect) = &mut zoom_rect
-                    {
-                        rect.w = x - rect.x();
-                        rect.h = y - rect.y();
-                    }
-                }
-
-                // Handle key events
-                Event::KeyDown { keycode: Some(Keycode::U), .. } =>
-                {
-                    zoom_factor = 1.0;
-                    offset = (0.0, 0.0);
-                }
-                _ =>
-                {}
-            }
-        }
-        if let Some(rect) = &zoom_rect
-        {
-            canvas.set_draw_color(Color::RGB(255, 0, 0));
-            canvas.draw_rect(*rect).unwrap();
-        }
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        let lines = compute_lines(zoom_factor, offset);
-        for line in lines
-        {
-            canvas.draw_line(line.0, line.1).unwrap();
-        }
-        for i in &data
-        {
-            canvas.set_draw_color(Color::RGB(148, 0, 211)); // re
-            let x = ((i[0] + 10.0) * (1920.0 / 20.0) * zoom_factor + offset.0).round() as i32;
-            let y = ((-i[1] + 10.0) * (1080.0 / 20.0) * zoom_factor + offset.1).round() as i32;
-            canvas.draw_point(Point::new(x, y)).unwrap();
-            canvas.set_draw_color(Color::RGB(0, 158, 115)); // im
-            let y = ((-i[2] + 10.0) * (1080.0 / 20.0) * zoom_factor + offset.1).round() as i32;
-            canvas.draw_point(Point::new(x, y)).unwrap();
-        }
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
-        canvas.present();
-        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 10));
-    }
-}
-fn compute_lines(zoom_factor:f64, offset:(f64, f64)) -> Vec<((i32, i32), (i32, i32))>
-{
-    let width = 1920_f64 / zoom_factor;
-    let height = 1080_f64 / zoom_factor;
-    let x_offset = offset.0;
-    let y_offset = offset.1;
-    let mut lines = Vec::new();
-    for i in 1..20
-    {
-        let x1 = ((i as f64) / 20.0 * width + x_offset) as i32;
-        let y1 = (height + y_offset) as i32;
-        let x2 = ((i as f64) / 20.0 * width + x_offset) as i32;
-        let y2 = y_offset as i32;
-        lines.push(((x1, y1), (x2, y2)));
-    }
-    for i in 1..20
-    {
-        let x1 = (width + x_offset) as i32;
-        let y1 = ((i as f64) / 20.0 * height + y_offset) as i32;
-        let x2 = x_offset as i32;
-        let y2 = ((i as f64) / 20.0 * height + y_offset) as i32;
-        lines.push(((x1, y1), (x2, y2)));
-    }
-    lines
 }
 fn print_answer(func:Vec<String>)
 {

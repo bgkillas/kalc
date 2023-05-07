@@ -167,11 +167,18 @@ pub fn do_math(func:Vec<String>) -> Result<String, u8>
             i += 1;
             continue;
         }
-        if (func[i - 1].contains('i') || func[i + 1].contains('i')) && func[i] == "+"
+        if (func[i - 1].contains('i') || func[i + 1].contains('i')) && func[i] == "+" || func[i] == "-"
         {
             let (a, b) = parse(&func[i - 1]);
             let (c, d) = parse(&func[i + 1]);
-            func[i] = add(a, b, c, d);
+            if func[i] == "-"
+            {
+                func[i] = add(a, b, -c, -d);
+            }
+            else
+            {
+                func[i] = add(a, b, c, d);
+            }
             func.remove(i + 1);
             func.remove(i - 1);
             continue;

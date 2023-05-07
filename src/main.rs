@@ -30,15 +30,15 @@ fn print_answer(func:Vec<String>)
              if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
 }
-fn print_concurrent(input:&String, var:Vec<Vec<char>>)
+fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
 {
-    let mut input = input.to_string();
+    let mut modified = input.to_string();
     for i in &var
     {
-        input = input.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
-                              &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
+        modified = input.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
+                                 &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
     }
-    if let Ok(num) = do_math(get_func(&input, false))
+    if let Ok(num) = do_math(get_func(&modified, false))
     {
         let (a, b) = parse(&num);
         let a = (a * 1e9).round() / 1e9;
@@ -47,7 +47,14 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>)
                if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
                if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
     }
-    print!("\x1b[96m\x1B[2K\x1B[1G{}", input);
+    if !del
+    {
+        print!("\x1b[96m\x1B[2K\x1B[1G{}", input);
+    }
+    else
+    {
+        print!("\x1b[96m\x1B[2K\x1B[1G");
+    }
 }
 fn write_history(input:&str, file_path:&str)
 {
@@ -94,13 +101,12 @@ fn main()
         let func = get_func(&args().nth(1).unwrap(), true);
         if func.contains(&"x".to_string())
         {
+            let mut modified:Vec<String>;
             if func.contains(&"y".to_string())
             {
-                let mut modified;
                 for n in -100..=100
                 {
-                    modified = func.clone();
-                    modified = modified.iter().map(|i| i.replace('x', &(n as f64 / 10.0).to_string())).collect();
+                    modified = func.iter().map(|i| i.replace('x', &(n as f64 / 10.0).to_string())).collect();
                     for g in -100..=100
                     {
                         let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / 10.0).to_string())).collect())
@@ -120,17 +126,9 @@ fn main()
                 }
                 return;
             }
-            let mut modified;
             for n in -100000..=100000
             {
-                modified = func.clone();
-                for i in &mut modified
-                {
-                    if i == "x"
-                    {
-                        *i = (n as f64 / 10000.0).to_string();
-                    }
-                }
+                modified = func.iter().map(|i| i.replace('x', &(n as f64 / 10000.0).to_string())).collect();
                 let num = match do_math(modified)
                 {
                     Ok(n) => n,
@@ -204,6 +202,14 @@ fn main()
                     cursor -= 1;
                     input.remove(cursor);
                     print!("\x1B[2K\x1B[1G{}", input);
+                    if input.is_empty()
+                    {
+                        print_concurrent(&"0".to_string(), var.clone(), true);
+                    }
+                    else
+                    {
+                        print_concurrent(&input, var.clone(), false);
+                    }
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");
@@ -220,7 +226,7 @@ fn main()
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
                     cursor = input.len();
-                    print_concurrent(&input, var.clone());
+                    print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1E' =>
@@ -237,7 +243,7 @@ fn main()
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
                     cursor = input.len();
-                    print_concurrent(&input, var.clone());
+                    print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1B' =>
@@ -263,7 +269,7 @@ fn main()
                     //"\x1b[B"
                     input.insert(cursor, c);
                     cursor += 1;
-                    print_concurrent(&input, var.clone());
+                    print_concurrent(&input, var.clone(), false);
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");

@@ -34,7 +34,17 @@ fn read_single_char() -> char
     let key = term.read_key().unwrap();
     match key
     {
-        Key::Char(c) => c,
+        Key::Char(c) =>
+        {
+            if c == ' '
+            {
+                read_single_char()
+            }
+            else
+            {
+                c
+            }
+        }
         Key::Enter => '\n',
         Key::Backspace => '\x08',
         Key::ArrowLeft => '\x1B',
@@ -138,6 +148,7 @@ fn main()
         stdout().flush().unwrap();
         let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;
         let max = i;
+        let mut cursor = 0;
         loop
         {
             let c = read_single_char();
@@ -148,10 +159,19 @@ fn main()
                     println!("\x1b[0m");
                     break;
                 }
-                '\x08' | '\x1B' =>
+                '\x08' =>
                 {
-                    input.pop();
-                    print!("\x08 \x08");
+                    if input.is_empty()
+                    {
+                        continue;
+                    }
+                    cursor -= 1;
+                    input.remove(cursor);
+                    print!("\x1B[2K\x1B[1G{}", input);
+                    for _ in 0..(input.len() - cursor)
+                    {
+                        print!("\x08");
+                    }
                 }
                 '\x1D' =>
                 {
@@ -163,6 +183,7 @@ fn main()
                         continue;
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
+                    cursor = input.len();
                     print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1E' =>
@@ -173,17 +194,41 @@ fn main()
                     {
                         print!("\x1B[2K\x1B[1G{fg}");
                         stdout().flush().unwrap();
-                        i -= 1;
+                        i = max;
+                        cursor = 0;
                         continue;
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
+                    cursor = input.len();
                     print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
-                '\x1C' => print!("\x1b[1C"),
+                '\x1B' =>
+                {
+                    if cursor == 0
+                    {
+                        continue;
+                    }
+                    cursor -= 1;
+                    print!("\x08");
+                }
+                '\x1C' =>
+                {
+                    if cursor == input.len()
+                    {
+                        continue;
+                    }
+                    cursor += 1;
+                    print!("\x1b[1C")
+                }
                 _ =>
                 {
-                    input.push(c);
-                    print!("{}", c);
+                    input.insert(cursor, c);
+                    cursor += 1;
+                    print!("\x1B[2K\x1B[1G{}", input);
+                    for _ in 0..(input.len() - cursor)
+                    {
+                        print!("\x08");
+                    }
                 }
             }
             stdout().flush().unwrap();
@@ -234,7 +279,7 @@ fn main()
             write_history(&input, file_path);
             continue;
         }
-        print_answer(get_func(input.clone()));
         write_history(&unmodified, file_path);
+        print_answer(get_func(input.clone()));
     }
 }

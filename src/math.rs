@@ -25,7 +25,8 @@ pub fn do_math(func:Vec<String>) -> String
         }
         i += 1;
     }
-    for i in 0..func.len() - 1
+    i = 0;
+    while i < func.len() - 1
     {
         if func[i].len() > 1 && func[i].chars().next().unwrap().is_ascii_alphabetic()
         {
@@ -64,11 +65,13 @@ pub fn do_math(func:Vec<String>) -> String
                 "cbrt" => func[i] = pow(arg1, arg2, 1.0 / 3.0, 0.0).to_string(),
                 _ =>
                 {
+                    i += 1;
                     continue;
                 }
             }
             func.remove(i + 1);
         }
+        i += 1;
     }
     i = 1;
     while i < func.len() - 1

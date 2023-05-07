@@ -1,6 +1,6 @@
-pub fn get_func(input:String) -> Vec<String>
+pub fn get_func(input:&str, done:bool) -> Vec<String>
 {
-    let mut count = 0;
+    let mut count:i32 = 0;
     let mut func:Vec<String> = Vec::new();
     let mut word:String = String::new();
     let chars = input.chars().collect::<Vec<char>>();
@@ -60,14 +60,17 @@ pub fn get_func(input:String) -> Vec<String>
             }
             if word.contains('.')
             {
-                println!("Error: Invalid number");
+                if done
+                {
+                    println!("Error: Invalid number");
+                }
                 func.clear();
                 func.push("0".to_string());
                 return func;
             }
             word.push(*c);
         }
-        else if *c == '-' && chars[i + 1] == '('
+        else if chars.len() > i + 1 && *c == '-' && chars[i + 1] == '('
         {
             func.push((-1.0).to_string());
             func.push("*".to_string());
@@ -141,14 +144,29 @@ pub fn get_func(input:String) -> Vec<String>
     }
     if count != 0
     {
-        println!("Error: Parentheses mismatch");
-        func.clear();
+        if count > 0
+        {
+            for _ in 0..count
+            {
+                func.push(")".to_string());
+            }
+        }
+        else
+        {
+            for _ in 0..count.abs()
+            {
+                func.insert(0, "(".to_string());
+            }
+        }
+    }
+    if func.is_empty()
+    {
         func.push("0".to_string());
     }
     let first = func.first().unwrap().chars().next().unwrap();
     if first == '*' || first == '/' || first == '+' || first == '-' || first == '^'
     {
-        func.insert(0, "1".to_string());
+        func.insert(0, "0".to_string());
     }
     let last = func.last().unwrap().chars().last().unwrap();
     if last == '*' || last == '/' || last == '+' || last == '-' || last == '^' || last.is_ascii_alphabetic()

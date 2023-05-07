@@ -1,5 +1,5 @@
 use crate::complex::{parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh};
-pub fn do_math(func:Vec<String>) -> String
+pub fn do_math(func:Vec<String>) -> Result<String, u8>
 {
     let mut func = func;
     let mut i = 0;
@@ -20,7 +20,15 @@ pub fn do_math(func:Vec<String>) -> String
                 }
                 j += 1;
             }
-            func[i] = do_math(func[i + 1..j - 1].to_vec());
+            if i + 1 == j - 1
+            {
+                return Err(1);
+            }
+            func[i] = match do_math(func[i + 1..j - 1].to_vec())
+                      {
+                          Ok(num) => num,
+                          Err(e) => return Err(e),
+                      }.to_string();
             func.drain(i + 1..j);
         }
         i += 1;
@@ -131,8 +139,8 @@ pub fn do_math(func:Vec<String>) -> String
         }
         match func[i].as_str()
         {
-            "*" => func[i] = (func[i - 1].parse::<f64>().unwrap() * func[i + 1].parse::<f64>().unwrap()).to_string(),
-            "/" => func[i] = (func[i - 1].parse::<f64>().unwrap() / func[i + 1].parse::<f64>().unwrap()).to_string(),
+            "*" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? * func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
+            "/" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? / func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
             _ =>
             {
                 i += 1;
@@ -175,8 +183,8 @@ pub fn do_math(func:Vec<String>) -> String
         }
         match func[i].as_str()
         {
-            "+" => func[i] = (func[i - 1].parse::<f64>().unwrap() + func[i + 1].parse::<f64>().unwrap()).to_string(),
-            "-" => func[i] = (func[i - 1].parse::<f64>().unwrap() - func[i + 1].parse::<f64>().unwrap()).to_string(),
+            "+" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? + func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
+            "-" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| 0)? - func[i + 1].parse::<f64>().map_err(|_| 0)?).to_string(),
             _ =>
             {
                 i += 1;
@@ -186,5 +194,5 @@ pub fn do_math(func:Vec<String>) -> String
         func.remove(i + 1);
         func.remove(i - 1);
     }
-    func.join("")
+    Ok(func.join(""))
 }

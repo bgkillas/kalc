@@ -14,13 +14,40 @@ use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
 fn print_answer(func:Vec<String>)
 {
-    let num = do_math(func);
+    let num = match do_math(func)
+    {
+        Ok(num) => num,
+        Err(e) =>
+        {
+            println!("\x1b[91m{}\x1b[0m", e);
+            return;
+        }
+    };
     let (a, b) = parse(&num);
     let a = (a * 1e9).round() / 1e9;
     let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "\x1b[93mi";
     println!("{}{}\x1b[0",
              if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
+}
+fn print_concurrent(input:&String, var:Vec<Vec<char>>)
+{
+    let mut input = input.to_string();
+    for i in &var
+    {
+        input = input.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
+                              &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
+    }
+    if let Ok(num) = do_math(get_func(&input, false))
+    {
+        let (a, b) = parse(&num);
+        let a = (a * 1e9).round() / 1e9;
+        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "\x1b[93mi";
+        print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
+               if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
+               if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
+    }
+    print!("\x1b[96m\x1B[2K\x1B[1G{}", input);
 }
 fn write_history(input:&str, file_path:&str)
 {
@@ -36,13 +63,13 @@ fn read_single_char() -> char
     {
         Key::Char(c) =>
         {
-            if c == ' '
+            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ','
             {
-                read_single_char()
+                c
             }
             else
             {
-                c
+                read_single_char()
             }
         }
         Key::Enter => '\n',
@@ -64,7 +91,7 @@ fn main()
             println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
             return;
         }
-        let func = get_func(args().nth(1).unwrap());
+        let func = get_func(&args().nth(1).unwrap(), true);
         if func.contains(&"x".to_string())
         {
             if func.contains(&"y".to_string())
@@ -76,15 +103,19 @@ fn main()
                     modified = modified.iter().map(|i| i.replace('x', &(n as f64 / 10.0).to_string())).collect();
                     for g in -100..=100
                     {
-                        let num = do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / 10.0).to_string())).collect());
+                        let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / 10.0).to_string())).collect())
+                        {
+                            Ok(n) => n,
+                            Err(e) =>
+                            {
+                                println!("{}", e);
+                                continue;
+                            }
+                        };
                         let (a, b) = parse(&num);
                         let a = (a * 1e9).round() / 1e9;
-                        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
-                        println!("{} {} {} {}",
-                                 n as f64 / 10.0,
-                                 g as f64 / 10.0,
-                                 if a == 0.0 && !(b == "-0i" || b == "+0i" || b == "0i") { "".to_string() } else { a.to_string() },
-                                 if b == "-0i" || b == "+0i" || b == "0i" { "".to_string() } else { b });
+                        let b = ((b * 1e9).round() / 1e9).to_string() + "i";
+                        println!("{} {} {} {}", n as f64 / 10.0, g as f64 / 10.0, a, b);
                     }
                 }
                 return;
@@ -100,14 +131,19 @@ fn main()
                         *i = (n as f64 / 10000.0).to_string();
                     }
                 }
-                let num = do_math(modified);
+                let num = match do_math(modified)
+                {
+                    Ok(n) => n,
+                    Err(e) =>
+                    {
+                        println!("{}", e);
+                        continue;
+                    }
+                };
                 let (a, b) = parse(&num);
                 let a = (a * 1e9).round() / 1e9;
-                let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "i";
-                println!("{} {} {}",
-                         n as f64 / 10000.0,
-                         if a == 0.0 && !(b == "-0i" || b == "+0i" || b == "0i") { "".to_string() } else { a.to_string() },
-                         if b == "-0i" || b == "+0i" || b == "0i" { "".to_string() } else { b });
+                let b = ((b * 1e9).round() / 1e9).to_string() + "i";
+                println!("{} {} {}", n as f64 / 10000.0, a, b);
             }
             return;
         }
@@ -128,7 +164,7 @@ fn main()
         {
             return;
         }
-        print_answer(get_func(input));
+        print_answer(get_func(&input, true));
         return;
     }
     #[cfg(target_os = "linux")]
@@ -184,6 +220,7 @@ fn main()
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
                     cursor = input.len();
+                    print_concurrent(&input, var.clone());
                     print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1E' =>
@@ -200,6 +237,7 @@ fn main()
                     }
                     input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
                     cursor = input.len();
+                    print_concurrent(&input, var.clone());
                     print!("\x1B[2K\x1B[1G{fg}{}", input);
                 }
                 '\x1B' =>
@@ -222,9 +260,10 @@ fn main()
                 }
                 _ =>
                 {
+                    //"\x1b[B"
                     input.insert(cursor, c);
                     cursor += 1;
-                    print!("\x1B[2K\x1B[1G{}", input);
+                    print_concurrent(&input, var.clone());
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");
@@ -235,6 +274,7 @@ fn main()
         }
         if input.contains('=')
         {
+            print!("\x1B[2K\x1B[1G");
             for i in 0..var.len()
             {
                 if var[i][0] == input.chars().next().unwrap()
@@ -280,6 +320,6 @@ fn main()
             continue;
         }
         write_history(&unmodified, file_path);
-        print_answer(get_func(input.clone()));
+        println!();
     }
 }

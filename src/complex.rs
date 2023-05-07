@@ -15,15 +15,47 @@ pub fn parse(num:&String) -> (f64, f64)
     }
     if let Some(i) = index
     {
-        (num[..i].parse::<f64>().unwrap(), num[i..].replace('i', "").parse::<f64>().unwrap())
+        let a = num[..i].parse::<f64>();
+        let mut b = num[i..].replace('i', "").parse::<f64>();
+        if &num[i..] == "i"
+        {
+            b = Ok(1.0);
+        }
+        if &num[i..] == "-i"
+        {
+            b = Ok(-1.0);
+        }
+        match (a, b)
+        {
+            (Ok(a), Ok(b)) => (a, b),
+            _ => (0.0, 0.0),
+        }
     }
     else if im
     {
-        (0.0, num[..num.len() - 1].parse::<f64>().unwrap())
+        let mut b = num[..num.len() - 1].parse::<f64>();
+        if num == "i"
+        {
+            b = Ok(1.0);
+        }
+        if num == "-i"
+        {
+            b = Ok(-1.0);
+        }
+        match b
+        {
+            Ok(b) => (0.0, b),
+            _ => (0.0, 0.0),
+        }
     }
     else
     {
-        (num.parse::<f64>().unwrap(), 0.0)
+        let a = num.parse::<f64>();
+        match a
+        {
+            Ok(a) => (a, 0.0),
+            _ => (0.0, 0.0),
+        }
     }
 }
 pub fn add(a:f64, b:f64, c:f64, d:f64) -> String

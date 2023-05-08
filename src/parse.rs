@@ -24,6 +24,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             if !word.is_empty()
             {
                 func.push(word.clone());
+                func.push("*".to_string());
                 word.clear();
             }
             func.push(std::f64::consts::E.to_string());
@@ -35,6 +36,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
                 if !word.is_empty()
                 {
                     func.push(word.clone());
+                    func.push("*".to_string());
                     word.clear()
                 }
                 func.push(std::f64::consts::PI.to_string());
@@ -83,6 +85,13 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
         {
             if !word.is_empty() && (((word.chars().next().unwrap().is_ascii_digit() || word.starts_with('-')) && word.ends_with('i')) || word.chars().last().unwrap().is_ascii_digit())
             {
+                func.push(word.clone());
+                func.push("*".to_string());
+                word.clear();
+            }
+            if word == "-"
+            {
+                word = "-1".to_string();
                 func.push(word.clone());
                 func.push("*".to_string());
                 word.clear();

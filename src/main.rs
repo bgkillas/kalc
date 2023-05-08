@@ -96,7 +96,7 @@ fn main()
                 }
                 '\x08' =>
                 {
-                    if input.is_empty()
+                    if input.is_empty() || cursor == 0
                     {
                         continue;
                     }
@@ -319,7 +319,20 @@ fn fraction(num:f64) -> String
         p = num / PI * i as f64;
         if p.fract() == 0.0
         {
-            return format!("{}π{}", if p == 1.0 { "".to_string() } else { p.to_string() }, if i == 1 { "".to_string() } else { format!("/{}", i) });
+            return format!("{}π{}",
+                           if p == 1.0
+                           {
+                               "".to_string()
+                           }
+                           else if p == -1.0
+                           {
+                               "-".to_string()
+                           }
+                           else
+                           {
+                               p.to_string()
+                           },
+                           if i == 1 { "".to_string() } else { format!("/{}", i) });
         }
     }
     num.to_string()
@@ -359,7 +372,7 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
-                   if c == 0.0 && d != 0.0 { "".to_string() } else { a.to_string() },
+                   if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
                    if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" });
         }
         if !frac
@@ -367,7 +380,7 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
             print!("\x1b[B\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
         }
         print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
-               if c == 0.0 && d != 0.0 { "".to_string() } else { a.to_string() },
+               if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
                if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
         if frac
         {

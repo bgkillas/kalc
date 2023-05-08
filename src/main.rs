@@ -306,6 +306,17 @@ fn print_answer(func:Vec<String>)
              if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
 }
+fn fraction(num:f64) -> String
+{
+    for i in 1..=1000
+    {
+        if (num * i as f64).fract() == 0.0
+        {
+            return format!("{}{}", (num * i as f64) as i64, if i == 1 { "".to_string() } else { format!("/{}", i) });
+        }
+    }
+    num.to_string()
+}
 fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
 {
     let mut modified = input.to_string();
@@ -317,11 +328,44 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
     if let Ok(num) = do_math(get_func(&modified, false))
     {
         let (a, b) = parse(&num);
-        let a = (a * 1e12).round() / 1e12;
-        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "\x1b[93mi";
+        let c = (a * 1e12).round() / 1e12;
+        let sign = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
+        let d = (b * 1e12).round() / 1e12;
+        let fa = fraction(a);
+        let fb = fraction(b);
+        let mut frac = false;
+        if fa.contains('/') && fb.contains('/')
+        {
+            frac = true;
+            print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
+                   if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
+                   if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" });
+        }
+        else if fa.contains('/')
+        {
+            frac = true;
+            print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
+                   if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
+                   if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" });
+        }
+        else if fb.contains('/')
+        {
+            frac = true;
+            print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
+                   if c == 0.0 && d != 0.0 { "".to_string() } else { a.to_string() },
+                   if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" });
+        }
+        if !frac
+        {
+            print!("\x1b[B\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+        }
         print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
-               if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
-               if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
+               if c == 0.0 && d != 0.0 { "".to_string() } else { a.to_string() },
+               if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
+        if frac
+        {
+            print!("\x1b[A");
+        }
     }
     if !del
     {

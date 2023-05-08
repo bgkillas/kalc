@@ -12,7 +12,7 @@ use std::io::stdin;
 #[cfg(target_os = "linux")]
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
-use gnuplot::{AxesCommon, Caption, Figure, PointSymbol};
+use gnuplot::{AxesCommon, Caption, Figure, Fix, PointSymbol};
 fn main()
 {
     if args().len() > 1
@@ -213,7 +213,54 @@ fn main()
         }
         if input.contains('=')
         {
-            print!("\x1B[2K\x1B[1G");
+            print!("\x1b[2K\x1b[1G");
+            stdout().flush().unwrap();
+            write_history(&input, file_path);
+            let l = input.split('=').next().unwrap();
+            let r = input.split('=').last().unwrap();
+            if input.contains('x') && var.iter().all(|i| i[0] != 'x') && l.contains('x') && r.contains('x')
+            {
+                if input.contains('y') && var.iter().all(|i| i[0] != 'y') && l.contains('y') && r.contains('y')
+                {
+                    if get_list_3d(&get_func(l, true)) == get_list_3d(&get_func(r, true))
+                    {
+                        println!("true");
+                    }
+                    else
+                    {
+                        println!("false");
+                    }
+                    continue;
+                }
+                if get_list_2d(&get_func(l, true)) == get_list_2d(&get_func(r, true))
+                {
+                    println!("true");
+                }
+                else
+                {
+                    println!("false");
+                }
+                continue;
+            }
+            if l.len() > 1
+            {
+                let (re, im) = parse(&r.to_string());
+                let mut list:Vec<f64> = Vec::new();
+                let l = get_list_2d(&get_func(l, true));
+                l.0.iter().for_each(|i| {
+                              if i[1] == re
+                              {
+                                  list.push(i[0]);
+                              }
+                          });
+                l.1.iter().for_each(|i| {
+                              if i[1] == im && list.contains(&i[0])
+                              {
+                                  println!("{}", i[0])
+                              }
+                          });
+                continue;
+            }
             for i in 0..var.len()
             {
                 if var[i][0] == input.chars().next().unwrap()
@@ -223,7 +270,6 @@ fn main()
                 }
             }
             var.push(input.chars().collect());
-            write_history(&input, file_path);
             continue;
         }
         let unmodified = input.clone();
@@ -254,8 +300,8 @@ fn print_answer(func:Vec<String>)
         }
     };
     let (a, b) = parse(&num);
-    let a = (a * 1e9).round() / 1e9;
-    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "\x1b[93mi";
+    let a = (a * 1e12).round() / 1e12;
+    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "\x1b[93mi";
     println!("{}{}\x1b[0m",
              if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
@@ -265,14 +311,14 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
     let mut modified = input.to_string();
     for i in &var
     {
-        modified = input.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
-                                 &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
+        modified = modified.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
+                                    &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
     }
     if let Ok(num) = do_math(get_func(&modified, false))
     {
         let (a, b) = parse(&num);
-        let a = (a * 1e9).round() / 1e9;
-        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e9).round() / 1e9).to_string() + "\x1b[93mi";
+        let a = (a * 1e12).round() / 1e12;
+        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "\x1b[93mi";
         print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
                if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
                if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
@@ -318,57 +364,42 @@ fn read_single_char() -> char
         _ => read_single_char(),
     }
 }
-fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
+fn get_list_3d(func:&[String]) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
-    let mut fg = Figure::new();
-    if graph
-    {
-        let mut re = Vec::new();
-        let mut im = Vec::new();
-        let amount = 200;
-        for n in -amount..=amount
-        {
-            let modified:Vec<String> = func.iter().map(|i| i.replace('x', &(n as f64 / (amount as f64 / 10.0)).to_string())).collect();
-            for g in -amount..=amount
-            {
-                let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / (amount as f64 / 10.0)).to_string())).collect())
-                {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("0");
-                        continue;
-                    }
-                };
-                let (a, b) = parse(&num);
-                let a = (a * 1e9).round() / 1e9;
-                let b = (b * 1e9).round() / 1e9;
-                re.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), a]);
-                im.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), b]);
-            }
-        }
-        if re3d && im3d
-        {
-            fg.axes3d()
-              .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
-              .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
-        }
-        else if re3d
-        {
-            fg.axes3d().points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
-        }
-        else if im3d
-        {
-            fg.axes3d().points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
-        }
-        fg.show().unwrap();
-        return;
-    }
     let mut re = Vec::new();
     let mut im = Vec::new();
-    for n in -50000..=50000
+    let amount = 200;
+    for n in -amount..=amount
     {
-        let modified = func.iter().map(|i| i.replace('x', &(n as f64 / 5000.0).to_string())).collect();
+        let modified:Vec<String> = func.iter().map(|i| i.replace('x', &(n as f64 / (amount as f64 / 10.0)).to_string())).collect();
+        for g in -amount..=amount
+        {
+            let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / (amount as f64 / 10.0)).to_string())).collect())
+            {
+                Ok(n) => n,
+                Err(_) =>
+                {
+                    println!("0");
+                    continue;
+                }
+            };
+            let (a, b) = parse(&num);
+            let a = (a * 1e12).round() / 1e12;
+            let b = (b * 1e12).round() / 1e12;
+            re.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), a]);
+            im.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), b]);
+        }
+    }
+    (re, im)
+}
+fn get_list_2d(func:&[String]) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+{
+    let mut re = Vec::new();
+    let mut im = Vec::new();
+    let amount = 50000;
+    for n in -amount..=amount
+    {
+        let modified = func.iter().map(|i| i.replace('x', &(n as f64 / (amount as f64 / 10.0)).to_string())).collect();
         let num = match do_math(modified)
         {
             Ok(n) => n,
@@ -379,20 +410,42 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
             }
         };
         let (a, b) = parse(&num);
-        let a = (a * 1e9).round() / 1e9;
-        let b = (b * 1e9).round() / 1e9;
-        if a != 0.0
-        {
-            re.push([n as f64 / 5000.0, a]);
-        }
-        if b != 0.0
-        {
-            im.push([n as f64 / 5000.0, b]);
-        }
+        let a = (a * 1e12).round() / 1e12;
+        let b = (b * 1e12).round() / 1e12;
+        re.push([n as f64 / (amount as f64 / 10.0), a]);
+        im.push([n as f64 / (amount as f64 / 10.0), b]);
     }
+    (re, im)
+}
+fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
+{
+    let mut fg = Figure::new();
+    if graph
+    {
+        let (re, im) = get_list_3d(func);
+        let i = im.iter().map(|i| i[2]).sum::<f64>() != 0.0;
+        let r = re.iter().map(|i| i[2]).sum::<f64>() != 0.0;
+        if re3d && im3d && i && r
+        {
+            fg.axes3d()
+              .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
+              .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
+        }
+        else if re3d && r
+        {
+            fg.axes3d().points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
+        }
+        else if im3d && i
+        {
+            fg.axes3d().points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
+        }
+        fg.show().unwrap();
+        return;
+    }
+    let (re, im) = get_list_2d(func);
     fg.axes2d()
-      .set_y_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
-      .set_x_range(gnuplot::AutoOption::Fix(-10.0), gnuplot::AutoOption::Fix(10.0))
+      .set_y_range(Fix(-10.0), Fix(10.0))
+      .set_x_range(Fix(-10.0), Fix(10.0))
       .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[Caption("real"), PointSymbol('.')])
       .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[Caption("imag"), PointSymbol('.')]);
     fg.show().unwrap();

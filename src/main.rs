@@ -170,8 +170,9 @@ fn main()
                     if c == 'π'
                     {
                         input.insert(cursor, 'p');
+                        cursor += 1;
                         input.insert(cursor, 'i');
-                        cursor += 2;
+                        cursor += 1;
                     }
                     else
                     {

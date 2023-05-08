@@ -21,6 +21,10 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
         }
         else if *c == 'e'
         {
+            if word == "-"
+            {
+                word = "-1".to_string();
+            }
             if !word.is_empty()
             {
                 func.push(word.clone());
@@ -29,10 +33,28 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             }
             func.push(std::f64::consts::E.to_string());
         }
+        else if *c == 'π'
+        {
+            if word == "-"
+            {
+                word = "-1".to_string();
+            }
+            if !word.is_empty()
+            {
+                func.push(word.clone());
+                func.push("*".to_string());
+                word.clear();
+            }
+            func.push(std::f64::consts::PI.to_string());
+        }
         else if *c == 'i'
         {
             if i != 0 && chars[i - 1] == 'p'
             {
+                if word == "-"
+                {
+                    word = "-1".to_string();
+                }
                 if !word.is_empty()
                 {
                     func.push(word.clone());

@@ -167,8 +167,17 @@ fn main()
                 }
                 _ =>
                 {
-                    input.insert(cursor, c);
-                    cursor += 1;
+                    if c == 'π'
+                    {
+                        input.insert(cursor, 'p');
+                        input.insert(cursor, 'i');
+                        cursor += 2;
+                    }
+                    else
+                    {
+                        input.insert(cursor, c);
+                        cursor += 1;
+                    }
                     print_concurrent(&input, var.clone(), false);
                     for _ in 0..(input.len() - cursor)
                     {
@@ -354,21 +363,21 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool)
         let fa = fraction(a);
         let fb = fraction(b);
         let mut frac = false;
-        if fa.contains('/') && fb.contains('/')
+        if (fa.contains('/') && fb.contains('/')) || (fa.contains('π') && fb.contains('π'))
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
                    if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
                    if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" });
         }
-        else if fa.contains('/')
+        else if fa.contains('/') || fa.contains('π')
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
                    if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
                    if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" });
         }
-        else if fb.contains('/')
+        else if fb.contains('/') || fb.contains('π')
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
@@ -410,7 +419,7 @@ fn read_single_char() -> char
     {
         Key::Char(c) =>
         {
-            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ','
+            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ',' || c == 'π'
             {
                 c
             }

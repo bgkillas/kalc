@@ -306,13 +306,20 @@ fn print_answer(func:Vec<String>)
              if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
 }
+use std::f64::consts::PI;
 fn fraction(num:f64) -> String
 {
-    for i in 1..=1000
+    let mut p;
+    for i in 1..=10000
     {
         if (num * i as f64).fract() == 0.0
         {
             return format!("{}{}", (num * i as f64) as i64, if i == 1 { "".to_string() } else { format!("/{}", i) });
+        }
+        p = num / PI * i as f64;
+        if p.fract() == 0.0
+        {
+            return format!("{}π{}", if p == 1.0 { "".to_string() } else { p.to_string() }, if i == 1 { "".to_string() } else { format!("/{}", i) });
         }
     }
     num.to_string()

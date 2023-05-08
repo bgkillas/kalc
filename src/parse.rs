@@ -122,7 +122,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
                 func.push("*".to_string());
                 word.clear();
             }
-            if chars[i] == ')' && chars[i - if chars[i - 2] == 'p' { 3 } else { 2 }] == '('
+            if chars.len() > 2 && chars[i] == ')' && chars[i - if chars[i - 2] == 'p' { 3 } else { 2 }] == '('
             {
                 let n = func.last().unwrap();
                 func.remove(func.len()

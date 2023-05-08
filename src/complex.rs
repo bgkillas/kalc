@@ -93,7 +93,8 @@ pub fn pow(a:f64, b:f64, c:f64, d:f64) -> String
     let m = std::f64::consts::E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
     let im = m * r.sin();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
-    ((m * r.cos() * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
+    (m * r.cos()).to_string() + sign + im.to_string().as_str() + "i"
+    //((m * r.cos() * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn abs(a:f64, b:f64) -> String
 {
@@ -156,21 +157,24 @@ pub fn asin(a:f64, b:f64) -> String
         let (x, y) = parse(&ln(e, f));
         let (a, b) = parse(&mul(0.0, -1.0, x, y));
         let sign = if b.to_string().contains('-') { "" } else { "+" };
-        return ((a * 1e15).round() / 1e15).to_string() + sign + ((b * 1e15).round() / 1e15).to_string().as_str() + "i";
+        return a.to_string() + sign + b.to_string().as_str() + "i";
+        // return ((a * 1e15).round() / 1e15).to_string() + sign + ((b * 1e15).round() / 1e15).to_string().as_str() + "i";
     }
     let (c, d) = parse(&pow(1.0 - a * a + b * b, -2.0 * a * b, 0.5, 0.0));
     let (a, b) = parse(&add(-b, a, c, d));
     let (a, b) = parse(&ln(a, b));
     let (a, b) = parse(&mul(a, b, 0.0, -1.0));
     let sign = if b.to_string().contains('-') { "" } else { "+" };
-    ((a * 1e15).round() / 1e15).to_string() + sign + ((b * 1e15).round() / 1e15).to_string().as_str() + "i"
+    a.to_string() + sign + b.to_string().as_str() + "i"
+    //((a * 1e15).round() / 1e15).to_string() + sign + ((b * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn acos(a:f64, b:f64) -> String
 {
     // acos(a+bi)=pi/2-asin(a+bi)
     let (a, b) = parse(&asin(a, b));
     let sign = if !b.to_string().contains('-') { "" } else { "+" };
-    (((std::f64::consts::PI / 2.0 - a) * 1e15).round() / 1e15).to_string() + sign + ((-b * 1e15).round() / 1e15).to_string().as_str() + "i"
+    (std::f64::consts::PI / 2.0 - a).to_string() + sign + ((-b * 1e15).round() / 1e15).to_string().as_str() + "i"
+    //(((std::f64::consts::PI / 2.0 - a) * 1e15).round() / 1e15).to_string() + sign + ((-b * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn atan(a:f64, b:f64) -> String
 {
@@ -181,7 +185,8 @@ pub fn atan(a:f64, b:f64) -> String
     }
     let (a, b) = parse(&atanh(b, -a));
     let sign = if a.to_string().contains('-') { "" } else { "+" };
-    ((-b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
+    (-b).to_string() + sign + a.to_string().as_str() + "i"
+    //((-b * 1e15).round() / 1e15).to_string() + sign + ((a * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn sinh(a:f64, b:f64) -> String
 {
@@ -232,7 +237,8 @@ pub fn asinh(a:f64, b:f64) -> String
     let (a, b) = parse(&add(c, d, a, b));
     let (re, im) = parse(&ln(a, b));
     let sign = if im.to_string().contains('-') { "" } else { "+" };
-    ((re * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
+    re.to_string() + sign + im.to_string().as_str() + "i"
+    //((re * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn acosh(a:f64, b:f64) -> String
 {
@@ -243,7 +249,8 @@ pub fn acosh(a:f64, b:f64) -> String
     let (a, b) = parse(&add(c, d, a, b));
     let (re, im) = parse(&ln(a, b));
     let sign = if im.to_string().contains('-') { "" } else { "+" };
-    ((re * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
+    re.to_string() + sign + im.to_string().as_str() + "i"
+    //((re * 1e15).round() / 1e15).to_string() + sign + ((im * 1e15).round() / 1e15).to_string().as_str() + "i"
 }
 pub fn atanh(a:f64, b:f64) -> String
 {
@@ -256,5 +263,6 @@ pub fn atanh(a:f64, b:f64) -> String
     let (m, n) = parse(&div(i, j, 2.0, 0.0));
     let (o, p) = parse(&add(k, l, -m, -n));
     let sign = if p.to_string().contains('-') { "" } else { "+" };
-    ((o * 1e15).round() / 1e15).to_string() + sign + ((p * 1e15).round() / 1e15).to_string().as_str() + "i"
+    o.to_string() + sign + p.to_string().as_str() + "i"
+    //((o * 1e15).round() / 1e15).to_string() + sign + ((p * 1e15).round() / 1e15).to_string().as_str() + "i"
 }

@@ -343,14 +343,8 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
                 let (a, b) = parse(&num);
                 let a = (a * 1e9).round() / 1e9;
                 let b = (b * 1e9).round() / 1e9;
-                if a != 0.0
-                {
-                    re.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), a]);
-                }
-                if b != 0.0
-                {
-                    im.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), b]);
-                }
+                re.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), a]);
+                im.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), b]);
             }
         }
         if re3d && im3d

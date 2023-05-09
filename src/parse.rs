@@ -139,7 +139,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             {
                 count -= 1;
             }
-            if *c == '-' && word.is_empty() && chars[i - 1] != ')'
+            if *c == '-' && word.is_empty() && i != 0 && chars[i - 1] != ')'
             {
                 word.push(*c);
                 continue;

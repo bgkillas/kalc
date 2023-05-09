@@ -287,19 +287,7 @@ fn main()
             var.push(input.chars().collect());
             continue;
         }
-        let unmodified = input.clone();
-        for i in &var
-        {
-            input = input.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
-                                  &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
-        }
-        if input.contains('x') || input.contains('y')
-        {
-            println!("{}", input);
-            write_history(&input, file_path);
-            continue;
-        }
-        write_history(&unmodified, file_path);
+        write_history(&input, file_path);
         println!();
     }
 }
@@ -360,7 +348,7 @@ fn fraction(num:f64) -> String
             return format!("{}{}", product, denominator);
         }
         i += 1;
-        if i <= 10000 && product > i as f64 * num
+        if i <= 10000 && product > i as f64 * num && product.is_sign_positive()
         {
             i = (product / num) as usize;
         }
@@ -373,8 +361,22 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
     let mut modified = input.to_string();
     for i in &var
     {
-        modified = modified.replace(&i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>(),
-                                    &i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>());
+        let var_name = i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>();
+        let var_value = i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>();
+        let var_name_len = var_name.len();
+        let mut start_idx = 0;
+        while start_idx < modified.len() + 1 - var_name_len
+        {
+            let end_idx = start_idx + var_name_len;
+            if (start_idx == 0 || !modified.chars().nth(start_idx - 1).unwrap().is_ascii_alphabetic())
+               && (end_idx == modified.len() || !modified.chars().nth(end_idx).unwrap().is_ascii_alphabetic())
+               && modified[start_idx..end_idx] == var_name
+            {
+                modified.replace_range(start_idx..end_idx, &var_value);
+                break;
+            }
+            start_idx += 1;
+        }
     }
     if let Ok(num) = do_math(get_func(&modified, false))
     {

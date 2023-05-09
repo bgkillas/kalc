@@ -324,13 +324,20 @@ fn print_answer(func:Vec<String>)
 use std::f64::consts::PI;
 fn fraction(num:f64) -> String
 {
-    let mut p;
+    if num == 0.0
+    {
+        return "0".to_string();
+    }
     for i in 1..=10000
     {
         if (num * i as f64).fract() == 0.0
         {
             return format!("{}{}", (num * i as f64) as i64, if i == 1 { "".to_string() } else { format!("/{}", i) });
         }
+    }
+    let mut p;
+    for i in 1..=100
+    {
         p = num / PI * i as f64;
         if p.fract() == 0.0
         {

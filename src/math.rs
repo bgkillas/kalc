@@ -150,7 +150,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
         func.remove(i + 1);
         func.remove(i - 1);
     }
-    i = 0;
+    i = 1;
     while i < func.len() - 1
     {
         if (func[i].contains('i') || func[i + 1].contains('i')) && (func[i] != "+" && func[i] != "-") && (func[i + 1] != "+" && func[i + 1] != "-") && func[i] != "," && func[i + 1] != ","
@@ -162,12 +162,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        if i == 0
-        {
-            i += 1;
-            continue;
-        }
-        if (func[i - 1].contains('i') || func[i + 1].contains('i')) && func[i] == "+" || func[i] == "-"
+        if (func[i - 1].contains('i') || func[i + 1].contains('i')) && (func[i] == "+" || func[i] == "-")
         {
             let (a, b) = parse(&func[i - 1]);
             let (c, d) = parse(&func[i + 1]);

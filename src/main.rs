@@ -312,7 +312,7 @@ fn print_answer(func:Vec<String>)
 use std::f64::consts::PI;
 fn fraction(num:f64) -> String
 {
-    if num == 0.0
+    if num == 0.0 || num.fract() == 0.0
     {
         return "0".to_string();
     }

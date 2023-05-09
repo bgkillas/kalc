@@ -328,13 +328,6 @@ fn fraction(num:f64) -> String
     {
         return "0".to_string();
     }
-    for i in 1..=10000
-    {
-        if (num * i as f64).fract() == 0.0
-        {
-            return format!("{}{}", (num * i as f64) as i64, if i == 1 { "".to_string() } else { format!("/{}", i) });
-        }
-    }
     let mut p;
     for i in 1..=100
     {
@@ -355,6 +348,21 @@ fn fraction(num:f64) -> String
                                p.to_string()
                            },
                            if i == 1 { "".to_string() } else { format!("/{}", i) });
+        }
+    }
+    let mut i = 1;
+    while i <= 10000
+    {
+        let product = num * i as f64;
+        if product.fract() == 0.0
+        {
+            let denominator = if i == 1 { "".to_string() } else { format!("/{}", i) };
+            return format!("{}{}", product, denominator);
+        }
+        i += 1;
+        if i <= 10000 && product > i as f64 * num
+        {
+            i = (product / num) as usize;
         }
     }
     num.to_string()

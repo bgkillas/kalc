@@ -310,11 +310,20 @@ fn print_answer(func:Vec<String>)
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
 }
 use std::f64::consts::PI;
+use std::f64::consts::FRAC_1_SQRT_2;
 fn fraction(num:f64) -> String
 {
-    if num == 0.0 || num.fract() == 0.0
+    if (num * 1e12).round() / 1e12 == 0.0 || ((num * 1e12).round() / 1e12).fract() == 0.0
     {
         return "0".to_string();
+    }
+    if (num * 1e12).round() / 1e12 == (1e12 * FRAC_1_SQRT_2).round() / 1e12
+    {
+        return "1/2^0.5".to_string();
+    }
+    if (num * 1e12).round() / 1e12 == (1e12 * 3f64.sqrt() / 2.0).round() / 1e12
+    {
+        return "3^0.5/2".to_string();
     }
     let mut p;
     for i in 1..=100

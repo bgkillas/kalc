@@ -97,6 +97,7 @@ fn main()
                         println!();
                     }
                     println!();
+                    println!();
                     break;
                 }
                 '\x08' =>
@@ -364,6 +365,44 @@ fn fraction(num:f64) -> String
     }
     num.to_string()
 }
+fn simplify(func:Vec<String>) -> String
+{
+    let mut func = func;
+    let mut i = 0;
+    while i < func.len()
+    {
+        if let Ok(num) = func[i].parse::<f64>()
+        {
+            if num.fract() != 0.0
+            {
+                let frac = fraction(num);
+                let frac = frac.split('/').collect::<Vec<&str>>();
+                if frac.contains(&'π'.to_string().as_str())
+                {
+                    func[i] = frac[0].to_string();
+                }
+                else
+                {
+                    func[i] = "(".to_string();
+                    func.insert(i + 1, frac[0].to_string());
+                    func.insert(i + 2, "/".to_string());
+                    func.insert(i + 3, frac[1].to_string());
+                    func.insert(i + 4, ")".to_string());
+                }
+            }
+        }
+        if i != 0 && i + 2 < func.len() && func[i + 1] == "*" && func[i - 1] == "/" && func[i + 2] == func[i]
+        {
+            func.remove(i + 1);
+            func.remove(i + 1);
+            func.remove(i - 1);
+            func.remove(i - 1);
+            i -= 1;
+        }
+        i += 1;
+    }
+    func.join("")
+}
 fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
 {
     let mut frac = false;
@@ -382,12 +421,12 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
                && modified[start_idx..end_idx] == var_name
             {
                 modified.replace_range(start_idx..end_idx, &var_value);
-                break;
             }
             start_idx += 1;
         }
     }
-    if let Ok(num) = do_math(get_func(&modified, false))
+    let func = get_func(&modified, false);
+    if let Ok(num) = do_math(func.clone())
     {
         let (a, b) = parse(&num);
         let c = (a * 1e12).round() / 1e12;
@@ -395,6 +434,7 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         let d = (b * 1e12).round() / 1e12;
         let fa = fraction(a);
         let fb = fraction(b);
+        print!("\x1b[B\x1B[2K\x1B[1G{}", simplify(func));
         if (fa.contains('/') && fb.contains('/')) || (fa.contains('π') && fb.contains('π'))
         {
             frac = true;
@@ -420,7 +460,7 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         {
             print!("\x1b[B\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
         }
-        print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
+        print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A\x1b[A",
                if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
                if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
         if frac

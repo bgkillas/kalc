@@ -105,6 +105,8 @@ fn main()
         let max = i;
         let mut cursor = 0;
         let mut frac = false;
+        let file = File::open(file_path).unwrap();
+        let lines:Vec<String> = BufReader::new(file).lines().map(|l| l.unwrap()).collect();
         loop
         {
             let c = read_single_char();
@@ -159,7 +161,7 @@ fn main()
                         i = 0;
                         continue;
                     }
-                    input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
+                    input = lines[i as usize].clone();
                     cursor = input.len();
                     frac = print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
@@ -177,7 +179,7 @@ fn main()
                         cursor = 0;
                         continue;
                     }
-                    input = BufReader::new(File::open(file_path).unwrap()).lines().nth(i as usize).unwrap().unwrap();
+                    input = lines[i as usize].clone();
                     cursor = input.len();
                     frac = print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
@@ -237,7 +239,7 @@ fn main()
         }
         if input == "help"
         {
-            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
+            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen and graph data. Type \"help\" to show this message.");
             println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
             continue;
         }
@@ -394,15 +396,13 @@ fn print_answer(func:Vec<String>)
              if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
 }
-use std::f64::consts::PI;
-use std::f64::consts::FRAC_1_SQRT_2;
 fn fraction(num:f64) -> String
 {
     if (num * 1e12).round() / 1e12 == 0.0 || ((num * 1e12).round() / 1e12).fract() == 0.0
     {
         return "0".to_string();
     }
-    if (num * 1e12).round() / 1e12 == (1e12 * FRAC_1_SQRT_2).round() / 1e12
+    if (num * 1e12).round() / 1e12 == (1e12 * std::f64::consts::FRAC_1_SQRT_2).round() / 1e12
     {
         return "1/2^0.5".to_string();
     }
@@ -413,7 +413,7 @@ fn fraction(num:f64) -> String
     let mut p;
     for i in 1..=100
     {
-        p = num / PI * i as f64;
+        p = num / std::f64::consts::PI * i as f64;
         if p.fract() == 0.0
         {
             return format!("{}π{}",

@@ -469,10 +469,9 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         {
             print!("\x1b[B\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
         }
-        print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A\x1b[A",
+        print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
                if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
                if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
-        print!("\x1b[B");
         if frac
         {
             print!("\x1b[A");

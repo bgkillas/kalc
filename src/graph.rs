@@ -1,4 +1,4 @@
-use gnuplot::{AxesCommon, Figure, Fix, PointSymbol};
+use gnuplot::{AxesCommon, Figure, Fix, MajorScale, MinorScale, PointSymbol, TickOption};
 use crate::complex::parse;
 use crate::math::do_math;
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
@@ -110,6 +110,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
     let (mut re, mut im) = get_list_2d(func, range);
     let i = im.iter().map(|i| i[1]).sum::<f64>() != 0.0;
     let r = re.iter().map(|i| i[1]).sum::<f64>() != 0.0;
+    let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
+    let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
     if let Some(..) = older
     {
         let older = older.unwrap();
@@ -131,6 +133,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
             if i && r
             {
                 fg.axes2d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
                   .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -141,6 +145,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
             else if r
             {
                 fg.axes2d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
                   .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -151,6 +157,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
             else if i
             {
                 fg.axes2d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
                   .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -170,6 +178,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
     if i && r
     {
         fg.axes2d()
+          .set_x_ticks(xticks, &[], &[])
+          .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
           .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -178,6 +188,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
     else if r
     {
         fg.axes2d()
+          .set_x_ticks(xticks, &[], &[])
+          .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
           .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')]);
@@ -186,6 +198,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
     else if i
     {
         fg.axes2d()
+          .set_x_ticks(xticks, &[], &[])
+          .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
           .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);

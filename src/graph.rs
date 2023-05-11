@@ -68,6 +68,7 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
 pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:([[f64; 2]; 3], f64, f64)) -> Option<[Vec<[f64; 2]>; 2]>
 {
     fg.close();
+    fg.clear_axes();
     if graph
     {
         let (re, im) = get_list_3d(func, range);

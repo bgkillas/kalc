@@ -1,4 +1,4 @@
-pub fn get_func(input:&str, done:bool) -> Vec<String>
+pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
 {
     let mut count:i32 = 0;
     let mut func:Vec<String> = Vec::new();
@@ -75,6 +75,10 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
                 }
                 word.push(*c);
             }
+            else if chars[i + 1] == 'm'
+            {
+                word.push(*c);
+            }
         }
         else if c.is_whitespace() || *c == 'p'
         {
@@ -94,7 +98,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
                 }
                 func.clear();
                 func.push("0".to_string());
-                return func;
+                return Ok(func);
             }
             word.push(*c);
         }
@@ -202,7 +206,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
     }
     if func.is_empty()
     {
-        return vec!["0".to_string()];
+        return Err(());
     }
     let first = func.first().unwrap().to_string();
     if first == "*" || first == "/" || first == "^" || first == "-"
@@ -212,10 +216,6 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
     if first == "+"
     {
         func.remove(0);
-    }
-    if func.is_empty()
-    {
-        func.push("0".to_string());
     }
     let last = func.last().unwrap().chars().last().unwrap();
     if last == '+' || last == '-'
@@ -230,5 +230,5 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
     {
         func.pop();
     }
-    func
+    Ok(func)
 }

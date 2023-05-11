@@ -1,4 +1,4 @@
-use gnuplot::{AxesCommon, Figure, Fix, MajorScale, MinorScale, PointSymbol, TickOption};
+use gnuplot::{AxesCommon, Figure, Fix, PointSymbol};
 use crate::complex::parse;
 use crate::math::do_math;
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)

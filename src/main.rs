@@ -93,7 +93,7 @@ fn main()
         let mut cursor = 0;
         let mut frac = false;
         let lines:Vec<String> = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
-        loop
+        'outer: loop
         {
             let c = read_single_char();
             match c
@@ -140,34 +140,50 @@ fn main()
                 }
                 '\x1D' =>
                 {
-                    i -= 1;
-                    input.clear();
-                    if i == -1
+                    loop
                     {
-                        i = 0;
-                        continue;
+                        i -= 1;
+                        if i == -1
+                        {
+                            input.clear();
+                            i = 0;
+                            continue 'outer;
+                        }
+                        if input == lines[i as usize]
+                        {
+                            continue;
+                        }
+                        input = lines[i as usize].clone();
+                        cursor = input.len();
+                        frac = print_concurrent(&input, var.clone(), false);
+                        break;
                     }
-                    input = lines[i as usize].clone();
-                    cursor = input.len();
-                    frac = print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
                 {
-                    i += 1;
-                    input.clear();
-                    if i >= max
+                    loop
                     {
-                        print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
-                        print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
-                        stdout().flush().unwrap();
-                        i = max;
-                        cursor = 0;
-                        continue;
+                        i += 1;
+                        if i >= max
+                        {
+                            input.clear();
+                            print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                            print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
+                            stdout().flush().unwrap();
+                            i = max;
+                            cursor = 0;
+                            continue 'outer;
+                        }
+                        if input == lines[i as usize]
+                        {
+                            continue;
+                        }
+                        input = lines[i as usize].clone();
+                        cursor = input.len();
+                        frac = print_concurrent(&input, var.clone(), false);
+                        break;
                     }
-                    input = lines[i as usize].clone();
-                    cursor = input.len();
-                    frac = print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>

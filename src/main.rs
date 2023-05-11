@@ -225,24 +225,6 @@ fn main()
         {
             continue;
         }
-        if !input.contains('=') && (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
-        {
-            input = input.replace('z', "x+y*i");
-            print!("\x1b[2K\x1b[1G");
-            stdout().flush().unwrap();
-            write_history(&input, file_path);
-            if input.contains('y')
-            {
-                graph(&get_func(&input, true), true, true, true, &mut plot, None, range);
-                continue;
-            }
-            let data = graph(&get_func(&input, true), false, false, false, &mut plot, Some(older.clone()), range);
-            if let Some(..) = data
-            {
-                older.push(data.unwrap());
-            }
-            continue;
-        }
         if input.contains('=')
         {
             print!("\x1b[2K\x1b[1G");
@@ -330,6 +312,24 @@ fn main()
                 }
             }
             var.push(input.chars().collect());
+            continue;
+        }
+        else if (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
+        {
+            input = input.replace('z', "x+y*i");
+            print!("\x1b[2K\x1b[1G");
+            stdout().flush().unwrap();
+            write_history(&input, file_path);
+            if input.contains('y')
+            {
+                graph(&get_func(&input, true), true, true, true, &mut plot, None, range);
+                continue;
+            }
+            let data = graph(&get_func(&input, true), false, false, false, &mut plot, Some(older.clone()), range);
+            if let Some(..) = data
+            {
+                older.push(data.unwrap());
+            }
             continue;
         }
         write_history(&input, file_path);
@@ -636,19 +636,27 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
         if re3d && im3d && i && r
         {
             fg.axes3d()
-              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
         else if re3d && r
         {
-            fg.axes3d().points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
+            fg.axes3d()
+              .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+              .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
+              .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
         else if im3d && i
         {
-            fg.axes3d().points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
+            fg.axes3d()
+              .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+              .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
+              .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
         fg.show_and_keep_running().unwrap();
         return None;

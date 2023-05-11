@@ -19,7 +19,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
             }
             func.push(c.to_string());
         }
-        else if *c == 'e' && i != 0 && chars[i - 1] != 'r'
+        else if *c == 'e' && (i == 0 || chars[i - 1] != 'r')
         {
             if word == "-"
             {
@@ -63,7 +63,7 @@ pub fn get_func(input:&str, done:bool) -> Vec<String>
                 }
                 func.push(std::f64::consts::PI.to_string());
             }
-            else if i != chars.len() - 1 && chars[i + 1] != 'm'
+            else if i == chars.len() - 1 || chars[i + 1] != 'm'
             {
                 if !func.is_empty() && (func.last().unwrap() == "x" || func.last().unwrap() == "y")
                 {

@@ -21,6 +21,8 @@ history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%
 
 clear, clears terminal and graph data
 
+xrange=-10,10 to change the x range of the graph
+
 # usage
 ```
 calc 1+1

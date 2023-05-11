@@ -15,6 +15,7 @@ use std::fs::{File, OpenOptions};
 use gnuplot::{AxesCommon, Figure, Fix, PointSymbol};
 fn main()
 {
+    let mut range = [[-10.0, 10.0]; 3];
     let mut plot = Figure::new();
     if args().len() > 1
     {
@@ -42,10 +43,10 @@ fn main()
                         im3d = false;
                     }
                 }
-                graph(&func, true, im3d, re3d, &mut plot, None);
+                graph(&func, true, im3d, re3d, &mut plot, None, range);
                 return;
             }
-            graph(&func, false, true, false, &mut plot, None);
+            graph(&func, false, true, false, &mut plot, None, range);
             return;
         }
         print_answer(func);
@@ -224,17 +225,18 @@ fn main()
         {
             continue;
         }
-        if !input.contains('=') && input.contains('x') && var.iter().all(|i| i[0] != 'x')
+        if !input.contains('=') && (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
+            input = input.replace("z", "x+y*i");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             write_history(&input, file_path);
             if input.contains('y')
             {
-                graph(&get_func(&input, true), true, true, true, &mut plot, None);
+                graph(&get_func(&input, true), true, true, true, &mut plot, None, range);
                 continue;
             }
-            let data = graph(&get_func(&input, true), false, false, false, &mut plot, Some(older.clone()));
+            let data = graph(&get_func(&input, true), false, false, false, &mut plot, Some(older.clone()), range);
             if let Some(..) = data
             {
                 older.push(data.unwrap());
@@ -248,11 +250,29 @@ fn main()
             write_history(&input, file_path);
             let l = input.split('=').next().unwrap();
             let r = input.split('=').last().unwrap();
+            if l == "zrange"
+            {
+                range[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                range[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                continue;
+            }
+            if l == "yrange"
+            {
+                range[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                range[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                continue;
+            }
+            if l == "xrange"
+            {
+                range[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                range[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                continue;
+            }
             if input.contains('x') && var.iter().all(|i| i[0] != 'x') && l.contains('x') && r.contains('x')
             {
                 if input.contains('y') && var.iter().all(|i| i[0] != 'y') && l.contains('y') && r.contains('y')
                 {
-                    if get_list_3d(&get_func(l, true)) == get_list_3d(&get_func(r, true))
+                    if get_list_3d(&get_func(l, true), range) == get_list_3d(&get_func(r, true), range)
                     {
                         println!("true");
                     }
@@ -262,7 +282,7 @@ fn main()
                     }
                     continue;
                 }
-                if get_list_2d(&get_func(l, true)) == get_list_2d(&get_func(r, true))
+                if get_list_2d(&get_func(l, true), range) == get_list_2d(&get_func(r, true), range)
                 {
                     println!("true");
                 }
@@ -276,7 +296,7 @@ fn main()
             {
                 let (re, im) = parse(&r.to_string());
                 let mut list:Vec<f64> = Vec::new();
-                let l = get_list_2d(&get_func(l, true));
+                let l = get_list_2d(&get_func(l, true), range);
                 l.0.iter().for_each(|i| {
                               if i[1] == re
                               {
@@ -531,17 +551,25 @@ fn read_single_char() -> char
         _ => read_single_char(),
     }
 }
-fn get_list_3d(func:&[String]) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+fn get_list_3d(func:&[String], range:[[f64; 2]; 3]) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let amount = 200;
-    for n in -amount..=amount
+    let den = 400.0;
+    let min_x = range[0][0];
+    let max_x = range[0][1];
+    let den_x_range = (max_x - min_x) / den;
+    let min_y = range[1][0];
+    let max_y = range[1][1];
+    let den_y_range = (max_y - min_y) / den;
+    for i in 0..=den as i32
     {
-        let modified:Vec<String> = func.iter().map(|i| i.replace('x', &(n as f64 / (amount as f64 / 10.0)).to_string())).collect();
-        for g in -amount..=amount
+        let n = min_x + i as f64 * den_x_range;
+        let modified:Vec<String> = func.iter().map(|i| i.replace('x', &(n).to_string())).collect();
+        for g in 0..=den as i32
         {
-            let num = match do_math(modified.iter().map(|j| j.replace('y', &(g as f64 / (amount as f64 / 10.0)).to_string())).collect())
+            let f = min_y + g as f64 * den_y_range;
+            let num = match do_math(modified.iter().map(|j| j.replace('y', &(f).to_string())).collect())
             {
                 Ok(n) => n,
                 Err(_) =>
@@ -553,21 +581,24 @@ fn get_list_3d(func:&[String]) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
             let (a, b) = parse(&num);
             let a = (a * 1e12).round() / 1e12;
             let b = (b * 1e12).round() / 1e12;
-            re.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), a]);
-            im.push([n as f64 / (amount as f64 / 10.0), g as f64 / (amount as f64 / 10.0), b]);
+            re.push([n, f, a]);
+            im.push([n, f, b]);
         }
     }
     (re, im)
 }
-fn get_list_2d(func:&[String]) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+fn get_list_2d(func:&[String], range:[[f64; 2]; 3]) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let amount = 50000;
-    for n in -amount..=amount
+    let min = range[0][0];
+    let max = range[0][1];
+    let den = 100000.0;
+    let den_range = (max - min) / den;
+    for i in 0..=den as i32
     {
-        let modified = func.iter().map(|i| i.replace('x', &(n as f64 / (amount as f64 / 10.0)).to_string())).collect();
-        let num = match do_math(modified)
+        let n = min + i as f64 * den_range;
+        let num = match do_math(func.iter().map(|i| i.replace('x', &(n).to_string())).collect())
         {
             Ok(n) => n,
             Err(_) =>
@@ -579,22 +610,25 @@ fn get_list_2d(func:&[String]) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
         let (a, b) = parse(&num);
         let a = (a * 1e12).round() / 1e12;
         let b = (b * 1e12).round() / 1e12;
-        re.push([n as f64 / (amount as f64 / 10.0), a]);
-        im.push([n as f64 / (amount as f64 / 10.0), b]);
+        re.push([n, a]);
+        im.push([n, b]);
     }
     (re, im)
 }
-fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>) -> Option<[Vec<[f64; 2]>; 2]>
+fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:[[f64; 2]; 3]) -> Option<[Vec<[f64; 2]>; 2]>
 {
     fg.close();
     if graph
     {
-        let (re, im) = get_list_3d(func);
+        let (re, im) = get_list_3d(func, range);
         let i = im.iter().map(|i| i[2]).sum::<f64>() != 0.0;
         let r = re.iter().map(|i| i[2]).sum::<f64>() != 0.0;
         if re3d && im3d && i && r
         {
             fg.axes3d()
+              .set_y_range(Fix(range[1][0]), Fix(range[1][1]))
+              .set_x_range(Fix(range[0][0]), Fix(range[0][1]))
+              .set_z_range(Fix(range[2][0]), Fix(range[2][1]))
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
@@ -609,7 +643,7 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
         fg.show_and_keep_running().unwrap();
         return None;
     }
-    let (re, im) = get_list_2d(func);
+    let (re, im) = get_list_2d(func, range);
     if let Some(..) = older
     {
         let older = older.unwrap();
@@ -623,8 +657,8 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
                 older_im.extend_from_slice(&i[1]);
             }
             fg.axes2d()
-              .set_y_range(Fix(-10.0), Fix(10.0))
-              .set_x_range(Fix(-10.0), Fix(10.0))
+              .set_y_range(Fix(range[1][0]), Fix(range[1][1]))
+              .set_x_range(Fix(range[0][0]), Fix(range[0][1]))
               .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
               .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
               .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -634,8 +668,8 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
         }
     }
     fg.axes2d()
-      .set_y_range(Fix(-10.0), Fix(10.0))
-      .set_x_range(Fix(-10.0), Fix(10.0))
+      .set_y_range(Fix(range[1][0]), Fix(range[1][1]))
+      .set_x_range(Fix(range[0][0]), Fix(range[0][1]))
       .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
       .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
     fg.show_and_keep_running().unwrap();

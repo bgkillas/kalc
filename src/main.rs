@@ -105,8 +105,7 @@ fn main()
         let max = i;
         let mut cursor = 0;
         let mut frac = false;
-        let file = File::open(file_path).unwrap();
-        let lines:Vec<String> = BufReader::new(file).lines().map(|l| l.unwrap()).collect();
+        let lines:Vec<String> = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
         loop
         {
             let c = read_single_char();

@@ -23,6 +23,10 @@ clear, clears terminal and graph data
 
 xrange=-10,10 to change the x range of the graph
 
+3d=400 to change the number of points in the graph
+
+2d=100000 to change the number of points in the graph
+
 # usage
 ```
 calc 1+1

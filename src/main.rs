@@ -15,7 +15,7 @@ use std::fs::{File, OpenOptions};
 use gnuplot::{AxesCommon, Figure, Fix, PointSymbol};
 fn main()
 {
-    let mut range = [[-10.0, 10.0]; 3];
+    let mut range = ([[-10.0, 10.0]; 3], 100000.0, 400.0);
     let mut plot = Figure::new();
     if args().len() > 1
     {
@@ -252,20 +252,30 @@ fn main()
             let r = input.split('=').last().unwrap();
             if l == "zrange"
             {
-                range[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                range[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                range.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                range.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                 continue;
             }
             if l == "yrange"
             {
-                range[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                range[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                range.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                range.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                 continue;
             }
             if l == "xrange"
             {
-                range[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                range[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                range.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                range.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                continue;
+            }
+            if l == "3d"
+            {
+                range.2 = r.parse::<f64>().unwrap();
+                continue;
+            }
+            if l == "2d"
+            {
+                range.1 = r.parse::<f64>().unwrap();
                 continue;
             }
             if input.contains('x') && var.iter().all(|i| i[0] != 'x') && l.contains('x') && r.contains('x')
@@ -551,16 +561,16 @@ fn read_single_char() -> char
         _ => read_single_char(),
     }
 }
-fn get_list_3d(func:&[String], range:[[f64; 2]; 3]) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let den = 400.0;
-    let min_x = range[0][0];
-    let max_x = range[0][1];
+    let den = range.2;
+    let min_x = range.0[0][0];
+    let max_x = range.0[0][1];
     let den_x_range = (max_x - min_x) / den;
-    let min_y = range[1][0];
-    let max_y = range[1][1];
+    let min_y = range.0[1][0];
+    let max_y = range.0[1][1];
     let den_y_range = (max_y - min_y) / den;
     for i in 0..=den as i32
     {
@@ -587,13 +597,13 @@ fn get_list_3d(func:&[String], range:[[f64; 2]; 3]) -> (Vec<[f64; 3]>, Vec<[f64;
     }
     (re, im)
 }
-fn get_list_2d(func:&[String], range:[[f64; 2]; 3]) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let min = range[0][0];
-    let max = range[0][1];
-    let den = 100000.0;
+    let min = range.0[0][0];
+    let max = range.0[0][1];
+    let den = range.1;
     let den_range = (max - min) / den;
     for i in 0..=den as i32
     {
@@ -615,7 +625,7 @@ fn get_list_2d(func:&[String], range:[[f64; 2]; 3]) -> (Vec<[f64; 2]>, Vec<[f64;
     }
     (re, im)
 }
-fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:[[f64; 2]; 3]) -> Option<[Vec<[f64; 2]>; 2]>
+fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:([[f64; 2]; 3], f64, f64)) -> Option<[Vec<[f64; 2]>; 2]>
 {
     fg.close();
     if graph
@@ -626,9 +636,9 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
         if re3d && im3d && i && r
         {
             fg.axes3d()
-              .set_y_range(Fix(range[1][0]), Fix(range[1][1]))
-              .set_x_range(Fix(range[0][0]), Fix(range[0][1]))
-              .set_z_range(Fix(range[2][0]), Fix(range[2][1]))
+              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+              .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+              .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
@@ -657,8 +667,8 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
                 older_im.extend_from_slice(&i[1]);
             }
             fg.axes2d()
-              .set_y_range(Fix(range[1][0]), Fix(range[1][1]))
-              .set_x_range(Fix(range[0][0]), Fix(range[0][1]))
+              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+              .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
               .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
               .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -668,8 +678,8 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older
         }
     }
     fg.axes2d()
-      .set_y_range(Fix(range[1][0]), Fix(range[1][1]))
-      .set_x_range(Fix(range[0][0]), Fix(range[0][1]))
+      .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+      .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
       .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
       .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
     fg.show_and_keep_running().unwrap();

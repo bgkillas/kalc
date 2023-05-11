@@ -97,13 +97,14 @@ fn main()
                         println!();
                     }
                     println!();
-                    println!();
                     break;
                 }
                 '\x08' =>
                 {
                     if input.is_empty() || cursor == 0
                     {
+                        print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                        stdout().flush().unwrap();
                         continue;
                     }
                     cursor -= 1;
@@ -120,6 +121,10 @@ fn main()
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");
+                    }
+                    if cursor == 0
+                    {
+                        print!("\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
                     }
                 }
                 '\x1D' =>
@@ -142,6 +147,7 @@ fn main()
                     input.clear();
                     if i >= max
                     {
+                        print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
                         print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
                         stdout().flush().unwrap();
                         i = max;
@@ -365,44 +371,40 @@ fn fraction(num:f64) -> String
     }
     num.to_string()
 }
-fn simplify(func:Vec<String>) -> String
-{
-    let mut func = func;
-    let mut i = 0;
-    while i < func.len()
-    {
-        if let Ok(num) = func[i].parse::<f64>()
-        {
-            if num.fract() != 0.0
-            {
-                let frac = fraction(num);
-                let frac = frac.split('/').collect::<Vec<&str>>();
-                if frac.contains(&'π'.to_string().as_str())
-                {
-                    func[i] = frac[0].to_string();
-                }
-                else
-                {
-                    func[i] = "(".to_string();
-                    func.insert(i + 1, frac[0].to_string());
-                    func.insert(i + 2, "/".to_string());
-                    func.insert(i + 3, frac[1].to_string());
-                    func.insert(i + 4, ")".to_string());
-                }
-            }
-        }
-        if i != 0 && i + 2 < func.len() && func[i + 1] == "*" && func[i - 1] == "/" && func[i + 2] == func[i]
-        {
-            func.remove(i + 1);
-            func.remove(i + 1);
-            func.remove(i - 1);
-            func.remove(i - 1);
-            i -= 1;
-        }
-        i += 1;
-    }
-    func.join("")
-}
+// fn simplify(func:Vec<String>) -> String
+// {
+//     let mut func = func;
+//     let mut i = 0;
+//     while i < func.len()
+//     {
+//         if let Ok(num) = func[i].parse::<f64>()
+//         {
+//             if num.fract() != 0.0
+//             {
+//                 let frac = fraction(num);
+//                 let frac = frac.split('/').collect::<Vec<&str>>();
+//                 if frac.contains(&'/'.to_string().as_str())
+//                 {
+//                     func[i] = "(".to_string();
+//                     func.insert(i + 1, frac[0].to_string());
+//                     func.insert(i + 2, "/".to_string());
+//                     func.insert(i + 3, frac[1].to_string());
+//                     func.insert(i + 4, ")".to_string());
+//                 }
+//             }
+//         }
+//         if i != 0 && i + 2 < func.len() && func[i + 1] == "*" && func[i - 1] == "/" && func[i + 2] == func[i]
+//         {
+//             func.remove(i + 1);
+//             func.remove(i + 1);
+//             func.remove(i - 1);
+//             func.remove(i - 1);
+//             i -= 1;
+//         }
+//         i += 1;
+//     }
+//     func.join("")
+// }
 fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
 {
     let mut frac = false;
@@ -434,7 +436,14 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         let d = (b * 1e12).round() / 1e12;
         let fa = fraction(a);
         let fb = fraction(b);
-        print!("\x1b[B\x1B[2K\x1B[1G{}", simplify(func));
+        // let simplified = simplify(func.clone());
+        // let mut is_simple = false;
+        // if simplified != func.join("")
+        // {
+        //     is_simple = true;
+        //     print!("\x1b[B\x1B[2K\x1B[1G{}", simplified);
+        //     output += 1;
+        // }
         if (fa.contains('/') && fb.contains('/')) || (fa.contains('π') && fb.contains('π'))
         {
             frac = true;
@@ -442,14 +451,14 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
                    if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
                    if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" });
         }
-        else if fa.contains('/') || fa.contains('π')
+        else if (fa.contains('/') || fa.contains('π')) && fa != func.join("")
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
                    if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
                    if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" });
         }
-        else if fb.contains('/') || fb.contains('π')
+        else if (fb.contains('/') || fb.contains('π')) && fb != func.join("")
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
@@ -463,10 +472,15 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A\x1b[A",
                if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
                if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
+        print!("\x1b[B");
         if frac
         {
             print!("\x1b[A");
         }
+        // if is_simple
+        // {
+        //     print!("\x1b[A");
+        // }
     }
     if !del
     {

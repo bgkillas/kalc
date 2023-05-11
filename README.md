@@ -43,14 +43,6 @@ calc x^y
 graphs x^y
 ```
 ```
-calc x^y --nore
-displays the amiginary part of x^y
-```
-```
-calc x^y --noim
-displays the real part of x^y
-```
-```
 calc
 > x=4
 > x^2

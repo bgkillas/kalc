@@ -65,7 +65,7 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     }
     (re, im)
 }
-pub fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:([[f64; 2]; 3], f64, f64)) -> Option<[Vec<[f64; 2]>; 2]>
+pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:([[f64; 2]; 3], f64, f64)) -> Option<[Vec<[f64; 2]>; 2]>
 {
     fg.close();
     if graph
@@ -73,7 +73,7 @@ pub fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, o
         let (re, im) = get_list_3d(func, range);
         let i = im.iter().map(|i| i[2]).sum::<f64>() != 0.0;
         let r = re.iter().map(|i| i[2]).sum::<f64>() != 0.0;
-        if re3d && im3d && i && r
+        if i && r
         {
             fg.axes3d()
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
@@ -82,7 +82,7 @@ pub fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, o
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
-        else if re3d && r
+        else if r
         {
             fg.axes3d()
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
@@ -90,7 +90,7 @@ pub fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, o
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
-        else if im3d && i
+        else if i
         {
             fg.axes3d()
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
@@ -98,10 +98,17 @@ pub fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, o
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
+        if close
+        {
+            fg.show().unwrap();
+            return None;
+        }
         fg.show_and_keep_running().unwrap();
         return None;
     }
-    let (re, im) = get_list_2d(func, range);
+    let (mut re, mut im) = get_list_2d(func, range);
+    let i = im.iter().map(|i| i[1]).sum::<f64>() != 0.0;
+    let r = re.iter().map(|i| i[1]).sum::<f64>() != 0.0;
     if let Some(..) = older
     {
         let older = older.unwrap();
@@ -111,25 +118,83 @@ pub fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, o
             let mut older_im = older[0][1].to_vec();
             for i in older
             {
-                older_re.extend_from_slice(&i[0]);
-                older_im.extend_from_slice(&i[1]);
+                if i[0].iter().map(|i| i[1]).sum::<f64>() != 0.0
+                {
+                    older_re.extend_from_slice(&i[0]);
+                }
+                if i[1].iter().map(|i| i[1]).sum::<f64>() != 0.0
+                {
+                    older_im.extend_from_slice(&i[1]);
+                }
             }
-            fg.axes2d()
-              .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
-              .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-              .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
-              .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
-              .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
-              .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+            if i && r
+            {
+                fg.axes2d()
+                  .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+                  .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+                  .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+            }
+            else if r
+            {
+                fg.axes2d()
+                  .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+                  .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+                  .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+                im.clear();
+            }
+            else if i
+            {
+                fg.axes2d()
+                  .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+                  .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+                  .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+                im.clear();
+            }
+            if close
+            {
+                fg.show().unwrap();
+                return None;
+            }
             fg.show_and_keep_running().unwrap();
             return Some([re, im]);
         }
     }
-    fg.axes2d()
-      .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
-      .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
-      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+    if i && r
+    {
+        fg.axes2d()
+          .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+          .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+          .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
+          .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+    }
+    else if r
+    {
+        fg.axes2d()
+          .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+          .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+          .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')]);
+        im.clear();
+    }
+    else if i
+    {
+        fg.axes2d()
+          .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
+          .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+          .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+        re.clear();
+    }
+    if close
+    {
+        fg.show().unwrap();
+        return None;
+    }
     fg.show_and_keep_running().unwrap();
     Some([re, im])
 }

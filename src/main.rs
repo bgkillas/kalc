@@ -26,7 +26,7 @@ fn main()
             println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)");
             return;
         }
-        let func = match get_func(&args().nth(1).unwrap(), true)
+        let func = match get_func(&args().nth(1).unwrap().replace('z', "(x+y*i)"), true)
         {
             Ok(f) => f,
             Err(()) =>
@@ -39,23 +39,10 @@ fn main()
         {
             if func.contains(&"y".to_string())
             {
-                let mut re3d = true;
-                let mut im3d = true;
-                for i in 2..args().len()
-                {
-                    if args().nth(i).unwrap() == "--nore"
-                    {
-                        re3d = false;
-                    }
-                    if args().nth(i).unwrap() == "--noim"
-                    {
-                        im3d = false;
-                    }
-                }
-                graph::graph(&func, true, im3d, re3d, &mut plot, None, range);
+                graph::graph(&func, true, true, &mut plot, None, range);
                 return;
             }
-            graph::graph(&func, false, true, false, &mut plot, None, range);
+            graph::graph(&func, false, true, &mut plot, None, range);
             return;
         }
         print_answer(func);
@@ -352,7 +339,7 @@ fn main()
         }
         else if (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
-            input = input.replace('z', "x+y*i");
+            input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             write_history(&input, file_path);
@@ -363,10 +350,10 @@ fn main()
             };
             if input.contains('y')
             {
-                graph::graph(&func, true, true, true, &mut plot, None, range);
+                graph::graph(&func, true, false, &mut plot, None, range);
                 continue;
             }
-            let data = graph::graph(&func, false, false, false, &mut plot, Some(older.clone()), range);
+            let data = graph::graph(&func, false, false, &mut plot, Some(older.clone()), range);
             if let Some(..) = data
             {
                 older.push(data.unwrap());

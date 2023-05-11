@@ -227,7 +227,7 @@ fn main()
         }
         if !input.contains('=') && (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
-            input = input.replace("z", "x+y*i");
+            input = input.replace('z', "x+y*i");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             write_history(&input, file_path);

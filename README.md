@@ -13,9 +13,13 @@ the following functions in the complex plane
 
 ``dg(to_degrees),rd(to_radians)``
 
+``re(gets real),im(gets imag)``
+
 constants: ``pi, e``
 
 history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
+
+clear, clears terminal and graph data
 
 # usage
 ```

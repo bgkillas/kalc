@@ -70,6 +70,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "abs" => func[i] = abs(arg1, arg2).to_string(),
                 "dg" => func[i] = arg1.to_degrees().to_string(),
                 "rd" => func[i] = arg1.to_radians().to_string(),
+                "re" => func[i] = arg1.to_string(),
+                "im" => func[i] = arg2.to_string(),
                 "cbrt" => func[i] = pow(arg1, arg2, 1.0 / 3.0, 0.0).to_string(),
                 _ =>
                 {

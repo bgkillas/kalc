@@ -12,9 +12,10 @@ use std::io::stdin;
 #[cfg(target_os = "linux")]
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
-use gnuplot::{AxesCommon, Caption, Figure, Fix, PointSymbol};
+use gnuplot::{AxesCommon, Figure, Fix, PointSymbol};
 fn main()
 {
+    let mut plot = Figure::new();
     if args().len() > 1
     {
         if args().nth(1).unwrap() == "--help"
@@ -41,10 +42,10 @@ fn main()
                         im3d = false;
                     }
                 }
-                graph(&func, true, im3d, re3d);
+                graph(&func, true, im3d, re3d, &mut plot, None);
                 return;
             }
-            graph(&func, false, true, false);
+            graph(&func, false, true, false, &mut plot, None);
             return;
         }
         print_answer(func);
@@ -76,6 +77,7 @@ fn main()
         File::create(file_path).unwrap();
     }
     let mut var:Vec<Vec<char>> = Vec::new();
+    let mut older:Vec<[Vec<[f64; 2]>; 2]> = Vec::new();
     loop
     {
         input.clear();
@@ -206,6 +208,8 @@ fn main()
         }
         if input == "clear"
         {
+            plot.clear_axes();
+            older.clear();
             print!("\x1B[2J\x1B[1;1H");
             stdout().flush().unwrap();
             continue;
@@ -227,10 +231,14 @@ fn main()
             write_history(&input, file_path);
             if input.contains('y')
             {
-                graph(&get_func(&input, true), true, true, true);
+                graph(&get_func(&input, true), true, true, true, &mut plot, None);
                 continue;
             }
-            graph(&get_func(&input, true), false, false, false);
+            let data = graph(&get_func(&input, true), false, false, false, &mut plot, Some(older.clone()));
+            if let Some(..) = data
+            {
+                older.push(data.unwrap());
+            }
             continue;
         }
         if input.contains('=')
@@ -576,9 +584,9 @@ fn get_list_2d(func:&[String]) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
     }
     (re, im)
 }
-fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
+fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>) -> Option<[Vec<[f64; 2]>; 2]>
 {
-    let mut fg = Figure::new();
+    fg.close();
     if graph
     {
         let (re, im) = get_list_3d(func);
@@ -598,14 +606,38 @@ fn graph(func:&[String], graph:bool, im3d:bool, re3d:bool)
         {
             fg.axes3d().points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
-        fg.show().unwrap();
-        return;
+        fg.show_and_keep_running().unwrap();
+        return None;
     }
     let (re, im) = get_list_2d(func);
+    if let Some(..) = older
+    {
+        let older = older.unwrap();
+        if !older.is_empty()
+        {
+            let mut older_re = older[0][0].to_vec();
+            let mut older_im = older[0][1].to_vec();
+            for i in older
+            {
+                older_re.extend_from_slice(&i[0]);
+                older_im.extend_from_slice(&i[1]);
+            }
+            fg.axes2d()
+              .set_y_range(Fix(-10.0), Fix(10.0))
+              .set_x_range(Fix(-10.0), Fix(10.0))
+              .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
+              .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
+              .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
+              .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+            fg.show_and_keep_running().unwrap();
+            return Some([re, im]);
+        }
+    }
     fg.axes2d()
       .set_y_range(Fix(-10.0), Fix(10.0))
       .set_x_range(Fix(-10.0), Fix(10.0))
-      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[Caption("real"), PointSymbol('.')])
-      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[Caption("imag"), PointSymbol('.')]);
-    fg.show().unwrap();
+      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
+      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+    fg.show_and_keep_running().unwrap();
+    Some([re, im])
 }

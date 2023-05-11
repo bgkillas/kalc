@@ -121,10 +121,13 @@ fn main()
                 }
                 '\x08' =>
                 {
-                    if input.is_empty() || cursor == 0
+                    if cursor == 0
                     {
-                        print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
-                        stdout().flush().unwrap();
+                        if input.is_empty()
+                        {
+                            print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                            stdout().flush().unwrap();
+                        }
                         continue;
                     }
                     cursor -= 1;
@@ -142,7 +145,7 @@ fn main()
                     {
                         print!("\x08");
                     }
-                    if cursor == 0
+                    if cursor == 0 && input.is_empty()
                     {
                         print!("\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
                     }

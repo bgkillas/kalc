@@ -19,14 +19,6 @@ constants: ``pi, e``
 
 history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
 
-clear, clears terminal and graph data
-
-xrange=-10,10 to change the x range of the graph
-
-3d=400 to change the number of points in the graph
-
-2d=100000 to change the number of points in the graph
-
 # usage
 ```
 calc 1+1
@@ -73,4 +65,24 @@ graphs x^2
 calc
 > x^y
 graphs x^y
+```
+```
+calc
+> clear
+clears terminal and graph data
+```
+```
+calc
+> xrange=-10,10
+change the x range of the graph
+```
+```
+calc
+> 3d=400
+change the number of points in the graph
+```
+```
+calc
+> 2d=100000
+change the number of points in the graph
 ```

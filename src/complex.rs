@@ -112,29 +112,34 @@ pub fn sin(a:f64, b:f64) -> String
     // sin(a+bi)=sin(a)cosh(b)+i*cos(a)sinh(b)
     if b == 0.0
     {
-        return a.sin().to_string();
+        let re = (a.sin() * 1e15).round() / 1e15;
+        return re.to_string();
     }
     let im = a.cos() * b.sinh();
+    let re = a.sin() * b.cosh();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
-    (a.sin() * b.cosh()).to_string() + sign + im.to_string().as_str() + "i"
+    re.to_string() + sign + im.to_string().as_str() + "i"
 }
 pub fn cos(a:f64, b:f64) -> String
 {
     // cos(a+bi)=cos(a)cosh(b)-i*sin(a)sinh(b)
     if b == 0.0
     {
-        return a.cos().to_string();
+        let re = (a.cos() * 1e15).round() / 1e15;
+        return re.to_string();
     }
     let im = -a.sin() * b.sinh();
+    let re = a.cos() * b.cosh();
     let sign = if im.to_string().contains('-') { "" } else { "+" };
-    (a.cos() * b.cosh()).to_string() + sign + im.to_string().as_str() + "i"
+    re.to_string() + sign + im.to_string().as_str() + "i"
 }
 pub fn tan(a:f64, b:f64) -> String
 {
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
     if b == 0.0
     {
-        return (a.tan()).to_string();
+        let re = (a.tan() * 1e15).round() / 1e15;
+        return re.to_string();
     }
     div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh())
 }

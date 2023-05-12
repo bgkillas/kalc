@@ -151,7 +151,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             {
                 count -= 1;
             }
-            if *c == '-' && word.is_empty() && i != 0 && chars[i - 1] != ')'
+            if *c == '-' && word.is_empty() && i != 0 && chars[i - 1] != ')' && chars[i - 1] != 'x' && chars[i - 1] != 'y'
             {
                 word.push(*c);
                 continue;

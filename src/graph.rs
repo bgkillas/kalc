@@ -1,4 +1,4 @@
-use gnuplot::{AxesCommon, Figure, Fix, PointSymbol};
+use gnuplot::{AxesCommon, Color, Figure, Fix, PointSymbol};
 use crate::complex::parse;
 use crate::math::do_math;
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
@@ -108,6 +108,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
     let r = re.iter().map(|i| i[1]).sum::<f64>() != 0.0;
     let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
     let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
+    let axisline = [-1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0];
+    let zeros = [0.0; 11];
     if let Some(..) = older
     {
         let older = older.unwrap();
@@ -133,6 +135,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+                  .lines(axisline, zeros, &[Color("black")])
+                  .lines(zeros, axisline, &[Color("black")])
                   .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
@@ -145,6 +149,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+                  .lines(axisline, zeros, &[Color("black")])
+                  .lines(zeros, axisline, &[Color("black")])
                   .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
@@ -157,6 +163,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+                  .lines(axisline, zeros, &[Color("black")])
+                  .lines(zeros, axisline, &[Color("black")])
                   .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
@@ -178,6 +186,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
           .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+          .lines(axisline, zeros, &[Color("black")])
+          .lines(zeros, axisline, &[Color("black")])
           .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
           .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
     }
@@ -188,6 +198,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
           .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+          .lines(axisline, zeros, &[Color("black")])
+          .lines(zeros, axisline, &[Color("black")])
           .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')]);
         im.clear();
     }
@@ -198,6 +210,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
           .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+          .lines(axisline, zeros, &[Color("black")])
+          .lines(zeros, axisline, &[Color("black")])
           .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
         re.clear();
     }

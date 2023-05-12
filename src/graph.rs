@@ -29,8 +29,6 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
                 }
             };
             let (a, b) = parse(&num);
-            let a = (a * 1e12).round() / 1e12;
-            let b = (b * 1e12).round() / 1e12;
             re.push([n, f, a]);
             im.push([n, f, b]);
         }
@@ -58,8 +56,6 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
             }
         };
         let (a, b) = parse(&num);
-        let a = (a * 1e12).round() / 1e12;
-        let b = (b * 1e12).round() / 1e12;
         re.push([n, a]);
         im.push([n, b]);
     }

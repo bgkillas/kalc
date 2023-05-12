@@ -1,4 +1,4 @@
-use gnuplot::{AxesCommon, Color, Figure, Fix, PointSymbol};
+use gnuplot::{AxesCommon, Color, Dot, Figure, Fix, LineStyle, PointSymbol, SmallDot};
 use crate::complex::parse;
 use crate::math::do_math;
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
@@ -135,10 +135,12 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-                  .lines(axisline, zeros, &[Color("black")])
-                  .lines(zeros, axisline, &[Color("black")])
-                  .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
-                  .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+                  .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
+                  .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
+                  .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#9400D3")])
+                  .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#009E73")])
                   .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
             }
@@ -149,9 +151,11 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-                  .lines(axisline, zeros, &[Color("black")])
-                  .lines(zeros, axisline, &[Color("black")])
-                  .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+                  .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
+                  .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
+                  .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#9400D3")])
                   .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
                 im.clear();
@@ -163,9 +167,11 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
                   .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-                  .lines(axisline, zeros, &[Color("black")])
-                  .lines(zeros, axisline, &[Color("black")])
-                  .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')])
+                  .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+                  .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
+                  .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
+                  .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#009E73")])
                   .points(older_re.iter().map(|x| x[0]), older_re.iter().map(|x| x[1]), &[PointSymbol('.')])
                   .points(older_im.iter().map(|x| x[0]), older_im.iter().map(|x| x[1]), &[PointSymbol('.')]);
                 im.clear();
@@ -186,10 +192,12 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
           .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-          .lines(axisline, zeros, &[Color("black")])
-          .lines(zeros, axisline, &[Color("black")])
-          .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')])
-          .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+          .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+          .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+          .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
+          .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
+          .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#9400D3")])
+          .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#009E73")]);
     }
     else if r
     {
@@ -198,9 +206,11 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
           .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-          .lines(axisline, zeros, &[Color("black")])
-          .lines(zeros, axisline, &[Color("black")])
-          .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.')]);
+          .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+          .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+          .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
+          .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
+          .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#9400D3")]);
         im.clear();
     }
     else if i
@@ -210,9 +220,11 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
           .set_y_ticks(yticks, &[], &[])
           .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
           .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-          .lines(axisline, zeros, &[Color("black")])
-          .lines(zeros, axisline, &[Color("black")])
-          .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.')]);
+          .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+          .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+          .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
+          .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
+          .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#009E73")]);
         re.clear();
     }
     if close

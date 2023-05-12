@@ -12,12 +12,12 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             {
                 func.push(word.clone());
             }
-            word.clear();
-            if i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == 'x' || chars[i - 1] == 'y')
+            if i != 0 && (word.parse::<f64>().is_ok() || chars[i - 1] == 'x' || chars[i - 1] == 'y')
             {
                 func.push("*".to_string());
             }
-            func.push(c.to_string());
+            word.clear();
+            word = c.to_string();
         }
         else if *c == 'e' && (i == 0 || chars[i - 1] != 'r')
         {

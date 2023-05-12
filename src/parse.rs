@@ -80,8 +80,16 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 word.push(*c);
             }
         }
-        else if c.is_whitespace() || *c == 'p'
+        else if c.is_whitespace()
         {
+            continue;
+        }
+        else if *c == 'p'
+        {
+            if i == chars.len() - 1
+            {
+                func.push('p'.to_string());
+            }
             continue;
         }
         else if *c == '.'

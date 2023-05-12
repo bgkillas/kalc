@@ -129,7 +129,21 @@ pub fn sin(a:f64, b:f64) -> (f64, f64)
     // sin(a+bi)=sin(a)cosh(b)+i*cos(a)sinh(b)
     if b == 0.0
     {
-        let re = (a.sin() * 1e15).round() / 1e15;
+        let pi_2 = std::f64::consts::FRAC_PI_2;
+        let pi = std::f64::consts::PI;
+        if a % pi == 0.0
+        {
+            return (0.0, 0.0);
+        }
+        if a % pi_2 == 0.0
+        {
+            if (a.abs() * 2.0 / pi) % 4.0 == 1.0
+            {
+                return (if a.is_sign_positive() { 1.0 } else { -1.0 }, 0.0);
+            }
+            return (if a.is_sign_positive() { -1.0 } else { 1.0 }, 0.0);
+        }
+        let re = a.sin();
         return (re, 0.0);
     }
     let im = a.cos() * b.sinh();
@@ -141,7 +155,21 @@ pub fn cos(a:f64, b:f64) -> (f64, f64)
     // cos(a+bi)=cos(a)cosh(b)-i*sin(a)sinh(b)
     if b == 0.0
     {
-        let re = (a.cos() * 1e15).round() / 1e15;
+        let pi_2 = std::f64::consts::FRAC_PI_2;
+        let pi = std::f64::consts::PI;
+        if a % pi == 0.0
+        {
+            if (a.abs() / pi) % 2.0 == 1.0
+            {
+                return (-1.0, 0.0);
+            }
+            return (1.0, 0.0);
+        }
+        if a % pi_2 == 0.0
+        {
+            return (0.0, 0.0);
+        }
+        let re = a.cos();
         return (re, 0.0);
     }
     let im = -a.sin() * b.sinh();
@@ -153,7 +181,11 @@ pub fn tan(a:f64, b:f64) -> (f64, f64)
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
     if b == 0.0
     {
-        let re = (a.tan() * 1e15).round() / 1e15;
+        if a % std::f64::consts::PI == 0.0
+        {
+            return (0.0, 0.0);
+        }
+        let re = a.tan();
         return (re, 0.0);
     }
     let (re, im) = div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh());

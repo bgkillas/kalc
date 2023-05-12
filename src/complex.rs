@@ -120,6 +120,10 @@ pub fn abs(a:f64, b:f64) -> f64
 pub fn ln(a:f64, b:f64) -> (f64, f64)
 {
     // ln(a+bi)=ln(a^2+b^2)/2+i*atan2(b,a)
+    if b == 0.0
+    {
+        return if a.is_sign_positive() { (a.ln(), 0.0) } else { (a.abs().ln(), std::f64::consts::PI) };
+    }
     let re = (a * a + b * b).ln() / 2.0;
     let im = b.atan2(a);
     (re, im)

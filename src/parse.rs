@@ -12,7 +12,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             {
                 func.push(word.clone());
             }
-            if i != 0 && (word.parse::<f64>().is_ok() || chars[i - 1] == 'x' || chars[i - 1] == 'y')
+            if i != 0 && (word.parse::<f64>().is_ok() || word.ends_with('i') || chars[i - 1] == 'x' || chars[i - 1] == 'y')
             {
                 func.push("*".to_string());
             }
@@ -65,9 +65,11 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             else if i == chars.len() - 1 || chars[i + 1] != 'm'
             {
-                if !func.is_empty() && (func.last().unwrap() == "x" || func.last().unwrap() == "y")
+                if i != 0 && (!word.is_empty() && word != "(")
                 {
+                    func.push(word.clone());
                     func.push("*".to_string());
+                    word.clear();
                 }
                 if word.is_empty()
                 {
@@ -137,6 +139,10 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             if i != 0 && chars[i - 1].is_ascii_alphabetic()
             {
                 func.push(word.clone());
+                if word == "1i"
+                {
+                    func.push("*".to_string());
+                }
                 word.clear();
             }
             word.push(*c);
@@ -156,7 +162,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 word.push(*c);
                 continue;
             }
-            if *c == '(' && i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == ')')
+            if *c == '(' && i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == 'i' || chars[i - 1] == ')' || chars[i - 1] == 'x' || chars[i - 1] == 'y')
             {
                 if !word.is_empty()
                 {
@@ -185,7 +191,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             func.push(c.to_string());
             word.clear();
-            if chars[i] == ')' && i < chars.len() - 1 && chars[i + 1].is_ascii_digit()
+            if chars[i] == ')' && i < chars.len() - 1 && (chars[i + 1].is_ascii_digit() || chars[i + 1] == 'i' || chars[i + 1] == 'x' || chars[i + 1] == 'y')
             {
                 func.push("*".to_string());
             }

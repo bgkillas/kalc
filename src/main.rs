@@ -382,7 +382,7 @@ fn main()
 fn help()
 {
     println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
-    println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, sgn, arg, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)");
+    println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num),root(base,exp), abs, sgn, arg, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)");
 }
 fn print_answer(func:Vec<String>)
 {
@@ -476,6 +476,11 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<S
             }
             start_idx += 1;
         }
+    }
+    if modified.contains('x') || modified.contains('y') || modified.contains('z')
+    {
+        print!("\x1b[96m\x1b[B\x1B[2K\x1B[1G\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", input);
+        return false;
     }
     let func = match get_func(&modified, false)
     {

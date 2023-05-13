@@ -66,6 +66,19 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     };
                     log(base_re, base_im, arg1, arg2)
                 }
+                "root" =>
+                {
+                    let (base_re, base_im) = if func[i + 1].contains(',')
+                    {
+                        parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string())
+                    }
+                    else
+                    {
+                        (2.0, 0.0)
+                    };
+                    let (a, b) = div(1.0, 0.0, arg1, arg2);
+                    pow(base_re, base_im, a, b)
+                }
                 "sqrt" => pow(arg1, arg2, 0.5, 0.0),
                 "abs" => (abs(arg1, arg2), 0.0),
                 "dg" => (arg1.to_degrees(), 0.0),

@@ -1,8 +1,12 @@
-use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol, SmallDot};
+use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
 use crate::complex::parse;
 use crate::math::do_math;
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
+    if func.is_empty()
+    {
+        return (Vec::new(), Vec::new());
+    }
     let mut re = Vec::new();
     let mut im = Vec::new();
     let den = range.2;
@@ -37,6 +41,10 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
 }
 pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
+    if func.is_empty()
+    {
+        return (Vec::new(), Vec::new());
+    }
     let mut re = Vec::new();
     let mut im = Vec::new();
     let min = range.0[0][0];
@@ -61,7 +69,7 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     }
     (re, im)
 }
-pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64)) -> Option<[Vec<[f64; 2]>; 2]>
+pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64))
 {
     let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
     let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
@@ -113,10 +121,10 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
         if close
         {
             fg.show().unwrap();
-            return None;
+            return;
         }
         fg.show_and_keep_running().unwrap();
-        return None;
+        return;
     }
     let (mut re, mut im) = get_list_2d(func[0], range);
     let (mut re2, mut im2) = get_list_2d(func[1], range);
@@ -147,10 +155,6 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
       .set_y_ticks(yticks, &[], &[])
       .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
       .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-      .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
-      .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
-      .lines(axisline, zeros, &[Color("white"), LineStyle(SmallDot)])
-      .lines(zeros, axisline, &[Color("white"), LineStyle(SmallDot)])
       .lines([0], [0], &[Caption(re1c.as_str()), Color("#9400D3")])
       .lines([0], [0], &[Caption(im1c.as_str()), Color("#009E73")])
       .lines([0], [0], &[Caption(re2c.as_str()), Color("#56B4E9")])
@@ -158,12 +162,13 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
       .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#9400D3")])
       .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#009E73")])
       .points(re2.iter().map(|x| x[0]), re2.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#56B4E9")])
-      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#E69F00")]);
+      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#E69F00")])
+      .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+      .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
     if close
     {
         fg.show().unwrap();
-        return None;
+        return;
     }
     fg.show_and_keep_running().unwrap();
-    Some([re, im])
 }

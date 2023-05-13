@@ -236,6 +236,8 @@ fn main()
         }
         if input == "clear"
         {
+            plot.close();
+            plot.clear_axes();
             print!("\x1B[2J\x1B[1;1H");
             stdout().flush().unwrap();
             continue;

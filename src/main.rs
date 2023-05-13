@@ -22,8 +22,7 @@ fn main()
     {
         if args().nth(1).unwrap() == "--help"
         {
-            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
-            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)");
+            help();
             return;
         }
         let func = match get_func(&args().nth(1).unwrap().replace('z', "(x+y*i)"), true)
@@ -242,8 +241,7 @@ fn main()
         }
         if input == "help"
         {
-            println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen and graph data. Type \"help\" to show this message.");
-            println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, dg(to_degrees),rd(to_radians)");
+            help();
             continue;
         }
         if input.is_empty()
@@ -380,6 +378,11 @@ fn main()
         write_history(&input, file_path);
         println!();
     }
+}
+fn help()
+{
+    println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
+    println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num), abs, sgn, arg, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)");
 }
 fn print_answer(func:Vec<String>)
 {

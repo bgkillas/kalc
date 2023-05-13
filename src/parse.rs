@@ -63,7 +63,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word = std::f64::consts::PI.to_string();
             }
-            else if i == chars.len() - 1 || chars[i + 1] != 'm'
+            else if i == chars.len() - 1 || (chars[i + 1] != 'm' && chars[i + 1] != 'n')
             {
                 if i != 0 && (!word.is_empty() && word != "(")
                 {
@@ -77,7 +77,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word.push(*c);
             }
-            else if chars[i + 1] == 'm'
+            else if chars[i + 1] == 'm' || chars[i + 1] == 'n'
             {
                 word.push(*c);
             }
@@ -162,7 +162,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 word.push(*c);
                 continue;
             }
-            if *c == '(' && i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == 'i' || chars[i - 1] == ')' || chars[i - 1] == 'x' || chars[i - 1] == 'y')
+            if *c == '(' && i != 0 && (chars[i - 1].is_ascii_digit() || (chars[i - 1] == 'i' && i > 1 && chars[i - 2] != 's') || chars[i - 1] == ')' || chars[i - 1] == 'x' || chars[i - 1] == 'y')
             {
                 if !word.is_empty()
                 {
@@ -170,6 +170,10 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 func.push("*".to_string());
                 word.clear();
+            }
+            if i != 0 && chars[i - 1] == '(' && *c == '+'
+            {
+                continue;
             }
             if !word.is_empty()
             {
@@ -237,6 +241,10 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
     if first == "+"
     {
         func.remove(0);
+        if func.len() == 0
+        {
+            return Err(());
+        }
     }
     let last = func.last().unwrap().chars().last().unwrap();
     if last == '+' || last == '-'

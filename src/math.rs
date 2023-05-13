@@ -1,4 +1,4 @@
-use crate::complex::{parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string};
+use crate::complex::{parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg};
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
     let mut func = func;
@@ -72,6 +72,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "rd" => (arg1.to_radians(), 0.0),
                 "re" => (arg1, 0.0),
                 "im" => (arg2, 0.0),
+                "sgn" => sgn(arg1, arg2),
+                "arg" => (arg(arg1, arg2), 0.0),
                 "cbrt" => pow(arg1, arg2, 1.0 / 3.0, 0.0),
                 _ =>
                 {

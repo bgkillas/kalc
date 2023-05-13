@@ -9,7 +9,7 @@ the following functions in the complex plane
 
 ``sinh, cosh, tanh, asinh, acosh, atanh, ``
 
-``sqrt, cbrt, ln, log(base,num), abs,`` 
+``sqrt, cbrt, ln, log(base,num), abs, arg, sgn`` 
 
 ``dg(to_degrees),rd(to_radians)``
 

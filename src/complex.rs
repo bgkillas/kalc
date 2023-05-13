@@ -316,3 +316,21 @@ pub fn atanh(a:f64, b:f64) -> (f64, f64)
     let (re, im) = add(k, l, -m, -n);
     (re, im)
 }
+pub fn arg(a:f64, b:f64) -> f64
+{
+    // arg(a+bi)=-ilog(sgn(a+bi))
+    let (a, b) = sgn(a, b);
+    let (_, b) = ln(a, b);
+    let re = -b;
+    re
+}
+pub fn sgn(a:f64, b:f64) -> (f64, f64)
+{
+    // sign(a+bi)=(a+bi)/|a+bi|
+    if b == 0.0
+    {
+        return (a.signum(), 0.0);
+    }
+    let (re, im) = div(a, b, abs(a, b), 0.0);
+    (re, im)
+}

@@ -5,18 +5,18 @@ mod math;
 mod parse;
 mod print;
 use parse::get_func;
-use complex::parse;
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};
 use console::{Key, Term};
 use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
-use crate::graph::{get_list_2d, get_list_3d, graph};
+use crate::graph::{get_list_2d, graph};
 use crate::print::{print_answer, print_concurrent};
 #[cfg(target_os = "linux")]
 use {
     std::io::stdin, libc::{isatty, STDIN_FILENO}
 };
+use crate::math::do_math;
 fn help()
 {
     println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
@@ -326,62 +326,80 @@ fn main()
                 }
                 _ => (),
             }
-            if input.contains('x') && var.iter().all(|i| i[0] != 'x') && l.contains('x') && r.contains('x')
+            if input.contains('x')
             {
-                let lf = match get_func(l, true)
+                let l = match get_func(l, true)
                 {
-                    Ok(f) => f,
-                    _ => continue,
-                };
-                let rf = match get_func(r, true)
-                {
-                    Ok(f) => f,
-                    _ => continue,
-                };
-                if input.contains('y') && var.iter().all(|i| i[0] != 'y') && l.contains('y') && r.contains('y')
-                {
-                    if get_list_3d(&lf, range) == get_list_3d(&rf, range)
+                    Ok(i) => i,
+                    Err(()) =>
                     {
-                        println!("true");
+                        continue;
                     }
-                    else
+                };
+                let r = match get_func(r, true)
+                {
+                    Ok(i) => i,
+                    Err(()) =>
                     {
-                        println!("false");
+                        continue;
                     }
-                    continue;
+                };
+                let (lre, lim) = get_list_2d(&l, range);
+                let (rre, rim) = get_list_2d(&r, range);
+                let mut success = true;
+                for i in 0..lre.len()
+                {
+                    if (lre[i][1] * 1e9).round() / 1e9 != (rre[i][1] * 1e9).round() / 1e9 || (lim[i][1] * 1e9).round() / 1e9 != (rim[i][1] * 1e9).round() / 1e9
+                    {
+                        success = false;
+                    }
                 }
-                if get_list_2d(&lf, range) == get_list_2d(&rf, range)
+                if success
                 {
                     println!("true");
+                    continue;
                 }
-                else
-                {
-                    println!("false");
-                }
+                println!("false");
                 continue;
             }
             if l.len() > 1
             {
-                let (re, im) = parse(&r.to_string());
-                let mut list:Vec<f64> = Vec::new();
-                let l = get_list_2d(&match get_func(l, true)
-                                    {
-                                        Ok(f) => f,
-                                        _ => continue,
-                                    },
-                                    range);
-                l.0.iter().for_each(|i| {
-                              if i[1] == re
-                              {
-                                  list.push(i[0]);
-                              }
-                          });
-                l.1.iter().for_each(|i| {
-                              if i[1] == im && list.contains(&i[0])
-                              {
-                                  println!("{}", i[0])
-                              }
-                          });
+                let l = match do_math(match get_func(l, false)
+                      {
+                          Ok(i) => i,
+                          Err(()) =>
+                          {
+                              continue;
+                          }
+                      })
+                {
+                    Ok(i) => i,
+                    Err(()) =>
+                    {
+                        continue;
+                    }
+                };
+                let r = match do_math(match get_func(r, false)
+                      {
+                          Ok(i) => i,
+                          Err(()) =>
+                          {
+                              continue;
+                          }
+                      })
+                {
+                    Ok(i) => i,
+                    Err(()) =>
+                    {
+                        continue;
+                    }
+                };
+                if (l.parse::<f64>().unwrap() * 1e12).round() / 1e12 == (r.parse::<f64>().unwrap() * 1e12).round() / 1e12
+                {
+                    println!("true");
+                    continue;
+                }
+                println!("false");
                 continue;
             }
             for i in 0..var.len()

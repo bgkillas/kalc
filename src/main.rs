@@ -32,8 +32,9 @@ fn write(input:&String, file:&mut File, lines:&Vec<String>)
 }
 fn main()
 {
-    let mut range = ([[-10.0, 10.0]; 3], 100000.0, 400.0);
+    let mut range = ([[-10.0, 10.0]; 3], 20000.0, 300.0);
     let mut plot = Figure::new();
+    plot.set_enhanced_text(false);
     if args().len() > 1
     {
         if args().nth(1).unwrap() == "--help"
@@ -41,7 +42,8 @@ fn main()
             help();
             return;
         }
-        let func = match get_func(&args().nth(1).unwrap().replace('z', "(x+y*i)"), true)
+        let input = &args().nth(1).unwrap().replace('z', "(x+y*i)");
+        let func = match get_func(input, true)
         {
             Ok(f) => f,
             Err(()) =>
@@ -54,10 +56,10 @@ fn main()
         {
             if func.contains(&"y".to_string())
             {
-                graph(&func, true, true, &mut plot, None, range);
+                graph([input, &"".to_string()], [&func, &["".to_string()]], true, true, &mut plot, range);
                 return;
             }
-            graph(&func, false, true, &mut plot, None, range);
+            graph([input, &"".to_string()], [&func, &["".to_string()]], false, true, &mut plot, range);
             return;
         }
         print_answer(func);
@@ -97,7 +99,6 @@ fn main()
         File::create(file_path).unwrap();
     }
     let mut var:Vec<Vec<char>> = Vec::new();
-    let mut older:Vec<[Vec<[f64; 2]>; 2]> = Vec::new();
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     loop
     {
@@ -235,8 +236,6 @@ fn main()
         }
         if input == "clear"
         {
-            plot.clear_axes();
-            older.clear();
             print!("\x1B[2J\x1B[1;1H");
             stdout().flush().unwrap();
             continue;
@@ -364,21 +363,25 @@ fn main()
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             write(&input, &mut file, &lines);
-            let func = match get_func(&input, true)
+            let mut split = input.split(',');
+            let l = split.next().unwrap();
+            let r = split.next().unwrap_or("0");
+            let funcl = match get_func(l, true)
+            {
+                Ok(f) => f,
+                _ => continue,
+            };
+            let funcr = match get_func(r, true)
             {
                 Ok(f) => f,
                 _ => continue,
             };
             if input.contains('y')
             {
-                graph(&func, true, false, &mut plot, None, range);
+                graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], true, false, &mut plot, range);
                 continue;
             }
-            let data = graph(&func, false, false, &mut plot, Some(older.clone()), range);
-            if let Some(..) = data
-            {
-                older.push(data.unwrap());
-            }
+            graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], false, false, &mut plot, range);
             continue;
         }
         write(&input, &mut file, &lines);

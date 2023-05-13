@@ -39,6 +39,10 @@ calc x^2
 graphs x^2
 ```
 ```
+calc x^2,x^3
+graphs x^2 and x^3
+```
+```
 calc z^2
 graphs (x+yi)^2
 ```

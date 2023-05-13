@@ -63,16 +63,22 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
 }
 pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Option<Vec<[Vec<[f64; 2]>; 2]>>, range:([[f64; 2]; 3], f64, f64)) -> Option<[Vec<[f64; 2]>; 2]>
 {
+    let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
+    let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
     fg.close();
     fg.clear_axes();
     if graph
     {
+        let zticks = Some((Fix((range.0[2][1] - range.0[2][0]) / 20.0), 1));
         let (re, im) = get_list_3d(func, range);
         let i = im.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
         let r = re.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
         if i && r
         {
             fg.axes3d()
+              .set_x_ticks(xticks, &[], &[])
+              .set_y_ticks(yticks, &[], &[])
+              .set_z_ticks(zticks, &[], &[])
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
@@ -85,6 +91,9 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
         else if r
         {
             fg.axes3d()
+              .set_x_ticks(xticks, &[], &[])
+              .set_y_ticks(yticks, &[], &[])
+              .set_z_ticks(zticks, &[], &[])
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
@@ -96,6 +105,9 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
         else if i
         {
             fg.axes3d()
+              .set_x_ticks(xticks, &[], &[])
+              .set_y_ticks(yticks, &[], &[])
+              .set_z_ticks(zticks, &[], &[])
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
@@ -115,8 +127,6 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
     let (mut re, mut im) = get_list_2d(func, range);
     let i = im.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
     let r = re.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
-    let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
-    let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
     let axisline = [-1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0];
     let zeros = [0.0; 11];
     if let Some(..) = older

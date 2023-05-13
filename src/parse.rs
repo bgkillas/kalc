@@ -62,7 +62,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                     func.push("*".to_string());
                     word.clear()
                 }
-                word = std::f64::consts::PI.to_string();
+                word = PI.to_string();
             }
             else if i == chars.len() - 1 || (chars[i + 1] != 'm' && chars[i + 1] != 'n')
             {

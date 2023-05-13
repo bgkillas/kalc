@@ -1,9 +1,9 @@
 [package]
 name = "calc"
-version = "0.1.0"
+version = "0.2.5"
 edition = "2021"
 [dependencies]
 console = { version = "*", default-features = false }
-gnuplot="*"
+gnuplot = { version = "*", default-features = false }
 [target.'cfg(target_os = "linux")'.dependencies]
-libc = { version = "*", default-features = false }
+libc =    { version = "*", default-features = false }

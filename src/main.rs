@@ -144,50 +144,34 @@ fn main()
                 }
                 '\x1D' =>
                 {
-                    loop
+                    i -= 1;
+                    if i == -1
                     {
-                        i -= 1;
-                        if i == -1
-                        {
-                            input.clear();
-                            i = 0;
-                            continue 'outer;
-                        }
-                        if input == lines[i as usize]
-                        {
-                            continue;
-                        }
-                        input = lines[i as usize].clone();
-                        cursor = input.len();
-                        frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
-                        break;
+                        input.clear();
+                        i = 0;
+                        continue 'outer;
                     }
+                    input = lines[i as usize].clone();
+                    cursor = input.len();
+                    frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
                 {
-                    loop
+                    i += 1;
+                    if i >= max
                     {
-                        i += 1;
-                        if i >= max
-                        {
-                            input.clear();
-                            print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
-                            print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
-                            stdout().flush().unwrap();
-                            i = max;
-                            cursor = 0;
-                            continue 'outer;
-                        }
-                        if input == lines[i as usize]
-                        {
-                            continue;
-                        }
-                        input = lines[i as usize].clone();
-                        cursor = input.len();
-                        frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
-                        break;
+                        input.clear();
+                        print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                        print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
+                        stdout().flush().unwrap();
+                        i = max;
+                        cursor = 0;
+                        continue 'outer;
                     }
+                    input = lines[i as usize].clone();
+                    cursor = input.len();
+                    frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
@@ -256,8 +240,11 @@ fn main()
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            file.write_all(input.as_bytes()).unwrap();
-            file.write_all(b"\n").unwrap();
+            if lines.is_empty() || lines[lines.len() - 1] != input
+            {
+                file.write_all(input.as_bytes()).unwrap();
+                file.write_all(b"\n").unwrap();
+            }
             let l = input.split('=').next().unwrap();
             let r = input.split('=').last().unwrap();
             if l == "zrange"
@@ -362,8 +349,11 @@ fn main()
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            file.write_all(input.as_bytes()).unwrap();
-            file.write_all(b"\n").unwrap();
+            if lines.is_empty() || lines[lines.len() - 1] != input
+            {
+                file.write_all(input.as_bytes()).unwrap();
+                file.write_all(b"\n").unwrap();
+            }
             let func = match get_func(&input, true)
             {
                 Ok(f) => f,
@@ -381,8 +371,11 @@ fn main()
             }
             continue;
         }
-        file.write_all(input.as_bytes()).unwrap();
-        file.write_all(b"\n").unwrap();
+        if lines.is_empty() || lines[lines.len() - 1] != input
+        {
+            file.write_all(input.as_bytes()).unwrap();
+            file.write_all(b"\n").unwrap();
+        }
         println!();
     }
 }

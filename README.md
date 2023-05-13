@@ -39,8 +39,8 @@ calc x^2
 graphs x^2
 ```
 ```
-calc x^y
-graphs x^y
+calc z^2
+graphs (x+yi)^2
 ```
 ```
 calc

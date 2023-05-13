@@ -104,8 +104,8 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
         return None;
     }
     let (mut re, mut im) = get_list_2d(func, range);
-    let i = im.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
-    let r = re.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
+    let i = im.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
+    let r = re.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() != 0.0;
     let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
     let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
     let axisline = [-1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0];

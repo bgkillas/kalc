@@ -11,7 +11,7 @@ the following functions in the complex plane
 
 ``sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, arg, sgn, ceil, floor, round`` 
 
-``dg(to_degrees),rd(to_radians)``
+``deg(to_degrees),rad(to_radians)``
 
 ``re(gets real),im(gets imag)``
 

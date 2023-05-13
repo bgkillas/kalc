@@ -107,8 +107,22 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 }
                 "sqrt" => pow(arg1, arg2, 0.5, 0.0),
                 "abs" => (abs(arg1, arg2), 0.0),
-                "dg" => (arg1.to_degrees(), 0.0),
-                "rd" => (arg1.to_radians(), 0.0),
+                "deg" =>
+                {
+                    if arg2 != 0.0
+                    {
+                        return Err(());
+                    }
+                    (arg1.to_degrees(), 0.0)
+                }
+                "rad" =>
+                {
+                    if arg2 != 0.0
+                    {
+                        return Err(());
+                    }
+                    (arg1.to_radians(), 0.0)
+                }
                 "re" => (arg1, 0.0),
                 "im" => (arg2, 0.0),
                 "sgn" => sgn(arg1, arg2),

@@ -20,7 +20,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             word.clear();
             word = c.to_string();
         }
-        else if *c == 'e' && (i == 0 || (chars[i - 1] != 'r' && chars[i - 1] != 'c'))
+        else if *c == 'e' && (i == 0 || (chars[i - 1] != 'r' && chars[i - 1] != 'c' && chars[i - 1] != 'd'))
         {
             if word == "-"
             {

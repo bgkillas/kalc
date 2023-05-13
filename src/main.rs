@@ -48,6 +48,16 @@ fn main()
             return;
         }
         let input = &args().nth(1).unwrap().replace('z', "(x+y*i)");
+        if input.contains('=')
+        {
+            let mut split = input.split('=');
+            let l = split.next().unwrap();
+            let r = split.next().unwrap();
+            if equal(range, input, l, r)
+            {
+                return;
+            }
+        }
         let func = match get_func(input, true)
         {
             Ok(f) => f,
@@ -326,80 +336,8 @@ fn main()
                 }
                 _ => (),
             }
-            if input.contains('x')
+            if equal(range, &input, l, r)
             {
-                let l = match get_func(l, true)
-                {
-                    Ok(i) => i,
-                    Err(()) =>
-                    {
-                        continue;
-                    }
-                };
-                let r = match get_func(r, true)
-                {
-                    Ok(i) => i,
-                    Err(()) =>
-                    {
-                        continue;
-                    }
-                };
-                let (lre, lim) = get_list_2d(&l, range);
-                let (rre, rim) = get_list_2d(&r, range);
-                let mut success = true;
-                for i in 0..lre.len()
-                {
-                    if (lre[i][1] * 1e9).round() / 1e9 != (rre[i][1] * 1e9).round() / 1e9 || (lim[i][1] * 1e9).round() / 1e9 != (rim[i][1] * 1e9).round() / 1e9
-                    {
-                        success = false;
-                    }
-                }
-                if success
-                {
-                    println!("true");
-                    continue;
-                }
-                println!("false");
-                continue;
-            }
-            if l.len() > 1
-            {
-                let l = match do_math(match get_func(l, false)
-                      {
-                          Ok(i) => i,
-                          Err(()) =>
-                          {
-                              continue;
-                          }
-                      })
-                {
-                    Ok(i) => i,
-                    Err(()) =>
-                    {
-                        continue;
-                    }
-                };
-                let r = match do_math(match get_func(r, false)
-                      {
-                          Ok(i) => i,
-                          Err(()) =>
-                          {
-                              continue;
-                          }
-                      })
-                {
-                    Ok(i) => i,
-                    Err(()) =>
-                    {
-                        continue;
-                    }
-                };
-                if (l.parse::<f64>().unwrap() * 1e12).round() / 1e12 == (r.parse::<f64>().unwrap() * 1e12).round() / 1e12
-                {
-                    println!("true");
-                    continue;
-                }
-                println!("false");
                 continue;
             }
             for i in 0..var.len()
@@ -449,6 +387,86 @@ fn main()
         write(&input, &mut file, &lines);
         println!();
     }
+}
+fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> bool
+{
+    if input.contains('x')
+    {
+        let l = match get_func(l, true)
+        {
+            Ok(i) => i,
+            Err(()) =>
+            {
+                return true;
+            }
+        };
+        let r = match get_func(r, true)
+        {
+            Ok(i) => i,
+            Err(()) =>
+            {
+                return true;
+            }
+        };
+        let (lre, lim) = get_list_2d(&l, range);
+        let (rre, rim) = get_list_2d(&r, range);
+        let mut success = true;
+        for i in 0..lre.len()
+        {
+            if (lre[i][1] * 1e9).round() / 1e9 != (rre[i][1] * 1e9).round() / 1e9 || (lim[i][1] * 1e9).round() / 1e9 != (rim[i][1] * 1e9).round() / 1e9
+            {
+                success = false;
+            }
+        }
+        if success
+        {
+            println!("true");
+            return true;
+        }
+        println!("false");
+        return true;
+    }
+    if l.len() > 1
+    {
+        let l = match do_math(match get_func(l, false)
+              {
+                  Ok(i) => i,
+                  Err(()) =>
+                  {
+                      return true;
+                  }
+              })
+        {
+            Ok(i) => i,
+            Err(()) =>
+            {
+                return true;
+            }
+        };
+        let r = match do_math(match get_func(r, false)
+              {
+                  Ok(i) => i,
+                  Err(()) =>
+                  {
+                      return true;
+                  }
+              })
+        {
+            Ok(i) => i,
+            Err(()) =>
+            {
+                return true;
+            }
+        };
+        if (l.parse::<f64>().unwrap() * 1e12).round() / 1e12 == (r.parse::<f64>().unwrap() * 1e12).round() / 1e12
+        {
+            println!("true");
+            return true;
+        }
+        println!("false");
+        return true;
+    }
+    false
 }
 fn read_single_char() -> char
 {

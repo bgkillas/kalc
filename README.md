@@ -43,6 +43,11 @@ calc x^2#x^3#x
 graphs x^2, x^3 and x
 ```
 ```
+calc
+> -e^(x)=e^(x+ipi)
+true
+```
+```
 calc z^2
 graphs (x+yi)^2
 ```

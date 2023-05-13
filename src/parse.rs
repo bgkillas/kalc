@@ -140,7 +140,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             if i != 0 && chars[i - 1].is_ascii_alphabetic()
             {
                 func.push(word.clone());
-                if word == "1i"
+                if word == "1i" || word == "x" || word == "y"
                 {
                     func.push("*".to_string());
                 }

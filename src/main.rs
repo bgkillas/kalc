@@ -93,6 +93,7 @@ fn main()
         let mut cursor = 0;
         let mut frac = false;
         let lines:Vec<String> = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+        let mut last:Vec<String> = Vec::new();
         'outer: loop
         {
             let c = read_single_char();
@@ -123,11 +124,11 @@ fn main()
                     print!("\x1B[2K\x1B[1G{}", input);
                     if input.is_empty()
                     {
-                        frac = print_concurrent(&"0".to_string(), var.clone(), true);
+                        frac = print_concurrent(&"0".to_string(), var.clone(), true, &mut last);
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false);
+                        frac = print_concurrent(&input, var.clone(), false, &mut last);
                     }
                     for _ in 0..(input.len() - cursor)
                     {
@@ -155,7 +156,7 @@ fn main()
                         }
                         input = lines[i as usize].clone();
                         cursor = input.len();
-                        frac = print_concurrent(&input, var.clone(), false);
+                        frac = print_concurrent(&input, var.clone(), false, &mut last);
                         break;
                     }
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
@@ -181,7 +182,7 @@ fn main()
                         }
                         input = lines[i as usize].clone();
                         cursor = input.len();
-                        frac = print_concurrent(&input, var.clone(), false);
+                        frac = print_concurrent(&input, var.clone(), false, &mut last);
                         break;
                     }
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
@@ -218,7 +219,7 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
-                    frac = print_concurrent(&input, var.clone(), false);
+                    frac = print_concurrent(&input, var.clone(), false, &mut last);
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");
@@ -451,7 +452,7 @@ fn fraction(num:f64) -> String
     }
     num.to_string()
 }
-fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
+fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<String>) -> bool
 {
     let mut frac = false;
     let mut modified = input.to_string();
@@ -476,8 +477,18 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
     let func = match get_func(&modified, false)
     {
         Ok(f) => f,
-        Err(_) => return false,
+        Err(_) =>
+        {
+            print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
+            return false;
+        }
     };
+    if func == *last
+    {
+        print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
+        return false;
+    }
+    *last = func.clone();
     if let Ok(num) = do_math(func.clone())
     {
         let (a, b) = parse(&num);
@@ -527,6 +538,7 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
     {
         print!("\x1B[2K\x1B[1G");
     }
+
     frac
 }
 fn write_history(input:&str, file_path:&str)

@@ -171,20 +171,6 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 func.push("*".to_string());
                 word.clear();
             }
-            if chars.len() > 2 && chars[i] == ')' && chars[i - if chars[i - 2] == 'p' { 3 } else { 2 }] == '('
-            {
-                let n = func.last().unwrap();
-                func.remove(func.len()
-                            - if n == "x" || n == "y" || n == &std::f64::consts::PI.to_string() || n == &std::f64::consts::E.to_string()
-                            {
-                                2
-                            }
-                            else
-                            {
-                                1
-                            });
-                continue;
-            }
             if !word.is_empty()
             {
                 func.push(word.clone());
@@ -217,6 +203,27 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 func.insert(0, "(".to_string());
             }
         }
+    }
+    let mut i = 0;
+    loop
+    {
+        if i == func.len()
+        {
+            break;
+        }
+        if func[i] == "(" && func[i + 1] == ")"
+        {
+            func.remove(i);
+            func.remove(i);
+            continue;
+        }
+        if func[i] == "(" && func[i + 2] == ")"
+        {
+            func.remove(i);
+            func.remove(i + 1);
+            continue;
+        }
+        i += 1;
     }
     if func.is_empty()
     {

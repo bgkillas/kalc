@@ -14,6 +14,8 @@ use std::io::stdin;
 use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
+use crate::graph::{get_list_2d, get_list_3d, graph};
+use std::f64::consts::PI;
 fn main()
 {
     let mut range = ([[-10.0, 10.0]; 3], 100000.0, 400.0);
@@ -38,10 +40,10 @@ fn main()
         {
             if func.contains(&"y".to_string())
             {
-                graph::graph(&func, true, true, &mut plot, None, range);
+                graph(&func, true, true, &mut plot, None, range);
                 return;
             }
-            graph::graph(&func, false, true, &mut plot, None, range);
+            graph(&func, false, true, &mut plot, None, range);
             return;
         }
         print_answer(func);
@@ -82,16 +84,18 @@ fn main()
     }
     let mut var:Vec<Vec<char>> = Vec::new();
     let mut older:Vec<[Vec<[f64; 2]>; 2]> = Vec::new();
+    let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     loop
     {
         input.clear();
         let fg = "\x1b[96m";
         stdout().flush().unwrap();
-        let mut i = BufReader::new(File::open(file_path).unwrap()).lines().count() as i32;
+        let lines:Vec<String> = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+        let mut i = lines.len() as i32;
         let max = i;
         let mut cursor = 0;
         let mut frac = false;
-        let lines:Vec<String> = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+        let lines = lines;
         let mut last:Vec<String> = Vec::new();
         'outer: loop
         {
@@ -123,11 +127,11 @@ fn main()
                     print!("\x1B[2K\x1B[1G{}", input);
                     if input.is_empty()
                     {
-                        frac = print_concurrent(&"0".to_string(), var.clone(), true, &mut last);
+                        frac = print_concurrent(&"0".to_string(), var.clone(), true, &mut last, frac);
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false, &mut last);
+                        frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
                     }
                     for _ in 0..(input.len() - cursor)
                     {
@@ -155,7 +159,7 @@ fn main()
                         }
                         input = lines[i as usize].clone();
                         cursor = input.len();
-                        frac = print_concurrent(&input, var.clone(), false, &mut last);
+                        frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
                         break;
                     }
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
@@ -181,7 +185,7 @@ fn main()
                         }
                         input = lines[i as usize].clone();
                         cursor = input.len();
-                        frac = print_concurrent(&input, var.clone(), false, &mut last);
+                        frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
                         break;
                     }
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
@@ -218,7 +222,7 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
-                    frac = print_concurrent(&input, var.clone(), false, &mut last);
+                    frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");
@@ -252,7 +256,8 @@ fn main()
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            write_history(&input, file_path);
+            file.write_all(input.as_bytes()).unwrap();
+            file.write_all(b"\n").unwrap();
             let l = input.split('=').next().unwrap();
             let r = input.split('=').last().unwrap();
             if l == "zrange"
@@ -297,7 +302,7 @@ fn main()
                 };
                 if input.contains('y') && var.iter().all(|i| i[0] != 'y') && l.contains('y') && r.contains('y')
                 {
-                    if graph::get_list_3d(&lf, range) == graph::get_list_3d(&rf, range)
+                    if get_list_3d(&lf, range) == get_list_3d(&rf, range)
                     {
                         println!("true");
                     }
@@ -307,7 +312,7 @@ fn main()
                     }
                     continue;
                 }
-                if graph::get_list_2d(&lf, range) == graph::get_list_2d(&rf, range)
+                if get_list_2d(&lf, range) == get_list_2d(&rf, range)
                 {
                     println!("true");
                 }
@@ -321,12 +326,12 @@ fn main()
             {
                 let (re, im) = parse(&r.to_string());
                 let mut list:Vec<f64> = Vec::new();
-                let l = graph::get_list_2d(&match get_func(l, true)
-                                           {
-                                               Ok(f) => f,
-                                               _ => continue,
-                                           },
-                                           range);
+                let l = get_list_2d(&match get_func(l, true)
+                                    {
+                                        Ok(f) => f,
+                                        _ => continue,
+                                    },
+                                    range);
                 l.0.iter().for_each(|i| {
                               if i[1] == re
                               {
@@ -357,7 +362,8 @@ fn main()
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            write_history(&input, file_path);
+            file.write_all(input.as_bytes()).unwrap();
+            file.write_all(b"\n").unwrap();
             let func = match get_func(&input, true)
             {
                 Ok(f) => f,
@@ -365,17 +371,18 @@ fn main()
             };
             if input.contains('y')
             {
-                graph::graph(&func, true, false, &mut plot, None, range);
+                graph(&func, true, false, &mut plot, None, range);
                 continue;
             }
-            let data = graph::graph(&func, false, false, &mut plot, Some(older.clone()), range);
+            let data = graph(&func, false, false, &mut plot, Some(older.clone()), range);
             if let Some(..) = data
             {
                 older.push(data.unwrap());
             }
             continue;
         }
-        write_history(&input, file_path);
+        file.write_all(input.as_bytes()).unwrap();
+        file.write_all(b"\n").unwrap();
         println!();
     }
 }
@@ -408,18 +415,54 @@ fn fraction(num:f64) -> String
     {
         return "0".to_string();
     }
-    if (num * 1e12).round() / 1e12 == (1e12 * std::f64::consts::FRAC_1_SQRT_2).round() / 1e12
-    {
-        return "1/2^0.5".to_string();
-    }
-    if (num * 1e12).round() / 1e12 == (1e12 * 3f64.sqrt() / 2.0).round() / 1e12
-    {
-        return "3^0.5/2".to_string();
-    }
     let mut p;
-    for i in 1..=100
+    let sqrt2 = 2f64.sqrt();
+    for i in 1..=10
     {
-        p = num / std::f64::consts::PI * i as f64;
+        p = (1e12 * num / sqrt2 * i as f64).round() / 1e12;
+        if p.fract() == 0.0
+        {
+            return format!("{}sqrt(2){}",
+                           if p == 1.0
+                           {
+                               "".to_string()
+                           }
+                           else if p == -1.0
+                           {
+                               "-".to_string()
+                           }
+                           else
+                           {
+                               p.to_string()
+                           },
+                           if i == 1 { "".to_string() } else { format!("/{}", i) });
+        }
+    }
+    let sqrt3 = 3f64.sqrt();
+    for i in 1..=10
+    {
+        p = (1e12 * num / sqrt3 * i as f64).round() / 1e12;
+        if p.fract() == 0.0
+        {
+            return format!("{}sqrt(3){}",
+                           if p == 1.0
+                           {
+                               "".to_string()
+                           }
+                           else if p == -1.0
+                           {
+                               "-".to_string()
+                           }
+                           else
+                           {
+                               p.to_string()
+                           },
+                           if i == 1 { "".to_string() } else { format!("/{}", i) });
+        }
+    }
+    for i in 1..=10
+    {
+        p = num / PI * i as f64;
         if p.fract() == 0.0
         {
             return format!("{}π{}",
@@ -455,9 +498,8 @@ fn fraction(num:f64) -> String
     }
     num.to_string()
 }
-fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<String>) -> bool
+fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<String>, frac:bool) -> bool
 {
-    let mut frac = false;
     let mut modified = input.to_string();
     for i in &var
     {
@@ -494,8 +536,9 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<S
     if func == *last
     {
         print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
-        return false;
+        return frac;
     }
+    let mut frac = false;
     *last = func.clone();
     if let Ok(num) = do_math(func.clone())
     {
@@ -511,21 +554,21 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<S
         let d = (b * 1e12).round() / 1e12;
         let fa = fraction(a);
         let fb = fraction(b);
-        if (fa.contains('/') && fb.contains('/')) || (fa.contains('π') && fb.contains('π'))
+        if (fa.contains('/') && fb.contains('/')) || (fa.contains('π') && fb.contains('π') || (fa.contains('s') && fb.contains('s')))
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
                    if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
                    if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" });
         }
-        else if (fa.contains('/') || fa.contains('π')) && fa != func.join("")
+        else if (fa.contains('/') || fa.contains('π') || fa.contains('s')) && fa != func.join("")
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
                    if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
                    if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" });
         }
-        else if (fb.contains('/') || fb.contains('π')) && fb != func.join("")
+        else if (fb.contains('/') || fb.contains('π') || fa.contains('s')) && fb != func.join("")
         {
             frac = true;
             print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}",
@@ -552,14 +595,7 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<S
     {
         print!("\x1B[2K\x1B[1G");
     }
-
     frac
-}
-fn write_history(input:&str, file_path:&str)
-{
-    let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
-    file.write_all(input.as_bytes()).unwrap();
-    file.write_all(b"\n").unwrap();
 }
 fn read_single_char() -> char
 {

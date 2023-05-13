@@ -1,3 +1,4 @@
+use std::f64::consts::{FRAC_PI_2, E, PI};
 pub fn parse(num:&String) -> (f64, f64)
 {
     let im = num.contains('i');
@@ -107,7 +108,7 @@ pub fn pow(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
         return (a.powf(c), 0.0);
     }
     let angle = c * (b.atan2(a)) + d * (0.5 * (a * a + b * b).ln());
-    let scaler = std::f64::consts::E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
+    let scaler = E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
     let im = scaler * angle.sin();
     let re = scaler * angle.cos();
     (re, im)
@@ -122,7 +123,7 @@ pub fn ln(a:f64, b:f64) -> (f64, f64)
     // ln(a+bi)=ln(a^2+b^2)/2+i*atan2(b,a)
     if b == 0.0
     {
-        return if a.is_sign_positive() { (a.ln(), 0.0) } else { (a.abs().ln(), std::f64::consts::PI) };
+        return if a.is_sign_positive() { (a.ln(), 0.0) } else { (a.abs().ln(), PI) };
     }
     let re = (a * a + b * b).ln() / 2.0;
     let im = b.atan2(a);
@@ -133,15 +134,13 @@ pub fn sin(a:f64, b:f64) -> (f64, f64)
     // sin(a+bi)=sin(a)cosh(b)+i*cos(a)sinh(b)
     if b == 0.0
     {
-        let pi_2 = std::f64::consts::FRAC_PI_2;
-        let pi = std::f64::consts::PI;
-        if a % pi == 0.0
+        if a % PI == 0.0
         {
             return (0.0, 0.0);
         }
-        if a % pi_2 == 0.0
+        if a % FRAC_PI_2 == 0.0
         {
-            if (a.abs() * 2.0 / pi) % 4.0 == 1.0
+            if (a.abs() * 2.0 / PI) % 4.0 == 1.0
             {
                 return (if a.is_sign_positive() { 1.0 } else { -1.0 }, 0.0);
             }
@@ -159,17 +158,15 @@ pub fn cos(a:f64, b:f64) -> (f64, f64)
     // cos(a+bi)=cos(a)cosh(b)-i*sin(a)sinh(b)
     if b == 0.0
     {
-        let pi_2 = std::f64::consts::FRAC_PI_2;
-        let pi = std::f64::consts::PI;
-        if a % pi == 0.0
+        if a % PI == 0.0
         {
-            if (a.abs() / pi) % 2.0 == 1.0
+            if (a.abs() / PI) % 2.0 == 1.0
             {
                 return (-1.0, 0.0);
             }
             return (1.0, 0.0);
         }
-        if a % pi_2 == 0.0
+        if a % FRAC_PI_2 == 0.0
         {
             return (0.0, 0.0);
         }
@@ -185,11 +182,11 @@ pub fn tan(a:f64, b:f64) -> (f64, f64)
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
     if b == 0.0
     {
-        if a % std::f64::consts::PI == 0.0
+        if a % PI == 0.0
         {
             return (0.0, 0.0);
         }
-        if a % std::f64::consts::FRAC_PI_2 == 0.0
+        if a % FRAC_PI_2 == 0.0
         {
             return (f64::INFINITY, 0.0);
         }
@@ -229,7 +226,7 @@ pub fn acos(a:f64, b:f64) -> (f64, f64)
 {
     // acos(a+bi)=pi/2-asin(a+bi)
     let (a, b) = asin(a, b);
-    let re = std::f64::consts::FRAC_PI_2 - a;
+    let re = FRAC_PI_2 - a;
     let im = -b;
     (re, im)
 }

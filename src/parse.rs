@@ -1,3 +1,4 @@
+use std::f64::consts::{E, PI};
 pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
 {
     let mut count:i32 = 0;
@@ -31,7 +32,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 func.push("*".to_string());
                 word.clear();
             }
-            word = std::f64::consts::E.to_string();
+            word = E.to_string();
         }
         else if *c == 'π'
         {
@@ -45,7 +46,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 func.push("*".to_string());
                 word.clear();
             }
-            word = std::f64::consts::PI.to_string();
+            word = PI.to_string();
         }
         else if *c == 'i'
         {

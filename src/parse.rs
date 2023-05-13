@@ -232,19 +232,13 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             func.remove(i);
             continue;
         }
-        if func[0] == "(" && func[func.len() - 1] == ")"
-        {
-            func.remove(0);
-            func.pop();
-            continue;
-        }
         if func[i] == "(" && func[i + 1] == ")"
         {
             func.remove(i);
             func.remove(i);
             continue;
         }
-        if func[i] == "(" && func[i + 2] == ")"
+        if i < func.len() - 2 && func[i] == "(" && func[i + 2] == ")"
         {
             func.remove(i);
             func.remove(i + 1);

@@ -86,13 +86,21 @@ pub fn add(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
 pub fn mul(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
 {
     // (a+bi)(c+di)=(ac-bd)+i(ad+bc)
+    if b == 0.0 && d == 0.0
+    {
+        return (a * c, 0.0);
+    }
     let re = a * c - b * d;
     let im = a * d + b * c;
     (re, im)
 }
 pub fn div(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
 {
-    // (a+bi)/(c+di)=(ac+bd)/(c^2+d^2)+i(bc-ad)/(c^2+d^2)
+    // (a+bi)/(c+di)=(ac+bd)/(c^2+d^2)+i(bc-ad)/(c^2+d^
+    if b == 0.0 && d == 0.0
+    {
+        return (a / c, 0.0);
+    }
     let den = c * c + d * d;
     let re = (a * c + b * d) / den;
     let im = (b * c - a * d) / den;

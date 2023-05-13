@@ -56,28 +56,28 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "ln" => ln(arg1, arg2),
                 "log" =>
                 {
-                    let (base_re, base_im) = if func[i + 1].contains(',')
+                    match func[i + 1].contains(',')
                     {
-                        parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string())
+                        true =>
+                        {
+                            let (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
+                            log(base_re, base_im, arg1, arg2)
+                        }
+                        false => ln(arg1, arg2),
                     }
-                    else
-                    {
-                        (10.0, 0.0)
-                    };
-                    log(base_re, base_im, arg1, arg2)
                 }
                 "root" =>
                 {
-                    let (base_re, base_im) = if func[i + 1].contains(',')
+                    match func[i + 1].contains(',')
                     {
-                        parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string())
+                        true =>
+                        {
+                            let (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
+                            let (a, b) = div(1.0, 0.0, arg1, arg2);
+                            pow(base_re, base_im, a, b)
+                        }
+                        false => pow(arg1, arg2, 0.5, 0.0),
                     }
-                    else
-                    {
-                        (2.0, 0.0)
-                    };
-                    let (a, b) = div(1.0, 0.0, arg1, arg2);
-                    pow(base_re, base_im, a, b)
                 }
                 "sqrt" => pow(arg1, arg2, 0.5, 0.0),
                 "abs" => (abs(arg1, arg2), 0.0),
@@ -107,13 +107,6 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        if func[i - 1] == "0"
-        {
-            func[i] = "0".to_string();
-            func.remove(i + 1);
-            func.remove(i - 1);
-            continue;
-        }
         let (a, b) = parse(&func[i - 1]);
         let (c, d) = parse(&func[i + 1]);
         func[i] = to_string(pow(a, b, c, d));
@@ -128,37 +121,12 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        if func[i + 1] == "0" && func[i] == "/"
-        {
-            func[i] = "0".to_string();
-            func.remove(i + 1);
-            func.remove(i - 1);
-            continue;
-        }
-        let first_im = func[i - 1].contains('i');
-        let second_im = func[i + 1].contains('i');
-        if first_im || second_im
-        {
-            let (a, b) = parse(&func[i - 1]);
-            let (c, d) = parse(&func[i + 1]);
-            match func[i].as_str()
-            {
-                "*" => func[i] = to_string(mul(a, b, c, d)),
-                "/" => func[i] = to_string(div(a, b, c, d)),
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            }
-            func.remove(i + 1);
-            func.remove(i - 1);
-            continue;
-        }
+        let (a, b) = parse(&func[i - 1]);
+        let (c, d) = parse(&func[i + 1]);
         match func[i].as_str()
         {
-            "*" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? * func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
-            "/" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? / func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
+            "*" => func[i] = to_string(mul(a, b, c, d)),
+            "/" => func[i] = to_string(div(a, b, c, d)),
             _ =>
             {
                 i += 1;
@@ -171,40 +139,17 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
     i = 1;
     while i < func.len() - 1
     {
-        if (func[i].contains('i') || func[i + 1].contains('i')) && (func[i] != "+" && func[i] != "-") && (func[i + 1] != "+" && func[i + 1] != "-") && func[i] != "," && func[i + 1] != ","
-        {
-            let (a, b) = parse(&func[i]);
-            let (c, d) = parse(&func[i + 1]);
-            func[i] = to_string(add(a, b, c, d));
-            func.remove(i + 1);
-            i += 1;
-            continue;
-        }
-        if (func[i - 1].contains('i') || func[i + 1].contains('i')) && (func[i] == "+" || func[i] == "-")
-        {
-            let (a, b) = parse(&func[i - 1]);
-            let (c, d) = parse(&func[i + 1]);
-            if func[i] == "-"
-            {
-                func[i] = to_string(add(a, b, -c, -d));
-            }
-            else
-            {
-                func[i] = to_string(add(a, b, c, d));
-            }
-            func.remove(i + 1);
-            func.remove(i - 1);
-            continue;
-        }
-        if func[i + 1].contains('i') || func[i - 1].contains('i')
+        if !(func[i] == "+" || func[i] == "-")
         {
             i += 1;
             continue;
         }
+        let (a, b) = parse(&func[i - 1]);
+        let (c, d) = parse(&func[i + 1]);
         match func[i].as_str()
         {
-            "+" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? + func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
-            "-" => func[i] = (func[i - 1].parse::<f64>().map_err(|_| ())? - func[i + 1].parse::<f64>().map_err(|_| ())?).to_string(),
+            "+" => func[i] = to_string(add(a, b, c, d)),
+            "-" => func[i] = to_string(add(a, b, -c, -d)),
             _ =>
             {
                 i += 1;

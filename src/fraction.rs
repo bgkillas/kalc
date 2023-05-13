@@ -7,7 +7,7 @@ pub fn fraction(num:f64) -> String
     }
     let mut p;
     let values = [(3f64.sqrt(), "sqrt(3)"), (2f64.sqrt(), "sqrt(2)"), (PI, "π")];
-    for i in 1..=10
+    for i in 1..=20
     {
         for &(constant, name) in &values
         {
@@ -20,7 +20,8 @@ pub fn fraction(num:f64) -> String
                     false => "-".to_string(),
                 };
                 let suffix = if i == 1 { "".to_string() } else { format!("/{}", i) };
-                return format!("{}{}{}", prefix, name, suffix);
+                let multiplier = if p == 1.0 { "".to_string() } else { p.to_string() };
+                return format!("{}{}{}{}", multiplier, prefix, name, suffix);
             }
         }
     }

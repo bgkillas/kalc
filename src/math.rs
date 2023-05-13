@@ -1,4 +1,7 @@
-use crate::complex::{parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg};
+use std::f64::consts::E;
+use crate::complex::{
+    parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth
+};
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
     let mut func = func;
@@ -42,18 +45,31 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             let to_parse = match func[i].as_str()
             {
                 "sin" => sin(arg1, arg2),
+                "csc" => csc(arg1, arg2),
                 "cos" => cos(arg1, arg2),
+                "sec" => sec(arg1, arg2),
                 "tan" => tan(arg1, arg2),
+                "cot" => cot(arg1, arg2),
                 "asin" => asin(arg1, arg2),
+                "acsc" => acsc(arg1, arg2),
                 "acos" => acos(arg1, arg2),
+                "asec" => asec(arg1, arg2),
                 "atan" => atan(arg1, arg2),
+                "acot" => acot(arg1, arg2),
                 "sinh" => sinh(arg1, arg2),
+                "csch" => csch(arg1, arg2),
                 "cosh" => cosh(arg1, arg2),
+                "sech" => sech(arg1, arg2),
                 "tanh" => tanh(arg1, arg2),
+                "coth" => coth(arg1, arg2),
                 "asinh" => asinh(arg1, arg2),
+                "acsch" => acsch(arg1, arg2),
                 "acosh" => acosh(arg1, arg2),
+                "asech" => asech(arg1, arg2),
                 "atanh" => atanh(arg1, arg2),
+                "acoth" => acoth(arg1, arg2),
                 "ln" => ln(arg1, arg2),
+                "exp" => pow(E, 0.0, arg1, arg2),
                 "log" =>
                 {
                     match func[i + 1].contains(',')
@@ -73,8 +89,15 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                         true =>
                         {
                             let (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
-                            let (a, b) = div(1.0, 0.0, arg1, arg2);
-                            pow(base_re, base_im, a, b)
+                            match arg2 == 0.0 && (arg1 / 2.0).fract() != 0.0 && arg1.trunc() == arg1 && base_im == 0.0
+                            {
+                                true => (base_re / base_re.abs() * base_re.abs().powf(arg1.recip()), 0.0),
+                                false =>
+                                {
+                                    let (a, b) = div(1.0, 0.0, arg1, arg2);
+                                    pow(base_re, base_im, a, b)
+                                }
+                            }
                         }
                         false => pow(arg1, arg2, 0.5, 0.0),
                     }
@@ -87,7 +110,14 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "im" => (arg2, 0.0),
                 "sgn" => sgn(arg1, arg2),
                 "arg" => (arg(arg1, arg2), 0.0),
-                "cbrt" => pow(arg1, arg2, 1.0 / 3.0, 0.0),
+                "cbrt" =>
+                {
+                    match arg2 == 0.0
+                    {
+                        true => (arg1.cbrt(), 0.0),
+                        false => pow(arg1, arg2, 1.0 / 3.0, 0.0),
+                    }
+                }
                 _ =>
                 {
                     i += 1;

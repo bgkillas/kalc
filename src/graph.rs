@@ -69,8 +69,14 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     }
     (re, im)
 }
-pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64))
+pub fn graph(input:[&String; 3], func:[&[String]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64))
 {
+    let re1col = "#9400D3";
+    let im1col = "#009E73";
+    let re2col = "#56B4E9";
+    let im2col = "#E69F00";
+    let re3col = "#F0E442";
+    let im3col = "#0072B2";
     let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
     let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
     fg.close();
@@ -80,6 +86,7 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
         let zticks = Some((Fix((range.0[2][1] - range.0[2][0]) / 20.0), 1));
         let (mut re, mut im) = get_list_3d(func[0], range);
         let (mut re2, mut im2) = get_list_3d(func[1], range);
+        let (mut re3, mut im3) = get_list_3d(func[2], range);
         if im.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
         {
             im.clear();
@@ -87,6 +94,10 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
         if im2.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
         {
             im2.clear();
+        }
+        if im3.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        {
+            im3.clear();
         }
         if re.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
         {
@@ -96,10 +107,16 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
         {
             re2.clear();
         }
-        let re1c = if input[0] != "0" && !re.is_empty() { "re: ".to_owned() + input[0] } else { "".to_owned() };
-        let im1c = if input[0] != "0" && !im.is_empty() { "im: ".to_owned() + input[0] } else { "".to_owned() };
-        let re2c = if input[1] != "0" && !re2.is_empty() { "re: ".to_owned() + input[1] } else { "".to_owned() };
-        let im2c = if input[1] != "0" && !im2.is_empty() { "im: ".to_owned() + input[1] } else { "".to_owned() };
+        if re3.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        {
+            re3.clear();
+        }
+        let re1c = if input[0] != "0" && !re.is_empty() { input[0].to_owned() + ":re" } else { "".to_owned() };
+        let im1c = if input[0] != "0" && !im.is_empty() { input[0].to_owned() + ":im" } else { "".to_owned() };
+        let re2c = if input[1] != "0" && !re2.is_empty() { input[1].to_owned() + ":re" } else { "".to_owned() };
+        let im2c = if input[1] != "0" && !im2.is_empty() { input[1].to_owned() + ":im" } else { "".to_owned() };
+        let re3c = if input[1] != "0" && !re3.is_empty() { input[2].to_owned() + ":re" } else { "".to_owned() };
+        let im3c = if input[1] != "0" && !im3.is_empty() { input[2].to_owned() + ":im" } else { "".to_owned() };
         fg.axes3d()
           .set_x_ticks(xticks, &[], &[])
           .set_y_ticks(yticks, &[], &[])
@@ -110,14 +127,18 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
           .set_z_label("z", &[])
           .set_y_label("y", &[])
           .set_x_label("x", &[])
-          .lines([0], [0], [0], &[Caption(re1c.as_str()), Color("#9400D3")])
-          .lines([0], [0], [0], &[Caption(im1c.as_str()), Color("#009E73")])
-          .lines([0], [0], [0], &[Caption(re2c.as_str()), Color("#56B4E9")])
-          .lines([0], [0], [0], &[Caption(im2c.as_str()), Color("#E69F00")])
-          .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.'), Color("#9400D3")])
-          .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.'), Color("#009E73")])
-          .points(re2.iter().map(|i| i[0]), re2.iter().map(|i| i[1]), re2.iter().map(|i| i[2]), &[PointSymbol('.'), Color("#56B4E9")])
-          .points(im2.iter().map(|i| i[0]), im2.iter().map(|i| i[1]), im2.iter().map(|i| i[2]), &[PointSymbol('.'), Color("#E69F00")]);
+          .lines([0], [0], [0], &[Caption(re1c.as_str()), Color(re1col)])
+          .lines([0], [0], [0], &[Caption(im1c.as_str()), Color(im1col)])
+          .lines([0], [0], [0], &[Caption(re2c.as_str()), Color(re2col)])
+          .lines([0], [0], [0], &[Caption(im2c.as_str()), Color(im2col)])
+          .lines([0], [0], [0], &[Caption(re3c.as_str()), Color(re3col)])
+          .lines([0], [0], [0], &[Caption(im3c.as_str()), Color(im3col)])
+          .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.'), Color(re1col)])
+          .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.'), Color(im1col)])
+          .points(re2.iter().map(|i| i[0]), re2.iter().map(|i| i[1]), re2.iter().map(|i| i[2]), &[PointSymbol('.'), Color(re2col)])
+          .points(im2.iter().map(|i| i[0]), im2.iter().map(|i| i[1]), im2.iter().map(|i| i[2]), &[PointSymbol('.'), Color(im2col)])
+          .points(re3.iter().map(|i| i[0]), re3.iter().map(|i| i[1]), re3.iter().map(|i| i[2]), &[PointSymbol('.'), Color(re3col)])
+          .points(im3.iter().map(|i| i[0]), im3.iter().map(|i| i[1]), im3.iter().map(|i| i[2]), &[PointSymbol('.'), Color(im3col)]);
         if close
         {
             fg.show().unwrap();
@@ -128,6 +149,7 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
     }
     let (mut re, mut im) = get_list_2d(func[0], range);
     let (mut re2, mut im2) = get_list_2d(func[1], range);
+    let (mut re3, mut im3) = get_list_2d(func[2], range);
     if im.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
     {
         im.clear();
@@ -135,6 +157,10 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
     if im2.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
     {
         im2.clear();
+    }
+    if im3.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    {
+        im3.clear();
     }
     if re.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
     {
@@ -144,25 +170,35 @@ pub fn graph(input:[&String; 2], func:[&[String]; 2], graph:bool, close:bool, fg
     {
         re2.clear();
     }
+    if re3.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    {
+        re3.clear();
+    }
     let axisline = [-1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0];
     let zeros = [0.0; 11];
-    let re1c = if input[0] != "0" && !re.is_empty() { "re: ".to_owned() + input[0] } else { "".to_owned() };
-    let im1c = if input[0] != "0" && !im.is_empty() { "im: ".to_owned() + input[0] } else { "".to_owned() };
-    let re2c = if input[1] != "0" && !re2.is_empty() { "re: ".to_owned() + input[1] } else { "".to_owned() };
-    let im2c = if input[1] != "0" && !im2.is_empty() { "im: ".to_owned() + input[1] } else { "".to_owned() };
+    let re1c = if input[0] != "0" && !re.is_empty() { input[0].to_owned() + ":re" } else { "".to_owned() };
+    let im1c = if input[0] != "0" && !im.is_empty() { input[0].to_owned() + ":im" } else { "".to_owned() };
+    let re2c = if input[1] != "0" && !re2.is_empty() { input[1].to_owned() + ":re" } else { "".to_owned() };
+    let im2c = if input[1] != "0" && !im2.is_empty() { input[1].to_owned() + ":im" } else { "".to_owned() };
+    let re3c = if input[2] != "0" && !re3.is_empty() { input[2].to_owned() + ":re" } else { "".to_owned() };
+    let im3c = if input[2] != "0" && !im3.is_empty() { input[2].to_owned() + ":im" } else { "".to_owned() };
     fg.axes2d()
       .set_x_ticks(xticks, &[], &[])
       .set_y_ticks(yticks, &[], &[])
       .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
       .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-      .lines([0], [0], &[Caption(re1c.as_str()), Color("#9400D3")])
-      .lines([0], [0], &[Caption(im1c.as_str()), Color("#009E73")])
-      .lines([0], [0], &[Caption(re2c.as_str()), Color("#56B4E9")])
-      .lines([0], [0], &[Caption(im2c.as_str()), Color("#E69F00")])
-      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#9400D3")])
-      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#009E73")])
-      .points(re2.iter().map(|x| x[0]), re2.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#56B4E9")])
-      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol('.'), Color("#E69F00")])
+      .lines([0], [0], &[Caption(re1c.as_str()), Color(re1col)])
+      .lines([0], [0], &[Caption(im1c.as_str()), Color(im1col)])
+      .lines([0], [0], &[Caption(re2c.as_str()), Color(re2col)])
+      .lines([0], [0], &[Caption(im2c.as_str()), Color(im2col)])
+      .lines([0], [0], &[Caption(re3c.as_str()), Color(re3col)])
+      .lines([0], [0], &[Caption(im3c.as_str()), Color(im3col)])
+      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color(re1col)])
+      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color(im1col)])
+      .points(re2.iter().map(|x| x[0]), re2.iter().map(|x| x[1]), &[PointSymbol('.'), Color(re2col)])
+      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol('.'), Color(im2col)])
+      .points(re3.iter().map(|x| x[0]), re3.iter().map(|x| x[1]), &[PointSymbol('.'), Color(re3col)])
+      .points(im3.iter().map(|x| x[0]), im3.iter().map(|x| x[1]), &[PointSymbol('.'), Color(im3col)])
       .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
       .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
     if close

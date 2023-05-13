@@ -9,18 +9,22 @@ use complex::parse;
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};
 use console::{Key, Term};
-#[cfg(target_os = "linux")]
-use std::io::stdin;
-#[cfg(target_os = "linux")]
-use libc::{isatty, STDIN_FILENO};
 use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
 use crate::graph::{get_list_2d, get_list_3d, graph};
 use crate::print::{print_answer, print_concurrent};
+#[cfg(target_os = "linux")]
+use {
+    std::io::stdin, libc::{isatty, STDIN_FILENO}
+};
 fn help()
 {
     println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
-    println!("functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, ln, log(base,num),root(base,exp), abs, sgn, arg, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)");
+    println!(
+             "functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh,\n\
+    csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, \n\
+    sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, sgn, arg, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)"
+    );
 }
 fn write(input:&String, file:&mut File, lines:&Vec<String>)
 {
@@ -54,10 +58,20 @@ fn main()
         };
         if func.contains(&"x".to_string())
         {
-            let mut split = input.split(',');
+            let mut split = input.split('#');
             let l = split.next().unwrap();
+            let m = split.next().unwrap_or("0");
             let r = split.next().unwrap_or("0");
             let funcl = match get_func(l, true)
+            {
+                Ok(f) => f,
+                _ =>
+                {
+                    println!("Invalid function.");
+                    return;
+                }
+            };
+            let funcm = match get_func(m, true)
             {
                 Ok(f) => f,
                 _ =>
@@ -77,10 +91,10 @@ fn main()
             };
             if func.contains(&"y".to_string())
             {
-                graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], true, true, &mut plot, range);
+                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range);
                 return;
             }
-            graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], false, true, &mut plot, range);
+            graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range);
             return;
         }
         print_answer(func);
@@ -386,10 +400,16 @@ fn main()
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            let mut split = input.split(',');
+            let mut split = input.split('#');
             let l = split.next().unwrap();
+            let m = split.next().unwrap_or("0");
             let r = split.next().unwrap_or("0");
             let funcl = match get_func(l, true)
+            {
+                Ok(f) => f,
+                _ => continue,
+            };
+            let funcm = match get_func(m, true)
             {
                 Ok(f) => f,
                 _ => continue,
@@ -401,10 +421,10 @@ fn main()
             };
             if input.contains('y')
             {
-                graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], true, false, &mut plot, range);
+                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, false, &mut plot, range);
                 continue;
             }
-            graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], false, false, &mut plot, range);
+            graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, false, &mut plot, range);
             continue;
         }
         write(&input, &mut file, &lines);
@@ -419,7 +439,7 @@ fn read_single_char() -> char
     {
         Key::Char(c) =>
         {
-            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ',' || c == 'π'
+            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ',' || c == 'π' || c == '#'
             {
                 c
             }

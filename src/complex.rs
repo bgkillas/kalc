@@ -161,6 +161,12 @@ pub fn sin(a:f64, b:f64) -> (f64, f64)
     let re = a.sin() * b.cosh();
     (re, im)
 }
+pub fn csc(a:f64, b:f64) -> (f64, f64)
+{
+    // csc(a+bi)=1/sin(a+bi)
+    let (re, im) = sin(a, b);
+    div(1.0, 0.0, re, im)
+}
 pub fn cos(a:f64, b:f64) -> (f64, f64)
 {
     // cos(a+bi)=cos(a)cosh(b)-i*sin(a)sinh(b)
@@ -185,6 +191,12 @@ pub fn cos(a:f64, b:f64) -> (f64, f64)
     let re = a.cos() * b.cosh();
     (re, im)
 }
+pub fn sec(a:f64, b:f64) -> (f64, f64)
+{
+    // sec(a+bi)=1/cos(a+bi)
+    let (re, im) = cos(a, b);
+    div(1.0, 0.0, re, im)
+}
 pub fn tan(a:f64, b:f64) -> (f64, f64)
 {
     // tan(a+bi)=sin(a+bi)/cos(a+bi)
@@ -203,6 +215,12 @@ pub fn tan(a:f64, b:f64) -> (f64, f64)
     }
     let (re, im) = div(a.sin() * b.cosh(), a.cos() * b.sinh(), a.cos() * b.cosh(), -a.sin() * b.sinh());
     (re, im)
+}
+pub fn cot(a:f64, b:f64) -> (f64, f64)
+{
+    // cot(a+bi)=1/tan(a+bi)
+    let (re, im) = tan(a, b);
+    div(1.0, 0.0, re, im)
 }
 pub fn log(c:f64, d:f64, a:f64, b:f64) -> (f64, f64)
 {
@@ -230,6 +248,12 @@ pub fn asin(a:f64, b:f64) -> (f64, f64)
     let (re, im) = mul(a, b, 0.0, -1.0);
     (re, im)
 }
+pub fn acsc(a:f64, b:f64) -> (f64, f64)
+{
+    // acsc(a+bi)=asin(1/(a+bi))
+    let (re, im) = div(1.0, 0.0, a, b);
+    asin(re, im)
+}
 pub fn acos(a:f64, b:f64) -> (f64, f64)
 {
     // acos(a+bi)=pi/2-asin(a+bi)
@@ -237,6 +261,12 @@ pub fn acos(a:f64, b:f64) -> (f64, f64)
     let re = FRAC_PI_2 - a;
     let im = -b;
     (re, im)
+}
+pub fn asec(a:f64, b:f64) -> (f64, f64)
+{
+    // asec(a+bi)=acos(1/(a+bi))
+    let (re, im) = div(1.0, 0.0, a, b);
+    acos(re, im)
 }
 pub fn atan(a:f64, b:f64) -> (f64, f64)
 {
@@ -250,6 +280,12 @@ pub fn atan(a:f64, b:f64) -> (f64, f64)
     let im = a;
     (re, im)
 }
+pub fn acot(a:f64, b:f64) -> (f64, f64)
+{
+    // acot(a+bi)=atan(1/(a+bi))
+    let (re, im) = div(1.0, 0.0, a, b);
+    atan(re, im)
+}
 pub fn sinh(a:f64, b:f64) -> (f64, f64)
 {
     // sinh(a+bi)=sinh(a)cos(b)+i*cosh(a)sin(b)
@@ -260,6 +296,12 @@ pub fn sinh(a:f64, b:f64) -> (f64, f64)
     let im = a.cosh() * b.sin();
     let re = a.sinh() * b.cos();
     (re, im)
+}
+pub fn csch(a:f64, b:f64) -> (f64, f64)
+{
+    // csch(a+bi)=1/sinh(a+bi)
+    let (re, im) = sinh(a, b);
+    div(1.0, 0.0, re, im)
 }
 pub fn cosh(a:f64, b:f64) -> (f64, f64)
 {
@@ -272,6 +314,12 @@ pub fn cosh(a:f64, b:f64) -> (f64, f64)
     let re = a.cosh() * b.cos();
     (re, im)
 }
+pub fn sech(a:f64, b:f64) -> (f64, f64)
+{
+    // sech(a+bi)=1/cosh(a+bi)
+    let (re, im) = cosh(a, b);
+    div(1.0, 0.0, re, im)
+}
 pub fn tanh(a:f64, b:f64) -> (f64, f64)
 {
     // tanh(a+bi)=sinh(a+bi)/cosh(a+bi)
@@ -281,6 +329,12 @@ pub fn tanh(a:f64, b:f64) -> (f64, f64)
     }
     let (re, im) = div(a.sinh() * b.cos(), a.cosh() * b.sin(), a.cosh() * b.cos(), a.sinh() * b.sin());
     (re, im)
+}
+pub fn coth(a:f64, b:f64) -> (f64, f64)
+{
+    // coth(a+bi)=cosh(a+bi)/sinh(a+bi)
+    let (re, im) = tanh(a, b);
+    div(1.0, 0.0, re, im)
 }
 pub fn asinh(a:f64, b:f64) -> (f64, f64)
 {
@@ -303,6 +357,12 @@ pub fn asinh(a:f64, b:f64) -> (f64, f64)
     let (re, im) = ln(a, b);
     (re, im)
 }
+pub fn acsch(a:f64, b:f64) -> (f64, f64)
+{
+    // acsch(a+bi)=asinh(1/(a+bi))
+    let (re, im) = div(1.0, 0.0, a, b);
+    asinh(re, im)
+}
 pub fn acosh(a:f64, b:f64) -> (f64, f64)
 {
     // acosh(a+bi)=ln(sqrt(a+ib-1)*sqrt(a+ib+1)+a+ib)
@@ -312,6 +372,12 @@ pub fn acosh(a:f64, b:f64) -> (f64, f64)
     let (a, b) = add(c, d, a, b);
     let (re, im) = ln(a, b);
     (re, im)
+}
+pub fn asech(a:f64, b:f64) -> (f64, f64)
+{
+    // asech(a+bi)=acosh(1/(a+bi))
+    let (re, im) = div(1.0, 0.0, a, b);
+    acosh(re, im)
 }
 pub fn atanh(a:f64, b:f64) -> (f64, f64)
 {
@@ -324,6 +390,12 @@ pub fn atanh(a:f64, b:f64) -> (f64, f64)
     let (m, n) = div(i, j, 2.0, 0.0);
     let (re, im) = add(k, l, -m, -n);
     (re, im)
+}
+pub fn acoth(a:f64, b:f64) -> (f64, f64)
+{
+    // acoth(a+bi)=atanh(1/(a+bi))
+    let (re, im) = div(1.0, 0.0, a, b);
+    atanh(re, im)
 }
 pub fn arg(a:f64, b:f64) -> f64
 {

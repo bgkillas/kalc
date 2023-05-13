@@ -5,11 +5,11 @@ the following functions in the complex plane
 
 ``+,-,*,/,^,``
 
-``sin, cos, tan, asin, acos, atan, ``
+``sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh``
 
-``sinh, cosh, tanh, asinh, acosh, atanh, ``
+``csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth``
 
-``sqrt, cbrt, ln, log(base,num),root(base,exp) abs, arg, sgn`` 
+``sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, arg, sgn`` 
 
 ``dg(to_degrees),rd(to_radians)``
 
@@ -39,8 +39,8 @@ calc x^2
 graphs x^2
 ```
 ```
-calc x^2,x^3
-graphs x^2 and x^3
+calc x^2#x^3#x
+graphs x^2, x^3 and x
 ```
 ```
 calc z^2

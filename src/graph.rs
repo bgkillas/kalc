@@ -3,7 +3,7 @@ use crate::complex::parse;
 use crate::math::do_math;
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
-    if func.is_empty()
+    if func.len() == 1 && func[0] == "0"
     {
         return (Vec::new(), Vec::new());
     }
@@ -41,7 +41,7 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
 }
 pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
-    if func.is_empty()
+    if func.len() == 1 && func[0] == "0"
     {
         return (Vec::new(), Vec::new());
     }
@@ -87,27 +87,27 @@ pub fn graph(input:[&String; 3], func:[&[String]; 3], graph:bool, close:bool, fg
         let (mut re, mut im) = get_list_3d(func[0], range);
         let (mut re2, mut im2) = get_list_3d(func[1], range);
         let (mut re3, mut im3) = get_list_3d(func[2], range);
-        if im.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        if im.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             im.clear();
         }
-        if im2.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        if im2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             im2.clear();
         }
-        if im3.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        if im3.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             im3.clear();
         }
-        if re.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        if re.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             re.clear();
         }
-        if re2.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        if re2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             re2.clear();
         }
-        if re3.iter().map(|i| (i[2] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+        if re3.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             re3.clear();
         }
@@ -150,27 +150,27 @@ pub fn graph(input:[&String; 3], func:[&[String]; 3], graph:bool, close:bool, fg
     let (mut re, mut im) = get_list_2d(func[0], range);
     let (mut re2, mut im2) = get_list_2d(func[1], range);
     let (mut re3, mut im3) = get_list_2d(func[2], range);
-    if im.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    if im.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         im.clear();
     }
-    if im2.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    if im2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         im2.clear();
     }
-    if im3.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    if im3.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         im3.clear();
     }
-    if re.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    if re.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         re.clear();
     }
-    if re2.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    if re2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         re2.clear();
     }
-    if re3.iter().map(|i| (i[1] * 1e15).round() / 1e15).sum::<f64>() == 0.0
+    if re3.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         re3.clear();
     }

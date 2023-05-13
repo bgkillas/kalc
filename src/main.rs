@@ -22,8 +22,9 @@ fn help()
     println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
     println!(
              "functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh,\n\
-    csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, \n\
-    sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, sgn, arg, dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)"
+    csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth,\n\
+    sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, sgn, arg, ceil, floor, round,\n\
+    dg(to_degrees),rd(to_radians),re(real part),im(imaginary part)"
     );
 }
 fn write(input:&String, file:&mut File, lines:&Vec<String>)

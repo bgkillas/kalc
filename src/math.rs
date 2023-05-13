@@ -70,6 +70,9 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "acoth" => acoth(arg1, arg2),
                 "ln" => ln(arg1, arg2),
                 "exp" => pow(E, 0.0, arg1, arg2),
+                "ceil" => (arg1.ceil(), arg2.ceil()),
+                "floor" => (arg1.floor(), arg2.floor()),
+                "round" => (arg1.round(), arg2.round()),
                 "log" =>
                 {
                     match func[i + 1].contains(',')

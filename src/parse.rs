@@ -20,7 +20,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             word.clear();
             word = c.to_string();
         }
-        else if *c == 'e' && (i == 0 || chars[i - 1] != 'r')
+        else if *c == 'e' && (i == 0 || (chars[i - 1] != 'r' && chars[i - 1] != 'c'))
         {
             if word == "-"
             {
@@ -64,7 +64,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word = PI.to_string();
             }
-            else if i == chars.len() - 1 || (chars[i + 1] != 'm' && chars[i + 1] != 'n')
+            else if i == chars.len() - 1 || (chars[i + 1] != 'm' && chars[i + 1] != 'n' && chars[i + 1] != 'l')
             {
                 if i != 0 && (!word.is_empty() && word != "(")
                 {
@@ -78,7 +78,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word.push(*c);
             }
-            else if chars[i + 1] == 'm' || chars[i + 1] == 'n'
+            else if chars[i + 1] == 'm' || chars[i + 1] == 'n' || chars[i + 1] == 'l'
             {
                 word.push(*c);
             }

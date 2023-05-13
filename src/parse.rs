@@ -209,11 +209,33 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
         }
     }
     let mut i = 0;
+    let mut double = false;
+    let mut location = 0;
     loop
     {
-        if i == func.len()
+        if func.is_empty() || i >= func.len() - 1
         {
             break;
+        }
+        if func[i] == "(" && func[i + 1] == "("
+        {
+            double = true;
+            location = i;
+            i += 1;
+            continue;
+        }
+        if double && func[i] == ")" && func[i + 1] == ")"
+        {
+            double = false;
+            func.remove(location);
+            func.remove(i);
+            continue;
+        }
+        if func[0] == "(" && func[func.len() - 1] == ")"
+        {
+            func.remove(0);
+            func.pop();
+            continue;
         }
         if func[i] == "(" && func[i + 1] == ")"
         {
@@ -241,7 +263,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
     if first == "+"
     {
         func.remove(0);
-        if func.len() == 0
+        if func.is_empty()
         {
             return Err(());
         }

@@ -76,6 +76,9 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
+              .set_z_label("z", &[])
+              .set_y_label("y", &[])
+              .set_x_label("x", &[])
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')])
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
@@ -85,6 +88,9 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
+              .set_z_label("z", &[])
+              .set_y_label("y", &[])
+              .set_x_label("x", &[])
               .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
         else if i
@@ -93,6 +99,9 @@ pub fn graph(func:&[String], graph:bool, close:bool, fg:&mut Figure, older:Optio
               .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
               .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
               .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
+              .set_z_label("z", &[])
+              .set_y_label("y", &[])
+              .set_x_label("x", &[])
               .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.')]);
         }
         if close

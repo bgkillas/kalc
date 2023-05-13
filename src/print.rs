@@ -15,10 +15,10 @@ pub fn print_answer(func:Vec<String>)
     };
     let (a, b) = parse(&num);
     let a = (a * 1e12).round() / 1e12;
-    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "\x1b[93mi";
+    let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "i";
     println!("{}{}\x1b[0m",
-             if a == 0.0 && !(b.ends_with("0\x1b[93mi")) { "".to_string() } else { a.to_string() },
-             if b.ends_with("0\x1b[93mi") { "".to_string() } else { b });
+             if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
+             if b.ends_with("0i") { "".to_string() } else { b });
 }
 pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<String>, frac:bool) -> bool
 {

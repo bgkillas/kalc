@@ -5,6 +5,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
     let mut func:Vec<String> = Vec::new();
     let mut word:String = String::new();
     let chars = input.chars().collect::<Vec<char>>();
+    let mut abs = true;
     for (i, c) in chars.iter().enumerate()
     {
         if *c == 'x' || *c == 'y'
@@ -19,6 +20,26 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             word.clear();
             word = c.to_string();
+        }
+        else if *c == '|'
+        {
+            if !word.is_empty()
+            {
+                func.push(word.clone());
+                word.clear();
+            }
+            if abs
+            {
+                func.push("abs".to_string());
+                func.push("(".to_string());
+                count += 1;
+            }
+            else
+            {
+                func.push(")".to_string());
+                count -= 1;
+            }
+            abs = !abs;
         }
         else if *c == 'e' && (i == 0 || (chars[i - 1] != 'r' && chars[i - 1] != 'c' && chars[i - 1] != 'd'))
         {

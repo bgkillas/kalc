@@ -9,7 +9,7 @@ pub fn print_answer(func:Vec<String>)
         Ok(num) => num,
         Err(_) =>
         {
-            println!("\x1b[91m0\x1b[0m");
+            println!("0");
             return;
         }
     };

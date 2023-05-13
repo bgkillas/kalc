@@ -440,7 +440,7 @@ fn read_single_char() -> char
     {
         Key::Char(c) =>
         {
-            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ',' || c == 'π' || c == '#'
+            if c.is_ascii_alphanumeric() || c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '(' || c == ')' || c == '.' || c == '=' || c == ',' || c == 'π' || c == '#' || c == '|'
             {
                 c
             }

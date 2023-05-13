@@ -14,6 +14,10 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             let mut count = 1;
             while count > 0
             {
+                if j >= func.len()
+                {
+                    return Err(());
+                }
                 match func[j].as_str()
                 {
                     "(" => count += 1,

@@ -189,6 +189,10 @@ pub fn tan(a:f64, b:f64) -> (f64, f64)
         {
             return (0.0, 0.0);
         }
+        if a % std::f64::consts::FRAC_PI_2 == 0.0
+        {
+            return (f64::INFINITY, 0.0);
+        }
         let re = a.tan();
         return (re, 0.0);
     }

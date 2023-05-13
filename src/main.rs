@@ -499,6 +499,12 @@ fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<S
     *last = func.clone();
     if let Ok(num) = do_math(func.clone())
     {
+        if num == "inf" || num == "-inf" || num == "nan"
+        {
+            print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}\x1b[0m\x1b[A", num);
+            print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
+            return false;
+        }
         let (a, b) = parse(&num);
         let c = (a * 1e12).round() / 1e12;
         let sign = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();

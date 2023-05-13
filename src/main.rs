@@ -32,7 +32,7 @@ fn write(input:&String, file:&mut File, lines:&Vec<String>)
 }
 fn main()
 {
-    let mut range = ([[-10.0, 10.0]; 3], 20000.0, 300.0);
+    let mut range = ([[-10.0, 10.0]; 3], 20000.0, 400.0);
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
     if args().len() > 1
@@ -359,10 +359,10 @@ fn main()
         }
         else if (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
+            write(&input, &mut file, &lines);
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            write(&input, &mut file, &lines);
             let mut split = input.split(',');
             let l = split.next().unwrap();
             let r = split.next().unwrap_or("0");

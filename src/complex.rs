@@ -320,8 +320,7 @@ pub fn arg(a:f64, b:f64) -> f64
 {
     // arg(a+bi)=-ilog(sgn(a+bi))
     let (a, b) = sgn(a, b);
-    let (_, b) = ln(a, b);
-    let re = -b;
+    let (_, re) = ln(a, b);
     re
 }
 pub fn sgn(a:f64, b:f64) -> (f64, f64)

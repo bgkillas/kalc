@@ -54,12 +54,33 @@ fn main()
         };
         if func.contains(&"x".to_string())
         {
+            let mut split = input.split(',');
+            let l = split.next().unwrap();
+            let r = split.next().unwrap_or("0");
+            let funcl = match get_func(l, true)
+            {
+                Ok(f) => f,
+                _ =>
+                {
+                    println!("Invalid function.");
+                    return;
+                }
+            };
+            let funcr = match get_func(r, true)
+            {
+                Ok(f) => f,
+                _ =>
+                {
+                    println!("Invalid function.");
+                    return;
+                }
+            };
             if func.contains(&"y".to_string())
             {
-                graph([input, &"".to_string()], [&func, &["".to_string()]], true, true, &mut plot, range);
+                graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], true, true, &mut plot, range);
                 return;
             }
-            graph([input, &"".to_string()], [&func, &["".to_string()]], false, true, &mut plot, range);
+            graph([&l.to_string(), &r.to_string()], [&funcl, &funcr], false, true, &mut plot, range);
             return;
         }
         print_answer(func);

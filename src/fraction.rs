@@ -53,7 +53,8 @@ pub fn fraction(num:f64) -> String
         last = number;
         number *= nums[nums.len() - 1 - i];
     }
-    format!("{}{}/{}",
+    format!("{}{}{}",
+            if last.round() == 1.0 && which != "1" { "".to_string() } else { last.round().to_string() },
             match which
             {
                 "1" => "",
@@ -62,6 +63,5 @@ pub fn fraction(num:f64) -> String
                 "p" => "π",
                 _ => "",
             },
-            if last.round() == 1.0 && which != "1" { "".to_string() } else { last.round().to_string() },
-            number.round())
+            if number.round() == 1.0 { "".to_string() } else { "/".to_owned() + &number.round().to_string() })
 }

@@ -1,56 +1,50 @@
 use std::f64::consts::PI;
-pub fn fraction(num:f64) -> String
+pub fn fraction(value:f64) -> String
 {
-    if (num * 1e12).round() / 1e12 == 0.0 || ((num * 1e12).round() / 1e12).fract() == 0.0
+    let eps = 1e-9;
+    if value.fract() < eps
     {
-        return "0".to_string();
+        return String::new();
     }
     // as per continued fraction expansion
     let mut nums:Vec<f64> = vec![];
     let values = [(1.0, '1'), (PI, 'p'), (2f64.sqrt(), '2'), (3f64.sqrt(), '3')];
-    let mut which = '1';
-    let mut number = 0.0;
-    let mut c = 0;
+    let mut number;
     let mut recip;
     let mut fract;
-    'outer: for &(constant, name) in &values
+    for (constant, name) in values
     {
-        number = num / constant;
+        number = value / constant;
         nums.clear();
         for _ in 0..=10
         {
             recip = number.recip();
             fract = recip.fract();
-            if (fract * 1e9).round() / 1e9 == 0.0
+            if fract < eps
             {
-                number = (recip * 1e9).round() / 1e9;
-                which = name;
-                break 'outer;
+                let mut last = 1.0;
+                for i in (0..nums.len()).rev()
+                {
+                    last = recip;
+                    recip *= nums[i];
+                }
+                last = last.round();
+                recip = recip.round();
+                return format!("{}{}{}",
+                               if last == 1.0 && name != '1' { "".to_string() } else { last.to_string() },
+                               match name
+                               {
+                                   '1' => "",
+                                   '3' => "sqrt(3)",
+                                   '2' => "sqrt(2)",
+                                   'p' => "π",
+                                   _ => "",
+                               },
+                               if recip == 1.0 { "".to_string() } else { "/".to_owned() + &recip.to_string() });
             }
             nums.push(recip);
             number = fract;
         }
-        c += 1;
     }
-    if c == values.len()
-    {
-        return num.to_string();
-    }
-    let mut last = 1.0;
-    for i in 0..nums.len()
-    {
-        last = number;
-        number *= nums[nums.len() - 1 - i];
-    }
-    format!("{}{}{}",
-            if last.round() == 1.0 && which != '1' { "".to_string() } else { last.round().to_string() },
-            match which
-            {
-                '1' => "",
-                '3' => "sqrt(3)",
-                '2' => "sqrt(2)",
-                'p' => "π",
-                _ => "",
-            },
-            if number.round() == 1.0 { "".to_string() } else { "/".to_owned() + &number.round().to_string() })
+    String::new()
 }

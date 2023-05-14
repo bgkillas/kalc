@@ -414,3 +414,27 @@ pub fn sgn(a:f64, b:f64) -> (f64, f64)
     let (re, im) = div(a, b, abs(a, b), 0.0);
     (re, im)
 }
+pub fn fact(a:f64) -> f64
+{
+    // fact(a)=a!
+    if a == 0.0
+    {
+        return 1.0;
+    }
+    let mut b = a;
+    let mut c = 1.0;
+    while b > 1.0
+    {
+        c *= b;
+        b -= 1.0;
+    }
+    c
+}
+pub fn int(a:f64, b:f64) -> (f64, f64)
+{
+    (a.trunc(), b.trunc())
+}
+pub fn frac(a:f64, b:f64) -> (f64, f64)
+{
+    (a.fract(), b.fract())
+}

@@ -9,11 +9,13 @@ the following functions in the complex plane
 
 ``csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth``
 
-``sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, arg, sgn, ceil, floor, round`` 
+``sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, arg, sgn``
 
-``deg(to_degrees),rad(to_radians)``
+``fact, int, frac, ceil, floor, round`` 
 
-``re(gets real),im(gets imag)``
+``deg,rad``
+
+``re(real part),im(imag part)``
 
 constants: ``pi, e``
 

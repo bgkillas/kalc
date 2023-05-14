@@ -26,11 +26,7 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
             let num = match do_math(modified.iter().map(|j| j.replace('y', &(f).to_string())).collect())
             {
                 Ok(n) => n,
-                Err(_) =>
-                {
-                    println!("0");
-                    continue;
-                }
+                Err(_) => continue,
             };
             let (a, b) = parse(&num);
             re.push([n, f, a]);
@@ -57,11 +53,7 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
         let num = match do_math(func.iter().map(|i| i.replace('x', &(n).to_string())).collect())
         {
             Ok(n) => n,
-            Err(_) =>
-            {
-                println!("0");
-                continue;
-            }
+            Err(_) => continue,
         };
         let (a, b) = parse(&num);
         re.push([n, a]);

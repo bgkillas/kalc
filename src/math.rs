@@ -1,6 +1,6 @@
 use std::f64::consts::E;
 use crate::complex::{
-    parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth
+    parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
@@ -111,7 +111,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 }
                 "sqrt" => pow(arg1, arg2, 0.5, 0.0),
                 "abs" => (abs(arg1, arg2), 0.0),
-                "deg" =>
+                "deg"|"degree" =>
                 {
                     if arg2 != 0.0
                     {
@@ -119,7 +119,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     }
                     (arg1.to_degrees(), 0.0)
                 }
-                "rad" =>
+                "rad"|"radian" =>
                 {
                     if arg2 != 0.0
                     {
@@ -127,9 +127,9 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     }
                     (arg1.to_radians(), 0.0)
                 }
-                "re" => (arg1, 0.0),
-                "im" => (arg2, 0.0),
-                "sgn" => sgn(arg1, arg2),
+                "re" | "real" => (arg1, 0.0),
+                "im" | "imag" => (arg2, 0.0),
+                "sgn"|"sign" => sgn(arg1, arg2),
                 "arg" => (arg(arg1, arg2), 0.0),
                 "cbrt" =>
                 {
@@ -138,6 +138,16 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                         true => (arg1.cbrt(), 0.0),
                         false => pow(arg1, arg2, 1.0 / 3.0, 0.0),
                     }
+                }
+                "frac" | "fract" => frac(arg1, arg2),
+                "int" | "trunc" => int(arg1, arg2),
+                "fact" =>
+                {
+                    if arg2 != 0.0 || arg1 < 0.0
+                    {
+                        return Err(());
+                    }
+                    (fact(arg1), 0.0)
                 }
                 _ =>
                 {

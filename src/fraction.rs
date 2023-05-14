@@ -1,8 +1,8 @@
+// as per continued fraction expansion
 use std::f64::consts::PI;
 pub fn fraction(value:f64) -> String
 {
     let eps = 1e-6;
-    // as per continued fraction expansion
     let mut nums:Vec<f64> = vec![];
     let values = [(1.0, '1'), (PI, 'p'), (2f64.sqrt(), '2'), (3f64.sqrt(), '3')];
     let mut number;

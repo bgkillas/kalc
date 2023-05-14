@@ -304,15 +304,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
         }
     }
     let last = func.last().unwrap().chars().last().unwrap();
-    if last == '+' || last == '-'
-    {
-        func.push("0".to_string());
-    }
-    if last == '*' || last == '/' || last == '^' || last.is_ascii_alphabetic()
-    {
-        func.push("1".to_string());
-    }
-    if last == 'x' || last == 'y' || last == 'i'
+    if last == 'x' || last == 'y' || last == 'i' || last == '*' || last == '/' || last == '^' || last.is_ascii_alphabetic() || last == '+' || last == '-'
     {
         func.pop();
     }

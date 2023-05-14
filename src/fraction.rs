@@ -29,7 +29,7 @@ pub fn fraction(value:f64) -> String
                     recip *= nums[i];
                 }
                 recip = recip.round();
-                last = (last + recip * orig.trunc() * constant).round();
+                last = (last + recip * orig.trunc()).round();
                 return format!("{sign}{}{}{}",
                                if last == 1.0 && name != '1' { "".to_string() } else { last.to_string() },
                                match name

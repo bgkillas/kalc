@@ -4,6 +4,10 @@ use crate::complex::{
 };
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
+    if func.is_empty()
+    {
+        return Err(());
+    }
     let mut func = func;
     let mut i = 0;
     while i < func.len() - 1

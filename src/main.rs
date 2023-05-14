@@ -157,7 +157,6 @@ fn main()
         let mut cursor = 0;
         let mut frac = false;
         let lines = lines;
-        let mut last:Vec<String> = Vec::new();
         'outer: loop
         {
             let c = read_single_char();
@@ -188,11 +187,11 @@ fn main()
                     print!("\x1B[2K\x1B[1G{}", input);
                     if input.is_empty()
                     {
-                        frac = print_concurrent(&"0".to_string(), var.clone(), true, &mut last, frac);
+                        frac = print_concurrent(&"0".to_string(), var.clone(), true);
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
+                        frac = print_concurrent(&input, var.clone(), false);
                     }
                     for _ in 0..(input.len() - cursor)
                     {
@@ -214,7 +213,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
-                    frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
+                    frac = print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
@@ -232,7 +231,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
-                    frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
+                    frac = print_concurrent(&input, var.clone(), false);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
@@ -267,7 +266,7 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
-                    frac = print_concurrent(&input, var.clone(), false, &mut last, frac);
+                    frac = print_concurrent(&input, var.clone(), false);
                     for _ in 0..(input.len() - cursor)
                     {
                         print!("\x08");

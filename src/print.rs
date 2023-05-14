@@ -20,7 +20,7 @@ pub fn print_answer(func:Vec<String>)
              if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0i") { "".to_string() } else { b });
 }
-pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut Vec<String>, frac:bool) -> bool
+pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
 {
     let mut modified = input.to_string();
     for i in &var
@@ -55,14 +55,8 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut V
             return false;
         }
     };
-    if func == *last
-    {
-        print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
-        return frac;
-    }
     let mut frac = false;
-    *last = func.clone();
-    if let Ok(num) = do_math(func.clone())
+    if let Ok(num) = do_math(func)
     {
         if num == "inf" || num == "-inf" || num == "nan"
         {
@@ -83,12 +77,12 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, last:&mut V
                 frac = true;
                 (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
             }
-            (true, _, _, _, _, _) | (_, _, true, _, _, _) | (_, _, _, _, true, _) if fa != func.join("") =>
+            (true, _, _, _, _, _) | (_, _, true, _, _, _) | (_, _, _, _, true, _) =>
             {
                 frac = true;
                 (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" })
             }
-            (_, true, _, _, _, _) | (_, _, _, true, _, _) | (_, _, _, _, _, true) if fb != func.join("") =>
+            (_, true, _, _, _, _) | (_, _, _, true, _, _) | (_, _, _, _, _, true) =>
             {
                 frac = true;
                 (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })

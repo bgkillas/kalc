@@ -12,9 +12,11 @@ pub fn fraction(value:f64) -> String
     let mut number;
     let mut recip;
     let mut fract;
+    let mut orig;
     for (constant, name) in values
     {
-        number = value / constant;
+        orig = value / constant;
+        number = orig.fract();
         nums.clear();
         for _ in 0..=10
         {
@@ -28,8 +30,8 @@ pub fn fraction(value:f64) -> String
                     last = recip;
                     recip *= nums[i];
                 }
-                last = last.round();
                 recip = recip.round();
+                last = (last + recip * orig.trunc() * constant).round();
                 return format!("{}{}{}",
                                if last == 1.0 && name != '1' { "".to_string() } else { last.to_string() },
                                match name

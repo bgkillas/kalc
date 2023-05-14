@@ -5,40 +5,63 @@ pub fn fraction(num:f64) -> String
     {
         return "0".to_string();
     }
-    let mut p;
-    let values = [(3f64.sqrt(), "sqrt(3)"), (2f64.sqrt(), "sqrt(2)"), (PI, "π")];
-    for i in 1..=20
+    // 3/5
+    // 5/3 -> 2/3
+    // 3/2 -> 1/2
+    // 2
+    // once whole multiply up
+    // 3/2 * 2
+    // 3
+    // 5/3 * 3
+    // 5
+    // 3/5 * 5
+    // therefore 3/5 is the fraction
+    let mut nums:Vec<f64> = vec![];
+    let values = [(1.0, "1"), (3f64.sqrt(), "3"), (2f64.sqrt(), "2"), (PI, "p")];
+    let mut which = "";
+    let mut number = num;
+    let mut c = 0;
+    'outer: for &(constant, name) in &values
     {
-        for &(constant, name) in &values
+        number = num / constant;
+        nums.clear();
+        for i in 0..=100
         {
-            p = (1e12 * num / constant * i as f64).round() / 1e12;
-            if p.fract() == 0.0
+            let recip = number.recip();
+            let fract = recip.fract();
+            if (fract * 1e9).round() / 1e9 == 0.0
             {
-                let prefix = match p.is_sign_positive()
-                {
-                    true => "".to_string(),
-                    false => "-".to_string(),
-                };
-                let suffix = if i == 1 { "".to_string() } else { format!("/{}", i) };
-                let multiplier = if p == 1.0 { "".to_string() } else { p.to_string() };
-                return format!("{}{}{}{}", multiplier, prefix, name, suffix);
+                number = (recip * 1e9).round() / 1e9;
+                which = name;
+                break 'outer;
+            }
+            nums.push(recip);
+            number = fract;
+            if i == 100
+            {
+                c += 1;
             }
         }
     }
-    let mut i = 1;
-    while i <= 10000
+    if c == values.len()
     {
-        let product = num * i as f64;
-        if product.fract() == 0.0
-        {
-            let denominator = if i == 1 { "".to_string() } else { format!("/{}", i) };
-            return format!("{}{}", product, denominator);
-        }
-        i += 1;
-        if i <= 10000 && product > i as f64 * num && product.is_sign_positive()
-        {
-            i = (product / num) as usize;
-        }
+        return num.to_string();
     }
-    num.to_string()
+    let mut last = 1.0;
+    for i in 0..nums.len()
+    {
+        last = number;
+        number *= nums[nums.len() - 1 - i];
+    }
+    format!("{}{}/{}",
+            match which
+            {
+                "1" => "",
+                "3" => "sqrt(3)",
+                "2" => "sqrt(2)",
+                "p" => "π",
+                _ => "",
+            },
+            if last.round() == 1.0 && which != "1" { "".to_string() } else { last.round().to_string() },
+            number.round())
 }

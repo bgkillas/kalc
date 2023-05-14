@@ -3,7 +3,7 @@ requires gnuplot for graphing
 
 the following functions in the complex plane
 
-``+,-,*,/,^,``
+``+,-,*,/,^,%,``
 
 ``sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh``
 

@@ -177,6 +177,24 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
     i = 1;
     while i < func.len() - 1
     {
+        if func[i] != "%"
+        {
+            i += 1;
+            continue;
+        }
+        let (a, b) = parse(&func[i - 1]);
+        let (c, d) = parse(&func[i + 1]);
+        if b == 0.0 || d == 0.0
+        {
+            return Err(());
+        }
+        func[i] = (a % c).to_string();
+        func.remove(i + 1);
+        func.remove(i - 1);
+    }
+    i = 1;
+    while i < func.len() - 1
+    {
         if func[i] != "^"
         {
             i += 1;

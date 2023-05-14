@@ -490,6 +490,7 @@ fn read_single_char() -> char
                || c == '#'
                || c == '|'
                || c == '!'
+               || c == '%'
             {
                 c
             }

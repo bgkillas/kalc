@@ -41,6 +41,25 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             abs = !abs;
         }
+        else if *c == '!'
+        {
+            if i != 0 && chars[i - 1].is_ascii_digit()
+            {
+                func.push("fact".to_string());
+                func.push("(".to_string());
+                func.push(word.clone());
+                word.clear();
+                func.push(")".to_string());
+            }
+            else if i != chars.len() - 1 && chars[i + 1].is_ascii_digit()
+            {
+                func.push(word.clone());
+                word.clear();
+                func.push("subfact".to_string());
+                func.push("(".to_string());
+                count += 1;
+            }
+        }
         else if *c == 'e' && (i == 0 || (chars[i - 1] != 'r' && chars[i - 1] != 'c' && chars[i - 1] != 'd'))
         {
             if word == "-"

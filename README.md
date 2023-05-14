@@ -11,7 +11,7 @@ the following functions in the complex plane
 
 ``sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), exp, abs, arg, sgn``
 
-``fact, int, frac, ceil, floor, round`` 
+``fact, subfact, int, frac, ceil, floor, round`` 
 
 ``deg,rad``
 

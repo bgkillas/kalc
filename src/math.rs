@@ -1,6 +1,6 @@
 use std::f64::consts::E;
 use crate::complex::{
-    parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
+    parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
@@ -149,6 +149,14 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                         return Err(());
                     }
                     (fact(arg1), 0.0)
+                }
+                "subfact" =>
+                {
+                    if arg2 != 0.0 || arg1 < 0.0
+                    {
+                        return Err(());
+                    }
+                    (subfact(arg1), 0.0)
                 }
                 "sinc" => sinc(arg1, arg2),
                 _ =>

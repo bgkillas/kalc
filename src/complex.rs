@@ -430,6 +430,19 @@ pub fn fact(a:f64) -> f64
     }
     c
 }
+pub fn subfact(a:f64) -> f64
+{
+    // subfact(a)=!a
+    if a == 0.0
+    {
+        return 1.0;
+    }
+    if a == 1.0
+    {
+        return 0.0;
+    }
+    (a - 1.0) * (subfact(a - 1.0) + subfact(a - 2.0))
+}
 pub fn sinc(a:f64, b:f64) -> (f64, f64)
 {
     // sinc(a+bi)=sin(a+bi)/(a+bi)

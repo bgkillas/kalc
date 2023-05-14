@@ -3,7 +3,7 @@ name = "calc"
 version = "0.3.0"
 edition = "2021"
 [dependencies]
-console = { version = "*", default-features = false }
-gnuplot = { version = "*", default-features = false }
+console      = { version = "*", default-features = false }
+gnuplot      = { version = "*", default-features = false }
 [target.'cfg(target_os = "linux")'.dependencies]
-libc    = { version = "*", default-features = false }
+libc         = { version = "*", default-features = false }

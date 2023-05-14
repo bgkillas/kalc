@@ -5,16 +5,17 @@ pub fn fraction(num:f64) -> String
     {
         return "0".to_string();
     }
-    // 3/5
-    // 5/3 -> 2/3
-    // 3/2 -> 1/2
-    // 2
+    // 0.6
+    // 1.666 -> 0.666
+    // 1.5 -> 0.5
+    // 1/2 -> 2
     // once whole multiply up
-    // 3/2 * 2
+    // 1.5 * 2
     // 3
-    // 5/3 * 3
+    // 1.666 * 3
     // 5
-    // 3/5 * 5
+    // 0.6 * 5 = 3
+    // 0.6 = 3/5
     // therefore 3/5 is the fraction
     let mut nums:Vec<f64> = vec![];
     let values = [(1.0, "1"), (3f64.sqrt(), "3"), (2f64.sqrt(), "2"), (PI, "p")];
@@ -25,7 +26,7 @@ pub fn fraction(num:f64) -> String
     {
         number = num / constant;
         nums.clear();
-        for i in 0..=100
+        for i in 0..=10
         {
             let recip = number.recip();
             let fract = recip.fract();
@@ -37,7 +38,7 @@ pub fn fraction(num:f64) -> String
             }
             nums.push(recip);
             number = fract;
-            if i == 100
+            if i == 10
             {
                 c += 1;
             }

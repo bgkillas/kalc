@@ -6,18 +6,6 @@ pub fn fraction(num:f64) -> String
         return "0".to_string();
     }
     // as per continued fraction expansion
-    // 0.6
-    // 1.666 -> 0.666
-    // 1.5 -> 0.5
-    // 1/2 -> 2
-    // once whole multiply up
-    // 1.5 * 2
-    // 3
-    // 1.666 * 3
-    // 5
-    // 0.6 * 5 = 3
-    // 0.6 = 3/5
-    // therefore 3/5 is the fraction
     let mut nums:Vec<f64> = vec![];
     let values = [(1.0, '1'), (PI, 'p'), (2f64.sqrt(), '2'), (3f64.sqrt(), '3')];
     let mut which = '1';

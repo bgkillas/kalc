@@ -430,6 +430,17 @@ pub fn fact(a:f64) -> f64
     }
     c
 }
+pub fn sinc(a:f64, b:f64) -> (f64, f64)
+{
+    // sinc(a+bi)=sin(a+bi)/(a+bi)
+    if b == 0.0
+    {
+        return (a.sin() / a, 0.0);
+    }
+    let (c, d) = sin(a, b);
+    let (re, im) = div(c, d, a, b);
+    (re, im)
+}
 pub fn int(a:f64, b:f64) -> (f64, f64)
 {
     (a.trunc(), b.trunc())

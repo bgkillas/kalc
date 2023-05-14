@@ -1,6 +1,6 @@
 use std::f64::consts::E;
 use crate::complex::{
-    parse, div, add, mul, ln, log, abs, pow, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
+    parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
@@ -54,29 +54,30 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "sec" => sec(arg1, arg2),
                 "tan" => tan(arg1, arg2),
                 "cot" => cot(arg1, arg2),
-                "asin" => asin(arg1, arg2),
-                "acsc" => acsc(arg1, arg2),
-                "acos" => acos(arg1, arg2),
-                "asec" => asec(arg1, arg2),
-                "atan" => atan(arg1, arg2),
-                "acot" => acot(arg1, arg2),
+                "asin" | "arcsin" => asin(arg1, arg2),
+                "acsc" | "arccsc" => acsc(arg1, arg2),
+                "acos" | "arccos" => acos(arg1, arg2),
+                "asec" | "arcsec" => asec(arg1, arg2),
+                "atan" | "arctan" => atan(arg1, arg2),
+                "acot" | "arccot" => acot(arg1, arg2),
                 "sinh" => sinh(arg1, arg2),
                 "csch" => csch(arg1, arg2),
                 "cosh" => cosh(arg1, arg2),
                 "sech" => sech(arg1, arg2),
                 "tanh" => tanh(arg1, arg2),
                 "coth" => coth(arg1, arg2),
-                "asinh" => asinh(arg1, arg2),
-                "acsch" => acsch(arg1, arg2),
-                "acosh" => acosh(arg1, arg2),
-                "asech" => asech(arg1, arg2),
-                "atanh" => atanh(arg1, arg2),
-                "acoth" => acoth(arg1, arg2),
+                "asinh" | "arcsinh" => asinh(arg1, arg2),
+                "acsch" | "arccsch" => acsch(arg1, arg2),
+                "acosh" | "arccosh" => acosh(arg1, arg2),
+                "asech" | "arcsech" => asech(arg1, arg2),
+                "atanh" | "arctanh" => atanh(arg1, arg2),
+                "acoth" | "arccoth" => acoth(arg1, arg2),
                 "ln" => ln(arg1, arg2),
                 "exp" => pow(E, 0.0, arg1, arg2),
                 "ceil" => (arg1.ceil(), arg2.ceil()),
                 "floor" => (arg1.floor(), arg2.floor()),
                 "round" => (arg1.round(), arg2.round()),
+                "recip" => div(1.0, 0.0, arg1, arg2),
                 "log" =>
                 {
                     match func[i + 1].contains(',')
@@ -111,7 +112,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 }
                 "sqrt" => pow(arg1, arg2, 0.5, 0.0),
                 "abs" => (abs(arg1, arg2), 0.0),
-                "deg"|"degree" =>
+                "deg" | "degree" =>
                 {
                     if arg2 != 0.0
                     {
@@ -119,7 +120,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     }
                     (arg1.to_degrees(), 0.0)
                 }
-                "rad"|"radian" =>
+                "rad" | "radian" =>
                 {
                     if arg2 != 0.0
                     {
@@ -129,7 +130,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 }
                 "re" | "real" => (arg1, 0.0),
                 "im" | "imag" => (arg2, 0.0),
-                "sgn"|"sign" => sgn(arg1, arg2),
+                "sgn" | "sign" => sgn(arg1, arg2),
                 "arg" => (arg(arg1, arg2), 0.0),
                 "cbrt" =>
                 {
@@ -149,6 +150,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     }
                     (fact(arg1), 0.0)
                 }
+                "sinc" => sinc(arg1, arg2),
                 _ =>
                 {
                     i += 1;

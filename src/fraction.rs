@@ -5,6 +5,8 @@ pub fn fraction(value:f64) -> String
     let eps = 1e-6;
     let mut nums:Vec<f64> = vec![];
     let values = [(1.0, '1'), (PI, 'p'), (2f64.sqrt(), '2'), (3f64.sqrt(), '3')];
+    let sign:String = if value < 0.0 { "-".to_string() } else { "".to_string() };
+    let value = value.abs();
     let mut number;
     let mut recip;
     let mut fract;
@@ -28,7 +30,7 @@ pub fn fraction(value:f64) -> String
                 }
                 recip = recip.round();
                 last = (last + recip * orig.trunc() * constant).round();
-                return format!("{}{}{}",
+                return format!("{sign}{}{}{}",
                                if last == 1.0 && name != '1' { "".to_string() } else { last.to_string() },
                                match name
                                {

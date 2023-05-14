@@ -23,7 +23,7 @@ fn help()
     println!(
              "functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh,\n\
     csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth,\n\
-    sqrt, cbrt, ln, log(base,num), root(base,exp), exp, abs, sgn, arg, ceil, floor, round, int, frac, fact\n\
+    sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), exp, abs, sgn, arg, ceil, floor, round, int, frac, fact\n\
     deg(to_degrees),rad(to_radians),re(real part),im(imaginary part)"
     );
 }

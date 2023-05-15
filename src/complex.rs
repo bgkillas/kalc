@@ -111,9 +111,16 @@ pub fn pow(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
     // (a+bi)^(c+di)=e^((c+di)(ln(a^2+b^2)/2+i*atan2(b,a)))
     // re=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*cos(d*ln(a^2+b^2)/2+c*atan2(b,a))
     // im=e^(c*ln(a^2+b^2)/2-d*atan2(b,a))*sin(d*ln(a^2+b^2)/2+c*atan2(b,a))
-    if b == 0.0 && d == 0.0 && c.fract() == 0.0
+    if b == 0.0 && d == 0.0
     {
-        return (a.powf(c), 0.0);
+        if c.fract() == 0.0
+        {
+            return (a.powf(c), 0.0);
+        }
+        else if c == 0.5
+        {
+            return (a.sqrt(), 0.0);
+        }
     }
     let angle = c * (b.atan2(a)) + d * (0.5 * (a * a + b * b).ln());
     let scaler = E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));

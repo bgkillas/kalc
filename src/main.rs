@@ -10,8 +10,8 @@ use std::io::{BufRead, BufReader, stdout, Write};
 use console::{Key, Term};
 use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
-use crate::graph::{get_list_2d, graph};
-use crate::print::{print_answer, print_concurrent};
+use graph::{get_list_2d, graph};
+use print::{print_answer, print_concurrent};
 #[cfg(target_os = "linux")]
 use {
     std::io::stdin, libc::{isatty, STDIN_FILENO}

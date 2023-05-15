@@ -1,4 +1,3 @@
-use std::f64::consts::E;
 use crate::complex::{
     parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
@@ -77,7 +76,6 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "atanh" | "arctanh" => atanh(arg1, arg2),
                 "acoth" | "arccoth" => acoth(arg1, arg2),
                 "ln" => ln(arg1, arg2),
-                "exp" => pow(E, 0.0, arg1, arg2),
                 "ceil" => (arg1.ceil(), arg2.ceil()),
                 "floor" => (arg1.floor(), arg2.floor()),
                 "round" => (arg1.round(), arg2.round()),

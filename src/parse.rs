@@ -60,7 +60,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 count += 1;
             }
         }
-        else if *c == 'e' && (i == 0 || (chars[i - 1] != 'r' && chars[i - 1] != 'c' && chars[i - 1] != 'd'))
+        else if *c == 'e' && (i == 0 || !chars[i - 1].is_ascii_alphabetic())
         {
             if word == "-"
             {
@@ -104,7 +104,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word = PI.to_string();
             }
-            else if i == chars.len() - 1 || (chars[i + 1] != 'm' && chars[i + 1] != 'n' && chars[i + 1] != 'l')
+            else if i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic()
             {
                 if i != 0 && (!word.is_empty() && word != "(")
                 {
@@ -118,7 +118,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word.push(*c);
             }
-            else if chars[i + 1] == 'm' || chars[i + 1] == 'n' || chars[i + 1] == 'l'
+            else if chars[i + 1].is_ascii_alphabetic()
             {
                 word.push(*c);
             }
@@ -129,9 +129,9 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
         }
         else if *c == 'p'
         {
-            if i == chars.len() - 1
+            if i == chars.len() - 1 || chars[i + 1] != 'i'
             {
-                func.push('p'.to_string());
+                word.push(*c);
             }
             continue;
         }
@@ -304,7 +304,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
         }
     }
     let last = func.last().unwrap().chars().last().unwrap();
-    if last == 'x' || last == 'y' || last == 'i' || last == '*' || last == '/' || last == '^' || last.is_ascii_alphabetic() || last == '+' || last == '-'
+    if last == '*' || last == '/' || last == '^' || last == '+' || last == '-'
     {
         func.pop();
     }

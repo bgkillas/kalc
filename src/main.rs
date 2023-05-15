@@ -23,7 +23,7 @@ fn help()
     println!(
              "functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh,\n\
     csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth,\n\
-    sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), exp, abs, sgn, arg, ceil, floor, round, int, frac, fact, subfact\n\
+    sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), abs, sgn, arg, ceil, floor, round, int, frac, fact, subfact\n\
     deg(to_degrees),rad(to_radians),re(real part),im(imaginary part)"
     );
 }
@@ -37,7 +37,7 @@ fn write(input:&String, file:&mut File, lines:&Vec<String>)
 }
 fn main()
 {
-    let mut range = ([[-10.0, 10.0]; 3], 20000.0, 400.0);
+    let mut range = ([[-10.0, 10.0]; 3], 40000.0, 400.0);
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
     if args().len() > 1

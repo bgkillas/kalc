@@ -9,7 +9,7 @@ the following functions in the complex plane
 
 ``csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth``
 
-``sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), exp, abs, arg, sgn``
+``sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), abs, arg, sgn``
 
 ``fact, subfact, int, frac, ceil, floor, round`` 
 

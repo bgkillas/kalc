@@ -281,8 +281,6 @@ fn main()
         }
         if input == "clear"
         {
-            plot.close();
-            plot.clear_axes();
             print!("\x1B[2J\x1B[1;1H");
             stdout().flush().unwrap();
             continue;
@@ -391,6 +389,10 @@ fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> bool
 {
     if input.contains('x')
     {
+        if l.len() == 1
+        {
+            return false;
+        }
         let l = match get_func(l, true)
         {
             Ok(i) => i,
@@ -425,47 +427,43 @@ fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> bool
         println!("false");
         return true;
     }
-    if l.len() > 1
+    let l = match do_math(match get_func(l, false)
+          {
+              Ok(i) => i,
+              Err(()) =>
+              {
+                  return true;
+              }
+          })
     {
-        let l = match do_math(match get_func(l, false)
-              {
-                  Ok(i) => i,
-                  Err(()) =>
-                  {
-                      return true;
-                  }
-              })
+        Ok(i) => i,
+        Err(()) =>
         {
-            Ok(i) => i,
-            Err(()) =>
-            {
-                return true;
-            }
-        };
-        let r = match do_math(match get_func(r, false)
-              {
-                  Ok(i) => i,
-                  Err(()) =>
-                  {
-                      return true;
-                  }
-              })
-        {
-            Ok(i) => i,
-            Err(()) =>
-            {
-                return true;
-            }
-        };
-        if (l.parse::<f64>().unwrap() * 1e12).round() / 1e12 == (r.parse::<f64>().unwrap() * 1e12).round() / 1e12
-        {
-            println!("true");
             return true;
         }
-        println!("false");
+    };
+    let r = match do_math(match get_func(r, false)
+          {
+              Ok(i) => i,
+              Err(()) =>
+              {
+                  return true;
+              }
+          })
+    {
+        Ok(i) => i,
+        Err(()) =>
+        {
+            return true;
+        }
+    };
+    if (l.parse::<f64>().unwrap() * 1e12).round() / 1e12 == (r.parse::<f64>().unwrap() * 1e12).round() / 1e12
+    {
+        println!("true");
         return true;
     }
-    false
+    println!("false");
+    true
 }
 fn read_single_char() -> char
 {

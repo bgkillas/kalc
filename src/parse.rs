@@ -203,7 +203,14 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 word.push(*c);
                 continue;
             }
-            if *c == '(' && i != 0 && (chars[i - 1].is_ascii_digit() || (chars[i - 1] == 'i' && i > 1 && chars[i - 2] != 's') || chars[i - 1] == ')' || chars[i - 1] == 'x' || chars[i - 1] == 'y')
+            if *c == '('
+               && i != 0
+               && (chars[i - 1].is_ascii_digit()
+                   || (chars[i - 1] == 'e' && (i == 1 || chars[i - 2] != 'r'))
+                   || chars[i - 1] == 'i'
+                   || chars[i - 1] == ')'
+                   || chars[i - 1] == 'x'
+                   || chars[i - 1] == 'y')
             {
                 if !word.is_empty()
                 {
@@ -222,7 +229,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             func.push(c.to_string());
             word.clear();
-            if chars[i] == ')' && i < chars.len() - 1 && (chars[i + 1].is_ascii_digit() || chars[i + 1] == 'i' || chars[i + 1] == 'x' || chars[i + 1] == 'y')
+            if chars[i] == ')' && i < chars.len() - 1 && chars[i + 1].is_ascii_alphanumeric()
             {
                 func.push("*".to_string());
             }

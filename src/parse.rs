@@ -8,7 +8,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
     let mut abs = true;
     for (i, c) in chars.iter().enumerate()
     {
-        if *c == 'x' || *c == 'y'
+        if (*c == 'x' || *c == 'y') && !(i != chars.len() || chars[i + 1] == 'p')
         {
             if !word.is_empty()
             {
@@ -60,7 +60,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 count += 1;
             }
         }
-        else if *c == 'e' && (i == 0 || !chars[i - 1].is_ascii_alphabetic() || chars[i - 1] == 'x' || chars[i - 1] == 'i')
+        else if *c == 'e' && (i == 0 || !chars[i - 1].is_ascii_alphabetic() || chars[i - 1] == 'x' || chars[i - 1] == 'i') && (i == chars.len() - 1 || chars[i + 2] != 'p')
         {
             if word == "-"
             {

@@ -23,7 +23,7 @@ fn help()
     println!(
              "functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh,\n\
     csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth,\n\
-    sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), abs, sgn, arg, ceil, floor, round, int, frac, fact, subfact\n\
+    sqrt, sinc, exp, cbrt, ln, log(base,num), root(base,exp), abs, sgn, arg, ceil, floor, round, int, frac, fact, subfact\n\
     deg(to_degrees),rad(to_radians),re(real part),im(imaginary part)"
     );
 }
@@ -348,7 +348,7 @@ fn main()
             var.push(input.chars().collect());
             continue;
         }
-        else if (input.contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
+        else if (input.contains('x') && !input.contains("exp") && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
             write(&input, &mut file, &lines);
             input = input.replace('z', "(x+y*i)");

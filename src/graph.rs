@@ -19,11 +19,33 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     for i in 0..=den as i32
     {
         let n = min_x + i as f64 * den_x_range;
-        let modified:Vec<String> = func.iter().map(|i| i.replace('x', &(n).to_string())).collect();
+        let modified:Vec<String> = func.iter()
+                                       .map(|i| {
+                                           if i == "x"
+                                           {
+                                               n.to_string()
+                                           }
+                                           else
+                                           {
+                                               i.to_string()
+                                           }
+                                       })
+                                       .collect();
         for g in 0..=den as i32
         {
             let f = min_y + g as f64 * den_y_range;
-            let num = match do_math(modified.iter().map(|j| j.replace('y', &(f).to_string())).collect())
+            let num = match do_math(modified.iter()
+                                            .map(|j| {
+                                                if j == "x"
+                                                {
+                                                    f.to_string()
+                                                }
+                                                else
+                                                {
+                                                    i.to_string()
+                                                }
+                                            })
+                                            .collect())
             {
                 Ok(n) => n,
                 Err(_) => continue,
@@ -50,7 +72,18 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     for i in 0..=den as i32
     {
         let n = min + i as f64 * den_range;
-        let num = match do_math(func.iter().map(|i| i.replace('x', &(n).to_string())).collect())
+        let num = match do_math(func.iter()
+                                    .map(|i| {
+                                        if i == "x"
+                                        {
+                                            n.to_string()
+                                        }
+                                        else
+                                        {
+                                            i.to_string()
+                                        }
+                                    })
+                                    .collect())
         {
             Ok(n) => n,
             Err(_) => continue,

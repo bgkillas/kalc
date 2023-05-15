@@ -41,7 +41,7 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
             start_idx += 1;
         }
     }
-    if modified.contains('x') || modified.contains('y') || modified.contains('z')
+    if (modified.contains('x') && !input.contains("exp")) || modified.contains('y') || modified.contains('z')
     {
         print!("\x1b[96m\x1b[B\x1B[2K\x1B[1G\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", input);
         return false;

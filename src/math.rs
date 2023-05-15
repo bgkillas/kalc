@@ -1,3 +1,4 @@
+use std::f64::consts::E;
 use crate::complex::{
     parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
@@ -80,6 +81,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                 "floor" => (arg1.floor(), arg2.floor()),
                 "round" => (arg1.round(), arg2.round()),
                 "recip" => div(1.0, 0.0, arg1, arg2),
+                "exp" => pow(E, 0.0, arg1, arg2),
                 "log" =>
                 {
                     match func[i + 1].contains(',')

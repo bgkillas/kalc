@@ -4,6 +4,10 @@ use crate::complex::{
 };
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
+    if func.len() == 1
+    {
+        return if let Ok(n) = func[0].parse::<f64>() { Ok(n.to_string()) } else { Err(()) };
+    }
     if func.is_empty()
     {
         return Err(());

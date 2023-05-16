@@ -348,7 +348,7 @@ fn main()
             var.push(input.chars().collect());
             continue;
         }
-        else if (input.contains('x') && !input.contains("exp") && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
+        else if (input.replace("exp", "").contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
             write(&input, &mut file, &lines);
             input = input.replace('z', "(x+y*i)");

@@ -14,16 +14,23 @@ pub fn fraction(value:f64) -> String
     for (i, constant) in values.iter().enumerate()
     {
         orig = value / constant;
-        if orig == 1.0
+        if orig.fract() == 0.0
         {
-            return match i
-                   {
-                       0 => "",
-                       1 => "π",
-                       2 => "sqrt(2)",
-                       3 => "sqrt(3)",
-                       _ => "",
-                   }.to_string();
+            return if i == 0
+            {
+                "".to_string()
+            }
+            else
+            {
+                (if orig == 1.0 { "".to_string() } else { orig.to_string() }
+                 + match i
+                 {
+                     1 => "π",
+                     2 => "sqrt(2)",
+                     3 => "sqrt(3)",
+                     _ => "",
+                 })
+            };
         }
         number = orig.fract();
         nums.clear();

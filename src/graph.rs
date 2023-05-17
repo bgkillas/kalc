@@ -1,6 +1,7 @@
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
 use crate::complex::parse;
 use crate::math::do_math;
+// noinspection RsBorrowChecker
 pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if func.len() == 1 && func[0] == "0"
@@ -16,47 +17,54 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     let min_y = range.0[1][0];
     let max_y = range.0[1][1];
     let den_y_range = (max_y - min_y) / den;
+    let mut n;
+    let mut modified:Vec<String>;
+    let mut f;
+    let mut num;
+    let mut a;
+    let mut b;
     for i in 0..=den as i32
     {
-        let n = min_x + i as f64 * den_x_range;
-        let modified:Vec<String> = func.iter()
-                                       .map(|i| {
-                                           if i == "x"
-                                           {
-                                               n.to_string()
-                                           }
-                                           else
-                                           {
-                                               i.to_string()
-                                           }
-                                       })
-                                       .collect();
+        n = min_x + i as f64 * den_x_range;
+        modified = func.iter()
+                       .map(|i| {
+                           if i == "x"
+                           {
+                               n.to_string()
+                           }
+                           else
+                           {
+                               i.to_string()
+                           }
+                       })
+                       .collect();
         for g in 0..=den as i32
         {
-            let f = min_y + g as f64 * den_y_range;
-            let num = match do_math(modified.iter()
-                                            .map(|j| {
-                                                if j == "x"
-                                                {
-                                                    f.to_string()
-                                                }
-                                                else
-                                                {
-                                                    i.to_string()
-                                                }
-                                            })
-                                            .collect())
+            f = min_y + g as f64 * den_y_range;
+            num = match do_math(modified.iter()
+                                        .map(|j| {
+                                            if j == "y"
+                                            {
+                                                f.to_string()
+                                            }
+                                            else
+                                            {
+                                                j.to_string()
+                                            }
+                                        })
+                                        .collect())
             {
                 Ok(n) => n,
                 Err(_) => continue,
             };
-            let (a, b) = parse(&num);
+            (a, b) = parse(&num);
             re.push([n, f, a]);
             im.push([n, f, b]);
         }
     }
     (re, im)
 }
+// noinspection RsBorrowChecker
 pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if func.len() == 1 && func[0] == "0"
@@ -69,26 +77,30 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     let max = range.0[0][1];
     let den = range.1;
     let den_range = (max - min) / den;
+    let mut n;
+    let mut num;
+    let mut a;
+    let mut b;
     for i in 0..=den as i32
     {
-        let n = min + i as f64 * den_range;
-        let num = match do_math(func.iter()
-                                    .map(|i| {
-                                        if i == "x"
-                                        {
-                                            n.to_string()
-                                        }
-                                        else
-                                        {
-                                            i.to_string()
-                                        }
-                                    })
-                                    .collect())
+        n = min + i as f64 * den_range;
+        num = match do_math(func.iter()
+                                .map(|i| {
+                                    if i == "x"
+                                    {
+                                        n.to_string()
+                                    }
+                                    else
+                                    {
+                                        i.to_string()
+                                    }
+                                })
+                                .collect())
         {
             Ok(n) => n,
             Err(_) => continue,
         };
-        let (a, b) = parse(&num);
+        (a, b) = parse(&num);
         re.push([n, a]);
         im.push([n, b]);
     }

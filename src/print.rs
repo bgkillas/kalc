@@ -70,19 +70,19 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         let d = (b * 1e12).round() / 1e12;
         let fa = fraction(a);
         let fb = fraction(b);
-        let (output_a, output_b) = match (fa.contains('/'), fb.contains('/'), fa.contains('π'), fb.contains('π'), fa.contains('s'), fb.contains('s'))
+        let (output_a, output_b) = match (!fa.is_empty(), !fb.is_empty())
         {
-            (true, true, _, _, _, _) | (_, _, true, true, _, _) | (_, _, _, _, true, true) =>
+            (true, true) =>
             {
                 frac = true;
                 (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
             }
-            (true, _, _, _, _, _) | (_, _, true, _, _, _) | (_, _, _, _, true, _) =>
+            (true, _) =>
             {
                 frac = true;
                 (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" })
             }
-            (_, true, _, _, _, _) | (_, _, _, true, _, _) | (_, _, _, _, _, true) =>
+            (_, true) =>
             {
                 frac = true;
                 (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })

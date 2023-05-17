@@ -6,7 +6,18 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
     if func.len() == 1
     {
-        return if let Ok(n) = func[0].parse::<f64>() { Ok(n.to_string()) } else { Err(()) };
+        return if let Ok(n) = func[0].parse::<f64>()
+        {
+            Ok(n.to_string())
+        }
+        else if let Ok(n) = func[0].replace('i', "").parse::<f64>()
+        {
+            Ok(n.to_string() + "i")
+        }
+        else
+        {
+            Err(())
+        };
     }
     if func.is_empty()
     {

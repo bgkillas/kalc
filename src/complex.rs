@@ -119,7 +119,7 @@ pub fn pow(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
         }
         else if c == 0.5
         {
-            return (a.sqrt(), 0.0);
+            return if a.is_sign_positive() { (a.sqrt(), 0.0) } else { (0.0, a.abs().sqrt()) };
         }
     }
     let angle = c * (b.atan2(a)) + d * (0.5 * (a * a + b * b).ln());

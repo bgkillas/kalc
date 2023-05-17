@@ -76,7 +76,7 @@ clears terminal and graph data
 ```
 ```
 calc
-> xrange=-10,10
+> xr=-10,10
 change the x range of the graph
 ```
 ```

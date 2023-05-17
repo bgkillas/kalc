@@ -303,19 +303,19 @@ fn main()
             let r = input.split('=').last().unwrap();
             match l
             {
-                "xrange" =>
+                "xr" =>
                 {
                     range.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
                     range.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                     continue;
                 }
-                "yrange" =>
+                "yr" =>
                 {
                     range.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
                     range.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                     continue;
                 }
-                "zrange" =>
+                "zr" =>
                 {
                     range.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
                     range.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();

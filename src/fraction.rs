@@ -34,10 +34,10 @@ pub fn fraction(value:f64) -> String
             if fract < eps
             {
                 let mut last = 1.0;
-                for i in (0..nums.len()).rev()
+                for j in (0..nums.len()).rev()
                 {
                     last = recip;
-                    recip *= nums[i];
+                    recip *= nums[j];
                 }
                 recip = recip.round();
                 last = (last + recip * orig.trunc()).round();

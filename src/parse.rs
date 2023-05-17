@@ -104,7 +104,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 }
                 word = PI.to_string();
             }
-            else if i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic() || chars[i + 1] == 'i'
+            else if i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic() || chars[i + 1] == 'i' || chars[i + 1] == 'x' || chars[i + 1] == 'y'
             {
                 if i != 0 && (!word.is_empty() && word != "(" && word != "-")
                 {
@@ -124,6 +124,12 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             else if chars[i + 1].is_ascii_alphabetic()
             {
+                if word == "1i"
+                {
+                    func.push("1i".to_string());
+                    func.push("*".to_string());
+                    word.clear();
+                }
                 word.push(*c);
             }
         }
@@ -160,6 +166,12 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
         }
         else if c.is_ascii_alphabetic()
         {
+            if word == "i" && c != &'m' && c != &'n'
+            {
+                func.push("1i".to_string());
+                func.push("*".to_string());
+                word.clear();
+            }
             if !word.is_empty() && (((word.chars().next().unwrap().is_ascii_digit() || word.starts_with('-')) && word.ends_with('i')) || word.chars().last().unwrap().is_ascii_digit())
             {
                 func.push(word.clone());

@@ -106,7 +106,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             else if i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic() || chars[i + 1] == 'i'
             {
-                if i != 0 && (!word.is_empty() && word != "(")
+                if i != 0 && (!word.is_empty() && word != "(" && word != "-")
                 {
                     func.push(word.clone());
                     func.push("*".to_string());
@@ -115,6 +115,10 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 if word.is_empty()
                 {
                     word = "1".to_string();
+                }
+                if word == "-"
+                {
+                    word = "-1".to_string();
                 }
                 word.push(*c);
             }

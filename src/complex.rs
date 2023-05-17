@@ -448,6 +448,10 @@ pub fn subfact(a:f64) -> f64
     {
         return 1.0;
     }
+    if a.fract() != 0.0
+    {
+        return 0.0;
+    }
     let mut prev = 1.0;
     let mut curr = 0.0;
     let mut next;

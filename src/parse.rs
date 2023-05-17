@@ -60,7 +60,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 count += 1;
             }
         }
-        else if *c == 'e' && (i == 0 || !chars[i - 1].is_ascii_alphabetic() || chars[i - 1] == 'x' || chars[i - 1] == 'i') && !(chars.len() > i + 2 && chars[i + 2] == 'p')
+        else if *c == 'e' && (i == 0 || !chars[i - 1].is_ascii_alphabetic() || chars[i - 1] == 'x' || chars[i - 1] == 'i') && !(chars.len() > i + 2 && chars[i + 2] == 'p' && chars[i + 1] == 'x')
         {
             if word == "-"
             {

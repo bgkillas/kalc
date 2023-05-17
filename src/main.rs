@@ -40,7 +40,7 @@ fn main()
     let mut range = ([[-10.0, 10.0]; 3], 40000.0, 400.0);
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
-    if args().len() > 1
+    if args().len() > 1 && args().nth(1).unwrap() != "--debug"
     {
         if args().nth(1).unwrap() == "--help"
         {
@@ -157,9 +157,16 @@ fn main()
         let mut cursor = 0;
         let mut frac = false;
         let lines = lines;
+        let debug = args().len() > 1 && args().nth(1).unwrap() == "--debug";
+        let mut watch = None;
+        let mut len;
         'outer: loop
         {
             let c = read_single_char();
+            if debug
+            {
+                watch = Some(std::time::Instant::now());
+            }
             match c
             {
                 '\n' =>
@@ -267,7 +274,14 @@ fn main()
                         cursor += 1;
                     }
                     frac = print_concurrent(&input, var.clone(), false);
-                    for _ in 0..(input.len() - cursor)
+                    len = input.len();
+                    if let Some(time) = watch
+                    {
+                        let time = time.elapsed().as_nanos();
+                        len += time.to_string().len() + 1;
+                        print!(" {}", time);
+                    }
+                    for _ in 0..(len - cursor)
                     {
                         print!("\x08");
                     }

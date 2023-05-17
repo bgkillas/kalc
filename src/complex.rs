@@ -444,15 +444,20 @@ pub fn fact(a:f64) -> f64
 pub fn subfact(a:f64) -> f64
 {
     // subfact(a)=!a
-    if a == 1.0 || a.fract() != 0.0
-    {
-        return 0.0;
-    }
     if a == 0.0
     {
         return 1.0;
     }
-    (a - 1.0) * (subfact(a - 1.0) + subfact(a - 2.0))
+    let mut prev = 1.0;
+    let mut curr = 0.0;
+    let mut next;
+    for i in 2..=(a as usize)
+    {
+        next = (i - 1) as f64 * (prev + curr);
+        prev = curr;
+        curr = next;
+    }
+    curr
 }
 pub fn sinc(a:f64, b:f64) -> (f64, f64)
 {

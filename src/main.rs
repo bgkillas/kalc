@@ -73,68 +73,71 @@ fn main()
             help();
             return;
         }
-        let input = &args().nth(1).unwrap().replace('z', "(x+y*i)");
-        if input.contains('=')
+        for i in 1..args().len()
         {
-            let mut split = input.split('=');
-            let l = split.next().unwrap();
-            let r = split.next().unwrap();
-            if equal::equal(range, input, l, r)
+            let input = args().nth(i).unwrap().replace('z', "(x+y*i)");
+            if input.contains('=')
             {
+                let mut split = input.split('=');
+                let l = split.next().unwrap();
+                let r = split.next().unwrap();
+                if equal::equal(range, input.as_str(), l, r)
+                {
+                    return;
+                }
+            }
+            let func = match get_func(input.as_str(), true)
+            {
+                Ok(f) => f,
+                Err(()) =>
+                {
+                    println!("Invalid function.");
+                    return;
+                }
+            };
+            if func.contains(&"x".to_string())
+            {
+                let mut split = input.split('#');
+                let l = split.next().unwrap();
+                let m = split.next().unwrap_or("0");
+                let r = split.next().unwrap_or("0");
+                let funcl = match get_func(l, true)
+                {
+                    Ok(f) => f,
+                    _ =>
+                    {
+                        println!("Invalid function.");
+                        return;
+                    }
+                };
+                let funcm = match get_func(m, true)
+                {
+                    Ok(f) => f,
+                    _ =>
+                    {
+                        println!("Invalid function.");
+                        return;
+                    }
+                };
+                let funcr = match get_func(r, true)
+                {
+                    Ok(f) => f,
+                    _ =>
+                    {
+                        println!("Invalid function.");
+                        return;
+                    }
+                };
+                if func.contains(&"y".to_string())
+                {
+                    graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range);
+                    return;
+                }
+                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range);
                 return;
             }
+            print_answer(func);
         }
-        let func = match get_func(input, true)
-        {
-            Ok(f) => f,
-            Err(()) =>
-            {
-                println!("Invalid function.");
-                return;
-            }
-        };
-        if func.contains(&"x".to_string())
-        {
-            let mut split = input.split('#');
-            let l = split.next().unwrap();
-            let m = split.next().unwrap_or("0");
-            let r = split.next().unwrap_or("0");
-            let funcl = match get_func(l, true)
-            {
-                Ok(f) => f,
-                _ =>
-                {
-                    println!("Invalid function.");
-                    return;
-                }
-            };
-            let funcm = match get_func(m, true)
-            {
-                Ok(f) => f,
-                _ =>
-                {
-                    println!("Invalid function.");
-                    return;
-                }
-            };
-            let funcr = match get_func(r, true)
-            {
-                Ok(f) => f,
-                _ =>
-                {
-                    println!("Invalid function.");
-                    return;
-                }
-            };
-            if func.contains(&"y".to_string())
-            {
-                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range);
-                return;
-            }
-            graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range);
-            return;
-        }
-        print_answer(func);
         return;
     }
     let mut input = String::new();

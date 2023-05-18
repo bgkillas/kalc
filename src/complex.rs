@@ -122,8 +122,8 @@ pub fn pow(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
             return if a.is_sign_positive() { (a.sqrt(), 0.0) } else { (0.0, a.abs().sqrt()) };
         }
     }
-    let angle = c * (b.atan2(a)) + d * (0.5 * (a * a + b * b).ln());
-    let scaler = E.powf(c * (0.5 * (a * a + b * b).ln()) - d * (b.atan2(a)));
+    let angle = c * b.atan2(a) + d * 0.5 * (a * a + b * b).ln();
+    let scaler = E.powf(c * 0.5 * (a * a + b * b).ln() - d * b.atan2(a));
     let im = scaler * angle.sin();
     let re = scaler * angle.cos();
     (re, im)

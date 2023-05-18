@@ -1,9 +1,9 @@
 // as per continued fraction expansion
-use std::f64::consts::PI;
+use std::f64::consts::{E, PI};
 pub fn fraction(value:f64) -> String
 {
     let mut nums:Vec<f64> = vec![];
-    let values = [1.0, PI, 2f64.sqrt(), 3f64.sqrt()];
+    let values = [1.0, PI, 2f64.sqrt(), 3f64.sqrt(), 5f64.sqrt(), E];
     let sign:String = if value < 0.0 { "-".to_string() } else { "".to_string() };
     let value = value.abs();
     let (mut number, mut recip, mut fract, mut orig);
@@ -24,6 +24,8 @@ pub fn fraction(value:f64) -> String
                      1 => "π",
                      2 => "sqrt(2)",
                      3 => "sqrt(3)",
+                     4 => "sqrt(5)",
+                     5 => "e",
                      _ => "",
                  })
             };
@@ -52,6 +54,8 @@ pub fn fraction(value:f64) -> String
                                    1 => "π",
                                    2 => "sqrt(2)",
                                    3 => "sqrt(3)",
+                                   4 => "sqrt(5)",
+                                   5 => "e",
                                    _ => "",
                                },
                                if recip == 1.0 { "".to_string() } else { "/".to_owned() + &recip.to_string() });

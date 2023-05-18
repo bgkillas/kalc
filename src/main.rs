@@ -20,15 +20,15 @@ use {
 fn help()
 {
     println!(
-             "Usage:\n\
-- Type in a function and press enter to evaluate it.\n\
+             "Usage: calc [FLAGS] function_1 function_2 function_3...\n\
+FLAGS: --help (this message),--debug for computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program.\n\
 - Type \"clear\" to clear the screen.\n\
-- Type \"help\" to see this message again.\n\n\
+- Type \"help\" to see this message.\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
-- sinh, cosh, tanh, asinh, acosh, atanh\n\
 - csc, sec, cot, acsc, asec, acot\n\
+- sinh, cosh, tanh, asinh, acosh, atanh\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\
 Other functions:\n\
 - sqrt, cbrt\n\

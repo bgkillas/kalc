@@ -5,16 +5,17 @@ history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%
 
 # usage
 ```
-Usage:
-- Type in a function and press enter to evaluate it.
+Usage: calc [FLAGS] function_1 function_2 function_3...
+FLAGS: --help (this message),--debug for computation time in nanoseconds
+
 - Type "exit" to exit the program.
 - Type "clear" to clear the screen.
-- Type "help" to see this message again.
+- Type "help" to see this message.
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan
-- sinh, cosh, tanh, asinh, acosh, atanh
 - csc, sec, cot, acsc, asec, acot
+- sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth
 
 Other functions:

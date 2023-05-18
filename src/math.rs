@@ -2,6 +2,7 @@ use std::f64::consts::E;
 use crate::complex::{
     parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
+// noinspection RsBorrowChecker
 pub fn do_math(func:Vec<String>) -> Result<String, ()>
 {
     if func.len() == 1
@@ -25,12 +26,13 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
     }
     let mut func = func;
     let mut i = 0;
+    let (mut j, mut count);
     while i < func.len() - 1
     {
         if func[i] == "("
         {
-            let mut j = i + 1;
-            let mut count = 1;
+            j = i + 1;
+            count = 1;
             while count > 0
             {
                 if j >= func.len()
@@ -60,12 +62,13 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
         i += 1;
     }
     i = 0;
+    let (mut arg1, mut arg2, mut to_parse, mut a, mut b, mut c, mut d, mut base_re, mut base_im);
     while i < func.len() - 1
     {
         if func[i].len() > 1 && func[i].chars().next().unwrap().is_ascii_alphabetic()
         {
-            let (arg1, arg2) = parse(&func[i + 1][if func[i + 1].contains(',') { func[i + 1].find(',').unwrap() + 1 } else { 0 }..].to_string());
-            let to_parse = match func[i].as_str()
+            (arg1, arg2) = parse(&func[i + 1][if func[i + 1].contains(',') { func[i + 1].find(',').unwrap() + 1 } else { 0 }..].to_string());
+            to_parse = match func[i].as_str()
             {
                 "sin" => sin(arg1, arg2),
                 "csc" => csc(arg1, arg2),
@@ -103,7 +106,7 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     {
                         true =>
                         {
-                            let (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
+                            (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
                             log(base_re, base_im, arg1, arg2)
                         }
                         false => ln(arg1, arg2),
@@ -115,13 +118,13 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
                     {
                         true =>
                         {
-                            let (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
+                            (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
                             match arg2 == 0.0 && (arg1 / 2.0).fract() != 0.0 && arg1.trunc() == arg1 && base_im == 0.0
                             {
                                 true => (base_re / base_re.abs() * base_re.abs().powf(arg1.recip()), 0.0),
                                 false =>
                                 {
-                                    let (a, b) = div(1.0, 0.0, arg1, arg2);
+                                    (a, b) = div(1.0, 0.0, arg1, arg2);
                                     pow(base_re, base_im, a, b)
                                 }
                             }
@@ -197,8 +200,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        let (a, b) = parse(&func[i - 1]);
-        let (c, d) = parse(&func[i + 1]);
+        (a, b) = parse(&func[i - 1]);
+        (c, d) = parse(&func[i + 1]);
         if b == 0.0 || d == 0.0
         {
             return Err(());
@@ -215,8 +218,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        let (a, b) = parse(&func[i - 1]);
-        let (c, d) = parse(&func[i + 1]);
+        (a, b) = parse(&func[i - 1]);
+        (c, d) = parse(&func[i + 1]);
         func[i] = to_string(pow(a, b, c, d));
         func.remove(i + 1);
         func.remove(i - 1);
@@ -229,8 +232,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        let (a, b) = parse(&func[i - 1]);
-        let (c, d) = parse(&func[i + 1]);
+        (a, b) = parse(&func[i - 1]);
+        (c, d) = parse(&func[i + 1]);
         match func[i].as_str()
         {
             "*" => func[i] = to_string(mul(a, b, c, d)),
@@ -252,8 +255,8 @@ pub fn do_math(func:Vec<String>) -> Result<String, ()>
             i += 1;
             continue;
         }
-        let (a, b) = parse(&func[i - 1]);
-        let (c, d) = parse(&func[i + 1]);
+        (a, b) = parse(&func[i - 1]);
+        (c, d) = parse(&func[i + 1]);
         match func[i].as_str()
         {
             "+" => func[i] = to_string(add(a, b, c, d)),

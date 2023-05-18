@@ -17,12 +17,8 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     let min_y = range.0[1][0];
     let max_y = range.0[1][1];
     let den_y_range = (max_y - min_y) / den;
-    let mut n;
+    let (mut n, mut f, mut a, mut b, mut num);
     let mut modified:Vec<String>;
-    let mut f;
-    let mut num;
-    let mut a;
-    let mut b;
     for i in 0..=den as i32
     {
         n = min_x + i as f64 * den_x_range;
@@ -77,10 +73,7 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     let max = range.0[0][1];
     let den = range.1;
     let den_range = (max - min) / den;
-    let mut n;
-    let mut num;
-    let mut a;
-    let mut b;
+    let (mut n, mut a, mut b, mut num);
     for i in 0..=den as i32
     {
         n = min + i as f64 * den_range;

@@ -19,12 +19,38 @@ use {
 };
 fn help()
 {
-    println!("Type in a function to evaluate it. Type \"exit\" to exit. Type \"clear\" to clear the screen. Type \"help\" to show this message.");
     println!(
-             "functions: sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh,\n\
-    csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth,\n\
-    sqrt, sinc, exp, cbrt, ln, log(base,num), root(base,exp), abs, sgn, arg, ceil, floor, round, int, frac, fact, subfact\n\
-    deg(to_degrees),rad(to_radians),re(real part),im(imaginary part)"
+             "Usage:\n\
+- Type in a function and press enter to evaluate it.\n\
+- Type \"exit\" to exit the program.\n\
+- Type \"clear\" to clear the screen.\n\
+- Type \"help\" to see this message again.\n\n\
+Trigonometric functions:\n\
+- sin, cos, tan, asin, acos, atan\n\
+- sinh, cosh, tanh, asinh, acosh, atanh\n\
+- csc, sec, cot, acsc, asec, acot\n\
+- csch, sech, coth, acsch, asech, acoth\n\n\
+Other functions:\n\
+- sqrt, cbrt\n\
+- ln, log(base,num), root(base,exp)\n\
+- abs, sgn, arg\n\
+- ceil, floor, round, int, frac\n\
+- fact, subfact\n\
+- sinc, exp\n\
+- deg(to_degrees), rad(to_radians)\n\
+- re(real part), im(imaginary part)\n\n\
+Special features:\n\
+- Graphing: type a function with one variable and add \"graphs\" to graph it.\n\
+- Graphing multiple functions: use the \"#\" character to separate the functions.\n\
+- Change the x range of the graph: use \"xr=min,max\".\n\
+- Change the number of points in the graph: use \"2d=num_points\" for 2D graphs or \"3d=num_points\" for 3D graphs.\n\n\
+Examples:\n\
+- To calculate the sine of 0.5, type: sin(0.5)\n\
+- To calculate the logarithm base 2 of 8, type: log(2,8)\n\
+- To graph x^2, type: x^2 graphs\n\
+- To graph x^2, x^3, and x, type: x^2#x^3#x graphs\n\
+- To change the x range to -10 to 10, type: xr=-10,10\n\
+- To change the number of points to 100000 for a 2D graph, type: 2d=100000"
     );
 }
 fn write(input:&String, file:&mut File, lines:&Vec<String>)
@@ -146,23 +172,23 @@ fn main()
     }
     let mut var:Vec<Vec<char>> = Vec::new();
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
+    let fg = "\x1b[96m";
+    let mut lines:Vec<String>;
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut debug, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
+    let mut watch = None;
     loop
     {
         input.clear();
-        let fg = "\x1b[96m";
         stdout().flush().unwrap();
-        let lines:Vec<String> = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
-        let mut i = lines.len() as i32;
-        let max = i;
-        let mut cursor = 0;
-        let mut frac = false;
-        let lines = lines;
-        let debug = args().len() > 1 && args().nth(1).unwrap() == "--debug";
-        let mut watch = None;
-        let mut len;
+        lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+        i = lines.len() as i32;
+        max = i;
+        cursor = 0;
+        frac = false;
+        debug = args().len() > 1 && args().nth(1).unwrap() == "--debug";
         'outer: loop
         {
-            let c = read_single_char();
+            c = read_single_char();
             if debug
             {
                 watch = Some(std::time::Instant::now());
@@ -313,8 +339,8 @@ fn main()
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             write(&input, &mut file, &lines);
-            let l = input.split('=').next().unwrap();
-            let r = input.split('=').last().unwrap();
+            l = input.split('=').next().unwrap();
+            r = input.split('=').last().unwrap();
             match l
             {
                 "xr" =>
@@ -368,21 +394,21 @@ fn main()
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            let mut split = input.split('#');
-            let l = split.next().unwrap();
-            let m = split.next().unwrap_or("0");
-            let r = split.next().unwrap_or("0");
-            let funcl = match get_func(l, true)
+            split = input.split('#');
+            l = split.next().unwrap();
+            m = split.next().unwrap_or("0");
+            r = split.next().unwrap_or("0");
+            funcl = match get_func(l, true)
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            let funcm = match get_func(m, true)
+            funcm = match get_func(m, true)
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            let funcr = match get_func(r, true)
+            funcr = match get_func(r, true)
             {
                 Ok(f) => f,
                 _ => continue,

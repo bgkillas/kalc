@@ -2,15 +2,11 @@
 use std::f64::consts::PI;
 pub fn fraction(value:f64) -> String
 {
-    let eps = 1e-6;
     let mut nums:Vec<f64> = vec![];
     let values = [1.0, PI, 2f64.sqrt(), 3f64.sqrt()];
     let sign:String = if value < 0.0 { "-".to_string() } else { "".to_string() };
     let value = value.abs();
-    let mut number;
-    let mut recip;
-    let mut fract;
-    let mut orig;
+    let (mut number, mut recip, mut fract, mut orig);
     for (i, constant) in values.iter().enumerate()
     {
         orig = value / constant;
@@ -38,7 +34,7 @@ pub fn fraction(value:f64) -> String
         {
             recip = number.recip();
             fract = recip.fract();
-            if fract < eps
+            if fract < 1e-6
             {
                 let mut last = 1.0;
                 for j in (0..nums.len()).rev()

@@ -1,91 +1,43 @@
 # calc
 requires gnuplot for graphing
 
-the following functions in the complex plane
-
-``+,-,*,/,^,%,``
-
-``sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh``
-
-``csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth``
-
-``sqrt, sinc, cbrt, ln, log(base,num), root(base,exp), abs, arg, sgn``
-
-``fact, exp, subfact, int, frac, ceil, floor, round`` 
-
-``deg,rad``
-
-``re(real part),im(imag part)``
-
-constants: ``pi, e``
-
 history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
 
 # usage
 ```
-calc 1+1
-2
-```
-```
-echo 1+1 | calc
-2
-```
-```
-calc
->asin(0.5)
-π/6
-0.5235987755982988
-```
-```
-calc x^2
-graphs x^2
-```
-```
-calc x^2#x^3#x
-graphs x^2, x^3 and x
-```
-```
-calc
-> -e^(x)=e^(x+ipi)
-true
-```
-```
-calc z^2
-graphs (x+yi)^2
-```
-```
-calc
-> x=4
-> x^2
-16
-```
-```
-calc
-> x^2
-graphs x^2
-```
-```
-calc
-> x^y
-graphs x^y
-```
-```
-calc
-> clear
-clears terminal and graph data
-```
-```
-calc
-> xr=-10,10
-change the x range of the graph
-```
-```
-calc
-> 3d=400
-change the number of points in the graph
-```
-```
-calc
-> 2d=100000
-change the number of points in the graph
+Usage:
+- Type in a function and press enter to evaluate it.
+- Type "exit" to exit the program.
+- Type "clear" to clear the screen.
+- Type "help" to see this message again.
+
+Trigonometric functions:
+- sin, cos, tan, asin, acos, atan
+- sinh, cosh, tanh, asinh, acosh, atanh
+- csc, sec, cot, acsc, asec, acot
+- csch, sech, coth, acsch, asech, acoth
+
+Other functions:
+- sqrt, cbrt
+- ln, log(base,num), root(base,exp)
+- abs, sgn, arg
+- ceil, floor, round, int, frac
+- fact, subfact
+- sinc, exp
+- deg(to_degrees), rad(to_radians)
+- re(real part), im(imaginary part)
+
+Special features:
+- Graphing: type a function with one variable and add "graphs" to graph it.
+- Graphing multiple functions: use the "#" character to separate the functions.
+- Change the x range of the graph: use "xr=min,max".
+- Change the number of points in the graph: use "2d=num_points" for 2D graphs or "3d=num_points" for 3D graphs.
+
+Examples:
+- To calculate the sine of 0.5, type: sin(0.5)
+- To calculate the logarithm base 2 of 8, type: log(2,8)
+- To graph x^2, type: x^2 graphs
+- To graph x^2, x^3, and x, type: x^2#x^3#x graphs
+- To change the x range to -10 to 10, type: xr=-10,10
+- To change the number of points to 100000 for a 2D graph, type: 2d=100000
 ```

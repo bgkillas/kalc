@@ -1,274 +1,414 @@
 use std::f64::consts::E;
 use crate::complex::{
-    parse, div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, to_string, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
+    div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
+#[derive(Clone)]
+pub enum NumOrString
+{
+    Complex((f64, f64)),
+    String(String),
+}
 // noinspection RsBorrowChecker
-pub fn do_math(func:Vec<String>) -> Result<String, ()>
+pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
 {
     if func.len() == 1
     {
-        return if let Ok(n) = func[0].parse::<f64>()
-        {
-            Ok(n.to_string())
-        }
-        else if let Ok(n) = func[0].replace('i', "").parse::<f64>()
-        {
-            Ok(n.to_string() + "i")
-        }
-        else
-        {
-            Err(())
-        };
+        return if let NumOrString::Complex(n) = func[0] { Ok(n) } else { Err(()) };
     }
     if func.is_empty()
     {
         return Err(());
     }
-    let mut func = func;
+    let mut function = func;
     let mut i = 0;
     let (mut j, mut count);
-    while i < func.len() - 1
+    while i < function.len() - 1
     {
-        if func[i] == "("
+        if let NumOrString::String(s) = &function[i]
         {
-            j = i + 1;
-            count = 1;
-            while count > 0
+            if s == "("
             {
-                if j >= func.len()
+                j = i + 1;
+                count = 1;
+                while count > 0
+                {
+                    if j >= function.len()
+                    {
+                        return Err(());
+                    }
+                    match &function[j]
+                    {
+                        NumOrString::String(s) if s == "(" => count += 1,
+                        NumOrString::String(s) if s == ")" => count -= 1,
+                        _ =>
+                        {}
+                    }
+                    j += 1;
+                }
+                if i + 1 == j - 1
                 {
                     return Err(());
                 }
-                match func[j].as_str()
+                function[i] = NumOrString::Complex(match do_math(function[i + 1..j - 1].to_vec())
                 {
-                    "(" => count += 1,
-                    ")" => count -= 1,
-                    _ =>
-                    {}
-                }
-                j += 1;
+                    Ok(num) => num,
+                    Err(e) => return Err(e),
+                });
+                function.drain(i + 1..j);
             }
-            if i + 1 == j - 1
-            {
-                return Err(());
-            }
-            func[i] = match do_math(func[i + 1..j - 1].to_vec())
-                      {
-                          Ok(num) => num,
-                          Err(e) => return Err(e),
-                      }.to_string();
-            func.drain(i + 1..j);
         }
         i += 1;
     }
     i = 0;
-    let (mut arg1, mut arg2, mut to_parse, mut a, mut b, mut c, mut d, mut base_re, mut base_im);
-    while i < func.len() - 1
+    let mut to_parse:(f64, f64);
+    let (mut arg1, mut arg2, mut a, mut b, mut c, mut d, mut base_re, mut base_im);
+    while i < function.len() - 1
     {
-        if func[i].len() > 1 && func[i].chars().next().unwrap().is_ascii_alphabetic()
+        if let NumOrString::String(s) = &function[i]
         {
-            (arg1, arg2) = parse(&func[i + 1][if func[i + 1].contains(',') { func[i + 1].find(',').unwrap() + 1 } else { 0 }..].to_string());
-            to_parse = match func[i].as_str()
+            if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
-                "sin" => sin(arg1, arg2),
-                "csc" => csc(arg1, arg2),
-                "cos" => cos(arg1, arg2),
-                "sec" => sec(arg1, arg2),
-                "tan" => tan(arg1, arg2),
-                "cot" => cot(arg1, arg2),
-                "asin" | "arcsin" => asin(arg1, arg2),
-                "acsc" | "arccsc" => acsc(arg1, arg2),
-                "acos" | "arccos" => acos(arg1, arg2),
-                "asec" | "arcsec" => asec(arg1, arg2),
-                "atan" | "arctan" => atan(arg1, arg2),
-                "acot" | "arccot" => acot(arg1, arg2),
-                "sinh" => sinh(arg1, arg2),
-                "csch" => csch(arg1, arg2),
-                "cosh" => cosh(arg1, arg2),
-                "sech" => sech(arg1, arg2),
-                "tanh" => tanh(arg1, arg2),
-                "coth" => coth(arg1, arg2),
-                "asinh" | "arcsinh" => asinh(arg1, arg2),
-                "acsch" | "arccsch" => acsch(arg1, arg2),
-                "acosh" | "arccosh" => acosh(arg1, arg2),
-                "asech" | "arcsech" => asech(arg1, arg2),
-                "atanh" | "arctanh" => atanh(arg1, arg2),
-                "acoth" | "arccoth" => acoth(arg1, arg2),
-                "ln" => ln(arg1, arg2),
-                "ceil" => (arg1.ceil(), arg2.ceil()),
-                "floor" => (arg1.floor(), arg2.floor()),
-                "round" => (arg1.round(), arg2.round()),
-                "recip" => div(1.0, 0.0, arg1, arg2),
-                "exp" => pow(E, 0.0, arg1, arg2),
-                "log" =>
+                if let NumOrString::Complex(n) = &function[i + 1]
                 {
-                    match func[i + 1].contains(',')
+                    (arg1, arg2) = *n;
+                    to_parse = match s.to_string().as_str()
                     {
-                        true =>
+                        "sin" => sin(arg1, arg2),
+                        "csc" => csc(arg1, arg2),
+                        "cos" => cos(arg1, arg2),
+                        "sec" => sec(arg1, arg2),
+                        "tan" => tan(arg1, arg2),
+                        "cot" => cot(arg1, arg2),
+                        "asin" | "arcsin" => asin(arg1, arg2),
+                        "acsc" | "arccsc" => acsc(arg1, arg2),
+                        "acos" | "arccos" => acos(arg1, arg2),
+                        "asec" | "arcsec" => asec(arg1, arg2),
+                        "atan" | "arctan" => atan(arg1, arg2),
+                        "acot" | "arccot" => acot(arg1, arg2),
+                        "sinh" => sinh(arg1, arg2),
+                        "csch" => csch(arg1, arg2),
+                        "cosh" => cosh(arg1, arg2),
+                        "sech" => sech(arg1, arg2),
+                        "tanh" => tanh(arg1, arg2),
+                        "coth" => coth(arg1, arg2),
+                        "asinh" | "arcsinh" => asinh(arg1, arg2),
+                        "acsch" | "arccsch" => acsch(arg1, arg2),
+                        "acosh" | "arccosh" => acosh(arg1, arg2),
+                        "asech" | "arcsech" => asech(arg1, arg2),
+                        "atanh" | "arctanh" => atanh(arg1, arg2),
+                        "acoth" | "arccoth" => acoth(arg1, arg2),
+                        "ln" => ln(arg1, arg2),
+                        "ceil" => (arg1.ceil(), arg2.ceil()),
+                        "floor" => (arg1.floor(), arg2.floor()),
+                        "round" => (arg1.round(), arg2.round()),
+                        "recip" => div(1.0, 0.0, arg1, arg2),
+                        "exp" => pow(E, 0.0, arg1, arg2),
+                        "log" =>
                         {
-                            (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
-                            log(base_re, base_im, arg1, arg2)
-                        }
-                        false => ln(arg1, arg2),
-                    }
-                }
-                "root" =>
-                {
-                    match func[i + 1].contains(',')
-                    {
-                        true =>
-                        {
-                            (base_re, base_im) = parse(&func[i + 1][..func[i + 1].find(',').unwrap()].to_string());
-                            match arg2 == 0.0 && (arg1 / 2.0).fract() != 0.0 && arg1.trunc() == arg1 && base_im == 0.0
+                            if let NumOrString::String(s) = &function[i + 2]
                             {
-                                true => (base_re / base_re.abs() * base_re.abs().powf(arg1.recip()), 0.0),
-                                false =>
+                                if s == ","
                                 {
-                                    (a, b) = div(1.0, 0.0, arg1, arg2);
-                                    pow(base_re, base_im, a, b)
+                                    if let NumOrString::Complex(b) = &function[i + 3]
+                                    {
+                                        (base_re, base_im) = *b;
+                                        log(arg1, arg2, base_re, base_im)
+                                    }
+                                    else
+                                    {
+                                        return Err(());
+                                    }
+                                }
+                                else
+                                {
+                                    ln(arg1, arg2)
                                 }
                             }
+                            else
+                            {
+                                ln(arg1, arg2)
+                            }
                         }
-                        false => pow(arg1, arg2, 0.5, 0.0),
-                    }
+                        "root" =>
+                        {
+                            if let NumOrString::String(s) = &function[i]
+                            {
+                                if s == ","
+                                {
+                                    if let NumOrString::Complex(e) = &function[i + 3]
+                                    {
+                                        (base_re, base_im) = *e;
+                                        match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
+                                        {
+                                            true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),
+                                            false =>
+                                            {
+                                                (a, b) = div(1.0, 0.0, base_re, base_im);
+                                                pow(arg1, arg2, a, b)
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return Err(());
+                                    }
+                                }
+                                else
+                                {
+                                    pow(arg1, arg2, 0.5, 0.0)
+                                }
+                            }
+                            else
+                            {
+                                pow(arg1, arg2, 0.5, 0.0)
+                            }
+                        }
+                        "sqrt" => pow(arg1, arg2, 0.5, 0.0),
+                        "abs" => (abs(arg1, arg2), 0.0),
+                        "deg" | "degree" =>
+                        {
+                            if arg2 != 0.0
+                            {
+                                return Err(());
+                            }
+                            (arg1.to_degrees(), 0.0)
+                        }
+                        "rad" | "radian" =>
+                        {
+                            if arg2 != 0.0
+                            {
+                                return Err(());
+                            }
+                            (arg1.to_radians(), 0.0)
+                        }
+                        "re" | "real" => (arg1, 0.0),
+                        "im" | "imag" => (arg2, 0.0),
+                        "sgn" | "sign" => sgn(arg1, arg2),
+                        "arg" => (arg(arg1, arg2), 0.0),
+                        "cbrt" =>
+                        {
+                            match arg2 == 0.0
+                            {
+                                true => (arg1.cbrt(), 0.0),
+                                false => pow(arg1, arg2, 1.0 / 3.0, 0.0),
+                            }
+                        }
+                        "frac" | "fract" => frac(arg1, arg2),
+                        "int" | "trunc" => int(arg1, arg2),
+                        "fact" =>
+                        {
+                            if arg2 != 0.0 || arg1 < 0.0
+                            {
+                                return Err(());
+                            }
+                            (fact(arg1), 0.0)
+                        }
+                        "subfact" =>
+                        {
+                            if arg2 != 0.0 || arg1 < 0.0
+                            {
+                                return Err(());
+                            }
+                            (subfact(arg1), 0.0)
+                        }
+                        "sinc" => sinc(arg1, arg2),
+                        _ =>
+                        {
+                            i += 1;
+                            continue;
+                        }
+                    };
+                    function[i] = NumOrString::Complex(to_parse);
+                    function.remove(i + 1);
                 }
-                "sqrt" => pow(arg1, arg2, 0.5, 0.0),
-                "abs" => (abs(arg1, arg2), 0.0),
-                "deg" | "degree" =>
-                {
-                    if arg2 != 0.0
-                    {
-                        return Err(());
-                    }
-                    (arg1.to_degrees(), 0.0)
-                }
-                "rad" | "radian" =>
-                {
-                    if arg2 != 0.0
-                    {
-                        return Err(());
-                    }
-                    (arg1.to_radians(), 0.0)
-                }
-                "re" | "real" => (arg1, 0.0),
-                "im" | "imag" => (arg2, 0.0),
-                "sgn" | "sign" => sgn(arg1, arg2),
-                "arg" => (arg(arg1, arg2), 0.0),
-                "cbrt" =>
-                {
-                    match arg2 == 0.0
-                    {
-                        true => (arg1.cbrt(), 0.0),
-                        false => pow(arg1, arg2, 1.0 / 3.0, 0.0),
-                    }
-                }
-                "frac" | "fract" => frac(arg1, arg2),
-                "int" | "trunc" => int(arg1, arg2),
-                "fact" =>
-                {
-                    if arg2 != 0.0 || arg1 < 0.0
-                    {
-                        return Err(());
-                    }
-                    (fact(arg1), 0.0)
-                }
-                "subfact" =>
-                {
-                    if arg2 != 0.0 || arg1 < 0.0
-                    {
-                        return Err(());
-                    }
-                    (subfact(arg1), 0.0)
-                }
-                "sinc" => sinc(arg1, arg2),
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            func[i] = to_string(to_parse);
-            func.remove(i + 1);
+            }
         }
         i += 1;
     }
     i = 1;
-    while i < func.len() - 1
+    while i < function.len() - 1
     {
-        if func[i] != "%"
+        if let NumOrString::String(s) = &function[i]
+        {
+            if s != "%"
+            {
+                i += 1;
+                continue;
+            }
+        }
+        else
         {
             i += 1;
             continue;
         }
-        (a, b) = parse(&func[i - 1]);
-        (c, d) = parse(&func[i + 1]);
+        if let NumOrString::Complex(e) = &function[i - 1]
+        {
+            (a, b) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        if let NumOrString::Complex(e) = &function[i + 1]
+        {
+            (c, d) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
         if b == 0.0 || d == 0.0
         {
             return Err(());
         }
-        func[i] = (a % c).to_string();
-        func.remove(i + 1);
-        func.remove(i - 1);
+        function[i] = NumOrString::Complex(((a % c), 0.0));
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     i = 1;
-    while i < func.len() - 1
+    while i < function.len() - 1
     {
-        if func[i] != "^"
+        if let NumOrString::String(s) = &function[i]
         {
-            i += 1;
-            continue;
-        }
-        (a, b) = parse(&func[i - 1]);
-        (c, d) = parse(&func[i + 1]);
-        func[i] = to_string(pow(a, b, c, d));
-        func.remove(i + 1);
-        func.remove(i - 1);
-    }
-    i = 1;
-    while i < func.len() - 1
-    {
-        if !(func[i] == "*" || func[i] == "/")
-        {
-            i += 1;
-            continue;
-        }
-        (a, b) = parse(&func[i - 1]);
-        (c, d) = parse(&func[i + 1]);
-        match func[i].as_str()
-        {
-            "*" => func[i] = to_string(mul(a, b, c, d)),
-            "/" => func[i] = to_string(div(a, b, c, d)),
-            _ =>
+            if s != "^"
             {
                 i += 1;
                 continue;
             }
         }
-        func.remove(i + 1);
-        func.remove(i - 1);
-    }
-    i = 1;
-    while i < func.len() - 1
-    {
-        if !(func[i] == "+" || func[i] == "-")
+        else
         {
             i += 1;
             continue;
         }
-        (a, b) = parse(&func[i - 1]);
-        (c, d) = parse(&func[i + 1]);
-        match func[i].as_str()
+        if let NumOrString::Complex(e) = &function[i - 1]
         {
-            "+" => func[i] = to_string(add(a, b, c, d)),
-            "-" => func[i] = to_string(add(a, b, -c, -d)),
-            _ =>
+            (a, b) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        if let NumOrString::Complex(e) = &function[i + 1]
+        {
+            (c, d) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        function[i] = NumOrString::Complex(pow(a, b, c, d));
+        function.remove(i + 1);
+        function.remove(i - 1);
+    }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let NumOrString::String(s) = &function[i]
+        {
+            if !(s == "*" || s == "/")
             {
                 i += 1;
                 continue;
             }
         }
-        func.remove(i + 1);
-        func.remove(i - 1);
+        else
+        {
+            i += 1;
+            continue;
+        }
+        if let NumOrString::Complex(e) = &function[i - 1]
+        {
+            (a, b) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        if let NumOrString::Complex(e) = &function[i + 1]
+        {
+            (c, d) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        if let NumOrString::String(s) = &function[i]
+        {
+            if s == "*"
+            {
+                function[i] = NumOrString::Complex(mul(a, b, c, d))
+            }
+            else if s == "/"
+            {
+                function[i] = NumOrString::Complex(div(a, b, c, d))
+            }
+            else
+            {
+                i += 1;
+                continue;
+            }
+            function.remove(i + 1);
+            function.remove(i - 1);
+        }
     }
-    Ok(func.join(""))
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let NumOrString::String(s) = &function[i]
+        {
+            if !(s == "+" || s == "-")
+            {
+                i += 1;
+                continue;
+            }
+        }
+        else
+        {
+            i += 1;
+            continue;
+        }
+        if let NumOrString::Complex(e) = &function[i - 1]
+        {
+            (a, b) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        if let NumOrString::Complex(e) = &function[i + 1]
+        {
+            (c, d) = *e;
+        }
+        else
+        {
+            return Err(());
+        }
+        if let NumOrString::String(s) = &function[i]
+        {
+            if s == "+"
+            {
+                function[i] = NumOrString::Complex(add(a, b, c, d))
+            }
+            else if s == "-"
+            {
+                function[i] = NumOrString::Complex(add(a, b, -c, -d))
+            }
+            else
+            {
+                i += 1;
+                continue;
+            }
+            function.remove(i + 1);
+            function.remove(i - 1);
+        }
+    }
+    if let NumOrString::Complex(n) = function[0]
+    {
+        Ok(n)
+    }
+    else
+    {
+        Err(())
+    }
 }

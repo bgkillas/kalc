@@ -77,7 +77,7 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
             return true;
         }
     };
-    if (l.parse::<f64>().unwrap() * 1e12).round() / 1e12 == (r.parse::<f64>().unwrap() * 1e12).round() / 1e12
+    if l == r
     {
         println!("true");
         return true;

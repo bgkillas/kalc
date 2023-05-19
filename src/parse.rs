@@ -1,5 +1,6 @@
 use std::f64::consts::{E, PI};
-pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
+use crate::math::NumOrString;
+pub fn get_func(input:&str, done:bool) -> Result<Vec<NumOrString>, ()>
 {
     let mut count:i32 = 0;
     let mut func:Vec<String> = Vec::new();
@@ -20,6 +21,15 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
             }
             word.clear();
             word = c.to_string();
+        }
+        else if *c == ','
+        {
+            if !word.is_empty()
+            {
+                func.push(word.clone());
+                word.clear()
+            }
+            func.push(",".to_string());
         }
         else if *c == '|'
         {
@@ -153,9 +163,7 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
                 {
                     println!("Error: Invalid number");
                 }
-                func.clear();
-                func.push("0".to_string());
-                return Ok(func);
+                return Err(());
             }
             word.push(*c);
         }
@@ -327,5 +335,21 @@ pub fn get_func(input:&str, done:bool) -> Result<Vec<String>, ()>
     {
         func.pop();
     }
-    Ok(func)
+    let mut to_num_or_string:Vec<NumOrString> = Vec::new();
+    for i in func
+    {
+        if let Ok(n) = i.parse::<f64>()
+        {
+            to_num_or_string.push(NumOrString::Complex((n, 0.0)));
+        }
+        else if let Ok(n) = i.replace('i', "").parse::<f64>()
+        {
+            to_num_or_string.push(NumOrString::Complex((0.0, n)));
+        }
+        else
+        {
+            to_num_or_string.push(NumOrString::String(i))
+        }
+    }
+    Ok(to_num_or_string)
 }

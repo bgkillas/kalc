@@ -95,7 +95,7 @@ fn main()
                     return;
                 }
             };
-            if func.contains(&"x".to_string())
+            if input.contains('x')
             {
                 let mut split = input.split('#');
                 let l = split.next().unwrap();
@@ -128,7 +128,7 @@ fn main()
                         return;
                     }
                 };
-                if func.contains(&"y".to_string())
+                if input.contains('y')
                 {
                     graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range);
                     return;

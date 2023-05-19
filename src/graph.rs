@@ -1,12 +1,14 @@
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
-use crate::complex::parse;
-use crate::math::do_math;
+use crate::math::{do_math, NumOrString};
 // noinspection RsBorrowChecker
-pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
-    if func.len() == 1 && func[0] == "0"
+    if let NumOrString::Complex(n) = func[0]
     {
-        return (Vec::new(), Vec::new());
+        if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
+        {
+            return (Vec::new(), Vec::new());
+        }
     }
     let mut re = Vec::new();
     let mut im = Vec::new();
@@ -18,19 +20,16 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     let max_y = range.0[1][1];
     let den_y_range = (max_y - min_y) / den;
     let (mut n, mut f, mut a, mut b, mut num);
-    let mut modified:Vec<String>;
+    let mut modified:Vec<NumOrString>;
     for i in 0..=den as i32
     {
         n = min_x + i as f64 * den_x_range;
         modified = func.iter()
                        .map(|i| {
-                           if i == "x"
+                           match i
                            {
-                               n.to_string()
-                           }
-                           else
-                           {
-                               i.to_string()
+                               NumOrString::String(s) if s == "x" => NumOrString::Complex((n, 0.0)),
+                               _ => i.clone(),
                            }
                        })
                        .collect();
@@ -39,13 +38,10 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
             f = min_y + g as f64 * den_y_range;
             num = match do_math(modified.iter()
                                         .map(|j| {
-                                            if j == "y"
+                                            match j
                                             {
-                                                f.to_string()
-                                            }
-                                            else
-                                            {
-                                                j.to_string()
+                                                NumOrString::String(s) if s == "x" => NumOrString::Complex((f, 0.0)),
+                                                _ => j.clone(),
                                             }
                                         })
                                         .collect())
@@ -53,7 +49,7 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
                 Ok(n) => n,
                 Err(_) => continue,
             };
-            (a, b) = parse(&num);
+            (a, b) = num;
             re.push([n, f, a]);
             im.push([n, f, b]);
         }
@@ -61,11 +57,14 @@ pub fn get_list_3d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
     (re, im)
 }
 // noinspection RsBorrowChecker
-pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
-    if func.len() == 1 && func[0] == "0"
+    if let NumOrString::Complex(n) = func[0]
     {
-        return (Vec::new(), Vec::new());
+        if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
+        {
+            return (Vec::new(), Vec::new());
+        }
     }
     let mut re = Vec::new();
     let mut im = Vec::new();
@@ -79,13 +78,10 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
         n = min + i as f64 * den_range;
         num = match do_math(func.iter()
                                 .map(|i| {
-                                    if i == "x"
+                                    match i
                                     {
-                                        n.to_string()
-                                    }
-                                    else
-                                    {
-                                        i.to_string()
+                                        NumOrString::String(s) if s == "x" => NumOrString::Complex((n, 0.0)),
+                                        _ => i.clone(),
                                     }
                                 })
                                 .collect())
@@ -93,13 +89,13 @@ pub fn get_list_2d(func:&[String], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64
             Ok(n) => n,
             Err(_) => continue,
         };
-        (a, b) = parse(&num);
+        (a, b) = num;
         re.push([n, a]);
         im.push([n, b]);
     }
     (re, im)
 }
-pub fn graph(input:[&String; 3], func:[&[String]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64))
+pub fn graph(input:[&String; 3], func:[&[NumOrString]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64))
 {
     let re1col = "#9400D3";
     let im1col = "#009E73";

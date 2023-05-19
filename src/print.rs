@@ -1,8 +1,7 @@
-use crate::complex::parse;
 use crate::fraction::fraction;
-use crate::math::do_math;
+use crate::math::{do_math, NumOrString};
 use crate::parse::get_func;
-pub fn print_answer(func:Vec<String>)
+pub fn print_answer(func:Vec<NumOrString>)
 {
     let num = match do_math(func)
     {
@@ -13,7 +12,7 @@ pub fn print_answer(func:Vec<String>)
             return;
         }
     };
-    let (a, b) = parse(&num);
+    let (a, b) = num;
     let a = (a * 1e12).round() / 1e12;
     let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "i";
     println!("{}{}\x1b[0m",
@@ -58,13 +57,7 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
     let mut frac = false;
     if let Ok(num) = do_math(func)
     {
-        if num == "inf" || num == "-inf" || num == "nan"
-        {
-            print!("\x1b[0m\x1b[B\x1B[2K\x1B[1G{}\x1b[0m\x1b[A", num);
-            print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
-            return false;
-        }
-        let (a, b) = parse(&num);
+        let (a, b) = num;
         let c = (a * 1e12).round() / 1e12;
         let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
         let d = (b * 1e12).round() / 1e12;

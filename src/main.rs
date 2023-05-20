@@ -87,7 +87,7 @@ fn main()
         }
         for i in args
         {
-            let input = i.replace('z', "(x+y*i)");
+            let input = i.replace('z', "(x+y*i)").replace(' ', "");
             if input.contains('=')
             {
                 let mut split = input.split('=');

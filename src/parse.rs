@@ -69,6 +69,8 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 {
                     imag = real.clone();
                     real.clear();
+                    j += 1;
+                    break;
                 }
                 else if char == '+' || char == '-'
                 {

@@ -24,25 +24,25 @@ fn help()
 FLAGS: --help (this message)\n\
 --tau fractions are shown in tau instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
---2d [num] number of points to graph in 2D\n\
---3d [num] number of points to graph in 3D\n\
+--2d [num] number of points to graph in 2D (default 40000)\n\
+--3d [num] number of points to graph in 3D (default 400)\n\
 --xr [min] [max] x range for graphing\n\
 --yr [min] [max] y range for graphing\n\
 --zr [min] [max] z range for graphing\n\
 --debug displays computation time in nanoseconds\n\n\
-- Type \"exit\" to exit the program.\n\
-- Type \"clear\" to clear the screen.\n\
-- Type \"help\" to see this message.\n\
-- Type \"history\" to see the history of calculations.\n\
-- Type \"deg\" to switch to degrees mode.\n\
-- Type \"rad\" to switch to radians mode.\n\
-- Type \"tau\" to show fractions in tau.\n\
-- Type \"pi\" to show fractions in pi.\n\
-- Type \"2d\" [num] to set the number of points in 2D graphs.\n\
-- Type \"3d\" [num] to set the number of points in 3D graphs.\n\
-- Type \"xr\" [min] [max] to set the x range for graphing.\n\
-- Type \"yr\" [min] [max] to set the y range for graphing.\n\
-- Type \"zr\" [min] [max] to set the z range for graphing.\n\
+- Type \"exit\" to exit the program\n\
+- Type \"clear\" to clear the screen\n\
+- Type \"help\" to see this message\n\
+- Type \"history\" to see the history of calculations\n\
+- Type \"deg\" to switch to degrees mode\n\
+- Type \"rad\" to switch to radians mode\n\
+- Type \"tau\" to show fractions in tau\n\
+- Type \"pi\" to show fractions in pi\n\
+- Type 2d=[num] to set the number of points in 2D graphs (default 40000)\n\
+- Type 3d=[num] to set the number of points in 3D graphs (default 400)\n\
+- Type xr=[min],[max] to set the x range for graphing\n\
+- Type yr=[min],[max] to set the y range for graphing\n\
+- Type zr=[min],[max] to set the z range for graphing\n\
 - Type \"debug\" to toggle debug mode.\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\

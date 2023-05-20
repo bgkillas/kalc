@@ -9,27 +9,27 @@ Usage: calc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
 --tau fractions are shown in tau instead of pi
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions
---2d [num] number of points to graph in 2D
---3d [num] number of points to graph in 3D
+--2d [num] number of points to graph in 2D (default 40000)
+--3d [num] number of points to graph in 3D (default 400)
 --xr [min] [max] x range for graphing
 --yr [min] [max] y range for graphing
 --zr [min] [max] z range for graphing
 --debug displays computation time in nanoseconds
 
-- Type "exit" to exit the program.
-- Type "clear" to clear the screen.
-- Type "help" to see this message.
-- Type "history" to see the history of calculations.
-- Type "deg" to switch to degrees mode.
-- Type "rad" to switch to radians mode.
-- Type "tau" to show fractions in tau.
-- Type "pi" to show fractions in pi.
-- Type "2d" [num] to set the number of points in 2D graphs.
-- Type "3d" [num] to set the number of points in 3D graphs.
-- Type "xr" [min] [max] to set the x range for graphing.
-- Type "yr" [min] [max] to set the y range for graphing.
-- Type "zr" [min] [max] to set the z range for graphing.
-- Type "debug" to toggle debug mode.
+- Type "exit" to exit the program
+- Type "clear" to clear the screen
+- Type "help" to see this message
+- Type "history" to see the history of calculations
+- Type "deg" to switch to degrees mode
+- Type "rad" to switch to radians mode
+- Type "tau" to show fractions in tau
+- Type "pi" to show fractions in pi
+- Type 2d=[num] to set the number of points in 2D graphs (default 40000)
+- Type 3d=[num] to set the number of points in 3D graphs (default 400)
+- Type xr=[min],[max] to set the x range for graphing
+- Type yr=[min],[max] to set the y range for graphing
+- Type zr=[min],[max] to set the z range for graphing
+- Type "debug" to toggle debug mode
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan
@@ -46,12 +46,6 @@ Other functions:
 - sinc, cis, exp
 - deg(to_degrees), rad(to_radians)
 - re(real part), im(imaginary part)
-
-Special features:
-- Graphing: type a function with one variable and add "graphs" to graph it.
-- Graphing multiple functions: use the "#" character to separate the functions.
-- Change the x range of the graph: use "xr=min,max".
-- Change the number of points in the graph: use "2d=num_points" for 2D graphs or "3d=num_points" for 3D graphs.
 
 Examples:
 - To calculate the sine of 0.5, type: sin(0.5)

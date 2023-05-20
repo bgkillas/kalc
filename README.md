@@ -9,6 +9,11 @@ Usage: calc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
 --tau fractions are shown in tau instead of pi
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions
+--2d [num] number of points to graph in 2D
+--3d [num] number of points to graph in 3D
+--xr [min] [max] x range for graphing
+--yr [min] [max] y range for graphing
+--zr [min] [max] z range for graphing
 --debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program.

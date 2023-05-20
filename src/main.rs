@@ -24,6 +24,11 @@ fn help()
 FLAGS: --help (this message)\n\
 --tau fractions are shown in tau instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
+--2d [num] number of points to graph in 2D\n\
+--3d [num] number of points to graph in 3D\n\
+--xr [min] [max] x range for graphing\n\
+--yr [min] [max] y range for graphing\n\
+--zr [min] [max] z range for graphing\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program.\n\
 - Type \"clear\" to clear the screen.\n\
@@ -85,11 +90,57 @@ fn main()
     {
         if !args.is_empty()
         {
-            match args.remove(0).as_str()
+            match args[0].as_str()
             {
                 "--debug" => debug = true,
                 "--tau" => tau = true,
                 "--deg" => deg = true,
+                "--2d" =>
+                {
+                    if args.len() > 1
+                    {
+                        range.1 = args[1].parse::<f64>().unwrap_or(40000.0);
+                        args.remove(0);
+                    }
+                }
+                "--3d" =>
+                {
+                    if args.len() > 1
+                    {
+                        range.2 = args[1].parse::<f64>().unwrap_or(400.0);
+                        args.remove(0);
+                    }
+                }
+                "--yr" =>
+                {
+                    if args.len() > 2
+                    {
+                        range.0[1][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                        range.0[1][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                        args.remove(0);
+                        args.remove(0);
+                    }
+                }
+                "--xr" =>
+                {
+                    if args.len() > 2
+                    {
+                        range.0[0][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                        range.0[0][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                        args.remove(0);
+                        args.remove(0);
+                    }
+                }
+                "--zr" =>
+                {
+                    if args.len() > 2
+                    {
+                        range.0[2][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                        range.0[2][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                        args.remove(0);
+                        args.remove(0);
+                    }
+                }
                 "--help" =>
                 {
                     help();
@@ -97,6 +148,7 @@ fn main()
                 }
                 _ => break,
             }
+            args.remove(0);
         }
         else
         {

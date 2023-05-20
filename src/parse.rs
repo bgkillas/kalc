@@ -108,7 +108,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
         }
         else if c.is_ascii_alphabetic()
         {
-            if find_word
+            if find_word && (!(c == 'x' || c == 'y') || (chars.len() - 1 != i && chars[i + 1] == 'p'))
             {
                 word.push(c);
             }
@@ -118,12 +118,18 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 {
                     'x' | 'y' =>
                     {
-                        if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
+                        if !find_word && i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                         {
                             func.push(Str('*'.to_string()))
                         }
+                        if !word.is_empty()
+                        {
+                            find_word = false;
+                            func.push(Str(word.clone()));
+                            word.clear();
+                        }
                         func.push(Str(c.to_string()));
-                        if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                        if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
                         {
                             func.push(Str('*'.to_string()))
                         }
@@ -133,7 +139,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         if i != 0 && chars[i - 1] == 'p'
                         {
                             func.push(Complex((PI, 0.0)));
-                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
                             {
                                 func.push(Str('*'.to_string()))
                             }
@@ -146,7 +152,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         else
                         {
                             func.push(Complex((0.0, 1.0)));
-                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
                             {
                                 func.push(Str('*'.to_string()))
                             }
@@ -162,7 +168,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         else
                         {
                             func.push(Complex((E, 0.0)));
-                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
                             {
                                 func.push(Str('*'.to_string()))
                             }

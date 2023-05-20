@@ -42,7 +42,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 func.push(Str(word.clone()));
                 word.clear();
             }
-            if i != 0 && chars[i - 1] != 'x' && chars[i - 1] != 'y' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
+            if let Complex(_) = func.last().unwrap_or(&Str("".to_string()))
             {
                 func.push(Str('*'.to_string()))
             }
@@ -165,7 +165,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                     'e' =>
                     {
-                        if i + 2 < chars.len() && chars[i + 1] == 'x' && chars[i + 2] == 'p'
+                        if i + 2 < chars.len() && (chars[i + 1] == 'x' || chars[i + 1] == 'y') && chars[i + 2] == 'p'
                         {
                             word.push(c);
                             find_word = true;
@@ -174,7 +174,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         }
                         else
                         {
-                            if !find_word && i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
+                            if !find_word && i != 0 && !(chars[i - 1] != 'x' || chars[i - 1] != 'y') && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                             {
                                 func.push(Str('*'.to_string()))
                             }

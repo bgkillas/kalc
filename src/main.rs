@@ -66,16 +66,28 @@ fn main()
     let mut range = ([[-10.0, 10.0]; 3], 40000.0, 400.0);
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
-    if args().len() > 1 && args().nth(1).unwrap() != "--debug"
+    let mut watch = None;
+    let mut args = args().collect::<Vec<String>>();
+    args.remove(0);
+    let debug = !args.is_empty() && args[0] == "--debug";
+    if debug
     {
-        if args().nth(1).unwrap() == "--help"
+        args.remove(0);
+    }
+    if !args.is_empty()
+    {
+        if debug
+        {
+            watch = Some(std::time::Instant::now());
+        }
+        if args[0] == "--help"
         {
             help();
             return;
         }
-        for i in 1..args().len()
+        for i in args
         {
-            let input = args().nth(i).unwrap().replace('z', "(x+y*i)");
+            let input = i.replace('z', "(x+y*i)");
             if input.contains('=')
             {
                 let mut split = input.split('=');
@@ -138,6 +150,10 @@ fn main()
             }
             print_answer(func);
         }
+        if let Some(time) = watch
+        {
+            println!("{}", time.elapsed().as_nanos());
+        }
         return;
     }
     let mut input = String::new();
@@ -177,8 +193,7 @@ fn main()
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let fg = "\x1b[96m";
     let mut lines:Vec<String>;
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut debug, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
-    let mut watch = None;
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
     {
         input.clear();
@@ -188,7 +203,6 @@ fn main()
         max = i;
         cursor = 0;
         frac = false;
-        debug = args().len() > 1 && args().nth(1).unwrap() == "--debug";
         'outer: loop
         {
             c = read_single_char();

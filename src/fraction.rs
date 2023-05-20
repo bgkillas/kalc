@@ -32,7 +32,7 @@ pub fn fraction(value:f64) -> String
         }
         number = orig.fract();
         nums.clear();
-        for _ in 0..=10
+        for _ in 0..=20
         {
             recip = number.recip();
             fract = recip.fract();

@@ -3,14 +3,6 @@ use crate::math::NumOrString;
 use crate::math::NumOrString::{Complex, Str};
 pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
 {
-    let mut func:Vec<NumOrString> = Vec::new();
-    let mut word = String::new();
-    let mut real = String::new();
-    let mut imag = String::new();
-    let mut find_word = false;
-    let mut abs = true;
-    let mut subfact = 0;
-    let mut neg = false;
     let count = input.chars().filter(|&c| c == '(').count() as i32 - input.chars().filter(|&c| c == ')').count() as i32;
     let mut input = input.to_string();
     if count > 0
@@ -27,9 +19,17 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
             input.insert(0, '(')
         }
     }
-    let chars = input.chars().collect::<Vec<char>>();
+    let mut func:Vec<NumOrString> = Vec::new();
+    let mut word = String::new();
+    let mut real = String::new();
+    let mut imag = String::new();
+    let mut find_word = false;
+    let mut abs = true;
+    let mut subfact = 0;
+    let mut neg = false;
     let mut i = 0;
     let (mut c, mut j, mut char, mut deci, mut f, mut imchar, mut imdeci);
+    let chars = input.chars().collect::<Vec<char>>();
     while i < chars.len()
     {
         c = chars[i];

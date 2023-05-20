@@ -62,6 +62,7 @@ Examples:\n\
 - To calculate the sine of 0.5, type: sin(0.5)\n\
 - To calculate the logarithm base 2 of 8, type: log(2,8)\n\
 - To graph x^2, type: x^2\n\
+- To graph (x+yi)^2 type z^2 or (x+yi)^2\n\
 - To graph x^2, x^3, and x, type: x^2#x^3#x\n\
 - To change the x range to -10 to 10, type: xr=-10,10\n\
 - To change the number of points to 100000 for a 2D graph, type: 2d=100000"

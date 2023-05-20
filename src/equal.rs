@@ -1,4 +1,4 @@
-use crate::graph::get_list_2d;
+use crate::graph::{get_list_2d, get_list_3d};
 use crate::math::do_math;
 use crate::parse::get_func;
 pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> bool
@@ -25,14 +25,29 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
                 return true;
             }
         };
-        let (lre, lim) = get_list_2d(&l, range, false);
-        let (rre, rim) = get_list_2d(&r, range, false);
         let mut success = true;
-        for i in 0..lre.len()
+        if input.contains('y')
         {
-            if (lre[i][1] * 1e9).round() / 1e9 != (rre[i][1] * 1e9).round() / 1e9 || (lim[i][1] * 1e9).round() / 1e9 != (rim[i][1] * 1e9).round() / 1e9
+            let (lre, lim) = get_list_3d(&l, range, false);
+            let (rre, rim) = get_list_3d(&r, range, false);
+            for i in 0..lre.len()
             {
-                success = false;
+                if (lre[i][2] * 1e9).round() / 1e9 != (rre[i][2] * 1e9).round() / 1e9 || (lim[i][2] * 1e9).round() / 1e9 != (rim[i][2] * 1e9).round() / 1e9
+                {
+                    success = false;
+                }
+            }
+        }
+        else
+        {
+            let (lre, lim) = get_list_2d(&l, range, false);
+            let (rre, rim) = get_list_2d(&r, range, false);
+            for i in 0..lre.len()
+            {
+                if (lre[i][1] * 1e9).round() / 1e9 != (rre[i][1] * 1e9).round() / 1e9 || (lim[i][1] * 1e9).round() / 1e9 != (rim[i][1] * 1e9).round() / 1e9
+                {
+                    success = false;
+                }
             }
         }
         if success

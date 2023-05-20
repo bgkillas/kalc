@@ -24,6 +24,11 @@ FLAGS: --help (this message)
 - Type "rad" to switch to radians mode.
 - Type "tau" to show fractions in tau.
 - Type "pi" to show fractions in pi.
+- Type "2d" [num] to set the number of points in 2D graphs.
+- Type "3d" [num] to set the number of points in 3D graphs.
+- Type "xr" [min] [max] to set the x range for graphing.
+- Type "yr" [min] [max] to set the y range for graphing.
+- Type "zr" [min] [max] to set the z range for graphing.
 - Type "debug" to toggle debug mode.
 
 Trigonometric functions:
@@ -51,8 +56,8 @@ Special features:
 Examples:
 - To calculate the sine of 0.5, type: sin(0.5)
 - To calculate the logarithm base 2 of 8, type: log(2,8)
-- To graph x^2, type: x^2 graphs
-- To graph x^2, x^3, and x, type: x^2#x^3#x graphs
+- To graph x^2, type: x^2
+- To graph x^2, x^3, and x, type: x^2#x^3#x
 - To change the x range to -10 to 10, type: xr=-10,10
 - To change the number of points to 100000 for a 2D graph, type: 2d=100000
 ```

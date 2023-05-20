@@ -38,6 +38,11 @@ FLAGS: --help (this message)\n\
 - Type \"rad\" to switch to radians mode.\n\
 - Type \"tau\" to show fractions in tau.\n\
 - Type \"pi\" to show fractions in pi.\n\
+- Type \"2d\" [num] to set the number of points in 2D graphs.\n\
+- Type \"3d\" [num] to set the number of points in 3D graphs.\n\
+- Type \"xr\" [min] [max] to set the x range for graphing.\n\
+- Type \"yr\" [min] [max] to set the y range for graphing.\n\
+- Type \"zr\" [min] [max] to set the z range for graphing.\n\
 - Type \"debug\" to toggle debug mode.\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
@@ -53,16 +58,11 @@ Other functions:\n\
 - sinc, exp\n\
 - deg(to_degrees), rad(to_radians)\n\
 - re(real part), im(imaginary part)\n\n\
-Special features:\n\
-- Graphing: type a function with one variable and add \"graphs\" to graph it.\n\
-- Graphing multiple functions: use the \"#\" character to separate the functions.\n\
-- Change the x range of the graph: use \"xr=min,max\".\n\
-- Change the number of points in the graph: use \"2d=num_points\" for 2D graphs or \"3d=num_points\" for 3D graphs.\n\n\
 Examples:\n\
 - To calculate the sine of 0.5, type: sin(0.5)\n\
 - To calculate the logarithm base 2 of 8, type: log(2,8)\n\
-- To graph x^2, type: x^2 graphs\n\
-- To graph x^2, x^3, and x, type: x^2#x^3#x graphs\n\
+- To graph x^2, type: x^2\n\
+- To graph x^2, x^3, and x, type: x^2#x^3#x\n\
 - To change the x range to -10 to 10, type: xr=-10,10\n\
 - To change the number of points to 100000 for a 2D graph, type: 2d=100000"
     );

@@ -129,33 +129,23 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                             word.clear();
                         }
                         func.push(Str(c.to_string()));
-                        if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
-                        {
-                            func.push(Str('*'.to_string()))
-                        }
                     }
                     'i' =>
                     {
                         if i != 0 && chars[i - 1] == 'p'
                         {
                             func.push(Complex((PI, 0.0)));
-                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
-                            {
-                                func.push(Str('*'.to_string()))
-                            }
                         }
                         else if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
                         {
                             word.push(c);
                             find_word = true;
+                            i += 1;
+                            continue;
                         }
                         else
                         {
                             func.push(Complex((0.0, 1.0)));
-                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
-                            {
-                                func.push(Str('*'.to_string()))
-                            }
                         }
                     }
                     'e' =>
@@ -164,28 +154,38 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         {
                             word.push(c);
                             find_word = true;
+                            i += 1;
+                            continue;
                         }
                         else
                         {
-                            func.push(Complex((E, 0.0)));
-                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
+                            if !find_word && i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                             {
                                 func.push(Str('*'.to_string()))
                             }
+                            func.push(Complex((E, 0.0)));
                         }
                     }
                     'p' =>
                     {
                         if find_word
                         {
-                            word.push(c)
+                            word.push(c);
+                            i += 1;
+                            continue;
                         }
                     }
                     _ =>
                     {
                         word.push(c);
                         find_word = true;
+                        i += 1;
+                        continue;
                     }
+                }
+                if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(')
+                {
+                    func.push(Str('*'.to_string()))
                 }
             }
         }

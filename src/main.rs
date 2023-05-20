@@ -55,7 +55,7 @@ Other functions:\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\
 - fact, subfact\n\
-- sinc, exp\n\
+- sinc, cis, exp\n\
 - deg(to_degrees), rad(to_radians)\n\
 - re(real part), im(imaginary part)\n\n\
 Examples:\n\

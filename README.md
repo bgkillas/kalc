@@ -43,7 +43,7 @@ Other functions:
 - abs, sgn, arg
 - ceil, floor, round, int, frac
 - fact, subfact
-- sinc, exp
+- sinc, cis, exp
 - deg(to_degrees), rad(to_radians)
 - re(real part), im(imaginary part)
 

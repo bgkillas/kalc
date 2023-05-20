@@ -43,6 +43,10 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         println!("false");
         return true;
     }
+    if l.chars().all(|x| x.is_alphabetic())
+    {
+        return false;
+    }
     let l = match do_math(match get_func(l)
                           {
                               Ok(i) => i,

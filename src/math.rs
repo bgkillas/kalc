@@ -1,6 +1,6 @@
 use std::f64::consts::E;
 use crate::complex::{
-    div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
+    div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact, cis
 };
 use crate::math::NumOrString::{Complex, Str};
 #[derive(Clone)]
@@ -252,6 +252,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                         "asech" | "arcsech" => asech(arg1, arg2),
                         "atanh" | "arctanh" => atanh(arg1, arg2),
                         "acoth" | "arccoth" => acoth(arg1, arg2),
+                        "cis" => cis(arg1, arg2),
                         "ln" => ln(arg1, arg2),
                         "ceil" => (arg1.ceil(), arg2.ceil()),
                         "floor" => (arg1.floor(), arg2.floor()),

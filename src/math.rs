@@ -24,6 +24,8 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
     let mut i = 0;
     let (mut j, mut count);
     let mut v;
+    let mut temp1 = (0.0, 0.0);
+    let mut temp2 = (0.0, 0.0);
     while i < function.len() - 1
     {
         if let Str(s) = &function[i]
@@ -63,8 +65,22 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                                }
                            })
                 {
-                    function.remove(i);
-                    function.remove(j - 2);
+                    for (j, n) in v.iter().enumerate()
+                    {
+                        if let Str(s) = n
+                        {
+                            if s == ","
+                            {
+                                temp1 = do_math(v[..j].to_vec(), deg)?;
+                                temp2 = do_math(v[j + 1..].to_vec(), deg)?;
+                                break;
+                            }
+                        }
+                    }
+                    function.drain(i..j);
+                    function.insert(i, Complex(temp1));
+                    function.insert(i + 1, Str(",".to_string()));
+                    function.insert(i + 2, Complex(temp2));
                     i += 1;
                     continue;
                 }

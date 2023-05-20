@@ -46,6 +46,10 @@ pub fn fraction(value:f64, tau: bool) -> String
                 }
                 recip = recip.round();
                 last = (last + recip * orig.trunc()).round();
+                if recip.to_string().len()>9&&last.to_string().len()>9
+                {
+                    continue;
+                }
                 return format!("{sign}{}{}{}",
                                if last == 1.0 && i != 0 { "".to_string() } else { last.to_string() },
                                match i

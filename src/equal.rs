@@ -43,10 +43,6 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         println!("false");
         return true;
     }
-    if l.parse::<f64>().is_err()
-    {
-        return false;
-    }
     let l = match do_math(match get_func(l)
           {
               Ok(i) => i,

@@ -311,6 +311,15 @@ fn main()
                         input.insert(cursor, 'i');
                         cursor += 1;
                     }
+                    if c == 'τ'
+                    {
+                        input.insert(cursor, 't');
+                        cursor += 1;
+                        input.insert(cursor, 'a');
+                        cursor += 1;
+                        input.insert(cursor, 'u');
+                        cursor += 1;
+                    }
                     else
                     {
                         input.insert(cursor, c);
@@ -462,6 +471,7 @@ fn read_single_char() -> char
                || c == '='
                || c == ','
                || c == 'π'
+               || c == 'τ'
                || c == '#'
                || c == '|'
                || c == '!'

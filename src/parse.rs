@@ -1,4 +1,4 @@
-use std::f64::consts::{E, PI};
+use std::f64::consts::{E, PI, TAU};
 use crate::math::NumOrString;
 use crate::math::NumOrString::{Complex, Str};
 pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
@@ -189,6 +189,30 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         i += 1;
                         continue;
                     }
+                    't' =>
+                    {
+                        if find_word || (i + 2 < chars.len() && chars[i + 2] != 'u')
+                        {
+                            word.push(c);
+                            find_word = true;
+                        }
+                        i += 1;
+                        continue;
+                    }
+                    'a' =>
+                    {
+                        if find_word || (i + 1 != chars.len() && chars[i + 1] != 'u')
+                        {
+                            word.push(c);
+                            find_word = true;
+                        }
+                        i += 1;
+                        continue;
+                    }
+                    'u' =>
+                    {
+                        func.push(Complex((TAU, 0.0)));
+                    }
                     _ =>
                     {
                         word.push(c);
@@ -265,6 +289,8 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         subfact += 1;
                     }
                 }
+                'π' => func.push(Complex((PI, 0.0))),
+                'τ' => func.push(Complex((TAU, 0.0))),
                 ',' => func.push(Str(','.to_string())),
                 '%' => func.push(Str('%'.to_string())),
                 _ => (),

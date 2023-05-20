@@ -19,7 +19,7 @@ Trigonometric functions:
 - csch, sech, coth, acsch, asech, acoth
 
 Other functions:
-- sqrt, cbrt
+- sqrt, cbrt, square, cube
 - ln, log(base,num), root(base,exp)
 - abs, sgn, arg
 - ceil, floor, round, int, frac

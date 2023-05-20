@@ -236,6 +236,8 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                             }
                             (fact(arg1), 0.0)
                         }
+                        "square" => pow(arg1, arg2, 2.0, 0.0),
+                        "cube" => pow(arg1, arg2, 3.0, 0.0),
                         "subfact" =>
                         {
                             if arg2 != 0.0 || arg1 < 0.0

@@ -31,7 +31,7 @@ Trigonometric functions:\n\
 - sinh, cosh, tanh, asinh, acosh, atanh\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\
 Other functions:\n\
-- sqrt, cbrt\n\
+- sqrt, cbrt, square, cube\n\
 - ln, log(base,num), root(base,exp)\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\

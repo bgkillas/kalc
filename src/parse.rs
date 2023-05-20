@@ -19,6 +19,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
             input.insert(0, '(')
         }
     }
+    let mut exp = 0.0;
     let mut func:Vec<NumOrString> = Vec::new();
     let mut word = String::new();
     let mut real = String::new();
@@ -232,8 +233,30 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
             if !word.is_empty()
             {
                 find_word = false;
+                if i + 4 < chars.len() && chars[i] == '^' && chars[i + 1] == '(' && chars[i + 2] == '-' && chars[i + 3] == '1' && chars[i + 4] == ')'
+                {
+                    word.insert(0, 'a');
+                    func.push(Str(word.clone()));
+                    word.clear();
+                    i += 5;
+                    continue;
+                }
+                if i + 1 < chars.len() && chars[i] == '^' && chars[i + 1].is_ascii_digit()
+                {
+                    func.push(Str(word.clone()));
+                    word.clear();
+                    exp = chars[i + 1].to_string().parse::<f64>().unwrap();
+                    i += 2;
+                    continue;
+                }
                 func.push(Str(word.clone()));
                 word.clear();
+            }
+            if exp != 0.0 && c != '(' && c != ')'
+            {
+                func.push(Str("^".to_string()));
+                func.push(Complex((exp, 0.0)));
+                exp = 0.0;
             }
             match c
             {
@@ -254,9 +277,12 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 '^' => func.push(Str('^'.to_string())),
                 '(' =>
                 {
-                    if !find_word && i != 0 && chars[i - 1] == ')'
+                    if let Some(Str(s)) = func.last()
                     {
-                        func.push(Str('*'.to_string()))
+                        if !find_word && s == ")"
+                        {
+                            func.push(Str('*'.to_string()))
+                        }
                     }
                     func.push(Str("(".to_string()))
                 }
@@ -305,6 +331,11 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
     if !abs
     {
         func.push(Str(")".to_string()))
+    }
+    if exp != 0.0
+    {
+        func.push(Str("^".to_string()));
+        func.push(Complex((exp, 0.0)));
     }
     if !word.is_empty()
     {

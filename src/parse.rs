@@ -228,7 +228,14 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                 }
                 '^' => func.push(Str('^'.to_string())),
-                '(' => func.push(Str("(".to_string())),
+                '(' =>
+                {
+                    if !find_word && i != 0 && chars[i - 1] == ')'
+                    {
+                        func.push(Str('*'.to_string()))
+                    }
+                    func.push(Str("(".to_string()))
+                }
                 ')' => func.push(Str(")".to_string())),
                 '|' =>
                 {

@@ -7,13 +7,19 @@ history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%
 ```
 Usage: calc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
---tau fractions are shown in tau
+--tau fractions are shown in tau instead of pi
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions
---debug for computation time in nanoseconds
+--debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program.
 - Type "clear" to clear the screen.
 - Type "help" to see this message.
+- Type "history" to see the history of calculations.
+- Type "deg" to switch to degrees mode.
+- Type "rad" to switch to radians mode.
+- Type "tau" to show fractions in tau.
+- Type "pi" to show fractions in pi.
+- Type "debug" to toggle debug mode.
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan

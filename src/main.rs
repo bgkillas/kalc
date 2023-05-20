@@ -22,12 +22,18 @@ fn help()
     println!(
              "Usage: calc [FLAGS] function_1 function_2 function_3...\n\
 FLAGS: --help (this message)\n\
---tau fractions are shown in tau\n\
+--tau fractions are shown in tau instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
---debug for computation time in nanoseconds\n\n\
+--debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program.\n\
 - Type \"clear\" to clear the screen.\n\
-- Type \"help\" to see this message.\n\n\
+- Type \"help\" to see this message.\n\
+- Type \"history\" to see the history of calculations.\n\
+- Type \"deg\" to switch to degrees mode.\n\
+- Type \"rad\" to switch to radians mode.\n\
+- Type \"tau\" to show fractions in tau.\n\
+- Type \"pi\" to show fractions in pi.\n\
+- Type \"debug\" to toggle debug mode.\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\
@@ -360,20 +366,56 @@ fn main()
             }
             stdout().flush().unwrap();
         }
-        if input == "exit"
+        match input.as_str()
         {
-            break;
-        }
-        if input == "clear"
-        {
-            print!("\x1B[2J\x1B[1;1H");
-            stdout().flush().unwrap();
-            continue;
-        }
-        if input == "help"
-        {
-            help();
-            continue;
+            "deg" =>
+            {
+                deg = true;
+                continue;
+            }
+            "rad" =>
+            {
+                deg = false;
+                continue;
+            }
+            "tau" =>
+            {
+                tau = true;
+                continue;
+            }
+            "pi" =>
+            {
+                tau = false;
+                continue;
+            }
+            "clear" =>
+            {
+                print!("\x1B[2J\x1B[1;1H");
+                stdout().flush().unwrap();
+                continue;
+            }
+            "debug" =>
+            {
+                debug = !debug;
+                watch = None;
+                continue;
+            }
+            "help" =>
+            {
+                help();
+                continue;
+            }
+            "history" =>
+            {
+                for (i, l) in lines.iter().enumerate()
+                {
+                    println!("{}: {}", i, l);
+                }
+                continue;
+            }
+            "exit" => break,
+            _ =>
+            {}
         }
         if input.is_empty()
         {

@@ -270,6 +270,8 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                                         if let Complex(b) = &function[i + 3]
                                         {
                                             (base_re, base_im) = *b;
+                                            function.remove(i + 3);
+                                            function.remove(i + 2);
                                             log(arg1, arg2, base_re, base_im)
                                         }
                                         else
@@ -303,6 +305,8 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                                         if let Complex(e) = &function[i + 3]
                                         {
                                             (base_re, base_im) = *e;
+                                            function.remove(i + 3);
+                                            function.remove(i + 2);
                                             match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
                                             {
                                                 true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),

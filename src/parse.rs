@@ -10,6 +10,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
     let mut find_word = false;
     let mut abs = true;
     let mut subfact = 0;
+    let mut neg = false;
     let count = input.chars().filter(|&c| c == '(').count() as i32 - input.chars().filter(|&c| c == ')').count() as i32;
     let mut input = input.to_string();
     if count > 0
@@ -39,6 +40,15 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 find_word = false;
                 func.push(Str(word.clone()));
                 word.clear();
+            }
+            if i != 0 && chars[i - 1] != 'x' && chars[i - 1] != 'y' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
+            {
+                func.push(Str('*'.to_string()))
+            }
+            if neg
+            {
+                real.push('-');
+                neg = false;
             }
             j = i;
             deci = false;
@@ -100,6 +110,10 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
             func.push(Complex((real.parse::<f64>().unwrap_or(0.0), imag.parse::<f64>().unwrap_or(0.0))));
             real.clear();
             imag.clear();
+            if j != chars.len() && chars[j] != 'x' && chars[j] != 'y' && (chars[j].is_ascii_alphanumeric() || chars[j] == '(')
+            {
+                func.push(Str('*'.to_string()))
+            }
             if j != i
             {
                 i = j;
@@ -202,7 +216,17 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 '*' => func.push(Str('*'.to_string())),
                 '/' => func.push(Str('/'.to_string())),
                 '+' => func.push(Str('+'.to_string())),
-                '-' => func.push(Str('-'.to_string())),
+                '-' =>
+                {
+                    if i == 0 || !(chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
+                    {
+                        neg = true;
+                    }
+                    else
+                    {
+                        func.push(Str('-'.to_string()));
+                    }
+                }
                 '^' => func.push(Str('^'.to_string())),
                 '(' => func.push(Str("(".to_string())),
                 ')' => func.push(Str(")".to_string())),

@@ -25,8 +25,8 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
                 return true;
             }
         };
-        let (lre, lim) = get_list_2d(&l, range);
-        let (rre, rim) = get_list_2d(&r, range);
+        let (lre, lim) = get_list_2d(&l, range, false);
+        let (rre, rim) = get_list_2d(&r, range, false);
         let mut success = true;
         for i in 0..lre.len()
         {
@@ -44,13 +44,14 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         return true;
     }
     let l = match do_math(match get_func(l)
-          {
-              Ok(i) => i,
-              Err(()) =>
-              {
-                  return true;
-              }
-          })
+                          {
+                              Ok(i) => i,
+                              Err(()) =>
+                              {
+                                  return true;
+                              }
+                          },
+                          false)
     {
         Ok(i) => i,
         Err(()) =>
@@ -59,13 +60,14 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         }
     };
     let r = match do_math(match get_func(r)
-          {
-              Ok(i) => i,
-              Err(()) =>
-              {
-                  return true;
-              }
-          })
+                          {
+                              Ok(i) => i,
+                              Err(()) =>
+                              {
+                                  return true;
+                              }
+                          },
+                          false)
     {
         Ok(i) => i,
         Err(()) =>

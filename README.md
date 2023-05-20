@@ -6,7 +6,10 @@ history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%
 # usage
 ```
 Usage: calc [FLAGS] function_1 function_2 function_3...
-FLAGS: --help (this message),--debug for computation time in nanoseconds
+FLAGS: --help (this message)
+--tau fractions are shown in tau
+--deg compute in degrees, gets rid of complex support for non hyperbolic trig functions
+--debug for computation time in nanoseconds
 
 - Type "exit" to exit the program.
 - Type "clear" to clear the screen.

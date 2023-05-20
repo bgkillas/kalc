@@ -1,7 +1,7 @@
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
 use crate::math::{do_math, NumOrString};
 // noinspection RsBorrowChecker
-pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if let NumOrString::Complex(n) = func[0]
     {
@@ -44,7 +44,8 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
                                                 _ => j.clone(),
                                             }
                                         })
-                                        .collect())
+                                        .collect(),
+                                deg)
             {
                 Ok(n) => n,
                 Err(_) => continue,
@@ -57,7 +58,7 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
     (re, im)
 }
 // noinspection RsBorrowChecker
-pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if let NumOrString::Complex(n) = func[0]
     {
@@ -84,7 +85,8 @@ pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
                                         _ => i.clone(),
                                     }
                                 })
-                                .collect())
+                                .collect(),
+                            deg)
         {
             Ok(n) => n,
             Err(_) => continue,
@@ -95,7 +97,7 @@ pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
     }
     (re, im)
 }
-pub fn graph(input:[&String; 3], func:[&[NumOrString]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64))
+pub fn graph(input:[&String; 3], func:[&[NumOrString]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64), deg:bool)
 {
     let re1col = "#9400D3";
     let im1col = "#009E73";
@@ -110,9 +112,9 @@ pub fn graph(input:[&String; 3], func:[&[NumOrString]; 3], graph:bool, close:boo
     if graph
     {
         let zticks = Some((Fix((range.0[2][1] - range.0[2][0]) / 20.0), 1));
-        let (mut re, mut im) = get_list_3d(func[0], range);
-        let (mut re2, mut im2) = get_list_3d(func[1], range);
-        let (mut re3, mut im3) = get_list_3d(func[2], range);
+        let (mut re, mut im) = get_list_3d(func[0], range, deg);
+        let (mut re2, mut im2) = get_list_3d(func[1], range, deg);
+        let (mut re3, mut im3) = get_list_3d(func[2], range, deg);
         if im.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             im.clear();
@@ -173,9 +175,9 @@ pub fn graph(input:[&String; 3], func:[&[NumOrString]; 3], graph:bool, close:boo
         fg.show_and_keep_running().unwrap();
         return;
     }
-    let (mut re, mut im) = get_list_2d(func[0], range);
-    let (mut re2, mut im2) = get_list_2d(func[1], range);
-    let (mut re3, mut im3) = get_list_2d(func[2], range);
+    let (mut re, mut im) = get_list_2d(func[0], range, deg);
+    let (mut re2, mut im2) = get_list_2d(func[1], range, deg);
+    let (mut re3, mut im3) = get_list_2d(func[2], range, deg);
     if im.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         im.clear();

@@ -10,7 +10,7 @@ pub enum NumOrString
     Str(String),
 }
 // noinspection RsBorrowChecker
-pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
+pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
 {
     if func.len() == 1
     {
@@ -68,7 +68,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                     i += 1;
                     continue;
                 }
-                function[i] = Complex(match do_math(v)
+                function[i] = Complex(match do_math(v, deg)
                 {
                     Ok(num) => num,
                     Err(e) => return Err(e),
@@ -92,18 +92,138 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                     (arg1, arg2) = *n;
                     to_parse = match s.to_string().as_str()
                     {
-                        "sin" => sin(arg1, arg2),
-                        "csc" => csc(arg1, arg2),
-                        "cos" => cos(arg1, arg2),
-                        "sec" => sec(arg1, arg2),
-                        "tan" => tan(arg1, arg2),
-                        "cot" => cot(arg1, arg2),
-                        "asin" | "arcsin" => asin(arg1, arg2),
-                        "acsc" | "arccsc" => acsc(arg1, arg2),
-                        "acos" | "arccos" => acos(arg1, arg2),
-                        "asec" | "arcsec" => asec(arg1, arg2),
-                        "atan" | "arctan" => atan(arg1, arg2),
-                        "acot" | "arccot" => acot(arg1, arg2),
+                        "sin" =>
+                        {
+                            if deg
+                            {
+                                sin(arg1.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                sin(arg1, arg2)
+                            }
+                        }
+                        "csc" =>
+                        {
+                            if deg
+                            {
+                                csc(arg1.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                csc(arg1, arg2)
+                            }
+                        }
+                        "cos" =>
+                        {
+                            if deg
+                            {
+                                cos(arg1.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                cos(arg1, arg2)
+                            }
+                        }
+                        "sec" =>
+                        {
+                            if deg
+                            {
+                                sec(arg1.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                sec(arg1, arg2)
+                            }
+                        }
+                        "tan" =>
+                        {
+                            if deg
+                            {
+                                tan(arg1.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                tan(arg1, arg2)
+                            }
+                        }
+                        "cot" =>
+                        {
+                            if deg
+                            {
+                                cot(arg1.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                cot(arg1, arg2)
+                            }
+                        }
+                        "asin" | "arcsin" =>
+                        {
+                            if deg
+                            {
+                                (asin(arg1, arg2).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                asin(arg1, arg2)
+                            }
+                        }
+                        "acsc" | "arccsc" =>
+                        {
+                            if deg
+                            {
+                                (acsc(arg1, arg2).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                acsc(arg1, arg2)
+                            }
+                        }
+                        "acos" | "arccos" =>
+                        {
+                            if deg
+                            {
+                                (acos(arg1, arg2).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                acos(arg1, arg2)
+                            }
+                        }
+                        "asec" | "arcsec" =>
+                        {
+                            if deg
+                            {
+                                (asec(arg1, arg2).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                asec(arg1, arg2)
+                            }
+                        }
+                        "atan" | "arctan" =>
+                        {
+                            if deg
+                            {
+                                (atan(arg1, arg2).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                atan(arg1, arg2)
+                            }
+                        }
+                        "acot" | "arccot" =>
+                        {
+                            if deg
+                            {
+                                (acot(arg1, arg2).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                acot(arg1, arg2)
+                            }
+                        }
                         "sinh" => sinh(arg1, arg2),
                         "csch" => csch(arg1, arg2),
                         "cosh" => cosh(arg1, arg2),

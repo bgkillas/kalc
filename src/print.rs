@@ -1,9 +1,9 @@
 use crate::fraction::fraction;
 use crate::math::{do_math, NumOrString};
 use crate::parse::get_func;
-pub fn print_answer(func:Vec<NumOrString>)
+pub fn print_answer(func:Vec<NumOrString>, deg:bool)
 {
-    let num = match do_math(func)
+    let num = match do_math(func, deg)
     {
         Ok(num) => num,
         Err(_) =>
@@ -19,7 +19,7 @@ pub fn print_answer(func:Vec<NumOrString>)
              if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0i") { "".to_string() } else { b });
 }
-pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
+pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, tau:bool, deg:bool) -> bool
 {
     let mut modified = input.to_string();
     for i in &var
@@ -55,14 +55,14 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         }
     };
     let mut frac = false;
-    if let Ok(num) = do_math(func)
+    if let Ok(num) = do_math(func, deg)
     {
         let (a, b) = num;
         let c = (a * 1e12).round() / 1e12;
         let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
         let d = (b * 1e12).round() / 1e12;
-        let fa = fraction(a);
-        let fb = fraction(b);
+        let fa = fraction(a, tau);
+        let fb = fraction(b, tau);
         let (output_a, output_b) = match (!fa.is_empty(), !fb.is_empty())
         {
             (true, true) =>

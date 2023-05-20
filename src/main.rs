@@ -21,7 +21,10 @@ fn help()
 {
     println!(
              "Usage: calc [FLAGS] function_1 function_2 function_3...\n\
-FLAGS: --help (this message),--debug for computation time in nanoseconds\n\n\
+FLAGS: --help (this message)\n\
+--tau fractions are shown in tau\n\
+--deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
+--debug for computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program.\n\
 - Type \"clear\" to clear the screen.\n\
 - Type \"help\" to see this message.\n\n\
@@ -69,21 +72,36 @@ fn main()
     let mut watch = None;
     let mut args = args().collect::<Vec<String>>();
     args.remove(0);
-    let debug = !args.is_empty() && args[0] == "--debug";
-    if debug
+    let mut debug = false;
+    let mut tau = false;
+    let mut deg = false;
+    loop
     {
-        args.remove(0);
+        if !args.is_empty()
+        {
+            match args.remove(0).as_str()
+            {
+                "--debug" => debug = true,
+                "--tau" => tau = true,
+                "--deg" => deg = true,
+                "--help" =>
+                {
+                    help();
+                    return;
+                }
+                _ => break,
+            }
+        }
+        else
+        {
+            break;
+        }
     }
     if !args.is_empty()
     {
         if debug
         {
             watch = Some(std::time::Instant::now());
-        }
-        if args[0] == "--help"
-        {
-            help();
-            return;
         }
         for i in args
         {
@@ -142,13 +160,13 @@ fn main()
                 };
                 if input.contains('y')
                 {
-                    graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range);
+                    graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range, deg);
                     return;
                 }
-                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range);
+                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range, deg);
                 return;
             }
-            print_answer(func);
+            print_answer(func, deg);
         }
         if let Some(time) = watch
         {
@@ -171,14 +189,15 @@ fn main()
             return;
         }
         print_answer(match get_func(&input)
-        {
-            Ok(f) => f,
-            Err(()) =>
-            {
-                println!("Invalid function.");
-                return;
-            }
-        });
+                     {
+                         Ok(f) => f,
+                         Err(()) =>
+                         {
+                             println!("Invalid function.");
+                             return;
+                         }
+                     },
+                     deg);
         return;
     }
     #[cfg(target_os = "linux")]
@@ -237,11 +256,11 @@ fn main()
                     print!("\x1B[2K\x1B[1G{}", input);
                     if input.is_empty()
                     {
-                        frac = print_concurrent(&"0".to_string(), var.clone(), true);
+                        frac = print_concurrent(&"0".to_string(), var.clone(), true, tau, deg);
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false);
+                        frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     }
                     for _ in 0..(input.len() - cursor)
                     {
@@ -263,7 +282,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
-                    frac = print_concurrent(&input, var.clone(), false);
+                    frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
@@ -281,7 +300,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
-                    frac = print_concurrent(&input, var.clone(), false);
+                    frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
@@ -325,7 +344,7 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
-                    frac = print_concurrent(&input, var.clone(), false);
+                    frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     len = input.len();
                     if let Some(time) = watch
                     {
@@ -441,10 +460,10 @@ fn main()
             };
             if input.contains('y')
             {
-                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, false, &mut plot, range);
+                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, false, &mut plot, range, deg);
                 continue;
             }
-            graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, false, &mut plot, range);
+            graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, false, &mut plot, range, deg);
             continue;
         }
         write(&input, &mut file, &lines);

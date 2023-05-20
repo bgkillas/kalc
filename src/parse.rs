@@ -216,6 +216,10 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                     _ =>
                     {
+                        if !find_word && i != 0 && chars[i - 1] == ')'
+                        {
+                            func.push(Str('*'.to_string()))
+                        }
                         word.push(c);
                         find_word = true;
                         i += 1;

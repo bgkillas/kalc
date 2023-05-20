@@ -9,7 +9,7 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         {
             return false;
         }
-        let l = match get_func(l, true)
+        let l = match get_func(l)
         {
             Ok(i) => i,
             Err(()) =>
@@ -17,7 +17,7 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
                 return true;
             }
         };
-        let r = match get_func(r, true)
+        let r = match get_func(r)
         {
             Ok(i) => i,
             Err(()) =>
@@ -47,7 +47,7 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
     {
         return false;
     }
-    let l = match do_math(match get_func(l, false)
+    let l = match do_math(match get_func(l)
           {
               Ok(i) => i,
               Err(()) =>
@@ -62,7 +62,7 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
             return true;
         }
     };
-    let r = match do_math(match get_func(r, false)
+    let r = match do_math(match get_func(r)
           {
               Ok(i) => i,
               Err(()) =>

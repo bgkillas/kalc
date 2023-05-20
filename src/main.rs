@@ -86,7 +86,7 @@ fn main()
                     return;
                 }
             }
-            let func = match get_func(input.as_str(), true)
+            let func = match get_func(input.as_str())
             {
                 Ok(f) => f,
                 Err(()) =>
@@ -101,7 +101,7 @@ fn main()
                 let l = split.next().unwrap();
                 let m = split.next().unwrap_or("0");
                 let r = split.next().unwrap_or("0");
-                let funcl = match get_func(l, true)
+                let funcl = match get_func(l)
                 {
                     Ok(f) => f,
                     _ =>
@@ -110,7 +110,7 @@ fn main()
                         return;
                     }
                 };
-                let funcm = match get_func(m, true)
+                let funcm = match get_func(m)
                 {
                     Ok(f) => f,
                     _ =>
@@ -119,7 +119,7 @@ fn main()
                         return;
                     }
                 };
-                let funcr = match get_func(r, true)
+                let funcr = match get_func(r)
                 {
                     Ok(f) => f,
                     _ =>
@@ -154,7 +154,7 @@ fn main()
         {
             return;
         }
-        print_answer(match get_func(&input, true)
+        print_answer(match get_func(&input)
         {
             Ok(f) => f,
             Err(()) =>
@@ -401,17 +401,17 @@ fn main()
             l = split.next().unwrap();
             m = split.next().unwrap_or("0");
             r = split.next().unwrap_or("0");
-            funcl = match get_func(l, true)
+            funcl = match get_func(l)
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            funcm = match get_func(m, true)
+            funcm = match get_func(m)
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            funcr = match get_func(r, true)
+            funcr = match get_func(r)
             {
                 Ok(f) => f,
                 _ => continue,

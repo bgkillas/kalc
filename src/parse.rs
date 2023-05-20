@@ -1,355 +1,267 @@
 use std::f64::consts::{E, PI};
 use crate::math::NumOrString;
-pub fn get_func(input:&str, done:bool) -> Result<Vec<NumOrString>, ()>
+use crate::math::NumOrString::{Complex, Str};
+pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
 {
-    let mut count:i32 = 0;
-    let mut func:Vec<String> = Vec::new();
-    let mut word:String = String::new();
-    let chars = input.chars().collect::<Vec<char>>();
+    let mut func:Vec<NumOrString> = Vec::new();
+    let mut word = String::new();
+    let mut real = String::new();
+    let mut imag = String::new();
+    let mut find_word = false;
     let mut abs = true;
-    for (i, c) in chars.iter().enumerate()
+    let mut subfact = 0;
+    let count = input.chars().filter(|&c| c == '(').count() as i32 - input.chars().filter(|&c| c == ')').count() as i32;
+    let mut input = input.to_string();
+    if count > 0
     {
-        if (*c == 'x' || *c == 'y') && !(chars.len() > i + 1 && chars[i + 1] == 'p')
+        for _ in 0..count
+        {
+            input.push(')');
+        }
+    }
+    else
+    {
+        for _ in 0..count.abs()
+        {
+            input.insert(0, '(')
+        }
+    }
+    let chars = input.chars().collect::<Vec<char>>();
+    let mut i = 0;
+    let (mut c, mut j, mut char, mut deci, mut f, mut imchar, mut imdeci);
+    while i < chars.len()
+    {
+        c = chars[i];
+        if c.is_numeric()
         {
             if !word.is_empty()
             {
-                func.push(word.clone());
-            }
-            if i != 0 && (word.parse::<f64>().is_ok() || word.ends_with('i') || chars[i - 1] == 'x' || chars[i - 1] == 'y')
-            {
-                func.push("*".to_string());
-            }
-            word.clear();
-            word = c.to_string();
-        }
-        else if *c == ','
-        {
-            if !word.is_empty()
-            {
-                func.push(word.clone());
-                word.clear()
-            }
-            func.push(",".to_string());
-        }
-        else if *c == '|'
-        {
-            if !word.is_empty()
-            {
-                func.push(word.clone());
+                find_word = false;
+                func.push(Str(word.clone()));
                 word.clear();
             }
-            if abs
+            j = i;
+            deci = false;
+            'outer: while j < chars.len()
             {
-                func.push("abs".to_string());
-                func.push("(".to_string());
-                count += 1;
-            }
-            else
-            {
-                func.push(")".to_string());
-                count -= 1;
-            }
-            abs = !abs;
-        }
-        else if *c == '!'
-        {
-            if i != 0 && chars[i - 1].is_ascii_digit()
-            {
-                func.push("fact".to_string());
-                func.push("(".to_string());
-                func.push(word.clone());
-                word.clear();
-                func.push(")".to_string());
-            }
-            else if i != chars.len() - 1 && chars[i + 1].is_ascii_digit()
-            {
-                func.push(word.clone());
-                word.clear();
-                func.push("subfact".to_string());
-                func.push("(".to_string());
-                count += 1;
-            }
-        }
-        else if *c == 'e' && (i == 0 || !chars[i - 1].is_ascii_alphabetic() || chars[i - 1] == 'x' || chars[i - 1] == 'i') && !(chars.len() > i + 2 && chars[i + 2] == 'p' && chars[i + 1] == 'x')
-        {
-            if word == "-"
-            {
-                word = "-1".to_string();
-            }
-            if !word.is_empty()
-            {
-                func.push(word.clone());
-                func.push("*".to_string());
-                word.clear();
-            }
-            word = E.to_string();
-        }
-        else if *c == 'π'
-        {
-            if word == "-"
-            {
-                word = "-1".to_string();
-            }
-            if !word.is_empty()
-            {
-                func.push(word.clone());
-                func.push("*".to_string());
-                word.clear();
-            }
-            word = PI.to_string();
-        }
-        else if *c == 'i'
-        {
-            if i != 0 && chars[i - 1] == 'p'
-            {
-                if word == "-"
+                char = chars[j];
+                if char.is_numeric()
                 {
-                    word = "-1".to_string();
+                    real.push(char);
                 }
-                if !word.is_empty()
+                else if char == '.' && !deci
                 {
-                    func.push(word.clone());
-                    func.push("*".to_string());
-                    word.clear()
+                    deci = true;
+                    real.push(char);
                 }
-                word = PI.to_string();
+                else if char == 'i'
+                {
+                    imag = real.clone();
+                    real.clear();
+                }
+                else if char == '+' || char == '-'
+                {
+                    imag.push(char);
+                    f = j + 1;
+                    imdeci = false;
+                    while f < chars.len()
+                    {
+                        imchar = chars[f];
+                        if imchar.is_numeric()
+                        {
+                            imag.push(imchar);
+                        }
+                        else if imchar == '.' && !imdeci
+                        {
+                            imdeci = true;
+                            imag.push(imchar);
+                        }
+                        else if imchar == 'i'
+                        {
+                            j = f + 1;
+                            break 'outer;
+                        }
+                        else
+                        {
+                            imag.clear();
+                            break 'outer;
+                        }
+                        f += 1;
+                    }
+                    imag.clear();
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+                j += 1;
             }
-            else if i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic() || chars[i + 1] == 'i' || chars[i + 1] == 'x' || chars[i + 1] == 'y'
+            func.push(Complex((real.parse::<f64>().unwrap_or(0.0), imag.parse::<f64>().unwrap_or(0.0))));
+            real.clear();
+            imag.clear();
+            if j != i
             {
-                if i != 0 && (!word.is_empty() && word != "(" && word != "-")
-                {
-                    func.push(word.clone());
-                    func.push("*".to_string());
-                    word.clear();
-                }
-                if word.is_empty()
-                {
-                    word = "1".to_string();
-                }
-                if word == "-"
-                {
-                    word = "-1".to_string();
-                }
-                word.push(*c);
+                i = j;
+                continue;
             }
-            else if chars[i + 1].is_ascii_alphabetic()
-            {
-                if word == "1i"
-                {
-                    func.push("1i".to_string());
-                    func.push("*".to_string());
-                    word.clear();
-                }
-                word.push(*c);
-            }
-        }
-        else if *c == 'p'
-        {
-            if i == chars.len() - 1 || chars[i + 1] != 'i'
-            {
-                word.push(*c);
-            }
-            continue;
-        }
-        else if *c == '.'
-        {
-            if word.is_empty()
-            {
-                word = "0".to_string();
-            }
-            if word.contains('.')
-            {
-                if done
-                {
-                    println!("Error: Invalid number");
-                }
-                return Err(());
-            }
-            word.push(*c);
-        }
-        else if chars.len() > i + 1 && *c == '-' && chars[i + 1] == '(' && (i == 0 || chars[i - 1] == '(')
-        {
-            func.push((-1.0).to_string());
-            func.push("*".to_string());
         }
         else if c.is_ascii_alphabetic()
         {
-            if word == "i" && c != &'m' && c != &'n'
+            if find_word
             {
-                func.push("1i".to_string());
-                func.push("*".to_string());
-                word.clear();
+                word.push(c);
             }
-            if !word.is_empty() && (((word.chars().next().unwrap().is_ascii_digit() || word.starts_with('-')) && word.ends_with('i')) || word.chars().last().unwrap().is_ascii_digit())
+            else
             {
-                func.push(word.clone());
-                func.push("*".to_string());
-                word.clear();
-            }
-            if word == "-"
-            {
-                word = "-1".to_string();
-                func.push(word.clone());
-                func.push("*".to_string());
-                word.clear();
-            }
-            word.push(*c);
-        }
-        else if c.is_ascii_digit()
-        {
-            if i != 0 && chars[i - 1].is_ascii_alphabetic()
-            {
-                func.push(word.clone());
-                if word == "1i" || word == "x" || word == "y"
+                match c
                 {
-                    func.push("*".to_string());
+                    'x' | 'y' =>
+                    {
+                        if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
+                        {
+                            func.push(Str('*'.to_string()))
+                        }
+                        func.push(Str(c.to_string()));
+                        if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                        {
+                            func.push(Str('*'.to_string()))
+                        }
+                    }
+                    'i' =>
+                    {
+                        if i != 0 && chars[i - 1] == 'p'
+                        {
+                            func.push(Complex((PI, 0.0)));
+                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                            {
+                                func.push(Str('*'.to_string()))
+                            }
+                        }
+                        else if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
+                        {
+                            word.push(c);
+                            find_word = true;
+                        }
+                        else
+                        {
+                            func.push(Complex((0.0, 1.0)));
+                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                            {
+                                func.push(Str('*'.to_string()))
+                            }
+                        }
+                    }
+                    'e' =>
+                    {
+                        if i + 2 < chars.len() && chars[i + 1] == 'x' && chars[i + 2] == 'p'
+                        {
+                            word.push(c);
+                            find_word = true;
+                        }
+                        else
+                        {
+                            func.push(Complex((E, 0.0)));
+                            if i != chars.len() - 1 && chars[i + 1] != 'x' && chars[i + 1] != 'y' && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                            {
+                                func.push(Str('*'.to_string()))
+                            }
+                        }
+                    }
+                    'p' =>
+                    {
+                        if find_word
+                        {
+                            word.push(c)
+                        }
+                    }
+                    _ =>
+                    {
+                        word.push(c);
+                        find_word = true;
+                    }
                 }
-                word.clear();
             }
-            word.push(*c);
         }
         else
         {
-            if *c == '('
-            {
-                count += 1;
-            }
-            else if *c == ')'
-            {
-                count -= 1;
-            }
-            if *c == '-' && word.is_empty() && i != 0 && chars[i - 1] != ')' && chars[i - 1] != 'x' && chars[i - 1] != 'y'
-            {
-                word.push(*c);
-                continue;
-            }
-            if *c == '('
-               && i != 0
-               && (chars[i - 1].is_ascii_digit()
-                   || (chars[i - 1] == 'e' && (i == 1 || chars[i - 2] != 'r'))
-                   || chars[i - 1] == 'i'
-                   || chars[i - 1] == ')'
-                   || chars[i - 1] == 'x'
-                   || chars[i - 1] == 'y')
-            {
-                if !word.is_empty()
-                {
-                    func.push(word.clone());
-                }
-                func.push("*".to_string());
-                word.clear();
-            }
-            if i != 0 && chars[i - 1] == '(' && *c == '+'
-            {
-                continue;
-            }
             if !word.is_empty()
             {
-                func.push(word.clone());
+                find_word = false;
+                func.push(Str(word.clone()));
+                word.clear();
             }
-            func.push(c.to_string());
-            word.clear();
-            if chars[i] == ')' && i < chars.len() - 1 && chars[i + 1].is_ascii_alphanumeric()
+            match c
             {
-                func.push("*".to_string());
+                '*' => func.push(Str('*'.to_string())),
+                '/' => func.push(Str('/'.to_string())),
+                '+' => func.push(Str('+'.to_string())),
+                '-' => func.push(Str('-'.to_string())),
+                '^' => func.push(Str('^'.to_string())),
+                '(' => func.push(Str("(".to_string())),
+                ')' => func.push(Str(")".to_string())),
+                '|' =>
+                {
+                    if abs
+                    {
+                        func.push(Str("abs".to_string()));
+                        func.push(Str("(".to_string()));
+                    }
+                    else
+                    {
+                        func.push(Str(")".to_string()));
+                    }
+                    abs = !abs;
+                }
+                '!' =>
+                {
+                    if i != 0 && chars[i - 1].is_ascii_digit()
+                    {
+                        func.insert(func.len() - 1, Str("fact".to_string()));
+                        func.insert(func.len() - 1, Str("(".to_string()));
+                        func.push(Str(")".to_string()));
+                    }
+                    else if i != chars.len() - 1 && chars[i + 1].is_ascii_digit()
+                    {
+                        func.push(Str("subfact".to_string()));
+                        func.push(Str("(".to_string()));
+                        subfact += 1;
+                    }
+                }
+                ',' => func.push(Str(','.to_string())),
+                '%' => func.push(Str('%'.to_string())),
+                _ => (),
             }
         }
+        i += 1;
+    }
+    for _ in 0..subfact
+    {
+        func.push(Str(")".to_string()))
+    }
+    if !abs
+    {
+        func.push(Str(")".to_string()))
     }
     if !word.is_empty()
     {
-        func.push(word);
-    }
-    if count != 0
-    {
-        if count > 0
-        {
-            for _ in 0..count
-            {
-                func.push(")".to_string());
-            }
-        }
-        else
-        {
-            for _ in 0..count.abs()
-            {
-                func.insert(0, "(".to_string());
-            }
-        }
-    }
-    let mut i = 0;
-    let mut double = false;
-    let mut location = 0;
-    loop
-    {
-        if func.is_empty() || i >= func.len() - 1
-        {
-            break;
-        }
-        if func[i] == "(" && func[i + 1] == "("
-        {
-            double = true;
-            location = i;
-            i += 1;
-            continue;
-        }
-        if double && func[i] == ")" && func[i + 1] == ")"
-        {
-            double = false;
-            func.remove(location);
-            func.remove(i);
-            continue;
-        }
-        if func[i] == "(" && func[i + 1] == ")"
-        {
-            func.remove(i);
-            func.remove(i);
-            continue;
-        }
-        if i < func.len() - 2 && func[i] == "(" && func[i + 2] == ")"
-        {
-            func.remove(i);
-            func.remove(i + 1);
-            continue;
-        }
-        i += 1;
+        func.push(Str(word.clone()));
+        word.clear();
     }
     if func.is_empty()
     {
         return Err(());
     }
-    let first = func.first().unwrap().to_string();
-    if first == "*" || first == "/" || first == "^" || first == "-"
+    if let Str(s) = func.last().unwrap()
     {
-        func.insert(0, "0".to_string());
-    }
-    if first == "+"
-    {
-        func.remove(0);
-        if func.is_empty()
+        if s == "*" || s == "/" || s == "^" || s == "+" || s == "-" || s == "%"
         {
-            return Err(());
+            func.pop();
         }
     }
-    let last = func.last().unwrap().chars().last().unwrap();
-    if last == '*' || last == '/' || last == '^' || last == '+' || last == '-'
+    if func.is_empty()
     {
-        func.pop();
+        return Err(());
     }
-    let mut to_num_or_string:Vec<NumOrString> = Vec::new();
-    for i in func
-    {
-        if let Ok(n) = i.parse::<f64>()
-        {
-            to_num_or_string.push(NumOrString::Complex((n, 0.0)));
-        }
-        else if let Ok(n) = i.replace('i', "").parse::<f64>()
-        {
-            to_num_or_string.push(NumOrString::Complex((0.0, n)));
-        }
-        else
-        {
-            to_num_or_string.push(NumOrString::String(i))
-        }
-    }
-    Ok(to_num_or_string)
+    Ok(func)
 }

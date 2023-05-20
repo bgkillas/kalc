@@ -6,7 +6,7 @@ use crate::complex::{
 pub enum NumOrString
 {
     Complex((f64, f64)),
-    String(String),
+    Str(String),
 }
 // noinspection RsBorrowChecker
 pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
@@ -22,9 +22,10 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
     let mut function = func;
     let mut i = 0;
     let (mut j, mut count);
+    let mut v;
     while i < function.len() - 1
     {
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if s == "("
             {
@@ -38,8 +39,8 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                     }
                     match &function[j]
                     {
-                        NumOrString::String(s) if s == "(" => count += 1,
-                        NumOrString::String(s) if s == ")" => count -= 1,
+                        NumOrString::Str(s) if s == "(" => count += 1,
+                        NumOrString::Str(s) if s == ")" => count -= 1,
                         _ =>
                         {}
                     }
@@ -49,7 +50,24 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                 {
                     return Err(());
                 }
-                function[i] = NumOrString::Complex(match do_math(function[i + 1..j - 1].to_vec())
+                v = function[i + 1..j - 1].to_vec();
+                if v.iter().any(|x| {
+                               if let NumOrString::Str(s) = x
+                               {
+                                   s == ","
+                               }
+                               else
+                               {
+                                   false
+                               }
+                           })
+                {
+                    function.remove(i);
+                    function.remove(j - 2);
+                    i += 1;
+                    continue;
+                }
+                function[i] = NumOrString::Complex(match do_math(v)
                 {
                     Ok(num) => num,
                     Err(e) => return Err(e),
@@ -64,7 +82,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
     let (mut arg1, mut arg2, mut a, mut b, mut c, mut d, mut base_re, mut base_im);
     while i < function.len() - 1
     {
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
@@ -105,18 +123,25 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                         "exp" => pow(E, 0.0, arg1, arg2),
                         "log" =>
                         {
-                            if let NumOrString::String(s) = &function[i + 2]
+                            if function.len() > i + 3
                             {
-                                if s == ","
+                                if let NumOrString::Str(s) = &function[i + 2]
                                 {
-                                    if let NumOrString::Complex(b) = &function[i + 3]
+                                    if s == ","
                                     {
-                                        (base_re, base_im) = *b;
-                                        log(arg1, arg2, base_re, base_im)
+                                        if let NumOrString::Complex(b) = &function[i + 3]
+                                        {
+                                            (base_re, base_im) = *b;
+                                            log(arg1, arg2, base_re, base_im)
+                                        }
+                                        else
+                                        {
+                                            return Err(());
+                                        }
                                     }
                                     else
                                     {
-                                        return Err(());
+                                        ln(arg1, arg2)
                                     }
                                 }
                                 else
@@ -131,26 +156,33 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
                         }
                         "root" =>
                         {
-                            if let NumOrString::String(s) = &function[i]
+                            if function.len() > i + 3
                             {
-                                if s == ","
+                                if let NumOrString::Str(s) = &function[i + 2]
                                 {
-                                    if let NumOrString::Complex(e) = &function[i + 3]
+                                    if s == ","
                                     {
-                                        (base_re, base_im) = *e;
-                                        match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
+                                        if let NumOrString::Complex(e) = &function[i + 3]
                                         {
-                                            true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),
-                                            false =>
+                                            (base_re, base_im) = *e;
+                                            match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
                                             {
-                                                (a, b) = div(1.0, 0.0, base_re, base_im);
-                                                pow(arg1, arg2, a, b)
+                                                true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),
+                                                false =>
+                                                {
+                                                    (a, b) = div(1.0, 0.0, base_re, base_im);
+                                                    pow(arg1, arg2, a, b)
+                                                }
                                             }
+                                        }
+                                        else
+                                        {
+                                            return Err(());
                                         }
                                     }
                                     else
                                     {
-                                        return Err(());
+                                        pow(arg1, arg2, 0.5, 0.0)
                                     }
                                 }
                                 else
@@ -228,7 +260,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if s != "%"
             {
@@ -268,7 +300,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if s != "^"
             {
@@ -304,7 +336,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if !(s == "*" || s == "/")
             {
@@ -333,7 +365,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if s == "*"
             {
@@ -355,7 +387,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if !(s == "+" || s == "-")
             {
@@ -384,7 +416,7 @@ pub fn do_math(func:Vec<NumOrString>) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        if let NumOrString::String(s) = &function[i]
+        if let NumOrString::Str(s) = &function[i]
         {
             if s == "+"
             {

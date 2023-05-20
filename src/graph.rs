@@ -28,7 +28,7 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
                        .map(|i| {
                            match i
                            {
-                               NumOrString::String(s) if s == "x" => NumOrString::Complex((n, 0.0)),
+                               NumOrString::Str(s) if s == "x" => NumOrString::Complex((n, 0.0)),
                                _ => i.clone(),
                            }
                        })
@@ -40,7 +40,7 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
                                         .map(|j| {
                                             match j
                                             {
-                                                NumOrString::String(s) if s == "x" => NumOrString::Complex((f, 0.0)),
+                                                NumOrString::Str(s) if s == "x" => NumOrString::Complex((f, 0.0)),
                                                 _ => j.clone(),
                                             }
                                         })
@@ -80,7 +80,7 @@ pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64)) -> (Vec
                                 .map(|i| {
                                     match i
                                     {
-                                        NumOrString::String(s) if s == "x" => NumOrString::Complex((n, 0.0)),
+                                        NumOrString::Str(s) if s == "x" => NumOrString::Complex((n, 0.0)),
                                         _ => i.clone(),
                                     }
                                 })

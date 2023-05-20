@@ -45,7 +45,7 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool) -> bool
         print!("\x1b[96m\x1b[B\x1B[2K\x1B[1G\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", input);
         return false;
     }
-    let func = match get_func(&modified, false)
+    let func = match get_func(&modified)
     {
         Ok(f) => f,
         Err(_) =>

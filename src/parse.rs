@@ -185,9 +185,9 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         if find_word
                         {
                             word.push(c);
-                            i += 1;
-                            continue;
                         }
+                        i += 1;
+                        continue;
                     }
                     _ =>
                     {

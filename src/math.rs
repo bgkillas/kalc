@@ -253,12 +253,12 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                         "atanh" | "arctanh" => atanh(arg1, arg2),
                         "acoth" | "arccoth" => acoth(arg1, arg2),
                         "cis" => pow(E, 0.0, -arg2, arg1),
-                        "ln" => ln(arg1, arg2),
+                        "ln" | "aexp" => ln(arg1, arg2),
                         "ceil" => (arg1.ceil(), arg2.ceil()),
                         "floor" => (arg1.floor(), arg2.floor()),
                         "round" => (arg1.round(), arg2.round()),
                         "recip" => div(1.0, 0.0, arg1, arg2),
-                        "exp" => pow(E, 0.0, arg1, arg2),
+                        "exp" | "aln" => pow(E, 0.0, arg1, arg2),
                         "log" =>
                         {
                             if function.len() > i + 3
@@ -337,7 +337,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                                 pow(arg1, arg2, 0.5, 0.0)
                             }
                         }
-                        "sqrt" => pow(arg1, arg2, 0.5, 0.0),
+                        "sqrt" | "asquare" => pow(arg1, arg2, 0.5, 0.0),
                         "abs" => (abs(arg1, arg2), 0.0),
                         "deg" | "degree" =>
                         {
@@ -359,7 +359,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                         "im" | "imag" => (arg2, 0.0),
                         "sgn" | "sign" => sgn(arg1, arg2),
                         "arg" => (arg(arg1, arg2), 0.0),
-                        "cbrt" =>
+                        "cbrt" | "acube" =>
                         {
                             match arg2 == 0.0
                             {
@@ -377,8 +377,8 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                             }
                             (fact(arg1), 0.0)
                         }
-                        "square" => pow(arg1, arg2, 2.0, 0.0),
-                        "cube" => pow(arg1, arg2, 3.0, 0.0),
+                        "square" | "asqrt" => pow(arg1, arg2, 2.0, 0.0),
+                        "cube" | "acbrt" => pow(arg1, arg2, 3.0, 0.0),
                         "subfact" =>
                         {
                             if arg2 != 0.0 || arg1 < 0.0

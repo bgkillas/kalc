@@ -226,6 +226,14 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     i += 5;
                     continue;
                 }
+                if i + 2 < chars.len() && chars[i] == '^' && chars[i + 1] == '-' && chars[i + 2] == '1'
+                {
+                    word.insert(0, 'a');
+                    func.push(Str(word.clone()));
+                    word.clear();
+                    i += 3;
+                    continue;
+                }
                 if i + 1 < chars.len() && chars[i] == '^' && chars[i + 1].is_ascii_digit()
                 {
                     func.push(Str(word.clone()));

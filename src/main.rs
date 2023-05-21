@@ -39,12 +39,12 @@ FLAGS: --help (this message)\n\
 - Type \"rad\" to switch to radians mode\n\
 - Type \"tau\" to show fractions in tau\n\
 - Type \"pi\" to show fractions in pi\n\
-- Type 2d=[num] to set the number of points in 2D graphs (default 40000)\n\
-- Type 3d=[num] to set the number of points in 3D graphs (default 400)\n\
-- Type xr=[min],[max] to set the x range for graphing\n\
-- Type yr=[min],[max] to set the y range for graphing\n\
-- Type zr=[min],[max] to set the z range for graphing\n\
-- Type \"debug\" to toggle debug mode.\n\n\
+- Type \"2d=[num]\" to set the number of points in 2D graphs (default 40000)\n\
+- Type \"3d=[num]\" to set the number of points in 3D graphs (default 400)\n\
+- Type \"xr=[min],[max]\" to set the x range for graphing\n\
+- Type \"yr=[min],[max]\" to set the y range for graphing\n\
+- Type \"zr=[min],[max]\" to set the z range for graphing\n\
+- Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\
@@ -437,7 +437,6 @@ fn main()
         {
             continue;
         }
-        write(&input, &mut file, &lines);
         match input.as_str()
         {
             "deg" =>
@@ -489,6 +488,7 @@ fn main()
             _ =>
             {}
         }
+        write(&input, &mut file, &lines);
         if input.contains('=')
         {
             print!("\x1b[2K\x1b[1G");

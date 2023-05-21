@@ -24,12 +24,12 @@ FLAGS: --help (this message)
 - Type "rad" to switch to radians mode
 - Type "tau" to show fractions in tau
 - Type "pi" to show fractions in pi
-- Type 2d=[num] to set the number of points in 2D graphs (default 40000)
-- Type 3d=[num] to set the number of points in 3D graphs (default 400)
-- Type xr=[min],[max] to set the x range for graphing
-- Type yr=[min],[max] to set the y range for graphing
-- Type zr=[min],[max] to set the z range for graphing
-- Type "debug" to toggle debug mode
+- Type "2d=[num]" to set the number of points in 2D graphs (default 40000)
+- Type "3d=[num]" to set the number of points in 3D graphs (default 400)
+- Type "xr=[min],[max]" to set the x range for graphing
+- Type "yr=[min],[max]" to set the y range for graphing
+- Type "zr=[min],[max]" to set the z range for graphing
+- Type ""debug" toggles displaying computation time in nanoseconds
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan

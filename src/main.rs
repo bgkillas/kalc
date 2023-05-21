@@ -165,7 +165,7 @@ fn main()
                 let r = split.next().unwrap();
                 if equal::equal(range, input.as_str(), l, r)
                 {
-                    return;
+                    continue;
                 }
             }
             let func = match get_func(input.as_str())
@@ -213,10 +213,10 @@ fn main()
                 if input.contains('y')
                 {
                     graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range, deg);
-                    return;
+                    continue;
                 }
                 graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range, deg);
-                return;
+                continue;
             }
             print_answer(func, deg);
         }
@@ -433,6 +433,10 @@ fn main()
             }
             stdout().flush().unwrap();
         }
+        if input.is_empty()
+        {
+            continue;
+        }
         write(&input, &mut file, &lines);
         match input.as_str()
         {
@@ -484,10 +488,6 @@ fn main()
             "exit" => break,
             _ =>
             {}
-        }
-        if input.is_empty()
-        {
-            continue;
         }
         if input.contains('=')
         {

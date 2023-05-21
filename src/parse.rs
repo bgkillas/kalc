@@ -145,6 +145,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                     'i' =>
                     {
+                        place_multiplier(&mut func, &find_word);
                         if i != 0 && chars[i - 1] == 'p'
                         {
                             func.push(Complex((if neg { -PI } else { PI }, 0.0)));
@@ -163,6 +164,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                     'e' =>
                     {
+                        place_multiplier(&mut func, &find_word);
                         if i + 2 < chars.len() && (chars[i + 1] == 'x' || chars[i + 1] == 'y') && chars[i + 2] == 'p'
                         {
                             word.push(c);
@@ -170,7 +172,6 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         }
                         else
                         {
-                            place_multiplier(&mut func, &find_word);
                             func.push(Complex((if neg { -E } else { E }, 0.0)));
                             neg = false;
                         }
@@ -251,7 +252,15 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 {
                     if i == 0 || !(chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                     {
-                        neg = true;
+                        if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
+                        {
+                            func.push(Complex((-1.0, 0.0)));
+                            func.push(Str("*".to_string()));
+                        }
+                        else
+                        {
+                            neg = true;
+                        }
                     }
                     else
                     {

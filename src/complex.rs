@@ -405,11 +405,3 @@ pub fn frac(a:f64, b:f64) -> (f64, f64)
 {
     (a.fract(), b.fract())
 }
-pub fn cis(a:f64, b:f64) -> (f64, f64)
-{
-    // cis(a+bi)=cos(a+bi)+isin(a+bi)
-    let (c, d) = cos(a, b);
-    let (e, f) = sin(a, b);
-    let (re, im) = add(c, e, d, f);
-    (re, im)
-}

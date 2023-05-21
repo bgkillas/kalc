@@ -135,6 +135,12 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 {
                     'x' | 'y' =>
                     {
+                        if neg
+                        {
+                            func.push(Complex((-1.0, 0.0)));
+                            func.push(Str('*'.to_string()));
+                            neg = false;
+                        }
                         if !find_word && i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                         {
                             func.push(Str('*'.to_string()))
@@ -151,7 +157,8 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     {
                         if i != 0 && chars[i - 1] == 'p'
                         {
-                            func.push(Complex((PI, 0.0)));
+                            func.push(Complex((if neg { -PI } else { PI }, 0.0)));
+                            neg = false;
                         }
                         else if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
                         {
@@ -162,7 +169,8 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         }
                         else
                         {
-                            func.push(Complex((0.0, 1.0)));
+                            func.push(Complex((0.0, if neg { -1.0 } else { 1.0 })));
+                            neg = false;
                         }
                     }
                     'e' =>
@@ -184,7 +192,8 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                             {
                                 func.push(Str('*'.to_string()))
                             }
-                            func.push(Complex((E, 0.0)));
+                            func.push(Complex((if neg { -E } else { E }, 0.0)));
+                            neg = false;
                         }
                     }
                     'p' =>
@@ -218,7 +227,8 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                     'u' =>
                     {
-                        func.push(Complex((TAU, 0.0)));
+                        func.push(Complex((if neg { -TAU } else { TAU }, 0.0)));
+                        neg = false;
                     }
                     _ =>
                     {

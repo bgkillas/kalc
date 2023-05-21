@@ -44,7 +44,8 @@ FLAGS: --help (this message)\n\
 - Type \"xr=[min],[max]\" to set the x range for graphing\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
-- Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
+- Type \"debug\" toggles displaying computation time in nanoseconds\n\
+- Type \"_\" to use the previous answer\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\
@@ -264,6 +265,7 @@ fn main()
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let fg = "\x1b[96m";
     let mut lines:Vec<String>;
+    let mut last = String::new();
     let (mut width, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
     {
@@ -317,11 +319,11 @@ fn main()
                     }
                     if input.is_empty()
                     {
-                        frac = print_concurrent(&"0".to_string(), var.clone(), true, tau, deg);
+                        frac = print_concurrent(&"0".to_string(), var.clone(), true, tau, deg, &last);
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false, tau, deg);
+                        frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
                     }
                     for _ in 0..(input.len() - cursor)
                     {
@@ -347,7 +349,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, deg);
+                    frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
@@ -369,7 +371,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, deg);
+                    frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
@@ -399,7 +401,7 @@ fn main()
                         input.insert(cursor, 'i');
                         cursor += 1;
                     }
-                    if c == 'τ'
+                    else if c == 'τ'
                     {
                         input.insert(cursor, 't');
                         cursor += 1;
@@ -417,7 +419,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, deg);
+                    frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
                     len = input.len();
                     if let Some(time) = watch
                     {
@@ -488,6 +490,7 @@ fn main()
             _ =>
             {}
         }
+        last = format!("({})", input.clone());
         write(&input, &mut file, &lines);
         if input.contains('=')
         {
@@ -602,6 +605,7 @@ fn read_single_char() -> char
                || c == '|'
                || c == '!'
                || c == '%'
+               || c == '_'
             {
                 c
             }

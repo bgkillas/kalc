@@ -29,7 +29,8 @@ FLAGS: --help (this message)
 - Type "xr=[min],[max]" to set the x range for graphing
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
-- Type ""debug" toggles displaying computation time in nanoseconds
+- Type "debug" toggles displaying computation time in nanoseconds
+- Type "_" to use the previous answer
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan

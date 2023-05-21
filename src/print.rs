@@ -19,9 +19,9 @@ pub fn print_answer(func:Vec<NumOrString>, deg:bool)
              if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0i") { "".to_string() } else { b });
 }
-pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, tau:bool, deg:bool) -> bool
+pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, tau:bool, deg:bool, last:&str) -> bool
 {
-    let mut modified = input.to_string();
+    let mut modified = input.to_string().replace('_', last);
     for i in &var
     {
         let var_name = i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>();

@@ -13,6 +13,7 @@ use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
 use graph::graph;
 use print::{print_answer, print_concurrent};
+use terminal_size::{Width, terminal_size};
 #[cfg(target_os = "linux")]
 use {
     libc::{isatty, STDIN_FILENO}, std::io::stdin
@@ -263,9 +264,14 @@ fn main()
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let fg = "\x1b[96m";
     let mut lines:Vec<String>;
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
+    let (mut width, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
     {
+        width = match terminal_size()
+        {
+            Some((Width(w), _)) => w,
+            _ => 80,
+        };
         input.clear();
         stdout().flush().unwrap();
         lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
@@ -297,7 +303,7 @@ fn main()
                     {
                         if input.is_empty()
                         {
-                            print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A");
                             stdout().flush().unwrap();
                         }
                         continue;
@@ -305,6 +311,10 @@ fn main()
                     cursor -= 1;
                     input.remove(cursor);
                     print!("\x1B[2K\x1B[1G{}", input);
+                    if width < (input.len() + 1) as u16
+                    {
+                        print!("\x1b[A");
+                    }
                     if input.is_empty()
                     {
                         frac = print_concurrent(&"0".to_string(), var.clone(), true, tau, deg);
@@ -319,7 +329,7 @@ fn main()
                     }
                     if cursor == 0 && input.is_empty()
                     {
-                        print!("\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                        print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A");
                     }
                 }
                 '\x1D' =>
@@ -333,6 +343,10 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
+                    if width < (input.len() + 1) as u16
+                    {
+                        print!("\x1b[A");
+                    }
                     frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
@@ -342,7 +356,7 @@ fn main()
                     if i >= max
                     {
                         input.clear();
-                        print!("\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                        print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A");
                         print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
                         stdout().flush().unwrap();
                         i = max;
@@ -351,6 +365,10 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
+                    if width < (input.len() + 1) as u16
+                    {
+                        print!("\x1b[A");
+                    }
                     frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
@@ -395,6 +413,10 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
+                    if width < (input.len() + 1) as u16
+                    {
+                        print!("\x1b[A");
+                    }
                     frac = print_concurrent(&input, var.clone(), false, tau, deg);
                     len = input.len();
                     if let Some(time) = watch
@@ -411,6 +433,7 @@ fn main()
             }
             stdout().flush().unwrap();
         }
+        write(&input, &mut file, &lines);
         match input.as_str()
         {
             "deg" =>
@@ -452,9 +475,9 @@ fn main()
             }
             "history" =>
             {
-                for (i, l) in lines.iter().enumerate()
+                for l in lines
                 {
-                    println!("{}: {}", i, l);
+                    println!("{}", l);
                 }
                 continue;
             }
@@ -470,7 +493,6 @@ fn main()
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            write(&input, &mut file, &lines);
             l = input.split('=').next().unwrap();
             r = input.split('=').last().unwrap();
             match l
@@ -522,7 +544,6 @@ fn main()
         }
         else if (input.replace("exp", "").contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
         {
-            write(&input, &mut file, &lines);
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
@@ -553,7 +574,6 @@ fn main()
             graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, false, &mut plot, range, deg);
             continue;
         }
-        write(&input, &mut file, &lines);
         println!();
     }
 }

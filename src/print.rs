@@ -42,7 +42,7 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, tau:bool, d
     }
     if (modified.contains('x') && !input.contains("exp")) || modified.contains('y') || modified.contains('z')
     {
-        print!("\x1b[96m\x1b[B\x1B[2K\x1B[1G\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", input);
+        print!("\x1b[96m\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", input);
         return false;
     }
     let func = match get_func(&modified)
@@ -82,11 +82,11 @@ pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, tau:bool, d
             }
             _ => ("".to_string(), "".to_string()),
         };
-        print!("{}{}{}{}\x1b[0m\x1b[B\x1B[2K\x1B[1G{}{}\x1b[A",
-               if frac { "\x1b[0m\x1b[B\x1B[2K\x1B[1G" } else { "" },
+        print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A",
+               if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
                output_a,
                output_b,
-               if !frac { "\x1b[B\x1b[B\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
+               if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
                if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
                if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
         if frac

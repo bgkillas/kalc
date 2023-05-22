@@ -23,13 +23,12 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
     let mut func:Vec<NumOrString> = Vec::new();
     let mut word = String::new();
     let mut real = String::new();
-    let mut imag = String::new();
     let mut find_word = false;
     let mut abs = true;
     let mut subfact = 0;
     let mut neg = false;
     let mut i = 0;
-    let (mut c, mut j, mut char, mut deci, mut f, mut imchar, mut imdeci);
+    let (mut c, mut j, mut char, mut deci);
     let chars = input.chars().collect::<Vec<char>>();
     while i < chars.len()
     {
@@ -50,7 +49,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
             }
             j = i;
             deci = false;
-            'outer: while j < chars.len()
+            while j < chars.len()
             {
                 char = chars[j];
                 if char.is_numeric()
@@ -62,54 +61,14 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     deci = true;
                     real.push(char);
                 }
-                else if char == 'i'
-                {
-                    imag = real.clone();
-                    real.clear();
-                    j += 1;
-                    break;
-                }
-                else if char == '+' || char == '-'
-                {
-                    imag.push(char);
-                    f = j + 1;
-                    imdeci = false;
-                    while f < chars.len()
-                    {
-                        imchar = chars[f];
-                        if imchar.is_numeric()
-                        {
-                            imag.push(imchar);
-                        }
-                        else if imchar == '.' && !imdeci
-                        {
-                            imdeci = true;
-                            imag.push(imchar);
-                        }
-                        else if imchar == 'i'
-                        {
-                            j = f + 1;
-                            break 'outer;
-                        }
-                        else
-                        {
-                            imag.clear();
-                            break 'outer;
-                        }
-                        f += 1;
-                    }
-                    imag.clear();
-                    break;
-                }
                 else
                 {
                     break;
                 }
                 j += 1;
             }
-            func.push(Complex((real.parse::<f64>().unwrap_or(0.0), imag.parse::<f64>().unwrap_or(0.0))));
+            func.push(Complex((real.parse::<f64>().unwrap_or(0.0), 0.0)));
             real.clear();
-            imag.clear();
             if j != i
             {
                 i = j;

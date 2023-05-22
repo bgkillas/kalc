@@ -5,6 +5,8 @@ mod graph;
 mod math;
 mod parse;
 mod print;
+#[cfg(test)]
+mod tests;
 use parse::get_func;
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};

@@ -13,10 +13,9 @@ use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
 use graph::graph;
 use print::{print_answer, print_concurrent};
-use terminal_size::{Width, terminal_size};
 #[cfg(target_os = "linux")]
 use {
-    libc::{isatty, STDIN_FILENO}, std::io::stdin
+    libc::{isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin
 };
 fn help()
 {
@@ -266,14 +265,15 @@ fn main()
     let fg = "\x1b[96m";
     let mut lines:Vec<String>;
     let mut last = String::new();
-    let (mut width, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
+    #[cfg(target_os = "linux")]
+    let mut width;
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
     {
-        width = match terminal_size()
+        #[cfg(target_os = "linux")]
         {
-            Some((Width(w), _)) => w,
-            _ => 80,
-        };
+            width = get_terminal_width();
+        }
         input.clear();
         stdout().flush().unwrap();
         lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
@@ -313,6 +313,7 @@ fn main()
                     cursor -= 1;
                     input.remove(cursor);
                     print!("\x1B[2K\x1B[1G{}", input);
+                    #[cfg(target_os = "linux")]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -345,6 +346,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
+                    #[cfg(target_os = "linux")]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -367,6 +369,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
+                    #[cfg(target_os = "linux")]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -415,6 +418,7 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
+                    #[cfg(target_os = "linux")]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -578,6 +582,21 @@ fn main()
             continue;
         }
         println!();
+    }
+}
+#[cfg(target_os = "linux")]
+fn get_terminal_width() -> u16
+{
+    unsafe {
+        let mut size:winsize = std::mem::zeroed();
+        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0
+        {
+            size.ws_col
+        }
+        else
+        {
+            80
+        }
     }
 }
 fn read_single_char() -> char

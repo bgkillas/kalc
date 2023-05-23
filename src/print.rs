@@ -1,7 +1,7 @@
 use crate::fraction::fraction;
-use crate::math::{do_math, NumOrString};
+use crate::math::{do_math, Complex};
 use crate::parse::get_func;
-pub fn print_answer(func:Vec<NumOrString>, deg:bool)
+pub fn print_answer(func:Vec<Complex>, deg:bool)
 {
     let num = match do_math(func, deg)
     {
@@ -19,7 +19,7 @@ pub fn print_answer(func:Vec<NumOrString>, deg:bool)
              if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
              if b.ends_with("0i") { "".to_string() } else { b });
 }
-pub fn print_concurrent(input:&String, var:Vec<Vec<char>>, del:bool, tau:bool, deg:bool, last:&str) -> bool
+pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, deg:bool, last:&str) -> bool
 {
     let mut modified = input.to_string().replace('_', last);
     for i in &var

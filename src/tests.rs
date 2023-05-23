@@ -1,7 +1,7 @@
 #[cfg(test)]
 use std::f64::consts::{E, PI, TAU};
 #[cfg(test)]
-use crate::math::NumOrString::{Complex, Str};
+use crate::math::Complex::{Num, Str};
 #[cfg(test)]
 use crate::parse::get_func;
 #[cfg(test)]
@@ -11,49 +11,49 @@ fn test_math()
 {
     let input = "pi+tau*e/2i^(sqrt(2))/3*3-log(2-2i,-3+i)+sqrt(2)^(sqrt(2))";
     let output = get_func(input).unwrap();
-    let expected = vec![Complex((PI, 0.0)),
+    let expected = vec![Num((PI, 0.0)),
                         Str("+".to_string()),
-                        Complex((TAU, 0.0)),
+                        Num((TAU, 0.0)),
                         Str("*".to_string()),
-                        Complex((E, 0.0)),
+                        Num((E, 0.0)),
                         Str("/".to_string()),
-                        Complex((2.0, 0.0)),
+                        Num((2.0, 0.0)),
                         Str("*".to_string()),
-                        Complex((0.0, 1.0)),
+                        Num((0.0, 1.0)),
                         Str("^".to_string()),
                         Str("(".to_string()),
                         Str("sqrt".to_string()),
                         Str("(".to_string()),
-                        Complex((2.0, 0.0)),
+                        Num((2.0, 0.0)),
                         Str(")".to_string()),
                         Str(")".to_string()),
                         Str("/".to_string()),
-                        Complex((3.0, 0.0)),
+                        Num((3.0, 0.0)),
                         Str("*".to_string()),
-                        Complex((3.0, 0.0)),
+                        Num((3.0, 0.0)),
                         Str("-".to_string()),
                         Str("log".to_string()),
                         Str("(".to_string()),
-                        Complex((2.0, 0.0)),
+                        Num((2.0, 0.0)),
                         Str("-".to_string()),
-                        Complex((2.0, 0.0)),
+                        Num((2.0, 0.0)),
                         Str("*".to_string()),
-                        Complex((0.0, 1.0)),
+                        Num((0.0, 1.0)),
                         Str(",".to_string()),
-                        Complex((-3.0, 0.0)),
+                        Num((-3.0, 0.0)),
                         Str("+".to_string()),
-                        Complex((0.0, 1.0)),
+                        Num((0.0, 1.0)),
                         Str(")".to_string()),
                         Str("+".to_string()),
                         Str("sqrt".to_string()),
                         Str("(".to_string()),
-                        Complex((2.0, 0.0)),
+                        Num((2.0, 0.0)),
                         Str(")".to_string()),
                         Str("^".to_string()),
                         Str("(".to_string()),
                         Str("sqrt".to_string()),
                         Str("(".to_string()),
-                        Complex((2.0, 0.0)),
+                        Num((2.0, 0.0)),
                         Str(")".to_string()),
                         Str(")".to_string())];
     assert_eq!(output.len(), expected.len());
@@ -61,7 +61,7 @@ fn test_math()
     {
         match (&output[i], &expected[i])
         {
-            (Complex((o, oi)), Complex((e, ei))) =>
+            (Num((o, oi)), Num((e, ei))) =>
             {
                 assert_eq!(o, e);
                 assert_eq!(oi, ei);

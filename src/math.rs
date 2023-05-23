@@ -2,19 +2,19 @@ use std::f64::consts::E;
 use crate::complex::{
     div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact
 };
-use crate::math::NumOrString::{Complex, Str};
+use crate::math::Complex::{Num, Str};
 #[derive(Clone)]
-pub enum NumOrString
+pub enum Complex
 {
-    Complex((f64, f64)),
+    Num((f64, f64)),
     Str(String),
 }
 // noinspection RsBorrowChecker
-pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
+pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
 {
     if func.len() == 1
     {
-        return if let Complex(n) = func[0] { Ok(n) } else { Err(()) };
+        return if let Num(n) = func[0] { Ok(n) } else { Err(()) };
     }
     if func.is_empty()
     {
@@ -78,13 +78,13 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                         }
                     }
                     function.drain(i..j);
-                    function.insert(i, Complex(temp1));
+                    function.insert(i, Num(temp1));
                     function.insert(i + 1, Str(",".to_string()));
-                    function.insert(i + 2, Complex(temp2));
+                    function.insert(i + 2, Num(temp2));
                     i += 1;
                     continue;
                 }
-                function[i] = Complex(match do_math(v, deg)
+                function[i] = Num(match do_math(v, deg)
                 {
                     Ok(num) => num,
                     Err(e) => return Err(e),
@@ -103,7 +103,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
-                if let Complex(n) = &function[i + 1]
+                if let Num(n) = &function[i + 1]
                 {
                     (arg1, arg2) = *n;
                     to_parse = match s.to_string().as_str()
@@ -267,7 +267,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                                 {
                                     if s == ","
                                     {
-                                        if let Complex(b) = &function[i + 3]
+                                        if let Num(b) = &function[i + 3]
                                         {
                                             (base_re, base_im) = *b;
                                             function.remove(i + 3);
@@ -302,7 +302,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                                 {
                                     if s == ","
                                     {
-                                        if let Complex(e) = &function[i + 3]
+                                        if let Num(e) = &function[i + 3]
                                         {
                                             (base_re, base_im) = *e;
                                             function.remove(i + 3);
@@ -394,7 +394,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
                             continue;
                         }
                     };
-                    function[i] = Complex(to_parse);
+                    function[i] = Num(to_parse);
                     function.remove(i + 1);
                 }
             }
@@ -417,7 +417,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
             i += 1;
             continue;
         }
-        if let Complex(e) = &function[i - 1]
+        if let Num(e) = &function[i - 1]
         {
             (a, b) = *e;
         }
@@ -425,7 +425,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        if let Complex(e) = &function[i + 1]
+        if let Num(e) = &function[i + 1]
         {
             (c, d) = *e;
         }
@@ -437,7 +437,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        function[i] = Complex(((a % c), 0.0));
+        function[i] = Num(((a % c), 0.0));
         function.remove(i + 1);
         function.remove(i - 1);
     }
@@ -457,7 +457,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
             i += 1;
             continue;
         }
-        if let Complex(e) = &function[i - 1]
+        if let Num(e) = &function[i - 1]
         {
             (a, b) = *e;
         }
@@ -465,7 +465,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        if let Complex(e) = &function[i + 1]
+        if let Num(e) = &function[i + 1]
         {
             (c, d) = *e;
         }
@@ -473,7 +473,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        function[i] = Complex(pow(a, b, c, d));
+        function[i] = Num(pow(a, b, c, d));
         function.remove(i + 1);
         function.remove(i - 1);
     }
@@ -493,7 +493,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
             i += 1;
             continue;
         }
-        if let Complex(e) = &function[i - 1]
+        if let Num(e) = &function[i - 1]
         {
             (a, b) = *e;
         }
@@ -501,7 +501,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        if let Complex(e) = &function[i + 1]
+        if let Num(e) = &function[i + 1]
         {
             (c, d) = *e;
         }
@@ -513,11 +513,11 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             if s == "*"
             {
-                function[i] = Complex(mul(a, b, c, d))
+                function[i] = Num(mul(a, b, c, d))
             }
             else if s == "/"
             {
-                function[i] = Complex(div(a, b, c, d))
+                function[i] = Num(div(a, b, c, d))
             }
             else
             {
@@ -544,7 +544,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
             i += 1;
             continue;
         }
-        if let Complex(e) = &function[i - 1]
+        if let Num(e) = &function[i - 1]
         {
             (a, b) = *e;
         }
@@ -552,7 +552,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             return Err(());
         }
-        if let Complex(e) = &function[i + 1]
+        if let Num(e) = &function[i + 1]
         {
             (c, d) = *e;
         }
@@ -564,11 +564,11 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
         {
             if s == "+"
             {
-                function[i] = Complex(add(a, b, c, d))
+                function[i] = Num(add(a, b, c, d))
             }
             else if s == "-"
             {
-                function[i] = Complex(add(a, b, -c, -d))
+                function[i] = Num(add(a, b, -c, -d))
             }
             else
             {
@@ -579,7 +579,7 @@ pub fn do_math(func:Vec<NumOrString>, deg:bool) -> Result<(f64, f64), ()>
             function.remove(i - 1);
         }
     }
-    if let Complex(n) = function[0]
+    if let Num(n) = function[0]
     {
         Ok(n)
     }

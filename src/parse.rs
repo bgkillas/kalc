@@ -1,7 +1,7 @@
 use std::f64::consts::{E, PI, TAU};
-use crate::math::NumOrString;
-use crate::math::NumOrString::{Complex, Str};
-pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
+use crate::math::Complex;
+use crate::math::Complex::{Num, Str};
+pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
 {
     let count = input.chars().filter(|&c| c == '(').count() as i32 - input.chars().filter(|&c| c == ')').count() as i32;
     let mut input = input.to_string();
@@ -20,7 +20,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
         }
     }
     let mut exp = 0.0;
-    let mut func:Vec<NumOrString> = Vec::new();
+    let mut func:Vec<Complex> = Vec::new();
     let mut word = String::new();
     let mut real = String::new();
     let mut find_word = false;
@@ -67,7 +67,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 }
                 j += 1;
             }
-            func.push(Complex((real.parse::<f64>().unwrap_or(0.0), 0.0)));
+            func.push(Num((real.parse::<f64>().unwrap_or(0.0), 0.0)));
             real.clear();
             if j != i
             {
@@ -90,7 +90,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         place_multiplier(&mut func, &find_word);
                         if neg
                         {
-                            func.push(Complex((-1.0, 0.0)));
+                            func.push(Num((-1.0, 0.0)));
                             func.push(Str('*'.to_string()));
                             neg = false;
                         }
@@ -107,7 +107,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         place_multiplier(&mut func, &find_word);
                         if i != 0 && chars[i - 1] == 'p'
                         {
-                            func.push(Complex((if neg { -PI } else { PI }, 0.0)));
+                            func.push(Num((if neg { -PI } else { PI }, 0.0)));
                             neg = false;
                         }
                         else if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
@@ -117,7 +117,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         }
                         else
                         {
-                            func.push(Complex((0.0, if neg { -1.0 } else { 1.0 })));
+                            func.push(Num((0.0, if neg { -1.0 } else { 1.0 })));
                             neg = false;
                         }
                     }
@@ -131,7 +131,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                         }
                         else
                         {
-                            func.push(Complex((if neg { -E } else { E }, 0.0)));
+                            func.push(Num((if neg { -E } else { E }, 0.0)));
                             neg = false;
                         }
                     }
@@ -160,7 +160,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     }
                     'u' =>
                     {
-                        func.push(Complex((if neg { -TAU } else { TAU }, 0.0)));
+                        func.push(Num((if neg { -TAU } else { TAU }, 0.0)));
                         neg = false;
                     }
                     _ =>
@@ -207,7 +207,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
             if exp != 0.0 && c != '(' && c != ')'
             {
                 func.push(Str("^".to_string()));
-                func.push(Complex((exp, 0.0)));
+                func.push(Num((exp, 0.0)));
                 exp = 0.0;
             }
             match c
@@ -221,7 +221,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
-                            func.push(Complex((-1.0, 0.0)));
+                            func.push(Num((-1.0, 0.0)));
                             func.push(Str("*".to_string()));
                         }
                         else
@@ -272,13 +272,13 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
                 'π' =>
                 {
                     place_multiplier(&mut func, &find_word);
-                    func.push(Complex((if neg { -PI } else { PI }, 0.0)));
+                    func.push(Num((if neg { -PI } else { PI }, 0.0)));
                     neg = false;
                 }
                 'τ' =>
                 {
                     place_multiplier(&mut func, &find_word);
-                    func.push(Complex((if neg { -TAU } else { TAU }, 0.0)));
+                    func.push(Num((if neg { -TAU } else { TAU }, 0.0)));
                     neg = false;
                 }
                 ',' => func.push(Str(','.to_string())),
@@ -299,7 +299,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
     if exp != 0.0
     {
         func.push(Str("^".to_string()));
-        func.push(Complex((exp, 0.0)));
+        func.push(Num((exp, 0.0)));
     }
     if !word.is_empty()
     {
@@ -324,7 +324,7 @@ pub fn get_func(input:&str) -> Result<Vec<NumOrString>, ()>
     Ok(func)
 }
 // noinspection RsTypeCheck
-fn place_multiplier(func:&mut Vec<NumOrString>, find_word:&bool)
+fn place_multiplier(func:&mut Vec<Complex>, find_word:&bool)
 {
     if let Some(Str(s)) = func.last()
     {
@@ -333,7 +333,7 @@ fn place_multiplier(func:&mut Vec<NumOrString>, find_word:&bool)
             func.push(Str('*'.to_string()))
         }
     }
-    else if let Complex(_) = func.last().unwrap_or(&Str("".to_string()))
+    else if let Num(_) = func.last().unwrap_or(&Str("".to_string()))
     {
         func.push(Str('*'.to_string()))
     }

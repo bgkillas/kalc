@@ -63,7 +63,7 @@ Other functions:\n\
 - re(real part), im(imaginary part)"
     );
 }
-fn write(input:&String, file:&mut File, lines:&Vec<String>)
+fn write(input:&str, file:&mut File, lines:&Vec<String>)
 {
     if lines.is_empty() || lines[lines.len() - 1] != *input
     {
@@ -214,10 +214,10 @@ fn main()
                 };
                 if input.contains('y')
                 {
-                    graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, true, &mut plot, range, deg);
+                    graph([l, m, r], [&funcl, &funcm, &funcr], true, true, &mut plot, range, deg);
                     continue;
                 }
-                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, true, &mut plot, range, deg);
+                graph([l, m, r], [&funcl, &funcm, &funcr], false, true, &mut plot, range, deg);
                 continue;
             }
             print_answer(func, deg);
@@ -322,7 +322,7 @@ fn main()
                     }
                     if input.is_empty()
                     {
-                        frac = print_concurrent(&"0".to_string(), var.clone(), true, tau, deg, &last);
+                        frac = print_concurrent("0", var.clone(), true, tau, deg, &last);
                     }
                     else
                     {
@@ -577,10 +577,10 @@ fn main()
             };
             if input.contains('y')
             {
-                graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], true, false, &mut plot, range, deg);
+                graph([l, m, r], [&funcl, &funcm, &funcr], true, false, &mut plot, range, deg);
                 continue;
             }
-            graph([&l.to_string(), &m.to_string(), &r.to_string()], [&funcl, &funcm, &funcr], false, false, &mut plot, range, deg);
+            graph([l, m, r], [&funcl, &funcm, &funcr], false, false, &mut plot, range, deg);
             continue;
         }
         println!();

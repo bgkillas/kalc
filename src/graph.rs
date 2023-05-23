@@ -1,9 +1,9 @@
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
-use crate::math::{do_math, NumOrString};
+use crate::math::{do_math, Complex};
 // noinspection RsBorrowChecker
-pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
-    if let NumOrString::Complex(n) = func[0]
+    if let Complex::Num(n) = func[0]
     {
         if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
         {
@@ -20,7 +20,7 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:boo
     let max_y = range.0[1][1];
     let den_y_range = (max_y - min_y) / den;
     let (mut n, mut f, mut a, mut b, mut num);
-    let mut modified:Vec<NumOrString>;
+    let mut modified:Vec<Complex>;
     for i in 0..=den as i32
     {
         n = min_x + i as f64 * den_x_range;
@@ -28,7 +28,7 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:boo
                        .map(|i| {
                            match i
                            {
-                               NumOrString::Str(s) if s == "x" => NumOrString::Complex((n, 0.0)),
+                               Complex::Str(s) if s == "x" => Complex::Num((n, 0.0)),
                                _ => i.clone(),
                            }
                        })
@@ -40,7 +40,7 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:boo
                                         .map(|j| {
                                             match j
                                             {
-                                                NumOrString::Str(s) if s == "y" => NumOrString::Complex((f, 0.0)),
+                                                Complex::Str(s) if s == "y" => Complex::Num((f, 0.0)),
                                                 _ => j.clone(),
                                             }
                                         })
@@ -58,9 +58,9 @@ pub fn get_list_3d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:boo
     (re, im)
 }
 // noinspection RsBorrowChecker
-pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
-    if let NumOrString::Complex(n) = func[0]
+    if let Complex::Num(n) = func[0]
     {
         if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
         {
@@ -81,7 +81,7 @@ pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:boo
                                 .map(|i| {
                                     match i
                                     {
-                                        NumOrString::Str(s) if s == "x" => NumOrString::Complex((n, 0.0)),
+                                        Complex::Str(s) if s == "x" => Complex::Num((n, 0.0)),
                                         _ => i.clone(),
                                     }
                                 })
@@ -97,7 +97,7 @@ pub fn get_list_2d(func:&[NumOrString], range:([[f64; 2]; 3], f64, f64), deg:boo
     }
     (re, im)
 }
-pub fn graph(input:[&String; 3], func:[&[NumOrString]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64), deg:bool)
+pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64), deg:bool)
 {
     let re1col = "#9400D3";
     let im1col = "#009E73";

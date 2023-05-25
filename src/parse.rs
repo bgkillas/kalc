@@ -3,28 +3,12 @@ use crate::math::Complex;
 use crate::math::Complex::{Num, Str};
 pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
 {
-    let count = input.chars().filter(|&c| c == '(').count() as i32 - input.chars().filter(|&c| c == ')').count() as i32;
-    let mut input = input.to_string();
-    if count > 0
-    {
-        for _ in 0..count
-        {
-            input.push(')');
-        }
-    }
-    else
-    {
-        for _ in 0..count.abs()
-        {
-            input.insert(0, '(')
-        }
-    }
+    let mut count:i32 = 0;
     let mut exp = 0;
     let mut func:Vec<Complex> = Vec::new();
     let mut word = String::new();
     let mut find_word = false;
     let mut abs = true;
-    let mut subfact = 0;
     let mut neg = false;
     let mut i = 0;
     let chars = input.chars().collect::<Vec<char>>();
@@ -241,10 +225,15 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 '^' if i != 0 && i != chars.len() => func.push(Str('^'.to_string())),
                 '(' =>
                 {
+                    count += 1;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' => func.push(Str(")".to_string())),
+                ')' =>
+                {
+                    count -= 1;
+                    func.push(Str(")".to_string()))
+                }
                 '|' =>
                 {
                     if abs
@@ -270,7 +259,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     {
                         func.push(Str("subfact".to_string()));
                         func.push(Str("(".to_string()));
-                        subfact += 1;
+                        count += 1;
                     }
                 }
                 'π' =>
@@ -292,9 +281,10 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
         }
         i += 1;
     }
-    for _ in 0..subfact
+    let bracket = Str(if count > 0 { ")".to_string() } else { "(".to_string() });
+    for _ in 0..count.abs()
     {
-        func.push(Str(")".to_string()))
+        func.push(bracket.to_owned());
     }
     if !abs
     {

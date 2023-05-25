@@ -55,52 +55,39 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, deg:
         }
     };
     let mut frac = false;
-    if let Ok(num) = do_math(func, deg)
+    let (a, b) = do_math(func, deg).unwrap_or((0.0, 0.0));
+    let fa = fraction(a, tau);
+    let fb = fraction(b, tau);
+    let c = (a * 1e12).round() / 1e12;
+    let d = (b * 1e12).round() / 1e12;
+    let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
+    let (output_a, output_b) = match (!fa.is_empty(), !fb.is_empty())
     {
-        let (a, b) = num;
-        let c = (a * 1e12).round() / 1e12;
-        let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
-        let d = (b * 1e12).round() / 1e12;
-        let fa = fraction(a, tau);
-        let fb = fraction(b, tau);
-        let (output_a, output_b) = match (!fa.is_empty(), !fb.is_empty())
+        (true, true) =>
         {
-            (true, true) =>
-            {
-                frac = true;
-                (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
-            }
-            (true, _) =>
-            {
-                frac = true;
-                (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" })
-            }
-            (_, true) =>
-            {
-                frac = true;
-                (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
-            }
-            _ => ("".to_string(), "".to_string()),
-        };
-        print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A",
-               if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
-               output_a,
-               output_b,
-               if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
-               if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
-               if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" });
-        if frac
-        {
-            print!("\x1b[A");
+            frac = true;
+            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
         }
-    }
-    if !del
-    {
-        print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
-    }
-    else
-    {
-        print!("\x1B[2K\x1B[1G");
-    }
+        (true, _) =>
+        {
+            frac = true;
+            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" })
+        }
+        (_, true) =>
+        {
+            frac = true;
+            (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
+        }
+        _ => ("".to_string(), "".to_string()),
+    };
+    print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}{}",
+           if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
+           output_a,
+           output_b,
+           if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
+           if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
+           if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" },
+           if frac { "\x1b[A" } else { "" },
+           if !del { format!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input) } else { "\x1B[2K\x1B[1G".to_string() });
     frac
 }

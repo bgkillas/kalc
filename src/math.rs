@@ -36,12 +36,9 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
     }
     let mut function = func;
     let mut i = 0;
-    let (mut j, mut count, mut v, mut comma);
-    let mut temp1 = (0.0, 0.0);
-    let mut temp2 = (0.0, 0.0);
-    while i < function.len() - 1
+    let (mut j, mut count, mut v);
+    'outer: while i < function.len() - 1
     {
-        comma = false;
         if function[i].str_is("(")
         {
             j = i + 1;
@@ -66,24 +63,17 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                 return Err(());
             }
             v = function[i + 1..j - 1].to_vec();
-            for (j, n) in v.iter().enumerate()
+            for (f, n) in v.iter().enumerate()
             {
                 if n.str_is(",")
                 {
-                    temp1 = do_math(v[..j].to_vec(), deg)?;
-                    temp2 = do_math(v[j + 1..].to_vec(), deg)?;
-                    comma = true;
-                    break;
+                    function.drain(i..j);
+                    function.insert(i, Num(do_math(v[..f].to_vec(), deg)?));
+                    function.insert(i + 1, Str(",".to_string()));
+                    function.insert(i + 2, Num(do_math(v[f + 1..].to_vec(), deg)?));
+                    i += 1;
+                    continue 'outer;
                 }
-            }
-            if comma
-            {
-                function.drain(i..j);
-                function.insert(i, Num(temp1));
-                function.insert(i + 1, Str(",".to_string()));
-                function.insert(i + 2, Num(temp2));
-                i += 1;
-                continue;
             }
             function[i] = Num(match do_math(v, deg)
             {
@@ -95,179 +85,177 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
         i += 1;
     }
     i = 0;
-    let (mut arg1, mut arg2, mut a, mut b, mut c, mut d, mut base_re, mut base_im);
+    let (mut a, mut b, mut c, mut d);
     while i < function.len() - 1
     {
         if let Str(s) = &function[i]
         {
             if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
-                if let Num(n) = &function[i + 1]
+                if let Num(n) = function[i + 1]
                 {
-                    (arg1, arg2) = *n;
                     function[i] = Num(match s.to_string().as_str()
                     {
                         "sin" =>
                         {
                             if deg
                             {
-                                sin(arg1.to_radians(), 0.0)
+                                sin(n.0.to_radians(), 0.0)
                             }
                             else
                             {
-                                sin(arg1, arg2)
+                                sin(n.0, n.1)
                             }
                         }
                         "csc" =>
                         {
                             if deg
                             {
-                                csc(arg1.to_radians(), 0.0)
+                                csc(n.0.to_radians(), 0.0)
                             }
                             else
                             {
-                                csc(arg1, arg2)
+                                csc(n.0, n.1)
                             }
                         }
                         "cos" =>
                         {
                             if deg
                             {
-                                cos(arg1.to_radians(), 0.0)
+                                cos(n.0.to_radians(), 0.0)
                             }
                             else
                             {
-                                cos(arg1, arg2)
+                                cos(n.0, n.1)
                             }
                         }
                         "sec" =>
                         {
                             if deg
                             {
-                                sec(arg1.to_radians(), 0.0)
+                                sec(n.0.to_radians(), 0.0)
                             }
                             else
                             {
-                                sec(arg1, arg2)
+                                sec(n.0, n.1)
                             }
                         }
                         "tan" =>
                         {
                             if deg
                             {
-                                tan(arg1.to_radians(), 0.0)
+                                tan(n.0.to_radians(), 0.0)
                             }
                             else
                             {
-                                tan(arg1, arg2)
+                                tan(n.0, n.1)
                             }
                         }
                         "cot" =>
                         {
                             if deg
                             {
-                                cot(arg1.to_radians(), 0.0)
+                                cot(n.0.to_radians(), 0.0)
                             }
                             else
                             {
-                                cot(arg1, arg2)
+                                cot(n.0, n.1)
                             }
                         }
                         "asin" | "arcsin" =>
                         {
                             if deg
                             {
-                                (asin(arg1, arg2).0.to_degrees(), 0.0)
+                                (asin(n.0, n.1).0.to_degrees(), 0.0)
                             }
                             else
                             {
-                                asin(arg1, arg2)
+                                asin(n.0, n.1)
                             }
                         }
                         "acsc" | "arccsc" =>
                         {
                             if deg
                             {
-                                (acsc(arg1, arg2).0.to_degrees(), 0.0)
+                                (acsc(n.0, n.1).0.to_degrees(), 0.0)
                             }
                             else
                             {
-                                acsc(arg1, arg2)
+                                acsc(n.0, n.1)
                             }
                         }
                         "acos" | "arccos" =>
                         {
                             if deg
                             {
-                                (acos(arg1, arg2).0.to_degrees(), 0.0)
+                                (acos(n.0, n.1).0.to_degrees(), 0.0)
                             }
                             else
                             {
-                                acos(arg1, arg2)
+                                acos(n.0, n.1)
                             }
                         }
                         "asec" | "arcsec" =>
                         {
                             if deg
                             {
-                                (asec(arg1, arg2).0.to_degrees(), 0.0)
+                                (asec(n.0, n.1).0.to_degrees(), 0.0)
                             }
                             else
                             {
-                                asec(arg1, arg2)
+                                asec(n.0, n.1)
                             }
                         }
                         "atan" | "arctan" =>
                         {
                             if deg
                             {
-                                (atan(arg1, arg2).0.to_degrees(), 0.0)
+                                (atan(n.0, n.1).0.to_degrees(), 0.0)
                             }
                             else
                             {
-                                atan(arg1, arg2)
+                                atan(n.0, n.1)
                             }
                         }
                         "acot" | "arccot" =>
                         {
                             if deg
                             {
-                                (acot(arg1, arg2).0.to_degrees(), 0.0)
+                                (acot(n.0, n.1).0.to_degrees(), 0.0)
                             }
                             else
                             {
-                                acot(arg1, arg2)
+                                acot(n.0, n.1)
                             }
                         }
-                        "sinh" => sinh(arg1, arg2),
-                        "csch" => csch(arg1, arg2),
-                        "cosh" => cosh(arg1, arg2),
-                        "sech" => sech(arg1, arg2),
-                        "tanh" => tanh(arg1, arg2),
-                        "coth" => coth(arg1, arg2),
-                        "asinh" | "arcsinh" => asinh(arg1, arg2),
-                        "acsch" | "arccsch" => acsch(arg1, arg2),
-                        "acosh" | "arccosh" => acosh(arg1, arg2),
-                        "asech" | "arcsech" => asech(arg1, arg2),
-                        "atanh" | "arctanh" => atanh(arg1, arg2),
-                        "acoth" | "arccoth" => acoth(arg1, arg2),
-                        "cis" => pow(E, 0.0, -arg2, arg1),
-                        "ln" | "aexp" => ln(arg1, arg2),
-                        "ceil" => (arg1.ceil(), arg2.ceil()),
-                        "floor" => (arg1.floor(), arg2.floor()),
-                        "round" => (arg1.round(), arg2.round()),
-                        "recip" => div(1.0, 0.0, arg1, arg2),
-                        "exp" | "aln" => pow(E, 0.0, arg1, arg2),
+                        "sinh" => sinh(n.0, n.1),
+                        "csch" => csch(n.0, n.1),
+                        "cosh" => cosh(n.0, n.1),
+                        "sech" => sech(n.0, n.1),
+                        "tanh" => tanh(n.0, n.1),
+                        "coth" => coth(n.0, n.1),
+                        "asinh" | "arcsinh" => asinh(n.0, n.1),
+                        "acsch" | "arccsch" => acsch(n.0, n.1),
+                        "acosh" | "arccosh" => acosh(n.0, n.1),
+                        "asech" | "arcsech" => asech(n.0, n.1),
+                        "atanh" | "arctanh" => atanh(n.0, n.1),
+                        "acoth" | "arccoth" => acoth(n.0, n.1),
+                        "cis" => pow(E, 0.0, -n.1, n.0),
+                        "ln" | "aexp" => ln(n.0, n.1),
+                        "ceil" => (n.0.ceil(), n.1.ceil()),
+                        "floor" => (n.0.floor(), n.1.floor()),
+                        "round" => (n.0.round(), n.1.round()),
+                        "recip" => div(1.0, 0.0, n.0, n.1),
+                        "exp" | "aln" => pow(E, 0.0, n.0, n.1),
                         "log" =>
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                if let Num(b) = &function[i + 3]
+                                if let Num(b) = function[i + 3]
                                 {
-                                    (base_re, base_im) = *b;
                                     function.remove(i + 3);
                                     function.remove(i + 2);
-                                    log(arg1, arg2, base_re, base_im)
+                                    log(n.0, n.1, b.0, b.1)
                                 }
                                 else
                                 {
@@ -276,25 +264,24 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                             }
                             else
                             {
-                                ln(arg1, arg2)
+                                ln(n.0, n.1)
                             }
                         }
                         "root" =>
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                if let Num(e) = &function[i + 3]
+                                if let Num(e) = function[i + 3]
                                 {
-                                    (base_re, base_im) = *e;
                                     function.remove(i + 3);
                                     function.remove(i + 2);
-                                    match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
+                                    match e.1 == 0.0 && (e.0 / 2.0).fract() != 0.0 && e.0.trunc() == e.0 && n.1 == 0.0
                                     {
-                                        true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),
+                                        true => (n.0 / n.0.abs() * n.0.abs().powf(e.0.recip()), 0.0),
                                         false =>
                                         {
-                                            (a, b) = div(1.0, 0.0, base_re, base_im);
-                                            pow(arg1, arg2, a, b)
+                                            (a, b) = div(1.0, 0.0, e.0, e.1);
+                                            pow(n.0, n.1, a, b)
                                         }
                                     }
                                 }
@@ -305,60 +292,60 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                             }
                             else
                             {
-                                pow(arg1, arg2, 0.5, 0.0)
+                                pow(n.0, n.1, 0.5, 0.0)
                             }
                         }
-                        "sqrt" | "asquare" => pow(arg1, arg2, 0.5, 0.0),
-                        "abs" => (abs(arg1, arg2), 0.0),
+                        "sqrt" | "asquare" => pow(n.0, n.1, 0.5, 0.0),
+                        "abs" => (abs(n.0, n.1), 0.0),
                         "deg" | "degree" =>
                         {
-                            if arg2 != 0.0
+                            if n.1 != 0.0
                             {
                                 return Err(());
                             }
-                            (arg1.to_degrees(), 0.0)
+                            (n.0.to_degrees(), 0.0)
                         }
                         "rad" | "radian" =>
                         {
-                            if arg2 != 0.0
+                            if n.1 != 0.0
                             {
                                 return Err(());
                             }
-                            (arg1.to_radians(), 0.0)
+                            (n.0.to_radians(), 0.0)
                         }
-                        "re" | "real" => (arg1, 0.0),
-                        "im" | "imag" => (arg2, 0.0),
-                        "sgn" | "sign" => sgn(arg1, arg2),
-                        "arg" => (arg(arg1, arg2), 0.0),
+                        "re" | "real" => (n.0, 0.0),
+                        "im" | "imag" => (n.1, 0.0),
+                        "sgn" | "sign" => sgn(n.0, n.1),
+                        "arg" => (arg(n.0, n.1), 0.0),
                         "cbrt" | "acube" =>
                         {
-                            match arg2 == 0.0
+                            match n.1 == 0.0
                             {
-                                true => (arg1.cbrt(), 0.0),
-                                false => pow(arg1, arg2, 1.0 / 3.0, 0.0),
+                                true => (n.0.cbrt(), 0.0),
+                                false => pow(n.0, n.1, 1.0 / 3.0, 0.0),
                             }
                         }
-                        "frac" | "fract" => frac(arg1, arg2),
-                        "int" | "trunc" => int(arg1, arg2),
+                        "frac" | "fract" => frac(n.0, n.1),
+                        "int" | "trunc" => int(n.0, n.1),
                         "fact" =>
                         {
-                            if arg2 != 0.0 || arg1 < 0.0
+                            if n.1 != 0.0 || n.0 < 0.0
                             {
                                 return Err(());
                             }
-                            (fact(arg1), 0.0)
+                            (fact(n.0), 0.0)
                         }
-                        "square" | "asqrt" => pow(arg1, arg2, 2.0, 0.0),
-                        "cube" | "acbrt" => pow(arg1, arg2, 3.0, 0.0),
+                        "square" | "asqrt" => pow(n.0, n.1, 2.0, 0.0),
+                        "cube" | "acbrt" => pow(n.0, n.1, 3.0, 0.0),
                         "subfact" =>
                         {
-                            if arg2 != 0.0 || arg1 < 0.0
+                            if n.1 != 0.0 || n.0 < 0.0
                             {
                                 return Err(());
                             }
-                            (subfact(arg1), 0.0)
+                            (subfact(n.0), 0.0)
                         }
-                        "sinc" => sinc(arg1, arg2),
+                        "sinc" => sinc(n.0, n.1),
                         _ =>
                         {
                             i += 1;

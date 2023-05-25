@@ -9,6 +9,20 @@ pub enum Complex
     Num((f64, f64)),
     Str(String),
 }
+impl Complex
+{
+    fn str_is(&self, s:&str) -> bool
+    {
+        if let Str(s2) = self
+        {
+            s == s2
+        }
+        else
+        {
+            false
+        }
+    }
+}
 // noinspection RsBorrowChecker
 pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
 {
@@ -22,80 +36,65 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
     }
     let mut function = func;
     let mut i = 0;
-    let (mut j, mut count);
-    let mut v;
+    let (mut j, mut count, mut v, mut comma);
     let mut temp1 = (0.0, 0.0);
     let mut temp2 = (0.0, 0.0);
     while i < function.len() - 1
     {
-        if let Str(s) = &function[i]
+        comma = false;
+        if function[i].str_is("(")
         {
-            if s == "("
+            j = i + 1;
+            count = 1;
+            while count > 0
             {
-                j = i + 1;
-                count = 1;
-                while count > 0
-                {
-                    if j >= function.len()
-                    {
-                        return Err(());
-                    }
-                    match &function[j]
-                    {
-                        Str(s) if s == "(" => count += 1,
-                        Str(s) if s == ")" => count -= 1,
-                        _ =>
-                        {}
-                    }
-                    j += 1;
-                }
-                if i + 1 == j - 1
+                if j >= function.len()
                 {
                     return Err(());
                 }
-                v = function[i + 1..j - 1].to_vec();
-                if v.iter().any(|x| {
-                               if let Str(s) = x
-                               {
-                                   s == ","
-                               }
-                               else
-                               {
-                                   false
-                               }
-                           })
+                match &function[j]
                 {
-                    for (j, n) in v.iter().enumerate()
-                    {
-                        if let Str(s) = n
-                        {
-                            if s == ","
-                            {
-                                temp1 = do_math(v[..j].to_vec(), deg)?;
-                                temp2 = do_math(v[j + 1..].to_vec(), deg)?;
-                                break;
-                            }
-                        }
-                    }
-                    function.drain(i..j);
-                    function.insert(i, Num(temp1));
-                    function.insert(i + 1, Str(",".to_string()));
-                    function.insert(i + 2, Num(temp2));
-                    i += 1;
-                    continue;
+                    Str(s) if s == "(" => count += 1,
+                    Str(s) if s == ")" => count -= 1,
+                    _ =>
+                    {}
                 }
-                function[i] = Num(match do_math(v, deg)
-                {
-                    Ok(num) => num,
-                    Err(e) => return Err(e),
-                });
-                function.drain(i + 1..j);
+                j += 1;
             }
+            if i + 1 == j - 1
+            {
+                return Err(());
+            }
+            v = function[i + 1..j - 1].to_vec();
+            for (j, n) in v.iter().enumerate()
+            {
+                if n.str_is(",")
+                {
+                    temp1 = do_math(v[..j].to_vec(), deg)?;
+                    temp2 = do_math(v[j + 1..].to_vec(), deg)?;
+                    comma = true;
+                    break;
+                }
+            }
+            if comma
+            {
+                function.drain(i..j);
+                function.insert(i, Num(temp1));
+                function.insert(i + 1, Str(",".to_string()));
+                function.insert(i + 2, Num(temp2));
+                i += 1;
+                continue;
+            }
+            function[i] = Num(match do_math(v, deg)
+            {
+                Ok(num) => num,
+                Err(e) => return Err(e),
+            });
+            function.drain(i + 1..j);
         }
         i += 1;
     }
     i = 0;
-    let mut to_parse:(f64, f64);
     let (mut arg1, mut arg2, mut a, mut b, mut c, mut d, mut base_re, mut base_im);
     while i < function.len() - 1
     {
@@ -106,7 +105,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                 if let Num(n) = &function[i + 1]
                 {
                     (arg1, arg2) = *n;
-                    to_parse = match s.to_string().as_str()
+                    function[i] = Num(match s.to_string().as_str()
                     {
                         "sin" =>
                         {
@@ -261,32 +260,18 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                         "exp" | "aln" => pow(E, 0.0, arg1, arg2),
                         "log" =>
                         {
-                            if function.len() > i + 3
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                if let Str(s) = &function[i + 2]
+                                if let Num(b) = &function[i + 3]
                                 {
-                                    if s == ","
-                                    {
-                                        if let Num(b) = &function[i + 3]
-                                        {
-                                            (base_re, base_im) = *b;
-                                            function.remove(i + 3);
-                                            function.remove(i + 2);
-                                            log(arg1, arg2, base_re, base_im)
-                                        }
-                                        else
-                                        {
-                                            return Err(());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        ln(arg1, arg2)
-                                    }
+                                    (base_re, base_im) = *b;
+                                    function.remove(i + 3);
+                                    function.remove(i + 2);
+                                    log(arg1, arg2, base_re, base_im)
                                 }
                                 else
                                 {
-                                    ln(arg1, arg2)
+                                    return Err(());
                                 }
                             }
                             else
@@ -296,40 +281,26 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                         }
                         "root" =>
                         {
-                            if function.len() > i + 3
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                if let Str(s) = &function[i + 2]
+                                if let Num(e) = &function[i + 3]
                                 {
-                                    if s == ","
+                                    (base_re, base_im) = *e;
+                                    function.remove(i + 3);
+                                    function.remove(i + 2);
+                                    match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
                                     {
-                                        if let Num(e) = &function[i + 3]
+                                        true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),
+                                        false =>
                                         {
-                                            (base_re, base_im) = *e;
-                                            function.remove(i + 3);
-                                            function.remove(i + 2);
-                                            match base_im == 0.0 && (base_re / 2.0).fract() != 0.0 && base_re.trunc() == base_re && arg2 == 0.0
-                                            {
-                                                true => (arg1 / arg1.abs() * arg1.abs().powf(base_re.recip()), 0.0),
-                                                false =>
-                                                {
-                                                    (a, b) = div(1.0, 0.0, base_re, base_im);
-                                                    pow(arg1, arg2, a, b)
-                                                }
-                                            }
+                                            (a, b) = div(1.0, 0.0, base_re, base_im);
+                                            pow(arg1, arg2, a, b)
                                         }
-                                        else
-                                        {
-                                            return Err(());
-                                        }
-                                    }
-                                    else
-                                    {
-                                        pow(arg1, arg2, 0.5, 0.0)
                                     }
                                 }
                                 else
                                 {
-                                    pow(arg1, arg2, 0.5, 0.0)
+                                    return Err(());
                                 }
                             }
                             else
@@ -393,8 +364,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                             i += 1;
                             continue;
                         }
-                    };
-                    function[i] = Num(to_parse);
+                    });
                     function.remove(i + 1);
                 }
             }
@@ -404,15 +374,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let Str(s) = &function[i]
-        {
-            if s != "%"
-            {
-                i += 1;
-                continue;
-            }
-        }
-        else
+        if !function[i].str_is("%")
         {
             i += 1;
             continue;
@@ -444,15 +406,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let Str(s) = &function[i]
-        {
-            if s != "^"
-            {
-                i += 1;
-                continue;
-            }
-        }
-        else
+        if !function[i].str_is("^")
         {
             i += 1;
             continue;

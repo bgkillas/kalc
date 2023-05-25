@@ -1,9 +1,11 @@
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
-use crate::math::{do_math, Complex};
+use crate::math::{
+    do_math, Complex, Complex::{Num, Str}
+};
 // noinspection RsBorrowChecker
 pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
-    if let Complex::Num(n) = func[0]
+    if let Num(n) = func[0]
     {
         if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
         {
@@ -28,7 +30,7 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -
                        .map(|i| {
                            match i
                            {
-                               Complex::Str(s) if s == "x" => Complex::Num((n, 0.0)),
+                               Str(s) if s == "x" => Num((n, 0.0)),
                                _ => i.clone(),
                            }
                        })
@@ -40,7 +42,7 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -
                                         .map(|j| {
                                             match j
                                             {
-                                                Complex::Str(s) if s == "y" => Complex::Num((f, 0.0)),
+                                                Str(s) if s == "y" => Num((f, 0.0)),
                                                 _ => j.clone(),
                                             }
                                         })
@@ -60,7 +62,7 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -
 // noinspection RsBorrowChecker
 pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
-    if let Complex::Num(n) = func[0]
+    if let Num(n) = func[0]
     {
         if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
         {
@@ -81,7 +83,7 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -
                                 .map(|i| {
                                     match i
                                     {
-                                        Complex::Str(s) if s == "x" => Complex::Num((n, 0.0)),
+                                        Str(s) if s == "x" => Num((n, 0.0)),
                                         _ => i.clone(),
                                     }
                                 })

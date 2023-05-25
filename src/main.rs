@@ -82,74 +82,67 @@ fn main()
     let mut debug = false;
     let mut tau = false;
     let mut deg = false;
-    loop
+    while !args.is_empty()
     {
-        if !args.is_empty()
+        match args[0].as_str()
         {
-            match args[0].as_str()
+            "--debug" => debug = true,
+            "--tau" => tau = true,
+            "--deg" => deg = true,
+            "--2d" =>
             {
-                "--debug" => debug = true,
-                "--tau" => tau = true,
-                "--deg" => deg = true,
-                "--2d" =>
+                if args.len() > 1
                 {
-                    if args.len() > 1
-                    {
-                        range.1 = args[1].parse::<f64>().unwrap_or(40000.0);
-                        args.remove(0);
-                    }
+                    range.1 = args[1].parse::<f64>().unwrap_or(40000.0);
+                    args.remove(0);
                 }
-                "--3d" =>
-                {
-                    if args.len() > 1
-                    {
-                        range.2 = args[1].parse::<f64>().unwrap_or(400.0);
-                        args.remove(0);
-                    }
-                }
-                "--yr" =>
-                {
-                    if args.len() > 2
-                    {
-                        range.0[1][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                        range.0[1][1] = args[2].parse::<f64>().unwrap_or(10.0);
-                        args.remove(0);
-                        args.remove(0);
-                    }
-                }
-                "--xr" =>
-                {
-                    if args.len() > 2
-                    {
-                        range.0[0][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                        range.0[0][1] = args[2].parse::<f64>().unwrap_or(10.0);
-                        args.remove(0);
-                        args.remove(0);
-                    }
-                }
-                "--zr" =>
-                {
-                    if args.len() > 2
-                    {
-                        range.0[2][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                        range.0[2][1] = args[2].parse::<f64>().unwrap_or(10.0);
-                        args.remove(0);
-                        args.remove(0);
-                    }
-                }
-                "--help" =>
-                {
-                    help();
-                    return;
-                }
-                _ => break,
             }
-            args.remove(0);
+            "--3d" =>
+            {
+                if args.len() > 1
+                {
+                    range.2 = args[1].parse::<f64>().unwrap_or(400.0);
+                    args.remove(0);
+                }
+            }
+            "--yr" =>
+            {
+                if args.len() > 2
+                {
+                    range.0[1][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                    range.0[1][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                    args.remove(0);
+                    args.remove(0);
+                }
+            }
+            "--xr" =>
+            {
+                if args.len() > 2
+                {
+                    range.0[0][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                    range.0[0][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                    args.remove(0);
+                    args.remove(0);
+                }
+            }
+            "--zr" =>
+            {
+                if args.len() > 2
+                {
+                    range.0[2][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                    range.0[2][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                    args.remove(0);
+                    args.remove(0);
+                }
+            }
+            "--help" =>
+            {
+                help();
+                return;
+            }
+            _ => break,
         }
-        else
-        {
-            break;
-        }
+        args.remove(0);
     }
     if !args.is_empty()
     {
@@ -328,7 +321,14 @@ fn main()
                     {
                         frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
                     }
-                    for _ in 0..(input.len() - cursor)
+                    len = input.len();
+                    if let Some(time) = watch
+                    {
+                        let time = time.elapsed().as_nanos();
+                        len += time.to_string().len() + 1;
+                        print!(" {}", time);
+                    }
+                    for _ in 0..(len - cursor)
                     {
                         print!("\x08");
                     }

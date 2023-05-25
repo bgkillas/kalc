@@ -75,11 +75,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                     continue 'outer;
                 }
             }
-            function[i] = Num(match do_math(v, deg)
-            {
-                Ok(num) => num,
-                Err(e) => return Err(e),
-            });
+            function[i] = Num(do_math(v, deg)?);
             function.drain(i + 1..j);
         }
         i += 1;

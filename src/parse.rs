@@ -47,21 +47,20 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 neg = false;
             }
             deci = false;
-            while i < chars.len()
+            for c in chars[i..].iter()
             {
-                c = chars[i];
-                if c.is_numeric()
+                match c
                 {
-                    word.push(c);
-                }
-                else if c == '.' && !deci
-                {
-                    deci = true;
-                    word.push(c);
-                }
-                else
-                {
-                    break;
+                    '0'..='9' =>
+                    {
+                        word.push(*c);
+                    }
+                    '.' if !deci =>
+                    {
+                        deci = true;
+                        word.push(*c);
+                    }
+                    _ => break,
                 }
                 i += 1;
             }
@@ -206,10 +205,21 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
             }
             match c
             {
-                '*' => func.push(Str('*'.to_string())),
-                '/' => func.push(Str('/'.to_string())),
-                '+' => func.push(Str('+'.to_string())),
-                '-' =>
+                '*' if i != 0 && i != chars.len() =>
+                {
+                    if chars.len() != i + 1 && chars[i + 1] == '*'
+                    {
+                        func.push(Str("^".to_string()));
+                        i += 1;
+                    }
+                    else
+                    {
+                        func.push(Str('*'.to_string()));
+                    }
+                }
+                '/' if i != 0 && i != chars.len() => func.push(Str('/'.to_string())),
+                '+' if i != 0 && i != chars.len() => func.push(Str('+'.to_string())),
+                '-' if i != chars.len() =>
                 {
                     if i == 0 || !(chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                     {
@@ -228,7 +238,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' => func.push(Str('^'.to_string())),
+                '^' if i != 0 && i != chars.len() => func.push(Str('^'.to_string())),
                 '(' =>
                 {
                     place_multiplier(&mut func, &find_word);
@@ -276,7 +286,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     neg = false;
                 }
                 ',' => func.push(Str(','.to_string())),
-                '%' => func.push(Str('%'.to_string())),
+                '%' if i != 0 && i != chars.len() => func.push(Str('%'.to_string())),
                 _ => (),
             }
         }
@@ -299,17 +309,6 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
     {
         func.push(Str(word.clone()));
         word.clear();
-    }
-    if func.is_empty()
-    {
-        return Err(());
-    }
-    if let Str(s) = func.last().unwrap()
-    {
-        if s == "*" || s == "/" || s == "^" || s == "+" || s == "-" || s == "%"
-        {
-            func.pop();
-        }
     }
     if func.is_empty()
     {

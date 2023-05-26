@@ -143,7 +143,7 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last
                          }
                          else
                          {
-                             "-"
+                             ""
                          }
                      }
                      else

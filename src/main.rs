@@ -494,7 +494,7 @@ fn main()
             }
             "sci" =>
             {
-                print_options.0 = true;
+                print_options.0 = !print_options.0;
                 continue;
             }
             "clear" =>

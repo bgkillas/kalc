@@ -14,6 +14,9 @@ FLAGS: --help (this message)
 --xr [min] [max] x range for graphing
 --yr [min] [max] y range for graphing
 --zr [min] [max] z range for graphing
+--point [char] point style for graphing
+--sci enables scientific notation
+--base [num] sets the number base (2,8,16) (default 10)\n\
 --debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program
@@ -29,6 +32,9 @@ FLAGS: --help (this message)
 - Type "xr=[min],[max]" to set the x range for graphing
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
+- Type "point=[char]" to set the point style for graphing
+- Type "sci" to toggle scientific notation
+- Type "base=[num]" to set the number base (2,8,16) (default 10)
 - Type "debug" toggles displaying computation time in nanoseconds
 - Type "_" to use the previous answer
 
@@ -56,4 +62,20 @@ Examples:
 - To graph x^2, x^3, and x, type: x^2#x^3#x
 - To change the x range to -10 to 10, type: xr=-10,10
 - To change the number of points to 100000 for a 2D graph, type: 2d=100000
+
+chars available for point style:
+. - dot
++ - plus
+x - cross
+* - star
+s - empty square
+S - filled square
+o - empty circle
+O - filled circle
+t - empty triangle
+T - filled triangle
+d - empty del (upside down triangle)
+D - filled del (upside down triangle)
+r - empty rhombus
+R - filled rhombus
 ```

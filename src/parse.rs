@@ -249,13 +249,13 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 }
                 '!' =>
                 {
-                    if i != 0 && chars[i - 1].is_ascii_digit()
+                    if i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == 'x' || chars[i - 1] == 'y')
                     {
                         func.insert(func.len() - 1, Str("fact".to_string()));
                         func.insert(func.len() - 1, Str("(".to_string()));
                         func.push(Str(")".to_string()));
                     }
-                    else if i != chars.len() - 1 && chars[i + 1].is_ascii_digit()
+                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_digit() || chars[i + 1] == 'x' || chars[i + 1] == 'y')
                     {
                         func.push(Str("subfact".to_string()));
                         func.push(Str("(".to_string()));

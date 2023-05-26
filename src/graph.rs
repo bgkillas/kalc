@@ -3,7 +3,7 @@ use crate::math::{
     do_math, Complex, Complex::{Num, Str}
 };
 // noinspection RsBorrowChecker
-pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if let Num(n) = func[0]
     {
@@ -60,7 +60,7 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -
     (re, im)
 }
 // noinspection RsBorrowChecker
-pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if let Num(n) = func[0]
     {
@@ -99,7 +99,7 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64), deg:bool) -
     }
     (re, im)
 }
-pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&mut Figure, range:([[f64; 2]; 3], f64, f64), deg:bool)
+pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&mut Figure, options:([[f64; 2]; 3], f64, f64, char), deg:bool)
 {
     let re1col = "#9400D3";
     let im1col = "#009E73";
@@ -107,16 +107,16 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&
     let im2col = "#E69F00";
     let re3col = "#F0E442";
     let im3col = "#0072B2";
-    let xticks = Some((Fix((range.0[0][1] - range.0[0][0]) / 20.0), 1));
-    let yticks = Some((Fix((range.0[1][1] - range.0[1][0]) / 20.0), 1));
+    let xticks = Some((Fix((options.0[0][1] - options.0[0][0]) / 20.0), 1));
+    let yticks = Some((Fix((options.0[1][1] - options.0[1][0]) / 20.0), 1));
     fg.close();
     fg.clear_axes();
     if graph
     {
-        let zticks = Some((Fix((range.0[2][1] - range.0[2][0]) / 20.0), 1));
-        let (mut re, mut im) = get_list_3d(func[0], range, deg);
-        let (mut re2, mut im2) = get_list_3d(func[1], range, deg);
-        let (mut re3, mut im3) = get_list_3d(func[2], range, deg);
+        let zticks = Some((Fix((options.0[2][1] - options.0[2][0]) / 20.0), 1));
+        let (mut re, mut im) = get_list_3d(func[0], options, deg);
+        let (mut re2, mut im2) = get_list_3d(func[1], options, deg);
+        let (mut re3, mut im3) = get_list_3d(func[2], options, deg);
         if im.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
         {
             im.clear();
@@ -151,9 +151,9 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&
           .set_x_ticks(xticks, &[], &[])
           .set_y_ticks(yticks, &[], &[])
           .set_z_ticks(zticks, &[], &[])
-          .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
-          .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
-          .set_z_range(Fix(range.0[2][0]), Fix(range.0[2][1]))
+          .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
+          .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
+          .set_z_range(Fix(options.0[2][0]), Fix(options.0[2][1]))
           .set_z_label("z", &[])
           .set_y_label("y", &[])
           .set_x_label("x", &[])
@@ -163,12 +163,12 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&
           .lines([0], [0], [0], &[Caption(im2c.as_str()), Color(im2col)])
           .lines([0], [0], [0], &[Caption(re3c.as_str()), Color(re3col)])
           .lines([0], [0], [0], &[Caption(im3c.as_str()), Color(im3col)])
-          .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol('.'), Color(re1col)])
-          .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol('.'), Color(im1col)])
-          .points(re2.iter().map(|i| i[0]), re2.iter().map(|i| i[1]), re2.iter().map(|i| i[2]), &[PointSymbol('.'), Color(re2col)])
-          .points(im2.iter().map(|i| i[0]), im2.iter().map(|i| i[1]), im2.iter().map(|i| i[2]), &[PointSymbol('.'), Color(im2col)])
-          .points(re3.iter().map(|i| i[0]), re3.iter().map(|i| i[1]), re3.iter().map(|i| i[2]), &[PointSymbol('.'), Color(re3col)])
-          .points(im3.iter().map(|i| i[0]), im3.iter().map(|i| i[1]), im3.iter().map(|i| i[2]), &[PointSymbol('.'), Color(im3col)]);
+          .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(re1col)])
+          .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(im1col)])
+          .points(re2.iter().map(|i| i[0]), re2.iter().map(|i| i[1]), re2.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(re2col)])
+          .points(im2.iter().map(|i| i[0]), im2.iter().map(|i| i[1]), im2.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(im2col)])
+          .points(re3.iter().map(|i| i[0]), re3.iter().map(|i| i[1]), re3.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(re3col)])
+          .points(im3.iter().map(|i| i[0]), im3.iter().map(|i| i[1]), im3.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(im3col)]);
         if close
         {
             fg.show().unwrap();
@@ -177,9 +177,9 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&
         fg.show_and_keep_running().unwrap();
         return;
     }
-    let (mut re, mut im) = get_list_2d(func[0], range, deg);
-    let (mut re2, mut im2) = get_list_2d(func[1], range, deg);
-    let (mut re3, mut im3) = get_list_2d(func[2], range, deg);
+    let (mut re, mut im) = get_list_2d(func[0], options, deg);
+    let (mut re2, mut im2) = get_list_2d(func[1], options, deg);
+    let (mut re3, mut im3) = get_list_2d(func[2], options, deg);
     if im.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
     {
         im.clear();
@@ -215,20 +215,20 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&
     fg.axes2d()
       .set_x_ticks(xticks, &[], &[])
       .set_y_ticks(yticks, &[], &[])
-      .set_y_range(Fix(range.0[1][0]), Fix(range.0[1][1]))
-      .set_x_range(Fix(range.0[0][0]), Fix(range.0[0][1]))
+      .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
+      .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
       .lines([0], [0], &[Caption(re1c.as_str()), Color(re1col)])
       .lines([0], [0], &[Caption(im1c.as_str()), Color(im1col)])
       .lines([0], [0], &[Caption(re2c.as_str()), Color(re2col)])
       .lines([0], [0], &[Caption(im2c.as_str()), Color(im2col)])
       .lines([0], [0], &[Caption(re3c.as_str()), Color(re3col)])
       .lines([0], [0], &[Caption(im3c.as_str()), Color(im3col)])
-      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol('.'), Color(re1col)])
-      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol('.'), Color(im1col)])
-      .points(re2.iter().map(|x| x[0]), re2.iter().map(|x| x[1]), &[PointSymbol('.'), Color(re2col)])
-      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol('.'), Color(im2col)])
-      .points(re3.iter().map(|x| x[0]), re3.iter().map(|x| x[1]), &[PointSymbol('.'), Color(re3col)])
-      .points(im3.iter().map(|x| x[0]), im3.iter().map(|x| x[1]), &[PointSymbol('.'), Color(im3col)])
+      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re1col)])
+      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im1col)])
+      .points(re2.iter().map(|x| x[0]), re2.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re2col)])
+      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im2col)])
+      .points(re3.iter().map(|x| x[0]), re3.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re3col)])
+      .points(im3.iter().map(|x| x[0]), im3.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im3col)])
       .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
       .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
     if close

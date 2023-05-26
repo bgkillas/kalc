@@ -31,6 +31,9 @@ FLAGS: --help (this message)\n\
 --xr [min] [max] x range for graphing\n\
 --yr [min] [max] y range for graphing\n\
 --zr [min] [max] z range for graphing\n\
+--point [char] point style for graphing\n\
+--sci enables scientific notation\n\
+--base [num] sets the number base (2,8,16) (default 10)\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
@@ -45,6 +48,9 @@ FLAGS: --help (this message)\n\
 - Type \"xr=[min],[max]\" to set the x range for graphing\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
+- Type \"point=[char]\" to set the point style for graphing\n\
+- Type \"sci\" to toggle scientific notation\n\
+- Type \"base=[num]\" to set the number base (2,8,16) (default 10)\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\
 - Type \"_\" to use the previous answer\n\n\
 Trigonometric functions:\n\
@@ -73,7 +79,8 @@ fn write(input:&str, file:&mut File, lines:&Vec<String>)
 }
 fn main()
 {
-    let mut range = ([[-10.0, 10.0]; 3], 40000.0, 400.0);
+    let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
+    let mut print_options = (false, false, 10); //[sci, deg, #base]
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
     let mut watch = None;
@@ -81,19 +88,18 @@ fn main()
     args.remove(0);
     let mut debug = false;
     let mut tau = false;
-    let mut deg = false;
     while !args.is_empty()
     {
         match args[0].as_str()
         {
             "--debug" => debug = true,
             "--tau" => tau = true,
-            "--deg" => deg = true,
+            "--deg" => print_options.1 = true,
             "--2d" =>
             {
                 if args.len() > 1
                 {
-                    range.1 = args[1].parse::<f64>().unwrap_or(40000.0);
+                    graph_options.1 = args[1].parse::<f64>().unwrap_or(40000.0);
                     args.remove(0);
                 }
             }
@@ -101,7 +107,7 @@ fn main()
             {
                 if args.len() > 1
                 {
-                    range.2 = args[1].parse::<f64>().unwrap_or(400.0);
+                    graph_options.2 = args[1].parse::<f64>().unwrap_or(400.0);
                     args.remove(0);
                 }
             }
@@ -109,8 +115,8 @@ fn main()
             {
                 if args.len() > 2
                 {
-                    range.0[1][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                    range.0[1][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                    graph_options.0[1][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[1][1] = args[2].parse::<f64>().unwrap_or(10.0);
                     args.remove(0);
                     args.remove(0);
                 }
@@ -119,8 +125,8 @@ fn main()
             {
                 if args.len() > 2
                 {
-                    range.0[0][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                    range.0[0][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                    graph_options.0[0][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[0][1] = args[2].parse::<f64>().unwrap_or(10.0);
                     args.remove(0);
                     args.remove(0);
                 }
@@ -129,11 +135,25 @@ fn main()
             {
                 if args.len() > 2
                 {
-                    range.0[2][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                    range.0[2][1] = args[2].parse::<f64>().unwrap_or(10.0);
+                    graph_options.0[2][0] = args[1].parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[2][1] = args[2].parse::<f64>().unwrap_or(10.0);
                     args.remove(0);
                     args.remove(0);
                 }
+            }
+            "--base" =>
+            {
+                if args.len() > 1
+                {
+                    print_options.2 = args[1].parse::<usize>().unwrap_or(10);
+                    args.remove(0);
+                }
+            }
+            "--sci" => print_options.0 = true,
+            "--point" =>
+            {
+                graph_options.3 = args[1].chars().next().unwrap_or('.');
+                args.remove(0);
             }
             "--help" =>
             {
@@ -158,7 +178,7 @@ fn main()
                 let mut split = input.split('=');
                 let l = split.next().unwrap();
                 let r = split.next().unwrap();
-                if equal::equal(range, input.as_str(), l, r)
+                if equal::equal(graph_options, input.as_str(), l, r)
                 {
                     continue;
                 }
@@ -207,13 +227,13 @@ fn main()
                 };
                 if input.contains('y')
                 {
-                    graph([l, m, r], [&funcl, &funcm, &funcr], true, true, &mut plot, range, deg);
+                    graph([l, m, r], [&funcl, &funcm, &funcr], true, true, &mut plot, graph_options, print_options.1);
                     continue;
                 }
-                graph([l, m, r], [&funcl, &funcm, &funcr], false, true, &mut plot, range, deg);
+                graph([l, m, r], [&funcl, &funcm, &funcr], false, true, &mut plot, graph_options, print_options.1);
                 continue;
             }
-            print_answer(func, deg);
+            print_answer(func, print_options);
         }
         if let Some(time) = watch
         {
@@ -244,7 +264,7 @@ fn main()
                              return;
                          }
                      },
-                     deg);
+                     print_options);
         return;
     }
     #[cfg(target_os = "linux")]
@@ -315,11 +335,11 @@ fn main()
                     }
                     if input.is_empty()
                     {
-                        frac = print_concurrent("0", var.clone(), true, tau, deg, &last);
+                        frac = print_concurrent("0", var.clone(), true, tau, &last, print_options);
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
+                        frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
                     }
                     len = input.len();
                     if let Some(time) = watch
@@ -353,7 +373,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
+                    frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
@@ -376,7 +396,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
+                    frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
@@ -425,7 +445,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, deg, &last);
+                    frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
                     len = input.len();
                     if let Some(time) = watch
                     {
@@ -449,12 +469,12 @@ fn main()
         {
             "deg" =>
             {
-                deg = true;
+                print_options.1 = true;
                 continue;
             }
             "rad" =>
             {
-                deg = false;
+                print_options.1 = false;
                 continue;
             }
             "tau" =>
@@ -465,6 +485,11 @@ fn main()
             "pi" =>
             {
                 tau = false;
+                continue;
+            }
+            "sci" =>
+            {
+                print_options.0 = true;
                 continue;
             }
             "clear" =>
@@ -496,6 +521,16 @@ fn main()
             _ =>
             {}
         }
+        if input.len() > 6 && &input[0..6] == "point="
+        {
+            graph_options.3 = input[6..].chars().next().unwrap();
+            continue;
+        }
+        if input.len() > 5 && &input[0..5] == "base="
+        {
+            print_options.2 = input[5..].parse::<usize>().unwrap();
+            continue;
+        }
         last = format!("({})", input.clone());
         write(&input, &mut file, &lines);
         if input.contains('=')
@@ -508,35 +543,35 @@ fn main()
             {
                 "xr" =>
                 {
-                    range.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                    range.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                     continue;
                 }
                 "yr" =>
                 {
-                    range.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                    range.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                     continue;
                 }
                 "zr" =>
                 {
-                    range.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                    range.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
                     continue;
                 }
                 "2d" =>
                 {
-                    range.1 = r.parse::<f64>().unwrap();
+                    graph_options.1 = r.parse::<f64>().unwrap();
                     continue;
                 }
                 "3d" =>
                 {
-                    range.2 = r.parse::<f64>().unwrap();
+                    graph_options.2 = r.parse::<f64>().unwrap();
                     continue;
                 }
                 _ => (),
             }
-            if equal::equal(range, &input, l, r)
+            if equal::equal(graph_options, &input, l, r)
             {
                 continue;
             }
@@ -577,10 +612,10 @@ fn main()
             };
             if input.contains('y')
             {
-                graph([l, m, r], [&funcl, &funcm, &funcr], true, false, &mut plot, range, deg);
+                graph([l, m, r], [&funcl, &funcm, &funcr], true, false, &mut plot, graph_options, print_options.1);
                 continue;
             }
-            graph([l, m, r], [&funcl, &funcm, &funcr], false, false, &mut plot, range, deg);
+            graph([l, m, r], [&funcl, &funcm, &funcr], false, false, &mut plot, graph_options, print_options.1);
             continue;
         }
         println!();

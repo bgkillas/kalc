@@ -1,7 +1,7 @@
 use crate::graph::{get_list_2d, get_list_3d};
 use crate::math::do_math;
 use crate::parse::get_func;
-pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> bool
+pub fn equal(options:([[f64; 2]; 3], f64, f64, char), input:&str, l:&str, r:&str) -> bool
 {
     if input.contains('x')
     {
@@ -28,8 +28,8 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         let mut success = true;
         if input.contains('y')
         {
-            let (lre, lim) = get_list_3d(&l, range, false);
-            let (rre, rim) = get_list_3d(&r, range, false);
+            let (lre, lim) = get_list_3d(&l, options, false);
+            let (rre, rim) = get_list_3d(&r, options, false);
             for i in 0..lre.len()
             {
                 if (lre[i][2] * 1e9).round() / 1e9 != (rre[i][2] * 1e9).round() / 1e9 || (lim[i][2] * 1e9).round() / 1e9 != (rim[i][2] * 1e9).round() / 1e9
@@ -40,8 +40,8 @@ pub fn equal(range:([[f64; 2]; 3], f64, f64), input:&str, l:&str, r:&str) -> boo
         }
         else
         {
-            let (lre, lim) = get_list_2d(&l, range, false);
-            let (rre, rim) = get_list_2d(&r, range, false);
+            let (lre, lim) = get_list_2d(&l, options, false);
+            let (rre, rim) = get_list_2d(&r, options, false);
             for i in 0..lre.len()
             {
                 if (lre[i][1] * 1e9).round() / 1e9 != (rre[i][1] * 1e9).round() / 1e9 || (lim[i][1] * 1e9).round() / 1e9 != (rim[i][1] * 1e9).round() / 1e9

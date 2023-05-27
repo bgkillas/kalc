@@ -130,6 +130,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     {
                         if find_word || (i + 2 < chars.len() && chars[i + 2] != 'u')
                         {
+                            place_multiplier(&mut func, &find_word);
                             word.push(c);
                             find_word = true;
                         }
@@ -138,6 +139,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     {
                         if find_word || (i + 1 != chars.len() && chars[i + 1] != 'u')
                         {
+                            place_multiplier(&mut func, &find_word);
                             word.push(c);
                             find_word = true;
                         }

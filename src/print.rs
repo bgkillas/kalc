@@ -18,24 +18,7 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
         let c = if a != 0.0 { format!("{:e}", a).replace("e0", "").replace('e', "E") } else { "".to_owned() };
         let d = if b != 0.0
         {
-            format!("{}{:e}i",
-                    if a != 0.0
-                    {
-                        if b.is_sign_positive()
-                        {
-                            "+"
-                        }
-                        else
-                        {
-                            ""
-                        }
-                    }
-                    else
-                    {
-                        ""
-                    },
-                    b).replace("e0", "")
-                      .replace('e', "E")
+            format!("{}{:e}i", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b).replace("e0", "").replace('e', "E")
         }
         else
         {
@@ -135,24 +118,8 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last
          },
          if b != 0.0
          {
-             format!("{}{:e}\x1b[93mi",
-                     if a != 0.0
-                     {
-                         if b.is_sign_positive()
-                         {
-                             "+"
-                         }
-                         else
-                         {
-                             ""
-                         }
-                     }
-                     else
-                     {
-                         ""
-                     },
-                     b).replace("e0", "")
-                       .replace('e', "\x1b[92mE")
+             format!("{}{:e}\x1b[93mi", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b).replace("e0", "")
+                                                                                                   .replace('e', "\x1b[92mE")
          }
          else
          {

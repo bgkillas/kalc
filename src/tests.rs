@@ -1,10 +1,6 @@
-#[cfg(test)]
 use std::f64::consts::{E, PI, TAU};
-#[cfg(test)]
 use crate::math::Complex::{Num, Str};
-#[cfg(test)]
 use crate::parse::get_func;
-#[cfg(test)]
 use crate::math::do_math;
 #[test]
 fn test_math()

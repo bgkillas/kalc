@@ -10,14 +10,15 @@ mod tests;
 use parse::get_func;
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};
-use console::{Key, Term};
 use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
 use graph::graph;
 use print::{print_answer, print_concurrent};
-#[cfg(target_os = "linux")]
+#[cfg(not(unix))]
+use console::{Key, Term};
+#[cfg(unix)]
 use {
-    libc::{isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin
+    libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
 };
 fn help()
 {
@@ -86,9 +87,9 @@ fn main()
     let mut tau = false;
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
-    #[cfg(target_os = "windows")]
+    #[cfg(not(unix))]
     let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.config", var("USERNAME").unwrap());
     if File::open(file_path).is_ok()
     {
@@ -317,9 +318,9 @@ fn main()
                      print_options);
         return;
     }
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
-    #[cfg(target_os = "windows")]
+    #[cfg(not(unix))]
     let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.history", var("USERNAME").unwrap());
     if File::open(file_path).is_err()
     {
@@ -409,13 +410,7 @@ fn main()
                 }
                 '\x1D' =>
                 {
-                    i -= 1;
-                    if i == -1
-                    {
-                        input.clear();
-                        i = 0;
-                        continue 'outer;
-                    }
+                    i -= if i > 0 { 1 } else { 0 };
                     input = lines[i as usize].clone();
                     cursor = input.len();
                     #[cfg(target_os = "linux")]
@@ -530,11 +525,15 @@ fn main()
             "tau" =>
             {
                 tau = true;
+                println!();
+                write(&input, &mut file, &lines);
                 continue;
             }
             "pi" =>
             {
                 tau = false;
+                println!();
+                write(&input, &mut file, &lines);
                 continue;
             }
             "sci" =>
@@ -686,6 +685,59 @@ fn get_terminal_width() -> u16
         }
     }
 }
+#[cfg(unix)]
+fn read_single_char() -> char
+{
+    let stdin_fd = stdin().as_raw_fd();
+    let orig_termios = unsafe {
+        let mut termios = std::mem::zeroed();
+        tcgetattr(stdin_fd, &mut termios);
+        termios
+    };
+    let mut new_termios = orig_termios;
+    new_termios.c_lflag &= !(ICANON | ECHO);
+    new_termios.c_cc[VMIN] = 1;
+    new_termios.c_cc[VTIME] = 0;
+    unsafe {
+        tcsetattr(stdin_fd, TCSANOW, &new_termios);
+    }
+    let mut input = [0u8; 1];
+    stdin().read_exact(&mut input).unwrap();
+    unsafe {
+        tcsetattr(stdin_fd, TCSANOW, &orig_termios);
+    }
+    match input[0]
+    {
+        27 =>
+        {
+            let mut seq = [0u8; 2];
+            stdin().read_exact(&mut seq).unwrap();
+            match seq
+            {
+                [91, 65] => '\x1D', // Up arrow key
+                [91, 66] => '\x1E', // Down arrow key
+                [91, 67] => '\x1C', // Right arrow key
+                [91, 68] => '\x1B', // Left arrow key
+                _ => read_single_char(),
+            }
+        }
+        207 =>
+        {
+            let mut seq = [0u8; 1];
+            stdin().read_exact(&mut seq).unwrap();
+            match seq[0]
+            {
+                128 => 'π',
+                132 => 'τ',
+                _ => read_single_char(),
+            }
+        }
+        127 => '\x08',
+        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'!' | b'%' | b'_' | b'\n' => input[0] as char,
+        _ => read_single_char(),
+    }
+}
+#[cfg(not(unix))]
 fn read_single_char() -> char
 {
     let term = Term::stdout();

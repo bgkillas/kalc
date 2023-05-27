@@ -1,4 +1,6 @@
 # kalc
+[![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
+
 requires gnuplot for graphing
 
 history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history``

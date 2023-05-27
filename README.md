@@ -18,7 +18,7 @@ FLAGS: --help (this message)
 --zr [min] [max] z range for graphing
 --point [char] point style for graphing
 --sci toggles scientific notation
---base [num] sets the number base (2,8,16)\n\
+--base [num] sets the number base (2,8,16)
 --debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program

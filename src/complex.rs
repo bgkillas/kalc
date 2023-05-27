@@ -165,6 +165,11 @@ pub fn asin(a:f64, b:f64) -> (f64, f64)
     // asin(a+bi)=-i*ln(i(a+bi)+sqrt(1-(a+bi)^2))
     if b == 0.0
     {
+        if a.abs() < 1.0
+        {
+            let re = a.asin();
+            return (re, 0.0);
+        }
         // asin(a)=-i*ln(sqrt(1-a^2)+ai)
         let (d, c) = pow(1.0 - a * a, 0.0, 0.5, 0.0);
         let (e, f) = add(d, c, 0.0, a);

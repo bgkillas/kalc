@@ -13,12 +13,12 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
         }
     };
     let (a, b) = num;
-    if print_options.0
+    if !print_options.0
     {
-        let c = if a != 0.0 { format!("{:e}", a) } else { "".to_owned() };
+        let c = if a != 0.0 { format!("{:e}", a).replace("e0", "").replace('e', "E") } else { "".to_owned() };
         let d = if b != 0.0
         {
-            format!("{}{:e}",
+            format!("{}{:e}i",
                     if a != 0.0
                     {
                         if b.is_sign_positive()
@@ -27,14 +27,15 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
                         }
                         else
                         {
-                            "-"
+                            ""
                         }
                     }
                     else
                     {
                         ""
                     },
-                    b)
+                    b).replace("e0", "")
+                      .replace('e', "E")
         }
         else
         {

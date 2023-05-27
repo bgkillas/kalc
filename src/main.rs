@@ -32,7 +32,7 @@ FLAGS: --help (this message)\n\
 --yr [min] [max] y range for graphing\n\
 --zr [min] [max] z range for graphing\n\
 --point [char] point style for graphing\n\
---sci enables scientific notation\n\
+--sci disables scientific notation\n\
 --base [num] sets the number base (2,8,16) (default 10)\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
@@ -149,7 +149,7 @@ fn main()
                     args.remove(0);
                 }
             }
-            "--sci" => print_options.0 = true,
+            "--sci" => print_options.0 = false,
             "--point" =>
             {
                 graph_options.3 = args[1].chars().next().unwrap_or('.');

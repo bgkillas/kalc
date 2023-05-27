@@ -15,7 +15,7 @@ FLAGS: --help (this message)
 --yr [min] [max] y range for graphing
 --zr [min] [max] z range for graphing
 --point [char] point style for graphing
---sci enables scientific notation
+--sci disables scientific notation
 --base [num] sets the number base (2,8,16) (default 10)\n\
 --debug displays computation time in nanoseconds
 

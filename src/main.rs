@@ -32,7 +32,7 @@ FLAGS: --help (this message)\n\
 --yr [min] [max] y range for graphing\n\
 --zr [min] [max] z range for graphing\n\
 --point [char] point style for graphing\n\
---sci disables scientific notation\n\
+--sci toggles scientific notation (default: off for arguments, on for tui)\n\
 --base [num] sets the number base (2,8,16) (default 10)\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\

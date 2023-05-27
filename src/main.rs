@@ -26,14 +26,14 @@ fn help()
 FLAGS: --help (this message)\n\
 --tau fractions are shown in tau instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
---2d [num] number of points to graph in 2D (default 40000)\n\
---3d [num] number of points to graph in 3D (default 400)\n\
+--2d [num] number of points to graph in 2D\n\
+--3d [num] number of points to graph in 3D\n\
 --xr [min] [max] x range for graphing\n\
 --yr [min] [max] y range for graphing\n\
 --zr [min] [max] z range for graphing\n\
 --point [char] point style for graphing\n\
---sci toggles scientific notation (default: off for arguments, on for tui)\n\
---base [num] sets the number base (2,8,16) (default 10)\n\
+--sci toggles scientific notation\n\
+--base [num] sets the number base (2,8,16)\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
@@ -43,14 +43,14 @@ FLAGS: --help (this message)\n\
 - Type \"rad\" to switch to radians mode\n\
 - Type \"tau\" to show fractions in tau\n\
 - Type \"pi\" to show fractions in pi\n\
-- Type \"2d=[num]\" to set the number of points in 2D graphs (default 40000)\n\
-- Type \"3d=[num]\" to set the number of points in 3D graphs (default 400)\n\
+- Type \"2d=[num]\" to set the number of points in 2D graphs\n\
+- Type \"3d=[num]\" to set the number of points in 3D graphs\n\
 - Type \"xr=[min],[max]\" to set the x range for graphing\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
-- Type \"base=[num]\" to set the number base (2,8,16) (default 10)\n\
+- Type \"base=[num]\" to set the number base (2,8,16)\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\
 - Type \"_\" to use the previous answer\n\n\
 Trigonometric functions:\n\
@@ -80,14 +80,59 @@ fn write(input:&str, file:&mut File, lines:&Vec<String>)
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
-    let mut print_options = (true, false, 10); //[sci, deg, #base]
-    let mut plot = Figure::new();
-    plot.set_enhanced_text(false);
+    let mut print_options = (false, false, 10); //[sci, deg, #base]
     let mut watch = None;
-    let mut args = args().collect::<Vec<String>>();
-    args.remove(0);
     let mut debug = false;
     let mut tau = false;
+    let mut plot = Figure::new();
+    plot.set_enhanced_text(false);
+    #[cfg(target_os = "linux")]
+    let file_path = &(var("HOME").unwrap() + "/.config/calc.config");
+    #[cfg(target_os = "windows")]
+    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\calc.config", var("USERNAME").unwrap());
+    if File::open(file_path).is_ok()
+    {
+        let file = File::open(file_path).unwrap();
+        let reader = BufReader::new(file);
+        for line in reader.lines()
+        {
+            let line = line.unwrap();
+            let mut args = line.split('=');
+            match args.next().unwrap()
+            {
+                "2d" => graph_options.1 = args.next().unwrap().parse::<f64>().unwrap_or(40000.0),
+                "3d" => graph_options.2 = args.next().unwrap().parse::<f64>().unwrap_or(400.0),
+                "xr" =>
+                {
+                    let mut xr = args.next().unwrap().split(',');
+                    graph_options.0[0][0] = xr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[0][1] = xr.next().unwrap().parse::<f64>().unwrap_or(10.0);
+                }
+                "yr" =>
+                {
+                    let mut yr = args.next().unwrap().split(',');
+                    graph_options.0[1][0] = yr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[1][1] = yr.next().unwrap().parse::<f64>().unwrap_or(10.0);
+                }
+                "zr" =>
+                {
+                    let mut zr = args.next().unwrap().split(',');
+                    graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
+                }
+                "point" => graph_options.3 = args.next().unwrap().chars().next().unwrap_or('.'),
+                "sci" => print_options.0 = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "base" => print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10),
+                "debug" => debug = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "deg" => print_options.1 = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "tau" => tau = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                _ =>
+                {}
+            }
+        }
+    }
+    let mut args = args().collect::<Vec<String>>();
+    args.remove(0);
     while !args.is_empty()
     {
         match args[0].as_str()

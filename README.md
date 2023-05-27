@@ -1,7 +1,9 @@
 # calc
 requires gnuplot for graphing
 
-history file is stored in ``~/.config/.calc_history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
+history file is stored in ``~/.config/calc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
+
+config file is stored in ``~/.config/calc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.config``
 
 # usage
 ```
@@ -9,14 +11,14 @@ Usage: calc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
 --tau fractions are shown in tau instead of pi
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions
---2d [num] number of points to graph in 2D (default 40000)
---3d [num] number of points to graph in 3D (default 400)
+--2d [num] number of points to graph in 2D
+--3d [num] number of points to graph in 3D
 --xr [min] [max] x range for graphing
 --yr [min] [max] y range for graphing
 --zr [min] [max] z range for graphing
 --point [char] point style for graphing
---sci toggles scientific notation (default: off for arguments, on for tui)
---base [num] sets the number base (2,8,16) (default 10)\n\
+--sci toggles scientific notation
+--base [num] sets the number base (2,8,16)\n\
 --debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program
@@ -27,14 +29,14 @@ FLAGS: --help (this message)
 - Type "rad" to switch to radians mode
 - Type "tau" to show fractions in tau
 - Type "pi" to show fractions in pi
-- Type "2d=[num]" to set the number of points in 2D graphs (default 40000)
-- Type "3d=[num]" to set the number of points in 3D graphs (default 400)
+- Type "2d=[num]" to set the number of points in 2D graphs
+- Type "3d=[num]" to set the number of points in 3D graphs
 - Type "xr=[min],[max]" to set the x range for graphing
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
-- Type "base=[num]" to set the number base (2,8,16) (default 10)
+- Type "base=[num]" to set the number base (2,8,16)
 - Type "debug" toggles displaying computation time in nanoseconds
 - Type "_" to use the previous answer
 

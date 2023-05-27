@@ -80,7 +80,7 @@ fn write(input:&str, file:&mut File, lines:&Vec<String>)
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
-    let mut print_options = (false, false, 10); //[sci, deg, #base]
+    let mut print_options = (true, false, 10); //[sci, deg, #base]
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
     let mut watch = None;

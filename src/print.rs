@@ -98,8 +98,8 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last
     };
     let mut frac = false;
     let (a, b) = do_math(func, print_options.1).unwrap_or((0.0, 0.0));
-    let fa = fraction(a, tau);
-    let fb = fraction(b, tau);
+    let fa = fraction(a, tau, print_options.0);
+    let fb = fraction(b, tau, print_options.0);
     let c = (a * 1e12).round() / 1e12;
     let d = (b * 1e12).round() / 1e12;
     let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
@@ -126,7 +126,7 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last
     {
         (if a != 0.0
          {
-             format!("{:e}\x1b[0m", a).replace("e0", "").replace('e', "\x1b[92me")
+             format!("{:e}\x1b[0m", a).replace("e0", "").replace('e', "\x1b[92mE")
          }
          else
          {
@@ -151,7 +151,7 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last
                          ""
                      },
                      b).replace("e0", "")
-                       .replace('e', "\x1b[92me")
+                       .replace('e', "\x1b[92mE")
          }
          else
          {

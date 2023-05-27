@@ -1,13 +1,13 @@
-# calc
+# kalc
 requires gnuplot for graphing
 
-history file is stored in ``~/.config/calc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.history``
+history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history``
 
-config file is stored in ``~/.config/calc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\calc.config``
+config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config``
 
 # usage
 ```
-Usage: calc [FLAGS] function_1 function_2 function_3...
+Usage: kalc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
 --tau fractions are shown in tau instead of pi
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions

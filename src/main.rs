@@ -22,7 +22,7 @@ use {
 fn help()
 {
     println!(
-             "Usage: calc [FLAGS] function_1 function_2 function_3...\n\
+             "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
 FLAGS: --help (this message)\n\
 --tau fractions are shown in tau instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
@@ -87,9 +87,9 @@ fn main()
     let mut plot = Figure::new();
     plot.set_enhanced_text(false);
     #[cfg(target_os = "linux")]
-    let file_path = &(var("HOME").unwrap() + "/.config/calc.config");
+    let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
     #[cfg(target_os = "windows")]
-    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\calc.config", var("USERNAME").unwrap());
+    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.config", var("USERNAME").unwrap());
     if File::open(file_path).is_ok()
     {
         let file = File::open(file_path).unwrap();
@@ -318,9 +318,9 @@ fn main()
         return;
     }
     #[cfg(target_os = "linux")]
-    let file_path = &(var("HOME").unwrap() + "/.config/calc.history");
+    let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
     #[cfg(target_os = "windows")]
-    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\calc.history", var("USERNAME").unwrap());
+    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.history", var("USERNAME").unwrap());
     if File::open(file_path).is_err()
     {
         File::create(file_path).unwrap();

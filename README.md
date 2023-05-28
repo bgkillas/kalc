@@ -1,7 +1,7 @@
 # kalc
 [![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
 
-requires gnuplot for graphing
+requires gnuplot for graphing, a modern terminal like windows terminal on windows
 
 history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history``
 

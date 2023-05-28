@@ -25,11 +25,6 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 word.clear();
             }
             place_multiplier(&mut func, &find_word);
-            if (i != 0 && chars[i - 1] == 'E') || (neg && i > 1 && chars[i - 2] == 'E')
-            {
-                func.push(Num((10.0, 0.0)));
-                func.push(Str('^'.to_string()));
-            }
             if neg
             {
                 word.push('-');
@@ -68,7 +63,17 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 match c
                 {
                     'E' =>
-                    {}
+                    {
+                        place_multiplier(&mut func, &find_word);
+                        if neg
+                        {
+                            func.push(Num((-1.0, 0.0)));
+                            func.push(Str('*'.to_string()));
+                            neg = false;
+                        }
+                        func.push(Num((10.0, 0.0)));
+                        func.push(Str('^'.to_string()));
+                    }
                     'x' | 'y' =>
                     {
                         place_multiplier(&mut func, &find_word);
@@ -214,7 +219,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 '+' if i != 0 && i != chars.len() => func.push(Str('+'.to_string())),
                 '-' if i != chars.len() =>
                 {
-                    if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
+                    if i == 0 || !(chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {

@@ -710,14 +710,19 @@ fn read_single_char() -> char
     {
         27 =>
         {
-            let mut seq = [0u8; 2];
+            let mut seq = [0u8; 1];
             stdin().read_exact(&mut seq).unwrap();
-            match seq
+            if seq[0] != 91
             {
-                [91, 65] => '\x1D', // Up arrow key
-                [91, 66] => '\x1E', // Down arrow key
-                [91, 67] => '\x1C', // Right arrow key
-                [91, 68] => '\x1B', // Left arrow key
+                return seq[0] as char;
+            }
+            stdin().read_exact(&mut seq).unwrap();
+            match seq[0]
+            {
+                65 => '\x1D', // Up arrow key
+                66 => '\x1E', // Down arrow key
+                67 => '\x1C', // Right arrow key
+                68 => '\x1B', // Left arrow key
                 _ => read_single_char(),
             }
         }

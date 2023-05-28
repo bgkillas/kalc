@@ -43,6 +43,7 @@ FLAGS: --help (this message)
 - Type "_" to use the previous answer
 - Type "a=[num]" to define a variable
 - Type "f(x)=..." to define a function
+- Type "f(x,y)=..." to define a 2 variable function
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan

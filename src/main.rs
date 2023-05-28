@@ -57,7 +57,8 @@ FLAGS: --help (this message)\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\
 - Type \"_\" to use the previous answer\n\
 - Type \"a=[num]\" to define a variable\n\
-- Type \"f(x)=...\" to define a function\n\n\
+- Type \"f(x)=...\" to define a function\n\
+- Type \"f(x,y)=...\" to define a 2 variable function\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\

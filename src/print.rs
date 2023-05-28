@@ -45,33 +45,14 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
                  if b.ends_with("0i") { "".to_string() } else { b });
     };
 }
-pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last:&str, print_options:(bool, bool, usize)) -> bool
+pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize)) -> bool
 {
-    let mut modified = input.to_string().replace('_', last);
-    for i in &var
+    if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z')
     {
-        let var_name = i[0..i.iter().position(|&x| x == '=').unwrap()].iter().collect::<String>();
-        let var_value = i[i.iter().position(|&x| x == '=').unwrap() + 1..].iter().collect::<String>();
-        let var_name_len = var_name.len();
-        let mut start_idx = 0;
-        while start_idx < modified.len() + 1 - var_name_len
-        {
-            let end_idx = start_idx + var_name_len;
-            if (start_idx == 0 || !modified.chars().nth(start_idx - 1).unwrap().is_ascii_alphabetic())
-               && (end_idx == modified.len() || !modified.chars().nth(end_idx).unwrap().is_ascii_alphabetic())
-               && modified[start_idx..end_idx] == var_name
-            {
-                modified.replace_range(start_idx..end_idx, &var_value);
-            }
-            start_idx += 1;
-        }
-    }
-    if (modified.contains('x') && !input.contains("exp")) || modified.contains('y') || modified.contains('z')
-    {
-        print!("\x1b[96m\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", input);
+        print!("\x1b[96m\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", unmodified_input);
         return false;
     }
-    let func = match get_func(&modified)
+    let func = match get_func(input)
     {
         Ok(f) => f,
         Err(_) =>
@@ -149,6 +130,6 @@ pub fn print_concurrent(input:&str, var:Vec<Vec<char>>, del:bool, tau:bool, last
            output_a,
            output_b,
            if frac { "\x1b[A" } else { "" },
-           if !del { format!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input) } else { "\x1B[2K\x1B[1G".to_string() });
+           format!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", unmodified_input));
     frac
 }

@@ -335,3 +335,104 @@ fn place_multiplier(func:&mut Vec<Complex>, find_word:&bool)
         func.push(Str('*'.to_string()))
     }
 }
+pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
+{
+    let chars = input.chars().collect::<Vec<char>>();
+    let mut output = String::new();
+    let (mut split, mut var_name, mut not_pushed, mut var_value, mut v, mut c, mut k, mut f);
+    let mut i = 0;
+    while i < chars.len()
+    {
+        c = chars[i];
+        not_pushed = true;
+        for var in vars
+        {
+            if var[1] == '('
+            {
+                v = var.iter().collect::<String>();
+                split = v.split('=');
+                var_name = split.next().unwrap().to_string();
+                var_value = split.next().unwrap().to_string();
+                if !input.contains('=') && input.len() > var_name.len() && input[i..var_name.len()] == var_name
+                {
+                    not_pushed = false;
+                    output.push('(');
+                    output.push_str(&var_value);
+                    output.push(')');
+                    i += var_name.len();
+                }
+                if c == var[0] && (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && i + 2 < chars.len() && chars[i + 1] == '('
+                {
+                    k = 0;
+                    for (j, c) in chars[i + 2..].iter().enumerate()
+                    {
+                        if *c == ')'
+                        {
+                            k = j + i + 3;
+                            break;
+                        }
+                        else if j + i + 3 == chars.len()
+                        {
+                            k = j + i + 4;
+                            break;
+                        }
+                    }
+                    if k == 0
+                    {
+                        continue;
+                    }
+                    f = 0;
+                    for (j, c) in chars[i + 2..].iter().enumerate()
+                    {
+                        if *c == ','
+                        {
+                            f = j + i + 2;
+                            break;
+                        }
+                    }
+                    if k > f && chars.len() > 4
+                    {
+                        if f == 0
+                        {
+                            continue;
+                        }
+                        not_pushed = false;
+                        output.push('(');
+                        output.push_str(&var_value.replace(var[2], &chars[i + 2..f].iter().collect::<String>())
+                                                  .replace(var[4], &chars[f + 1..k - 1].iter().collect::<String>()));
+                        output.push(')');
+                        i += k;
+                    }
+                    else
+                    {
+                        not_pushed = false;
+                        output.push('(');
+                        output.push_str(&var_value.replace(var[2], &chars[i + 2..k - 1].iter().collect::<String>()));
+                        output.push(')');
+                        i += k;
+                    }
+                }
+            }
+            else if c == var[0] && (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
+            {
+                not_pushed = false;
+                output.push('(');
+                output.push_str(&var[2..].iter().collect::<String>());
+                output.push(')');
+            }
+        }
+        if not_pushed
+        {
+            output.push(c);
+        }
+        i += 1;
+    }
+    if output.is_empty()
+    {
+        input.to_string()
+    }
+    else
+    {
+        output
+    }
+}

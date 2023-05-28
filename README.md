@@ -41,6 +41,8 @@ FLAGS: --help (this message)
 - Type "base=[num]" to set the number base (2,8,16)
 - Type "debug" toggles displaying computation time in nanoseconds
 - Type "_" to use the previous answer
+- Type "a=[num]" to define a variable
+- Type "f(x)=..." to define a function
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan

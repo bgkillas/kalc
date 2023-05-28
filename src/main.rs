@@ -20,6 +20,8 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
 };
+use crate::equal::equal;
+use crate::parse::input_var;
 fn help()
 {
     println!(
@@ -53,7 +55,9 @@ FLAGS: --help (this message)\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"base=[num]\" to set the number base (2,8,16)\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\
-- Type \"_\" to use the previous answer\n\n\
+- Type \"_\" to use the previous answer\n\
+- Type \"a=[num]\" to define a variable\n\
+- Type \"f(x)=...\" to define a function\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\
@@ -330,10 +334,9 @@ fn main()
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let fg = "\x1b[96m";
     let mut lines:Vec<String>;
-    let mut last = String::new();
     #[cfg(target_os = "linux")]
     let mut width;
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut m, mut r, mut funcl, mut funcm, mut funcr, mut split);
+    let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
     {
         #[cfg(target_os = "linux")]
@@ -343,6 +346,7 @@ fn main()
         input.clear();
         stdout().flush().unwrap();
         lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+        last = lines.last().unwrap_or(&String::new()).clone();
         i = lines.len() as i32;
         max = i;
         cursor = 0;
@@ -384,14 +388,14 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    if input.is_empty()
+                    frac = if input.is_empty()
                     {
-                        frac = print_concurrent("0", var.clone(), true, tau, &last, print_options);
+                        false
                     }
                     else
                     {
-                        frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
-                    }
+                        print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options)
+                    };
                     len = input.len();
                     if let Some(time) = watch
                     {
@@ -418,7 +422,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
+                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1E' =>
@@ -441,7 +445,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
+                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options);
                     print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
                 }
                 '\x1B' =>
@@ -490,7 +494,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, var.clone(), false, tau, &last, print_options);
+                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options);
                     len = input.len();
                     if let Some(time) = watch
                     {
@@ -506,7 +510,7 @@ fn main()
             }
             stdout().flush().unwrap();
         }
-        if input.is_empty()
+        if input.is_empty() || input.chars().filter(|c| *c == '=').count() > 1
         {
             continue;
         }
@@ -580,7 +584,6 @@ fn main()
             print_options.2 = input[5..].parse::<usize>().unwrap();
             continue;
         }
-        last = format!("({})", input.clone());
         write(&input, &mut file, &lines);
         if input.contains('=')
         {
@@ -620,7 +623,7 @@ fn main()
                 }
                 _ => (),
             }
-            if equal::equal(graph_options, &input, l, r)
+            if !(l.len() > 3 && l.chars().nth(1).unwrap() == '(' && l.ends_with(')') && l.chars().next().unwrap().is_ascii_alphabetic()) && equal(graph_options, &input, l, r)
             {
                 continue;
             }
@@ -641,30 +644,30 @@ fn main()
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             split = input.split('#');
-            l = split.next().unwrap();
-            m = split.next().unwrap_or("0");
-            r = split.next().unwrap_or("0");
-            funcl = match get_func(l)
+            let l = input_var(split.next().unwrap_or("0"), &var);
+            let m = input_var(split.next().unwrap_or("0"), &var);
+            let r = input_var(split.next().unwrap_or("0"), &var);
+            funcl = match get_func(&l)
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            funcm = match get_func(m)
+            funcm = match get_func(&m)
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            funcr = match get_func(r)
+            funcr = match get_func(&r)
             {
                 Ok(f) => f,
                 _ => continue,
             };
             if input.contains('y')
             {
-                graph([l, m, r], [&funcl, &funcm, &funcr], true, false, &mut plot, graph_options, print_options.1);
+                graph([&l, &m, &r], [&funcl, &funcm, &funcr], true, false, &mut plot, graph_options, print_options.1);
                 continue;
             }
-            graph([l, m, r], [&funcl, &funcm, &funcr], false, false, &mut plot, graph_options, print_options.1);
+            graph([&l, &m, &r], [&funcl, &funcm, &funcr], false, false, &mut plot, graph_options, print_options.1);
             continue;
         }
         println!();

@@ -347,21 +347,25 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
         not_pushed = true;
         for var in vars
         {
+            if c != var[0]
+            {
+                continue;
+            }
             if var[1] == '('
             {
                 v = var.iter().collect::<String>();
                 split = v.split('=');
                 var_name = split.next().unwrap().to_string();
                 var_value = split.next().unwrap().to_string();
-                if !input.contains('=') && input.len() > var_name.len() && input[i..var_name.len()] == var_name
+                if !input.contains('=') && input.len() > i + var_name.len() && input[i..i + var_name.len()] == var_name
                 {
                     not_pushed = false;
                     output.push('(');
                     output.push_str(&var_value);
                     output.push(')');
-                    i += var_name.len();
+                    i += var_name.len() - 1;
                 }
-                if c == var[0] && (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && i + 2 < chars.len() && chars[i + 1] == '('
+                if (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && i + 2 < chars.len() && chars[i + 1] == '('
                 {
                     k = 0;
                     for (j, c) in chars[i + 2..].iter().enumerate()
@@ -390,18 +394,14 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
                             break;
                         }
                     }
-                    if k > f && chars.len() > 4
+                    if f != 0 && k > f && chars.len() > 4
                     {
-                        if f == 0
-                        {
-                            continue;
-                        }
                         not_pushed = false;
                         output.push('(');
                         output.push_str(&var_value.replace(var[2], &chars[i + 2..f].iter().collect::<String>())
                                                   .replace(var[4], &chars[f + 1..k - 1].iter().collect::<String>()));
                         output.push(')');
-                        i += k;
+                        i += k - 1;
                     }
                     else
                     {
@@ -409,11 +409,11 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
                         output.push('(');
                         output.push_str(&var_value.replace(var[2], &chars[i + 2..k - 1].iter().collect::<String>()));
                         output.push(')');
-                        i += k;
+                        i += k - 1;
                     }
                 }
             }
-            else if c == var[0] && (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
+            else if (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
             {
                 not_pushed = false;
                 output.push('(');

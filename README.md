@@ -64,16 +64,27 @@ Other functions:
 - sinc, cis, exp
 - deg(to_degrees), rad(to_radians)
 - re(real part), im(imaginary part)
-
-Examples:
-- To calculate the sine of 0.5, type: sin(0.5)
-- To calculate the logarithm base 2 of 8, type: log(2,8)
-- To graph x^2, type: x^2
-- To graph (x+yi)^2 type z^2 or (x+yi)^2
-- To graph x^2, x^3, and x, type: x^2#x^3#x
-- To change the x range to -10 to 10, type: xr=-10,10
-- To change the number of points to 100000 for a 2D graph, type: 2d=100000
-
+```
+# example usage
+```
+kalc
+> 1+1
+2
+> f(x)=sin(2x)
+> f(x) //graphs f(x) in 2D
+> f(pi/2) //evaluates f(x) at x=pi/2, so sin(2pi/2)=sin(pi)=0
+0
+> f(x,y)=x^2+y^2
+> f(1,2) //evaluates f(x,y) at x=1, y=2, so 1^2+2^2=5
+5
+> f(x,y) //graphs f(x,y) in 3D
+> a=3^3
+> cbrt(a)
+3
+> im(exp(xi)) //graphs the imag part of exp(xi) in 2D, so sin(x)
+```
+# graphing
+```
 chars available for point style:
 . - dot
 + - plus

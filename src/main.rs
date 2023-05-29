@@ -48,6 +48,8 @@ FLAGS: --help (this message)\n\
 - Type \"rad\" to switch to radians mode\n\
 - Type \"tau\" to show fractions in tau\n\
 - Type \"pi\" to show fractions in pi\n\
+- Type \"prompt\" to toggle the prompt\n\
+- Type \"color\" to toggle color\n\
 - Type \"2d=[num]\" to set the number of points in 2D graphs\n\
 - Type \"3d=[num]\" to set the number of points in 3D graphs\n\
 - Type \"xr=[min],[max]\" to set the x range for graphing\n\
@@ -297,7 +299,7 @@ fn main()
                 graph([l, m, r], [&funcl, &funcm, &funcr], false, true, &mut plot, graph_options, print_options.1);
                 continue;
             }
-            print_answer(func, print_options);
+            print_answer(func, print_options, color);
         }
         if let Some(time) = watch
         {
@@ -328,7 +330,8 @@ fn main()
                              return;
                          }
                      },
-                     print_options);
+                     print_options,
+                     color);
         return;
     }
     #[cfg(unix)]
@@ -466,7 +469,7 @@ fn main()
                         print!("\x1b[A");
                     }
                     frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    print!("\x1B[2K\x1B[1G{}{}",
+                    print!("\x1B[2K\x1B[1G{}{}{}\x1b[0m",
                            if prompt
                            {
                                if color
@@ -482,6 +485,7 @@ fn main()
                            {
                                ""
                            },
+                           if color { "\x1b[96m" } else { "" },
                            input);
                 }
                 '\x1E' =>
@@ -519,7 +523,7 @@ fn main()
                         print!("\x1b[A");
                     }
                     frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    print!("\x1B[2K\x1B[1G{}{}",
+                    print!("\x1B[2K\x1B[1G{}{}{}\x1b[0m",
                            if prompt
                            {
                                if color
@@ -535,6 +539,7 @@ fn main()
                            {
                                ""
                            },
+                           if color { "\x1b[96m" } else { "" },
                            input);
                 }
                 '\x1B' =>

@@ -1,7 +1,7 @@
 use crate::fraction::fraction;
 use crate::math::{do_math, Complex};
 use crate::parse::get_func;
-pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
+pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize), color:bool)
 {
     let num = match do_math(func, print_options.1)
     {
@@ -15,16 +15,24 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
     let (a, b) = num;
     if print_options.0
     {
-        let c = if a != 0.0 { format!("{:e}", a).replace("e0", "").replace('e', "E") } else { "".to_owned() };
-        let d = if b != 0.0
+        let c = if a != 0.0
         {
-            format!("{}{:e}i", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b).replace("e0", "").replace('e', "E")
+            format!("{:e}", a).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
         }
         else
         {
             "".to_owned()
         };
-        println!("{}{}", c, d);
+        let d = if b != 0.0
+        {
+            format!("{}{:e}{}", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b, if color { "\x1b[93mi" } else { "i" }).replace("e0", "")
+                                                                                                                                  .replace('e', if color { "\x1b[92mE" } else { "E" })
+        }
+        else
+        {
+            "".to_owned()
+        };
+        println!("{}\x1b[0m{}\x1b[0m", c, d);
     }
     else if print_options.2 != 10
     {
@@ -39,8 +47,8 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
     else
     {
         let a = (a * 1e12).round() / 1e12;
-        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + "i";
-        println!("{}{}",
+        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + if color { "\x1b[93mi" } else { "i" };
+        println!("{}\x1b[0m{}\x1b[0m",
                  if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
                  if b.ends_with("0i") { "".to_string() } else { b });
     };

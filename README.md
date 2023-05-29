@@ -33,6 +33,8 @@ FLAGS: --help (this message)
 - Type "rad" to switch to radians mode
 - Type "tau" to show fractions in tau
 - Type "pi" to show fractions in pi
+- Type "prompt" to toggle the prompt
+- Type "color" to toggle color
 - Type "2d=[num]" to set the number of points in 2D graphs
 - Type "3d=[num]" to set the number of points in 3D graphs
 - Type "xr=[min],[max]" to set the x range for graphing

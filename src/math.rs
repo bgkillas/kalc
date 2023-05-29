@@ -363,7 +363,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
         }
         a = function[i - 1].num()?;
         b = function[i + 1].num()?;
-        if a.1 == 0.0 || b.1 == 0.0
+        if a.1 != 0.0 || b.1 != 0.0
         {
             return Err(());
         }

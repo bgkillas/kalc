@@ -153,7 +153,18 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
         }
         _ => ("".to_string(), "".to_string()),
     };
-    let (output_a, output_b) = if print_options.0
+    let (output_a, output_b) = if print_options.2 != 10
+    {
+        (match print_options.2
+         {
+             2 => format!("{:b}", a as i64),
+             8 => format!("{:o}", a as i64),
+             16 => format!("{:x}", a as i64),
+             _ => "0".to_string(),
+         },
+         "".to_owned())
+    }
+    else if print_options.0
     {
         (if a != 0.0
          {
@@ -172,17 +183,6 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
          {
              "".to_owned()
          })
-    }
-    else if print_options.2 != 10
-    {
-        (match print_options.2
-         {
-             2 => format!("{:b}", a as i64),
-             8 => format!("{:o}", a as i64),
-             16 => format!("{:x}", a as i64),
-             _ => "0".to_string(),
-         },
-         "".to_owned())
     }
     else
     {

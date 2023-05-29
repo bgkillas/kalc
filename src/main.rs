@@ -7,6 +7,8 @@ mod parse;
 mod print;
 #[cfg(test)]
 mod tests;
+use equal::equal;
+use parse::input_var;
 use parse::get_func;
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};
@@ -20,8 +22,6 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
 };
-use crate::equal::equal;
-use crate::parse::input_var;
 fn help()
 {
     println!(
@@ -308,7 +308,7 @@ fn main()
         return;
     }
     let mut input = String::new();
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     if !unsafe { isatty(STDIN_FILENO) != 0 }
     {
         let line = stdin().lock().lines().next();
@@ -345,7 +345,7 @@ fn main()
     let mut var:Vec<Vec<char>> = Vec::new();
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut lines:Vec<String>;
-    #[cfg(target_os = "linux")]
+    #[cfg(unix)]
     let mut width;
     let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
@@ -355,7 +355,7 @@ fn main()
             print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
             stdout().flush().unwrap();
         }
-        #[cfg(target_os = "linux")]
+        #[cfg(unix)]
         {
             width = get_terminal_width();
         }
@@ -414,7 +414,7 @@ fn main()
                     cursor -= 1;
                     input.remove(cursor);
                     print!("\x1B[2K\x1B[1G{}", input);
-                    #[cfg(target_os = "linux")]
+                    #[cfg(unix)]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -463,7 +463,7 @@ fn main()
                     i -= if i > 0 { 1 } else { 0 };
                     input = lines[i as usize].clone();
                     cursor = input.len();
-                    #[cfg(target_os = "linux")]
+                    #[cfg(unix)]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -517,7 +517,7 @@ fn main()
                     }
                     input = lines[i as usize].clone();
                     cursor = input.len();
-                    #[cfg(target_os = "linux")]
+                    #[cfg(unix)]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -583,7 +583,7 @@ fn main()
                         input.insert(cursor, c);
                         cursor += 1;
                     }
-                    #[cfg(target_os = "linux")]
+                    #[cfg(unix)]
                     if width < (input.len() + 1) as u16
                     {
                         print!("\x1b[A");
@@ -777,7 +777,7 @@ fn main()
         println!();
     }
 }
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 fn get_terminal_width() -> u16
 {
     unsafe {

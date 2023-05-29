@@ -744,7 +744,11 @@ fn main()
                     break;
                 }
             }
-            var.push(input.chars().collect());
+            split = input.split('=');
+            if split.clone().count() == 2
+            {
+                var.push(format!("{}={}", split.next().unwrap(), input_var(split.next().unwrap(), &var)).chars().collect());
+            }
             continue;
         }
         else if (input.replace("exp", "").contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))

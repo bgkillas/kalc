@@ -398,8 +398,8 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
                     {
                         not_pushed = false;
                         output.push('(');
-                        output.push_str(&var_value.replace(var[2], &format!("({})", chars[i + 2..f].iter().collect::<String>()))
-                                                  .replace(var[4], &format!("({})", chars[f + 1..k - 1].iter().collect::<String>())));
+                        output.push_str(&var_value.replace(var[2], &format!("({})", input_var(&chars[i + 2..f].iter().collect::<String>(), vars)))
+                                                  .replace(var[4], &format!("({})", input_var(&chars[f + 1..k - 1].iter().collect::<String>(), vars))));
                         output.push(')');
                         i += k - 1;
                     }
@@ -407,7 +407,7 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
                     {
                         not_pushed = false;
                         output.push('(');
-                        output.push_str(&var_value.replace(var[2], &format!("({})", chars[i + 2..k - 1].iter().collect::<String>())));
+                        output.push_str(&var_value.replace(var[2], &format!("({})", input_var(&chars[i + 2..k - 1].iter().collect::<String>(), vars))));
                         output.push(')');
                         i += k - 1;
                     }

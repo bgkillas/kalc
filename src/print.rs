@@ -177,13 +177,13 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
          {
              format!("{:e}\x1b[0m", a).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
          }
-         else if b != 0.0
+         else if b == 0.0
          {
-             "".to_owned()
+             "0".to_owned()
          }
          else
          {
-             "0".to_owned()
+             "".to_owned()
          },
          if b != 0.0
          {

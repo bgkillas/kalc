@@ -37,6 +37,8 @@ FLAGS: --help (this message)\n\
 --point [char] point style for graphing\n\
 --sci toggles scientific notation\n\
 --base [num] sets the number base (2,8,16)\n\
+--prompt toggles the prompt\n\
+--color toggles color\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
@@ -54,11 +56,11 @@ FLAGS: --help (this message)\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"base=[num]\" to set the number base (2,8,16)\n\
-- Type \"debug\" toggles displaying computation time in nanoseconds\n\
 - Type \"_\" to use the previous answer\n\
 - Type \"a=[num]\" to define a variable\n\
 - Type \"f(x)=...\" to define a function\n\
-- Type \"f(x,y)=...\" to define a 2 variable function\n\n\
+- Type \"f(x,y)=...\" to define a 2 variable function\n\
+- Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\
@@ -91,6 +93,8 @@ fn main()
     let mut debug = false;
     let mut tau = false;
     let mut plot = Figure::new();
+    let mut prompt = true;
+    let mut color = true;
     plot.set_enhanced_text(false);
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
@@ -126,6 +130,8 @@ fn main()
                     graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
+                "prompt" => prompt = args.next().unwrap().parse::<bool>().unwrap_or(true),
+                "color" => color = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "point" => graph_options.3 = args.next().unwrap().chars().next().unwrap_or('.'),
                 "sci" => print_options.0 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "base" => print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10),
@@ -143,9 +149,11 @@ fn main()
     {
         match args[0].as_str()
         {
-            "--debug" => debug = true,
-            "--tau" => tau = true,
-            "--deg" => print_options.1 = true,
+            "--debug" => debug = !debug,
+            "--tau" => tau = !tau,
+            "--deg" => print_options.1 = !print_options.1,
+            "--prompt" => prompt = !prompt,
+            "--color" => color = !color,
             "--2d" =>
             {
                 if args.len() > 1
@@ -200,7 +208,7 @@ fn main()
                     args.remove(0);
                 }
             }
-            "--sci" => print_options.0 = false,
+            "--sci" => print_options.0 = !print_options.0,
             "--point" =>
             {
                 graph_options.3 = args[1].chars().next().unwrap_or('.');
@@ -333,13 +341,17 @@ fn main()
     }
     let mut var:Vec<Vec<char>> = Vec::new();
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
-    let fg = "\x1b[96m";
     let mut lines:Vec<String>;
     #[cfg(target_os = "linux")]
     let mut width;
     let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split);
     loop
     {
+        if prompt
+        {
+            print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
+            stdout().flush().unwrap();
+        }
         #[cfg(target_os = "linux")]
         {
             width = get_terminal_width();
@@ -376,7 +388,22 @@ fn main()
                     {
                         if input.is_empty()
                         {
-                            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                                   if prompt
+                                   {
+                                       if color
+                                       {
+                                           "\x1b[94m> \x1b[0m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   });
                             stdout().flush().unwrap();
                         }
                         continue;
@@ -395,7 +422,7 @@ fn main()
                     }
                     else
                     {
-                        print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options)
+                        print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color)
                     };
                     len = input.len();
                     if let Some(time) = watch
@@ -410,7 +437,22 @@ fn main()
                     }
                     if cursor == 0 && input.is_empty()
                     {
-                        print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A");
+                        print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                               if prompt
+                               {
+                                   if color
+                                   {
+                                       "\x1b[94m> \x1b[0m"
+                                   }
+                                   else
+                                   {
+                                       "> "
+                                   }
+                               }
+                               else
+                               {
+                                   ""
+                               });
                     }
                 }
                 '\x1D' =>
@@ -423,8 +465,24 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options);
-                    print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
+                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
+                    print!("\x1B[2K\x1B[1G{}{}",
+                           if prompt
+                           {
+                               if color
+                               {
+                                   "\x1b[94m> \x1b[0m"
+                               }
+                               else
+                               {
+                                   "> "
+                               }
+                           }
+                           else
+                           {
+                               ""
+                           },
+                           input);
                 }
                 '\x1E' =>
                 {
@@ -432,8 +490,22 @@ fn main()
                     if i >= max
                     {
                         input.clear();
-                        print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A");
-                        print!("\x1B[2K\x1B[1G{fg}\x1b[0m");
+                        print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
+                               if prompt
+                               {
+                                   if color
+                                   {
+                                       "\x1b[94m> \x1b[0m"
+                                   }
+                                   else
+                                   {
+                                       "> "
+                                   }
+                               }
+                               else
+                               {
+                                   ""
+                               });
                         stdout().flush().unwrap();
                         i = max;
                         cursor = 0;
@@ -446,8 +518,24 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options);
-                    print!("\x1B[2K\x1B[1G{fg}{}\x1b[0m", input);
+                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
+                    print!("\x1B[2K\x1B[1G{}{}",
+                           if prompt
+                           {
+                               if color
+                               {
+                                   "\x1b[94m> \x1b[0m"
+                               }
+                               else
+                               {
+                                   "> "
+                               }
+                           }
+                           else
+                           {
+                               ""
+                           },
+                           input);
                 }
                 '\x1B' =>
                 {
@@ -495,7 +583,7 @@ fn main()
                     {
                         print!("\x1b[A");
                     }
-                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options);
+                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
                     len = input.len();
                     if let Some(time) = watch
                     {
@@ -517,6 +605,16 @@ fn main()
         }
         match input.as_str()
         {
+            "color" =>
+            {
+                color = !color;
+                continue;
+            }
+            "prompt" =>
+            {
+                prompt = !prompt;
+                continue;
+            }
             "deg" =>
             {
                 print_options.1 = true;

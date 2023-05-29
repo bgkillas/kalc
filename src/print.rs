@@ -45,11 +45,28 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize))
                  if b.ends_with("0i") { "".to_string() } else { b });
     };
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize)) -> bool
+pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize), prompt:bool, color:bool) -> bool
 {
     if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z')
     {
-        print!("\x1b[96m\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}\x1b[0m", unmodified_input);
+        print!("{}\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
+               if color { "\x1b[96m" } else { "" },
+               if prompt
+               {
+                   if color
+                   {
+                       "\x1b[94m> \x1b[0m"
+                   }
+                   else
+                   {
+                       "> "
+                   }
+               }
+               else
+               {
+                   ""
+               },
+               unmodified_input);
         return false;
     }
     let func = match get_func(input)
@@ -57,7 +74,24 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
         Ok(f) => f,
         Err(_) =>
         {
-            print!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", input);
+            print!("{}\x1B[2K\x1B[1G{}{}\x1b[0m",
+                   if color { "\x1b[96m" } else { "" },
+                   if prompt
+                   {
+                       if color
+                       {
+                           "\x1b[94m> \x1b[0m"
+                       }
+                       else
+                       {
+                           "> "
+                       }
+                   }
+                   else
+                   {
+                       ""
+                   },
+                   input);
             return false;
         }
     };
@@ -73,17 +107,41 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
         (true, true) =>
         {
             frac = true;
-            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
+            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
+             if d == 0.0
+             {
+                 "".to_string()
+             }
+             else
+             {
+                 sign.clone() + fb.as_str() + if color { "\x1b[93mi" } else { "i" }
+             })
         }
         (true, _) =>
         {
             frac = true;
-            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa }, if d == 0.0 { "".to_string() } else { sign.clone() + d.to_string().as_str() + "\x1b[93mi" })
+            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
+             if d == 0.0
+             {
+                 "".to_string()
+             }
+             else
+             {
+                 sign.clone() + d.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
+             })
         }
         (_, true) =>
         {
             frac = true;
-            (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() }, if d == 0.0 { "".to_string() } else { sign.clone() + fb.as_str() + "\x1b[93mi" })
+            (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
+             if d == 0.0
+             {
+                 "".to_string()
+             }
+             else
+             {
+                 sign.clone() + fb.as_str() + if color { "\x1b[93mi" } else { "i" }
+             })
         }
         _ => ("".to_string(), "".to_string()),
     };
@@ -91,7 +149,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
     {
         (if a != 0.0
          {
-             format!("{:e}\x1b[0m", a).replace("e0", "").replace('e', "\x1b[92mE")
+             format!("{:e}\x1b[0m", a).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else
          {
@@ -99,8 +157,8 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
          },
          if b != 0.0
          {
-             format!("{}{:e}\x1b[93mi", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b).replace("e0", "")
-                                                                                                   .replace('e', "\x1b[92mE")
+             format!("{}{:e}{}", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b, if color { "\x1b[93mi" } else { "i" }).replace("e0", "")
+                                                                                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else
          {
@@ -120,7 +178,15 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
     }
     else
     {
-        (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() }, if d == 0.0 { "".to_string() } else { sign + d.to_string().as_str() + "\x1b[93mi" })
+        (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
+         if d == 0.0
+         {
+             "".to_string()
+         }
+         else
+         {
+             sign + d.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
+         })
     };
     print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}{}",
            if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
@@ -130,6 +196,23 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
            output_a,
            output_b,
            if frac { "\x1b[A" } else { "" },
-           format!("\x1b[96m\x1B[2K\x1B[1G{}\x1b[0m", unmodified_input));
+           format!("\x1B[2K\x1B[1G{}{}{}\x1b[0m",
+                   if prompt
+                   {
+                       if color
+                       {
+                           "\x1b[94m> \x1b[0m"
+                       }
+                       else
+                       {
+                           "> "
+                       }
+                   }
+                   else
+                   {
+                       ""
+                   },
+                   if color { "\x1b[96m" } else { "" },
+                   unmodified_input));
     frac
 }

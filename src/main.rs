@@ -353,13 +353,13 @@ fn main()
         if prompt
         {
             print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
+            stdout().flush().unwrap();
         }
         #[cfg(unix)]
         {
             width = get_terminal_width();
         }
         input.clear();
-        stdout().flush().unwrap();
         lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
         last = lines.last().unwrap_or(&String::new()).clone();
         i = lines.len() as i32;
@@ -468,23 +468,26 @@ fn main()
                         print!("\x1b[A");
                     }
                     frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    print!("\x1B[2K\x1B[1G{}{}{}\x1b[0m",
+                    print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                            if prompt
                            {
                                if color
                                {
-                                   "\x1b[94m> \x1b[0m"
+                                   "\x1b[94m> \x1b[96m"
                                }
                                else
                                {
                                    "> "
                                }
                            }
+                           else if color
+                           {
+                               "\x1b[96m"
+                           }
                            else
                            {
                                ""
                            },
-                           if color { "\x1b[96m" } else { "" },
                            input);
                 }
                 '\x1E' =>
@@ -522,23 +525,26 @@ fn main()
                         print!("\x1b[A");
                     }
                     frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    print!("\x1B[2K\x1B[1G{}{}{}\x1b[0m",
+                    print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                            if prompt
                            {
                                if color
                                {
-                                   "\x1b[94m> \x1b[0m"
+                                   "\x1b[94m> \x1b[96m"
                                }
                                else
                                {
                                    "> "
                                }
                            }
+                           else if color
+                           {
+                               "\x1b[96m"
+                           }
                            else
                            {
                                ""
                            },
-                           if color { "\x1b[96m" } else { "" },
                            input);
                 }
                 '\x1B' =>

@@ -56,20 +56,23 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize), color:
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize), prompt:bool, color:bool) -> bool
 {
-    if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z')
+    if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
     {
-        print!("{}\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
-               if color { "\x1b[96m" } else { "" },
+        print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
                if prompt
                {
                    if color
                    {
-                       "\x1b[94m> \x1b[0m"
+                       "\x1b[94m> \x1b[96m"
                    }
                    else
                    {
                        "> "
                    }
+               }
+               else if color
+               {
+                   "\x1b[96m"
                }
                else
                {
@@ -83,18 +86,21 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
         Ok(f) => f,
         Err(_) =>
         {
-            print!("{}\x1B[2K\x1B[1G{}{}\x1b[0m",
-                   if color { "\x1b[96m" } else { "" },
+            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                    if prompt
                    {
                        if color
                        {
-                           "\x1b[94m> \x1b[0m"
+                           "\x1b[94m> \x1b[96m"
                        }
                        else
                        {
                            "> "
                        }
+                   }
+                   else if color
+                   {
+                       "\x1b[96m"
                    }
                    else
                    {
@@ -197,7 +203,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
              sign + d.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
          })
     };
-    print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}{}",
+    print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
            if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
            frac_a,
            frac_b,
@@ -205,23 +211,25 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
            output_a,
            output_b,
            if frac { "\x1b[A" } else { "" },
-           format!("\x1B[2K\x1B[1G{}{}{}\x1b[0m",
-                   if prompt
-                   {
-                       if color
-                       {
-                           "\x1b[94m> \x1b[0m"
-                       }
-                       else
-                       {
-                           "> "
-                       }
-                   }
-                   else
-                   {
-                       ""
-                   },
-                   if color { "\x1b[96m" } else { "" },
-                   unmodified_input));
+           if prompt
+           {
+               if color
+               {
+                   "\x1b[94m> \x1b[96m"
+               }
+               else
+               {
+                   "> "
+               }
+           }
+           else if color
+           {
+               "\x1b[96m"
+           }
+           else
+           {
+               ""
+           },
+           unmodified_input);
     frac
 }

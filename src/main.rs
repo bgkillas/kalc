@@ -62,6 +62,7 @@ FLAGS: --help (this message)\n\
 - Type \"a=[num]\" to define a variable\n\
 - Type \"f(x)=...\" to define a function\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
+- Type \"f(x,y,z...)=...\" to define a multi variable function\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\

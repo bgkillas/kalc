@@ -339,7 +339,7 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
 {
     let chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut split, mut var_name, mut not_pushed, mut var_value, mut v, mut c, mut k, mut f);
+    let (mut split, mut var_name, mut not_pushed, mut var_value, mut v, mut c, mut k);
     let mut i = 0;
     while i < chars.len()
     {
@@ -385,21 +385,16 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
                     {
                         continue;
                     }
-                    f = 0;
-                    for (j, c) in chars[i + 2..].iter().enumerate()
-                    {
-                        if *c == ','
-                        {
-                            f = j + i + 2;
-                            break;
-                        }
-                    }
-                    if f != 0 && k > f && chars.len() > 4
+                    if input.contains(',') && chars.len() > 4
                     {
                         not_pushed = false;
                         output.push('(');
-                        output.push_str(&var_value.replace(var[2], &format!("({})", input_var(&chars[i + 2..f].iter().collect::<String>(), vars)))
-                                                  .replace(var[4], &format!("({})", input_var(&chars[f + 1..k - 1].iter().collect::<String>(), vars))));
+                        split = input[2..k - 1].split(',');
+                        for i in 0..split.clone().count()
+                        {
+                            var_value = var_value.replace(var[(i + 1) * 2], &format!("({})", input_var(split.next().unwrap(), vars)));
+                        }
+                        output.push_str(&var_value);
                         output.push(')');
                         i += k - 1;
                     }

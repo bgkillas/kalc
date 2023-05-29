@@ -47,10 +47,11 @@ pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize), color:
     else
     {
         let a = (a * 1e12).round() / 1e12;
-        let b = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &((b * 1e12).round() / 1e12).to_string() + if color { "\x1b[93mi" } else { "i" };
+        let b = (b * 1e12).round() / 1e12;
+        let d = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &b.to_string() + if color { "\x1b[93mi" } else { "i" };
         println!("{}\x1b[0m{}\x1b[0m",
-                 if a == 0.0 && !(b.ends_with("0i")) { "".to_string() } else { a.to_string() },
-                 if b.ends_with("0i") { "".to_string() } else { b });
+                 if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
+                 if b == 0.0 { "".to_string() } else { d });
     };
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize), prompt:bool, color:bool) -> bool

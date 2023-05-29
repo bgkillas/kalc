@@ -353,7 +353,6 @@ fn main()
         if prompt
         {
             print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
-            stdout().flush().unwrap();
         }
         #[cfg(unix)]
         {

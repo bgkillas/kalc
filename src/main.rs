@@ -22,6 +22,7 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
 };
+use crate::parse::get_vars;
 fn help()
 {
     println!(
@@ -39,6 +40,8 @@ FLAGS: --help (this message)\n\
 --base [num] sets the number base (2,8,16)\n\
 --prompt toggles the prompt\n\
 --color toggles color\n\
+--vars toggles default variables\n\
+--default ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
@@ -77,7 +80,22 @@ Other functions:\n\
 - fact, subfact\n\
 - sinc, cis, exp\n\
 - deg(to_degrees), rad(to_radians)\n\
-- re(real part), im(imaginary part)"
+- re(real part), im(imaginary part)\n\n\
+Constants:\n\
+- g: gravity\n\
+- c: speed of light\n\
+- h: planck's constant\n\
+- e: euler's number\n\
+- pi: pi\n\
+- tau: tau (2pi)\n\
+- phi: golden ratio\n\
+- G: gravitational constant\n\
+- ec: elementary charge\n\
+- mp: proton mass\n\
+- mn: neutron mass\n\
+- me: electron mass\n\
+- ev: electron volt\n\
+- kc: coulomb's constant"
     );
 }
 fn write(input:&str, file:&mut File, lines:&Vec<String>)
@@ -91,11 +109,12 @@ fn write(input:&str, file:&mut File, lines:&Vec<String>)
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
-    let mut print_options = (false, false, 10); //[sci, deg, #base]
+    let mut plot = Figure::new();
     let mut watch = None;
+    let mut print_options = (false, false, 10); //[sci, deg, #base]
+    let mut allow_vars = true;
     let mut debug = false;
     let mut tau = false;
-    let mut plot = Figure::new();
     let mut prompt = true;
     let mut color = true;
     plot.set_enhanced_text(false);
@@ -141,6 +160,7 @@ fn main()
                 "debug" => debug = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "deg" => print_options.1 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "tau" => tau = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "vars" => allow_vars = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 _ =>
                 {}
             }
@@ -227,113 +247,29 @@ fn main()
                 println!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                 return;
             }
+            "--vars" => allow_vars = !allow_vars,
+            "--default" =>
+            {
+                print_options = (false, false, 10);
+                allow_vars = true;
+                debug = false;
+                tau = false;
+                prompt = true;
+                color = true;
+            }
             _ => break,
         }
         args.remove(0);
     }
-    if !args.is_empty()
-    {
-        if debug
-        {
-            watch = Some(std::time::Instant::now());
-        }
-        for i in args
-        {
-            let input = i.replace('z', "(x+y*i)").replace(' ', "");
-            if input.contains("==")
-            {
-                let mut split = input.split("==");
-                let l = split.next().unwrap();
-                let r = split.next().unwrap();
-                if equal::equal(graph_options, input.as_str(), l, r)
-                {
-                    continue;
-                }
-            }
-            let func = match get_func(input.as_str())
-            {
-                Ok(f) => f,
-                Err(()) =>
-                {
-                    println!("Invalid function.");
-                    return;
-                }
-            };
-            if input.contains('x')
-            {
-                let mut split = input.split('#');
-                let l = split.next().unwrap();
-                let m = split.next().unwrap_or("0");
-                let r = split.next().unwrap_or("0");
-                let funcl = match get_func(l)
-                {
-                    Ok(f) => f,
-                    _ =>
-                    {
-                        println!("Invalid function.");
-                        return;
-                    }
-                };
-                let funcm = match get_func(m)
-                {
-                    Ok(f) => f,
-                    _ =>
-                    {
-                        println!("Invalid function.");
-                        return;
-                    }
-                };
-                let funcr = match get_func(r)
-                {
-                    Ok(f) => f,
-                    _ =>
-                    {
-                        println!("Invalid function.");
-                        return;
-                    }
-                };
-                if input.contains('y')
-                {
-                    graph([l, m, r], [&funcl, &funcm, &funcr], true, true, &mut plot, graph_options, print_options.1);
-                    continue;
-                }
-                graph([l, m, r], [&funcl, &funcm, &funcr], false, true, &mut plot, graph_options, print_options.1);
-                continue;
-            }
-            print_answer(func, print_options, color);
-        }
-        if let Some(time) = watch
-        {
-            println!("{}", time.elapsed().as_nanos());
-        }
-        return;
-    }
+    let mut vars:Vec<String> = get_vars(allow_vars);
     let mut input = String::new();
     #[cfg(unix)]
     if !unsafe { isatty(STDIN_FILENO) != 0 }
     {
-        let line = stdin().lock().lines().next();
-        if line.as_ref().is_none()
+        for line in stdin().lock().lines()
         {
-            return;
+            args.push(line.unwrap());
         }
-        input = line.unwrap().unwrap();
-        if input.is_empty()
-        {
-            return;
-        }
-        print_answer(match get_func(&input)
-                     {
-                         Ok(f) => f,
-                         Err(()) =>
-                         {
-                             println!("Invalid function.");
-                             return;
-                         }
-                     },
-                     print_options,
-                     color);
-        return;
     }
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
@@ -343,18 +279,17 @@ fn main()
     {
         File::create(file_path).unwrap();
     }
-    let mut var:Vec<String> = Vec::new();
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut lines:Vec<String>;
     #[cfg(unix)]
     let mut width;
     let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split_str, mut split);
+    let mut exit = false;
     loop
     {
-        if prompt
+        if exit
         {
-            print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
-            stdout().flush().unwrap();
+            break;
         }
         #[cfg(unix)]
         {
@@ -367,31 +302,174 @@ fn main()
         max = i;
         cursor = 0;
         frac = false;
-        'outer: loop
+        if !args.is_empty()
         {
-            c = read_single_char();
             if debug
             {
                 watch = Some(std::time::Instant::now());
             }
-            match c
+            input = args.first().unwrap().replace('z', "(x+y*i)").replace(' ', "");
+            args.remove(0);
+            print_answer(&input,
+                         match get_func(&input_var(&input, &vars))
+                         {
+                             Ok(f) => f,
+                             Err(()) =>
+                             {
+                                 println!("Invalid function.");
+                                 return;
+                             }
+                         },
+                         print_options,
+                         color);
+            if let Some(time) = watch
             {
-                '\n' =>
+                println!("{}", time.elapsed().as_nanos());
+            }
+            if args.is_empty()
+            {
+                exit = true;
+            }
+        }
+        else
+        {
+            if prompt
+            {
+                print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
+                stdout().flush().unwrap();
+            }
+            'outer: loop
+            {
+                c = read_single_char();
+                if debug
                 {
-                    if frac
-                    {
-                        println!();
-                    }
-                    println!();
-                    break;
+                    watch = Some(std::time::Instant::now());
                 }
-                '\x08' =>
+                match c
                 {
-                    if cursor == 0
+                    '\n' =>
                     {
-                        if input.is_empty()
+                        if frac
                         {
-                            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                            println!();
+                        }
+                        println!();
+                        println!();
+                        break;
+                    }
+                    '\x08' =>
+                    {
+                        if cursor == 0
+                        {
+                            if input.is_empty()
+                            {
+                                print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                                       if prompt
+                                       {
+                                           if color
+                                           {
+                                               "\x1b[94m> \x1b[0m"
+                                           }
+                                           else
+                                           {
+                                               "> "
+                                           }
+                                       }
+                                       else
+                                       {
+                                           ""
+                                       });
+                                stdout().flush().unwrap();
+                            }
+                            continue;
+                        }
+                        cursor -= 1;
+                        input.remove(cursor);
+                        print!("\x1B[2K\x1B[1G{}", input);
+                        #[cfg(unix)]
+                        if width < (input.len() + 1) as u16
+                        {
+                            print!("\x1b[A");
+                        }
+                        frac = if input.is_empty()
+                        {
+                            false
+                        }
+                        else
+                        {
+                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color)
+                        };
+                        len = input.len();
+                        if let Some(time) = watch
+                        {
+                            let time = time.elapsed().as_nanos();
+                            len += time.to_string().len() + 1;
+                            print!(" {}", time);
+                        }
+                        for _ in 0..(len - cursor)
+                        {
+                            print!("\x08");
+                        }
+                        if cursor == 0 && input.is_empty()
+                        {
+                            print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                                   if prompt
+                                   {
+                                       if color
+                                       {
+                                           "\x1b[94m> \x1b[0m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   });
+                        }
+                    }
+                    '\x1D' =>
+                    {
+                        i -= if i > 0 { 1 } else { 0 };
+                        input = lines[i as usize].clone();
+                        cursor = input.len();
+                        #[cfg(unix)]
+                        if width < (input.len() + 1) as u16
+                        {
+                            print!("\x1b[A");
+                        }
+                        frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color);
+                        print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                               if prompt
+                               {
+                                   if color
+                                   {
+                                       "\x1b[94m> \x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       "> "
+                                   }
+                               }
+                               else if color
+                               {
+                                   "\x1b[96m"
+                               }
+                               else
+                               {
+                                   ""
+                               },
+                               input);
+                    }
+                    '\x1E' =>
+                    {
+                        i += 1;
+                        if i >= max
+                        {
+                            input.clear();
+                            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
                                    if prompt
                                    {
                                        if color
@@ -408,293 +486,215 @@ fn main()
                                        ""
                                    });
                             stdout().flush().unwrap();
+                            i = max;
+                            cursor = 0;
+                            continue 'outer;
                         }
-                        continue;
+                        input = lines[i as usize].clone();
+                        cursor = input.len();
+                        #[cfg(unix)]
+                        if width < (input.len() + 1) as u16
+                        {
+                            print!("\x1b[A");
+                        }
+                        frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color);
+                        print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                               if prompt
+                               {
+                                   if color
+                                   {
+                                       "\x1b[94m> \x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       "> "
+                                   }
+                               }
+                               else if color
+                               {
+                                   "\x1b[96m"
+                               }
+                               else
+                               {
+                                   ""
+                               },
+                               input);
                     }
-                    cursor -= 1;
-                    input.remove(cursor);
-                    print!("\x1B[2K\x1B[1G{}", input);
-                    #[cfg(unix)]
-                    if width < (input.len() + 1) as u16
+                    '\x1B' =>
                     {
-                        print!("\x1b[A");
-                    }
-                    frac = if input.is_empty()
-                    {
-                        false
-                    }
-                    else
-                    {
-                        print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color)
-                    };
-                    len = input.len();
-                    if let Some(time) = watch
-                    {
-                        let time = time.elapsed().as_nanos();
-                        len += time.to_string().len() + 1;
-                        print!(" {}", time);
-                    }
-                    for _ in 0..(len - cursor)
-                    {
+                        if cursor == 0
+                        {
+                            continue;
+                        }
+                        cursor -= 1;
                         print!("\x08");
                     }
-                    if cursor == 0 && input.is_empty()
+                    '\x1C' =>
                     {
-                        print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
-                               if prompt
-                               {
-                                   if color
-                                   {
-                                       "\x1b[94m> \x1b[0m"
-                                   }
-                                   else
-                                   {
-                                       "> "
-                                   }
-                               }
-                               else
-                               {
-                                   ""
-                               });
+                        if cursor == input.len()
+                        {
+                            continue;
+                        }
+                        cursor += 1;
+                        print!("\x1b[1C")
+                    }
+                    _ =>
+                    {
+                        if c == 'π'
+                        {
+                            input.insert(cursor, 'p');
+                            cursor += 1;
+                            input.insert(cursor, 'i');
+                            cursor += 1;
+                        }
+                        else if c == 'τ'
+                        {
+                            input.insert(cursor, 't');
+                            cursor += 1;
+                            input.insert(cursor, 'a');
+                            cursor += 1;
+                            input.insert(cursor, 'u');
+                            cursor += 1;
+                        }
+                        else
+                        {
+                            input.insert(cursor, c);
+                            cursor += 1;
+                        }
+                        #[cfg(unix)]
+                        if width < (input.len() + 1) as u16
+                        {
+                            print!("\x1b[A");
+                        }
+                        frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color);
+                        len = input.len();
+                        if let Some(time) = watch
+                        {
+                            let time = time.elapsed().as_nanos();
+                            len += time.to_string().len() + 1;
+                            print!(" {}", time);
+                        }
+                        for _ in 0..(len - cursor)
+                        {
+                            print!("\x08");
+                        }
                     }
                 }
-                '\x1D' =>
+                stdout().flush().unwrap();
+            }
+            if input.is_empty() || input.chars().filter(|c| *c == '=').count() > 1
+            {
+                continue;
+            }
+            match input.as_str()
+            {
+                "color" =>
                 {
-                    i -= if i > 0 { 1 } else { 0 };
-                    input = lines[i as usize].clone();
-                    cursor = input.len();
-                    #[cfg(unix)]
-                    if width < (input.len() + 1) as u16
-                    {
-                        print!("\x1b[A");
-                    }
-                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                           if prompt
-                           {
-                               if color
-                               {
-                                   "\x1b[94m> \x1b[96m"
-                               }
-                               else
-                               {
-                                   "> "
-                               }
-                           }
-                           else if color
-                           {
-                               "\x1b[96m"
-                           }
-                           else
-                           {
-                               ""
-                           },
-                           input);
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    color = !color;
+                    continue;
                 }
-                '\x1E' =>
+                "prompt" =>
                 {
-                    i += 1;
-                    if i >= max
-                    {
-                        input.clear();
-                        print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
-                               if prompt
-                               {
-                                   if color
-                                   {
-                                       "\x1b[94m> \x1b[0m"
-                                   }
-                                   else
-                                   {
-                                       "> "
-                                   }
-                               }
-                               else
-                               {
-                                   ""
-                               });
-                        stdout().flush().unwrap();
-                        i = max;
-                        cursor = 0;
-                        continue 'outer;
-                    }
-                    input = lines[i as usize].clone();
-                    cursor = input.len();
-                    #[cfg(unix)]
-                    if width < (input.len() + 1) as u16
-                    {
-                        print!("\x1b[A");
-                    }
-                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                           if prompt
-                           {
-                               if color
-                               {
-                                   "\x1b[94m> \x1b[96m"
-                               }
-                               else
-                               {
-                                   "> "
-                               }
-                           }
-                           else if color
-                           {
-                               "\x1b[96m"
-                           }
-                           else
-                           {
-                               ""
-                           },
-                           input);
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    prompt = !prompt;
+                    continue;
                 }
-                '\x1B' =>
+                "deg" =>
                 {
-                    if cursor == 0
-                    {
-                        continue;
-                    }
-                    cursor -= 1;
-                    print!("\x08");
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.1 = true;
+                    continue;
                 }
-                '\x1C' =>
+                "rad" =>
                 {
-                    if cursor == input.len()
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.1 = false;
+                    continue;
+                }
+                "tau" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    tau = true;
+                    println!();
+                    write(&input, &mut file, &lines);
+                    continue;
+                }
+                "pi" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    tau = false;
+                    println!();
+                    write(&input, &mut file, &lines);
+                    continue;
+                }
+                "sci" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.0 = !print_options.0;
+                    continue;
+                }
+                "clear" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print!("\x1B[2J\x1B[1;1H");
+                    stdout().flush().unwrap();
+                    continue;
+                }
+                "debug" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    debug = !debug;
+                    watch = None;
+                    continue;
+                }
+                "help" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    help();
+                    continue;
+                }
+                "history" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    for l in lines
                     {
-                        continue;
+                        println!("{}", l);
                     }
-                    cursor += 1;
-                    print!("\x1b[1C")
+                    continue;
+                }
+                "exit" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    break;
                 }
                 _ =>
-                {
-                    if c == 'π'
-                    {
-                        input.insert(cursor, 'p');
-                        cursor += 1;
-                        input.insert(cursor, 'i');
-                        cursor += 1;
-                    }
-                    else if c == 'τ'
-                    {
-                        input.insert(cursor, 't');
-                        cursor += 1;
-                        input.insert(cursor, 'a');
-                        cursor += 1;
-                        input.insert(cursor, 'u');
-                        cursor += 1;
-                    }
-                    else
-                    {
-                        input.insert(cursor, c);
-                        cursor += 1;
-                    }
-                    #[cfg(unix)]
-                    if width < (input.len() + 1) as u16
-                    {
-                        print!("\x1b[A");
-                    }
-                    frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &var), tau, print_options, prompt, color);
-                    len = input.len();
-                    if let Some(time) = watch
-                    {
-                        let time = time.elapsed().as_nanos();
-                        len += time.to_string().len() + 1;
-                        print!(" {}", time);
-                    }
-                    for _ in 0..(len - cursor)
-                    {
-                        print!("\x08");
-                    }
-                }
+                {}
             }
-            stdout().flush().unwrap();
+            if input.len() > 6 && &input[0..6] == "point="
+            {
+                graph_options.3 = input[6..].chars().next().unwrap();
+                continue;
+            }
+            if input.len() > 5 && &input[0..5] == "base="
+            {
+                print_options.2 = input[5..].parse::<usize>().unwrap();
+                continue;
+            }
+            write(&input, &mut file, &lines);
         }
-        if input.is_empty() || input.chars().filter(|c| *c == '=').count() > 1
-        {
-            continue;
-        }
-        match input.as_str()
-        {
-            "color" =>
-            {
-                color = !color;
-                continue;
-            }
-            "prompt" =>
-            {
-                prompt = !prompt;
-                continue;
-            }
-            "deg" =>
-            {
-                print_options.1 = true;
-                continue;
-            }
-            "rad" =>
-            {
-                print_options.1 = false;
-                continue;
-            }
-            "tau" =>
-            {
-                tau = true;
-                println!();
-                write(&input, &mut file, &lines);
-                continue;
-            }
-            "pi" =>
-            {
-                tau = false;
-                println!();
-                write(&input, &mut file, &lines);
-                continue;
-            }
-            "sci" =>
-            {
-                print_options.0 = !print_options.0;
-                continue;
-            }
-            "clear" =>
-            {
-                print!("\x1B[2J\x1B[1;1H");
-                stdout().flush().unwrap();
-                continue;
-            }
-            "debug" =>
-            {
-                debug = !debug;
-                watch = None;
-                continue;
-            }
-            "help" =>
-            {
-                help();
-                continue;
-            }
-            "history" =>
-            {
-                for l in lines
-                {
-                    println!("{}", l);
-                }
-                continue;
-            }
-            "exit" => break,
-            _ =>
-            {}
-        }
-        if input.len() > 6 && &input[0..6] == "point="
-        {
-            graph_options.3 = input[6..].chars().next().unwrap();
-            continue;
-        }
-        if input.len() > 5 && &input[0..5] == "base="
-        {
-            print_options.2 = input[5..].parse::<usize>().unwrap();
-            continue;
-        }
-        write(&input, &mut file, &lines);
         if input.contains("==")
         {
             split_str = input.split("==");
@@ -742,27 +742,27 @@ fn main()
                 }
                 _ => (),
             }
-            for i in 0..var.len()
+            for i in 0..vars.len()
             {
-                if var[i].split('=').next().unwrap() == l
+                if vars[i].split('=').next().unwrap() == l
                 {
-                    var.remove(i);
+                    vars.remove(i);
                     break;
                 }
             }
-            var.push(format!("{}={}", l, input_var(r, &var)).chars().collect());
+            vars.push(format!("{}={}", l, input_var(r, &vars)));
             continue;
         }
-        else if (input.replace("exp", "").contains('x') && var.iter().all(|i| i.split('=').next().unwrap() != "x"))
-                  || (input.contains('z') && var.iter().all(|i| i.split('=').next().unwrap() != "z"))
+        else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i.split('=').next().unwrap() != "x"))
+                  || (input.contains('z') && vars.iter().all(|i| i.split('=').next().unwrap() != "z"))
         {
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             split = input.split('#');
-            let l = input_var(split.next().unwrap_or("0"), &var);
-            let m = input_var(split.next().unwrap_or("0"), &var);
-            let r = input_var(split.next().unwrap_or("0"), &var);
+            let l = input_var(split.next().unwrap_or("0"), &vars);
+            let m = input_var(split.next().unwrap_or("0"), &vars);
+            let r = input_var(split.next().unwrap_or("0"), &vars);
             funcl = match get_func(&l)
             {
                 Ok(f) => f,
@@ -786,7 +786,6 @@ fn main()
             graph([&l, &m, &r], [&funcl, &funcm, &funcr], false, false, &mut plot, graph_options, print_options.1);
             continue;
         }
-        println!();
     }
 }
 #[cfg(unix)]

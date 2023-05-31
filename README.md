@@ -23,6 +23,8 @@ FLAGS: --help (this message)
 --base [num] sets the number base (2,8,16)
 --prompt toggles the prompt
 --color toggles color
+--vars toggles default variables
+--default ignores config file
 --debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program
@@ -65,6 +67,22 @@ Other functions:
 - sinc, cis, exp
 - deg(to_degrees), rad(to_radians)
 - re(real part), im(imaginary part)
+
+Constants:
+- g: gravity
+- c: speed of light
+- h: planck's constant
+- e: euler's number
+- pi: pi
+- tau: tau (2pi)
+- phi: golden ratio
+- G: gravitational constant
+- ec: elementary charge
+- mp: proton mass
+- mn: neutron mass
+- me: electron mass
+- ev: electron volt
+- kc: coulomb's constant
 ```
 # example usage
 ```
@@ -88,6 +106,12 @@ kalc
 10
 > f(x,y,2,5) // graphs f(x,y,2,5) in 3D with z=2 and w=5 so x+y+2+5
 > f(2,5,x,y) // graphs f(2,5,x,y) in 3D with x=2 and y=5 so 2+5+x+y, to graph x and y have to be the unknown variables
+```
+```
+echo -ne 'sqrt(pi) \n pi^2'|kalc
+kalc 'sqrt(pi)' 'pi^2'
+echo -ne 'sin(x)#cos(x)'|kalc
+kalc 'sin(x)#cos(x)'
 ```
 # graphing
 ```

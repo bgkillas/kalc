@@ -1,4 +1,4 @@
-use std::f64::consts::{E, PI, TAU};
+use std::f64::consts::{PI, TAU};
 use crate::math::Complex;
 use crate::math::Complex::{Num, Str};
 pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
@@ -94,12 +94,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     'i' =>
                     {
                         place_multiplier(&mut func, &find_word);
-                        if i != 0 && chars[i - 1] == 'p'
-                        {
-                            func.push(Num((if neg { -PI } else { PI }, 0.0)));
-                            neg = false;
-                        }
-                        else if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
+                        if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
                         {
                             word.push(c);
                             find_word = true;
@@ -109,50 +104,6 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                             func.push(Num((0.0, if neg { -1.0 } else { 1.0 })));
                             neg = false;
                         }
-                    }
-                    'e' =>
-                    {
-                        place_multiplier(&mut func, &find_word);
-                        if i + 2 < chars.len() && (chars[i + 1] == 'x' || chars[i + 1] == 'y') && chars[i + 2] == 'p'
-                        {
-                            word.push(c);
-                            find_word = true;
-                        }
-                        else
-                        {
-                            func.push(Num((if neg { -E } else { E }, 0.0)));
-                            neg = false;
-                        }
-                    }
-                    'p' =>
-                    {
-                        if find_word
-                        {
-                            word.push(c);
-                        }
-                    }
-                    't' =>
-                    {
-                        if find_word || (i + 2 < chars.len() && chars[i + 2] != 'u')
-                        {
-                            place_multiplier(&mut func, &find_word);
-                            word.push(c);
-                            find_word = true;
-                        }
-                    }
-                    'a' =>
-                    {
-                        if find_word || (i + 1 != chars.len() && chars[i + 1] != 'u')
-                        {
-                            place_multiplier(&mut func, &find_word);
-                            word.push(c);
-                            find_word = true;
-                        }
-                    }
-                    'u' =>
-                    {
-                        func.push(Num((if neg { -TAU } else { TAU }, 0.0)));
-                        neg = false;
                     }
                     _ =>
                     {
@@ -219,7 +170,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 '+' if i != 0 && i != chars.len() => func.push(Str('+'.to_string())),
                 '-' if i != chars.len() =>
                 {
-                    if i == 0 || !(chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')')
+                    if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
@@ -320,7 +271,6 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
     }
     Ok(func)
 }
-// noinspection RsTypeCheck
 fn place_multiplier(func:&mut Vec<Complex>, find_word:&bool)
 {
     if let Some(Str(s)) = func.last()
@@ -353,7 +303,6 @@ pub fn input_var(input:&str, vars:&[String]) -> String
             j = i;
             if var_name.contains('(') && input.contains('(') && i + var_name.len() - 1 <= input.len() && input[i..i + var_name.len() - 1].split('(').next() == var_name.split('(').next()
             {
-                // f(2) working but not f(2
                 i += var_name.len() - if i + var_name.len() <= chars.len() { 1 } else { 2 };
                 if input[j..i + 1] == var_name
                 {
@@ -389,7 +338,7 @@ pub fn input_var(input:&str, vars:&[String]) -> String
                         output.push('(');
                         temp = input[j..i + 1].split('(').last().unwrap().replace(')', "");
                         split = temp.split(',');
-                        for i in 0..split.clone().count()
+                        for i in (0..split.clone().count()).rev()
                         {
                             var_value = var_value.replace(v[v.len() - 2 * (i + 1)], &format!("({})", input_var(split.next().unwrap(), vars)));
                         }
@@ -430,5 +379,29 @@ pub fn input_var(input:&str, vars:&[String]) -> String
     else
     {
         output
+    }
+}
+pub fn get_vars(allow_vars:bool) -> Vec<String>
+{
+    if allow_vars
+    {
+        vec!["c=299792458".to_string(),
+             "g=9.80665".to_string(),
+             "phi=1.61803398874989484820458683436563811772030917980576286213544862".to_string(),
+             "G=6.67430E-11".to_string(),
+             "h=6.62607015E-34".to_string(),
+             "ec=1.602176634E-19".to_string(),
+             "me=9.1093837015E-31".to_string(),
+             "mp=1.67262192369E-27".to_string(),
+             "mn=1.67492749804E-27".to_string(),
+             "ev=1.602176634E-19".to_string(),
+             "kc=8.9875517923E9".to_string(),
+             "e=2.71828182845904523536028747135266249775724709369995957496696763".to_string(),
+             "pi=3.14159265358979323846264338327950288419716939937510582097494459".to_string(),
+             "tau=6.28318530717958647692528676655900576839433879875021164194988918".to_string()]
+    }
+    else
+    {
+        vec![]
     }
 }

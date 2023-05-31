@@ -1,8 +1,12 @@
 use crate::fraction::fraction;
 use crate::math::{do_math, Complex};
 use crate::parse::get_func;
-pub fn print_answer(func:Vec<Complex>, print_options:(bool, bool, usize), color:bool)
+pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, usize), color:bool)
 {
+    if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
+    {
+        return;
+    }
     let num = match do_math(func, print_options.1)
     {
         Ok(num) => num,

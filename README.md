@@ -1,6 +1,8 @@
 # kalc
 [![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
 
+![image](https://github.com/bgkillas/kalc/assets/55570525/d6b6775e-0080-409a-be0b-9aa4e3fae871)
+
 requires gnuplot for graphing, a modern terminal like windows terminal on windows
 
 history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history``

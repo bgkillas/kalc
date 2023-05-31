@@ -2,7 +2,6 @@ use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymb
 use crate::math::{
     do_math, Complex, Complex::{Num, Str}
 };
-// noinspection RsBorrowChecker
 pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if let Num(n) = func[0]
@@ -59,7 +58,6 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:b
     }
     (re, im)
 }
-// noinspection RsBorrowChecker
 pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if let Num(n) = func[0]

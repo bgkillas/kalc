@@ -240,9 +240,9 @@ fn main()
         for i in args
         {
             let input = i.replace('z', "(x+y*i)").replace(' ', "");
-            if input.contains('=')
+            if input.contains("==")
             {
-                let mut split = input.split('=');
+                let mut split = input.split("==");
                 let l = split.next().unwrap();
                 let r = split.next().unwrap();
                 if equal::equal(graph_options, input.as_str(), l, r)
@@ -343,12 +343,12 @@ fn main()
     {
         File::create(file_path).unwrap();
     }
-    let mut var:Vec<Vec<char>> = Vec::new();
+    let mut var:Vec<String> = Vec::new();
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut lines:Vec<String>;
     #[cfg(unix)]
     let mut width;
-    let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split);
+    let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split_str, mut split);
     loop
     {
         if prompt
@@ -695,12 +695,21 @@ fn main()
             continue;
         }
         write(&input, &mut file, &lines);
-        if input.contains('=')
+        if input.contains("==")
+        {
+            split_str = input.split("==");
+            l = split_str.next().unwrap();
+            r = split_str.next().unwrap();
+            equal(graph_options, &input, l, r);
+            continue;
+        }
+        else if input.contains('=')
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            l = input.split('=').next().unwrap();
-            r = input.split('=').last().unwrap();
+            split = input.split('=');
+            l = split.next().unwrap();
+            r = split.next().unwrap();
             match l
             {
                 "xr" =>
@@ -733,26 +742,19 @@ fn main()
                 }
                 _ => (),
             }
-            if !(l.len() > 3 && l.chars().nth(1).unwrap() == '(' && l.ends_with(')') && l.chars().next().unwrap().is_ascii_alphabetic()) && equal(graph_options, &input, l, r)
-            {
-                continue;
-            }
             for i in 0..var.len()
             {
-                if var[i][0] == input.chars().next().unwrap()
+                if var[i].split('=').next().unwrap() == l
                 {
                     var.remove(i);
                     break;
                 }
             }
-            split = input.split('=');
-            if split.clone().count() == 2
-            {
-                var.push(format!("{}={}", split.next().unwrap(), input_var(split.next().unwrap(), &var)).chars().collect());
-            }
+            var.push(format!("{}={}", l, input_var(r, &var)).chars().collect());
             continue;
         }
-        else if (input.replace("exp", "").contains('x') && var.iter().all(|i| i[0] != 'x')) || (input.contains('z') && var.iter().all(|i| i[0] != 'z'))
+        else if (input.replace("exp", "").contains('x') && var.iter().all(|i| i.split('=').next().unwrap() != "x"))
+                  || (input.contains('z') && var.iter().all(|i| i.split('=').next().unwrap() != "z"))
         {
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");

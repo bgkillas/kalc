@@ -335,11 +335,11 @@ fn place_multiplier(func:&mut Vec<Complex>, find_word:&bool)
         func.push(Str('*'.to_string()))
     }
 }
-pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
+pub fn input_var(input:&str, vars:&[String]) -> String
 {
     let chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut split, mut var_name, mut not_pushed, mut var_value, mut v, mut c, mut k);
+    let (mut split, mut var_name, mut not_pushed, mut var_value, mut c, mut k, mut j, mut v, mut temp);
     let mut i = 0;
     while i < chars.len()
     {
@@ -347,37 +347,34 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
         not_pushed = true;
         for var in vars
         {
-            if c != var[0]
+            split = var.split('=');
+            var_name = split.next().unwrap().to_string();
+            var_value = split.next().unwrap().to_string();
+            j = i;
+            if var_name.contains('(') && input.contains('(') && i + var_name.len() - 1 <= input.len() && input[i..i + var_name.len() - 1].split('(').next() == var_name.split('(').next()
             {
-                continue;
-            }
-            if var[1] == '('
-            {
-                v = var.iter().collect::<String>();
-                split = v.split('=');
-                var_name = split.next().unwrap().to_string();
-                var_value = split.next().unwrap().to_string();
-                if !input.contains('=') && input.len() > i + var_name.len() && input[i..i + var_name.len()] == var_name
+                // f(2) working but not f(2
+                i += var_name.len() - if i + var_name.len() <= chars.len() { 1 } else { 2 };
+                if input[j..i + 1] == var_name
                 {
                     not_pushed = false;
                     output.push('(');
                     output.push_str(&var_value);
                     output.push(')');
-                    i += var_name.len() - 1;
                 }
-                if (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && i + 2 < chars.len() && chars[i + 1] == '('
+                else if j == 0 || !chars[j - 1].is_ascii_alphabetic()
                 {
                     k = 0;
-                    for (j, c) in chars[i + 2..].iter().enumerate()
+                    for (f, c) in chars[j + 2..].iter().enumerate()
                     {
                         if *c == ')'
                         {
-                            k = j + i + 3;
+                            k = f + j + 3;
                             break;
                         }
-                        else if j + i + 3 == chars.len()
+                        else if f + j + 3 == chars.len()
                         {
-                            k = j + i + 4;
+                            k = f + j + 4;
                             break;
                         }
                     }
@@ -385,35 +382,39 @@ pub fn input_var(input:&str, vars:&[Vec<char>]) -> String
                     {
                         continue;
                     }
+                    v = var_name.chars().collect::<Vec<char>>();
                     if input.contains(',') && chars.len() > 4
                     {
                         not_pushed = false;
                         output.push('(');
-                        split = input[2..k - 1].split(',');
+                        temp = input[j..i + 1].split('(').last().unwrap().replace(')', "");
+                        split = temp.split(',');
                         for i in 0..split.clone().count()
                         {
-                            var_value = var_value.replace(var[(i + 1) * 2], &format!("({})", input_var(split.next().unwrap(), vars)));
+                            var_value = var_value.replace(v[v.len() - 2 * (i + 1)], &format!("({})", input_var(split.next().unwrap(), vars)));
                         }
                         output.push_str(&var_value);
                         output.push(')');
-                        i += k - 1;
                     }
                     else
                     {
                         not_pushed = false;
                         output.push('(');
-                        output.push_str(&var_value.replace(var[2], &format!("({})", input_var(&chars[i + 2..k - 1].iter().collect::<String>(), vars))));
+                        output.push_str(&var_value.replace(v[v.len() - 2], &format!("({})", input_var(&input[j..i + 1].split('(').last().unwrap().replace(')', ""), vars))));
                         output.push(')');
-                        i += k - 1;
                     }
                 }
             }
-            else if (i == 0 || !chars[i - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
+            else if !(i + var_name.len() > input.len() || input[i..i + var_name.len()] != var_name)
             {
-                not_pushed = false;
-                output.push('(');
-                output.push_str(&var[2..].iter().collect::<String>());
-                output.push(')');
+                i += var_name.len() - 1;
+                if (j == 0 || !chars[j - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
+                {
+                    not_pushed = false;
+                    output.push('(');
+                    output.push_str(&var_value);
+                    output.push(')');
+                }
             }
         }
         if not_pushed

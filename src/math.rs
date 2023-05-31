@@ -36,7 +36,6 @@ impl Complex
         }
     }
 }
-// noinspection RsBorrowChecker
 pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
 {
     if func.len() == 1

@@ -353,7 +353,10 @@ fn main()
                         {
                             println!();
                         }
-                        println!();
+                        if !((input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('='))
+                        {
+                            println!();
+                        }
                         println!();
                         break;
                     }

@@ -283,7 +283,8 @@ fn main()
     let mut lines:Vec<String>;
     #[cfg(unix)]
     let mut width;
-    let (mut last, mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split_str, mut split);
+    let mut last = String::new();
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split_str, mut split);
     let mut exit = false;
     loop
     {
@@ -297,7 +298,6 @@ fn main()
         }
         input.clear();
         lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
-        last = lines.last().unwrap_or(&String::new()).clone();
         i = lines.len() as i32;
         max = i;
         cursor = 0;
@@ -308,7 +308,7 @@ fn main()
             {
                 watch = Some(std::time::Instant::now());
             }
-            input = args.first().unwrap().replace('z', "(x+y*i)").replace(' ', "");
+            input = args.first().unwrap().replace('z', "(x+y*i)").replace(' ', "").replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
                          match get_func(&input_var(&input, &vars))
@@ -324,8 +324,10 @@ fn main()
                          color);
             if let Some(time) = watch
             {
-                println!("{}", time.elapsed().as_nanos());
+                print!(" {}", time.elapsed().as_nanos());
             }
+            println!();
+            last = input.clone();
             if args.is_empty()
             {
                 exit = true;
@@ -333,6 +335,7 @@ fn main()
         }
         else
         {
+            last = lines.last().unwrap_or(&String::new()).clone();
             if prompt
             {
                 print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
@@ -781,12 +784,11 @@ fn main()
                 Ok(f) => f,
                 _ => continue,
             };
-            if input.contains('y')
+            graph([&l, &m, &r], [&funcl, &funcm, &funcr], false, &mut plot, graph_options, print_options.1);
+            if let Some(time) = watch
             {
-                graph([&l, &m, &r], [&funcl, &funcm, &funcr], true, false, &mut plot, graph_options, print_options.1);
-                continue;
+                println!("{}", time.elapsed().as_nanos());
             }
-            graph([&l, &m, &r], [&funcl, &funcm, &funcr], false, false, &mut plot, graph_options, print_options.1);
             continue;
         }
     }

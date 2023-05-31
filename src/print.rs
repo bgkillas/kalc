@@ -36,16 +36,16 @@ pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, us
         {
             "".to_owned()
         };
-        println!("{}\x1b[0m{}\x1b[0m", c, d);
+        print!("{}\x1b[0m{}\x1b[0m", c, d);
     }
     else if print_options.2 != 10
     {
         match print_options.2
         {
-            2 => println!("{:b}", a as i64),
-            8 => println!("{:o}", a as i64),
-            16 => println!("{:x}", a as i64),
-            _ => println!("0"),
+            2 => print!("{:b}", a as i64),
+            8 => print!("{:o}", a as i64),
+            16 => print!("{:x}", a as i64),
+            _ => print!("0"),
         }
     }
     else
@@ -53,9 +53,9 @@ pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, us
         let a = (a * 1e12).round() / 1e12;
         let b = (b * 1e12).round() / 1e12;
         let d = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &b.to_string() + if color { "\x1b[93mi" } else { "i" };
-        println!("{}\x1b[0m{}\x1b[0m",
-                 if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
-                 if b == 0.0 { "".to_string() } else { d });
+        print!("{}\x1b[0m{}\x1b[0m",
+               if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
+               if b == 0.0 { "".to_string() } else { d });
     };
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize), prompt:bool, color:bool) -> bool

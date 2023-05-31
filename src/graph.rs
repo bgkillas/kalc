@@ -97,7 +97,7 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:b
     }
     (re, im)
 }
-pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&mut Figure, options:([[f64; 2]; 3], f64, f64, char), deg:bool)
+pub fn graph(input:[&str; 3], func:[&[Complex]; 3], close:bool, fg:&mut Figure, options:([[f64; 2]; 3], f64, f64, char), deg:bool)
 {
     let re1col = "#9400D3";
     let im1col = "#009E73";
@@ -109,7 +109,7 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], graph:bool, close:bool, fg:&
     let yticks = Some((Fix((options.0[1][1] - options.0[1][0]) / 20.0), 1));
     fg.close();
     fg.clear_axes();
-    if graph
+    if input[0].contains('y')
     {
         let zticks = Some((Fix((options.0[2][1] - options.0[2][0]) / 20.0), 1));
         let (mut re, mut im) = get_list_3d(func[0], options, deg);

@@ -8,8 +8,7 @@ mod print;
 #[cfg(test)]
 mod tests;
 use equal::equal;
-use parse::input_var;
-use parse::get_func;
+use parse::{input_var, get_func, get_vars};
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, stdout, Write};
 use std::fs::{File, OpenOptions};
@@ -22,90 +21,6 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
 };
-use crate::parse::get_vars;
-fn help()
-{
-    println!(
-             "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
-FLAGS: --help (this message)\n\
---tau fractions are shown in tau instead of pi\n\
---deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
---2d [num] number of points to graph in 2D\n\
---3d [num] number of points to graph in 3D\n\
---xr [min] [max] x range for graphing\n\
---yr [min] [max] y range for graphing\n\
---zr [min] [max] z range for graphing\n\
---point [char] point style for graphing\n\
---sci toggles scientific notation\n\
---base [num] sets the number base (2,8,16)\n\
---prompt toggles the prompt\n\
---color toggles color\n\
---vars toggles default variables\n\
---default ignores config file\n\
---debug displays computation time in nanoseconds\n\n\
-- Type \"exit\" to exit the program\n\
-- Type \"clear\" to clear the screen\n\
-- Type \"help\" to see this message\n\
-- Type \"history\" to see the history of calculations\n\
-- Type \"deg\" to switch to degrees mode\n\
-- Type \"rad\" to switch to radians mode\n\
-- Type \"tau\" to show fractions in tau\n\
-- Type \"pi\" to show fractions in pi\n\
-- Type \"prompt\" to toggle the prompt\n\
-- Type \"color\" to toggle color\n\
-- Type \"2d=[num]\" to set the number of points in 2D graphs\n\
-- Type \"3d=[num]\" to set the number of points in 3D graphs\n\
-- Type \"xr=[min],[max]\" to set the x range for graphing\n\
-- Type \"yr=[min],[max]\" to set the y range for graphing\n\
-- Type \"zr=[min],[max]\" to set the z range for graphing\n\
-- Type \"point=[char]\" to set the point style for graphing\n\
-- Type \"sci\" to toggle scientific notation\n\
-- Type \"base=[num]\" to set the number base (2,8,16)\n\
-- Type \"_\" to use the previous answer\n\
-- Type \"a=[num]\" to define a variable\n\
-- Type \"f(x)=...\" to define a function\n\
-- Type \"f(x,y)=...\" to define a 2 variable function\n\
-- Type \"f(x,y,z...)=...\" to define a multi variable function\n\
-- Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
-Trigonometric functions:\n\
-- sin, cos, tan, asin, acos, atan\n\
-- csc, sec, cot, acsc, asec, acot\n\
-- sinh, cosh, tanh, asinh, acosh, atanh\n\
-- csch, sech, coth, acsch, asech, acoth\n\n\
-Other functions:\n\
-- sqrt, cbrt, square, cube\n\
-- ln, log(base,num), root(base,exp)\n\
-- abs, sgn, arg\n\
-- ceil, floor, round, int, frac\n\
-- fact, subfact\n\
-- sinc, cis, exp\n\
-- deg(to_degrees), rad(to_radians)\n\
-- re(real part), im(imaginary part)\n\n\
-Constants:\n\
-- g: gravity\n\
-- c: speed of light\n\
-- h: planck's constant\n\
-- e: euler's number\n\
-- pi: pi\n\
-- tau: tau (2pi)\n\
-- phi: golden ratio\n\
-- G: gravitational constant\n\
-- ec: elementary charge\n\
-- mp: proton mass\n\
-- mn: neutron mass\n\
-- me: electron mass\n\
-- ev: electron volt\n\
-- kc: coulomb's constant"
-    );
-}
-fn write(input:&str, file:&mut File, lines:&Vec<String>)
-{
-    if lines.is_empty() || lines[lines.len() - 1] != *input
-    {
-        file.write_all(input.as_bytes()).unwrap();
-        file.write_all(b"\n").unwrap();
-    }
-}
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
@@ -787,7 +702,7 @@ fn main()
             graph([&l, &m, &r], [&funcl, &funcm, &funcr], false, &mut plot, graph_options, print_options.1);
             if let Some(time) = watch
             {
-                println!("{}", time.elapsed().as_nanos());
+                println!("{}ms", time.elapsed().as_millis());
             }
             continue;
         }
@@ -908,4 +823,87 @@ fn read_single_char() -> char
         Key::ArrowDown => '\x1E',
         _ => read_single_char(),
     }
+}
+fn write(input:&str, file:&mut File, lines:&Vec<String>)
+{
+    if lines.is_empty() || lines[lines.len() - 1] != *input
+    {
+        file.write_all(input.as_bytes()).unwrap();
+        file.write_all(b"\n").unwrap();
+    }
+}
+fn help()
+{
+    println!(
+             "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
+FLAGS: --help (this message)\n\
+--tau fractions are shown in tau instead of pi\n\
+--deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
+--2d [num] number of points to graph in 2D\n\
+--3d [num] number of points to graph in 3D\n\
+--xr [min] [max] x range for graphing\n\
+--yr [min] [max] y range for graphing\n\
+--zr [min] [max] z range for graphing\n\
+--point [char] point style for graphing\n\
+--sci toggles scientific notation\n\
+--base [num] sets the number base (2,8,16)\n\
+--prompt toggles the prompt\n\
+--color toggles color\n\
+--vars toggles default variables\n\
+--default ignores config file\n\
+--debug displays computation time in nanoseconds\n\n\
+- Type \"exit\" to exit the program\n\
+- Type \"clear\" to clear the screen\n\
+- Type \"help\" to see this message\n\
+- Type \"history\" to see the history of calculations\n\
+- Type \"deg\" to switch to degrees mode\n\
+- Type \"rad\" to switch to radians mode\n\
+- Type \"tau\" to show fractions in tau\n\
+- Type \"pi\" to show fractions in pi\n\
+- Type \"prompt\" to toggle the prompt\n\
+- Type \"color\" to toggle color\n\
+- Type \"2d=[num]\" to set the number of points in 2D graphs\n\
+- Type \"3d=[num]\" to set the number of points in 3D graphs\n\
+- Type \"xr=[min],[max]\" to set the x range for graphing\n\
+- Type \"yr=[min],[max]\" to set the y range for graphing\n\
+- Type \"zr=[min],[max]\" to set the z range for graphing\n\
+- Type \"point=[char]\" to set the point style for graphing\n\
+- Type \"sci\" to toggle scientific notation\n\
+- Type \"base=[num]\" to set the number base (2,8,16)\n\
+- Type \"_\" to use the previous answer\n\
+- Type \"a=[num]\" to define a variable\n\
+- Type \"f(x)=...\" to define a function\n\
+- Type \"f(x,y)=...\" to define a 2 variable function\n\
+- Type \"f(x,y,z...)=...\" to define a multi variable function\n\
+- Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
+Trigonometric functions:\n\
+- sin, cos, tan, asin, acos, atan\n\
+- csc, sec, cot, acsc, asec, acot\n\
+- sinh, cosh, tanh, asinh, acosh, atanh\n\
+- csch, sech, coth, acsch, asech, acoth\n\n\
+Other functions:\n\
+- sqrt, cbrt, square, cube\n\
+- ln, log(base,num), root(base,exp)\n\
+- abs, sgn, arg\n\
+- ceil, floor, round, int, frac\n\
+- fact, subfact\n\
+- sinc, cis, exp\n\
+- deg(to_degrees), rad(to_radians)\n\
+- re(real part), im(imaginary part)\n\n\
+Constants:\n\
+- g: gravity\n\
+- c: speed of light\n\
+- h: planck's constant\n\
+- e: euler's number\n\
+- pi: pi\n\
+- tau: tau (2pi)\n\
+- phi: golden ratio\n\
+- G: gravitational constant\n\
+- ec: elementary charge\n\
+- mp: proton mass\n\
+- mn: neutron mass\n\
+- me: electron mass\n\
+- ev: electron volt\n\
+- kc: coulomb's constant"
+    );
 }

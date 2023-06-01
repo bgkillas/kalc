@@ -289,7 +289,7 @@ pub fn input_var(input:&str, vars:&[String]) -> String
 {
     let chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut split, mut var_name, mut not_pushed, mut var_value, mut c, mut k, mut j, mut v, mut temp);
+    let (mut split, mut var_name, mut not_pushed, mut var_value, mut c, mut k, mut j, mut v, mut temp, mut count);
     let mut i = 0;
     while i < chars.len()
     {
@@ -303,7 +303,27 @@ pub fn input_var(input:&str, vars:&[String]) -> String
             j = i;
             if var_name.contains('(') && input.contains('(') && i + var_name.len() - 1 <= input.len() && input[i..i + var_name.len() - 1].split('(').next() == var_name.split('(').next()
             {
-                i += var_name.len() - if i + var_name.len() <= chars.len() { 1 } else { 2 };
+                count = 0;
+                for (f, c) in chars[i..].iter().enumerate()
+                {
+                    if *c == '('
+                    {
+                        count += 1;
+                    }
+                    else if *c == ')'
+                    {
+                        count -= 1;
+                        if count == 0
+                        {
+                            i += f;
+                            break;
+                        }
+                    }
+                }
+                if i == j
+                {
+                    i = input.len() - 1
+                }
                 if input[j..i + 1] == var_name
                 {
                     not_pushed = false;
@@ -336,7 +356,11 @@ pub fn input_var(input:&str, vars:&[String]) -> String
                     {
                         not_pushed = false;
                         output.push('(');
-                        temp = input[j..i + 1].split('(').last().unwrap().replace(')', "");
+                        temp = &input[j + var_name.split('(').next().unwrap().len() + 1..i + 1];
+                        if temp.ends_with(')')
+                        {
+                            temp = &temp[..temp.len() - 1];
+                        }
                         split = temp.split(',');
                         for i in (0..split.clone().count()).rev()
                         {
@@ -349,12 +373,17 @@ pub fn input_var(input:&str, vars:&[String]) -> String
                     {
                         not_pushed = false;
                         output.push('(');
-                        output.push_str(&var_value.replace(v[v.len() - 2], &format!("({})", input_var(&input[j..i + 1].split('(').last().unwrap().replace(')', ""), vars))));
+                        temp = &input[j + var_name.split('(').next().unwrap().len() + 1..i + 1];
+                        if temp.ends_with(')')
+                        {
+                            temp = &temp[..temp.len() - 1];
+                        }
+                        output.push_str(&var_value.replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
                         output.push(')');
                     }
                 }
             }
-            else if !(i + var_name.len() > input.len() || input[i..i + var_name.len()] != var_name)
+            else if !(i + var_name.len() > input.len() || input[i..i + var_name.len()] != var_name) && (i + 1 == chars.len() || chars[i + 1] != '(')
             {
                 i += var_name.len() - 1;
                 if (j == 0 || !chars[j - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())

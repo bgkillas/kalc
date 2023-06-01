@@ -285,11 +285,11 @@ fn place_multiplier(func:&mut Vec<Complex>, find_word:&bool)
         func.push(Str('*'.to_string()))
     }
 }
-pub fn input_var(input:&str, vars:&[String]) -> String
+pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
 {
     let chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut split, mut var_name, mut not_pushed, mut var_value, mut c, mut k, mut j, mut v, mut temp, mut count);
+    let (mut not_pushed, mut c, mut k, mut j, mut v, mut temp, mut count, mut split, mut value);
     let mut i = 0;
     while i < chars.len()
     {
@@ -297,11 +297,8 @@ pub fn input_var(input:&str, vars:&[String]) -> String
         not_pushed = true;
         for var in vars
         {
-            split = var.split('=');
-            var_name = split.next().unwrap().to_string();
-            var_value = split.next().unwrap().to_string();
             j = i;
-            if var_name.contains('(') && input.contains('(') && i + var_name.len() - 1 <= input.len() && input[i..i + var_name.len() - 1].split('(').next() == var_name.split('(').next()
+            if var[0].contains('(') && input.contains('(') && i + var[0].len() - 1 <= input.len() && input[i..i + var[0].len() - 1].split('(').next() == var[0].split('(').next()
             {
                 count = 0;
                 for (f, c) in chars[i..].iter().enumerate()
@@ -324,11 +321,11 @@ pub fn input_var(input:&str, vars:&[String]) -> String
                 {
                     i = input.len() - 1
                 }
-                if input[j..i + 1] == var_name
+                if input[j..i + 1] == var[0]
                 {
                     not_pushed = false;
                     output.push('(');
-                    output.push_str(&var_value);
+                    output.push_str(&var[1]);
                     output.push(')');
                 }
                 else if j == 0 || !chars[j - 1].is_ascii_alphabetic()
@@ -351,46 +348,47 @@ pub fn input_var(input:&str, vars:&[String]) -> String
                     {
                         continue;
                     }
-                    v = var_name.chars().collect::<Vec<char>>();
+                    v = var[0].chars().collect::<Vec<char>>();
                     if input.contains(',') && chars.len() > 4
                     {
                         not_pushed = false;
                         output.push('(');
-                        temp = &input[j + var_name.split('(').next().unwrap().len() + 1..i + 1];
+                        temp = &input[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
                         if temp.ends_with(')')
                         {
                             temp = &temp[..temp.len() - 1];
                         }
                         split = temp.split(',');
+                        value = var[1].clone();
                         for i in (0..split.clone().count()).rev()
                         {
-                            var_value = var_value.replace(v[v.len() - 2 * (i + 1)], &format!("({})", input_var(split.next().unwrap(), vars)));
+                            value = value.replace(v[v.len() - 2 * (i + 1)], &format!("({})", input_var(split.next().unwrap(), vars)));
                         }
-                        output.push_str(&var_value);
+                        output.push_str(&value);
                         output.push(')');
                     }
                     else
                     {
                         not_pushed = false;
                         output.push('(');
-                        temp = &input[j + var_name.split('(').next().unwrap().len() + 1..i + 1];
+                        temp = &input[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
                         if temp.ends_with(')')
                         {
                             temp = &temp[..temp.len() - 1];
                         }
-                        output.push_str(&var_value.replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
+                        output.push_str(&var[1].replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
                         output.push(')');
                     }
                 }
             }
-            else if !(i + var_name.len() > input.len() || input[i..i + var_name.len()] != var_name) && (i + 1 == chars.len() || chars[i + 1] != '(')
+            else if !(i + var[0].len() > input.len() || input[i..i + var[0].len()] != var[0]) && (i + 1 == chars.len() || chars[i + 1] != '(')
             {
-                i += var_name.len() - 1;
+                i += var[0].len() - 1;
                 if (j == 0 || !chars[j - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
                 {
                     not_pushed = false;
                     output.push('(');
-                    output.push_str(&var_value);
+                    output.push_str(&var[1]);
                     output.push(')');
                 }
             }
@@ -410,24 +408,24 @@ pub fn input_var(input:&str, vars:&[String]) -> String
         output
     }
 }
-pub fn get_vars(allow_vars:bool) -> Vec<String>
+pub fn get_vars(allow_vars:bool) -> Vec<[String; 2]>
 {
     if allow_vars
     {
-        vec!["c=299792458".to_string(),
-             "g=9.80665".to_string(),
-             "phi=1.61803398874989484820458683436563811772030917980576286213544862".to_string(),
-             "G=6.67430E-11".to_string(),
-             "h=6.62607015E-34".to_string(),
-             "ec=1.602176634E-19".to_string(),
-             "me=9.1093837015E-31".to_string(),
-             "mp=1.67262192369E-27".to_string(),
-             "mn=1.67492749804E-27".to_string(),
-             "ev=1.602176634E-19".to_string(),
-             "kc=8.9875517923E9".to_string(),
-             "e=2.71828182845904523536028747135266249775724709369995957496696763".to_string(),
-             "pi=3.14159265358979323846264338327950288419716939937510582097494459".to_string(),
-             "tau=6.28318530717958647692528676655900576839433879875021164194988918".to_string()]
+        vec![["c".to_string(), "299792458".to_string()],
+             ["g".to_string(), "9.80665".to_string()],
+             ["phi".to_string(), "1.61803398874989484820458683436563811772030917980576286213544862".to_string()],
+             ["G".to_string(), "6.67430E-11".to_string()],
+             ["h".to_string(), "6.62607015E-34".to_string()],
+             ["ec".to_string(), "1.602176634E-19".to_string()],
+             ["me".to_string(), "9.1093837015E-31".to_string()],
+             ["mp".to_string(), "1.67262192369E-27".to_string()],
+             ["mn".to_string(), "1.67492749804E-27".to_string()],
+             ["ev".to_string(), "1.602176634E-19".to_string()],
+             ["kc".to_string(), "8.9875517923E9".to_string()],
+             ["e".to_string(), "2.71828182845904523536028747135266249775724709369995957496696763".to_string()],
+             ["pi".to_string(), "3.14159265358979323846264338327950288419716939937510582097494459".to_string()],
+             ["tau".to_string(), "6.28318530717958647692528676655900576839433879875021164194988918".to_string()]]
     }
     else
     {

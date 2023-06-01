@@ -21,6 +21,7 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
 };
+// allow redefining vars
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
@@ -176,7 +177,7 @@ fn main()
         }
         args.remove(0);
     }
-    let mut vars:Vec<String> = get_vars(allow_vars);
+    let mut vars:Vec<[String; 2]> = get_vars(allow_vars);
     let mut input = String::new();
     #[cfg(unix)]
     if !unsafe { isatty(STDIN_FILENO) != 0 }
@@ -665,17 +666,16 @@ fn main()
             }
             for i in 0..vars.len()
             {
-                if vars[i].split('=').next().unwrap() == l
+                if vars[i][0].split('(').next() == l.split('(').next()
                 {
                     vars.remove(i);
                     break;
                 }
             }
-            vars.push(format!("{}={}", l, input_var(r, &vars)));
+            vars.push([l.to_string(), input_var(r, &vars)]);
             continue;
         }
-        else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i.split('=').next().unwrap() != "x"))
-                  || (input.contains('z') && vars.iter().all(|i| i.split('=').next().unwrap() != "z"))
+        else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");

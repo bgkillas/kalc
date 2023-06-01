@@ -396,7 +396,7 @@ pub fn cis(a:f64, b:f64) -> (f64, f64)
     // cis(a+bi)=cos(a+bi)+isin(a+bi)
     let (c, d) = cos(a, b);
     let (e, f) = sin(a, b);
-    let (re, im) = add(c, e, d, f);
+    let (re, im) = add(c, e, -f, d);
     (re, im)
 }
 pub fn sinc(a:f64, b:f64) -> (f64, f64)

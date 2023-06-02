@@ -48,7 +48,9 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
     }
     let mut function = func;
     let mut i = 0;
-    let (mut j, mut count, mut v);
+    let mut single;
+    let mut count = 0;
+    let (mut j, mut v);
     'outer: while i < function.len() - 1
     {
         if function[i].str_is("(")
@@ -75,17 +77,44 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                 return Err(());
             }
             v = function[i + 1..j - 1].to_vec();
+            single = 0;
+            count = 0;
             for (f, n) in v.iter().enumerate()
             {
-                if n.str_is(",")
+                if let Str(s) = n
                 {
-                    function.drain(i..j);
-                    function.insert(i, Num(do_math(v[..f].to_vec(), deg)?));
-                    function.insert(i + 1, Str(",".to_string()));
-                    function.insert(i + 2, Num(do_math(v[f + 1..].to_vec(), deg)?));
-                    i += 1;
-                    continue 'outer;
+                    if s == ","
+                    {
+                        if single != 0 && count == 0
+                        {
+                            function.remove(i);
+                            if function[j - 2].str_is(")")
+                            {
+                                function.remove(j - 2);
+                            }
+                            i += 1;
+                            continue 'outer;
+                        }
+                        single = f;
+                    }
+                    else if s == "("
+                    {
+                        count += 1;
+                    }
+                    else if s == ")"
+                    {
+                        count -= 1;
+                    }
                 }
+            }
+            if single != 0
+            {
+                function.drain(i..j);
+                function.insert(i, Num(do_math(v[..single].to_vec(), deg)?));
+                function.insert(i + 1, Str(",".to_string()));
+                function.insert(i + 2, Num(do_math(v[single + 1..].to_vec(), deg)?));
+                i += 1;
+                continue 'outer;
             }
             function[i] = Num(do_math(v, deg)?);
             function.drain(i + 1..j);
@@ -93,261 +122,337 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
         i += 1;
     }
     i = 0;
-    let (mut a, mut b);
+    let (mut a, mut b, mut value, mut start, mut end, mut math, mut func);
     while i < function.len() - 1
     {
         if let Str(s) = &function[i]
         {
             if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
-                a = function[i + 1].num()?;
-                function[i] = Num(match s.to_string().as_str()
+                if s == "sum" || s == "product" || s == "prod"
                 {
-                    "sin" =>
+                    single = 0;
+                    for (f, n) in function.iter().enumerate()
                     {
-                        if deg
+                        if let Str(s) = n
                         {
-                            sin(a.0.to_radians(), 0.0)
-                        }
-                        else
-                        {
-                            sin(a.0, a.1)
-                        }
-                    }
-                    "csc" =>
-                    {
-                        if deg
-                        {
-                            csc(a.0.to_radians(), 0.0)
-                        }
-                        else
-                        {
-                            csc(a.0, a.1)
-                        }
-                    }
-                    "cos" =>
-                    {
-                        if deg
-                        {
-                            cos(a.0.to_radians(), 0.0)
-                        }
-                        else
-                        {
-                            cos(a.0, a.1)
-                        }
-                    }
-                    "sec" =>
-                    {
-                        if deg
-                        {
-                            sec(a.0.to_radians(), 0.0)
-                        }
-                        else
-                        {
-                            sec(a.0, a.1)
-                        }
-                    }
-                    "tan" =>
-                    {
-                        if deg
-                        {
-                            tan(a.0.to_radians(), 0.0)
-                        }
-                        else
-                        {
-                            tan(a.0, a.1)
-                        }
-                    }
-                    "cot" =>
-                    {
-                        if deg
-                        {
-                            cot(a.0.to_radians(), 0.0)
-                        }
-                        else
-                        {
-                            cot(a.0, a.1)
-                        }
-                    }
-                    "asin" | "arcsin" =>
-                    {
-                        if deg
-                        {
-                            (asin(a.0, a.1).0.to_degrees(), 0.0)
-                        }
-                        else
-                        {
-                            asin(a.0, a.1)
-                        }
-                    }
-                    "acsc" | "arccsc" =>
-                    {
-                        if deg
-                        {
-                            (acsc(a.0, a.1).0.to_degrees(), 0.0)
-                        }
-                        else
-                        {
-                            acsc(a.0, a.1)
-                        }
-                    }
-                    "acos" | "arccos" =>
-                    {
-                        if deg
-                        {
-                            (acos(a.0, a.1).0.to_degrees(), 0.0)
-                        }
-                        else
-                        {
-                            acos(a.0, a.1)
-                        }
-                    }
-                    "asec" | "arcsec" =>
-                    {
-                        if deg
-                        {
-                            (asec(a.0, a.1).0.to_degrees(), 0.0)
-                        }
-                        else
-                        {
-                            asec(a.0, a.1)
-                        }
-                    }
-                    "atan" | "arctan" =>
-                    {
-                        if deg
-                        {
-                            (atan(a.0, a.1).0.to_degrees(), 0.0)
-                        }
-                        else
-                        {
-                            atan(a.0, a.1)
-                        }
-                    }
-                    "acot" | "arccot" =>
-                    {
-                        if deg
-                        {
-                            (acot(a.0, a.1).0.to_degrees(), 0.0)
-                        }
-                        else
-                        {
-                            acot(a.0, a.1)
-                        }
-                    }
-                    "sinh" => sinh(a.0, a.1),
-                    "csch" => csch(a.0, a.1),
-                    "cosh" => cosh(a.0, a.1),
-                    "sech" => sech(a.0, a.1),
-                    "tanh" => tanh(a.0, a.1),
-                    "coth" => coth(a.0, a.1),
-                    "asinh" | "arcsinh" => asinh(a.0, a.1),
-                    "acsch" | "arccsch" => acsch(a.0, a.1),
-                    "acosh" | "arccosh" => acosh(a.0, a.1),
-                    "asech" | "arcsech" => asech(a.0, a.1),
-                    "atanh" | "arctanh" => atanh(a.0, a.1),
-                    "acoth" | "arccoth" => acoth(a.0, a.1),
-                    "cis" => cis(a.0, a.1),
-                    "ln" | "aexp" => ln(a.0, a.1),
-                    "ceil" => (a.0.ceil(), a.1.ceil()),
-                    "floor" => (a.0.floor(), a.1.floor()),
-                    "round" => (a.0.round(), a.1.round()),
-                    "recip" => div(1.0, 0.0, a.0, a.1),
-                    "exp" | "aln" => pow(E, 0.0, a.0, a.1),
-                    "log" =>
-                    {
-                        if function.len() > i + 3 && function[i + 2].str_is(",")
-                        {
-                            b = function[i + 3].num()?;
-                            function.remove(i + 3);
-                            function.remove(i + 2);
-                            log(a.0, a.1, b.0, b.1)
-                        }
-                        else
-                        {
-                            ln(a.0, a.1)
-                        }
-                    }
-                    "root" =>
-                    {
-                        if function.len() > i + 3 && function[i + 2].str_is(",")
-                        {
-                            b = function[i + 3].num()?;
-                            function.remove(i + 3);
-                            function.remove(i + 2);
-                            match b.1 == 0.0 && (b.0 / 2.0).fract() != 0.0 && b.0.trunc() == b.0 && a.1 == 0.0
+                            if s == ","
                             {
-                                true => (a.0 / a.0.abs() * a.0.abs().powf(b.0.recip()), 0.0),
-                                false =>
+                                single = f;
+                                break;
+                            }
+                            else if s == "("
+                            {
+                                count += 1;
+                            }
+                            else if s == ")"
+                            {
+                                count -= 1;
+                            }
+                        }
+                    }
+                    if function.len() > single + 5 && single != 0 && function[single + 2].str_is(",") && function[single + 4].str_is(",")
+                    {
+                        if let Str(s) = &function[single + 1]
+                        {
+                            value = (0.0, 0.0);
+                            start = function[single + 3].num()?;
+                            end = function[single + 5].num()?;
+                            if start.1 == 0.0 && end.1 == 0.0
+                            {
+                                for z in start.0 as i32..=end.0 as i32
                                 {
-                                    b = div(1.0, 0.0, b.0, b.1);
-                                    pow(a.0, a.1, b.0, b.1)
+                                    func = function[i + 1..single].to_vec();
+                                    for k in func.iter_mut()
+                                    {
+                                        if k.str_is(s)
+                                        {
+                                            *k = Num((z as f64, 0.0));
+                                        }
+                                    }
+                                    math = do_math(func, deg)?;
+                                    if s == "sum"
+                                    {
+                                        value = add(value.0, value.1, math.0, math.1);
+                                    }
+                                    else if z == start.0 as i32
+                                    {
+                                        value = math;
+                                    }
+                                    else
+                                    {
+                                        value = mul(value.0, value.1, math.0, math.1);
+                                    }
                                 }
+                                function.drain(i..single + 5);
+                                function[i] = Num(value);
+                            }
+                            else
+                            {
+                                return Err(());
                             }
                         }
                         else
                         {
-                            pow(a.0, a.1, 0.5, 0.0)
-                        }
-                    }
-                    "sqrt" | "asquare" => pow(a.0, a.1, 0.5, 0.0),
-                    "abs" => (abs(a.0, a.1), 0.0),
-                    "deg" | "degree" =>
-                    {
-                        if a.1 != 0.0
-                        {
                             return Err(());
                         }
-                        (a.0.to_degrees(), 0.0)
                     }
-                    "rad" | "radian" =>
+                    else
                     {
-                        if a.1 != 0.0
+                        return Err(());
+                    }
+                }
+                else
+                {
+                    a = function[i + 1].num()?;
+                    function[i] = Num(match s.to_string().as_str()
+                    {
+                        "sin" =>
                         {
-                            return Err(());
+                            if deg
+                            {
+                                sin(a.0.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                sin(a.0, a.1)
+                            }
                         }
-                        (a.0.to_radians(), 0.0)
-                    }
-                    "re" | "real" => (a.0, 0.0),
-                    "im" | "imag" => (a.1, 0.0),
-                    "sgn" | "sign" => sgn(a.0, a.1),
-                    "arg" => (arg(a.0, a.1), 0.0),
-                    "cbrt" | "acube" =>
-                    {
-                        match a.1 == 0.0
+                        "csc" =>
                         {
-                            true => (a.0.cbrt(), 0.0),
-                            false => pow(a.0, a.1, 1.0 / 3.0, 0.0),
+                            if deg
+                            {
+                                csc(a.0.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                csc(a.0, a.1)
+                            }
                         }
-                    }
-                    "frac" | "fract" => frac(a.0, a.1),
-                    "int" | "trunc" => int(a.0, a.1),
-                    "fact" =>
-                    {
-                        if a.1 != 0.0 || a.0 < 0.0
+                        "cos" =>
                         {
-                            return Err(());
+                            if deg
+                            {
+                                cos(a.0.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                cos(a.0, a.1)
+                            }
                         }
-                        (fact(a.0), 0.0)
-                    }
-                    "square" | "asqrt" => pow(a.0, a.1, 2.0, 0.0),
-                    "cube" | "acbrt" => pow(a.0, a.1, 3.0, 0.0),
-                    "subfact" =>
-                    {
-                        if a.1 != 0.0 || a.0 < 0.0
+                        "sec" =>
                         {
-                            return Err(());
+                            if deg
+                            {
+                                sec(a.0.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                sec(a.0, a.1)
+                            }
                         }
-                        (subfact(a.0), 0.0)
-                    }
-                    "sinc" => sinc(a.0, a.1),
-                    _ =>
-                    {
-                        i += 1;
-                        continue;
-                    }
-                });
-                function.remove(i + 1);
+                        "tan" =>
+                        {
+                            if deg
+                            {
+                                tan(a.0.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                tan(a.0, a.1)
+                            }
+                        }
+                        "cot" =>
+                        {
+                            if deg
+                            {
+                                cot(a.0.to_radians(), 0.0)
+                            }
+                            else
+                            {
+                                cot(a.0, a.1)
+                            }
+                        }
+                        "asin" | "arcsin" =>
+                        {
+                            if deg
+                            {
+                                (asin(a.0, a.1).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                asin(a.0, a.1)
+                            }
+                        }
+                        "acsc" | "arccsc" =>
+                        {
+                            if deg
+                            {
+                                (acsc(a.0, a.1).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                acsc(a.0, a.1)
+                            }
+                        }
+                        "acos" | "arccos" =>
+                        {
+                            if deg
+                            {
+                                (acos(a.0, a.1).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                acos(a.0, a.1)
+                            }
+                        }
+                        "asec" | "arcsec" =>
+                        {
+                            if deg
+                            {
+                                (asec(a.0, a.1).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                asec(a.0, a.1)
+                            }
+                        }
+                        "atan" | "arctan" =>
+                        {
+                            if deg
+                            {
+                                (atan(a.0, a.1).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                atan(a.0, a.1)
+                            }
+                        }
+                        "acot" | "arccot" =>
+                        {
+                            if deg
+                            {
+                                (acot(a.0, a.1).0.to_degrees(), 0.0)
+                            }
+                            else
+                            {
+                                acot(a.0, a.1)
+                            }
+                        }
+                        "sinh" => sinh(a.0, a.1),
+                        "csch" => csch(a.0, a.1),
+                        "cosh" => cosh(a.0, a.1),
+                        "sech" => sech(a.0, a.1),
+                        "tanh" => tanh(a.0, a.1),
+                        "coth" => coth(a.0, a.1),
+                        "asinh" | "arcsinh" => asinh(a.0, a.1),
+                        "acsch" | "arccsch" => acsch(a.0, a.1),
+                        "acosh" | "arccosh" => acosh(a.0, a.1),
+                        "asech" | "arcsech" => asech(a.0, a.1),
+                        "atanh" | "arctanh" => atanh(a.0, a.1),
+                        "acoth" | "arccoth" => acoth(a.0, a.1),
+                        "cis" => cis(a.0, a.1),
+                        "ln" | "aexp" => ln(a.0, a.1),
+                        "ceil" => (a.0.ceil(), a.1.ceil()),
+                        "floor" => (a.0.floor(), a.1.floor()),
+                        "round" => (a.0.round(), a.1.round()),
+                        "recip" => div(1.0, 0.0, a.0, a.1),
+                        "exp" | "aln" => pow(E, 0.0, a.0, a.1),
+                        "log" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                b = function[i + 3].num()?;
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                log(a.0, a.1, b.0, b.1)
+                            }
+                            else
+                            {
+                                ln(a.0, a.1)
+                            }
+                        }
+                        "root" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                b = function[i + 3].num()?;
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                match b.1 == 0.0 && (b.0 / 2.0).fract() != 0.0 && b.0.trunc() == b.0 && a.1 == 0.0
+                                {
+                                    true => (a.0 / a.0.abs() * a.0.abs().powf(b.0.recip()), 0.0),
+                                    false =>
+                                    {
+                                        b = div(1.0, 0.0, b.0, b.1);
+                                        pow(a.0, a.1, b.0, b.1)
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                pow(a.0, a.1, 0.5, 0.0)
+                            }
+                        }
+                        "sqrt" | "asquare" => pow(a.0, a.1, 0.5, 0.0),
+                        "abs" => (abs(a.0, a.1), 0.0),
+                        "deg" | "degree" =>
+                        {
+                            if a.1 != 0.0
+                            {
+                                return Err(());
+                            }
+                            (a.0.to_degrees(), 0.0)
+                        }
+                        "rad" | "radian" =>
+                        {
+                            if a.1 != 0.0
+                            {
+                                return Err(());
+                            }
+                            (a.0.to_radians(), 0.0)
+                        }
+                        "re" | "real" => (a.0, 0.0),
+                        "im" | "imag" => (a.1, 0.0),
+                        "sgn" | "sign" => sgn(a.0, a.1),
+                        "arg" => (arg(a.0, a.1), 0.0),
+                        "cbrt" | "acube" =>
+                        {
+                            match a.1 == 0.0
+                            {
+                                true => (a.0.cbrt(), 0.0),
+                                false => pow(a.0, a.1, 1.0 / 3.0, 0.0),
+                            }
+                        }
+                        "frac" | "fract" => frac(a.0, a.1),
+                        "int" | "trunc" => int(a.0, a.1),
+                        "fact" =>
+                        {
+                            if a.1 != 0.0 || a.0 < 0.0
+                            {
+                                return Err(());
+                            }
+                            (fact(a.0), 0.0)
+                        }
+                        "square" | "asqrt" => pow(a.0, a.1, 2.0, 0.0),
+                        "cube" | "acbrt" => pow(a.0, a.1, 3.0, 0.0),
+                        "subfact" =>
+                        {
+                            if a.1 != 0.0 || a.0 < 0.0
+                            {
+                                return Err(());
+                            }
+                            (subfact(a.0), 0.0)
+                        }
+                        "sinc" => sinc(a.0, a.1),
+                        _ =>
+                        {
+                            i += 1;
+                            continue;
+                        }
+                    });
+                    function.remove(i + 1);
+                }
             }
         }
         i += 1;

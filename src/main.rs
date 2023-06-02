@@ -310,6 +310,7 @@ fn main()
                         }
                         cursor -= 1;
                         input.remove(cursor);
+                        current = input.clone();
                         print!("\x1B[2K\x1B[1G{}", input);
                         #[cfg(unix)]
                         if width < (input.len() + 1) as u16
@@ -455,6 +456,7 @@ fn main()
                     }
                     '\x1B' =>
                     {
+                        // go left
                         if cursor == 0
                         {
                             continue;
@@ -464,6 +466,7 @@ fn main()
                     }
                     '\x1C' =>
                     {
+                        // go right
                         if cursor == input.len()
                         {
                             continue;
@@ -516,7 +519,7 @@ fn main()
                 }
                 stdout().flush().unwrap();
             }
-            if input.is_empty() || input.chars().filter(|c| *c == '=').count() > 1
+            if input.is_empty() || input.chars().filter(|c| *c == '=').count() > 2
             {
                 continue;
             }
@@ -911,7 +914,7 @@ Trigonometric functions:\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\
 Other functions:\n\
 - sqrt, cbrt, square, cube\n\
-- ln, log(base,num), root(base,exp)\n\
+- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end)\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\
 - fact, subfact\n\
@@ -932,6 +935,8 @@ Constants:\n\
 - mn: neutron mass\n\
 - me: electron mass\n\
 - ev: electron volt\n\
-- kc: coulomb's constant"
+- kc: coulomb's constant\n\
+- Na: avogadro's number\n\
+- R: gas constant"
     );
 }

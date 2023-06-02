@@ -64,7 +64,7 @@ Trigonometric functions:
 
 Other functions:
 - sqrt, cbrt, square, cube
-- ln, log(base,num), root(base,exp)
+- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
 - fact, subfact
@@ -87,6 +87,8 @@ Constants:
 - me: electron mass
 - ev: electron volt
 - kc: coulomb's constant
+- Na: avogadro's number
+- R: gas constant
 ```
 # example usage
 ```

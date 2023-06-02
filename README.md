@@ -115,9 +115,15 @@ kalc
 ```
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc
+1.7724538509055159
+9.869604401089358
+
 kalc 'sqrt(pi)' 'pi^2'
-echo -ne 'sin(x)#cos(x)'|kalc
-kalc 'sin(x)#cos(x)'
+1.7724538509055159
+9.869604401089358
+
+echo -ne 'sin(x)#cos(x)'|kalc // graphs sin(x) and cos(x) in 2D
+kalc 'sin(x)#cos(x)' // graphs sin(x) and cos(x) in 2D
 ```
 # graphing
 ```

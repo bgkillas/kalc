@@ -242,7 +242,13 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            println!();
+            if !((input.contains('x') && vars.iter().all(|i| i[0] != "x"))
+                 || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                 || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
+                 || input.contains('='))
+            {
+                println!();
+            }
             last = input.clone();
             if args.is_empty()
             {

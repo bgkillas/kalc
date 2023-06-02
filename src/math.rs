@@ -92,7 +92,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                             {
                                 function.remove(j - 2);
                             }
-                            i += 1;
+                            i = j - 1;
                             continue 'outer;
                         }
                         single = f;
@@ -153,7 +153,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                     }
                     if function.len() > single + 5 && single != 0 && function[single + 2].str_is(",") && function[single + 4].str_is(",")
                     {
-                        if let Str(s) = &function[single + 1]
+                        if let Str(l) = &function[single + 1]
                         {
                             value = (0.0, 0.0);
                             start = function[single + 3].num()?;
@@ -165,7 +165,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                                     func = function[i + 1..single].to_vec();
                                     for k in func.iter_mut()
                                     {
-                                        if k.str_is(s)
+                                        if k.str_is(l)
                                         {
                                             *k = Num((z as f64, 0.0));
                                         }

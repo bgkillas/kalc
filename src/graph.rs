@@ -145,6 +145,11 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], close:bool, fg:&mut Figure, 
         let im2c = if input[1] != "0" && !im2.is_empty() { input[1].to_owned() + ":im" } else { "".to_owned() };
         let re3c = if input[1] != "0" && !re3.is_empty() { input[2].to_owned() + ":re" } else { "".to_owned() };
         let im3c = if input[1] != "0" && !im3.is_empty() { input[2].to_owned() + ":im" } else { "".to_owned() };
+        if re.is_empty() && im.is_empty() && re2.is_empty() && im2.is_empty() && re3.is_empty() && im3.is_empty()
+        {
+            println!("No data to plot");
+            return;
+        }
         fg.axes3d()
           .set_x_ticks(xticks, &[], &[])
           .set_y_ticks(yticks, &[], &[])
@@ -210,6 +215,11 @@ pub fn graph(input:[&str; 3], func:[&[Complex]; 3], close:bool, fg:&mut Figure, 
     let im2c = if input[1] != "0" && !im2.is_empty() { input[1].to_owned() + ":im" } else { "".to_owned() };
     let re3c = if input[2] != "0" && !re3.is_empty() { input[2].to_owned() + ":re" } else { "".to_owned() };
     let im3c = if input[2] != "0" && !im3.is_empty() { input[2].to_owned() + ":im" } else { "".to_owned() };
+    if re.is_empty() && im.is_empty() && re2.is_empty() && im2.is_empty() && re3.is_empty() && im3.is_empty()
+    {
+        println!("No data to plot");
+        return;
+    }
     fg.axes2d()
       .set_x_ticks(xticks, &[], &[])
       .set_y_ticks(yticks, &[], &[])

@@ -51,7 +51,9 @@ FLAGS: --help (this message)
 - Type "a=[num]" to define a variable
 - Type "f(x)=..." to define a function
 - Type "f(x,y)=..." to define a 2 variable function
-- Type "f(x,y,z...)=..." to define a multi variable function\n\
+- Type "f(x,y,z...)=..." to define a multi variable function
+- Type "f...=" to display the definition of a function or variable
+- Type "f...=null" to delete a function or variable
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Trigonometric functions:

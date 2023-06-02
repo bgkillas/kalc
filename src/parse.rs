@@ -325,7 +325,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                 {
                     not_pushed = false;
                     output.push('(');
-                    output.push_str(&var[1]);
+                    output.push_str(&input_var(&var[1], vars));
                     output.push(')');
                 }
                 else if j == 0 || !chars[j - 1].is_ascii_alphabetic()
@@ -359,7 +359,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                             temp = &temp[..temp.len() - 1];
                         }
                         split = temp.split(',');
-                        value = var[1].clone();
+                        value = input_var(&var[1], vars).clone();
                         for i in (0..split.clone().count()).rev()
                         {
                             value = value.replace(v[v.len() - 2 * (i + 1)], &format!("({})", input_var(split.next().unwrap(), vars)));
@@ -376,7 +376,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                         {
                             temp = &temp[..temp.len() - 1];
                         }
-                        output.push_str(&var[1].replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
+                        output.push_str(&input_var(&var[1], vars).replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
                         output.push(')');
                     }
                 }
@@ -388,7 +388,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                 {
                     not_pushed = false;
                     output.push('(');
-                    output.push_str(&var[1]);
+                    output.push_str(&input_var(&var[1], vars));
                     output.push(')');
                 }
             }

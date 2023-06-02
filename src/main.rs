@@ -10,16 +10,17 @@ mod tests;
 use equal::equal;
 use parse::{input_var, get_func, get_vars};
 use std::env::{args, var};
-use std::io::{BufRead, BufReader, stdout, Write};
+use std::io::{BufRead, BufReader, IsTerminal, stdout, Write};
 use std::fs::{File, OpenOptions};
 use gnuplot::Figure;
 use graph::graph;
 use print::{print_answer, print_concurrent};
+use std::io::stdin;
 #[cfg(not(unix))]
 use console::{Key, Term};
 #[cfg(unix)]
 use {
-    libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, isatty, STDIN_FILENO, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::io::stdin, std::os::fd::AsRawFd, std::io::Read
+    libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::os::fd::AsRawFd, std::io::Read
 };
 fn main()
 {
@@ -178,8 +179,7 @@ fn main()
     }
     let mut vars:Vec<[String; 2]> = get_vars(allow_vars);
     let mut input = String::new();
-    #[cfg(unix)]
-    if !unsafe { isatty(STDIN_FILENO) != 0 }
+    if !stdin().is_terminal()
     {
         for line in stdin().lock().lines()
         {
@@ -199,9 +199,10 @@ fn main()
     #[cfg(unix)]
     let mut width;
     let mut last = String::new();
+    let mut current = String::new();
     let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split_str, mut split);
     let mut exit = false;
-    loop
+    'main: loop
     {
         if exit
         {
@@ -271,7 +272,10 @@ fn main()
                         {
                             println!();
                         }
-                        if !((input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('='))
+                        if !((input.contains('x') && vars.iter().all(|i| i[0] != "x"))
+                             || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                             || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
+                             || input.contains('='))
                         {
                             println!();
                         }
@@ -353,6 +357,7 @@ fn main()
                     }
                     '\x1D' =>
                     {
+                        // up history
                         i -= if i > 0 { 1 } else { 0 };
                         input = lines[i as usize].clone();
                         cursor = input.len();
@@ -386,32 +391,39 @@ fn main()
                     }
                     '\x1E' =>
                     {
+                        // down history
                         i += 1;
                         if i >= max
                         {
-                            input.clear();
-                            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
-                                   if prompt
-                                   {
-                                       if color
+                            input = current.clone();
+                            i = max;
+                            if input.is_empty()
+                            {
+                                print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
+                                       if prompt
                                        {
-                                           "\x1b[94m> \x1b[0m"
+                                           if color
+                                           {
+                                               "\x1b[94m> \x1b[0m"
+                                           }
+                                           else
+                                           {
+                                               "> "
+                                           }
                                        }
                                        else
                                        {
-                                           "> "
-                                       }
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   });
-                            stdout().flush().unwrap();
-                            i = max;
-                            cursor = 0;
-                            continue 'outer;
+                                           ""
+                                       });
+                                stdout().flush().unwrap();
+                                cursor = 0;
+                                continue 'outer;
+                            }
                         }
-                        input = lines[i as usize].clone();
+                        else
+                        {
+                            input = lines[i as usize].clone();
+                        }
                         cursor = input.len();
                         #[cfg(unix)]
                         if width < (input.len() + 1) as u16
@@ -482,6 +494,7 @@ fn main()
                             input.insert(cursor, c);
                             cursor += 1;
                         }
+                        current = input.clone();
                         #[cfg(unix)]
                         if width < (input.len() + 1) as u16
                         {
@@ -631,6 +644,10 @@ fn main()
             split = input.split('=');
             l = split.next().unwrap();
             r = split.next().unwrap();
+            if l.is_empty()
+            {
+                continue;
+            }
             match l
             {
                 "xr" =>
@@ -667,11 +684,21 @@ fn main()
             {
                 if vars[i][0].split('(').next() == l.split('(').next()
                 {
+                    if r.is_empty()
+                    {
+                        println!("{}", vars[i][1]);
+                        stdout().flush().unwrap();
+                        break;
+                    }
                     vars.remove(i);
+                    if r == "null"
+                    {
+                        continue 'main;
+                    }
                     break;
                 }
             }
-            vars.push([l.to_string(), input_var(r, &vars)]);
+            vars.push([l.to_string(), r.to_string()]);
             continue;
         }
         else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
@@ -680,25 +707,25 @@ fn main()
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             split = input.split('#');
-            let l = input_var(split.next().unwrap_or("0"), &vars);
-            let m = input_var(split.next().unwrap_or("0"), &vars);
-            let r = input_var(split.next().unwrap_or("0"), &vars);
-            funcl = match get_func(&l)
+            let l = split.next().unwrap_or("0");
+            let m = split.next().unwrap_or("0");
+            let r = split.next().unwrap_or("0");
+            funcl = match get_func(&input_var(l, &vars))
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            funcm = match get_func(&m)
+            funcm = match get_func(&input_var(m, &vars))
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            funcr = match get_func(&r)
+            funcr = match get_func(&input_var(r, &vars))
             {
                 Ok(f) => f,
                 _ => continue,
             };
-            graph([&l, &m, &r], [&funcl, &funcm, &funcr], false, &mut plot, graph_options, print_options.1);
+            graph([l, m, r], [&funcl, &funcm, &funcr], false, &mut plot, graph_options, print_options.1);
             if let Some(time) = watch
             {
                 println!("{}ms", time.elapsed().as_millis());
@@ -874,6 +901,8 @@ FLAGS: --help (this message)\n\
 - Type \"f(x)=...\" to define a function\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
+- Type \"f...=\" to display the definition of a function or variable\n\
+- Type \"f...=null\" to delete a function or variable\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\

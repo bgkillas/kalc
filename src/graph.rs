@@ -1,3 +1,5 @@
+use std::thread;
+use std::thread::JoinHandle;
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
 use crate::math::{
     do_math, Complex, Complex::{Num, Str}
@@ -97,152 +99,160 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:b
     }
     (re, im)
 }
-pub fn graph(input:[&str; 3], func:[&[Complex]; 3], close:bool, fg:&mut Figure, options:([[f64; 2]; 3], f64, f64, char), deg:bool)
+pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], f64, f64, char), deg:bool) -> JoinHandle<()>
 {
-    let re1col = "#9400D3";
-    let im1col = "#009E73";
-    let re2col = "#56B4E9";
-    let im2col = "#E69F00";
-    let re3col = "#F0E442";
-    let im3col = "#0072B2";
-    let xticks = Some((Fix((options.0[0][1] - options.0[0][0]) / 20.0), 1));
-    let yticks = Some((Fix((options.0[1][1] - options.0[1][0]) / 20.0), 1));
-    fg.close();
-    fg.clear_axes();
-    if input[0].contains('y')
-    {
-        let zticks = Some((Fix((options.0[2][1] - options.0[2][0]) / 20.0), 1));
-        let (mut re, mut im) = get_list_3d(func[0], options, deg);
-        let (mut re2, mut im2) = get_list_3d(func[1], options, deg);
-        let (mut re3, mut im3) = get_list_3d(func[2], options, deg);
-        if im.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
+    thread::spawn(move || {
+        let mut fg = Figure::new();
+        fg.set_enhanced_text(false);
+        let re1col = "#9400D3";
+        let im1col = "#009E73";
+        let re2col = "#56B4E9";
+        let im2col = "#E69F00";
+        let re3col = "#F0E442";
+        let im3col = "#0072B2";
+        let re4col = "#D55E00";
+        let im4col = "#CC79A7";
+        let re5col = "#000000";
+        let im5col = "#0033cc";
+        let xticks = Some((Fix((options.0[0][1] - options.0[0][0]) / 20.0), 1));
+        let yticks = Some((Fix((options.0[1][1] - options.0[1][0]) / 20.0), 1));
+        let mut re_cap:[String; 5] = Default::default();
+        let mut im_cap:[String; 5] = Default::default();
+        if input[0].contains('y')
         {
-            im.clear();
+            let zticks = Some((Fix((options.0[2][1] - options.0[2][0]) / 20.0), 1));
+            let mut re = vec![Vec::new(); 5];
+            let mut im = vec![Vec::new(); 5];
+            let (mut re2, mut im2);
+            for (i, f) in func.iter().enumerate()
+            {
+                (re2, im2) = get_list_3d(f, options, deg);
+                if re2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
+                {
+                    re2.clear();
+                }
+                else
+                {
+                    re_cap[i] = input[i].to_owned() + ":re";
+                }
+                if im2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
+                {
+                    im2.clear();
+                }
+                else
+                {
+                    im_cap[i] = input[i].to_owned() + ":im";
+                }
+                re[i].extend(re2);
+                im[i].extend(im2);
+            }
+            if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
+            {
+                println!("No data to plot");
+                return;
+            }
+            fg.axes3d()
+              .set_x_ticks(xticks, &[], &[])
+              .set_y_ticks(yticks, &[], &[])
+              .set_z_ticks(zticks, &[], &[])
+              .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
+              .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
+              .set_z_range(Fix(options.0[2][0]), Fix(options.0[2][1]))
+              .set_z_label("z", &[])
+              .set_y_label("y", &[])
+              .set_x_label("x", &[])
+              .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+              .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(im1col)])
+              .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+              .lines([0], [0], [0], &[Caption(&im_cap[1]), Color(im2col)])
+              .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+              .lines([0], [0], [0], &[Caption(&im_cap[2]), Color(im3col)])
+              .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+              .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(im4col)])
+              .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+              .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+              .points(re[0].iter().map(|i| i[0]), re[0].iter().map(|i| i[1]), re[0].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(re1col)])
+              .points(im[0].iter().map(|i| i[0]), im[0].iter().map(|i| i[1]), im[0].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(im1col)])
+              .points(re[1].iter().map(|i| i[0]), re[1].iter().map(|i| i[1]), re[1].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(re2col)])
+              .points(im[1].iter().map(|i| i[0]), im[1].iter().map(|i| i[1]), im[1].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(im2col)])
+              .points(re[2].iter().map(|i| i[0]), re[2].iter().map(|i| i[1]), re[2].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(re3col)])
+              .points(im[2].iter().map(|i| i[0]), im[2].iter().map(|i| i[1]), im[2].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(im3col)])
+              .points(re[3].iter().map(|i| i[0]), re[3].iter().map(|i| i[1]), re[3].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(re4col)])
+              .points(im[3].iter().map(|i| i[0]), im[3].iter().map(|i| i[1]), im[3].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(im4col)])
+              .points(re[4].iter().map(|i| i[0]), re[4].iter().map(|i| i[1]), re[4].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(re5col)])
+              .points(im[4].iter().map(|i| i[0]), im[4].iter().map(|i| i[1]), im[4].iter().map(|i| i[2]), &[PointSymbol(options.3),
+                                                                                                            Color(im5col)]);
+            fg.show().unwrap();
+            return;
         }
-        if im2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
+        let axisline = [-1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0];
+        let zeros = [0.0; 11];
+        let mut re = vec![Vec::new(); 5];
+        let mut im = vec![Vec::new(); 5];
+        let (mut re2, mut im2);
+        for (i, f) in func.iter().enumerate()
         {
-            im2.clear();
+            (re2, im2) = get_list_2d(f, options, deg);
+            if re2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
+            {
+                re2.clear();
+            }
+            else
+            {
+                re_cap[i] = input[i].to_owned() + ":re";
+            }
+            if im2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
+            {
+                im2.clear();
+            }
+            else
+            {
+                im_cap[i] = input[i].to_owned() + ":im";
+            }
+            re[i].extend(re2);
+            im[i].extend(im2);
         }
-        if im3.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-        {
-            im3.clear();
-        }
-        if re.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-        {
-            re.clear();
-        }
-        if re2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-        {
-            re2.clear();
-        }
-        if re3.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-        {
-            re3.clear();
-        }
-        let re1c = if input[0] != "0" && !re.is_empty() { input[0].to_owned() + ":re" } else { "".to_owned() };
-        let im1c = if input[0] != "0" && !im.is_empty() { input[0].to_owned() + ":im" } else { "".to_owned() };
-        let re2c = if input[1] != "0" && !re2.is_empty() { input[1].to_owned() + ":re" } else { "".to_owned() };
-        let im2c = if input[1] != "0" && !im2.is_empty() { input[1].to_owned() + ":im" } else { "".to_owned() };
-        let re3c = if input[1] != "0" && !re3.is_empty() { input[2].to_owned() + ":re" } else { "".to_owned() };
-        let im3c = if input[1] != "0" && !im3.is_empty() { input[2].to_owned() + ":im" } else { "".to_owned() };
-        if re.is_empty() && im.is_empty() && re2.is_empty() && im2.is_empty() && re3.is_empty() && im3.is_empty()
+        if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
         {
             println!("No data to plot");
             return;
         }
-        fg.axes3d()
+        fg.axes2d()
           .set_x_ticks(xticks, &[], &[])
           .set_y_ticks(yticks, &[], &[])
-          .set_z_ticks(zticks, &[], &[])
-          .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
           .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
-          .set_z_range(Fix(options.0[2][0]), Fix(options.0[2][1]))
-          .set_z_label("z", &[])
-          .set_y_label("y", &[])
-          .set_x_label("x", &[])
-          .lines([0], [0], [0], &[Caption(re1c.as_str()), Color(re1col)])
-          .lines([0], [0], [0], &[Caption(im1c.as_str()), Color(im1col)])
-          .lines([0], [0], [0], &[Caption(re2c.as_str()), Color(re2col)])
-          .lines([0], [0], [0], &[Caption(im2c.as_str()), Color(im2col)])
-          .lines([0], [0], [0], &[Caption(re3c.as_str()), Color(re3col)])
-          .lines([0], [0], [0], &[Caption(im3c.as_str()), Color(im3col)])
-          .points(re.iter().map(|i| i[0]), re.iter().map(|i| i[1]), re.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(re1col)])
-          .points(im.iter().map(|i| i[0]), im.iter().map(|i| i[1]), im.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(im1col)])
-          .points(re2.iter().map(|i| i[0]), re2.iter().map(|i| i[1]), re2.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(re2col)])
-          .points(im2.iter().map(|i| i[0]), im2.iter().map(|i| i[1]), im2.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(im2col)])
-          .points(re3.iter().map(|i| i[0]), re3.iter().map(|i| i[1]), re3.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(re3col)])
-          .points(im3.iter().map(|i| i[0]), im3.iter().map(|i| i[1]), im3.iter().map(|i| i[2]), &[PointSymbol(options.3), Color(im3col)]);
-        if close
-        {
-            fg.show().unwrap();
-            return;
-        }
-        fg.show_and_keep_running().unwrap();
-        return;
-    }
-    let (mut re, mut im) = get_list_2d(func[0], options, deg);
-    let (mut re2, mut im2) = get_list_2d(func[1], options, deg);
-    let (mut re3, mut im3) = get_list_2d(func[2], options, deg);
-    if im.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-    {
-        im.clear();
-    }
-    if im2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-    {
-        im2.clear();
-    }
-    if im3.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-    {
-        im3.clear();
-    }
-    if re.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-    {
-        re.clear();
-    }
-    if re2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-    {
-        re2.clear();
-    }
-    if re3.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
-    {
-        re3.clear();
-    }
-    let axisline = [-1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0];
-    let zeros = [0.0; 11];
-    let re1c = if input[0] != "0" && !re.is_empty() { input[0].to_owned() + ":re" } else { "".to_owned() };
-    let im1c = if input[0] != "0" && !im.is_empty() { input[0].to_owned() + ":im" } else { "".to_owned() };
-    let re2c = if input[1] != "0" && !re2.is_empty() { input[1].to_owned() + ":re" } else { "".to_owned() };
-    let im2c = if input[1] != "0" && !im2.is_empty() { input[1].to_owned() + ":im" } else { "".to_owned() };
-    let re3c = if input[2] != "0" && !re3.is_empty() { input[2].to_owned() + ":re" } else { "".to_owned() };
-    let im3c = if input[2] != "0" && !im3.is_empty() { input[2].to_owned() + ":im" } else { "".to_owned() };
-    if re.is_empty() && im.is_empty() && re2.is_empty() && im2.is_empty() && re3.is_empty() && im3.is_empty()
-    {
-        println!("No data to plot");
-        return;
-    }
-    fg.axes2d()
-      .set_x_ticks(xticks, &[], &[])
-      .set_y_ticks(yticks, &[], &[])
-      .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
-      .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
-      .lines([0], [0], &[Caption(re1c.as_str()), Color(re1col)])
-      .lines([0], [0], &[Caption(im1c.as_str()), Color(im1col)])
-      .lines([0], [0], &[Caption(re2c.as_str()), Color(re2col)])
-      .lines([0], [0], &[Caption(im2c.as_str()), Color(im2col)])
-      .lines([0], [0], &[Caption(re3c.as_str()), Color(re3col)])
-      .lines([0], [0], &[Caption(im3c.as_str()), Color(im3col)])
-      .points(re.iter().map(|x| x[0]), re.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re1col)])
-      .points(im.iter().map(|x| x[0]), im.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im1col)])
-      .points(re2.iter().map(|x| x[0]), re2.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re2col)])
-      .points(im2.iter().map(|x| x[0]), im2.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im2col)])
-      .points(re3.iter().map(|x| x[0]), re3.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re3col)])
-      .points(im3.iter().map(|x| x[0]), im3.iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im3col)])
-      .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
-      .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
-    if close
-    {
+          .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
+          .lines([0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+          .lines([0], [0], &[Caption(&im_cap[0]), Color(im1col)])
+          .lines([0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+          .lines([0], [0], &[Caption(&im_cap[1]), Color(im2col)])
+          .lines([0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+          .lines([0], [0], &[Caption(&im_cap[2]), Color(im3col)])
+          .lines([0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+          .lines([0], [0], &[Caption(&im_cap[3]), Color(im4col)])
+          .lines([0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+          .lines([0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+          .points(re[0].iter().map(|x| x[0]), re[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re1col)])
+          .points(im[0].iter().map(|x| x[0]), im[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im1col)])
+          .points(re[1].iter().map(|x| x[0]), re[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re2col)])
+          .points(im[1].iter().map(|x| x[0]), im[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im2col)])
+          .points(re[2].iter().map(|x| x[0]), re[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re3col)])
+          .points(im[2].iter().map(|x| x[0]), im[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im3col)])
+          .points(re[3].iter().map(|x| x[0]), re[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re4col)])
+          .points(im[3].iter().map(|x| x[0]), im[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im4col)])
+          .points(re[4].iter().map(|x| x[0]), re[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re5col)])
+          .points(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im5col)])
+          .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+          .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
         fg.show().unwrap();
-        return;
-    }
-    fg.show_and_keep_running().unwrap();
+    })
 }

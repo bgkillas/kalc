@@ -12,10 +12,10 @@ use parse::{input_var, get_func, get_vars};
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, IsTerminal, stdout, Write};
 use std::fs::{File, OpenOptions};
-use gnuplot::Figure;
 use graph::graph;
 use print::{print_answer, print_concurrent};
 use std::io::stdin;
+use std::thread::JoinHandle;
 #[cfg(not(unix))]
 use console::{Key, Term};
 #[cfg(unix)]
@@ -25,7 +25,6 @@ use {
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
-    let mut plot = Figure::new();
     let mut watch = None;
     let mut print_options = (false, false, 10); //[sci, deg, #base]
     let mut allow_vars = true;
@@ -33,7 +32,7 @@ fn main()
     let mut tau = false;
     let mut prompt = true;
     let mut color = true;
-    plot.set_enhanced_text(false);
+    let mut handles:Vec<JoinHandle<()>> = Vec::new();
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
     #[cfg(not(unix))]
@@ -200,12 +199,16 @@ fn main()
     let mut width;
     let mut last = String::new();
     let mut current = String::new();
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut funcl, mut funcm, mut funcr, mut split_str, mut split);
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split);
     let mut exit = false;
     'main: loop
     {
         if exit
         {
+            for handle in handles
+            {
+                handle.join().unwrap();
+            }
             break;
         }
         #[cfg(unix)]
@@ -621,6 +624,10 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
+                    for handle in handles
+                    {
+                        handle.join().unwrap();
+                    }
                     break;
                 }
                 _ =>
@@ -722,26 +729,17 @@ fn main()
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            split = input.split('#');
-            let l = split.next().unwrap_or("0");
-            let m = split.next().unwrap_or("0");
-            let r = split.next().unwrap_or("0");
-            funcl = match get_func(&input_var(l, &vars))
+            let inputs:Vec<String> = input.split('#').map(String::from).collect();
+            let mut funcs = Vec::new();
+            for i in &inputs
             {
-                Ok(f) => f,
-                _ => continue,
-            };
-            funcm = match get_func(&input_var(m, &vars))
-            {
-                Ok(f) => f,
-                _ => continue,
-            };
-            funcr = match get_func(&input_var(r, &vars))
-            {
-                Ok(f) => f,
-                _ => continue,
-            };
-            graph([l, m, r], [&funcl, &funcm, &funcr], false, &mut plot, graph_options, print_options.1);
+                funcs.push(match get_func(&input_var(i, &vars))
+                     {
+                         Ok(f) => f,
+                         _ => continue 'main,
+                     });
+            }
+            handles.push(graph(inputs, funcs, graph_options, print_options.1));
             if let Some(time) = watch
             {
                 println!("{}ms", time.elapsed().as_millis());

@@ -1,7 +1,7 @@
 use crate::fraction::fraction;
 use crate::math::{do_math, Complex};
 use crate::parse::get_func;
-pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, usize), color:bool)
+pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, usize, bool, bool), color:bool)
 {
     if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
     {
@@ -58,7 +58,7 @@ pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, us
                if b == 0.0 { "".to_string() } else { d });
     };
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_options:(bool, bool, usize), prompt:bool, color:bool) -> bool
+pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool), prompt:bool, color:bool) -> bool
 {
     if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
     {
@@ -116,8 +116,8 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, tau:bool, print_optio
     };
     let mut frac = false;
     let (a, b) = do_math(func, print_options.1).unwrap_or((0.0, 0.0));
-    let fa = fraction(a, tau);
-    let fb = fraction(b, tau);
+    let fa = fraction(a, print_options.3);
+    let fb = fraction(b, print_options.3);
     let c = (a * 1e12).round() / 1e12;
     let d = (b * 1e12).round() / 1e12;
     let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();

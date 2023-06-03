@@ -357,7 +357,7 @@ pub fn fact(a:f64) -> f64
     // fact(a)=a!
     if a.fract() != 0.0
     {
-        return 0.0;
+        return f64::NAN;
     }
     if a == 0.0
     {
@@ -381,7 +381,7 @@ pub fn subfact(a:f64) -> f64
     }
     if a.fract() != 0.0
     {
-        return 0.0;
+        return f64::NAN;
     }
     let mut prev = 1.0;
     let mut curr = 0.0;

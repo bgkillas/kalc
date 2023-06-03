@@ -216,12 +216,28 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 {
                     if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
                     {
+                        if let Num((a, b)) = func.clone().last().unwrap()
+                        {
+                            if a < &0.0
+                            {
+                                func.pop();
+                                func.push(Num((-a, *b)));
+                                func.insert(func.len() - 1, Num((-1.0, 0.0)));
+                                func.insert(func.len() - 1, Str("*".to_string()));
+                            }
+                        }
                         func.insert(func.len() - 1, Str("fact".to_string()));
                         func.insert(func.len() - 1, Str("(".to_string()));
                         func.push(Str(")".to_string()));
                     }
-                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
+                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')' || chars[i + 1] == '-')
                     {
+                        if neg
+                        {
+                            func.push(Num((-1.0, 0.0)));
+                            func.push(Str("*".to_string()));
+                            neg = false;
+                        }
                         func.push(Str("subfact".to_string()));
                         func.push(Str("(".to_string()));
                         count += 1;

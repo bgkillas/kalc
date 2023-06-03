@@ -4,7 +4,7 @@ use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymb
 use crate::math::{
     do_math, Complex, Complex::{Num, Str}
 };
-pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], f64, f64, char), deg:bool) -> JoinHandle<()>
+pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], f64, f64, char, bool), deg:bool) -> JoinHandle<()>
 {
     thread::spawn(move || {
         let mut fg = Figure::new();
@@ -131,38 +131,71 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], 
                 println!("No data to plot");
                 return;
             }
-            fg.axes2d()
-              .set_x_ticks(xticks, &[], &[])
-              .set_y_ticks(yticks, &[], &[])
-              .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
-              .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
-              .lines([0], [0], &[Caption(&re_cap[0]), Color(re1col)])
-              .lines([0], [0], &[Caption(&im_cap[0]), Color(im1col)])
-              .lines([0], [0], &[Caption(&re_cap[1]), Color(re2col)])
-              .lines([0], [0], &[Caption(&im_cap[1]), Color(im2col)])
-              .lines([0], [0], &[Caption(&re_cap[2]), Color(re3col)])
-              .lines([0], [0], &[Caption(&im_cap[2]), Color(im3col)])
-              .lines([0], [0], &[Caption(&re_cap[3]), Color(re4col)])
-              .lines([0], [0], &[Caption(&im_cap[3]), Color(im4col)])
-              .lines([0], [0], &[Caption(&re_cap[4]), Color(re5col)])
-              .lines([0], [0], &[Caption(&im_cap[4]), Color(im5col)])
-              .points(re[0].iter().map(|x| x[0]), re[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re1col)])
-              .points(im[0].iter().map(|x| x[0]), im[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im1col)])
-              .points(re[1].iter().map(|x| x[0]), re[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re2col)])
-              .points(im[1].iter().map(|x| x[0]), im[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im2col)])
-              .points(re[2].iter().map(|x| x[0]), re[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re3col)])
-              .points(im[2].iter().map(|x| x[0]), im[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im3col)])
-              .points(re[3].iter().map(|x| x[0]), re[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re4col)])
-              .points(im[3].iter().map(|x| x[0]), im[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im4col)])
-              .points(re[4].iter().map(|x| x[0]), re[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re5col)])
-              .points(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im5col)])
-              .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
-              .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
+            if options.4
+            {
+                fg.axes2d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
+                  .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
+                  .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
+                  .lines([0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+                  .lines([0], [0], &[Caption(&im_cap[0]), Color(im1col)])
+                  .lines([0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+                  .lines([0], [0], &[Caption(&im_cap[1]), Color(im2col)])
+                  .lines([0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+                  .lines([0], [0], &[Caption(&im_cap[2]), Color(im3col)])
+                  .lines([0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+                  .lines([0], [0], &[Caption(&im_cap[3]), Color(im4col)])
+                  .lines([0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+                  .lines([0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+                  .lines(re[0].iter().map(|x| x[0]), re[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re1col)])
+                  .lines(im[0].iter().map(|x| x[0]), im[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im1col)])
+                  .lines(re[1].iter().map(|x| x[0]), re[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re2col)])
+                  .lines(im[1].iter().map(|x| x[0]), im[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im2col)])
+                  .lines(re[2].iter().map(|x| x[0]), re[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re3col)])
+                  .lines(im[2].iter().map(|x| x[0]), im[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im3col)])
+                  .lines(re[3].iter().map(|x| x[0]), re[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re4col)])
+                  .lines(im[3].iter().map(|x| x[0]), im[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im4col)])
+                  .lines(re[4].iter().map(|x| x[0]), re[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re5col)])
+                  .lines(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im5col)])
+                  .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
+            }
+            else
+            {
+                fg.axes2d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
+                  .set_y_range(Fix(options.0[1][0]), Fix(options.0[1][1]))
+                  .set_x_range(Fix(options.0[0][0]), Fix(options.0[0][1]))
+                  .lines([0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+                  .lines([0], [0], &[Caption(&im_cap[0]), Color(im1col)])
+                  .lines([0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+                  .lines([0], [0], &[Caption(&im_cap[1]), Color(im2col)])
+                  .lines([0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+                  .lines([0], [0], &[Caption(&im_cap[2]), Color(im3col)])
+                  .lines([0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+                  .lines([0], [0], &[Caption(&im_cap[3]), Color(im4col)])
+                  .lines([0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+                  .lines([0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+                  .points(re[0].iter().map(|x| x[0]), re[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re1col)])
+                  .points(im[0].iter().map(|x| x[0]), im[0].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im1col)])
+                  .points(re[1].iter().map(|x| x[0]), re[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re2col)])
+                  .points(im[1].iter().map(|x| x[0]), im[1].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im2col)])
+                  .points(re[2].iter().map(|x| x[0]), re[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re3col)])
+                  .points(im[2].iter().map(|x| x[0]), im[2].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im3col)])
+                  .points(re[3].iter().map(|x| x[0]), re[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re4col)])
+                  .points(im[3].iter().map(|x| x[0]), im[3].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im4col)])
+                  .points(re[4].iter().map(|x| x[0]), re[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(re5col)])
+                  .points(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.3), Color(im5col)])
+                  .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
+            }
         }
         fg.show().unwrap();
     })
 }
-pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if let Num(n) = func[0]
     {
@@ -196,12 +229,18 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:b
             Err(_) => continue,
         };
         (a, b) = num;
-        re.push([n, a]);
-        im.push([n, b]);
+        if a.is_finite()
+        {
+            re.push([n, a]);
+        }
+        if b.is_finite()
+        {
+            im.push([n, b]);
+        }
     }
     (re, im)
 }
-pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if let Num(n) = func[0]
     {
@@ -251,8 +290,14 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char), deg:b
                 Err(_) => continue,
             };
             (a, b) = num;
-            re.push([n, f, a]);
-            im.push([n, f, b]);
+            if a.is_finite()
+            {
+                re.push([n, f, a]);
+            }
+            if b.is_finite()
+            {
+                im.push([n, f, b]);
+            }
         }
     }
     (re, im)

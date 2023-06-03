@@ -1,7 +1,7 @@
 use crate::graph::{get_list_2d, get_list_3d};
 use crate::math::do_math;
 use crate::parse::get_func;
-pub fn equal(options:([[f64; 2]; 3], f64, f64, char), input:&str, l:&str, r:&str) -> bool
+pub fn equal(options:([[f64; 2]; 3], f64, f64, char, bool), input:&str, l:&str, r:&str) -> bool
 {
     if input.contains('x')
     {

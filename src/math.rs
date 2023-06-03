@@ -410,7 +410,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                         {
                             if a.1 != 0.0 || a.0 < 0.0
                             {
-                                return Err(());
+                                return Ok((f64::NAN, f64::NAN));
                             }
                             (fact(a.0), 0.0)
                         }
@@ -420,7 +420,7 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                         {
                             if a.1 != 0.0 || a.0 < 0.0
                             {
-                                return Err(());
+                                return Ok((f64::NAN, f64::NAN));
                             }
                             (subfact(a.0), 0.0)
                         }

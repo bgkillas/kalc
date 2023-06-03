@@ -26,6 +26,8 @@ FLAGS: --help (this message)
 --prompt toggles the prompt
 --color toggles color
 --vars toggles default variables
+--line toggles line graphing
+--concurrent toggles concurrent printing
 --default ignores config file
 --debug displays computation time in nanoseconds
 
@@ -38,6 +40,8 @@ FLAGS: --help (this message)
 - Type "tau" to show fractions in tau
 - Type "pi" to show fractions in pi
 - Type "prompt" to toggle the prompt
+- Type "line" to toggle line graphing
+- Type "concurrent" to toggle concurrent printing
 - Type "color" to toggle color
 - Type "2d=[num]" to set the number of points in 2D graphs
 - Type "3d=[num]" to set the number of points in 3D graphs

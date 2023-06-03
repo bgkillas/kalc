@@ -22,14 +22,14 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::os::fd::AsRawFd, std::io::Read
 };
+// add rug
 fn main()
 {
-    let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.'); //[xr,yr,zr], 2d, 3d, point style
+    let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false); //[xr,yr,zr], 2d, 3d, point style, lines
     let mut watch = None;
-    let mut print_options = (false, false, 10); //[sci, deg, #base]
+    let mut print_options = (false, false, 10, false, true); //[sci, deg, #base, tau, concurrent_output]
     let mut allow_vars = true;
     let mut debug = false;
-    let mut tau = false;
     let mut prompt = true;
     let mut color = true;
     let mut handles:Vec<JoinHandle<()>> = Vec::new();
@@ -67,6 +67,8 @@ fn main()
                     graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
+                "concurrent" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
+                "line" => graph_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "prompt" => prompt = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "color" => color = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "point" => graph_options.3 = args.next().unwrap().chars().next().unwrap_or('.'),
@@ -74,7 +76,7 @@ fn main()
                 "base" => print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10),
                 "debug" => debug = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "deg" => print_options.1 = args.next().unwrap().parse::<bool>().unwrap_or(false),
-                "tau" => tau = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "tau" => print_options.3 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "vars" => allow_vars = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 _ =>
                 {}
@@ -88,10 +90,12 @@ fn main()
         match args[0].as_str()
         {
             "--debug" => debug = !debug,
-            "--tau" => tau = !tau,
+            "--tau" => print_options.3 = !print_options.3,
             "--deg" => print_options.1 = !print_options.1,
             "--prompt" => prompt = !prompt,
             "--color" => color = !color,
+            "--line" => graph_options.4 = !graph_options.4,
+            "--concurrent" => print_options.4 = !print_options.4,
             "--2d" =>
             {
                 if args.len() > 1
@@ -165,10 +169,11 @@ fn main()
             "--vars" => allow_vars = !allow_vars,
             "--default" =>
             {
-                print_options = (false, false, 10);
+                print_options = (false, false, 10, false, true);
+                graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false);
                 allow_vars = true;
                 debug = false;
-                tau = false;
+                print_options.3 = false;
                 prompt = true;
                 color = true;
             }
@@ -277,6 +282,10 @@ fn main()
                 {
                     '\n' =>
                     {
+                        if !print_options.4
+                        {
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                        }
                         if frac
                         {
                             println!();
@@ -330,9 +339,34 @@ fn main()
                         {
                             false
                         }
+                        else if print_options.4
+                        {
+                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color)
+                        }
                         else
                         {
-                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color)
+                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                   if prompt
+                                   {
+                                       if color
+                                       {
+                                           "\x1b[94m> \x1b[96m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else if color
+                                   {
+                                       "\x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   },
+                                   input);
+                            false
                         };
                         len = input.len();
                         if let Some(time) = watch
@@ -376,7 +410,10 @@ fn main()
                         {
                             print!("\x1b[A");
                         }
-                        frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color);
+                        if print_options.4
+                        {
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                        }
                         print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                                if prompt
                                {
@@ -440,7 +477,10 @@ fn main()
                         {
                             print!("\x1b[A");
                         }
-                        frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color);
+                        if print_options.4
+                        {
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                        }
                         print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                                if prompt
                                {
@@ -512,7 +552,34 @@ fn main()
                         {
                             print!("\x1b[A");
                         }
-                        frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), tau, print_options, prompt, color);
+                        if print_options.4
+                        {
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                        }
+                        else
+                        {
+                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                   if prompt
+                                   {
+                                       if color
+                                       {
+                                           "\x1b[94m> \x1b[96m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else if color
+                                   {
+                                       "\x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   },
+                                   input);
+                        }
                         len = input.len();
                         if let Some(time) = watch
                         {
@@ -562,11 +629,18 @@ fn main()
                     print_options.1 = false;
                     continue;
                 }
+                "concurrent" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.4 = !print_options.4;
+                    continue;
+                }
                 "tau" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    tau = true;
+                    print_options.3 = true;
                     println!();
                     write(&input, &mut file, &lines);
                     continue;
@@ -575,7 +649,7 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    tau = false;
+                    print_options.3 = false;
                     println!();
                     write(&input, &mut file, &lines);
                     continue;
@@ -608,6 +682,13 @@ fn main()
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     help();
+                    continue;
+                }
+                "line" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    graph_options.4 = !graph_options.4;
                     continue;
                 }
                 "history" =>
@@ -873,7 +954,7 @@ fn help()
     println!(
              "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
 FLAGS: --help (this message)\n\
---tau fractions are shown in tau instead of pi\n\
+--print_options.3 fractions are shown in print_options.3 instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
 --2d [num] number of points to graph in 2D\n\
 --3d [num] number of points to graph in 3D\n\
@@ -886,6 +967,8 @@ FLAGS: --help (this message)\n\
 --prompt toggles the prompt\n\
 --color toggles color\n\
 --vars toggles default variables\n\
+--line toggles line graphing\n\
+--concurrent toggles concurrent printing\n\
 --default ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
@@ -897,6 +980,8 @@ FLAGS: --help (this message)\n\
 - Type \"tau\" to show fractions in tau\n\
 - Type \"pi\" to show fractions in pi\n\
 - Type \"prompt\" to toggle the prompt\n\
+- Type \"line\" to toggle line graphing\n\
+- Type \"concurrent\" to toggle concurrent printing\n\
 - Type \"color\" to toggle color\n\
 - Type \"2d=[num]\" to set the number of points in 2D graphs\n\
 - Type \"3d=[num]\" to set the number of points in 3D graphs\n\

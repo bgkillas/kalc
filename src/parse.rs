@@ -13,7 +13,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
     let mut i = 0;
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
-    while i < input.len()
+    'outer: while i < input.len()
     {
         c = chars[i];
         if c.is_numeric()
@@ -224,6 +224,29 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                                 func.push(Num((-a, *b)));
                                 func.insert(func.len() - 1, Num((-1.0, 0.0)));
                                 func.insert(func.len() - 1, Str("*".to_string()));
+                            }
+                        }
+                        if chars[i - 1] == ')'
+                        {
+                            let mut count = 0;
+                            for (j, c) in chars[..i].iter().enumerate()
+                            {
+                                if c == &'('
+                                {
+                                    count -= 1;
+                                }
+                                else if c == &')'
+                                {
+                                    count += 1;
+                                }
+                                if count == 0
+                                {
+                                    func.insert(i - j - 1, Str("fact".to_string()));
+                                    func.insert(i - j - 1, Str("(".to_string()));
+                                    func.push(Str(")".to_string()));
+                                    i += 1;
+                                    continue 'outer;
+                                }
                             }
                         }
                         func.insert(func.len() - 1, Str("fact".to_string()));

@@ -173,7 +173,6 @@ fn main()
                 graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false);
                 allow_vars = true;
                 debug = false;
-                print_options.3 = false;
                 prompt = true;
                 color = true;
             }

@@ -77,44 +77,53 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                 return Err(());
             }
             v = function[i + 1..j - 1].to_vec();
-            single = 0;
-            count = 0;
-            for (f, n) in v.iter().enumerate()
+            if i != 0
             {
-                if let Str(s) = n
+                if let Str(k) = &function[i - 1]
                 {
-                    if s == ","
+                    if k == "log" || k == "sum" || k == "product" || k == "prod" || k == "root"
                     {
-                        if single != 0 && count == 0
+                        single = 0;
+                        count = 0;
+                        for (f, n) in v.iter().enumerate()
                         {
-                            function.remove(i);
-                            if function[j - 2].str_is(")")
+                            if let Str(s) = n
                             {
-                                function.remove(j - 2);
+                                if s == ","
+                                {
+                                    if single != 0 && count == 0
+                                    {
+                                        function.remove(i);
+                                        if function[j - 2].str_is(")")
+                                        {
+                                            function.remove(j - 2);
+                                        }
+                                        i = j - 1;
+                                        continue 'outer;
+                                    }
+                                    single = f;
+                                }
+                                else if s == "("
+                                {
+                                    count += 1;
+                                }
+                                else if s == ")"
+                                {
+                                    count -= 1;
+                                }
                             }
-                            i = j - 1;
+                        }
+                        if single != 0
+                        {
+                            function.drain(i..j);
+                            function.insert(i, Num(do_math(v[..single].to_vec(), deg)?));
+                            function.insert(i + 1, Str(",".to_string()));
+                            function.insert(i + 2, Num(do_math(v[single + 1..].to_vec(), deg)?));
+                            i += 1;
                             continue 'outer;
                         }
-                        single = f;
-                    }
-                    else if s == "("
-                    {
-                        count += 1;
-                    }
-                    else if s == ")"
-                    {
-                        count -= 1;
                     }
                 }
-            }
-            if single != 0
-            {
-                function.drain(i..j);
-                function.insert(i, Num(do_math(v[..single].to_vec(), deg)?));
-                function.insert(i + 1, Str(",".to_string()));
-                function.insert(i + 2, Num(do_math(v[single + 1..].to_vec(), deg)?));
-                i += 1;
-                continue 'outer;
             }
             function[i] = Num(do_math(v, deg)?);
             function.drain(i + 1..j);

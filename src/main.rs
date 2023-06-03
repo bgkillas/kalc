@@ -689,23 +689,30 @@ fn main()
                 }
                 _ => (),
             }
-            for i in 0..vars.len()
+            for (i, v) in vars.iter().enumerate()
             {
-                if vars[i][0].split('(').next() == l.split('(').next()
+                if v[0].split('(').next() == l.split('(').next()
                 {
                     if r.is_empty()
                     {
                         println!("{}", vars[i][1]);
                         stdout().flush().unwrap();
-                        break;
                     }
-                    vars.remove(i);
                     if r == "null"
                     {
-                        continue 'main;
+                        vars.remove(i);
                     }
-                    break;
+                    else
+                    {
+                        vars[i] = [l.to_string(), r.to_string()];
+                    }
+                    continue 'main;
                 }
+            }
+            if r.is_empty()
+            {
+                println!("0");
+                stdout().flush().unwrap();
             }
             vars.push([l.to_string(), r.to_string()]);
             continue;

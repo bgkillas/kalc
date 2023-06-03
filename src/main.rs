@@ -624,10 +624,6 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    for handle in handles
-                    {
-                        handle.join().unwrap();
-                    }
                     break;
                 }
                 _ =>

@@ -214,13 +214,13 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 }
                 '!' =>
                 {
-                    if i != 0 && (chars[i - 1].is_ascii_digit() || chars[i - 1] == 'x' || chars[i - 1] == 'y')
+                    if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
                     {
                         func.insert(func.len() - 1, Str("fact".to_string()));
                         func.insert(func.len() - 1, Str("(".to_string()));
                         func.push(Str(")".to_string()));
                     }
-                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_digit() || chars[i + 1] == 'x' || chars[i + 1] == 'y')
+                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')')
                     {
                         func.push(Str("subfact".to_string()));
                         func.push(Str("(".to_string()));
@@ -349,7 +349,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                         continue;
                     }
                     v = var[0].chars().collect::<Vec<char>>();
-                    if input.contains(',') && chars.len() > 4
+                    if input.contains(',') && var[0].contains(',') && chars.len() > 4
                     {
                         not_pushed = false;
                         output.push('(');

@@ -1,4 +1,7 @@
 use std::f64::consts::{FRAC_PI_2, E, PI};
+use crate::math::{Complex, do_math};
+use crate::math::Complex::Num;
+
 pub fn add(a:f64, b:f64, c:f64, d:f64) -> (f64, f64)
 {
     // (a+bi)+(c+di)=(a+c)+(b+d)i
@@ -417,4 +420,35 @@ pub fn int(a:f64, b:f64) -> (f64, f64)
 pub fn frac(a:f64, b:f64) -> (f64, f64)
 {
     (a.fract(), b.fract())
+}
+pub fn sum(function:Vec<Complex>, var:&str, start:i64, end:i64, product:bool, deg:bool) -> Result<(f64, f64), ()>
+{
+    let mut value:(f64, f64) = (0.0, 0.0);
+    let mut func;
+    let mut math;
+    for z in start..=end
+    {
+        func = function.clone();
+        for k in func.iter_mut()
+        {
+            if k.str_is(var)
+            {
+                *k = Num((z as f64, 0.0));
+            }
+        }
+        math = do_math(func, deg)?;
+        if !product
+        {
+            value = add(value.0, value.1, math.0, math.1);
+        }
+        else if z == start
+        {
+            value = math;
+        }
+        else
+        {
+            value = mul(value.0, value.1, math.0, math.1);
+        }
+    }
+    Ok(value)
 }

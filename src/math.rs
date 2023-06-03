@@ -1,6 +1,6 @@
 use std::f64::consts::E;
 use crate::complex::{
-    div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact, cis
+    div, add, mul, ln, log, abs, pow, sin, sinc, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, subfact, sgn, arg, csc, sec, cot, acsc, asec, acot, csch, sech, coth, acsch, asech, acoth, int, frac, fact, cis, sum
 };
 use crate::math::Complex::{Num, Str};
 #[derive(Clone)]
@@ -11,7 +11,7 @@ pub enum Complex
 }
 impl Complex
 {
-    fn str_is(&self, s:&str) -> bool
+    pub fn str_is(&self, s:&str) -> bool
     {
         match self
         {
@@ -93,11 +93,6 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                                 {
                                     if single != 0 && count == 0
                                     {
-                                        function.remove(i);
-                                        if function[j - 2].str_is(")")
-                                        {
-                                            function.remove(j - 2);
-                                        }
                                         i = j - 1;
                                         continue 'outer;
                                     }
@@ -131,7 +126,8 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
         i += 1;
     }
     i = 0;
-    let (mut a, mut b, mut value, mut start, mut end, mut math, mut func);
+    let (mut a, mut b);
+    let mut place = Vec::new();
     while i < function.len() - 1
     {
         if let Str(s) = &function[i]
@@ -140,15 +136,14 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
             {
                 if s == "sum" || s == "product" || s == "prod"
                 {
-                    single = 0;
+                    place.clear();
                     for (f, n) in function.iter().enumerate()
                     {
                         if let Str(s) = n
                         {
                             if s == ","
                             {
-                                single = f;
-                                break;
+                                place.push(f);
                             }
                             else if s == "("
                             {
@@ -156,50 +151,26 @@ pub fn do_math(func:Vec<Complex>, deg:bool) -> Result<(f64, f64), ()>
                             }
                             else if s == ")"
                             {
+                                if count == 1
+                                {
+                                    place.push(f);
+                                    break;
+                                }
                                 count -= 1;
                             }
                         }
                     }
-                    if function.len() > single + 5 && single != 0 && function[single + 2].str_is(",") && function[single + 4].str_is(",")
+                    if place.len() == 4
                     {
-                        if let Str(l) = &function[single + 1]
+                        if let Str(l) = &function[place[0] + 1]
                         {
-                            value = (0.0, 0.0);
-                            start = function[single + 3].num()?;
-                            end = function[single + 5].num()?;
-                            if start.1 == 0.0 && end.1 == 0.0
-                            {
-                                for z in start.0 as i32..=end.0 as i32
-                                {
-                                    func = function[i + 1..single].to_vec();
-                                    for k in func.iter_mut()
-                                    {
-                                        if k.str_is(l)
-                                        {
-                                            *k = Num((z as f64, 0.0));
-                                        }
-                                    }
-                                    math = do_math(func, deg)?;
-                                    if s == "sum"
-                                    {
-                                        value = add(value.0, value.1, math.0, math.1);
-                                    }
-                                    else if z == start.0 as i32
-                                    {
-                                        value = math;
-                                    }
-                                    else
-                                    {
-                                        value = mul(value.0, value.1, math.0, math.1);
-                                    }
-                                }
-                                function.drain(i..single + 5);
-                                function[i] = Num(value);
-                            }
-                            else
-                            {
-                                return Err(());
-                            }
+                            function[i] = Num(sum(function[i + 2..place[0]].to_vec(),
+                                                  l,
+                                                  do_math(function[place[1] + 1..place[2]].to_vec(), deg)?.0 as i64,
+                                                  do_math(function[place[2] + 1..place[3]].to_vec(), deg)?.0 as i64,
+                                                  s != "sum",
+                                                  deg)?);
+                            function.drain(i + 1..=place[3]);
                         }
                         else
                         {

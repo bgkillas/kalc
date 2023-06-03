@@ -229,7 +229,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                         if chars[i - 1] == ')'
                         {
                             let mut count = 0;
-                            for (j, c) in chars[..i].iter().enumerate()
+                            for (j, c) in chars[..i].iter().enumerate().rev()
                             {
                                 if c == &'('
                                 {
@@ -241,8 +241,8 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                                 }
                                 if count == 0
                                 {
-                                    func.insert(i - j - 1, Str("fact".to_string()));
-                                    func.insert(i - j - 1, Str("(".to_string()));
+                                    func.insert(j + 1, Str("(".to_string()));
+                                    func.insert(j + 1, Str("fact".to_string()));
                                     func.push(Str(")".to_string()));
                                     i += 1;
                                     continue 'outer;

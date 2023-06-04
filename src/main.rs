@@ -217,6 +217,7 @@ fn main()
     }
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut lines:Vec<String>;
+    let mut unmod_lines:Vec<String>;
     let mut last = String::new();
     let mut current = String::new();
     let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split);
@@ -273,7 +274,9 @@ fn main()
         }
         else
         {
+            current.clear();
             lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+            unmod_lines = lines.clone();
             i = lines.len() as i32;
             max = i;
             cursor = 0;
@@ -648,7 +651,7 @@ fn main()
                     stdout().flush().unwrap();
                     print_options.3 = true;
                     println!();
-                    write(&input, &mut file, &lines);
+                    write(&input, &mut file, &unmod_lines);
                     continue;
                 }
                 "pi" =>
@@ -657,7 +660,7 @@ fn main()
                     stdout().flush().unwrap();
                     print_options.3 = false;
                     println!();
-                    write(&input, &mut file, &lines);
+                    write(&input, &mut file, &unmod_lines);
                     continue;
                 }
                 "sci" =>
@@ -726,7 +729,7 @@ fn main()
                 print_options.2 = input[5..].parse::<usize>().unwrap();
                 continue;
             }
-            write(&input, &mut file, &lines);
+            write(&input, &mut file, &unmod_lines);
         }
         if input.contains("==")
         {

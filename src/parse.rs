@@ -104,7 +104,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         }
                         else
                         {
-                            func.push(Num(if neg { n1.clone() } else { Complex::with_val(prec, (0.0, 1.0)) }));
+                            func.push(Num(if neg { Complex::with_val(prec, (0.0, -1.0)) } else { Complex::with_val(prec, (0.0, 1.0)) }));
                             neg = false;
                         }
                     }

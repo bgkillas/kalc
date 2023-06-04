@@ -9,6 +9,15 @@ history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\
 
 config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config``
 
+# build instructions
+install rust at least version 1.70
+```
+git clone https://github.com/bgkillas/kalc
+cd kalc
+cargo build --release
+./target/release/kalc
+```
+
 # usage
 ```
 Usage: kalc [FLAGS] function_1 function_2 function_3...

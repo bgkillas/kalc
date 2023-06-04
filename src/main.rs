@@ -221,7 +221,7 @@ fn main()
     let mut last = String::new();
     let mut current = String::new();
     let mut inputs:Vec<String>;
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split, mut funcs);
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split, mut funcs, mut v);
     let mut exit = false;
     'main: loop
     {
@@ -760,7 +760,10 @@ fn main()
                 }
                 "prec" =>
                 {
+                    // fix redefined vars
                     prec = r.parse::<u32>().unwrap();
+                    v = get_vars(allow_vars, prec);
+                    vars = [v.clone(), vars[v.len()..].to_vec()].concat();
                     continue;
                 }
                 "xr" =>

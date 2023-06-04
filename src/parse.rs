@@ -30,7 +30,8 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             place_multiplier(&mut func, &find_word);
             if neg
             {
-                word.push('-');
+                func.push(Num(n1.clone()));
+                func.push(Str('*'.to_string()));
                 neg = false;
             }
             deci = false;
@@ -466,9 +467,9 @@ pub fn get_vars(allow_vars:bool, prec:u32) -> Vec<[String; 2]>
     {
         let pi = Float::with_val(prec, Pi);
         let tau:Float = pi.clone() * 2;
+        let phi:Float = (1 + Float::with_val(prec, 5).sqrt()) / 2;
         vec![["c".to_string(), "299792458".to_string()],
              ["g".to_string(), "9.80665".to_string()],
-             ["phi".to_string(), "1.61803398874989484820458683436563811772030917980576286213544862".to_string()],
              ["G".to_string(), "6.67430E-11".to_string()],
              ["h".to_string(), "6.62607015E-34".to_string()],
              ["ec".to_string(), "1.602176634E-19".to_string()],
@@ -479,6 +480,7 @@ pub fn get_vars(allow_vars:bool, prec:u32) -> Vec<[String; 2]>
              ["kc".to_string(), "8.9875517923E9".to_string()],
              ["Na".to_string(), "6.02214076E23".to_string()],
              ["R".to_string(), "8.31446261815324".to_string()],
+             ["phi".to_string(), phi.to_string()],
              ["e".to_string(), Float::with_val(prec, 1).exp().to_string()],
              ["pi".to_string(), pi.to_string()],
              ["tau".to_string(), tau.to_string()]]

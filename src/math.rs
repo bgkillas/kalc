@@ -508,7 +508,6 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
 }
 fn subfact(a:f64) -> f64
 {
-    // subfact(a)=!a
     if a == 0.0
     {
         return 1.0;

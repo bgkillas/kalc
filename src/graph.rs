@@ -1,11 +1,12 @@
 use std::thread;
 use std::thread::JoinHandle;
+use std::time::Instant;
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
 use rug::Complex;
 use crate::math::{
     do_math, NumStr, NumStr::{Num, Str}
 };
-pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:([[f64; 2]; 3], f64, f64, char, bool), deg:bool, prec:u32) -> JoinHandle<()>
+pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:([[f64; 2]; 3], f64, f64, char, bool), deg:bool, prec:u32, watch:Option<Instant>) -> JoinHandle<()>
 {
     thread::spawn(move || {
         let mut fg = Figure::new();
@@ -192,6 +193,10 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:([[f64; 2]; 3], f
                   .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
                   .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
             }
+        }
+        if let Some(time) = watch
+        {
+            println!("{}ms", time.elapsed().as_millis());
         }
         fg.show().unwrap();
     })

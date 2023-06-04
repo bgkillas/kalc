@@ -55,8 +55,6 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
     }
     else
     {
-        let a = (a * 1e12).round() / 1e12;
-        let b = (b * 1e12).round() / 1e12;
         let d = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &b.to_string() + if color { "\x1b[93mi" } else { "i" };
         print!("{}\x1b[0m{}\x1b[0m",
                if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
@@ -125,16 +123,14 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
     let b = num.imag().to_f64();
     let fa = fraction(num.real().clone(), print_options.3, prec, print_options.5);
     let fb = fraction(num.imag().clone(), print_options.3, prec, print_options.5);
-    let c = (a * 1e12).round() / 1e12;
-    let d = (b * 1e12).round() / 1e12;
-    let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
+    let sign = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
     let (frac_a, frac_b) = match (!fa.is_empty(), !fb.is_empty())
     {
         (true, true) =>
         {
             frac = true;
-            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
-             if d == 0.0
+            (if a == 0.0 && b != 0.0 { "".to_string() } else { fa },
+             if b == 0.0
              {
                  "".to_string()
              }
@@ -146,21 +142,21 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         (true, _) =>
         {
             frac = true;
-            (if c == 0.0 && d != 0.0 { "".to_string() } else { fa },
-             if d == 0.0
+            (if a == 0.0 && b != 0.0 { "".to_string() } else { fa },
+             if b == 0.0
              {
                  "".to_string()
              }
              else
              {
-                 sign.clone() + d.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
+                 sign.clone() + b.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
              })
         }
         (_, true) =>
         {
             frac = true;
-            (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
-             if d == 0.0
+            (if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
+             if a == 0.0
              {
                  "".to_string()
              }
@@ -213,14 +209,14 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
     }
     else
     {
-        (if c == 0.0 && d != 0.0 { "".to_string() } else { c.to_string() },
-         if d == 0.0
+        (if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
+         if b == 0.0
          {
              "".to_string()
          }
          else
          {
-             sign + &d.to_string() + if color { "\x1b[93mi" } else { "i" }
+             sign + &b.to_string() + if color { "\x1b[93mi" } else { "i" }
          })
     };
     print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",

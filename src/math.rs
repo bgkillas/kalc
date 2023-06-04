@@ -18,14 +18,6 @@ impl NumStr
             _ => false,
         }
     }
-    fn str_is_any(&self, arr:&[&str]) -> bool
-    {
-        match self
-        {
-            Str(s) => arr.iter().any(|&x| x == s),
-            _ => false,
-        }
-    }
     fn num(&self) -> Result<Complex, ()>
     {
         match self
@@ -35,6 +27,13 @@ impl NumStr
         }
     }
 }
+// asech(x) off from 0,-inf imag scale flipped on x axis
+// atanh(x) off from 1,inf imag scale flipped on x axis
+// acoth(x) off, imag scale flipped on x axis
+// acsc(x) off, imag scale flipped on x axis
+// asec(x) off, imag scale flipped on x axis
+// acos(x) off from 1,inf imag scale flipped on x axis
+// asin(x) off from 1,inf imag scale flipped on x axis
 pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
 {
     if func.len() == 1
@@ -416,18 +415,25 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
     i = 1;
     while i < function.len() - 1
     {
-        if !function[i].str_is("%")
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "%" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real() % function[i + 1].num()?.real())),
+                "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() < function[i + 1].num()?.real()) as i32 as f64)),
+                ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() > function[i + 1].num()?.real()) as i32 as f64)),
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
         {
             i += 1;
             continue;
         }
-        a = function[i - 1].num()?;
-        b = function[i + 1].num()?;
-        if a.imag() != &0.0 || b.imag() != &0.0
-        {
-            return Err(());
-        }
-        function[i] = Num(Complex::with_val(prec, a.real() % b.real()));
         function.remove(i + 1);
         function.remove(i - 1);
     }
@@ -439,27 +445,30 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
             i += 1;
             continue;
         }
-        a = function[i - 1].num()?;
-        b = function[i + 1].num()?;
-        function[i] = Num(a.pow(b));
+        function[i] = Num(function[i - 1].num()?.pow(function[i + 1].num()?));
         function.remove(i + 1);
         function.remove(i - 1);
     }
     i = 1;
     while i < function.len() - 1
     {
-        if !function[i].str_is_any(&["*", "/"])
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "*" => function[i] = Num(function[i - 1].num()? * function[i + 1].num()?),
+                "/" => function[i] = Num(function[i - 1].num()? / function[i + 1].num()?),
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
         {
             i += 1;
             continue;
-        }
-        a = function[i - 1].num()?;
-        b = function[i + 1].num()?;
-        match &function[i]
-        {
-            Str(s) if s == "*" => function[i] = Num(a * b),
-            Str(s) if s == "/" => function[i] = Num(a / b),
-            _ => return Err(()),
         }
         function.remove(i + 1);
         function.remove(i - 1);
@@ -467,18 +476,23 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
     i = 1;
     while i < function.len() - 1
     {
-        if !function[i].str_is_any(&["+", "-"])
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "+" => function[i] = Num(function[i - 1].num()? + function[i + 1].num()?),
+                "-" => function[i] = Num(function[i - 1].num()? - function[i + 1].num()?),
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
         {
             i += 1;
             continue;
-        }
-        a = function[i - 1].num()?;
-        b = function[i + 1].num()?;
-        match &function[i]
-        {
-            Str(s) if s == "+" => function[i] = Num(a + b),
-            Str(s) if s == "-" => function[i] = Num(a - b),
-            _ => return Err(()),
         }
         function.remove(i + 1);
         function.remove(i - 1);

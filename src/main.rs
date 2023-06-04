@@ -220,7 +220,8 @@ fn main()
     let mut unmod_lines:Vec<String>;
     let mut last = String::new();
     let mut current = String::new();
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split);
+    let mut inputs:Vec<String>;
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split, mut funcs);
     let mut exit = false;
     'main: loop
     {
@@ -710,7 +711,7 @@ fn main()
                     }
                     continue;
                 }
-                "exit" =>
+                "exit" | "quit" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
@@ -825,8 +826,8 @@ fn main()
             input = input.replace('z', "(x+y*i)");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            let inputs:Vec<String> = input.split('#').map(String::from).collect();
-            let mut funcs = Vec::new();
+            inputs = input.split('#').map(String::from).collect();
+            funcs = Vec::new();
             for i in &inputs
             {
                 funcs.push(match get_func(&input_var(i, &vars), prec)
@@ -835,11 +836,7 @@ fn main()
                          _ => continue 'main,
                      });
             }
-            handles.push(graph(inputs, funcs, graph_options, print_options.1, prec));
-            if let Some(time) = watch
-            {
-                println!("{}ms", time.elapsed().as_millis());
-            }
+            handles.push(graph(inputs, funcs, graph_options, print_options.1, prec, watch));
             continue;
         }
     }
@@ -912,7 +909,10 @@ fn read_single_char() -> char
             }
         }
         127 => '\x08',
-        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'!' | b'%' | b'_' | b' ' | b'\n' => input[0] as char,
+        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'!' | b'%' | b'_' | b'<' | b'>' | b' ' | b'\n' =>
+        {
+            input[0] as char
+        }
         _ => read_single_char(),
     }
 }
@@ -943,6 +943,8 @@ fn read_single_char() -> char
                || c == '!'
                || c == '%'
                || c == '_'
+               || c == '<'
+               || c == '>'
                || c == ' '
             {
                 c
@@ -1023,6 +1025,8 @@ FLAGS: --help (this message)\n\
 - Type \"f...=\" to display the definition of a function or variable\n\
 - Type \"f...=null\" to delete a function or variable\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
+Operators:\n\
+- +, -, *, /, ^, %, <, > !x (subfact), x! (fact)\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\

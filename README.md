@@ -73,6 +73,9 @@ FLAGS: --help (this message)
 - Type "f...=null" to delete a function or variable
 - Type "debug" toggles displaying computation time in nanoseconds
 
+Operators:
+- +, -, *, /, ^, %, <, > !x (subfact), x! (fact)
+
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan
 - csc, sec, cot, acsc, asec, acot

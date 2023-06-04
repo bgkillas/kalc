@@ -21,7 +21,6 @@ use console::{Key, Term};
 use {
     libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr}, std::os::fd::AsRawFd, std::io::Read
 };
-// greater and less than support
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false); //[xr,yr,zr], 2d, 3d, point style, lines

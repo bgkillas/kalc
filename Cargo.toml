@@ -1,11 +1,19 @@
 [package]
 name = "kalc"
-version = "0.5.6"
+version = "0.6.0"
 edition = "2021"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
+
 [dependencies]
 rug          = { version = "*", default-features = false, features = ["complex","integer"] }
 gnuplot      = { version = "*", default-features = false }
+
 [target.'cfg(not(unix))'.dependencies]
 console      = { version = "*", default-features = false }
+
 [target.'cfg(unix)'.dependencies]
 libc         = { version = "*", default-features = false }

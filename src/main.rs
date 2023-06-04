@@ -232,10 +232,6 @@ fn main()
             break;
         }
         input.clear();
-        lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
-        i = lines.len() as i32;
-        max = i;
-        cursor = 0;
         frac = false;
         if !args.is_empty()
         {
@@ -277,6 +273,10 @@ fn main()
         }
         else
         {
+            lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+            i = lines.len() as i32;
+            max = i;
+            cursor = 0;
             last = lines.last().unwrap_or(&String::new()).clone();
             if prompt
             {
@@ -340,7 +340,14 @@ fn main()
                         }
                         cursor -= 1;
                         input.remove(cursor);
-                        current = input.clone();
+                        if i == max
+                        {
+                            current = input.clone();
+                        }
+                        else
+                        {
+                            lines[i as usize] = input.clone();
+                        }
                         print!("\x1B[2K\x1B[1G{}", input);
                         frac = if input.is_empty()
                         {
@@ -543,7 +550,14 @@ fn main()
                             input.insert(cursor, c);
                             cursor += 1;
                         }
-                        current = input.clone();
+                        if i == max
+                        {
+                            current = input.clone();
+                        }
+                        else
+                        {
+                            lines[i as usize] = input.clone();
+                        }
                         if print_options.4
                         {
                             frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color, prec);

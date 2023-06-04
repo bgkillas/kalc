@@ -1,0 +1,71 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Rust
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build for x86_64-unknown-linux-gnu
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+
+      - name: Build for aarch64-unknown-linux-musl
+        run: cargo build --release --target aarch64-unknown-linux-musl
+
+      - name: Build for aarch64-unknown-linux-gnu
+        run: cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: Build for x86_64-unknown-linux-musl
+        run: cargo build --release --target x86_64-unknown-linux-musl
+
+      - name: Build for riscv64gc-unknown-linux-gnu
+        run: cargo build --release --target riscv64gc-unknown-linux-gnu
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Set up Rust
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build for x86_64-pc-windows-gnu
+        run: cargo build --release --target x86_64-pc-windows-gnu
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Set up Rust
+        uses: actions/checkout@v2
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build for x86_64-apple-darwin
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Build for aarch64-apple-darwin
+        run: cargo build --release --target aarch64-apple-darwin

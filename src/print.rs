@@ -1,13 +1,14 @@
+use rug::Complex;
 use crate::fraction::fraction;
-use crate::math::{do_math, Complex};
+use crate::math::{do_math, NumStr};
 use crate::parse::get_func;
-pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, usize, bool, bool), color:bool)
+pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usize, bool, bool, usize), color:bool, prec:u32)
 {
     if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
     {
         return;
     }
-    let num = match do_math(func, print_options.1)
+    let num = match do_math(func, print_options.1, prec)
     {
         Ok(num) => num,
         Err(_) =>
@@ -16,12 +17,12 @@ pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, us
             return;
         }
     };
-    let (a, b) = num;
+    let (a, b) = (num.real().to_f64(), num.imag().to_f64());
     if print_options.0
     {
         let c = if a != 0.0
         {
-            format!("{:e}", a).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
+            format!("{:e}", num.real()).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
         }
         else
         {
@@ -58,7 +59,7 @@ pub fn print_answer(input:&str, func:Vec<Complex>, print_options:(bool, bool, us
                if b == 0.0 { "".to_string() } else { d });
     };
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool), prompt:bool, color:bool) -> bool
+pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool, usize), prompt:bool, color:bool, prec:u32) -> bool
 {
     if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
     {
@@ -85,7 +86,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
                unmodified_input);
         return false;
     }
-    let func = match get_func(input)
+    let func = match get_func(input, prec)
     {
         Ok(f) => f,
         Err(_) =>
@@ -115,9 +116,11 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         }
     };
     let mut frac = false;
-    let (a, b) = do_math(func, print_options.1).unwrap_or((0.0, 0.0));
-    let fa = fraction(a, print_options.3);
-    let fb = fraction(b, print_options.3);
+    let num = do_math(func, print_options.1, prec).unwrap_or(Complex::with_val(256, 0.0));
+    let a = num.real().to_f64();
+    let b = num.imag().to_f64();
+    let fa = fraction(num.real().clone(), print_options.3, prec);
+    let fb = fraction(num.imag().clone(), print_options.3, prec);
     let c = (a * 1e12).round() / 1e12;
     let d = (b * 1e12).round() / 1e12;
     let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
@@ -179,7 +182,8 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
     {
         (if a != 0.0
          {
-             format!("{:e}\x1b[0m", a).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{:.dec$e}\x1b[0m", num.real(), dec = print_options.5)).replace("e0", "")
+                                                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else if b == 0.0
          {
@@ -191,8 +195,12 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
          },
          if b != 0.0
          {
-             format!("{}{:e}{}", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b, if color { "\x1b[93mi" } else { "i" }).replace("e0", "")
-                                                                                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{}{:.dec$e}{}",
+                                            if a != 0.0 && b.is_sign_positive() { "+" } else { "" },
+                                            num.imag(),
+                                            if color { "\x1b[93mi" } else { "i" },
+                                            dec = print_options.5)).replace("e0", "")
+                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else
          {
@@ -208,7 +216,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
          }
          else
          {
-             sign + d.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
+             sign + &d.to_string() + if color { "\x1b[93mi" } else { "i" }
          })
     };
     print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
@@ -240,4 +248,29 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
            },
            unmodified_input);
     frac
+}
+fn remove_trailing_zeros(input:&str) -> String
+{
+    let chars = input.chars();
+    let mut result = Vec::new();
+    let mut found = false;
+    let mut non_zero = false;
+    for c in chars.rev()
+    {
+        if !non_zero && found && (c == '0' || c == '.')
+        {
+            continue;
+        }
+        else
+        {
+            non_zero = true;
+        }
+        if c == 'e'
+        {
+            found = true;
+            non_zero = false;
+        }
+        result.push(c);
+    }
+    result.iter().rev().collect::<String>()
 }

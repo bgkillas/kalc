@@ -1,11 +1,12 @@
-use std::f64::consts::{PI, TAU};
-use crate::math::Complex;
-use crate::math::Complex::{Num, Str};
-pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
+use rug::Complex;
+use rug::float::Constant::Pi;
+use crate::math::NumStr;
+use crate::math::NumStr::{Num, Str};
+pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
 {
     let mut count:i32 = 0;
     let mut exp = 0;
-    let mut func:Vec<Complex> = Vec::new();
+    let mut func:Vec<NumStr> = Vec::new();
     let mut word = String::new();
     let mut find_word = false;
     let mut abs = true;
@@ -13,6 +14,8 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
     let mut i = 0;
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
+    let n1 = Complex::with_val(prec, -1.0);
+    let pi = Complex::with_val(prec, Pi);
     'outer: while i < input.len()
     {
         c = chars[i];
@@ -48,7 +51,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 }
                 i += 1;
             }
-            func.push(Num((word.parse::<f64>().unwrap_or(0.0), 0.0)));
+            func.push(Num(Complex::with_val(prec, Complex::parse(word.as_bytes()).unwrap())));
             word.clear();
             continue;
         }
@@ -67,11 +70,11 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                         place_multiplier(&mut func, &find_word);
                         if neg
                         {
-                            func.push(Num((-1.0, 0.0)));
+                            func.push(Num(n1.clone()));
                             func.push(Str('*'.to_string()));
                             neg = false;
                         }
-                        func.push(Num((10.0, 0.0)));
+                        func.push(Num(Complex::with_val(prec, 10.0)));
                         func.push(Str('^'.to_string()));
                     }
                     'x' | 'y' =>
@@ -79,7 +82,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                         place_multiplier(&mut func, &find_word);
                         if neg
                         {
-                            func.push(Num((-1.0, 0.0)));
+                            func.push(Num(n1.clone()));
                             func.push(Str('*'.to_string()));
                             neg = false;
                         }
@@ -101,7 +104,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                         }
                         else
                         {
-                            func.push(Num((0.0, if neg { -1.0 } else { 1.0 })));
+                            func.push(Num(if neg { n1.clone() } else { Complex::with_val(prec, (0.0, 1.0)) }));
                             neg = false;
                         }
                     }
@@ -149,7 +152,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
             if exp != 0 && c != '(' && c != ')'
             {
                 func.push(Str("^".to_string()));
-                func.push(Num((exp.into(), 0.0)));
+                func.push(Num(Complex::with_val(prec, exp as f64)));
                 exp = 0;
             }
             match c
@@ -174,7 +177,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
-                            func.push(Num((-1.0, 0.0)));
+                            func.push(Num(n1.clone()));
                             func.push(Str("*".to_string()));
                         }
                         else
@@ -216,13 +219,13 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 {
                     if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
                     {
-                        if let Num((a, b)) = func.clone().last().unwrap()
+                        if let Num(a) = func.clone().last().unwrap()
                         {
-                            if a < &0.0
+                            if a.real() < &0.0
                             {
                                 func.pop();
-                                func.push(Num((-a, *b)));
-                                func.insert(func.len() - 1, Num((-1.0, 0.0)));
+                                func.push(Num(Complex::with_val(prec, (-a.real(), a.imag()))));
+                                func.insert(func.len() - 1, Num(n1.clone()));
                                 func.insert(func.len() - 1, Str("*".to_string()));
                             }
                         }
@@ -257,7 +260,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                     {
                         if neg
                         {
-                            func.push(Num((-1.0, 0.0)));
+                            func.push(Num(n1.clone()));
                             func.push(Str("*".to_string()));
                             neg = false;
                         }
@@ -269,13 +272,13 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
                 'π' =>
                 {
                     place_multiplier(&mut func, &find_word);
-                    func.push(Num((if neg { -PI } else { PI }, 0.0)));
+                    func.push(Num(if neg { -1 * pi.clone() } else { pi.clone() }));
                     neg = false;
                 }
                 'τ' =>
                 {
                     place_multiplier(&mut func, &find_word);
-                    func.push(Num((if neg { -TAU } else { TAU }, 0.0)));
+                    func.push(Num(if neg { -2 * pi.clone() } else { 2 * pi.clone() }));
                     neg = false;
                 }
                 ',' => func.push(Str(','.to_string())),
@@ -297,7 +300,7 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
     if exp != 0
     {
         func.push(Str("^".to_string()));
-        func.push(Num((exp.into(), 0.0)));
+        func.push(Num(Complex::with_val(prec, exp as f64)));
     }
     if !word.is_empty()
     {
@@ -308,9 +311,17 @@ pub fn get_func(input:&str) -> Result<Vec<Complex>, ()>
     {
         return Err(());
     }
+    // for i in &func
+    // {
+    //     match i
+    //     {
+    //         Str(s) => println!("{}", s),
+    //         Num(n) => println!("{}", n),
+    //     }
+    // }
     Ok(func)
 }
-fn place_multiplier(func:&mut Vec<Complex>, find_word:&bool)
+fn place_multiplier(func:&mut Vec<NumStr>, find_word:&bool)
 {
     if let Some(Str(s)) = func.last()
     {
@@ -420,16 +431,16 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                     }
                 }
             }
-            else if !(i + var[0].len() > input.len() || input[i..i + var[0].len()] != var[0]) && (i + 1 == chars.len() || chars[i + 1] != '(')
+            else if !(i + var[0].len() > input.len() || input[i..i + var[0].len()] != var[0])
+                      && (i + 1 == chars.len() || chars[i + 1] != '(')
+                      && (j == 0 || !chars[j - 1].is_ascii_alphabetic())
+                      && (var[0].len() - 1 + i == chars.len() - 1 || !chars[i + 1 + var[0].len() - 1].is_ascii_alphabetic())
             {
                 i += var[0].len() - 1;
-                if (j == 0 || !chars[j - 1].is_ascii_alphabetic()) && (i == chars.len() - 1 || !chars[i + 1].is_ascii_alphabetic())
-                {
-                    not_pushed = false;
-                    output.push('(');
-                    output.push_str(&input_var(&var[1], vars));
-                    output.push(')');
-                }
+                not_pushed = false;
+                output.push('(');
+                output.push_str(&input_var(&var[1], vars));
+                output.push(')');
             }
         }
         if not_pushed

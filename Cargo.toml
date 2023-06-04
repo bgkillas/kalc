@@ -3,6 +3,7 @@ name = "kalc"
 version = "0.5.6"
 edition = "2021"
 [dependencies]
+rug          = { version = "*", default-features = false, features = ["complex","integer"] }
 gnuplot      = { version = "*", default-features = false }
 [target.'cfg(not(unix))'.dependencies]
 console      = { version = "*", default-features = false }

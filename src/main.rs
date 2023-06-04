@@ -1,4 +1,3 @@
-mod complex;
 mod equal;
 mod fraction;
 mod graph;
@@ -20,18 +19,19 @@ use std::thread::JoinHandle;
 use console::{Key, Term};
 #[cfg(unix)]
 use {
-    libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr, ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ}, std::os::fd::AsRawFd, std::io::Read
+    libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr}, std::os::fd::AsRawFd, std::io::Read
 };
-// add rug
+// greater and less than support
 fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false); //[xr,yr,zr], 2d, 3d, point style, lines
     let mut watch = None;
-    let mut print_options = (false, false, 10, false, true); //[sci, deg, #base, tau, concurrent_output]
+    let mut print_options = (false, false, 10, false, true, 12); //[sci, deg, #base, tau, concurrent_output]
     let mut allow_vars = true;
     let mut debug = false;
     let mut prompt = true;
     let mut color = true;
+    let mut prec = 256;
     let mut handles:Vec<JoinHandle<()>> = Vec::new();
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
@@ -67,6 +67,8 @@ fn main()
                     graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
+                "prec" => prec = args.next().unwrap().parse::<u32>().unwrap_or(256),
+                "decimal" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
                 "concurrent" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "line" => graph_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "prompt" => prompt = args.next().unwrap().parse::<bool>().unwrap_or(true),
@@ -96,6 +98,22 @@ fn main()
             "--color" => color = !color,
             "--line" => graph_options.4 = !graph_options.4,
             "--concurrent" => print_options.4 = !print_options.4,
+            "--prec" =>
+            {
+                if args.len() > 1
+                {
+                    prec = args[1].parse::<u32>().unwrap_or(256);
+                    args.remove(0);
+                }
+            }
+            "--decimal" =>
+            {
+                if args.len() > 1
+                {
+                    print_options.5 = args[1].parse::<usize>().unwrap_or(12);
+                    args.remove(0);
+                }
+            }
             "--2d" =>
             {
                 if args.len() > 1
@@ -169,8 +187,9 @@ fn main()
             "--vars" => allow_vars = !allow_vars,
             "--default" =>
             {
-                print_options = (false, false, 10, false, true);
+                print_options = (false, false, 10, false, true, 12);
                 graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false);
+                prec = 256;
                 allow_vars = true;
                 debug = false;
                 prompt = true;
@@ -199,8 +218,6 @@ fn main()
     }
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut lines:Vec<String>;
-    #[cfg(unix)]
-    let mut width;
     let mut last = String::new();
     let mut current = String::new();
     let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split);
@@ -214,10 +231,6 @@ fn main()
                 handle.join().unwrap();
             }
             break;
-        }
-        #[cfg(unix)]
-        {
-            width = get_terminal_width();
         }
         input.clear();
         lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
@@ -234,7 +247,7 @@ fn main()
             input = args.first().unwrap().replace('z', "(x+y*i)").replace(' ', "").replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
-                         match get_func(&input_var(&input, &vars))
+                         match get_func(&input_var(&input, &vars), prec)
                          {
                              Ok(f) => f,
                              Err(()) =>
@@ -244,7 +257,8 @@ fn main()
                              }
                          },
                          print_options,
-                         color);
+                         color,
+                         prec);
             if let Some(time) = watch
             {
                 print!(" {}", time.elapsed().as_nanos());
@@ -283,7 +297,7 @@ fn main()
                     {
                         if !print_options.4
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color, prec);
                         }
                         if frac
                         {
@@ -329,18 +343,13 @@ fn main()
                         input.remove(cursor);
                         current = input.clone();
                         print!("\x1B[2K\x1B[1G{}", input);
-                        #[cfg(unix)]
-                        if width < (input.len() + 1) as u16
-                        {
-                            print!("\x1b[A");
-                        }
                         frac = if input.is_empty()
                         {
                             false
                         }
                         else if print_options.4
                         {
-                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color)
+                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color, prec)
                         }
                         else
                         {
@@ -404,14 +413,9 @@ fn main()
                         i -= if i > 0 { 1 } else { 0 };
                         input = lines[i as usize].clone();
                         cursor = input.len();
-                        #[cfg(unix)]
-                        if width < (input.len() + 1) as u16
-                        {
-                            print!("\x1b[A");
-                        }
                         if print_options.4
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color, prec);
                         }
                         print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                                if prompt
@@ -471,14 +475,9 @@ fn main()
                             input = lines[i as usize].clone();
                         }
                         cursor = input.len();
-                        #[cfg(unix)]
-                        if width < (input.len() + 1) as u16
-                        {
-                            print!("\x1b[A");
-                        }
                         if print_options.4
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color, prec);
                         }
                         print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                                if prompt
@@ -546,14 +545,9 @@ fn main()
                             cursor += 1;
                         }
                         current = input.clone();
-                        #[cfg(unix)]
-                        if width < (input.len() + 1) as u16
-                        {
-                            print!("\x1b[A");
-                        }
                         if print_options.4
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prompt, color, prec);
                         }
                         else
                         {
@@ -726,7 +720,7 @@ fn main()
             split_str = input.split("==");
             l = split_str.next().unwrap();
             r = split_str.next().unwrap();
-            equal(graph_options, &input, l, r);
+            equal(graph_options, &input, l, r, prec);
             continue;
         }
         else if input.contains('=')
@@ -742,6 +736,16 @@ fn main()
             }
             match l
             {
+                "decimal" =>
+                {
+                    print_options.5 = r.parse::<usize>().unwrap();
+                    continue;
+                }
+                "prec" =>
+                {
+                    prec = r.parse::<u32>().unwrap();
+                    continue;
+                }
                 "xr" =>
                 {
                     graph_options.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
@@ -809,13 +813,13 @@ fn main()
             let mut funcs = Vec::new();
             for i in &inputs
             {
-                funcs.push(match get_func(&input_var(i, &vars))
+                funcs.push(match get_func(&input_var(i, &vars), prec)
                      {
                          Ok(f) => f,
                          _ => continue 'main,
                      });
             }
-            handles.push(graph(inputs, funcs, graph_options, print_options.1));
+            handles.push(graph(inputs, funcs, graph_options, print_options.1, prec));
             if let Some(time) = watch
             {
                 println!("{}ms", time.elapsed().as_millis());
@@ -824,21 +828,21 @@ fn main()
         }
     }
 }
-#[cfg(unix)]
-fn get_terminal_width() -> u16
-{
-    unsafe {
-        let mut size:winsize = std::mem::zeroed();
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0
-        {
-            size.ws_col
-        }
-        else
-        {
-            80
-        }
-    }
-}
+// #[cfg(unix)]
+// fn get_terminal_width() -> u16
+// {
+//     unsafe {
+//         let mut size:winsize = std::mem::zeroed();
+//         if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0
+//         {
+//             size.ws_col
+//         }
+//         else
+//         {
+//             80
+//         }
+//     }
+// }
 #[cfg(unix)]
 fn read_single_char() -> char
 {
@@ -968,6 +972,8 @@ FLAGS: --help (this message)\n\
 --vars toggles default variables\n\
 --line toggles line graphing\n\
 --concurrent toggles concurrent printing\n\
+--prec [num] sets the precision\n\
+--decimal [num] sets how many decimals to display\n\
 --default ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
@@ -987,6 +993,8 @@ FLAGS: --help (this message)\n\
 - Type \"xr=[min],[max]\" to set the x range for graphing\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
+- Type \"prec=[num]\" to set the precision\n\
+- Type \"decimal=[num]\" to set how many decimals to display\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"base=[num]\" to set the number base (2,8,16)\n\

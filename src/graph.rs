@@ -1,10 +1,11 @@
 use std::thread;
 use std::thread::JoinHandle;
 use gnuplot::{AxesCommon, Caption, Color, Dot, Figure, Fix, LineStyle, PointSymbol};
+use rug::Complex;
 use crate::math::{
-    do_math, Complex, Complex::{Num, Str}
+    do_math, NumStr, NumStr::{Num, Str}
 };
-pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], f64, f64, char, bool), deg:bool) -> JoinHandle<()>
+pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:([[f64; 2]; 3], f64, f64, char, bool), deg:bool, prec:u32) -> JoinHandle<()>
 {
     thread::spawn(move || {
         let mut fg = Figure::new();
@@ -31,7 +32,7 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], 
             let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
-                (re2, im2) = get_list_3d(f, options, deg);
+                (re2, im2) = get_list_3d(f, options, deg, prec);
                 if re2.iter().map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0).all(|i| i)
                 {
                     re2.clear();
@@ -106,7 +107,7 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], 
             let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
-                (re2, im2) = get_list_2d(f, options, deg);
+                (re2, im2) = get_list_2d(f, options, deg, prec);
                 if re2.iter().map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0).all(|i| i)
                 {
                     re2.clear();
@@ -195,11 +196,11 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<Complex>>, options:([[f64; 2]; 3], 
         fg.show().unwrap();
     })
 }
-pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool), deg:bool) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[NumStr], range:([[f64; 2]; 3], f64, f64, char, bool), deg:bool, prec:u32) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
-    if let Num(n) = func[0]
+    if let Num(n) = &func[0]
     {
-        if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
+        if func.len() == 1 && n.eq0()
         {
             return (Vec::new(), Vec::new());
         }
@@ -210,7 +211,7 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool),
     let max = range.0[0][1];
     let den = range.1;
     let den_range = (max - min) / den;
-    let (mut n, mut a, mut b, mut num);
+    let (mut n, mut num);
     for i in 0..=den as i32
     {
         n = min + i as f64 * den_range;
@@ -218,33 +219,33 @@ pub fn get_list_2d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool),
                                 .map(|i| {
                                     match i
                                     {
-                                        Str(s) if s == "x" => Num((n, 0.0)),
+                                        Str(s) if s == "x" => Num(Complex::with_val(prec, n)),
                                         _ => i.clone(),
                                     }
                                 })
                                 .collect(),
-                            deg)
+                            deg,
+                            prec)
         {
             Ok(n) => n,
             Err(_) => continue,
         };
-        (a, b) = num;
-        if a.is_finite()
+        if num.real().is_finite()
         {
-            re.push([n, a]);
+            re.push([n, num.real().to_f64()]);
         }
-        if b.is_finite()
+        if num.imag().is_finite()
         {
-            im.push([n, b]);
+            im.push([n, num.imag().to_f64()]);
         }
     }
     (re, im)
 }
-pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool), deg:bool) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[NumStr], range:([[f64; 2]; 3], f64, f64, char, bool), deg:bool, prec:u32) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
-    if let Num(n) = func[0]
+    if let Num(n) = &func[0]
     {
-        if func.len() == 1 && n.0 == 0.0 && n.1 == 0.0
+        if func.len() == 1 && n.eq0()
         {
             return (Vec::new(), Vec::new());
         }
@@ -258,8 +259,8 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool),
     let min_y = range.0[1][0];
     let max_y = range.0[1][1];
     let den_y_range = (max_y - min_y) / den;
-    let (mut n, mut f, mut a, mut b, mut num);
-    let mut modified:Vec<Complex>;
+    let (mut n, mut f, mut num);
+    let mut modified:Vec<NumStr>;
     for i in 0..=den as i32
     {
         n = min_x + i as f64 * den_x_range;
@@ -267,7 +268,7 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool),
                        .map(|i| {
                            match i
                            {
-                               Str(s) if s == "x" => Num((n, 0.0)),
+                               Str(s) if s == "x" => Num(Complex::with_val(prec, n)),
                                _ => i.clone(),
                            }
                        })
@@ -279,24 +280,24 @@ pub fn get_list_3d(func:&[Complex], range:([[f64; 2]; 3], f64, f64, char, bool),
                                         .map(|j| {
                                             match j
                                             {
-                                                Str(s) if s == "y" => Num((f, 0.0)),
+                                                Str(s) if s == "y" => Num(Complex::with_val(prec, f)),
                                                 _ => j.clone(),
                                             }
                                         })
                                         .collect(),
-                                deg)
+                                deg,
+                                prec)
             {
                 Ok(n) => n,
                 Err(_) => continue,
             };
-            (a, b) = num;
-            if a.is_finite()
+            if num.real().is_finite()
             {
-                re.push([n, f, a]);
+                re.push([n, f, num.real().to_f64()]);
             }
-            if b.is_finite()
+            if num.imag().is_finite()
             {
-                im.push([n, f, b]);
+                im.push([n, f, num.imag().to_f64()]);
             }
         }
     }

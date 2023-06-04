@@ -28,6 +28,8 @@ FLAGS: --help (this message)
 --vars toggles default variables
 --line toggles line graphing
 --concurrent toggles concurrent printing
+--prec [num] sets the precision
+--decimal [num] sets how many decimals to display
 --default ignores config file
 --debug displays computation time in nanoseconds
 
@@ -48,6 +50,8 @@ FLAGS: --help (this message)
 - Type "xr=[min],[max]" to set the x range for graphing
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
+- Type "prec=[num]" to set the precision
+- Type "decimal=[num]" to set how many decimals to display
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
 - Type "base=[num]" to set the number base (2,8,16)

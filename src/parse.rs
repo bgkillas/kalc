@@ -1,4 +1,4 @@
-use rug::Complex;
+use rug::{Complex, Float};
 use rug::float::Constant::Pi;
 use crate::math::NumStr;
 use crate::math::NumStr::{Num, Str};
@@ -458,10 +458,13 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
         output
     }
 }
-pub fn get_vars(allow_vars:bool) -> Vec<[String; 2]>
+pub fn get_vars(allow_vars:bool, prec:u32) -> Vec<[String; 2]>
 {
     if allow_vars
     {
+        let pi = Float::with_val(prec, Pi);
+        let tau:Float = pi.clone() * 2;
+        let e = Float::with_val(prec, 1).exp();
         vec![["c".to_string(), "299792458".to_string()],
              ["g".to_string(), "9.80665".to_string()],
              ["phi".to_string(), "1.61803398874989484820458683436563811772030917980576286213544862".to_string()],
@@ -475,9 +478,9 @@ pub fn get_vars(allow_vars:bool) -> Vec<[String; 2]>
              ["kc".to_string(), "8.9875517923E9".to_string()],
              ["Na".to_string(), "6.02214076E23".to_string()],
              ["R".to_string(), "8.31446261815324".to_string()],
-             ["e".to_string(), "2.71828182845904523536028747135266249775724709369995957496696763".to_string()],
-             ["pi".to_string(), "3.14159265358979323846264338327950288419716939937510582097494459".to_string()],
-             ["tau".to_string(), "6.28318530717958647692528676655900576839433879875021164194988918".to_string()]]
+             ["e".to_string(), e.to_string()],
+             ["pi".to_string(), pi.to_string()],
+             ["tau".to_string(), tau.to_string()]]
     }
     else
     {

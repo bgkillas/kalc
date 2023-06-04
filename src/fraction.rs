@@ -1,7 +1,7 @@
 // as per continued fraction expansion
 use rug::Float;
 use rug::float::Constant::Pi;
-pub fn fraction(value:Float, tau:bool, prec:u32) -> String
+pub fn fraction(value:Float, tau:bool, prec:u32, dec:usize) -> String
 {
     let mut nums:Vec<Float> = vec![];
     let values = [Float::with_val(prec, 1.0), if tau { 2 * Float::with_val(prec, Pi) } else { Float::with_val(prec, Pi) }, Float::with_val(prec, 2).sqrt(), Float::with_val(prec, 3).sqrt()];
@@ -14,7 +14,7 @@ pub fn fraction(value:Float, tau:bool, prec:u32) -> String
         orig = val.clone() / constant;
         if orig.clone().fract() == 0.0
         {
-            return if i == 0
+            return if i == 0 || orig.to_string().len() > dec
             {
                 String::new()
             }
@@ -45,6 +45,10 @@ pub fn fraction(value:Float, tau:bool, prec:u32) -> String
                 }
                 let recip = recip.to_integer().unwrap();
                 let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
+                if recip.to_string().len() > dec || last.to_string().len() > dec
+                {
+                    return String::new();
+                }
                 return format!("{sign}{}{}{}",
                                if last == 1 && i != 0 { "".to_string() } else { last.to_string() },
                                match i

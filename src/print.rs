@@ -24,6 +24,10 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
         {
             format!("{:e}", num.real()).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
         }
+        else if b == 0.0
+        {
+            "0".to_owned()
+        }
         else
         {
             "".to_owned()
@@ -119,8 +123,8 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
     let num = do_math(func, print_options.1, prec).unwrap_or(Complex::with_val(256, 0.0));
     let a = num.real().to_f64();
     let b = num.imag().to_f64();
-    let fa = fraction(num.real().clone(), print_options.3, prec);
-    let fb = fraction(num.imag().clone(), print_options.3, prec);
+    let fa = fraction(num.real().clone(), print_options.3, prec, print_options.5);
+    let fb = fraction(num.imag().clone(), print_options.3, prec, print_options.5);
     let c = (a * 1e12).round() / 1e12;
     let d = (b * 1e12).round() / 1e12;
     let sign = if c != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();

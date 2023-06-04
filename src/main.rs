@@ -25,7 +25,7 @@ fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false); //[xr,yr,zr], 2d, 3d, point style, lines
     let mut watch = None;
-    let mut print_options = (false, false, 10, false, true, 12); //[sci, deg, #base, tau, concurrent_output]
+    let mut print_options = (false, false, 10, false, true, 12); //[sci, deg, #base, tau, concurrent_output, decimal_places]
     let mut allow_vars = true;
     let mut debug = false;
     let mut prompt = true;
@@ -198,7 +198,7 @@ fn main()
         }
         args.remove(0);
     }
-    let mut vars:Vec<[String; 2]> = get_vars(allow_vars);
+    let mut vars:Vec<[String; 2]> = get_vars(allow_vars, prec);
     let mut input = String::new();
     if !stdin().is_terminal()
     {
@@ -909,7 +909,7 @@ fn read_single_char() -> char
             }
         }
         127 => '\x08',
-        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'!' | b'%' | b'_' | b'\n' => input[0] as char,
+        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'!' | b'%' | b'_' | b' ' | b'\n' => input[0] as char,
         _ => read_single_char(),
     }
 }
@@ -940,6 +940,7 @@ fn read_single_char() -> char
                || c == '!'
                || c == '%'
                || c == '_'
+               || c == ' '
             {
                 c
             }

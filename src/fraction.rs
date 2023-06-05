@@ -20,7 +20,7 @@ pub fn fraction(value:Float, tau:bool, prec:u32, dec:usize) -> String
             }
             else
             {
-                format!("{}{}{}", sign, if orig == 1.0 { "".to_string() } else { orig.to_string() }, match i
+                format!("{}{}{}", sign, if orig == 1.0 { "".to_string() } else { orig.to_integer().unwrap().to_string() }, match i
                 {
                     1 => tau,
                     2 => "sqrt(2)",

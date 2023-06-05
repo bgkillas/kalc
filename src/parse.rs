@@ -14,6 +14,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     let mut i = 0;
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
+    let mut e = false;
     let n1 = Complex::with_val(prec, -1.0);
     let pi = Complex::with_val(prec, Pi);
     'outer: while i < input.len()
@@ -30,8 +31,16 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             place_multiplier(&mut func, &find_word);
             if neg
             {
-                func.push(Num(n1.clone()));
-                func.push(Str('*'.to_string()));
+                if e
+                {
+                    word.push('-');
+                    e = false;
+                }
+                else
+                {
+                    func.push(Num(n1.clone()));
+                    func.push(Str('*'.to_string()));
+                }
                 neg = false;
             }
             deci = false;
@@ -64,29 +73,23 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             }
             else
             {
+                place_multiplier(&mut func, &find_word);
+                if neg
+                {
+                    func.push(Num(n1.clone()));
+                    func.push(Str('*'.to_string()));
+                    neg = false;
+                }
                 match c
                 {
                     'E' =>
                     {
-                        place_multiplier(&mut func, &find_word);
-                        if neg
-                        {
-                            func.push(Num(n1.clone()));
-                            func.push(Str('*'.to_string()));
-                            neg = false;
-                        }
                         func.push(Num(Complex::with_val(prec, 10.0)));
                         func.push(Str('^'.to_string()));
+                        e = true;
                     }
                     'x' | 'y' =>
                     {
-                        place_multiplier(&mut func, &find_word);
-                        if neg
-                        {
-                            func.push(Num(n1.clone()));
-                            func.push(Str('*'.to_string()));
-                            neg = false;
-                        }
                         if !word.is_empty()
                         {
                             find_word = false;
@@ -97,7 +100,6 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     }
                     'i' =>
                     {
-                        place_multiplier(&mut func, &find_word);
                         if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
                         {
                             word.push(c);
@@ -105,18 +107,11 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         }
                         else
                         {
-                            if neg
-                            {
-                                func.push(Num(n1.clone()));
-                                func.push(Str('*'.to_string()));
-                                neg = false;
-                            }
                             func.push(Num(Complex::with_val(prec, (0.0, 1.0))));
                         }
                     }
                     _ =>
                     {
-                        place_multiplier(&mut func, &find_word);
                         word.push(c);
                         find_word = true;
                     }

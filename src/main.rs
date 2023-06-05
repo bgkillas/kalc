@@ -286,6 +286,11 @@ fn main()
         }
         else
         {
+            if prompt
+            {
+                print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
+                stdout().flush().unwrap();
+            }
             current.clear();
             lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
             unmod_lines = lines.clone();
@@ -293,11 +298,6 @@ fn main()
             max = i;
             cursor = 0;
             last = lines.last().unwrap_or(&String::new()).clone();
-            if prompt
-            {
-                print!("{}> \x1b[0m", if color { "\x1b[94m" } else { "" });
-                stdout().flush().unwrap();
-            }
             'outer: loop
             {
                 c = read_single_char();
@@ -317,10 +317,11 @@ fn main()
                         {
                             println!();
                         }
-                        if !((input.contains('x') && vars.iter().all(|i| i[0] != "x"))
-                             || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                             || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
-                             || input.contains('='))
+                        if !(input.is_empty()
+                             || input.contains('=')
+                             || input.contains('x') && vars.iter().all(|i| i[0] != "x")
+                             || input.contains('y') && vars.iter().all(|i| i[0] != "y")
+                             || input.contains('z') && vars.iter().all(|i| i[0] != "z"))
                         {
                             println!();
                         }

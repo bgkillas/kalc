@@ -224,9 +224,9 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     {
         (if num.real() != &0.0
          {
-             remove_scientific(&format!("{:.dec$}", num.real(), dec = print_options.5)).trim_end_matches(|c| c == '0')
-                                                                                       .trim_end_matches(|c| c == '.')
-                                                                                       .to_string()
+             remove_decimal(&remove_scientific(&num.real().to_string()), print_options.5).trim_end_matches(|c| c == '0')
+                                                                                         .trim_end_matches(|c| c == '.')
+                                                                                         .to_string()
          }
          else if num.imag() == &0.0
          {
@@ -239,8 +239,8 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          if num.imag() != &0.0
          {
              sign
-             + remove_scientific(&format!("{:.dec$}", num.imag(), dec = print_options.5)).trim_end_matches(|c| c == '0')
-                                                                                         .trim_end_matches(|c| c == '.')
+             + remove_decimal(&remove_scientific(&num.imag().to_string()), print_options.5).trim_end_matches(|c| c == '0')
+                                                                                           .trim_end_matches(|c| c == '.')
              + if color { "\x1b[93mi" } else { "i" }
          }
          else
@@ -248,6 +248,20 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
              "".to_string()
          })
     }
+}
+fn remove_decimal(input:&str, decimals:usize) -> String
+{
+    let decimal = input.find('.');
+    if decimal.is_none()
+    {
+        return input.to_string();
+    }
+    let decimal = decimal.unwrap();
+    if input.len() - decimal <= decimals || decimal + decimals + 2 > input.len()
+    {
+        return input.to_string();
+    }
+    input[..=decimal].to_owned() + &(input[decimal + 1..decimal + decimals + 2].parse::<f64>().unwrap_or(0.0) / 10.0).round().to_string()
 }
 fn remove_scientific(input:&str) -> String
 {

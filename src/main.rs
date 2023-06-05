@@ -74,7 +74,14 @@ fn main()
                 "color" => color = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "point" => graph_options.3 = args.next().unwrap().chars().next().unwrap_or('.'),
                 "sci" => print_options.0 = args.next().unwrap().parse::<bool>().unwrap_or(false),
-                "base" => print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10),
+                "base" =>
+                {
+                    print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10);
+                    if print_options.2 > 36 || print_options.2 < 2
+                    {
+                        print_options.2 = 10;
+                    }
+                }
                 "debug" => debug = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "deg" => print_options.1 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "tau" => print_options.3 = args.next().unwrap().parse::<bool>().unwrap_or(false),
@@ -164,6 +171,10 @@ fn main()
                 if args.len() > 1
                 {
                     print_options.2 = args[1].parse::<usize>().unwrap_or(10);
+                    if print_options.2 > 36 || print_options.2 < 2
+                    {
+                        print_options.2 = 10;
+                    }
                     args.remove(0);
                 }
             }
@@ -728,6 +739,10 @@ fn main()
             if input.len() > 5 && &input[0..5] == "base="
             {
                 print_options.2 = input[5..].parse::<usize>().unwrap();
+                if print_options.2 > 36 || print_options.2 < 2
+                {
+                    print_options.2 = 10;
+                }
                 continue;
             }
             write(&input, &mut file, &unmod_lines);

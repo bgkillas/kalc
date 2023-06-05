@@ -164,16 +164,7 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     {
         (if num.real() != &0.0
          {
-             remove_trailing_zeros(num.real().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.')).replace("e0", "")
-                                                                                                                                                          .replace('e',
-                                                                                                                                                                   if color
-                                                                                                                                                                   {
-                                                                                                                                                                       "\x1b[92mE"
-                                                                                                                                                                   }
-                                                                                                                                                                   else
-                                                                                                                                                                   {
-                                                                                                                                                                       "E"
-                                                                                                                                                                   })
+             remove_trailing_zeros(num.real().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.'))
          }
          else if num.imag() == &0.0
          {
@@ -185,10 +176,9 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             (sign
-              + &remove_trailing_zeros(num.imag().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.'))
-              + if color { "\x1b[93mi" } else { "i" }).replace("e0", "")
-                                                      .replace('e', if color { "\x1b[92mE" } else { "E" })
+             sign
+             + &remove_trailing_zeros(num.imag().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.'))
+             + if color { "\x1b[93mi" } else { "i" }
          }
          else
          {

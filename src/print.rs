@@ -17,49 +17,9 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
             return;
         }
     };
-    let (a, b) = (num.real().to_f64(), num.imag().to_f64());
-    if print_options.0
-    {
-        let c = if a != 0.0
-        {
-            format!("{:e}", num.real()).replace("e0", "").replace('e', if color { "\x1b[92mE" } else { "E" })
-        }
-        else if b == 0.0
-        {
-            "0".to_owned()
-        }
-        else
-        {
-            "".to_owned()
-        };
-        let d = if b != 0.0
-        {
-            format!("{}{:e}{}", if a != 0.0 && b.is_sign_positive() { "+" } else { "" }, b, if color { "\x1b[93mi" } else { "i" }).replace("e0", "")
-                                                                                                                                  .replace('e', if color { "\x1b[92mE" } else { "E" })
-        }
-        else
-        {
-            "".to_owned()
-        };
-        print!("{}\x1b[0m{}\x1b[0m", c, d);
-    }
-    else if print_options.2 != 10
-    {
-        match print_options.2
-        {
-            2 => print!("{:b}", a as i64),
-            8 => print!("{:o}", a as i64),
-            16 => print!("{:x}", a as i64),
-            _ => print!("0"),
-        }
-    }
-    else
-    {
-        let d = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned() + &b.to_string() + if color { "\x1b[93mi" } else { "i" };
-        print!("{}\x1b[0m{}\x1b[0m",
-               if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
-               if b == 0.0 { "".to_string() } else { d });
-    };
+    let sign = if num.real() != &0.0 && num.imag().is_sign_positive() { "+" } else { "" }.to_owned();
+    let a = get_output(&print_options, &num, color, sign);
+    print!("{}{}\x1b[0m", a.0, a.1);
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool, usize), prompt:bool, color:bool, prec:u32) -> bool
 {
@@ -167,65 +127,14 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         }
         _ => ("".to_string(), "".to_string()),
     };
-    let (output_a, output_b) = if print_options.2 != 10
-    {
-        (match print_options.2
-         {
-             2 => format!("{:b}", a as i64),
-             8 => format!("{:o}", a as i64),
-             16 => format!("{:x}", a as i64),
-             _ => "0".to_string(),
-         },
-         "".to_owned())
-    }
-    else if print_options.0
-    {
-        (if a != 0.0
-         {
-             remove_trailing_zeros(&format!("{:.dec$e}\x1b[0m", num.real(), dec = print_options.5)).replace("e0", "")
-                                                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
-         }
-         else if b == 0.0
-         {
-             "0".to_owned()
-         }
-         else
-         {
-             "".to_owned()
-         },
-         if b != 0.0
-         {
-             remove_trailing_zeros(&format!("{}{:.dec$e}{}",
-                                            if a != 0.0 && b.is_sign_positive() { "+" } else { "" },
-                                            num.imag(),
-                                            if color { "\x1b[93mi" } else { "i" },
-                                            dec = print_options.5)).replace("e0", "")
-                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
-         }
-         else
-         {
-             "".to_owned()
-         })
-    }
-    else
-    {
-        (if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
-         if b == 0.0
-         {
-             "".to_string()
-         }
-         else
-         {
-             sign + &b.to_string() + if color { "\x1b[93mi" } else { "i" }
-         })
-    };
+    let output = get_output(&print_options, &num, color, sign);
     print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
            if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
            frac_a,
            frac_b,
            if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
-           output_a,
-           output_b,
+           output.0,
+           output.1,
            if frac { "\x1b[A" } else { "" },
            if prompt
            {
@@ -248,6 +157,107 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
            },
            unmodified_input);
     frac
+}
+fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Complex, color:bool, sign:String) -> (String, String)
+{
+    if print_options.2 != 10
+    {
+        (if num.real() != &0.0
+         {
+             remove_trailing_zeros(num.real().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.')).replace("e0", "")
+                                                                                                                                                          .replace('e',
+                                                                                                                                                                   if color
+                                                                                                                                                                   {
+                                                                                                                                                                       "\x1b[92mE"
+                                                                                                                                                                   }
+                                                                                                                                                                   else
+                                                                                                                                                                   {
+                                                                                                                                                                       "E"
+                                                                                                                                                                   })
+         }
+         else if num.imag() == &0.0
+         {
+             "0".to_owned()
+         }
+         else
+         {
+             "".to_owned()
+         },
+         if num.imag() != &0.0
+         {
+             (sign
+              + &remove_trailing_zeros(num.imag().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.'))
+              + if color { "\x1b[93mi" } else { "i" }).replace("e0", "")
+                                                      .replace('e', if color { "\x1b[92mE" } else { "E" })
+         }
+         else
+         {
+             "".to_string()
+         })
+    }
+    else if print_options.0
+    {
+        (if num.real() != &0.0
+         {
+             remove_trailing_zeros(&format!("{:.dec$e}\x1b[0m", num.real(), dec = print_options.5)).replace("e0", "")
+                                                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
+         }
+         else if num.imag() == &0.0
+         {
+             "0".to_owned()
+         }
+         else
+         {
+             "".to_owned()
+         },
+         if num.imag() != &0.0
+         {
+             remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if color { "\x1b[93mi" } else { "i" }, dec = print_options.5)).replace("e0", "")
+                                                                                                                                             .replace('e', if color { "\x1b[92mE" } else { "E" })
+         }
+         else
+         {
+             "".to_owned()
+         })
+    }
+    else
+    {
+        (if num.real() != &0.0
+         {
+             remove_scientific(&format!("{:.dec$}", num.real(), dec = print_options.5)).trim_end_matches(|c| c == '0')
+                                                                                       .trim_end_matches(|c| c == '.')
+                                                                                       .to_string()
+         }
+         else if num.imag() == &0.0
+         {
+             "0".to_owned()
+         }
+         else
+         {
+             "".to_string()
+         },
+         if num.imag() != &0.0
+         {
+             sign
+             + remove_scientific(&format!("{:.dec$}", num.imag(), dec = print_options.5)).trim_end_matches(|c| c == '0')
+                                                                                         .trim_end_matches(|c| c == '.')
+             + if color { "\x1b[93mi" } else { "i" }
+         }
+         else
+         {
+             "".to_string()
+         })
+    }
+}
+fn remove_scientific(input:&str) -> String
+{
+    let e = input.find('e');
+    if e.is_none()
+    {
+        return input.to_string();
+    }
+    let e = e.unwrap();
+    format!("0.{}{}", "0".repeat(input[e + 2..].parse::<usize>().unwrap() - 1), input[..e].replace('.', ""))
 }
 fn remove_trailing_zeros(input:&str) -> String
 {

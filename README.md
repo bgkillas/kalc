@@ -63,7 +63,7 @@ FLAGS: --help (this message)
 - Type "decimal=[num]" to set how many decimals to display
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
-- Type "base=[num]" to set the number base (2,8,16)
+- Type "base=[num]" to set the number base (2-36)
 - Type "_" to use the previous answer
 - Type "a=[num]" to define a variable
 - Type "f(x)=..." to define a function

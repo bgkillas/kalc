@@ -14,7 +14,7 @@ pub fn fraction(value:Float, tau:bool, prec:u32, dec:usize) -> String
         orig = val.clone() / constant;
         if orig.clone().fract() == 0.0
         {
-            return if i == 0 || orig.to_string().len() > dec
+            return if i == 0
             {
                 String::new()
             }

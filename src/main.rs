@@ -1019,7 +1019,7 @@ FLAGS: --help (this message)\n\
 - Type \"decimal=[num]\" to set how many decimals to display\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
-- Type \"base=[num]\" to set the number base (2,8,16)\n\
+- Type \"base=[num]\" to set the number base (2-36)\n\
 - Type \"_\" to use the previous answer\n\
 - Type \"a=[num]\" to define a variable\n\
 - Type \"f(x)=...\" to define a function\n\

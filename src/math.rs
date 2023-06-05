@@ -27,13 +27,6 @@ impl NumStr
         }
     }
 }
-// asech(x) off from 0,-inf imag scale flipped on x axis
-// atanh(x) off from 1,inf imag scale flipped on x axis
-// acoth(x) off, imag scale flipped on x axis
-// acsc(x) off, imag scale flipped on x axis
-// asec(x) off, imag scale flipped on x axis
-// acos(x) off from 1,inf imag scale flipped on x axis
-// asin(x) off from 1,inf imag scale flipped on x axis
 pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
 {
     if func.len() == 1
@@ -261,7 +254,15 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             }
                             else
                             {
-                                a.asin()
+                                b = a.clone().asin();
+                                if a.imag() == &0.0 && a.real() >= &1.0
+                                {
+                                    Complex::with_val(prec, (b.real(), -b.imag()))
+                                }
+                                else
+                                {
+                                    b
+                                }
                             }
                         }
                         "acsc" | "arccsc" =>
@@ -272,7 +273,15 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             }
                             else
                             {
-                                a.recip().asin()
+                                b = a.clone().recip().asin();
+                                if a.imag() == &0.0
+                                {
+                                    Complex::with_val(prec, (b.real(), -b.imag()))
+                                }
+                                else
+                                {
+                                    b
+                                }
                             }
                         }
                         "acos" | "arccos" =>
@@ -283,7 +292,15 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             }
                             else
                             {
-                                a.acos()
+                                b = a.clone().acos();
+                                if a.imag() == &0.0 && a.real() >= &1.0
+                                {
+                                    Complex::with_val(prec, (b.real(), -b.imag()))
+                                }
+                                else
+                                {
+                                    b
+                                }
                             }
                         }
                         "asec" | "arcsec" =>
@@ -294,7 +311,15 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             }
                             else
                             {
-                                a.recip().acos()
+                                b = a.clone().recip().acos();
+                                if a.imag() == &0.0
+                                {
+                                    Complex::with_val(prec, (b.real(), -b.imag()))
+                                }
+                                else
+                                {
+                                    b
+                                }
                             }
                         }
                         "atan" | "arctan" =>
@@ -328,9 +353,42 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                         "asinh" | "arcsinh" => a.asinh(),
                         "acsch" | "arccsch" => a.recip().asinh(),
                         "acosh" | "arccosh" => a.acosh(),
-                        "asech" | "arcsech" => a.recip().acosh(),
-                        "atanh" | "arctanh" => a.atanh(),
-                        "acoth" | "arccoth" => a.recip().atanh(),
+                        "asech" | "arcsech" =>
+                        {
+                            b = a.clone().recip().acosh();
+                            if a.imag() == &0.0 && a.real() < &0.0
+                            {
+                                Complex::with_val(prec, (b.real(), -b.imag()))
+                            }
+                            else
+                            {
+                                b
+                            }
+                        }
+                        "atanh" | "arctanh" =>
+                        {
+                            b = a.clone().atanh();
+                            if a.imag() == &0.0 && a.real() >= &1.0
+                            {
+                                Complex::with_val(prec, (b.real(), -b.imag()))
+                            }
+                            else
+                            {
+                                b
+                            }
+                        }
+                        "acoth" | "arccoth" =>
+                        {
+                            b = a.clone().recip().atanh();
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, (b.real(), -b.imag()))
+                            }
+                            else
+                            {
+                                b
+                            }
+                        }
                         "cis" => a.clone().cos() + a.sin() * Complex::with_val(prec, (0.0, 1.0)),
                         "ln" | "aexp" => a.ln(),
                         "ceil" => Complex::with_val(prec, (a.real().clone().ceil(), a.imag().clone().ceil())),

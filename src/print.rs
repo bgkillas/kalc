@@ -4,7 +4,7 @@ use crate::math::{do_math, NumStr};
 use crate::parse::get_func;
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usize, bool, bool, usize), color:bool, prec:u32)
 {
-    if (input.contains('x') && !input.contains("exp")) || input.contains('y') || input.contains('z') || input.contains('=')
+    if input.replace("exp", "").contains('x') || input.contains('y') || input.replace("zeta", "").contains('z') || input.contains('=')
     {
         return;
     }

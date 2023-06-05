@@ -252,7 +252,7 @@ fn main()
             {
                 watch = Some(std::time::Instant::now());
             }
-            input = args.first().unwrap().replace('z', "(x+y*i)").replace(' ', "").replace('_', &format!("({})", last));
+            input = args.first().unwrap().replace(' ', "").replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
                          match get_func(&input_var(&input, &vars), prec)
@@ -273,7 +273,7 @@ fn main()
             }
             if !((input.contains('x') && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                 || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
+                 || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
                  || input.contains('='))
             {
                 println!();
@@ -319,9 +319,9 @@ fn main()
                         }
                         if !(input.is_empty()
                              || input.contains('=')
-                             || input.contains('x') && vars.iter().all(|i| i[0] != "x")
+                             || input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")
                              || input.contains('y') && vars.iter().all(|i| i[0] != "y")
-                             || input.contains('z') && vars.iter().all(|i| i[0] != "z"))
+                             || input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
                         {
                             println!();
                         }
@@ -840,9 +840,9 @@ fn main()
             vars.push([l.to_string(), r.to_string()]);
             continue;
         }
-        else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.contains('z') && vars.iter().all(|i| i[0] != "z"))
+        else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
-            input = input.replace('z', "(x+y*i)");
+            input = input.replace("zeta", "##ta##").replace('z', "(x+y*i)").replace("##ta##", "zeta");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             inputs = input.split('#').map(String::from).collect();
@@ -1058,6 +1058,7 @@ Other functions:\n\
 - ceil, floor, round, int, frac\n\
 - fact, subfact\n\
 - sinc, cis, exp\n\
+- zeta, gamma, erf, erfc, digamma, ai\n\
 - deg(to_degrees), rad(to_radians)\n\
 - re(real part), im(imaginary part)\n\n\
 Constants:\n\

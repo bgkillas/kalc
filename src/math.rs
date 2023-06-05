@@ -428,6 +428,17 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                                 a.sqrt()
                             }
                         }
+                        "gamma" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, a.real().clone().gamma())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
                         "sqrt" | "asquare" => a.sqrt(),
                         "abs" => a.abs(),
                         "deg" | "degree" => a * to_deg.clone(),
@@ -439,16 +450,20 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                         "cbrt" | "acube" => a.pow(1.0 / 3.0),
                         "frac" | "fract" => Complex::with_val(prec, (a.real().clone().fract(), a.imag().clone().fract())),
                         "int" | "trunc" => Complex::with_val(prec, (a.real().clone().trunc(), a.imag().clone().trunc())),
-                        "fact" =>
-                        {
-                            if a.imag() != &0.0 || a.real() < &0.0 || a.real().clone().fract() != 0.0
-                            {
-                                return Err(());
-                            }
-                            Complex::with_val(prec, Float::factorial(a.real().to_f64() as u32))
-                        }
                         "square" | "asqrt" => a.pow(2),
                         "cube" | "acbrt" => a.pow(3),
+                        "fact" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                let b:Float = a.real().clone() + 1;
+                                Complex::with_val(prec, b.gamma())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
                         "subfact" =>
                         {
                             if a.imag() != &0.0 || a.real() < &0.0
@@ -458,6 +473,62 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             Complex::with_val(prec, subfact(a.real().to_f64()))
                         }
                         "sinc" => a.clone().sin() / a,
+                        "conj" | "conjugate" => a.conj(),
+                        "erf" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, a.real().clone().erf())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
+                        "erfc" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, a.real().clone().erfc())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
+                        "ai" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, a.real().clone().ai())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
+                        "digamma" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, a.real().clone().digamma())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
+                        "zeta" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                Complex::with_val(prec, a.real().clone().zeta())
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0.0)
+                            }
+                        }
                         _ =>
                         {
                             i += 1;

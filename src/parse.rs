@@ -86,7 +86,10 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     {
                         func.push(Num(Complex::with_val(prec, 10.0)));
                         func.push(Str('^'.to_string()));
-                        e = true;
+                        if chars.len() != i + 1 && chars[i + 1] == '-'
+                        {
+                            e = true;
+                        }
                     }
                     'x' | 'y' =>
                     {
@@ -193,7 +196,14 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if i != 0 && i != chars.len() => func.push(Str('^'.to_string())),
+                '^' if i != 0 && i != chars.len() =>
+                {
+                    if chars.len() != i + 1 && chars[i + 1] == '-'
+                    {
+                        e = true;
+                    }
+                    func.push(Str('^'.to_string()))
+                }
                 '(' =>
                 {
                     count += 1;

@@ -45,7 +45,7 @@ pub fn fraction(value:Float, tau:bool, prec:u32, dec:usize) -> String
                 }
                 let recip = recip.to_integer().unwrap();
                 let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
-                if recip.to_string().len() > dec || last.to_string().len() > dec
+                if recip.to_string().len() > dec || last.to_string().len() > dec || (recip == 1 && i == 0)
                 {
                     return String::new();
                 }

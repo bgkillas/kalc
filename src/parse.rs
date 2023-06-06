@@ -155,9 +155,13 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             }
             match c
             {
+                '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
+                {
+                    func.push(Str("&&".to_string()));
+                }
                 '*' if i != 0 && i != chars.len() =>
                 {
-                    if chars.len() != i + 1 && chars[i + 1] == '*'
+                    if i + 1 != chars.len() && chars[i + 1] == '*'
                     {
                         func.push(Str("^".to_string()));
                         i += 1;
@@ -167,10 +171,48 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('*'.to_string()));
                     }
                 }
+                '=' if i != 0 && i + 1 < chars.len() =>
+                {
+                    if chars[i + 1] == '='
+                    {
+                        func.push(Str("==".to_string()));
+                        i += 1;
+                    }
+                    else if chars[i - 1] == '>'
+                    {
+                        func.push(Str(">=".to_string()));
+                    }
+                    else if chars[i - 1] == '<'
+                    {
+                        func.push(Str("<=".to_string()));
+                    }
+                }
                 '/' if i != 0 && i != chars.len() => func.push(Str('/'.to_string())),
                 '+' if i != 0 && i != chars.len() => func.push(Str('+'.to_string())),
-                '<' if i != 0 && i != chars.len() => func.push(Str('<'.to_string())),
-                '>' if i != 0 && i != chars.len() => func.push(Str('>'.to_string())),
+                '<' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
+                {
+                    if chars[i + 1] == '<'
+                    {
+                        func.push(Str("<<".to_string()));
+                        i += 1;
+                    }
+                    else
+                    {
+                        func.push(Str('<'.to_string()));
+                    }
+                }
+                '>' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
+                {
+                    if chars[i + 1] == '>'
+                    {
+                        func.push(Str(">>".to_string()));
+                        i += 1;
+                    }
+                    else
+                    {
+                        func.push(Str('>'.to_string()));
+                    }
+                }
                 '-' if i != chars.len() =>
                 {
                     if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
@@ -204,7 +246,13 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                 }
                 '|' =>
                 {
-                    if abs
+                    if i + 1 != chars.len() && chars[i + 1] == '|'
+                    {
+                        func.push(Str("||".to_string()));
+                        i += 2;
+                        continue;
+                    }
+                    else if abs
                     {
                         func.push(Str("abs".to_string()));
                         func.push(Str("(".to_string()));
@@ -217,7 +265,11 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                 }
                 '!' =>
                 {
-                    if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
+                    if i + 1 < chars.len() && chars[i + 1] == '='
+                    {
+                        func.push(Str("!=".to_string()));
+                    }
+                    else if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
                     {
                         if let Num(a) = func.clone().last().unwrap()
                         {
@@ -281,7 +333,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     func.push(Num(if neg { -2 * pi.clone() } else { 2 * pi.clone() }));
                     neg = false;
                 }
-                ',' => func.push(Str(','.to_string())),
+                ',' if i != 0 && i != chars.len() => func.push(Str(','.to_string())),
                 '%' if i != 0 && i != chars.len() => func.push(Str('%'.to_string())),
                 _ => (),
             }

@@ -4,7 +4,10 @@ use crate::math::{do_math, NumStr};
 use crate::parse::get_func;
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usize, bool, bool, usize), color:bool, prec:u32)
 {
-    if input.replace("exp", "").contains('x') || input.contains('y') || input.replace("zeta", "").contains('z') || input.contains('=')
+    if (input.contains('x') && !input.contains("exp"))
+       || input.contains('y')
+       || (input.contains('z') && !input.contains("zeta"))
+       || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
     {
         return;
     }
@@ -23,7 +26,10 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool, usize), prompt:bool, color:bool, prec:u32) -> bool
 {
-    if input.replace("exp", "").contains('x') || input.contains('y') || input.replace("zeta", "").contains('z') || input.contains('=')
+    if (input.contains('x') && !input.contains("exp"))
+       || input.contains('y')
+       || (input.contains('z') && !input.contains("zeta"))
+       || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
     {
         print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
                if prompt

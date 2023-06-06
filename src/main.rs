@@ -1,4 +1,3 @@
-mod equal;
 mod fraction;
 mod graph;
 mod math;
@@ -6,7 +5,6 @@ mod parse;
 mod print;
 #[cfg(test)]
 mod tests;
-use equal::equal;
 use parse::{input_var, get_func, get_vars};
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, IsTerminal, stdout, Write};
@@ -245,7 +243,7 @@ fn main()
     let mut last = String::new();
     let mut current = String::new();
     let mut inputs:Vec<String>;
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split_str, mut split, mut funcs, mut v);
+    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split, mut funcs, mut v);
     let mut exit = false;
     'main: loop
     {
@@ -284,10 +282,11 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            if !((input.contains('x') && vars.iter().all(|i| i[0] != "x"))
+            if !(input.is_empty()
+                 || (input.contains('x') && !input.contains("exp") && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                 || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
-                 || input.contains('='))
+                 || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
+                 || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
             {
                 println!();
             }
@@ -331,10 +330,10 @@ fn main()
                             println!();
                         }
                         if !(input.is_empty()
-                             || input.contains('=')
-                             || input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")
-                             || input.contains('y') && vars.iter().all(|i| i[0] != "y")
-                             || input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+                             || (input.contains('x') && !input.contains("exp") && vars.iter().all(|i| i[0] != "x"))
+                             || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                             || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
+                             || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
                         {
                             println!();
                         }
@@ -735,31 +734,9 @@ fn main()
                 _ =>
                 {}
             }
-            if input.len() > 6 && &input[0..6] == "point="
-            {
-                graph_options.3 = input[6..].chars().next().unwrap();
-                continue;
-            }
-            if input.len() > 5 && &input[0..5] == "base="
-            {
-                print_options.2 = input[5..].parse::<usize>().unwrap();
-                if print_options.2 > 36 || print_options.2 < 2
-                {
-                    print_options.2 = 10;
-                }
-                continue;
-            }
             write(&input, &mut file, &unmod_lines);
         }
-        if input.contains("==")
-        {
-            split_str = input.split("==");
-            l = split_str.next().unwrap();
-            r = split_str.next().unwrap();
-            equal(graph_options, &input, l, r, prec);
-            continue;
-        }
-        else if input.contains('=')
+        if input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
@@ -772,6 +749,20 @@ fn main()
             }
             match l
             {
+                "point" =>
+                {
+                    graph_options.3 = r.chars().next().unwrap();
+                    continue;
+                }
+                "base" =>
+                {
+                    print_options.2 = r.parse::<usize>().unwrap();
+                    if print_options.2 > 36 || print_options.2 < 2
+                    {
+                        print_options.2 = 10;
+                    }
+                    continue;
+                }
                 "decimal" =>
                 {
                     print_options.5 = r.parse::<usize>().unwrap();
@@ -931,7 +922,7 @@ fn read_single_char() -> char
             }
         }
         127 => '\x08',
-        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'!' | b'%' | b'_' | b'<' | b'>' | b' ' | b'\n' =>
+        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'&' | b'!' | b'%' | b'_' | b'<' | b'>' | b' ' | b'\n' =>
         {
             input[0] as char
         }
@@ -962,6 +953,7 @@ fn read_single_char() -> char
                || c == 'τ'
                || c == '#'
                || c == '|'
+               || c == '&'
                || c == '!'
                || c == '%'
                || c == '_'
@@ -1048,7 +1040,10 @@ FLAGS: --help (this message)\n\
 - Type \"f...=null\" to delete a function or variable\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Operators:\n\
-- +, -, *, /, ^, %, <, > !x (subfact), x! (fact)\n\n\
+- +, -, *, /, ^, %, <, >, <=, >=\n\
+- !x (subfact), x! (fact)\n\
+- && (and), || (or), == (equals), != (not equals)\n\
+- >> (right shift), << (left shift)\n\n\
 Trigonometric functions:\n\
 - sin, cos, tan, asin, acos, atan\n\
 - csc, sec, cot, acsc, asec, acot\n\

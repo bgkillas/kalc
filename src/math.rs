@@ -1,3 +1,4 @@
+use std::ops::{Shl, Shr};
 use crate::math::NumStr::{Num, Str};
 use rug::{Complex, Float};
 use rug::float::Constant::Pi;
@@ -544,31 +545,6 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
     i = 1;
     while i < function.len() - 1
     {
-        if let Str(s) = &function[i]
-        {
-            match s.as_str()
-            {
-                "%" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real() % function[i + 1].num()?.real())),
-                "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() < function[i + 1].num()?.real()) as i32 as f64)),
-                ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() > function[i + 1].num()?.real()) as i32 as f64)),
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            }
-        }
-        else
-        {
-            i += 1;
-            continue;
-        }
-        function.remove(i + 1);
-        function.remove(i - 1);
-    }
-    i = 1;
-    while i < function.len() - 1
-    {
         if !function[i].str_is("^")
         {
             i += 1;
@@ -611,6 +587,39 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
             {
                 "+" => function[i] = Num(function[i - 1].num()? + function[i + 1].num()?),
                 "-" => function[i] = Num(function[i - 1].num()? - function[i + 1].num()?),
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
+        {
+            i += 1;
+            continue;
+        }
+        function.remove(i + 1);
+        function.remove(i - 1);
+    }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "%" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real() % function[i + 1].num()?.real())),
+                "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() < function[i + 1].num()?.real()) as i32 as f64)),
+                ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() > function[i + 1].num()?.real()) as i32 as f64)),
+                "==" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() == function[i + 1].num()?.real()) as i32 as f64)),
+                ">=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() >= function[i + 1].num()?.real()) as i32 as f64)),
+                "!=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != function[i + 1].num()?.real()) as i32 as f64)),
+                "<=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() <= function[i + 1].num()?.real()) as i32 as f64)),
+                ">>" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real().shr(function[i + 1].num()?.real().to_u32_saturating().unwrap_or(0)))),
+                "<<" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real().shl(function[i + 1].num()?.real().to_u32_saturating().unwrap_or(0)))),
+                "&&" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 && function[i + 1].num()?.real() != &0.0) as i32 as f64)),
+                "||" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 || function[i + 1].num()?.real() != &0.0) as i32 as f64)),
                 _ =>
                 {
                     i += 1;

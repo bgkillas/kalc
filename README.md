@@ -79,7 +79,10 @@ FLAGS: --help (this message)
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:
-- +, -, *, /, ^, %, <, > !x (subfact), x! (fact)
+- +, -, *, /, ^, %, <, >, <=, >=
+- !x (subfact), x! (fact)
+- && (and), || (or), == (equals), != (not equals)
+- >> (right shift), << (left shift)
 
 Trigonometric functions:
 - sin, cos, tan, asin, acos, atan

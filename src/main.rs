@@ -660,19 +660,13 @@ fn main()
                 }
                 "tau" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
-                    stdout().flush().unwrap();
                     print_options.3 = true;
-                    println!();
                     write(&input, &mut file, &unmod_lines);
                     continue;
                 }
                 "pi" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
-                    stdout().flush().unwrap();
                     print_options.3 = false;
-                    println!();
                     write(&input, &mut file, &unmod_lines);
                     continue;
                 }
@@ -685,8 +679,6 @@ fn main()
                 }
                 "clear" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
-                    stdout().flush().unwrap();
                     print!("\x1B[2J\x1B[1;1H");
                     stdout().flush().unwrap();
                     continue;
@@ -725,8 +717,6 @@ fn main()
                 }
                 "exit" | "quit" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
-                    stdout().flush().unwrap();
                     break;
                 }
                 _ =>

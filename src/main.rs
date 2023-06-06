@@ -66,7 +66,20 @@ fn main()
                     graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
-                "prec" => prec = args.next().unwrap().parse::<u32>().unwrap_or(256),
+                "prec" =>
+                {
+                    prec = {
+                        let prec = args.next().unwrap().parse::<u32>().unwrap_or(256);
+                        if prec == 0
+                        {
+                            256
+                        }
+                        else
+                        {
+                            prec
+                        }
+                    }
+                }
                 "decimal" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
                 "concurrent" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "line" => graph_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(false),
@@ -108,7 +121,7 @@ fn main()
             {
                 if args.len() > 1
                 {
-                    prec = args[1].parse::<u32>().unwrap_or(256);
+                    prec = if args[1] == "0" { 256 } else { args[1].parse::<u32>().unwrap_or(256) };
                     args.remove(0);
                 }
             }
@@ -767,7 +780,7 @@ fn main()
                 "prec" =>
                 {
                     // fix redefined vars
-                    prec = r.parse::<u32>().unwrap();
+                    prec = if r == "0" { prec } else { r.parse::<u32>().unwrap() };
                     v = get_vars(allow_vars, prec);
                     vars = [v.clone(), vars[v.len()..].to_vec()].concat();
                     continue;
@@ -1001,7 +1014,7 @@ FLAGS: --help (this message)\n\
 --line toggles line graphing\n\
 --concurrent toggles concurrent printing\n\
 --prec [num] sets the precision\n\
---decimal [num] sets how many decimals to display\n\
+--decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions\n\
 --default ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
@@ -1022,7 +1035,7 @@ FLAGS: --help (this message)\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
 - Type \"prec=[num]\" to set the precision\n\
-- Type \"decimal=[num]\" to set how many decimals to display\n\
+- Type \"decimal=[num]\" to set how many decimals to display, also max length of numerator and denominator in fractions\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"base=[num]\" to set the number base (2-36)\n\

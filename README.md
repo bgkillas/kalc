@@ -9,6 +9,11 @@ history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\
 
 config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config``
 
+# known issues
+- setting precision will remove vars if you change or delete any of the default vars
+- x^x^(1/x) is evaluated as (x^x)^(1/x) instead of x^(x^(1/x)) // x being any expression
+- 2^-x is evaluated as 2^-1\*x instead of 2^(-1\*x) // for graphing
+
 # build instructions
 install rust at least version 1.70
 ```
@@ -38,7 +43,7 @@ FLAGS: --help (this message)
 --line toggles line graphing
 --concurrent toggles concurrent printing
 --prec [num] sets the precision
---decimal [num] sets how many decimals to display
+--decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions
 --default ignores config file
 --debug displays computation time in nanoseconds
 
@@ -60,7 +65,7 @@ FLAGS: --help (this message)
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
 - Type "prec=[num]" to set the precision
-- Type "decimal=[num]" to set how many decimals to display
+- Type "decimal=[num]" to set how many decimals to display, also max length of numerator and denominator in fractions
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
 - Type "base=[num]" to set the number base (2-36)
@@ -133,6 +138,7 @@ kalc
 10
 > f(x,y,2,5) // graphs f(x,y,2,5) in 3D with z=2 and w=5 so x+y+2+5
 > f(2,5,x,y) // graphs f(2,5,x,y) in 3D with x=2 and y=5 so 2+5+x+y, to graph x and y have to be the unknown variables
+> |z| // graphs |(x+yi)| in 3D
 ```
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc

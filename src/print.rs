@@ -22,7 +22,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
     };
     let sign = if num.real() != &0.0 && num.imag().is_sign_positive() { "+" } else { "" }.to_owned();
     let a = get_output(&print_options, &num, color, sign);
-    print!("{}{}\x1b[0m", a.0, a.1);
+    print!("{}{}{}", a.0, a.1, if color { "\x1b[0m" } else { "" });
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool, usize), prompt:bool, color:bool, prec:u32) -> bool
 {
@@ -59,7 +59,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         Ok(f) => f,
         Err(_) =>
         {
-            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+            print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
                    if prompt
                    {
                        if color
@@ -195,8 +195,8 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     {
         (if num.real() != &0.0
          {
-             remove_trailing_zeros(&format!("{:.dec$e}\x1b[0m", num.real(), dec = print_options.5)).replace("e0", "")
-                                                                                                   .replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if color { "\x1b[0m" } else { "" }, dec = print_options.5)).replace("e0", "")
+                                                                                                                                  .replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else if num.imag() == &0.0
          {

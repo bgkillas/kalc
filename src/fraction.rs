@@ -3,6 +3,10 @@ use rug::Float;
 use rug::float::Constant::Pi;
 pub fn fraction(value:Float, tau:bool, prec:u32, dec:usize) -> String
 {
+    if value.clone().fract() == 0.0
+    {
+        return String::new();
+    }
     let mut nums:Vec<Float> = vec![];
     let values = [Float::with_val(prec, 1.0), if tau { 2 * Float::with_val(prec, Pi) } else { Float::with_val(prec, Pi) }, Float::with_val(prec, 2).sqrt(), Float::with_val(prec, 3).sqrt()];
     let sign:String = if value < 0.0 { "-".to_string() } else { "".to_string() };

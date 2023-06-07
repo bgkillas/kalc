@@ -1,4 +1,4 @@
-use rug::Complex;
+use rug::{Complex, Float};
 use crate::fraction::fraction;
 use crate::math::{do_math, NumStr};
 use crate::parse::get_func;
@@ -220,9 +220,7 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     {
         (if num.real() != &0.0
          {
-             remove_decimal(&remove_scientific(&num.real().to_string()), print_options.5).trim_end_matches(|c| c == '0')
-                                                                                         .trim_end_matches(|c| c == '.')
-                                                                                         .to_string()
+             to_string(num.real(), print_options.5)
          }
          else if num.imag() == &0.0
          {
@@ -234,10 +232,7 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             sign
-             + remove_decimal(&remove_scientific(&num.imag().to_string()), print_options.5).trim_end_matches(|c| c == '0')
-                                                                                           .trim_end_matches(|c| c == '.')
-             + if color { "\x1b[93mi" } else { "i" }
+             sign + &to_string(num.real(), print_options.5) + if color { "\x1b[93mi" } else { "i" }
          }
          else
          {
@@ -245,29 +240,49 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          })
     }
 }
-fn remove_decimal(input:&str, decimals:usize) -> String
+fn to_string(num:&Float, decimals:usize) -> String
 {
-    let decimal = input.find('.');
-    if decimal.is_none()
+    let (neg, mut str, exp) = num.to_sign_string_exp(10, None);
+    let neg = if neg { "-" } else { "" };
+    if exp.is_none()
     {
-        return input.to_string();
+        return format!("{}{}", neg, str);
     }
-    let decimal = decimal.unwrap();
-    if input.len() - decimal <= decimals || decimal + decimals + 2 > input.len()
+    let exp = exp.unwrap();
+    if str.len() as i32 == exp
     {
-        return input.to_string();
+        return format!("{}{}", neg, str);
     }
-    input[..=decimal].to_owned() + &(input[decimal + 1..decimal + decimals + 2].parse::<f64>().unwrap_or(0.0) / 10.0).round().to_string()
-}
-fn remove_scientific(input:&str) -> String
-{
-    let e = input.find('e');
-    if e.is_none()
+    if exp > str.len() as i32
     {
-        return input.to_string();
+        str.push_str(&"0".repeat(exp as usize - str.len()));
     }
-    let e = e.unwrap();
-    format!("0.{}{}", "0".repeat(input[e + 2..].parse::<usize>().unwrap() - 1), input[..e].replace('.', ""))
+    let mut zeros = String::new();
+    if exp < 0
+    {
+        zeros = "0".repeat(-exp as usize);
+        str.insert_str(0, &zeros);
+        str.insert(1, '.');
+    }
+    else
+    {
+        str.insert(exp as usize, '.');
+    }
+    let mut split = str.split('.');
+    let l = split.next().unwrap();
+    let mut r = split.next().unwrap().to_string();
+    if r.is_empty()
+    {
+        return format!("{}{}", neg, l);
+    }
+    if r.len() > decimals
+    {
+        r.insert(decimals - 1, '.');
+    }
+    let r = Float::with_val(num.prec(), Float::parse(&r).unwrap()).to_integer().unwrap();
+    format!("{}{}.{}{}", neg, if l.is_empty() { "0" } else { l }, zeros, r).trim_end_matches(|c| c == '0')
+                                                                           .trim_end_matches(|c| c == '.')
+                                                                           .to_string()
 }
 fn remove_trailing_zeros(input:&str) -> String
 {

@@ -226,7 +226,10 @@ fn main()
     {
         for line in stdin().lock().lines()
         {
-            args.push(line.unwrap());
+            if !line.as_ref().unwrap().is_empty()
+            {
+                args.push(line.unwrap());
+            }
         }
     }
     #[cfg(unix)]

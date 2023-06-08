@@ -68,6 +68,7 @@ FLAGS: --help (this message)
 - Type "decimal=[num]" to set how many decimals to display, also max length of numerator and denominator in fractions
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
+- Type "vars" to list all variables
 - Type "base=[num]" to set the number base (2-36)
 - Type "_" to use the previous answer
 - Type "a=[num]" to define a variable

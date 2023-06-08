@@ -38,36 +38,36 @@ fn main()
     {
         let file = File::open(file_path).unwrap();
         let reader = BufReader::new(file);
-        for line in reader.lines()
+        let mut split;
+        for line in reader.lines().map(|l| l.unwrap())
         {
-            let line = line.unwrap();
-            let mut args = line.split('=');
-            match args.next().unwrap()
+            split = line.split('=');
+            match split.next().unwrap()
             {
-                "2d" => graph_options.1 = args.next().unwrap().parse::<f64>().unwrap_or(40000.0),
-                "3d" => graph_options.2 = args.next().unwrap().parse::<f64>().unwrap_or(400.0),
+                "2d" => graph_options.1 = split.next().unwrap().parse::<f64>().unwrap_or(40000.0),
+                "3d" => graph_options.2 = split.next().unwrap().parse::<f64>().unwrap_or(400.0),
                 "xr" =>
                 {
-                    let mut xr = args.next().unwrap().split(',');
+                    let mut xr = split.next().unwrap().split(',');
                     graph_options.0[0][0] = xr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[0][1] = xr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
                 "yr" =>
                 {
-                    let mut yr = args.next().unwrap().split(',');
+                    let mut yr = split.next().unwrap().split(',');
                     graph_options.0[1][0] = yr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[1][1] = yr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
                 "zr" =>
                 {
-                    let mut zr = args.next().unwrap().split(',');
+                    let mut zr = split.next().unwrap().split(',');
                     graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
                 "prec" | "precision" =>
                 {
                     prec = {
-                        let prec = args.next().unwrap().parse::<u32>().unwrap_or(256);
+                        let prec = split.next().unwrap().parse::<u32>().unwrap_or(256);
                         if prec == 0
                         {
                             256
@@ -78,25 +78,25 @@ fn main()
                         }
                     }
                 }
-                "decimal" | "deci" | "decimals" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
-                "rt" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
-                "line" => graph_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(false),
-                "prompt" => prompt = args.next().unwrap().parse::<bool>().unwrap_or(true),
-                "color" => color = args.next().unwrap().parse::<bool>().unwrap_or(true),
-                "point" => graph_options.3 = args.next().unwrap().chars().next().unwrap_or('.'),
-                "sci" | "scientific" => print_options.0 = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "decimal" | "deci" | "decimals" => print_options.5 = split.next().unwrap().parse::<usize>().unwrap_or(12),
+                "rt" => print_options.4 = split.next().unwrap().parse::<bool>().unwrap_or(true),
+                "line" => graph_options.4 = split.next().unwrap().parse::<bool>().unwrap_or(false),
+                "prompt" => prompt = split.next().unwrap().parse::<bool>().unwrap_or(true),
+                "color" => color = split.next().unwrap().parse::<bool>().unwrap_or(true),
+                "point" => graph_options.3 = split.next().unwrap().chars().next().unwrap_or('.'),
+                "sci" | "scientific" => print_options.0 = split.next().unwrap().parse::<bool>().unwrap_or(false),
                 "base" =>
                 {
-                    print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10);
+                    print_options.2 = split.next().unwrap().parse::<usize>().unwrap_or(10);
                     if print_options.2 > 36 || print_options.2 < 2
                     {
                         print_options.2 = 10;
                     }
                 }
-                "debug" => debug = args.next().unwrap().parse::<bool>().unwrap_or(false),
-                "deg" => print_options.1 = args.next().unwrap().parse::<bool>().unwrap_or(false),
-                "tau" => print_options.3 = args.next().unwrap().parse::<bool>().unwrap_or(false),
-                "vars" => allow_vars = args.next().unwrap().parse::<bool>().unwrap_or(true),
+                "debug" => debug = split.next().unwrap().parse::<bool>().unwrap_or(false),
+                "deg" => print_options.1 = split.next().unwrap().parse::<bool>().unwrap_or(false),
+                "tau" => print_options.3 = split.next().unwrap().parse::<bool>().unwrap_or(false),
+                "vars" => allow_vars = split.next().unwrap().parse::<bool>().unwrap_or(true),
                 _ =>
                 {}
             }
@@ -104,8 +104,20 @@ fn main()
     }
     let mut args = args().collect::<Vec<String>>();
     args.remove(0);
+    let (mut split, mut l);
     while !args.is_empty()
     {
+        if args[0].contains('=') || args[0].contains(',')
+        {
+            l = args[0].clone();
+            split = l.split(|c| c == '=' || c == ',');
+            args[0] = split.next().unwrap().to_string();
+            args.insert(1, split.next().unwrap().to_string());
+            if split.clone().count() > 0
+            {
+                args.insert(2, split.next().unwrap().to_string());
+            }
+        }
         match args[0].as_str()
         {
             "--debug" => debug = !debug,
@@ -730,6 +742,23 @@ fn main()
                     }
                     continue;
                 }
+                "vars" | "variables" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    for v in vars.iter()
+                    {
+                        println!("{}={}", v[0], v[1]);
+                    }
+                    continue;
+                }
+                "version" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+                    continue;
+                }
                 "exit" | "quit" =>
                 {
                     break;
@@ -1033,6 +1062,7 @@ FLAGS: --help (this message)\n\
 - Type \"deci=[num]\" to set how many decimals to display, also max length of numerator and denominator in fractions\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
+- Type \"vars\" to list all variables\n\
 - Type \"base=[num]\" to set the number base (2-36)\n\
 - Type \"_\" to use the previous answer\n\
 - Type \"a=[num]\" to define a variable\n\

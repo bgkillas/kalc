@@ -191,7 +191,7 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.2 as i32, None));
+             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.2 as i32, None));
              sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if color { "\x1b[93mi" } else { "i" }
          }
          else
@@ -240,7 +240,7 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             sign + &to_string(num.real(), print_options.5) + if color { "\x1b[93mi" } else { "i" }
+             sign + &to_string(num.imag(), print_options.5) + if color { "\x1b[93mi" } else { "i" }
          }
          else
          {

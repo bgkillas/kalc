@@ -159,7 +159,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                 {
                     func.push(Str("&&".to_string()));
                 }
-                '*' if i != 0 && i != chars.len() =>
+                '*' if i != 0 && i + 1 != chars.len() =>
                 {
                     if i + 1 != chars.len() && chars[i + 1] == '*'
                     {
@@ -187,8 +187,8 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str("<=".to_string()));
                     }
                 }
-                '/' if i != 0 && i != chars.len() => func.push(Str('/'.to_string())),
-                '+' if i != 0 && i != chars.len() => func.push(Str('+'.to_string())),
+                '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
+                '+' if i != 0 && i + 1 != chars.len() => func.push(Str('+'.to_string())),
                 '<' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
                 {
                     if chars[i + 1] == '<'
@@ -213,7 +213,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('>'.to_string()));
                     }
                 }
-                '-' if i != chars.len() =>
+                '-' =>
                 {
                     if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
                     {
@@ -232,14 +232,14 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if i != 0 && i != chars.len() => func.push(Str('^'.to_string())),
-                '(' =>
+                '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
+                '(' if i + 1 != chars.len() =>
                 {
                     count += 1;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' =>
+                ')' if i != 0 =>
                 {
                     count -= 1;
                     func.push(Str(")".to_string()))
@@ -333,8 +333,8 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     func.push(Num(if neg { -2 * pi.clone() } else { 2 * pi.clone() }));
                     neg = false;
                 }
-                ',' if i != 0 && i != chars.len() => func.push(Str(','.to_string())),
-                '%' if i != 0 && i != chars.len() => func.push(Str('%'.to_string())),
+                ',' if i != 0 && i + 1 != chars.len() => func.push(Str(','.to_string())),
+                '%' if i != 0 && i + 1 != chars.len() => func.push(Str('%'.to_string())),
                 _ => (),
             }
         }
@@ -353,6 +353,10 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     {
         func.push(Str("^".to_string()));
         func.push(Num(Complex::with_val(prec, exp as f64)));
+    }
+    if neg
+    {
+        func.push(Num(n1));
     }
     if !word.is_empty()
     {

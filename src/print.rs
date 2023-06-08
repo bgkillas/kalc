@@ -122,7 +122,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         {
             frac = true;
             (if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
-             if a == 0.0
+             if b == 0.0
              {
                  "".to_string()
              }
@@ -166,9 +166,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
 }
 fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Complex, color:bool, sign:String) -> (String, String)
 {
+    let mut n = String::new();
     if print_options.2 != 10
     {
-        let mut n;
         (if num.real() != &0.0
          {
              n = remove_trailing_zeros(&num.real().to_string_radix(print_options.2 as i32, None));
@@ -228,7 +228,15 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     {
         (if num.real() != &0.0
          {
-             to_string(num.real(), print_options.5)
+             n = to_string(num.real(), print_options.5);
+             if n == "0" || n == "-0"
+             {
+                 "".to_string()
+             }
+             else
+             {
+                 n.clone()
+             }
          }
          else if num.imag() == &0.0
          {
@@ -240,7 +248,16 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             sign + &to_string(num.imag(), print_options.5) + if color { "\x1b[93mi" } else { "i" }
+             let sign = if n == "0" { "".to_string() } else { sign };
+             n = to_string(num.imag(), print_options.5);
+             if n == "0" || n == "-0"
+             {
+                 "".to_string()
+             }
+             else
+             {
+                 sign + &n + if color { "\x1b[93mi" } else { "i" }
+             }
          }
          else
          {

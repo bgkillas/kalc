@@ -201,10 +201,11 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     }
     else if print_options.0
     {
+        let dec = if print_options.5 == 0 { 1 } else { print_options.5 };
         (if num.real() != &0.0
          {
-             remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if color { "\x1b[0m" } else { "" }, dec = print_options.5)).replace("e0", "")
-                                                                                                                                  .replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if color { "\x1b[0m" } else { "" })).replace("e0", "")
+                                                                                                           .replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else if num.imag() == &0.0
          {
@@ -216,8 +217,8 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if color { "\x1b[93mi" } else { "i" }, dec = print_options.5)).replace("e0", "")
-                                                                                                                                             .replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if color { "\x1b[93mi" } else { "i" })).replace("e0", "")
+                                                                                                                      .replace('e', if color { "\x1b[92mE" } else { "E" })
          }
          else
          {

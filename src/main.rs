@@ -783,12 +783,12 @@ fn main()
             {
                 "point" =>
                 {
-                    graph_options.3 = r.chars().next().unwrap();
+                    graph_options.3 = r.chars().next().unwrap_or('.');
                     continue;
                 }
                 "base" =>
                 {
-                    print_options.2 = r.parse::<usize>().unwrap();
+                    print_options.2 = r.parse::<usize>().unwrap_or(10);
                     if print_options.2 > 36 || print_options.2 < 2
                     {
                         print_options.2 = 10;
@@ -797,43 +797,43 @@ fn main()
                 }
                 "decimal" | "deci" | "decimals" =>
                 {
-                    print_options.5 = r.parse::<usize>().unwrap();
+                    print_options.5 = r.parse::<usize>().unwrap_or(12);
                     continue;
                 }
                 "prec" | "precision" =>
                 {
                     // fix redefined vars
-                    prec = if r == "0" { prec } else { r.parse::<u32>().unwrap() };
+                    prec = if r == "0" { prec } else { r.parse::<u32>().unwrap_or(256) };
                     v = get_vars(allow_vars, prec);
                     vars = [v.clone(), vars[v.len()..].to_vec()].concat();
                     continue;
                 }
                 "xr" =>
                 {
-                    graph_options.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                    graph_options.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap_or(10.0);
                     continue;
                 }
                 "yr" =>
                 {
-                    graph_options.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                    graph_options.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap_or(10.0);
                     continue;
                 }
                 "zr" =>
                 {
-                    graph_options.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap();
-                    graph_options.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap();
+                    graph_options.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap_or(-10.0);
+                    graph_options.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap_or(10.0);
                     continue;
                 }
                 "2d" =>
                 {
-                    graph_options.1 = r.parse::<f64>().unwrap();
+                    graph_options.1 = r.parse::<f64>().unwrap_or(40000.0);
                     continue;
                 }
                 "3d" =>
                 {
-                    graph_options.2 = r.parse::<f64>().unwrap();
+                    graph_options.2 = r.parse::<f64>().unwrap_or(400.0);
                     continue;
                 }
                 _ => (),
@@ -1093,21 +1093,22 @@ Other functions:\n\
 - deg(to_degrees), rad(to_radians)\n\
 - re(real part), im(imaginary part)\n\n\
 Constants:\n\
-- g: gravity\n\
-- c: speed of light\n\
-- h: planck's constant\n\
-- e: euler's number\n\
-- pi: pi\n\
-- tau: tau (2pi)\n\
-- phi: golden ratio\n\
-- G: gravitational constant\n\
-- ec: elementary charge\n\
-- mp: proton mass\n\
-- mn: neutron mass\n\
-- me: electron mass\n\
-- ev: electron volt\n\
-- kc: coulomb's constant\n\
-- na: avogadro's number\n\
-- r: gas constant"
+- c: speed of light, 299792458 m/s\n\
+- g: gravity, 9.80665 m/s^2\n\
+- G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)\n\
+- h: planck's constant, 6.62607015E-34 J*s\n\
+- ec: elementary charge, 1.602176634E-19 C\n\
+- me: electron mass, 9.1093837015E-31 kg\n\
+- mp: proton mass, 1.67262192369E-27 kg\n\
+- mn: neutron mass, 1.67492749804E-27 kg\n\
+- ev: electron volt, 1.602176634E-19 J\n\
+- kc: coulomb's constant, 8.9875517923E9 N*m^2/C^2\n\
+- na: avogadro's number, 6.02214076E23 1/mol\n\
+- r: gas constant, 8.31446261815324 J/(mol*K)\n\
+- kb: boltzmann constant, 1.380649E-23 J/K\n\
+- phi: golden ratio, 1.6180339887~\n\
+- e: euler's number, 2.7182818284~\n\
+- pi: pi, 3.1415926535~\n\
+- tau: tau, 6.2831853071~"
     );
 }

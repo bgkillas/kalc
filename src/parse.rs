@@ -533,6 +533,7 @@ pub fn get_vars(allow_vars:bool, prec:u32) -> Vec<[String; 2]>
              ["kc".to_string(), "8.9875517923E9".to_string()],
              ["na".to_string(), "6.02214076E23".to_string()],
              ["r".to_string(), "8.31446261815324".to_string()],
+             ["kb".to_string(), "1.380649E-23".to_string()],
              ["phi".to_string(), phi.to_string()],
              ["e".to_string(), Float::with_val(prec, 1).exp().to_string()],
              ["pi".to_string(), pi.to_string()],

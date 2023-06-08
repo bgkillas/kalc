@@ -103,22 +103,23 @@ Other functions:
 - re(real part), im(imaginary part)
 
 Constants:
-- g: gravity
-- c: speed of light
-- h: planck's constant
-- e: euler's number
-- pi: pi
-- tau: tau (2pi)
-- phi: golden ratio
-- G: gravitational constant
-- ec: elementary charge
-- mp: proton mass
-- mn: neutron mass
-- me: electron mass
-- ev: electron volt
-- kc: coulomb's constant
-- Na: avogadro's number
-- R: gas constant
+- c: speed of light, 299792458 m/s
+- g: gravity, 9.80665 m/s^2
+- G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)
+- h: planck's constant, 6.62607015E-34 J*s
+- ec: elementary charge, 1.602176634E-19 C
+- me: electron mass, 9.1093837015E-31 kg
+- mp: proton mass, 1.67262192369E-27 kg
+- mn: neutron mass, 1.67492749804E-27 kg
+- ev: electron volt, 1.602176634E-19 J
+- kc: coulomb's constant, 8.9875517923E9 N*m^2/C^2
+- na: avogadro's number, 6.02214076E23 1/mol
+- r: gas constant, 8.31446261815324 J/(mol*K)
+- kb: boltzmann constant, 1.380649E-23 J/K
+- phi: golden ratio, 1.6180339887~
+- e: euler's number, 2.7182818284~
+- pi: pi, 3.1415926535~
+- tau: tau, 6.2831853071~
 ```
 # example usage
 ```

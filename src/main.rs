@@ -64,7 +64,7 @@ fn main()
                     graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
                     graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
                 }
-                "prec" =>
+                "prec" | "precision" =>
                 {
                     prec = {
                         let prec = args.next().unwrap().parse::<u32>().unwrap_or(256);
@@ -78,13 +78,13 @@ fn main()
                         }
                     }
                 }
-                "decimal" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
-                "concurrent" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
+                "decimal" | "deci" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
+                "rt" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "line" => graph_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "prompt" => prompt = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "color" => color = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "point" => graph_options.3 = args.next().unwrap().chars().next().unwrap_or('.'),
-                "sci" => print_options.0 = args.next().unwrap().parse::<bool>().unwrap_or(false),
+                "sci" | "scientific" => print_options.0 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "base" =>
                 {
                     print_options.2 = args.next().unwrap().parse::<usize>().unwrap_or(10);
@@ -114,8 +114,8 @@ fn main()
             "--prompt" => prompt = !prompt,
             "--color" => color = !color,
             "--line" => graph_options.4 = !graph_options.4,
-            "--concurrent" => print_options.4 = !print_options.4,
-            "--prec" =>
+            "--rt" => print_options.4 = !print_options.4,
+            "--prec" | "--precision" =>
             {
                 if args.len() > 1
                 {
@@ -123,7 +123,7 @@ fn main()
                     args.remove(0);
                 }
             }
-            "--decimal" =>
+            "--decimal" | "--deci" =>
             {
                 if args.len() > 1
                 {
@@ -189,24 +189,24 @@ fn main()
                     args.remove(0);
                 }
             }
-            "--sci" => print_options.0 = !print_options.0,
+            "--sci" | "--scientific" => print_options.0 = !print_options.0,
             "--point" =>
             {
                 graph_options.3 = args[1].chars().next().unwrap_or('.');
                 args.remove(0);
             }
-            "--help" =>
+            "--help" | "-h" =>
             {
                 help();
                 return;
             }
-            "--version" =>
+            "--version" | "-v" =>
             {
                 println!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                 return;
             }
             "--vars" => allow_vars = !allow_vars,
-            "--default" =>
+            "--default" | "--def" =>
             {
                 print_options = (false, false, 10, false, true, 12);
                 graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false);
@@ -666,7 +666,7 @@ fn main()
                     print_options.1 = false;
                     continue;
                 }
-                "concurrent" =>
+                "rt" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
@@ -685,7 +685,7 @@ fn main()
                     write(&input, &mut file, &unmod_lines);
                     continue;
                 }
-                "sci" =>
+                "sci" | "scientific" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
@@ -766,12 +766,12 @@ fn main()
                     }
                     continue;
                 }
-                "decimal" =>
+                "decimal" | "deci" | "decimals" =>
                 {
                     print_options.5 = r.parse::<usize>().unwrap();
                     continue;
                 }
-                "prec" =>
+                "prec" | "precision" =>
                 {
                     // fix redefined vars
                     prec = if r == "0" { prec } else { r.parse::<u32>().unwrap() };
@@ -1007,7 +1007,7 @@ FLAGS: --help (this message)\n\
 --color toggles color\n\
 --vars toggles default variables\n\
 --line toggles line graphing\n\
---concurrent toggles concurrent printing\n\
+--rt toggles real time printing\n\
 --prec [num] sets the precision\n\
 --decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions\n\
 --default ignores config file\n\
@@ -1022,7 +1022,7 @@ FLAGS: --help (this message)\n\
 - Type \"pi\" to show fractions in pi\n\
 - Type \"prompt\" to toggle the prompt\n\
 - Type \"line\" to toggle line graphing\n\
-- Type \"concurrent\" to toggle concurrent printing\n\
+- Type \"rt\" to toggle real time printing\n\
 - Type \"color\" to toggle color\n\
 - Type \"2d=[num]\" to set the number of points in 2D graphs\n\
 - Type \"3d=[num]\" to set the number of points in 3D graphs\n\

@@ -41,7 +41,7 @@ FLAGS: --help (this message)
 --color toggles color
 --vars toggles default variables
 --line toggles line graphing
---concurrent toggles concurrent printing
+--rt toggles real time printing
 --prec [num] sets the precision
 --decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions
 --default ignores config file
@@ -57,7 +57,7 @@ FLAGS: --help (this message)
 - Type "pi" to show fractions in pi
 - Type "prompt" to toggle the prompt
 - Type "line" to toggle line graphing
-- Type "concurrent" to toggle concurrent printing
+- Type "rt" to toggle real time printing
 - Type "color" to toggle color
 - Type "2d=[num]" to set the number of points in 2D graphs
 - Type "3d=[num]" to set the number of points in 3D graphs

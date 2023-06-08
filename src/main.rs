@@ -78,7 +78,7 @@ fn main()
                         }
                     }
                 }
-                "decimal" | "deci" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
+                "decimal" | "deci" | "decimals" => print_options.5 = args.next().unwrap().parse::<usize>().unwrap_or(12),
                 "rt" => print_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(true),
                 "line" => graph_options.4 = args.next().unwrap().parse::<bool>().unwrap_or(false),
                 "prompt" => prompt = args.next().unwrap().parse::<bool>().unwrap_or(true),
@@ -123,7 +123,7 @@ fn main()
                     args.remove(0);
                 }
             }
-            "--decimal" | "--deci" =>
+            "--decimal" | "--deci" | "--decimals" =>
             {
                 if args.len() > 1
                 {
@@ -1009,8 +1009,8 @@ FLAGS: --help (this message)\n\
 --line toggles line graphing\n\
 --rt toggles real time printing\n\
 --prec [num] sets the precision\n\
---decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions\n\
---default ignores config file\n\
+--deci [num] sets how many decimals to display, also max length of numerator and denominator in fractions\n\
+--def ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
@@ -1030,7 +1030,7 @@ FLAGS: --help (this message)\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
 - Type \"prec=[num]\" to set the precision\n\
-- Type \"decimal=[num]\" to set how many decimals to display, also max length of numerator and denominator in fractions\n\
+- Type \"deci=[num]\" to set how many decimals to display, also max length of numerator and denominator in fractions\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"base=[num]\" to set the number base (2-36)\n\
@@ -1077,7 +1077,7 @@ Constants:\n\
 - me: electron mass\n\
 - ev: electron volt\n\
 - kc: coulomb's constant\n\
-- Na: avogadro's number\n\
-- R: gas constant"
+- na: avogadro's number\n\
+- r: gas constant"
     );
 }

@@ -168,9 +168,18 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
 {
     if print_options.2 != 10
     {
+        let mut n;
         (if num.real() != &0.0
          {
-             remove_trailing_zeros(num.real().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.'))
+             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.2 as i32, None));
+             if n.contains('e')
+             {
+                 n
+             }
+             else
+             {
+                 n.trim_end_matches('0').trim_end_matches('.').to_owned()
+             }
          }
          else if num.imag() == &0.0
          {
@@ -182,9 +191,8 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             sign
-             + &remove_trailing_zeros(num.imag().to_string_radix(print_options.2 as i32, None).trim_end_matches(|c| c == '0').trim_end_matches(|c| c == '.'))
-             + if color { "\x1b[93mi" } else { "i" }
+             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.2 as i32, None));
+             sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if color { "\x1b[93mi" } else { "i" }
          }
          else
          {
@@ -277,7 +285,7 @@ fn to_string(num:&Float, decimals:usize) -> String
     }
     if r.len() > decimals
     {
-        r.insert(decimals - 1, '.');
+        r.insert(decimals, '.');
     }
     let r = Float::with_val(num.prec(), Float::parse(&r).unwrap()).to_integer().unwrap();
     format!("{}{}.{}{}", neg, if l.is_empty() { "0" } else { l }, zeros, r).trim_end_matches(|c| c == '0')

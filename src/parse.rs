@@ -232,7 +232,18 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
+                '^' if i != 0 && i + 1 != chars.len() =>
+                {
+                    if chars[i + 1] == '-'
+                    {
+                        func.insert(func.len() - 1, Str("(".to_string()));
+                        func.insert(func.len() - 1, Num(Complex::with_val(prec, 1.0)));
+                        func.insert(func.len() - 1, Str("/".to_string()));
+                        count += 1;
+                        i += 1;
+                    }
+                    func.push(Str('^'.to_string()))
+                }
                 '(' if i + 1 != chars.len() =>
                 {
                     count += 1;

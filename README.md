@@ -12,7 +12,6 @@ config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\A
 # known issues
 - setting precision will remove vars if you change or delete any of the default vars
 - x^x^(1/x) is evaluated as (x^x)^(1/x) instead of x^(x^(1/x)) // x being any expression
-- 2^-x is evaluated as 2^-1\*x instead of 2^(-1\*x) // for graphing
 
 # build instructions
 install rust at least version 1.70

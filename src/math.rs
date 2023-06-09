@@ -542,17 +542,21 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
         }
         i += 1;
     }
-    i = 1;
-    while i < function.len() - 1
+    if function.len() > 1
     {
-        if !function[i].str_is("^")
+        i = function.len() - 2;
+        while i != 0
         {
-            i += 1;
-            continue;
+            if !function[i].str_is("^")
+            {
+                i -= 1;
+                continue;
+            }
+            function[i] = Num(function[i - 1].num()?.pow(function[i + 1].num()?));
+            function.remove(i + 1);
+            function.remove(i - 1);
+            i -= 1;
         }
-        function[i] = Num(function[i - 1].num()?.pow(function[i + 1].num()?));
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     i = 1;
     while i < function.len() - 1

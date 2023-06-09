@@ -1,11 +1,12 @@
 mod fraction;
 mod graph;
 mod math;
+mod options;
 mod parse;
 mod print;
 #[cfg(test)]
 mod tests;
-use parse::{input_var, get_func, get_vars};
+use parse::{get_func, get_vars, input_var};
 use std::env::{args, var};
 use std::io::{BufRead, BufReader, IsTerminal, stdout, Write};
 use std::fs::{File, OpenOptions};
@@ -13,11 +14,12 @@ use graph::graph;
 use print::{print_answer, print_concurrent};
 use std::io::stdin;
 use std::thread::JoinHandle;
+use options::{arg_opts, file_opts};
 #[cfg(not(unix))]
 use console::{Key, Term};
 #[cfg(unix)]
 use {
-    libc::{tcgetattr, ECHO, ICANON, TCSANOW, VMIN, VTIME, tcsetattr}, std::os::fd::AsRawFd, std::io::Read
+    libc::{ECHO, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
 fn main()
 {
@@ -30,209 +32,35 @@ fn main()
     let mut color = true;
     let mut prec = 256;
     let mut handles:Vec<JoinHandle<()>> = Vec::new();
+    let mut err = false;
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
     #[cfg(not(unix))]
     let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.config", var("USERNAME").unwrap());
-    if File::open(file_path).is_ok()
-    {
-        let file = File::open(file_path).unwrap();
-        let reader = BufReader::new(file);
-        let mut split;
-        for line in reader.lines().map(|l| l.unwrap())
-        {
-            split = line.split('=');
-            match split.next().unwrap()
-            {
-                "2d" => graph_options.1 = split.next().unwrap().parse::<f64>().unwrap_or(40000.0),
-                "3d" => graph_options.2 = split.next().unwrap().parse::<f64>().unwrap_or(400.0),
-                "xr" =>
-                {
-                    let mut xr = split.next().unwrap().split(',');
-                    graph_options.0[0][0] = xr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[0][1] = xr.next().unwrap().parse::<f64>().unwrap_or(10.0);
-                }
-                "yr" =>
-                {
-                    let mut yr = split.next().unwrap().split(',');
-                    graph_options.0[1][0] = yr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[1][1] = yr.next().unwrap().parse::<f64>().unwrap_or(10.0);
-                }
-                "zr" =>
-                {
-                    let mut zr = split.next().unwrap().split(',');
-                    graph_options.0[2][0] = zr.next().unwrap().parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[2][1] = zr.next().unwrap().parse::<f64>().unwrap_or(10.0);
-                }
-                "prec" | "precision" =>
-                {
-                    prec = {
-                        let prec = split.next().unwrap().parse::<u32>().unwrap_or(256);
-                        if prec == 0
-                        {
-                            256
-                        }
-                        else
-                        {
-                            prec
-                        }
-                    }
-                }
-                "decimal" | "deci" | "decimals" => print_options.5 = split.next().unwrap().parse::<usize>().unwrap_or(12),
-                "rt" => print_options.4 = split.next().unwrap().parse::<bool>().unwrap_or(true),
-                "line" => graph_options.4 = split.next().unwrap().parse::<bool>().unwrap_or(false),
-                "prompt" => prompt = split.next().unwrap().parse::<bool>().unwrap_or(true),
-                "color" => color = split.next().unwrap().parse::<bool>().unwrap_or(true),
-                "point" => graph_options.3 = split.next().unwrap().chars().next().unwrap_or('.'),
-                "sci" | "scientific" => print_options.0 = split.next().unwrap().parse::<bool>().unwrap_or(false),
-                "base" =>
-                {
-                    print_options.2 = split.next().unwrap().parse::<usize>().unwrap_or(10);
-                    if print_options.2 > 36 || print_options.2 < 2
-                    {
-                        print_options.2 = 10;
-                    }
-                }
-                "debug" => debug = split.next().unwrap().parse::<bool>().unwrap_or(false),
-                "deg" => print_options.1 = split.next().unwrap().parse::<bool>().unwrap_or(false),
-                "tau" => print_options.3 = split.next().unwrap().parse::<bool>().unwrap_or(false),
-                "vars" => allow_vars = split.next().unwrap().parse::<bool>().unwrap_or(true),
-                _ =>
-                {}
-            }
-        }
-    }
     let mut args = args().collect::<Vec<String>>();
-    args.remove(0);
-    let (mut split, mut l);
-    while !args.is_empty()
+    file_opts(&mut graph_options,
+              &mut print_options,
+              &mut allow_vars,
+              &mut debug,
+              &mut prompt,
+              &mut color,
+              &mut prec,
+              &mut err,
+              file_path);
+    arg_opts(&mut graph_options,
+             &mut print_options,
+             &mut allow_vars,
+             &mut debug,
+             &mut prompt,
+             &mut color,
+             &mut prec,
+             &mut err,
+             &mut args);
+    if err
     {
-        if args[0].contains('=') || args[0].contains(',')
-        {
-            l = args[0].clone();
-            split = l.split(|c| c == '=' || c == ',');
-            args[0] = split.next().unwrap().to_string();
-            args.insert(1, split.next().unwrap().to_string());
-            if split.clone().count() > 0
-            {
-                args.insert(2, split.next().unwrap().to_string());
-            }
-        }
-        match args[0].as_str()
-        {
-            "--debug" => debug = !debug,
-            "--tau" => print_options.3 = !print_options.3,
-            "--deg" => print_options.1 = !print_options.1,
-            "--prompt" => prompt = !prompt,
-            "--color" => color = !color,
-            "--line" => graph_options.4 = !graph_options.4,
-            "--rt" => print_options.4 = !print_options.4,
-            "--prec" | "--precision" =>
-            {
-                if args.len() > 1
-                {
-                    prec = if args[1] == "0" { 256 } else { args[1].parse::<u32>().unwrap_or(256) };
-                    args.remove(0);
-                }
-            }
-            "--decimal" | "--deci" | "--decimals" =>
-            {
-                if args.len() > 1
-                {
-                    print_options.5 = args[1].parse::<usize>().unwrap_or(12);
-                    args.remove(0);
-                }
-            }
-            "--2d" =>
-            {
-                if args.len() > 1
-                {
-                    graph_options.1 = args[1].parse::<f64>().unwrap_or(40000.0);
-                    args.remove(0);
-                }
-            }
-            "--3d" =>
-            {
-                if args.len() > 1
-                {
-                    graph_options.2 = args[1].parse::<f64>().unwrap_or(400.0);
-                    args.remove(0);
-                }
-            }
-            "--yr" =>
-            {
-                if args.len() > 2
-                {
-                    graph_options.0[1][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[1][1] = args[2].parse::<f64>().unwrap_or(10.0);
-                    args.remove(0);
-                    args.remove(0);
-                }
-            }
-            "--xr" =>
-            {
-                if args.len() > 2
-                {
-                    graph_options.0[0][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[0][1] = args[2].parse::<f64>().unwrap_or(10.0);
-                    args.remove(0);
-                    args.remove(0);
-                }
-            }
-            "--zr" =>
-            {
-                if args.len() > 2
-                {
-                    graph_options.0[2][0] = args[1].parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[2][1] = args[2].parse::<f64>().unwrap_or(10.0);
-                    args.remove(0);
-                    args.remove(0);
-                }
-            }
-            "--base" =>
-            {
-                if args.len() > 1
-                {
-                    print_options.2 = args[1].parse::<usize>().unwrap_or(10);
-                    if print_options.2 > 36 || print_options.2 < 2
-                    {
-                        print_options.2 = 10;
-                    }
-                    args.remove(0);
-                }
-            }
-            "--sci" | "--scientific" => print_options.0 = !print_options.0,
-            "--point" =>
-            {
-                graph_options.3 = args[1].chars().next().unwrap_or('.');
-                args.remove(0);
-            }
-            "--help" | "-h" =>
-            {
-                help();
-                return;
-            }
-            "--version" | "-v" =>
-            {
-                println!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-                return;
-            }
-            "--vars" => allow_vars = !allow_vars,
-            "--default" | "--def" =>
-            {
-                print_options = (false, false, 10, false, true, 12);
-                graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false);
-                prec = 256;
-                allow_vars = true;
-                debug = false;
-                prompt = true;
-                color = true;
-            }
-            _ => break,
-        }
-        args.remove(0);
+        std::process::exit(1);
     }
-    let mut vars:Vec<[String; 2]> = get_vars(allow_vars, prec);
+    let mut vars:Vec<[String; 2]> = if allow_vars { get_vars(prec) } else { Vec::new() };
     let mut input = String::new();
     if !stdin().is_terminal()
     {
@@ -783,57 +611,169 @@ fn main()
             {
                 "point" =>
                 {
-                    graph_options.3 = r.chars().next().unwrap_or('.');
+                    if r == "." || r == "+" || r == "x" || r == "*" || r == "s" || r == "S" || r == "o" || r == "O" || r == "t" || r == "T" || r == "d" || r == "D" || r == "r" || r == "R"
+                    {
+                        graph_options.3 = r.chars().next().unwrap();
+                    }
+                    else
+                    {
+                        println!("Invalid point type");
+                    }
                     continue;
                 }
                 "base" =>
                 {
-                    print_options.2 = r.parse::<usize>().unwrap_or(10);
-                    if print_options.2 > 36 || print_options.2 < 2
+                    print_options.2 = match r.parse::<usize>()
                     {
-                        print_options.2 = 10;
-                    }
+                        Ok(n) =>
+                        {
+                            if !(2..=36).contains(&n)
+                            {
+                                println!("Invalid base");
+                                print_options.2
+                            }
+                            else
+                            {
+                                n
+                            }
+                        }
+                        Err(_) =>
+                        {
+                            println!("Invalid base");
+                            print_options.2
+                        }
+                    };
                     continue;
                 }
                 "decimal" | "deci" | "decimals" =>
                 {
-                    print_options.5 = r.parse::<usize>().unwrap_or(12);
+                    print_options.5 = match r.parse::<usize>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid decimal");
+                            print_options.5
+                        }
+                    };
                     continue;
                 }
                 "prec" | "precision" =>
                 {
-                    // fix redefined vars
-                    prec = if r == "0" { prec } else { r.parse::<u32>().unwrap_or(256) };
-                    v = get_vars(allow_vars, prec);
-                    vars = [v.clone(), vars[v.len()..].to_vec()].concat();
+                    prec = if r == "0"
+                    {
+                        println!("Invalid precision");
+                        prec
+                    }
+                    else
+                    {
+                        match r.parse::<u32>()
+                        {
+                            Ok(n) => n,
+                            Err(_) =>
+                            {
+                                println!("Invalid precision");
+                                prec
+                            }
+                        }
+                    };
+                    if allow_vars
+                    {
+                        v = get_vars(prec);
+                        vars = [v.clone(), vars[v.len()..].to_vec()].concat();
+                    }
                     continue;
                 }
                 "xr" =>
                 {
-                    graph_options.0[0][0] = r.split(',').next().unwrap().parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[0][1] = r.split(',').last().unwrap().parse::<f64>().unwrap_or(10.0);
+                    graph_options.0[0][0] = match r.split(',').next().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid x range");
+                            graph_options.0[0][0]
+                        }
+                    };
+                    graph_options.0[0][1] = match r.split(',').last().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid x range");
+                            graph_options.0[0][1]
+                        }
+                    };
                     continue;
                 }
                 "yr" =>
                 {
-                    graph_options.0[1][0] = r.split(',').next().unwrap().parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[1][1] = r.split(',').last().unwrap().parse::<f64>().unwrap_or(10.0);
+                    graph_options.0[1][0] = match r.split(',').next().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid y range");
+                            graph_options.0[1][0]
+                        }
+                    };
+                    graph_options.0[1][1] = match r.split(',').last().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid y range");
+                            graph_options.0[1][1]
+                        }
+                    };
                     continue;
                 }
                 "zr" =>
                 {
-                    graph_options.0[2][0] = r.split(',').next().unwrap().parse::<f64>().unwrap_or(-10.0);
-                    graph_options.0[2][1] = r.split(',').last().unwrap().parse::<f64>().unwrap_or(10.0);
+                    graph_options.0[2][0] = match r.split(',').next().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid z range");
+                            graph_options.0[2][0]
+                        }
+                    };
+                    graph_options.0[2][1] = match r.split(',').last().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid z range");
+                            graph_options.0[2][1]
+                        }
+                    };
                     continue;
                 }
                 "2d" =>
                 {
-                    graph_options.1 = r.parse::<f64>().unwrap_or(40000.0);
+                    graph_options.1 = match r.parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid 2d sample size");
+                            graph_options.1
+                        }
+                    };
                     continue;
                 }
                 "3d" =>
                 {
-                    graph_options.2 = r.parse::<f64>().unwrap_or(400.0);
+                    graph_options.2 = match r.parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        Err(_) =>
+                        {
+                            println!("Invalid 3d sample size");
+                            graph_options.2
+                        }
+                    };
                     continue;
                 }
                 _ => (),

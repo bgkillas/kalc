@@ -9,9 +9,10 @@ history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\
 
 config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config``
 
+parsing tries to comply with wolfram alpha
+
 # known issues
 - setting precision will remove vars if you change or delete any of the default vars
-- x^x^(1/x) is evaluated as (x^x)^(1/x) instead of x^(x^(1/x)) // x being any expression
 
 # build instructions
 install rust at least version 1.70

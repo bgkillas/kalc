@@ -338,10 +338,19 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
         }
         i += 1;
     }
-    let bracket = Str(if count > 0 { ")".to_string() } else { "(".to_string() });
-    for _ in 0..count.abs()
+    if count > 0
     {
-        func.push(bracket.to_owned());
+        for _ in 0..count
+        {
+            func.push(Str(")".to_string()));
+        }
+    }
+    else
+    {
+        for _ in 0..count.abs()
+        {
+            func.insert(0, Str("(".to_string()));
+        }
     }
     if !abs
     {

@@ -73,7 +73,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
             {
                 if let Str(k) = &function[i - 1]
                 {
-                    if k == "log" || k == "sum" || k == "product" || k == "prod" || k == "root"
+                    if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root"
                     {
                         single = 0;
                         count = 0;
@@ -127,7 +127,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
         {
             if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
-                if s == "sum" || s == "product" || s == "prod"
+                if s == "sum" || s == "product" || s == "prod" || s == "summation"
                 {
                     place.clear();
                     for (f, n) in function.iter().enumerate()
@@ -161,7 +161,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                                                   l,
                                                   do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?.real().to_f64() as i64,
                                                   do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?.real().to_f64() as i64,
-                                                  s != "sum",
+                                                  s != "sum" || s != "summation",
                                                   deg,
                                                   prec)?);
                             function.drain(i + 1..=place[3]);

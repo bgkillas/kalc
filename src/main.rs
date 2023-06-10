@@ -25,7 +25,7 @@ fn main()
 {
     let mut graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false); //[xr,yr,zr], 2d, 3d, point style, lines
     let mut watch = None;
-    let mut print_options = (false, false, 10, false, true, 12); //[sci, deg, #base, tau, concurrent_output, decimal_places]
+    let mut print_options = (false, false, 10, false, true, 12); //[sci, deg, #base, tau, real_time_output, decimal_places]
     let mut allow_vars = true;
     let mut debug = false;
     let mut prompt = true;
@@ -109,7 +109,7 @@ fn main()
             input = args.first().unwrap().replace(' ', "").replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
-                         match get_func(&input_var(&input, &vars), prec)
+                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars), prec)
                          {
                              Ok(f) => f,
                              Err(()) =>

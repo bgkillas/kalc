@@ -15,7 +15,6 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
     let n1 = Complex::with_val(prec, -1.0);
-    let pi = Complex::with_val(prec, Pi);
     'outer: while i < input.len()
     {
         c = chars[i];
@@ -331,18 +330,6 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str("(".to_string()));
                         count += 1;
                     }
-                }
-                'π' =>
-                {
-                    place_multiplier(&mut func, &find_word);
-                    func.push(Num(if neg { -1 * pi.clone() } else { pi.clone() }));
-                    neg = false;
-                }
-                'τ' =>
-                {
-                    place_multiplier(&mut func, &find_word);
-                    func.push(Num(if neg { -2 * pi.clone() } else { 2 * pi.clone() }));
-                    neg = false;
                 }
                 ',' if i != 0 && i + 1 != chars.len() => func.push(Str(','.to_string())),
                 '%' if i != 0 && i + 1 != chars.len() => func.push(Str('%'.to_string())),

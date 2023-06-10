@@ -1,4 +1,4 @@
-use rug::{Complex, Float};
+use rug::Complex;
 use rug::float::Constant::Pi;
 use crate::math::NumStr::{Num, Str};
 use crate::parse::{get_func, get_vars, input_var};
@@ -12,7 +12,7 @@ fn test_math()
                         Str("+".to_string()),
                         Num(2 * Complex::with_val(256, Pi)),
                         Str("*".to_string()),
-                        Num(Complex::with_val(256, Float::parse("2.71828182845904523536028747135266249775724709369995957496696763").unwrap())),
+                        Num(Complex::with_val(256, 1).exp()),
                         Str("/".to_string()),
                         Num(Complex::with_val(256, 2.0)),
                         Str("*".to_string()),
@@ -55,8 +55,8 @@ fn test_math()
                         Str(")".to_string())];
     let out = do_math(output, false, 256).unwrap();
     let answer = do_math(expected, false, 256).unwrap();
-    assert_eq!(out.real().to_string()[..20], answer.real().to_string()[..20]);
-    assert_eq!(out.imag().to_string()[..20], answer.imag().to_string()[..20]);
+    assert_eq!(out.real().to_string(), answer.real().to_string());
+    assert_eq!(out.imag().to_string(), answer.imag().to_string());
     assert_eq!(&out.real().to_string()[..20], "2.009877988310399125");
     assert_eq!(&out.imag().to_string()[..20], "4.535664430265577075");
 }

@@ -234,6 +234,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                     args.remove(0);
                 }
             }
+            "--comma" => print_options.comma = !print_options.comma,
             "--sci" | "--scientific" => print_options.sci = !print_options.sci,
             "--point" =>
             {
@@ -489,6 +490,19 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         Err(_) =>
                         {
                             println!("Invalid prompt bool");
+                            err = true;
+                            continue;
+                        }
+                    }
+                }
+                "comma" =>
+                {
+                    print_options.comma = match split.next().unwrap().parse::<bool>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid comma bool");
                             err = true;
                             continue;
                         }

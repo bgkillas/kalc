@@ -39,6 +39,7 @@ FLAGS: --help (this message)
 --base [num] sets the number base (2,8,16)
 --prompt toggles the prompt
 --color toggles color
+--comma toggles comma seperation
 --vars toggles default variables
 --line toggles line graphing
 --rt toggles real time printing
@@ -59,6 +60,7 @@ FLAGS: --help (this message)
 - Type "line" to toggle line graphing
 - Type "rt" to toggle real time printing
 - Type "color" to toggle color
+- Type "comma" to toggle comma seperation
 - Type "2d=[num]" to set the number of points in 2D graphs
 - Type "3d=[num]" to set the number of points in 3D graphs
 - Type "xr=[min],[max]" to set the x range for graphing

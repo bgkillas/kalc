@@ -21,56 +21,6 @@ use console::{Key, Term};
 use {
     libc::{ECHO, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
-#[derive(Clone, Copy)]
-pub struct GraphOptions
-{
-    xr:[f64; 2],
-    yr:[f64; 2],
-    zr:[f64; 2],
-    samples_2d:f64,
-    samples_3d:f64,
-    point_style:char,
-    lines:bool,
-}
-#[derive(Clone, Copy)]
-pub struct PrintOptions
-{
-    sci:bool,
-    deg:bool,
-    base:usize,
-    tau:bool,
-    real_time_output:bool,
-    decimal_places:usize,
-    color:bool,
-    prompt:bool,
-}
-impl Default for PrintOptions
-{
-    fn default() -> Self
-    {
-        PrintOptions { sci:false,
-                       deg:false,
-                       base:10,
-                       tau:false,
-                       real_time_output:false,
-                       decimal_places:10,
-                       color:false,
-                       prompt:false }
-    }
-}
-impl Default for GraphOptions
-{
-    fn default() -> Self
-    {
-        GraphOptions { xr:[-10.0, 10.0],
-                       yr:[-10.0, 10.0],
-                       zr:[-10.0, 10.0],
-                       samples_2d:40000.0,
-                       samples_3d:400.0,
-                       point_style:'.',
-                       lines:false }
-    }
-}
 fn main()
 {
     let mut graph_options = GraphOptions::default();
@@ -589,6 +539,13 @@ fn main()
                     graph_options.lines = !graph_options.lines;
                     continue;
                 }
+                "comma" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.comma = !print_options.comma;
+                    continue;
+                }
                 "history" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1003,6 +960,7 @@ FLAGS: --help (this message)\n\
 --base [num] sets the number base (2,8,16)\n\
 --prompt toggles the prompt\n\
 --color toggles color\n\
+--comma toggles comma seperation\n\
 --vars toggles default variables\n\
 --line toggles line graphing\n\
 --rt toggles real time printing\n\
@@ -1022,6 +980,7 @@ FLAGS: --help (this message)\n\
 - Type \"line\" to toggle line graphing\n\
 - Type \"rt\" to toggle real time printing\n\
 - Type \"color\" to toggle color\n\
+- Type \"comma\" to toggle comma seperation\n\
 - Type \"2d=[num]\" to set the number of points in 2D graphs\n\
 - Type \"3d=[num]\" to set the number of points in 3D graphs\n\
 - Type \"xr=[min],[max]\" to set the x range for graphing\n\
@@ -1080,4 +1039,56 @@ Constants:\n\
 - pi: pi, 3.1415926535~\n\
 - tau: tau, 6.2831853071~"
     );
+}
+#[derive(Clone, Copy)]
+pub struct GraphOptions
+{
+    xr:[f64; 2],
+    yr:[f64; 2],
+    zr:[f64; 2],
+    samples_2d:f64,
+    samples_3d:f64,
+    point_style:char,
+    lines:bool,
+}
+#[derive(Clone, Copy)]
+pub struct PrintOptions
+{
+    sci:bool,
+    deg:bool,
+    base:usize,
+    tau:bool,
+    real_time_output:bool,
+    decimal_places:usize,
+    color:bool,
+    prompt:bool,
+    comma:bool,
+}
+impl Default for PrintOptions
+{
+    fn default() -> Self
+    {
+        PrintOptions { sci:false,
+                       deg:false,
+                       base:10,
+                       tau:false,
+                       real_time_output:true,
+                       decimal_places:12,
+                       color:false,
+                       prompt:false,
+                       comma:false }
+    }
+}
+impl Default for GraphOptions
+{
+    fn default() -> Self
+    {
+        GraphOptions { xr:[-10.0, 10.0],
+                       yr:[-10.0, 10.0],
+                       zr:[-10.0, 10.0],
+                       samples_2d:40000.0,
+                       samples_3d:400.0,
+                       point_style:'.',
+                       lines:false }
+    }
 }

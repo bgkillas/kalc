@@ -205,8 +205,9 @@ fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String
         let dec = if print_options.decimal_places == 0 { 1 } else { print_options.decimal_places };
         (if num.real() != &0.0
          {
-             remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" })).replace("e0", "")
-                                                                                                                         .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
+             add_commas(&remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" })),
+                        print_options.comma).replace("e0", "")
+                                            .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
          else if num.imag() == &0.0
          {
@@ -218,8 +219,9 @@ fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String
          },
          if num.imag() != &0.0
          {
-             remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if print_options.color { "\x1b[93mi" } else { "i" })).replace("e0", "")
-                                                                                                                                    .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
+             add_commas(&remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if print_options.color { "\x1b[93mi" } else { "i" })),
+                        print_options.comma).replace("e0", "")
+                                            .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
          else
          {
@@ -230,7 +232,7 @@ fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String
     {
         (if num.real() != &0.0
          {
-             n = to_string(num.real(), print_options.decimal_places);
+             n = add_commas(&to_string(num.real(), print_options.decimal_places), print_options.comma);
              if n == "0" || n == "-0"
              {
                  "".to_string()
@@ -251,7 +253,7 @@ fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String
          if num.imag() != &0.0
          {
              let sign = if n == "0" { "".to_string() } else { sign };
-             n = to_string(num.imag(), print_options.decimal_places);
+             n = add_commas(&to_string(num.imag(), print_options.decimal_places), print_options.comma);
              if n == "0" || n == "-0"
              {
                  "".to_string()
@@ -310,6 +312,53 @@ fn to_string(num:&Float, decimals:usize) -> String
     format!("{}{}.{}{}", neg, if l.is_empty() { "0" } else { l }, zeros, r).trim_end_matches(|c| c == '0')
                                                                            .trim_end_matches(|c| c == '.')
                                                                            .to_string()
+}
+fn add_commas(input:&str, commas:bool) -> String
+{
+    if !commas
+    {
+        return input.to_owned();
+    }
+    let mut split = input.split('.');
+    let mut result = String::new();
+    let mut count = 0;
+    let mut exp = false;
+    for c in split.next().unwrap().chars().rev()
+    {
+        if c == 'e'
+        {
+            exp = true;
+        }
+        if count == 3 && !exp
+        {
+            result.push(',');
+            count = 0;
+        }
+        result.push(c);
+        count += 1;
+    }
+    if split.clone().count() == 1
+    {
+        let mut result = result.chars().rev().collect::<String>();
+        result.push('.');
+        count = 0;
+        for c in split.next().unwrap().chars()
+        {
+            if c == 'e'
+            {
+                exp = true;
+            }
+            if count == 3 && !exp
+            {
+                result.push(',');
+                count = 0;
+            }
+            result.push(c);
+            count += 1;
+        }
+        return result;
+    }
+    result.chars().rev().collect::<String>()
 }
 fn remove_trailing_zeros(input:&str) -> String
 {

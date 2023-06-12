@@ -1,17 +1,9 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use crate::help;
-#[allow(clippy::too_many_arguments)]
-pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
-                print_options:&mut (bool, bool, usize, bool, bool, usize),
-                allow_vars:&mut bool,
-                debug:&mut bool,
-                prompt:&mut bool,
-                color:&mut bool,
-                prec:&mut u32,
-                err:&mut bool,
-                args:&mut Vec<String>)
+use crate::{GraphOptions, help, PrintOptions};
+pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, prec:&mut u32, args:&mut Vec<String>) -> bool
 {
+    let mut err = false;
     args.remove(0);
     let (mut split, mut l);
     while !args.is_empty()
@@ -30,12 +22,12 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
         match args[0].as_str()
         {
             "--debug" => *debug = !*debug,
-            "--tau" => print_options.3 = !print_options.3,
-            "--deg" => print_options.1 = !print_options.1,
-            "--prompt" => *prompt = !*prompt,
-            "--color" => *color = !*color,
-            "--line" => graph_options.4 = !graph_options.4,
-            "--rt" => print_options.4 = !print_options.4,
+            "--tau" => print_options.tau = !print_options.tau,
+            "--deg" => print_options.deg = !print_options.deg,
+            "--prompt" => print_options.prompt = !print_options.prompt,
+            "--color" => print_options.color = !print_options.color,
+            "--line" => graph_options.lines = !graph_options.lines,
+            "--rt" => print_options.real_time_output = !print_options.real_time_output,
             "--prec" | "--precision" =>
             {
                 if args.len() > 1
@@ -47,7 +39,7 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                             if x == 0
                             {
                                 println!("Invalid precision");
-                                *err = true;
+                                err = true;
                                 args.remove(0);
                                 continue;
                             }
@@ -59,7 +51,7 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         Err(_) =>
                         {
                             println!("Invalid precision");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -71,13 +63,13 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 1
                 {
-                    print_options.5 = match args[1].parse::<usize>()
+                    print_options.decimal_places = match args[1].parse::<usize>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid decimal");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -89,13 +81,13 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 1
                 {
-                    graph_options.1 = match args[1].parse::<f64>()
+                    graph_options.samples_2d = match args[1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid 2d sample size");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -107,13 +99,13 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 1
                 {
-                    graph_options.2 = match args[1].parse::<f64>()
+                    graph_options.samples_3d = match args[1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid 3d sample size");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -125,24 +117,24 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 2
                 {
-                    graph_options.0[1][0] = match args[1].parse::<f64>()
+                    graph_options.yr[0] = match args[1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid y range");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
                     };
-                    graph_options.0[1][1] = match args[2].parse::<f64>()
+                    graph_options.yr[1] = match args[2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid y range");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -155,24 +147,24 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 2
                 {
-                    graph_options.0[0][0] = match args[1].parse::<f64>()
+                    graph_options.xr[0] = match args[1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid x range");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
                     };
-                    graph_options.0[0][1] = match args[2].parse::<f64>()
+                    graph_options.xr[1] = match args[2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid x range");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -185,24 +177,24 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 2
                 {
-                    graph_options.0[2][0] = match args[1].parse::<f64>()
+                    graph_options.zr[0] = match args[1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid z range");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
                     };
-                    graph_options.0[2][1] = match args[2].parse::<f64>()
+                    graph_options.zr[1] = match args[2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid z range");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -215,14 +207,14 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 if args.len() > 1
                 {
-                    print_options.2 = match args[1].parse::<usize>()
+                    print_options.base = match args[1].parse::<usize>()
                     {
                         Ok(x) =>
                         {
                             if !(2..=36).contains(&x)
                             {
                                 println!("Invalid base");
-                                *err = true;
+                                err = true;
                                 args.remove(0);
                                 continue;
                             }
@@ -234,7 +226,7 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         Err(_) =>
                         {
                             println!("Invalid base");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -242,10 +234,10 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                     args.remove(0);
                 }
             }
-            "--sci" | "--scientific" => print_options.0 = !print_options.0,
+            "--sci" | "--scientific" => print_options.sci = !print_options.sci,
             "--point" =>
             {
-                graph_options.3 = match args[1].chars().next()
+                graph_options.point_style = match args[1].chars().next()
                 {
                     Some(x) =>
                     {
@@ -256,7 +248,7 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         else
                         {
                             println!("Invalid point char");
-                            *err = true;
+                            err = true;
                             args.remove(0);
                             continue;
                         }
@@ -264,7 +256,7 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                     None =>
                     {
                         println!("Invalid point char");
-                        *err = true;
+                        err = true;
                         args.remove(0);
                         continue;
                     }
@@ -284,30 +276,21 @@ pub fn arg_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             "--vars" => *allow_vars = !*allow_vars,
             "--default" | "--def" =>
             {
-                *print_options = (false, false, 10, false, true, 12);
-                *graph_options = ([[-10.0, 10.0]; 3], 40000.0, 400.0, '.', false);
+                *print_options = PrintOptions::default();
+                *graph_options = GraphOptions::default();
                 *prec = 256;
                 *allow_vars = true;
                 *debug = false;
-                *prompt = true;
-                *color = true;
             }
             _ => break,
         }
         args.remove(0);
     }
+    err
 }
-#[allow(clippy::too_many_arguments)]
-pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
-                 print_options:&mut (bool, bool, usize, bool, bool, usize),
-                 allow_vars:&mut bool,
-                 debug:&mut bool,
-                 prompt:&mut bool,
-                 color:&mut bool,
-                 prec:&mut u32,
-                 err:&mut bool,
-                 file_path:&String)
+pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, prec:&mut u32, file_path:&String) -> bool
 {
+    let mut err = false;
     if File::open(file_path).is_ok()
     {
         let file = File::open(file_path).unwrap();
@@ -320,26 +303,26 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             {
                 "2d" =>
                 {
-                    graph_options.1 = match split.next().unwrap().parse::<f64>()
+                    graph_options.samples_2d = match split.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid 2d sample size");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "3d" =>
                 {
-                    graph_options.2 = match split.next().unwrap().parse::<f64>()
+                    graph_options.samples_3d = match split.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid 3d sample size");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
@@ -350,26 +333,26 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                     if xr.clone().count() != 2
                     {
                         println!("Invalid x range");
-                        *err = true;
+                        err = true;
                         continue;
                     }
-                    graph_options.0[0][0] = match xr.next().unwrap().parse::<f64>()
+                    graph_options.xr[0] = match xr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid x range");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
-                    graph_options.0[0][1] = match xr.next().unwrap().parse::<f64>()
+                    graph_options.xr[1] = match xr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid x range");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
@@ -380,26 +363,26 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                     if yr.clone().count() != 2
                     {
                         println!("Invalid y range");
-                        *err = true;
+                        err = true;
                         continue;
                     }
-                    graph_options.0[1][0] = match yr.next().unwrap().parse::<f64>()
+                    graph_options.yr[0] = match yr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid y range");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
-                    graph_options.0[1][1] = match yr.next().unwrap().parse::<f64>()
+                    graph_options.yr[1] = match yr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid y range");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
@@ -410,26 +393,26 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                     if zr.clone().count() != 2
                     {
                         println!("Invalid z range");
-                        *err = true;
+                        err = true;
                         continue;
                     }
-                    graph_options.0[2][0] = match zr.next().unwrap().parse::<f64>()
+                    graph_options.zr[0] = match zr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid z range");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
-                    graph_options.0[2][1] = match zr.next().unwrap().parse::<f64>()
+                    graph_options.zr[1] = match zr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid z range");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
@@ -443,7 +426,7 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                             if x == 0
                             {
                                 println!("Invalid precision");
-                                *err = true;
+                                err = true;
                                 continue;
                             }
                             else
@@ -454,79 +437,79 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         Err(_) =>
                         {
                             println!("Invalid precision");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
                 }
                 "decimal" | "deci" | "decimals" =>
                 {
-                    print_options.5 = match split.next().unwrap().parse::<usize>()
+                    print_options.decimal_places = match split.next().unwrap().parse::<usize>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid decimal places");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
                 }
                 "rt" =>
                 {
-                    print_options.4 = match split.next().unwrap().parse::<bool>()
+                    print_options.real_time_output = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid real time bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
                 }
                 "line" =>
                 {
-                    graph_options.4 = match split.next().unwrap().parse::<bool>()
+                    graph_options.lines = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid line bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "prompt" =>
                 {
-                    *prompt = match split.next().unwrap().parse::<bool>()
+                    print_options.prompt = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid prompt bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "color" =>
                 {
-                    *color = match split.next().unwrap().parse::<bool>()
+                    print_options.color = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid color bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "point" =>
                 {
-                    graph_options.3 = match split.next().unwrap().chars().next()
+                    graph_options.point_style = match split.next().unwrap().chars().next()
                     {
                         Some(x) =>
                         {
@@ -537,41 +520,41 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                             else
                             {
                                 println!("Invalid point char");
-                                *err = true;
+                                err = true;
                                 continue;
                             }
                         }
                         None =>
                         {
                             println!("Invalid point char");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "sci" | "scientific" =>
                 {
-                    print_options.0 = match split.next().unwrap().parse::<bool>()
+                    print_options.sci = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid scientific bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "base" =>
                 {
-                    print_options.2 = match split.next().unwrap().parse::<usize>()
+                    print_options.base = match split.next().unwrap().parse::<usize>()
                     {
                         Ok(x) =>
                         {
                             if !(2..=36).contains(&x)
                             {
                                 println!("Invalid base");
-                                *err = true;
+                                err = true;
                                 continue;
                             }
                             else
@@ -582,7 +565,7 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         Err(_) =>
                         {
                             println!("Invalid base");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     };
@@ -595,33 +578,33 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         Err(_) =>
                         {
                             println!("Invalid debug bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "deg" =>
                 {
-                    print_options.1 = match split.next().unwrap().parse::<bool>()
+                    print_options.deg = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid degree bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
                 }
                 "tau" =>
                 {
-                    print_options.3 = match split.next().unwrap().parse::<bool>()
+                    print_options.tau = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid tau bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
@@ -634,7 +617,7 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
                         Err(_) =>
                         {
                             println!("Invalid vars bool");
-                            *err = true;
+                            err = true;
                             continue;
                         }
                     }
@@ -644,4 +627,5 @@ pub fn file_opts(graph_options:&mut ([[f64; 2]; 3], f64, f64, char, bool),
             }
         }
     }
+    err
 }

@@ -2,7 +2,8 @@ use rug::{Complex, Float};
 use crate::fraction::fraction;
 use crate::math::{do_math, NumStr};
 use crate::parse::get_func;
-pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usize, bool, bool, usize), color:bool, prec:u32)
+use crate::PrintOptions;
+pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, prec:u32)
 {
     if (input.contains('x') && !input.contains("exp"))
        || input.contains('y')
@@ -11,7 +12,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
     {
         return;
     }
-    let num = match do_math(func, print_options.1, prec)
+    let num = match do_math(func, print_options.deg, prec)
     {
         Ok(num) => num,
         Err(_) =>
@@ -21,10 +22,10 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:(bool, bool, usi
         }
     };
     let sign = if num.real() != &0.0 && num.imag().is_sign_positive() { "+" } else { "" }.to_owned();
-    let a = get_output(&print_options, &num, color, sign);
-    print!("{}{}{}", a.0, a.1, if color { "\x1b[0m" } else { "" });
+    let a = get_output(&print_options, &num, sign);
+    print!("{}{}{}", a.0, a.1, if print_options.color { "\x1b[0m" } else { "" });
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, bool, usize, bool, bool, usize), prompt:bool, color:bool, prec:u32) -> bool
+pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, prec:u32) -> bool
 {
     if (input.contains('x') && !input.contains("exp"))
        || input.contains('y')
@@ -32,9 +33,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
        || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
     {
         print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
-               if prompt
+               if print_options.prompt
                {
-                   if color
+                   if print_options.color
                    {
                        "\x1b[94m> \x1b[96m"
                    }
@@ -43,7 +44,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
                        "> "
                    }
                }
-               else if color
+               else if print_options.color
                {
                    "\x1b[96m"
                }
@@ -60,9 +61,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         Err(_) =>
         {
             print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
-                   if prompt
+                   if print_options.prompt
                    {
-                       if color
+                       if print_options.color
                        {
                            "\x1b[94m> \x1b[96m"
                        }
@@ -71,7 +72,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
                            "> "
                        }
                    }
-                   else if color
+                   else if print_options.color
                    {
                        "\x1b[96m"
                    }
@@ -84,11 +85,11 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
         }
     };
     let mut frac = false;
-    let num = do_math(func, print_options.1, prec).unwrap_or(Complex::with_val(256, 0.0));
+    let num = do_math(func, print_options.deg, prec).unwrap_or(Complex::with_val(256, 0.0));
     let a = num.real().to_f64();
     let b = num.imag().to_f64();
-    let fa = fraction(num.real().clone(), print_options.3, prec, print_options.5);
-    let fb = fraction(num.imag().clone(), print_options.3, prec, print_options.5);
+    let fa = fraction(num.real().clone(), print_options.tau, prec, print_options.decimal_places);
+    let fb = fraction(num.imag().clone(), print_options.tau, prec, print_options.decimal_places);
     let sign = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
     let (frac_a, frac_b) = match (!fa.is_empty(), !fb.is_empty())
     {
@@ -102,7 +103,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
              }
              else
              {
-                 sign.clone() + fb.as_str() + if color { "\x1b[93mi" } else { "i" }
+                 sign.clone() + fb.as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
              })
         }
         (true, _) =>
@@ -115,7 +116,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
              }
              else
              {
-                 sign.clone() + b.to_string().as_str() + if color { "\x1b[93mi" } else { "i" }
+                 sign.clone() + b.to_string().as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
              })
         }
         (_, true) =>
@@ -128,12 +129,12 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
              }
              else
              {
-                 sign.clone() + fb.as_str() + if color { "\x1b[93mi" } else { "i" }
+                 sign.clone() + fb.as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
              })
         }
         _ => ("".to_string(), "".to_string()),
     };
-    let output = get_output(&print_options, &num, color, sign);
+    let output = get_output(&print_options, &num, sign);
     print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
            if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
            frac_a,
@@ -142,9 +143,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
            output.0,
            output.1,
            if frac { "\x1b[A" } else { "" },
-           if prompt
+           if print_options.prompt
            {
-               if color
+               if print_options.color
                {
                    "\x1b[94m> \x1b[96m"
                }
@@ -153,7 +154,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
                    "> "
                }
            }
-           else if color
+           else if print_options.color
            {
                "\x1b[96m"
            }
@@ -164,14 +165,14 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:(bool, 
            unmodified_input);
     frac
 }
-fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Complex, color:bool, sign:String) -> (String, String)
+fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String, String)
 {
     let mut n = String::new();
-    if print_options.2 != 10
+    if print_options.base != 10
     {
         (if num.real() != &0.0
          {
-             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.2 as i32, None));
+             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.base as i32, None));
              if n.contains('e')
              {
                  n
@@ -191,21 +192,21 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.2 as i32, None));
-             sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if color { "\x1b[93mi" } else { "i" }
+             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.base as i32, None));
+             sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if print_options.color { "\x1b[93mi" } else { "i" }
          }
          else
          {
              "".to_string()
          })
     }
-    else if print_options.0
+    else if print_options.sci
     {
-        let dec = if print_options.5 == 0 { 1 } else { print_options.5 };
+        let dec = if print_options.decimal_places == 0 { 1 } else { print_options.decimal_places };
         (if num.real() != &0.0
          {
-             remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if color { "\x1b[0m" } else { "" })).replace("e0", "")
-                                                                                                           .replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" })).replace("e0", "")
+                                                                                                                         .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
          else if num.imag() == &0.0
          {
@@ -217,8 +218,8 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          },
          if num.imag() != &0.0
          {
-             remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if color { "\x1b[93mi" } else { "i" })).replace("e0", "")
-                                                                                                                      .replace('e', if color { "\x1b[92mE" } else { "E" })
+             remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if print_options.color { "\x1b[93mi" } else { "i" })).replace("e0", "")
+                                                                                                                                    .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
          else
          {
@@ -229,7 +230,7 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
     {
         (if num.real() != &0.0
          {
-             n = to_string(num.real(), print_options.5);
+             n = to_string(num.real(), print_options.decimal_places);
              if n == "0" || n == "-0"
              {
                  "".to_string()
@@ -250,14 +251,14 @@ fn get_output(print_options:&(bool, bool, usize, bool, bool, usize), num:&Comple
          if num.imag() != &0.0
          {
              let sign = if n == "0" { "".to_string() } else { sign };
-             n = to_string(num.imag(), print_options.5);
+             n = to_string(num.imag(), print_options.decimal_places);
              if n == "0" || n == "-0"
              {
                  "".to_string()
              }
              else
              {
-                 sign + &n + if color { "\x1b[93mi" } else { "i" }
+                 sign + &n + if print_options.color { "\x1b[93mi" } else { "i" }
              }
          }
          else

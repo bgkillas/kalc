@@ -374,6 +374,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     {
         return Err(());
     }
+    // println!();
     // for i in &func
     // {
     //     match i
@@ -402,7 +403,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
 {
     let chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut not_pushed, mut c, mut k, mut j, mut v, mut temp, mut count, mut split, mut value);
+    let (mut not_pushed, mut c, mut k, mut j, mut v, mut temp, mut count, mut split, mut value, mut o);
     let mut i = 0;
     while i < chars.len()
     {
@@ -413,6 +414,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
             j = i;
             if var[0].contains('(') && input.contains('(') && i + var[0].len() - 1 <= input.len() && input[i..i + var[0].len() - 1].split('(').next() == var[0].split('(').next()
             {
+                o = i;
                 count = 0;
                 for (f, c) in chars[i..].iter().enumerate()
                 {
@@ -492,6 +494,10 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                         output.push_str(&input_var(&var[1], vars).replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
                         output.push(')');
                     }
+                }
+                else
+                {
+                    i = o;
                 }
             }
             else if !(i + var[0].len() > input.len() || input[i..i + var[0].len()] != var[0])

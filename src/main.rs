@@ -21,6 +21,8 @@ use console::{Key, Term};
 use {
     libc::{ECHO, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
+// support vector operations
+// allow units to be used in the input, and be outputted
 fn main()
 {
     let mut graph_options = GraphOptions::default();

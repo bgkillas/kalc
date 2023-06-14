@@ -245,15 +245,10 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                 }
                 '(' if i + 1 != chars.len() =>
                 {
-                    count += 1;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' if i != 0 =>
-                {
-                    count -= 1;
-                    func.push(Str(")".to_string()))
-                }
+                ')' if i != 0 => func.push(Str(")".to_string())),
                 '|' =>
                 {
                     if i + 1 != chars.len() && chars[i + 1] == '|'
@@ -266,10 +261,12 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     {
                         func.push(Str("abs".to_string()));
                         func.push(Str("(".to_string()));
+                        count += 1;
                     }
                     else
                     {
                         func.push(Str(")".to_string()));
+                        count -= 1;
                     }
                     abs = !abs;
                 }
@@ -340,21 +337,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     }
     if count > 0
     {
-        for _ in 0..count
-        {
-            func.push(Str(")".to_string()));
-        }
-    }
-    else
-    {
-        for _ in 0..count.abs()
-        {
-            func.insert(0, Str("(".to_string()));
-        }
-    }
-    if !abs
-    {
-        func.push(Str(")".to_string()))
+        func.extend(vec![Str(")".to_string()); count as usize]);
     }
     if exp != 0
     {
@@ -401,11 +384,32 @@ fn place_multiplier(func:&mut Vec<NumStr>, find_word:&bool)
 }
 pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
 {
-    let chars = input.chars().collect::<Vec<char>>();
+    let mut chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut not_pushed, mut start, mut c, mut k, mut j, mut v, mut temp, mut count, mut split, mut value, mut o);
+    let (mut not_pushed, mut start, mut c, mut k, mut j, mut v, mut temp, mut split, mut value, mut o);
     let mut i = 0;
+    let mut count:isize = 0;
     let mut commas:Vec<usize>;
+    for i in &chars
+    {
+        if i == &'('
+        {
+            count += 1;
+        }
+        else if i == &')'
+        {
+            count -= 1;
+        }
+    }
+    if count > 0
+    {
+        chars.extend(&vec![')'; count as usize]);
+    }
+    else
+    {
+        chars.splice(0..0, vec!['('; -count as usize]);
+    }
+    let input = chars.iter().collect::<String>();
     while i < chars.len()
     {
         c = chars[i];

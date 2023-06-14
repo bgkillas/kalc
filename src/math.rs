@@ -81,9 +81,9 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                         {
                             if let Str(s) = n
                             {
-                                if s == ","
+                                if s == "," && count == 0
                                 {
-                                    if single != 0 && count == 0
+                                    if single != 0
                                     {
                                         i = j - 1;
                                         continue 'outer;
@@ -134,7 +134,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                     {
                         if let Str(s) = n
                         {
-                            if s == ","
+                            if s == "," && count == 1
                             {
                                 place.push(f);
                             }
@@ -161,7 +161,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                                                   l,
                                                   do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?.real().to_f64() as i64,
                                                   do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?.real().to_f64() as i64,
-                                                  s != "sum" || s != "summation",
+                                                  !(s == "sum" || s == "summation"),
                                                   deg,
                                                   prec)?);
                             function.drain(i + 1..=place[3]);

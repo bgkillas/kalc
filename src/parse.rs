@@ -403,8 +403,9 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
 {
     let chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
-    let (mut not_pushed, mut c, mut k, mut j, mut v, mut temp, mut count, mut split, mut value, mut o);
+    let (mut not_pushed, mut start, mut c, mut k, mut j, mut v, mut temp, mut count, mut split, mut value, mut o);
     let mut i = 0;
+    let mut commas:Vec<usize>;
     while i < chars.len()
     {
         c = chars[i];
@@ -473,11 +474,35 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                         {
                             temp = &temp[..temp.len() - 1];
                         }
-                        split = temp.split(',');
-                        value = input_var(&var[1], vars).clone();
-                        for i in (0..split.clone().count()).rev()
+                        commas = Vec::new();
+                        count = 0;
+                        for (f, c) in temp.chars().enumerate()
                         {
-                            value = value.replace(v[v.len() - 2 * (i + 1)], &format!("({})", input_var(split.next().unwrap(), vars)));
+                            if c == '('
+                            {
+                                count += 1;
+                            }
+                            else if c == ')'
+                            {
+                                count -= 1;
+                            }
+                            else if c == ',' && count == 0
+                            {
+                                commas.push(f);
+                            }
+                        }
+                        start = 0;
+                        split = Vec::new();
+                        for end in commas
+                        {
+                            split.push(&temp[start..end]);
+                            start = end + 1;
+                        }
+                        split.push(&temp[start..]);
+                        value = input_var(&var[1], vars).clone();
+                        for i in 0..split.len()
+                        {
+                            value = value.replace(v[v.len() - 2 * (i as i32 - split.len() as i32).unsigned_abs() as usize], &format!("({})", input_var(split[i], vars)));
                         }
                         output.push_str(&value);
                         output.push(')');

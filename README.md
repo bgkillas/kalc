@@ -9,6 +9,8 @@ history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\
 
 config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config``
 
+you can set permanent variables and functions in the file ``~/.config/kalc.vars`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.vars``
+
 parsing tries to comply with wolfram alpha
 
 # known issues

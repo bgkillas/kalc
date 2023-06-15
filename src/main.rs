@@ -21,6 +21,8 @@ use console::{Key, Term};
 use {
     libc::{ECHO, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
+// gui support
+// support unit conversions
 // support vector operations
 // allow units to be used in the input, and be outputted
 fn main()
@@ -43,6 +45,20 @@ fn main()
         std::process::exit(1);
     }
     let mut vars:Vec<[String; 2]> = if allow_vars { get_vars(prec) } else { Vec::new() };
+    #[cfg(unix)]
+    let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
+    #[cfg(not(unix))]
+    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.vars", var("USERNAME").unwrap());
+    if File::open(file_path).is_ok() && allow_vars
+    {
+        let lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect::<Vec<String>>();
+        let mut split;
+        for i in lines
+        {
+            split = i.split('=');
+            vars.push([split.next().unwrap().to_string(), split.next().unwrap().to_string()]);
+        }
+    }
     let mut input = String::new();
     if !stdin().is_terminal()
     {

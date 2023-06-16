@@ -611,6 +611,11 @@ fn main()
             {
                 continue;
             }
+            if r.is_empty()
+            {
+                println!("{}", input_var(l, &vars));
+                continue;
+            }
             match l
             {
                 "point" =>
@@ -786,11 +791,6 @@ fn main()
             {
                 if v[0].split('(').next() == l.split('(').next()
                 {
-                    if r.is_empty()
-                    {
-                        println!("{}", vars[i][1]);
-                        stdout().flush().unwrap();
-                    }
                     if r == "null"
                     {
                         vars.remove(i);

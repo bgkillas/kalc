@@ -146,6 +146,8 @@ kalc
 > f(1,2,3,4) // evaluates f(x,y,z,w) at x=1, y=2, z=3, w=4, so 1+2+3+4=10
 10
 > f(x,y,2,5) // graphs f(x,y,2,5) in 3D with z=2 and w=5 so x+y+2+5
+> f(x,y,2,5)= // displays how its parsed
+((x)+(y)+(2)+(5))
 > f(2,5,x,y) // graphs f(2,5,x,y) in 3D with x=2 and y=5 so 2+5+x+y, to graph x and y have to be the unknown variables
 > |z| // graphs |(x+yi)| in 3D
 ```

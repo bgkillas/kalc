@@ -179,6 +179,10 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                 else
                 {
                     a = function[i + 1].num()?;
+                    if a.imag() == &0.0
+                    {
+                        a = Complex::with_val(prec, a.real());
+                    }
                     function[i] = Num(match s.to_string().as_str()
                     {
                         "sin" =>
@@ -402,6 +406,10 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
+                                if b.imag() == &0.0
+                                {
+                                    b = Complex::with_val(prec, b.real());
+                                }
                                 function.remove(i + 3);
                                 function.remove(i + 2);
                                 b.ln() / a.ln()
@@ -416,6 +424,10 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
+                                if b.imag() == &0.0
+                                {
+                                    b = Complex::with_val(prec, b.real());
+                                }
                                 function.remove(i + 3);
                                 function.remove(i + 2);
                                 match b.imag() == &0.0 && (b.real().to_f64() / 2.0).fract() != 0.0 && &b.real().clone().trunc() == b.real() && a.imag() == &0.0

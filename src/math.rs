@@ -1,5 +1,5 @@
 use std::ops::{Shl, Shr};
-use crate::math::NumStr::{Num, Str};
+use crate::math::NumStr::{Num, Str, Vector};
 use rug::{Complex, Float};
 use rug::float::Constant::Pi;
 use rug::ops::Pow;
@@ -8,6 +8,7 @@ pub enum NumStr
 {
     Num(Complex),
     Str(String),
+    Vector(Vec<Complex>),
 }
 impl NumStr
 {
@@ -19,7 +20,7 @@ impl NumStr
             _ => false,
         }
     }
-    fn num(&self) -> Result<Complex, ()>
+    pub fn num(&self) -> Result<Complex, ()>
     {
         match self
         {
@@ -27,12 +28,20 @@ impl NumStr
             _ => Err(()),
         }
     }
+    pub fn vec(&self) -> Result<Vec<Complex>, ()>
+    {
+        match self
+        {
+            Vector(v) => Ok(v.clone()),
+            _ => Err(()),
+        }
+    }
 }
-pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
+pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
 {
     if func.len() == 1
     {
-        return if let Num(n) = &func[0] { Ok(n.clone()) } else { Err(()) };
+        return Ok(func[0].clone());
     }
     if func.is_empty()
     {
@@ -103,16 +112,16 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                         if single != 0
                         {
                             function.drain(i..j);
-                            function.insert(i, Num(do_math(v[..single].to_vec(), deg, prec)?));
+                            function.insert(i, do_math(v[..single].to_vec(), deg, prec)?);
                             function.insert(i + 1, Str(",".to_string()));
-                            function.insert(i + 2, Num(do_math(v[single + 1..].to_vec(), deg, prec)?));
+                            function.insert(i + 2, do_math(v[single + 1..].to_vec(), deg, prec)?);
                             i += 1;
                             continue 'outer;
                         }
                     }
                 }
             }
-            function[i] = Num(do_math(v, deg, prec)?);
+            function[i] = do_math(v, deg, prec)?;
             function.drain(i + 1..j);
         }
         i += 1;
@@ -159,8 +168,8 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                         {
                             function[i] = Num(sum(function[i + 2..place[0]].to_vec(),
                                                   l,
-                                                  do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?.real().to_f64() as i64,
-                                                  do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?.real().to_f64() as i64,
+                                                  do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?.num()?.real().to_f64() as i64,
+                                                  do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?.num()?.real().to_f64() as i64,
                                                   !(s == "sum" || s == "summation"),
                                                   deg,
                                                   prec)?);
@@ -175,6 +184,62 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                     {
                         return Err(());
                     }
+                }
+                else if let Vector(a) = &function[i + 1]
+                {
+                    function[i] = match s.as_str()
+                    {
+                        "abs" =>
+                        {
+                            let mut n = Complex::with_val(prec, 0.0);
+                            for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
+                            {
+                                n += i;
+                            }
+                            Num(n.sqrt())
+                        }
+                        "polar" =>
+                        {
+                            let mut n = Complex::with_val(prec, 0.0);
+                            for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
+                            {
+                                n += i;
+                            }
+                            let mut vector = vec![n.sqrt()];
+                            if a.len() == 2
+                            {
+                                vector.push(a[1].clone() / a[1].clone().abs()
+                                            * if deg
+                                            {
+                                                (&a[0] / vector[0].clone()).acos() * to_deg.clone()
+                                            }
+                                            else
+                                            {
+                                                (&a[0] / vector[0].clone()).acos()
+                                            });
+                            }
+                            if a.len() == 3
+                            {
+                                vector.push(if deg
+                                            {
+                                                (&a[2] / vector[0].clone()).acos() * to_deg.clone()
+                                            }
+                                            else
+                                            {
+                                                (&a[2] / vector[0].clone()).acos()
+                                            });
+                                let t:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+                                vector.push(a[1].clone() / a[1].clone().abs() * if deg { (&a[0] / t.sqrt()).acos() * to_deg.clone() } else { (&a[0] / t.sqrt()).acos() });
+                            }
+                            Vector(vector)
+                        }
+                        _ =>
+                        {
+                            i += 1;
+                            continue;
+                        }
+                    };
+                    function.remove(i + 1);
                 }
                 else
                 {
@@ -557,6 +622,52 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
         }
         i += 1;
     }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "dot" =>
+                {
+                    let mut n = Complex::with_val(prec, 0.0);
+                    for i in function[i - 1].vec()?.iter().zip(function[i + 1].vec()?.iter()).map(|(a, b)| a * b)
+                    {
+                        n += i;
+                    }
+                    function[i] = Num(n);
+                }
+                "cross" =>
+                {
+                    let a = function[i - 1].vec()?;
+                    let b = function[i + 1].vec()?;
+                    if a.len() == 2 && b.len() == 2
+                    {
+                        function[i] = Num(Complex::with_val(prec, a[0].clone() * &b[1] - a[1].clone() * &b[0]));
+                    }
+                    if a.len() == 3 && b.len() == 3
+                    {
+                        function[i] = Vector(vec![a[1].clone() * &b[2] - a[2].clone() * &b[1],
+                                                  a[2].clone() * &b[0] - a[0].clone() * &b[2],
+                                                  a[0].clone() * &b[1] - a[1].clone() * &b[0]]);
+                    }
+                }
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
+        {
+            i += 1;
+            continue;
+        }
+        function.remove(i + 1);
+        function.remove(i - 1);
+    }
     if function.len() > 1
     {
         i = function.len() - 2;
@@ -567,7 +678,31 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                 i -= 1;
                 continue;
             }
-            function[i] = Num(function[i - 1].num()?.pow(function[i + 1].num()?));
+            function[i] = if let Num(n1) = &function[i - 1]
+            {
+                if let Num(n2) = &function[i + 1]
+                {
+                    Num(n1.clone().pow(n2))
+                }
+                else
+                {
+                    Vector(function[i + 1].vec()?.iter().map(|x| n1.clone().pow(x)).collect())
+                }
+            }
+            else if let Num(n2) = &function[i + 1]
+            {
+                Vector(function[i - 1].vec()?.iter().map(|x| x.pow(n2.clone())).collect())
+            }
+            else
+            {
+                let v1 = function[i - 1].vec()?;
+                let v2 = function[i + 1].vec()?;
+                if v1.len() != v2.len()
+                {
+                    return Err(());
+                }
+                Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone().pow(y)).collect())
+            };
             function.remove(i + 1);
             function.remove(i - 1);
             i -= 1;
@@ -580,8 +715,66 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
         {
             match s.as_str()
             {
-                "*" => function[i] = Num(function[i - 1].num()? * function[i + 1].num()?),
-                "/" => function[i] = Num(function[i - 1].num()? / function[i + 1].num()?),
+                "*" =>
+                {
+                    function[i] = {
+                        if let Num(n1) = &function[i - 1]
+                        {
+                            if let Num(n2) = &function[i + 1]
+                            {
+                                Num(n1.clone() * n2)
+                            }
+                            else
+                            {
+                                Vector(function[i + 1].vec()?.iter().map(|x| x * n1.clone()).collect())
+                            }
+                        }
+                        else if let Num(n2) = &function[i + 1]
+                        {
+                            Vector(function[i - 1].vec()?.iter().map(|x| x * n2.clone()).collect())
+                        }
+                        else
+                        {
+                            let v1 = function[i - 1].vec()?;
+                            let v2 = function[i + 1].vec()?;
+                            if v1.len() != v2.len()
+                            {
+                                return Err(());
+                            }
+                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() * y).collect())
+                        }
+                    }
+                }
+                "/" =>
+                {
+                    function[i] = {
+                        if let Num(n1) = &function[i - 1]
+                        {
+                            if let Num(n2) = &function[i + 1]
+                            {
+                                Num(n1.clone() / n2)
+                            }
+                            else
+                            {
+                                Vector(function[i + 1].vec()?.iter().map(|x| n1.clone() / x).collect())
+                            }
+                        }
+                        else if let Num(n2) = &function[i + 1]
+                        {
+                            Vector(function[i - 1].vec()?.iter().map(|x| x / n2.clone()).collect())
+                        }
+                        else
+                        {
+                            let v1 = function[i - 1].vec()?;
+                            let v2 = function[i + 1].vec()?;
+                            if v1.len() != v2.len()
+                            {
+                                return Err(());
+                            }
+                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() / y).collect())
+                        }
+                    }
+                }
                 _ =>
                 {
                     i += 1;
@@ -604,8 +797,66 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
         {
             match s.as_str()
             {
-                "+" => function[i] = Num(function[i - 1].num()? + function[i + 1].num()?),
-                "-" => function[i] = Num(function[i - 1].num()? - function[i + 1].num()?),
+                "+" =>
+                {
+                    function[i] = {
+                        if let Num(n1) = &function[i - 1]
+                        {
+                            if let Num(n2) = &function[i + 1]
+                            {
+                                Num(n1.clone() + n2)
+                            }
+                            else
+                            {
+                                Vector(function[i + 1].vec()?.iter().map(|x| x + n1.clone()).collect())
+                            }
+                        }
+                        else if let Num(n2) = &function[i + 1]
+                        {
+                            Vector(function[i - 1].vec()?.iter().map(|x| x + n2.clone()).collect())
+                        }
+                        else
+                        {
+                            let v1 = function[i - 1].vec()?;
+                            let v2 = function[i + 1].vec()?;
+                            if v1.len() != v2.len()
+                            {
+                                return Err(());
+                            }
+                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() + y).collect())
+                        }
+                    }
+                }
+                "-" =>
+                {
+                    function[i] = {
+                        if let Num(n1) = &function[i - 1]
+                        {
+                            if let Num(n2) = &function[i + 1]
+                            {
+                                Num(n1.clone() - n2)
+                            }
+                            else
+                            {
+                                Vector(function[i + 1].vec()?.iter().map(|x| n1.clone() - x).collect())
+                            }
+                        }
+                        else if let Num(n2) = &function[i + 1]
+                        {
+                            Vector(function[i - 1].vec()?.iter().map(|x| x - n2.clone()).collect())
+                        }
+                        else
+                        {
+                            let v1 = function[i - 1].vec()?;
+                            let v2 = function[i + 1].vec()?;
+                            if v1.len() != v2.len()
+                            {
+                                return Err(());
+                            }
+                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() - y).collect())
+                        }
+                    }
+                }
                 _ =>
                 {
                     i += 1;
@@ -654,14 +905,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
         function.remove(i + 1);
         function.remove(i - 1);
     }
-    if let Num(n) = &function[0]
-    {
-        Ok(n.clone())
-    }
-    else
-    {
-        Err(())
-    }
+    Ok(function[0].clone())
 }
 fn subfact(a:f64) -> f64
 {
@@ -699,7 +943,7 @@ fn sum(function:Vec<NumStr>, var:&str, start:i64, end:i64, product:bool, deg:boo
                 *k = Num(Complex::with_val(prec, z));
             }
         }
-        math = do_math(func, deg, prec)?;
+        math = do_math(func, deg, prec)?.num()?;
         if !product
         {
             value += math;

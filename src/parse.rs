@@ -1,8 +1,8 @@
 use rug::{Complex, Float};
 use rug::float::Constant::Pi;
-use crate::math::NumStr;
-use crate::math::NumStr::{Num, Str};
-pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
+use crate::math::{do_math, NumStr};
+use crate::math::NumStr::{Num, Str, Vector};
+pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
 {
     let mut count:i32 = 0;
     let mut exp = String::new();
@@ -15,6 +15,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
     let n1 = Complex::with_val(prec, -1.0);
+    let mut pos = 0;
     'outer: while i < input.len()
     {
         c = chars[i];
@@ -87,6 +88,12 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     }
                     'x' | 'y' =>
                     {
+                        if chars[i - 1] == '}' && chars[i + 1] == '{'
+                        {
+                            func.push(Str("cross".to_string()));
+                            i += 1;
+                            continue;
+                        }
                         if !word.is_empty()
                         {
                             find_word = false;
@@ -168,6 +175,10 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             }
             match c
             {
+                '.' =>
+                {
+                    func.push(Str("dot".to_string()));
+                }
                 '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
                 {
                     func.push(Str("&&".to_string()));
@@ -199,6 +210,31 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     {
                         func.push(Str("<=".to_string()));
                     }
+                }
+                '{' =>
+                {
+                    if neg
+                    {
+                        func.push(Num(n1.clone()));
+                        func.push(Str('*'.to_string()));
+                        neg = false;
+                    }
+                    pos = func.len();
+                }
+                '}' =>
+                {
+                    let mut v = Vec::new();
+                    let mut start = 0;
+                    for (k, numstr) in func.iter().skip(pos).take(func.len() - pos).enumerate()
+                    {
+                        if numstr.str_is(",") || k == func.len() - pos - 1
+                        {
+                            v.push(do_math(func[pos + start..].to_vec(), deg, prec)?.num()?);
+                            start = k + 1;
+                        }
+                    }
+                    func.push(Vector(v));
+                    func.drain(pos..func.len() - 1);
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
                 '+' if i != 0 && i + 1 != chars.len() => func.push(Str('+'.to_string())),
@@ -234,7 +270,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Num(n1.clone()));
                         count += 1;
                     }
-                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
+                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}'))
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
@@ -367,13 +403,13 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     {
         return Err(());
     }
-    // println!();
     // for i in &func
     // {
     //     match i
     //     {
     //         Str(s) => println!("{}", s),
     //         Num(n) => println!("{}", n),
+    //         Vector(v) => println!("{:?}", v),
     //     }
     // }
     Ok(func)
@@ -399,6 +435,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
     let (mut not_pushed, mut start, mut c, mut k, mut j, mut v, mut temp, mut split, mut value, mut o);
     let mut i = 0;
     let mut count:isize = 0;
+    let mut vec_count:isize = 0;
     let mut commas:Vec<usize>;
     for i in chars.clone()
     {
@@ -415,7 +452,21 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
             }
             count -= 1;
         }
+        else if i == '{'
+        {
+            vec_count += 1;
+        }
+        else if i == '}'
+        {
+            if vec_count == 0
+            {
+                chars.insert(0, '{');
+                vec_count += 1;
+            }
+            vec_count -= 1;
+        }
     }
+    chars.extend(&vec!['}'; vec_count as usize]);
     chars.extend(&vec![')'; count as usize]);
     let input = chars.iter().collect::<String>();
     while i < chars.len()
@@ -552,7 +603,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                 output.push(')');
             }
         }
-        if not_pushed
+        if not_pushed && c != ' '
         {
             output.push(c);
         }

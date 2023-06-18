@@ -81,8 +81,9 @@ FLAGS: --help (this message)
 - Type "f(x)=..." to define a function
 - Type "f(x,y)=..." to define a 2 variable function
 - Type "f(x,y,z...)=..." to define a multi variable function
-- Type "f...=" to display the definition of a function or variable
+- Type "...=" add missing brackets, turns vars/functions into there defined states and prints output
 - Type "f...=null" to delete a function or variable
+- Type "{x,y,z...}" to define a vector
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:
@@ -107,6 +108,14 @@ Other functions:
 - zeta, gamma, erf, erfc, digamma, ai
 - deg(to_degrees), rad(to_radians)
 - re(real part), im(imaginary part)
+
+Vector operations/functions:
+dot product: {vec1}.{vec2}
+cross product: {vec1}x{vec2}
+magnitude: |{vec}|
+normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
+print to polar: polar({vec}) (magnitude, theta, phi)
+print to cartesian: cartesian({vec})
 
 Constants:
 - c: speed of light, 299792458 m/s
@@ -152,6 +161,9 @@ kalc
 ((x)+(y)+(2)+(5))
 > f(2,5,x,y) // graphs f(2,5,x,y) in 3D with x=2 and y=5 so 2+5+x+y, to graph x and y have to be the unknown variables
 > |z| // graphs |(x+yi)| in 3D
+> deg // enables degrees
+> polar({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
+{9.273618495496,57.373262293469,39.805571092265}
 ```
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc

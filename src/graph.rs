@@ -233,7 +233,14 @@ pub fn get_list_2d(func:&[NumStr], range:GraphOptions, deg:bool, prec:u32) -> (V
                             deg,
                             prec)
         {
-            Ok(n) => n,
+            Ok(n) =>
+            {
+                match n.num()
+                {
+                    Ok(n) => n,
+                    _ => continue,
+                }
+            }
             Err(_) => continue,
         };
         if num.real().is_finite()
@@ -294,7 +301,14 @@ pub fn get_list_3d(func:&[NumStr], range:GraphOptions, deg:bool, prec:u32) -> (V
                                 deg,
                                 prec)
             {
-                Ok(n) => n,
+                Ok(n) =>
+                {
+                    match n.num()
+                    {
+                        Ok(n) => n,
+                        _ => continue,
+                    }
+                }
                 Err(_) => continue,
             };
             if num.real().is_finite()

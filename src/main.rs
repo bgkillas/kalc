@@ -23,7 +23,7 @@ use {
 };
 // gui support
 // support unit conversions
-// support vector operations
+// support graphing vectors
 // allow units to be used in the input, and be outputted
 fn main()
 {
@@ -104,10 +104,10 @@ fn main()
             {
                 watch = Some(std::time::Instant::now());
             }
-            input = args.first().unwrap().replace(' ', "").replace('_', &format!("({})", last));
+            input = args.first().unwrap().replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
-                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars), prec)
+                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars), prec, print_options.deg)
                          {
                              Ok(f) => f,
                              Err(()) =>
@@ -123,7 +123,7 @@ fn main()
                 print!(" {}", time.elapsed().as_nanos());
             }
             if !(input.is_empty()
-                 || (input.contains('x') && !input.contains("exp") && vars.iter().all(|i| i[0] != "x"))
+                 || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                  || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
                  || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
@@ -170,7 +170,7 @@ fn main()
                             println!();
                         }
                         if !(input.is_empty()
-                             || (input.contains('x') && !input.contains("exp") && vars.iter().all(|i| i[0] != "x"))
+                             || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                              || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                              || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
                              || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
@@ -810,7 +810,7 @@ fn main()
             vars.push([l.to_string(), r.to_string()]);
             continue;
         }
-        else if (input.replace("exp", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+        else if (input.replace("exp", "").replace("}x{", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
             input = input.replace("zeta", "##ta##").replace('z', "(x+y*i)").replace("##ta##", "zeta");
             print!("\x1b[2K\x1b[1G");
@@ -819,7 +819,7 @@ fn main()
             funcs = Vec::new();
             for i in &inputs
             {
-                funcs.push(match get_func(&input_var(i, &vars), prec)
+                funcs.push(match get_func(&input_var(i, &vars), prec, print_options.deg)
                      {
                          Ok(f) => f,
                          _ => continue 'main,
@@ -898,10 +898,33 @@ fn read_single_char() -> char
             }
         }
         127 => '\x08',
-        b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'+' | b'-' | b'*' | b'/' | b'^' | b'(' | b')' | b'.' | b'=' | b',' | b'#' | b'|' | b'&' | b'!' | b'%' | b'_' | b'<' | b'>' | b' ' | b'\n' =>
-        {
-            input[0] as char
-        }
+        b'a'..=b'z'
+        | b'A'..=b'Z'
+        | b'0'..=b'9'
+        | b'+'
+        | b'-'
+        | b'*'
+        | b'/'
+        | b'^'
+        | b'('
+        | b')'
+        | b'.'
+        | b'='
+        | b','
+        | b'#'
+        | b'|'
+        | b'&'
+        | b'!'
+        | b'%'
+        | b'_'
+        | b'<'
+        | b'>'
+        | b' '
+        | b'\n'
+        | b'['
+        | b']'
+        | b'{'
+        | b'}' => input[0] as char,
         _ => read_single_char(),
     }
 }
@@ -936,6 +959,10 @@ fn read_single_char() -> char
                || c == '<'
                || c == '>'
                || c == ' '
+               || c == '['
+               || c == ']'
+               || c == '{'
+               || c == '}'
             {
                 c
             }
@@ -1015,8 +1042,9 @@ FLAGS: --help (this message)\n\
 - Type \"f(x)=...\" to define a function\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
-- Type \"f...=\" to display the definition of a function or variable\n\
-- Type \"f...=null\" to delete a function or variable\n\
+- Type \"...=\" add missing brackets, turns vars/functions into there defined states and prints output
+- Type \"f...=null\" to delete a function or variable
+- Type \"{{x,y,z...}}\" to define a vector
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Operators:\n\
 - +, -, *, /, ^, %, <, >, <=, >=\n\
@@ -1038,6 +1066,13 @@ Other functions:\n\
 - zeta, gamma, erf, erfc, digamma, ai\n\
 - deg(to_degrees), rad(to_radians)\n\
 - re(real part), im(imaginary part)\n\n\
+Vector operations/functions:\n\
+dot product: {{vec1}}.{{vec2}}\n\
+cross product: {{vec1}}x{{vec2}}\n\
+magnitude: |{{vec}}|\n\
+normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
+print to polar: polar({{vec}}) (magnitude, theta, phi)\n\
+print to cartesian: cartesian({{vec}})\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

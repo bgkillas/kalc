@@ -8,7 +8,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
     let (mut split, mut l);
     while !args.is_empty()
     {
-        if args[0].contains('=') || args[0].contains(',')
+        if args[0].contains('-') && (args[0].contains('=') || args[0].contains(','))
         {
             l = args[0].clone();
             split = l.split(|c| c == '=' || c == ',');

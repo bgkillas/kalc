@@ -5,7 +5,7 @@ use crate::math::NumStr::{Num, Str};
 pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
 {
     let mut count:i32 = 0;
-    let mut exp = 0;
+    let mut exp = String::new();
     let mut func:Vec<NumStr> = Vec::new();
     let mut word = String::new();
     let mut find_word = false;
@@ -60,6 +60,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             }
             func.push(Num(Complex::with_val(prec, Complex::parse(word.as_bytes()).unwrap())));
             word.clear();
+            func.extend(vec![Str(")".to_string()); count as usize]);
             continue;
         }
         else if c.is_ascii_alphabetic()
@@ -135,22 +136,31 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     i += 3;
                     continue;
                 }
-                if i + 1 < chars.len() && chars[i] == '^' && chars[i + 1].is_ascii_digit()
+                if i + 1 < chars.len() && chars[i] == '^' && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
                 {
                     func.push(Str(word.clone()));
                     word.clear();
-                    exp = chars[i + 1].to_string().parse::<u8>().unwrap();
-                    i += 2;
+                    let pos = chars.iter().skip(i + 1).position(|&c| c == '(' || c == ')');
+                    if pos.is_none()
+                    {
+                        continue;
+                    }
+                    exp = chars[i + 1..i + 1 + pos.unwrap()].iter().collect();
+                    if exp == "-"
+                    {
+                        exp = "-1".to_string();
+                    }
+                    i += pos.unwrap() + 1;
                     continue;
                 }
                 func.push(Str(word.clone()));
                 word.clear();
             }
-            if exp != 0 && c != '(' && c != ')'
+            if !exp.is_empty() && c != '(' && c != ')'
             {
                 func.push(Str("^".to_string()));
-                func.push(Num(Complex::with_val(prec, exp as f64)));
-                exp = 0;
+                func.push(Num(Complex::with_val(prec, Complex::parse(exp.as_bytes()).unwrap())));
+                exp = String::new();
             }
             match c
             {
@@ -214,7 +224,13 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                 }
                 '-' =>
                 {
-                    if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
+                    if i != 0 && chars[i - 1] == '^'
+                    {
+                        func.push(Str("(".to_string()));
+                        func.push(Num(n1.clone()));
+                        count += 1;
+                    }
+                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')'))
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
@@ -231,18 +247,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if i != 0 && i + 1 != chars.len() =>
-                {
-                    if chars[i + 1] == '-'
-                    {
-                        func.insert(func.len() - 1, Str("(".to_string()));
-                        func.insert(func.len() - 1, Num(Complex::with_val(prec, 1.0)));
-                        func.insert(func.len() - 1, Str("/".to_string()));
-                        count += 1;
-                        i += 1;
-                    }
-                    func.push(Str('^'.to_string()))
-                }
+                '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
                 '(' if i + 1 != chars.len() =>
                 {
                     place_multiplier(&mut func, &find_word);
@@ -335,14 +340,11 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
         }
         i += 1;
     }
-    if count > 0
-    {
-        func.extend(vec![Str(")".to_string()); count as usize]);
-    }
-    if exp != 0
+    func.extend(vec![Str(")".to_string()); count as usize]);
+    if !exp.is_empty()
     {
         func.push(Str("^".to_string()));
-        func.push(Num(Complex::with_val(prec, exp as f64)));
+        func.push(Num(Complex::with_val(prec, Complex::parse(exp.as_bytes()).unwrap())));
     }
     if neg
     {

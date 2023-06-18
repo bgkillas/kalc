@@ -15,7 +15,7 @@ parsing tries to comply with wolfram alpha
 
 # known issues
 - setting precision will remove vars if you change or delete any of the default vars
-- sin^-4!(2) will crash
+- sin^-4!(2) fails to parse
 - sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
 
 # build instructions

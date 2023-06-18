@@ -159,7 +159,11 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             if !exp.is_empty() && c != '(' && c != ')'
             {
                 func.push(Str("^".to_string()));
-                func.push(Num(Complex::with_val(prec, Complex::parse(exp.as_bytes()).unwrap())));
+                func.push(Num(Complex::with_val(prec, match Complex::parse(exp.as_bytes())
+                          {
+                              Ok(n) => n,
+                              Err(_) => return Err(()),
+                          })));
                 exp = String::new();
             }
             match c
@@ -344,7 +348,11 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     if !exp.is_empty()
     {
         func.push(Str("^".to_string()));
-        func.push(Num(Complex::with_val(prec, Complex::parse(exp.as_bytes()).unwrap())));
+        func.push(Num(Complex::with_val(prec, match Complex::parse(exp.as_bytes())
+                  {
+                      Ok(n) => n,
+                      Err(_) => return Err(()),
+                  })));
     }
     if neg
     {

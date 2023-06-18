@@ -179,10 +179,6 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                 else
                 {
                     a = function[i + 1].num()?;
-                    if a.imag() == &0.0
-                    {
-                        a = Complex::with_val(prec, a.real());
-                    }
                     function[i] = Num(match s.to_string().as_str()
                     {
                         "sin" =>
@@ -395,7 +391,14 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             }
                         }
                         "cis" => a.clone().cos() + a.sin() * Complex::with_val(prec, (0.0, 1.0)),
-                        "ln" | "aexp" => a.ln(),
+                        "ln" | "aexp" =>
+                        {
+                            if a.imag() == &0.0
+                            {
+                                a = Complex::with_val(prec, a.real());
+                            }
+                            a.ln()
+                        }
                         "ceil" => Complex::with_val(prec, (a.real().clone().ceil(), a.imag().clone().ceil())),
                         "floor" => Complex::with_val(prec, (a.real().clone().floor(), a.imag().clone().floor())),
                         "round" => Complex::with_val(prec, (a.real().clone().round(), a.imag().clone().round())),
@@ -403,6 +406,10 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                         "exp" | "aln" => a.exp(),
                         "log" =>
                         {
+                            if a.imag() == &0.0
+                            {
+                                a = Complex::with_val(prec, a.real());
+                            }
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
@@ -424,10 +431,6 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<Complex, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
-                                if b.imag() == &0.0
-                                {
-                                    b = Complex::with_val(prec, b.real());
-                                }
                                 function.remove(i + 3);
                                 function.remove(i + 2);
                                 match b.imag() == &0.0 && (b.real().to_f64() / 2.0).fract() != 0.0 && &b.real().clone().trunc() == b.real() && a.imag() == &0.0

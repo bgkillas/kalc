@@ -23,7 +23,6 @@ use {
 };
 // gui support
 // support unit conversions
-// support graphing vectors
 // allow units to be used in the input, and be outputted
 fn main()
 {
@@ -123,6 +122,7 @@ fn main()
                 print!(" {}", time.elapsed().as_nanos());
             }
             if !(input.is_empty()
+                 || input.contains("graph")
                  || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                  || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
@@ -170,6 +170,7 @@ fn main()
                             println!();
                         }
                         if !(input.is_empty()
+                             || input.contains("graph")
                              || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                              || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                              || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
@@ -810,7 +811,9 @@ fn main()
             vars.push([l.to_string(), r.to_string()]);
             continue;
         }
-        else if (input.replace("exp", "").replace("}x{", "").contains('x') && vars.iter().all(|i| i[0] != "x")) || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+        else if input.contains("graph")
+                  || (input.replace("exp", "").replace("}x{", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
+                  || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
             input = input.replace("zeta", "##ta##").replace('z', "(x+y*i)").replace("##ta##", "zeta");
             print!("\x1b[2K\x1b[1G");
@@ -1067,12 +1070,14 @@ Other functions:\n\
 - deg(to_degrees), rad(to_radians)\n\
 - re(real part), im(imaginary part)\n\n\
 Vector operations/functions:\n\
-dot product: {{vec1}}.{{vec2}}\n\
-cross product: {{vec1}}x{{vec2}}\n\
-magnitude: |{{vec}}|\n\
-normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
-print to polar: polar({{vec}}) (magnitude, theta, phi)\n\
-print to cartesian: cartesian({{vec}})\n\n\
+- dot product: {{vec1}}.{{vec2}}\n\
+- cross product: {{vec1}}x{{vec2}}\n\
+- magnitude: |{{vec}}|\n\
+- normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
+- convert to polar: pol{{vec}} outputs (magnitude, theta, phi)\n\
+- convert to geometric: geo{{vec}} outputs (x, y, z)\n\
+- print to cartesian: cartesian({{vec}})\n\
+- graph{{vec}} graphs the vector (just add #{{vec}} to add another vector)\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

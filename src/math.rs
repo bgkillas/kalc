@@ -129,7 +129,14 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
     i = 0;
     let (mut a, mut b);
     let mut place = Vec::new();
-    let to_deg = Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi);
+    let to_deg = if deg
+    {
+        Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+    }
+    else
+    {
+        Complex::with_val(prec, 1.0)
+    };
     while i < function.len() - 1
     {
         if let Str(s) = &function[i]
@@ -198,7 +205,28 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                             }
                             Num(n.sqrt())
                         }
-                        "polar" =>
+                        "graph" => Vector(a.clone()),
+                        "geo" | "geometric" =>
+                        {
+                            if a.len() == 2
+                            {
+                                let t = a[1].clone() / to_deg.clone();
+                                Vector(vec![a[0].clone() * t.clone().cos(), a[0].clone() * t.clone().sin()])
+                            }
+                            else if a.len() == 3
+                            {
+                                let t1 = a[1].clone() / to_deg.clone();
+                                let t2 = a[2].clone() / to_deg.clone();
+                                Vector(vec![a[0].clone() * t1.clone().sin() * t2.clone().cos(),
+                                            a[0].clone() * t1.clone().sin() * t2.clone().sin(),
+                                            a[0].clone() * t1.clone().cos()])
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "polar" | "pol" =>
                         {
                             let mut n = Complex::with_val(prec, 0.0);
                             for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
@@ -208,28 +236,13 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                             let mut vector = vec![n.sqrt()];
                             if a.len() == 2
                             {
-                                vector.push(a[1].clone() / a[1].clone().abs()
-                                            * if deg
-                                            {
-                                                (&a[0] / vector[0].clone()).acos() * to_deg.clone()
-                                            }
-                                            else
-                                            {
-                                                (&a[0] / vector[0].clone()).acos()
-                                            });
+                                vector.push(a[1].clone() / a[1].clone().abs() * (&a[0] / vector[0].clone()).acos() * to_deg.clone());
                             }
-                            if a.len() == 3
+                            else if a.len() == 3
                             {
-                                vector.push(if deg
-                                            {
-                                                (&a[2] / vector[0].clone()).acos() * to_deg.clone()
-                                            }
-                                            else
-                                            {
-                                                (&a[2] / vector[0].clone()).acos()
-                                            });
+                                vector.push((&a[2] / vector[0].clone()).acos() * to_deg.clone());
                                 let t:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-                                vector.push(a[1].clone() / a[1].clone().abs() * if deg { (&a[0] / t.sqrt()).acos() * to_deg.clone() } else { (&a[0] / t.sqrt()).acos() });
+                                vector.push(a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg.clone());
                             }
                             Vector(vector)
                         }
@@ -246,170 +259,62 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                     a = function[i + 1].num()?;
                     function[i] = Num(match s.to_string().as_str()
                     {
-                        "sin" =>
-                        {
-                            if deg
-                            {
-                                (a / to_deg.clone()).sin()
-                            }
-                            else
-                            {
-                                a.sin()
-                            }
-                        }
-                        "csc" =>
-                        {
-                            if deg
-                            {
-                                (a / to_deg.clone()).sin().recip()
-                            }
-                            else
-                            {
-                                a.sin().recip()
-                            }
-                        }
-                        "cos" =>
-                        {
-                            if deg
-                            {
-                                (a / to_deg.clone()).cos()
-                            }
-                            else
-                            {
-                                a.cos()
-                            }
-                        }
-                        "sec" =>
-                        {
-                            if deg
-                            {
-                                (a / to_deg.clone()).cos().recip()
-                            }
-                            else
-                            {
-                                a.cos().recip()
-                            }
-                        }
-                        "tan" =>
-                        {
-                            if deg
-                            {
-                                (a / to_deg.clone()).tan()
-                            }
-                            else
-                            {
-                                a.tan()
-                            }
-                        }
-                        "cot" =>
-                        {
-                            if deg
-                            {
-                                (a / to_deg.clone()).tan().recip()
-                            }
-                            else
-                            {
-                                a.tan().recip()
-                            }
-                        }
+                        "sin" => (a / to_deg.clone()).sin(),
+                        "csc" => (a / to_deg.clone()).sin().recip(),
+                        "cos" => (a / to_deg.clone()).cos(),
+                        "sec" => (a / to_deg.clone()).cos().recip(),
+                        "tan" => (a / to_deg.clone()).tan(),
+                        "cot" => (a / to_deg.clone()).tan().recip(),
                         "asin" | "arcsin" =>
                         {
-                            if deg
+                            b = a.clone().asin() * to_deg.clone();
+                            if a.imag() == &0.0 && a.real() >= &1.0
                             {
-                                a.asin() * to_deg.clone()
+                                Complex::with_val(prec, (b.real(), -b.imag()))
                             }
                             else
                             {
-                                b = a.clone().asin();
-                                if a.imag() == &0.0 && a.real() >= &1.0
-                                {
-                                    Complex::with_val(prec, (b.real(), -b.imag()))
-                                }
-                                else
-                                {
-                                    b
-                                }
+                                b
                             }
                         }
                         "acsc" | "arccsc" =>
                         {
-                            if deg
+                            b = a.clone().recip().asin() * to_deg.clone();
+                            if a.imag() == &0.0
                             {
-                                a.recip().asin() * to_deg.clone()
+                                Complex::with_val(prec, (b.real(), -b.imag()))
                             }
                             else
                             {
-                                b = a.clone().recip().asin();
-                                if a.imag() == &0.0
-                                {
-                                    Complex::with_val(prec, (b.real(), -b.imag()))
-                                }
-                                else
-                                {
-                                    b
-                                }
+                                b
                             }
                         }
                         "acos" | "arccos" =>
                         {
-                            if deg
+                            b = a.clone().acos() * to_deg.clone();
+                            if a.imag() == &0.0 && a.real() >= &1.0
                             {
-                                a.acos() * to_deg.clone()
+                                Complex::with_val(prec, (b.real(), -b.imag()))
                             }
                             else
                             {
-                                b = a.clone().acos();
-                                if a.imag() == &0.0 && a.real() >= &1.0
-                                {
-                                    Complex::with_val(prec, (b.real(), -b.imag()))
-                                }
-                                else
-                                {
-                                    b
-                                }
+                                b
                             }
                         }
                         "asec" | "arcsec" =>
                         {
-                            if deg
+                            b = a.clone().recip().acos() * to_deg.clone();
+                            if a.imag() == &0.0
                             {
-                                a.recip().acos() * to_deg.clone()
+                                Complex::with_val(prec, (b.real(), -b.imag()))
                             }
                             else
                             {
-                                b = a.clone().recip().acos();
-                                if a.imag() == &0.0
-                                {
-                                    Complex::with_val(prec, (b.real(), -b.imag()))
-                                }
-                                else
-                                {
-                                    b
-                                }
+                                b
                             }
                         }
-                        "atan" | "arctan" =>
-                        {
-                            if deg
-                            {
-                                a.atan() * to_deg.clone()
-                            }
-                            else
-                            {
-                                a.atan()
-                            }
-                        }
-                        "acot" | "arccot" =>
-                        {
-                            if deg
-                            {
-                                a.recip().atan() * to_deg.clone()
-                            }
-                            else
-                            {
-                                a.recip().atan()
-                            }
-                        }
+                        "atan" | "arctan" => a.atan() * to_deg.clone(),
+                        "acot" | "arccot" => a.recip().atan() * to_deg.clone(),
                         "sinh" => a.sinh(),
                         "csch" => a.sinh().recip(),
                         "cosh" => a.cosh(),

@@ -110,12 +110,14 @@ Other functions:
 - re(real part), im(imaginary part)
 
 Vector operations/functions:
-dot product: {vec1}.{vec2}
-cross product: {vec1}x{vec2}
-magnitude: |{vec}|
-normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
-print to polar: polar({vec}) (magnitude, theta, phi)
-print to cartesian: cartesian({vec})
+- dot product: {vec1}.{vec2}
+- cross product: {vec1}x{vec2}
+- magnitude: |{vec}|
+- normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
+- convert to polar: pol{vec} outputs (magnitude, theta, phi)
+- convert to geometric: geo{vec} outputs (x, y, z)
+- print to cartesian: cartesian({vec})
+- graph{vec} graphs the vector (just add #{vec} to add another vector)
 
 Constants:
 - c: speed of light, 299792458 m/s

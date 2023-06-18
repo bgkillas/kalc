@@ -26,7 +26,59 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
         let yticks = Some((Fix((options.yr[1] - options.yr[0]) / 20.0), 1));
         let mut re_cap:[String; 5] = Default::default();
         let mut im_cap:[String; 5] = Default::default();
-        if input[0].contains('y')
+        if !input[0].contains('x')
+        {
+            let mut re = Vec::new();
+            for f in &func
+            {
+                re.push(do_math(f.to_vec(), deg, prec).unwrap().vec().unwrap());
+            }
+            if re[0].len() == 2
+            {
+                for _ in 0..5 - func.len()
+                {
+                    re.push(vec![Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0)]);
+                }
+                let axisline = [-1000000.0, -100000.0, -10000.0, -1000.0, -100.0, -10.0, -1.0, -0.1, 0.0, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0];
+                let zeros = [0.0; 16];
+                fg.axes2d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
+                  .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
+                  .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                  .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
+                  .lines([0.0, re[0][0].real().to_f64()], [0.0, re[0][1].real().to_f64()], &[])
+                  .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], &[])
+                  .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], &[])
+                  .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], &[])
+                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], &[]);
+            }
+            else if re[0].len() == 3
+            {
+                for _ in 0..5 - func.len()
+                {
+                    re.push(vec![Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0)]);
+                }
+                let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
+                fg.axes3d()
+                  .set_x_ticks(xticks, &[], &[])
+                  .set_y_ticks(yticks, &[], &[])
+                  .set_z_ticks(zticks, &[], &[])
+                  .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                  .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
+                  .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                  .set_z_label("z", &[])
+                  .set_y_label("y", &[])
+                  .set_x_label("x", &[])
+                  .lines([0.0, re[0][0].real().to_f64()], [0.0, re[0][1].real().to_f64()], [0.0, re[0][2].real().to_f64()], &[])
+                  .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], [0.0, re[1][2].real().to_f64()], &[])
+                  .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], [0.0, re[2][2].real().to_f64()], &[])
+                  .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], [0.0, re[3][2].real().to_f64()], &[])
+                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], [0.0, re[4][2].real().to_f64()], &[]);
+            }
+        }
+        else if input[0].contains('y')
         {
             let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
             let mut re = vec![Vec::new(); 5];

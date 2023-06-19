@@ -93,7 +93,7 @@ Operators:
 - >> (right shift), << (left shift)
 
 Trigonometric functions:
-- sin, cos, tan, asin, acos, atan
+- sin, cos, tan, asin, acos, atan, atan(x,y)
 - csc, sec, cot, acsc, asec, acot
 - sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth

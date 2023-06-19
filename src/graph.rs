@@ -29,9 +29,10 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
         if !input[0].contains('x')
         {
             let mut re = Vec::new();
-            for f in &func
+            for (i, f) in func.iter().enumerate()
             {
                 re.push(do_math(f.to_vec(), deg, prec).unwrap().vec().unwrap());
+                re_cap[i] = input[i].to_owned().replace("graph(", "").replace("graph", "");
             }
             if re[0].len() == 2
             {
@@ -46,13 +47,13 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .set_y_ticks(yticks, &[], &[])
                   .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
                   .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                  .lines([0.0, re[0][0].real().to_f64()], [0.0, re[0][1].real().to_f64()], &[Caption(&re_cap[0]), Color(re1col)])
+                  .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], &[Caption(&re_cap[1]), Color(re2col)])
+                  .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], &[Caption(&re_cap[2]), Color(re3col)])
+                  .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], &[Caption(&re_cap[3]), Color(re4col)])
+                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], &[Caption(&re_cap[4]), Color(re5col)])
                   .lines(axisline, zeros, &[Color("black"), LineStyle(Dot)])
-                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)])
-                  .lines([0.0, re[0][0].real().to_f64()], [0.0, re[0][1].real().to_f64()], &[])
-                  .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], &[])
-                  .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], &[])
-                  .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], &[])
-                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], &[]);
+                  .lines(zeros, axisline, &[Color("black"), LineStyle(Dot)]);
             }
             else if re[0].len() == 3
             {
@@ -71,11 +72,21 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .set_z_label("z", &[])
                   .set_y_label("y", &[])
                   .set_x_label("x", &[])
-                  .lines([0.0, re[0][0].real().to_f64()], [0.0, re[0][1].real().to_f64()], [0.0, re[0][2].real().to_f64()], &[])
-                  .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], [0.0, re[1][2].real().to_f64()], &[])
-                  .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], [0.0, re[2][2].real().to_f64()], &[])
-                  .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], [0.0, re[3][2].real().to_f64()], &[])
-                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], [0.0, re[4][2].real().to_f64()], &[]);
+                  .lines([0.0, re[0][0].real().to_f64()], [0.0, re[0][1].real().to_f64()], [0.0, re[0][2].real().to_f64()], &[Caption(&re_cap
+                                                                                                                                          [0]),
+                                                                                                                              Color(re1col)])
+                  .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], [0.0, re[1][2].real().to_f64()], &[Caption(&re_cap
+                                                                                                                                          [1]),
+                                                                                                                              Color(re2col)])
+                  .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], [0.0, re[2][2].real().to_f64()], &[Caption(&re_cap
+                                                                                                                                          [2]),
+                                                                                                                              Color(re3col)])
+                  .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], [0.0, re[3][2].real().to_f64()], &[Caption(&re_cap
+                                                                                                                                          [3]),
+                                                                                                                              Color(re4col)])
+                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], [0.0, re[4][2].real().to_f64()], &[Caption(&re_cap
+                                                                                                                                          [4]),
+                                                                                                                              Color(re5col)]);
             }
         }
         else if input[0].contains('y')

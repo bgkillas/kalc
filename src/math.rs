@@ -82,7 +82,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
             {
                 if let Str(k) = &function[i - 1]
                 {
-                    if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root"
+                    if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root" || k == "atan"
                     {
                         single = 0;
                         count = 0;
@@ -313,7 +313,21 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                                 b
                             }
                         }
-                        "atan" | "arctan" => a.atan() * to_deg.clone(),
+                        "atan" | "arctan" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                b = function[i + 3].num()?;
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                let i = Complex::with_val(prec, (0.0, 1.0));
+                                ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs()).ln() * -i * to_deg.clone()
+                            }
+                            else
+                            {
+                                a.atan() * to_deg.clone()
+                            }
+                        }
                         "acot" | "arccot" => a.recip().atan() * to_deg.clone(),
                         "sinh" => a.sinh(),
                         "csch" => a.sinh().recip(),

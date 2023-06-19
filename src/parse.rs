@@ -213,6 +213,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                 }
                 '{' =>
                 {
+                    place_multiplier(&mut func, &find_word);
                     if neg
                     {
                         func.push(Num(n1.clone()));
@@ -424,6 +425,10 @@ fn place_multiplier(func:&mut Vec<NumStr>, find_word:&bool)
         }
     }
     else if let Num(_) = func.last().unwrap_or(&Str("".to_string()))
+    {
+        func.push(Str('*'.to_string()))
+    }
+    else if let Vector(_) = func.last().unwrap_or(&Str("".to_string()))
     {
         func.push(Str('*'.to_string()))
     }

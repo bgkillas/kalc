@@ -1055,7 +1055,7 @@ Operators:\n\
 - && (and), || (or), == (equals), != (not equals)\n\
 - >> (right shift), << (left shift)\n\n\
 Trigonometric functions:\n\
-- sin, cos, tan, asin, acos, atan\n\
+- sin, cos, tan, asin, acos, atan, atan(x,y)\n\
 - csc, sec, cot, acsc, asec, acot\n\
 - sinh, cosh, tanh, asinh, acosh, atanh\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\

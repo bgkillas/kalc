@@ -205,7 +205,6 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                             }
                             Num(n.sqrt())
                         }
-                        "graph" => Vector(a.clone()),
                         "geo" | "geometric" =>
                         {
                             if a.len() == 2

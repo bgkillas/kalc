@@ -122,7 +122,7 @@ fn main()
                 print!(" {}", time.elapsed().as_nanos());
             }
             if !(input.is_empty()
-                 || input.contains("graph")
+                 || input.contains("#")
                  || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                  || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
@@ -170,7 +170,7 @@ fn main()
                             println!();
                         }
                         if !(input.is_empty()
-                             || input.contains("graph")
+                             || input.contains("#")
                              || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                              || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                              || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
@@ -811,7 +811,7 @@ fn main()
             vars.push([l.to_string(), r.to_string()]);
             continue;
         }
-        else if input.contains("graph")
+        else if input.contains('#')
                   || (input.replace("exp", "").replace("}x{", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
                   || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
@@ -822,6 +822,10 @@ fn main()
             funcs = Vec::new();
             for i in &inputs
             {
+                if i.is_empty()
+                {
+                    continue;
+                }
                 funcs.push(match get_func(&input_var(i, &vars), prec, print_options.deg)
                      {
                          Ok(f) => f,

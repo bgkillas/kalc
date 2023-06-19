@@ -6,7 +6,8 @@ use crate::parse::get_func;
 use crate::PrintOptions;
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, prec:u32)
 {
-    if (input.contains('x') && !input.contains("exp") && !input.contains("}x{"))
+    if input.contains('#')
+       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{"))
        || input.contains('y')
        || (input.contains('z') && !input.contains("zeta"))
        || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
@@ -57,7 +58,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
 }
 pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, prec:u32) -> bool
 {
-    if input.contains("graph")
+    if input.contains('#')
        || (input.contains('x') && !input.contains("exp") && !input.contains("}x{"))
        || input.contains('y')
        || (input.contains('z') && !input.contains("zeta"))

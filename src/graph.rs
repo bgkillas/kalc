@@ -32,7 +32,7 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
             for (i, f) in func.iter().enumerate()
             {
                 re.push(do_math(f.to_vec(), deg, prec).unwrap().vec().unwrap());
-                re_cap[i] = input[i].to_owned().replace("graph(", "").replace("graph", "");
+                re_cap[i] = input[i].to_owned();
             }
             if re[0].len() == 2
             {

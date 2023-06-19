@@ -117,7 +117,7 @@ Vector operations/functions:
 - convert to polar: pol{vec} outputs (magnitude, theta, phi)
 - convert to geometric: geo{vec} outputs (x, y, z)
 - print to cartesian: cartesian({vec})
-- graph{vec} graphs the vector (just add #{vec} to add another vector)
+- {vec}# graphs the vector (works like normal after so {vec}#{vec} works)
 
 Constants:
 - c: speed of light, 299792458 m/s

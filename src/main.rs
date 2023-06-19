@@ -122,7 +122,7 @@ fn main()
                 print!(" {}", time.elapsed().as_nanos());
             }
             if !(input.is_empty()
-                 || input.contains("#")
+                 || input.contains('#')
                  || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                  || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
@@ -170,7 +170,7 @@ fn main()
                             println!();
                         }
                         if !(input.is_empty()
-                             || input.contains("#")
+                             || input.contains('#')
                              || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
                              || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                              || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))

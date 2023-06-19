@@ -90,6 +90,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     {
                         if i != 0 && i != chars.len() && chars[i - 1] == '}' && chars[i + 1] == '{'
                         {
+                            func.pop();
                             func.push(Str("cross".to_string()));
                             i += 1;
                             continue;

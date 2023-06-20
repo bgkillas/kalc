@@ -212,6 +212,20 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                         func.push(Str("<=".to_string()));
                     }
                 }
+                '[' =>
+                {
+                    place_multiplier(&mut func, &find_word);
+                    if neg
+                    {
+                        func.push(Num(n1.clone()));
+                        func.push(Str('*'.to_string()));
+                        neg = false;
+                    }
+                    func.push(Str("(".to_string()));
+                    count += 1;
+                    func.push(Str("car".to_string()));
+                    pos = func.len();
+                }
                 '{' =>
                 {
                     place_multiplier(&mut func, &find_word);
@@ -223,7 +237,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     }
                     pos = func.len();
                 }
-                '}' =>
+                '}' | ']' =>
                 {
                     let mut v = Vec::new();
                     let mut start = 0;
@@ -442,6 +456,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
     let mut i = 0;
     let mut count:isize = 0;
     let mut vec_count:isize = 0;
+    let mut vec_car_count:isize = 0;
     let mut commas:Vec<usize>;
     for i in chars.clone()
     {
@@ -471,7 +486,21 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
             }
             vec_count -= 1;
         }
+        else if i == '['
+        {
+            vec_car_count += 1;
+        }
+        else if i == ']'
+        {
+            if vec_car_count == 0
+            {
+                chars.insert(0, '[');
+                vec_car_count += 1;
+            }
+            vec_car_count -= 1;
+        }
     }
+    chars.extend(&vec![']'; vec_car_count as usize]);
     chars.extend(&vec!['}'; vec_count as usize]);
     chars.extend(&vec![')'; count as usize]);
     let input = chars.iter().collect::<String>();

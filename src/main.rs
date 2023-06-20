@@ -558,6 +558,13 @@ fn main()
                     graph_options.lines = !graph_options.lines;
                     continue;
                 }
+                "polar" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.polar = !print_options.polar;
+                    continue;
+                }
                 "comma" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1050,8 +1057,10 @@ FLAGS: --help (this message)\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
 - Type \"...=\" add missing brackets, turns vars/functions into there defined states and prints output
-- Type \"f...=null\" to delete a function or variable
-- Type \"{{x,y,z...}}\" to define a vector
+- Type \"f...=null\" to delete a function or variable\n\
+- Type \"{{x,y,z...}}\" to define a cartesian vector\n\
+- Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\
+- Type \"polar\" to toggle polar output\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Operators:\n\
 - +, -, *, /, ^, %, <, >, <=, >=\n\
@@ -1079,8 +1088,7 @@ Vector operations/functions:\n\
 - magnitude: |{{vec}}|\n\
 - normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
 - convert to polar: pol{{vec}} outputs (magnitude, theta, phi)\n\
-- convert to geometric: geo{{vec}} outputs (x, y, z)\n\
-- print to cartesian: cartesian({{vec}})\n\
+- convert to cartesian: car{{vec}} outputs (x, y, z)\n\
 - graph{{vec}} graphs the vector (just add #{{vec}} to add another vector)\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
@@ -1120,6 +1128,7 @@ pub struct PrintOptions
     deg:bool,
     base:usize,
     tau:bool,
+    polar:bool,
     real_time_output:bool,
     decimal_places:usize,
     color:bool,
@@ -1134,6 +1143,7 @@ impl Default for PrintOptions
                        deg:false,
                        base:10,
                        tau:false,
+                       polar:false,
                        real_time_output:true,
                        decimal_places:12,
                        color:false,

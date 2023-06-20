@@ -28,6 +28,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             "--color" => print_options.color = !print_options.color,
             "--line" => graph_options.lines = !graph_options.lines,
             "--rt" => print_options.real_time_output = !print_options.real_time_output,
+            "--polar" => print_options.polar = !print_options.polar,
             "--prec" | "--precision" =>
             {
                 if args.len() > 1
@@ -477,6 +478,19 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         Err(_) =>
                         {
                             println!("Invalid line bool");
+                            err = true;
+                            continue;
+                        }
+                    }
+                }
+                "polar" =>
+                {
+                    print_options.polar = match split.next().unwrap().parse::<bool>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid polar bool");
                             err = true;
                             continue;
                         }

@@ -83,7 +83,9 @@ FLAGS: --help (this message)
 - Type "f(x,y,z...)=..." to define a multi variable function
 - Type "...=" add missing brackets, turns vars/functions into there defined states and prints output
 - Type "f...=null" to delete a function or variable
-- Type "{x,y,z...}" to define a vector
+- Type "{x,y,z...}" to define a cartesian vector
+- Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
+- Type "polar" to toggle polar output
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:
@@ -114,9 +116,8 @@ Vector operations/functions:
 - cross product: {vec1}x{vec2}
 - magnitude: |{vec}|
 - normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
-- convert to polar: pol{vec} outputs (magnitude, theta, phi)
-- convert to geometric: geo{vec} outputs (x, y, z)
-- print to cartesian: cartesian({vec})
+- convert to polar: pol{vec} outputs (radius, theta, phi)
+- convert to cartesian: car{vec} outputs (x, y, z)
 - {vec}# graphs the vector (works like normal after so {vec}#{vec} works)
 
 Constants:

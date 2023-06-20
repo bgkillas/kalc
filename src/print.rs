@@ -1,6 +1,7 @@
 use rug::{Complex, Float, Integer};
+use rug::float::Constant::Pi;
 use crate::fraction::fraction;
-use crate::math::{do_math, NumStr};
+use crate::math::{do_math, NumStr, to_polar};
 use crate::math::NumStr::{Num, Str, Vector};
 use crate::parse::get_func;
 use crate::PrintOptions;
@@ -29,9 +30,21 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
         let a = get_output(&print_options, &n, sign);
         print!("{}{}{}", a.0, a.1, if print_options.color { "\x1b[0m" } else { "" });
     }
-    else if let Vector(v) = num
+    else if let Vector(mut v) = num
     {
-        let mut output = "{".to_owned();
+        if print_options.polar
+        {
+            v = to_polar(&v,
+                         if print_options.deg
+                         {
+                             Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+                         }
+                         else
+                         {
+                             Complex::with_val(prec, 1.0)
+                         });
+        }
+        let mut output = if print_options.polar { "[" } else { "{" }.to_string();
         let mut out;
         let mut sign;
         for (k, i) in v.iter().enumerate()
@@ -46,7 +59,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
             }
             if k == v.len() - 1
             {
-                output += "}";
+                output += if print_options.polar { "]" } else { "}" };
             }
             else
             {
@@ -202,9 +215,21 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                },
                unmodified_input);
     }
-    else if let Vector(v) = num
+    else if let Vector(mut v) = num
     {
-        let mut output = "{".to_owned();
+        if print_options.polar
+        {
+            v = to_polar(&v,
+                         if print_options.deg
+                         {
+                             Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+                         }
+                         else
+                         {
+                             Complex::with_val(prec, 1.0)
+                         });
+        }
+        let mut output = if print_options.polar { "[" } else { "{" }.to_string();
         let mut out;
         let mut sign;
         for (k, i) in v.iter().enumerate()
@@ -219,7 +244,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
             }
             if k == v.len() - 1
             {
-                output += "}";
+                output += if print_options.polar { "]" } else { "}" };
             }
             else
             {

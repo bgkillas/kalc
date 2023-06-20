@@ -205,7 +205,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                             }
                             Num(n.sqrt())
                         }
-                        "geo" | "geometric" =>
+                        "car" | "cartesian" =>
                         {
                             if a.len() == 2
                             {
@@ -225,26 +225,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
-                        "polar" | "pol" =>
-                        {
-                            let mut n = Complex::with_val(prec, 0.0);
-                            for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
-                            {
-                                n += i;
-                            }
-                            let mut vector = vec![n.sqrt()];
-                            if a.len() == 2
-                            {
-                                vector.push(a[1].clone() / a[1].clone().abs() * (&a[0] / vector[0].clone()).acos() * to_deg.clone());
-                            }
-                            else if a.len() == 3
-                            {
-                                vector.push((&a[2] / vector[0].clone()).acos() * to_deg.clone());
-                                let t:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-                                vector.push(a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg.clone());
-                            }
-                            Vector(vector)
-                        }
+                        "polar" | "pol" => Vector(to_polar(a, to_deg.clone())),
                         _ =>
                         {
                             i += 1;
@@ -824,6 +805,26 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
         function.remove(i - 1);
     }
     Ok(function[0].clone())
+}
+pub fn to_polar(a:&Vec<Complex>, to_deg:Complex) -> Vec<Complex>
+{
+    if a.len() != 2 && a.len() != 3
+    {
+        vec![]
+    }
+    else if a.len() == 2
+    {
+        let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+        n = n.sqrt();
+        vec![n.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg]
+    }
+    else
+    {
+        let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+        n = n.sqrt();
+        let t:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+        vec![n.clone(), (&a[2] / n).acos() * to_deg.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg]
+    }
 }
 fn subfact(a:f64) -> f64
 {

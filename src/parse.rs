@@ -88,7 +88,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     }
                     'x' | 'y' =>
                     {
-                        if i != 0 && i != chars.len() && chars[i - 1] == '}' && chars[i + 1] == '{'
+                        if i != 0 && i != chars.len() && chars[i - 1] == '}' && chars[i + 1] == '{' && chars[i - 1] == ']' && chars[i + 1] == '['
                         {
                             func.pop();
                             func.push(Str("cross".to_string()));
@@ -221,8 +221,6 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                         func.push(Str('*'.to_string()));
                         neg = false;
                     }
-                    func.push(Str("(".to_string()));
-                    count += 1;
                     func.push(Str("car".to_string()));
                     pos = func.len();
                 }
@@ -240,13 +238,13 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                 '}' | ']' =>
                 {
                     let mut v = Vec::new();
-                    let mut start = 0;
+                    let mut start = pos;
                     for (k, numstr) in func.iter().skip(pos).take(func.len() - pos).enumerate()
                     {
                         if numstr.str_is(",") || k == func.len() - pos - 1
                         {
-                            v.push(do_math(func[pos + start..].to_vec(), deg, prec)?.num()?);
-                            start = k + 1;
+                            v.push(do_math(func[start..].to_vec(), deg, prec)?.num()?);
+                            start = pos + k + 1;
                         }
                     }
                     func.push(Vector(v));
@@ -286,7 +284,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                         func.push(Num(n1.clone()));
                         count += 1;
                     }
-                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}'))
+                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}' || chars[i - 1] == ']'))
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {

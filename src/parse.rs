@@ -446,7 +446,7 @@ fn place_multiplier(func:&mut Vec<NumStr>, find_word:&bool)
         func.push(Str('*'.to_string()))
     }
 }
-pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
+pub fn input_var(input:&str, vars:&[[String; 2]], dont_do:Option<&str>) -> String
 {
     let mut chars = input.chars().collect::<Vec<char>>();
     let mut output = String::new();
@@ -535,9 +535,16 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                 }
                 if input[j..i + 1] == var[0]
                 {
+                    if let Some(n) = dont_do
+                    {
+                        if n == var[0]
+                        {
+                            return String::new();
+                        }
+                    }
                     not_pushed = false;
                     output.push('(');
-                    output.push_str(&input_var(&var[1], vars));
+                    output.push_str(&input_var(&var[1], vars, Some(&var[0])));
                     output.push(')');
                 }
                 else if j == 0 || !chars[j - 1].is_ascii_alphabetic()
@@ -561,6 +568,13 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                         continue;
                     }
                     v = var[0].chars().collect::<Vec<char>>();
+                    if let Some(n) = dont_do
+                    {
+                        if n == var[0]
+                        {
+                            return String::new();
+                        }
+                    }
                     if input.contains(',') && var[0].contains(',') && chars.len() > 4
                     {
                         not_pushed = false;
@@ -597,10 +611,11 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                                 start = end + 1;
                             }
                             split.push(&temp[start..]);
-                            value = input_var(&var[1], vars).clone();
+                            value = input_var(&var[1], vars, Some(&var[0])).clone();
                             for i in 0..split.len()
                             {
-                                value = value.replace(v[v.len() - 2 * (i as i32 - split.len() as i32).unsigned_abs() as usize], &format!("({})", input_var(split[i], vars)));
+                                value = value.replace(v[v.len() - 2 * (i as i32 - split.len() as i32).unsigned_abs() as usize],
+                                                      &format!("({})", input_var(split[i], vars, Some(&var[0]))));
                             }
                             output.push_str(&value);
                             output.push(')');
@@ -615,7 +630,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                         {
                             temp = &temp[..temp.len() - 1];
                         }
-                        output.push_str(&input_var(&var[1], vars).replace(v[v.len() - 2], &format!("({})", input_var(temp, vars))));
+                        output.push_str(&input_var(&var[1], vars, Some(&var[0])).replace(v[v.len() - 2], &format!("({})", input_var(temp, vars, Some(&var[0])))));
                         output.push(')');
                     }
                 }
@@ -629,10 +644,17 @@ pub fn input_var(input:&str, vars:&[[String; 2]]) -> String
                       && (j == 0 || !chars[j - 1].is_ascii_alphabetic())
                       && (var[0].len() - 1 + i == chars.len() - 1 || !chars[i + 1 + var[0].len() - 1].is_ascii_alphabetic())
             {
+                if let Some(n) = dont_do
+                {
+                    if n == var[0]
+                    {
+                        return String::new();
+                    }
+                }
                 i += var[0].len() - 1;
                 not_pushed = false;
                 output.push('(');
-                output.push_str(&input_var(&var[1], vars));
+                output.push_str(&input_var(&var[1], vars, Some(&var[0])));
                 output.push(')');
             }
         }

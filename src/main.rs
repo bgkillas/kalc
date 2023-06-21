@@ -106,7 +106,7 @@ fn main()
             input = args.first().unwrap().replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
-                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars), prec, print_options.deg)
+                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None), prec, print_options.deg)
                          {
                              Ok(f) => f,
                              Err(()) =>
@@ -163,7 +163,7 @@ fn main()
                     {
                         if !print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
                         }
                         if frac
                         {
@@ -224,7 +224,7 @@ fn main()
                         }
                         else if print_options.real_time_output
                         {
-                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prec)
+                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec)
                         }
                         else
                         {
@@ -290,7 +290,7 @@ fn main()
                         cursor = input.len();
                         if print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
                         }
                         print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                                if print_options.prompt
@@ -352,7 +352,7 @@ fn main()
                         cursor = input.len();
                         if print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
                         }
                         print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
                                if print_options.prompt
@@ -429,7 +429,7 @@ fn main()
                         }
                         if print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
                         }
                         else
                         {
@@ -628,7 +628,7 @@ fn main()
             }
             if r.is_empty()
             {
-                println!("{}", input_var(l, &vars));
+                println!("{}", input_var(l, &vars, None));
                 continue;
             }
             match l
@@ -840,7 +840,7 @@ fn main()
                 {
                     continue;
                 }
-                funcs.push(match get_func(&input_var(i, &vars), prec, print_options.deg)
+                funcs.push(match get_func(&input_var(i, &vars, None), prec, print_options.deg)
                      {
                          Ok(f) => f,
                          _ => continue 'main,

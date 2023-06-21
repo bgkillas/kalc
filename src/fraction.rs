@@ -1,8 +1,9 @@
 // as per continued fraction expansion
 use rug::Float;
 use rug::float::Constant::Pi;
-pub fn fraction(value:Float, tau:bool, prec:u32, dec:usize) -> String
+pub fn fraction(value:Float, tau:bool, dec:usize) -> String
 {
+    let prec = value.prec();
     if value.clone().fract() == 0.0
     {
         return String::new();

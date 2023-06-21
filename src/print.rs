@@ -139,8 +139,8 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
     {
         let a = n.real().to_f64();
         let b = n.imag().to_f64();
-        let fa = fraction(n.real().clone(), print_options.tau, prec, print_options.decimal_places);
-        let fb = fraction(n.imag().clone(), print_options.tau, prec, print_options.decimal_places);
+        let fa = fraction(n.real().clone(), print_options.tau, print_options.decimal_places);
+        let fb = fraction(n.imag().clone(), print_options.tau, print_options.decimal_places);
         let sign = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
         let (frac_a, frac_b) = match (!fa.is_empty(), !fb.is_empty())
         {
@@ -186,6 +186,10 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
             _ => ("".to_string(), "".to_string()),
         };
         let output = get_output(&print_options, &n, sign);
+        if frac && !print_options.frac
+        {
+            frac = false;
+        }
         print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
                if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
                frac_a,
@@ -230,28 +234,48 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                          });
         }
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();
+        let mut frac_out = if print_options.polar { "[" } else { "{" }.to_string();
         let mut out;
         let mut sign;
+        let mut frac_temp;
         for (k, i) in v.iter().enumerate()
         {
             sign = if i.real() != &0.0 && i.imag() != &0.0 { "+" } else { "" }.to_owned();
             out = get_output(&print_options, i, sign);
-            output += out.0.as_str();
-            output += out.1.as_str();
+            frac_temp = fraction(i.real().clone(), print_options.tau, print_options.decimal_places);
+            frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
+            frac_temp = fraction(i.imag().clone(), print_options.tau, print_options.decimal_places);
+            frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.1 };
+            output += &out.0;
+            output += &out.1;
             if print_options.color
             {
                 output += "\x1b[0m";
+                frac_out += "\x1b[0m";
             }
             if k == v.len() - 1
             {
                 output += if print_options.polar { "]" } else { "}" };
+                frac_out += if print_options.polar { "]" } else { "}" };
             }
             else
             {
                 output += ",";
+                frac_out += ",";
             }
         }
-        print!("\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1b[0m\n\x1B[2K\x1B[1G{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
+        if frac_out != output
+        {
+            frac = true;
+        }
+        if frac && !print_options.frac
+        {
+            frac = false;
+        }
+        print!("{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
+               if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
+               frac_out,
+               if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
                output,
                if frac { "\x1b[A" } else { "" },
                if print_options.prompt

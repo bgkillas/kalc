@@ -31,7 +31,7 @@ fn main()
     let mut watch = None;
     let mut allow_vars = true;
     let mut debug = false;
-    let mut prec = 256;
+    let mut prec = 512;
     let mut handles:Vec<JoinHandle<()>> = Vec::new();
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
@@ -565,6 +565,13 @@ fn main()
                     print_options.polar = !print_options.polar;
                     continue;
                 }
+                "frac" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.frac = !print_options.frac;
+                    continue;
+                }
                 "comma" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1023,6 +1030,8 @@ FLAGS: --help (this message)\n\
 --vars toggles default variables\n\
 --line toggles line graphing\n\
 --rt toggles real time printing\n\
+--polar toggles displaying polar vectors\n\
+--frac toggles fraction display\n\
 --prec [num] sets the precision\n\
 --deci [num] sets how many decimals to display, also max length of numerator and denominator in fractions\n\
 --def ignores config file\n\
@@ -1061,6 +1070,7 @@ FLAGS: --help (this message)\n\
 - Type \"{{x,y,z...}}\" to define a cartesian vector\n\
 - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\
 - Type \"polar\" to toggle polar output\n\
+- Type \"frac\" to toggle fraction display\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Operators:\n\
 - +, -, *, /, ^, %, <, >, <=, >=\n\
@@ -1129,6 +1139,7 @@ pub struct PrintOptions
     base:usize,
     tau:bool,
     polar:bool,
+    frac:bool,
     real_time_output:bool,
     decimal_places:usize,
     color:bool,
@@ -1144,6 +1155,7 @@ impl Default for PrintOptions
                        base:10,
                        tau:false,
                        polar:false,
+                       frac:true,
                        real_time_output:true,
                        decimal_places:12,
                        color:false,

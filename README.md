@@ -47,6 +47,8 @@ FLAGS: --help (this message)
 --vars toggles default variables
 --line toggles line graphing
 --rt toggles real time printing
+--polar toggles displaying polar vectors
+--frac toggles fraction display
 --prec [num] sets the precision
 --decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions
 --default ignores config file
@@ -86,6 +88,7 @@ FLAGS: --help (this message)
 - Type "{x,y,z...}" to define a cartesian vector
 - Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
 - Type "polar" to toggle polar output
+- Type "frac" to toggle fraction display
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:

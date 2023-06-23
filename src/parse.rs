@@ -259,7 +259,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     }
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
-                '+' if i != 0 && i + 1 != chars.len() => func.push(Str('+'.to_string())),
+                '+' if i != 0 && i + 1 != chars.len() && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}' || chars[i - 1] == ']') => func.push(Str('+'.to_string())),
                 '<' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
                 {
                     if chars[i + 1] == '<'

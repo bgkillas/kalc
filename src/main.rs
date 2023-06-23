@@ -520,17 +520,32 @@ fn main()
                         {
                             end = input.len()
                         }
+                        else if placement == end
+                        {
+                            if c == 'π'
+                            {
+                                start += 2;
+                            }
+                            else if c == 'τ'
+                            {
+                                start += 3;
+                            }
+                            else
+                            {
+                                start += 1;
+                            }
+                        }
                         else if c == 'π'
                         {
-                            start += 2;
+                            end -= 2;
                         }
                         else if c == 'τ'
                         {
-                            start += 3;
+                            end -= 3;
                         }
                         else
                         {
-                            start += 1;
+                            end -= 1;
                         }
                         if i == max
                         {

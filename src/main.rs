@@ -498,6 +498,8 @@ fn main()
                             print!("\x1b[1C")
                         }
                     }
+                    '\0' =>
+                    {}
                     _ =>
                     {
                         if c == 'π'
@@ -1030,7 +1032,7 @@ fn read_single_char() -> char
                 66 => '\x1E', // Down arrow key
                 67 => '\x1C', // Right arrow key
                 68 => '\x1B', // Left arrow key
-                _ => read_single_char(),
+                _ => '\0',
             }
         }
         207 =>
@@ -1041,7 +1043,7 @@ fn read_single_char() -> char
             {
                 128 => 'π',
                 132 => 'τ',
-                _ => read_single_char(),
+                _ => '\0',
             }
         }
         127 => '\x08',
@@ -1072,7 +1074,7 @@ fn read_single_char() -> char
         | b']'
         | b'{'
         | b'}' => input[0] as char,
-        _ => read_single_char(),
+        _ => '\0',
     }
 }
 #[cfg(not(unix))]
@@ -1127,7 +1129,7 @@ fn read_single_char() -> char
             }
             else
             {
-                read_single_char()
+                '\0'
             }
         }
         Key::Enter => '\n',
@@ -1136,7 +1138,7 @@ fn read_single_char() -> char
         Key::ArrowRight => '\x1C',
         Key::ArrowUp => '\x1D',
         Key::ArrowDown => '\x1E',
-        _ => read_single_char(),
+        _ => '\0',
     }
 }
 fn write(input:&str, file:&mut File, lines:&Vec<String>)

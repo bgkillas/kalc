@@ -19,7 +19,7 @@ parsing tries to comply with wolfram alpha
 - sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
 
 # build instructions
-install rust at least version 1.70
+rust>=1.70.0 diffutils gcc m4 make
 ```
 git clone https://github.com/bgkillas/kalc
 cd kalc

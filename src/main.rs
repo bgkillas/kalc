@@ -23,7 +23,6 @@ use {
 use {
     libc::{ECHO, ioctl, STDOUT_FILENO, TIOCGWINSZ, winsize, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
-// implement home(cursor start) and end(cursor end)
 // gui support
 // support unit conversions
 // allow units to be used in the input, and be outputted
@@ -1311,7 +1310,7 @@ impl Default for GraphOptions
         GraphOptions { xr:[-10.0, 10.0],
                        yr:[-10.0, 10.0],
                        zr:[-10.0, 10.0],
-                       samples_2d:40000.0,
+                       samples_2d:10000.0,
                        samples_3d:400.0,
                        point_style:'.',
                        lines:false }

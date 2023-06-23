@@ -427,7 +427,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                         "im" | "imag" => Complex::with_val(prec, a.imag()),
                         "sgn" | "sign" => Complex::with_val(prec, a.clone() / a.abs()),
                         "arg" => a.arg(),
-                        "cbrt" | "acube" => a.pow(1.0 / 3.0),
+                        "cbrt" | "acube" => Complex::with_val(prec, a.real() / a.real().clone().abs() * a.real().clone().abs().pow(3f64.recip())),
                         "frac" | "fract" => Complex::with_val(prec, (a.real().clone().fract(), a.imag().clone().fract())),
                         "int" | "trunc" => Complex::with_val(prec, (a.real().clone().trunc(), a.imag().clone().trunc())),
                         "square" | "asqrt" => a.pow(2),

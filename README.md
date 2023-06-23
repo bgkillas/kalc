@@ -50,8 +50,8 @@ FLAGS: --help (this message)
 --polar toggles displaying polar vectors
 --frac toggles fraction display
 --prec [num] sets the precision
---decimal [num] sets how many decimals to display, also max length of numerator and denominator in fractions
---default ignores config file
+--deci [num] sets how many decimals to display, also max length of numerator and denominator in fractions
+--def ignores config file
 --debug displays computation time in nanoseconds
 
 - Type "exit" to exit the program
@@ -73,7 +73,7 @@ FLAGS: --help (this message)
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
 - Type "prec=[num]" to set the precision
-- Type "decimal=[num]" to set how many decimals to display, also max length of numerator and denominator in fractions
+- Type "deci=[num]" to set how many decimals to display, also max length of numerator and denominator in fractions
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
 - Type "vars" to list all variables
@@ -87,6 +87,8 @@ FLAGS: --help (this message)
 - Type "f...=null" to delete a function or variable
 - Type "{x,y,z...}" to define a cartesian vector
 - Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
+- Type "{vec}#" to graph a vector
+- Type "number#" to graph a complex number
 - Type "polar" to toggle polar output
 - Type "frac" to toggle fraction display
 - Type "debug" toggles displaying computation time in nanoseconds
@@ -121,7 +123,6 @@ Vector operations/functions:
 - normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
-- {vec}# graphs the vector (works like normal after so {vec}#{vec} works)
 
 Constants:
 - c: speed of light, 299792458 m/s
@@ -168,7 +169,7 @@ kalc
 > f(2,5,x,y) // graphs f(2,5,x,y) in 3D with x=2 and y=5 so 2+5+x+y, to graph x and y have to be the unknown variables
 > |z| // graphs |(x+yi)| in 3D
 > deg // enables degrees
-> polar({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
+> pol({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
 {9.273618495496,57.373262293469,39.805571092265}
 ```
 ```

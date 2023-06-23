@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use rug::{Complex, Float, Integer};
 use rug::float::Constant::Pi;
 use crate::fraction::fraction;
@@ -8,7 +9,7 @@ use crate::PrintOptions;
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, prec:u32)
 {
     if input.contains('#')
-       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{"))
+       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x["))
        || input.contains('y')
        || (input.contains('z') && !input.contains("zeta"))
        || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
@@ -69,10 +70,10 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
         print!("{}{}", output, if print_options.color { "\x1b[0m" } else { "" });
     }
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, prec:u32) -> bool
+pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, prec:u32, start:usize, end:usize) -> bool
 {
     if input.contains('#')
-       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{"))
+       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x["))
        || input.contains('y')
        || (input.contains('z') && !input.contains("zeta"))
        || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
@@ -97,7 +98,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                {
                    ""
                },
-               unmodified_input);
+               &unmodified_input[start..end]);
         return false;
     }
     let func = match get_func(input, prec, print_options.deg)
@@ -125,7 +126,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                    {
                        ""
                    },
-                   unmodified_input);
+                   &unmodified_input[start..end]);
             return false;
         }
     };
@@ -190,11 +191,15 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             frac = false;
         }
-        print!("{}{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
-               if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
-               frac_a,
-               frac_b,
-               if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
+        print!("{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
+               if frac
+               {
+                   format!("\x1b[0m\n\x1B[2K\x1B[1G{}{}", frac_a, frac_b)
+               }
+               else
+               {
+                   "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A".to_string()
+               },
                output.0,
                output.1,
                if frac { "\x1b[A" } else { "" },
@@ -217,7 +222,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                {
                    ""
                },
-               unmodified_input);
+               &unmodified_input[start..end]);
     }
     else if let Vector(mut v) = num
     {
@@ -272,10 +277,15 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             frac = false;
         }
-        print!("{}{}{}\x1b[0m\n\x1B[2K\x1B[1G{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
-               if frac { "\x1b[0m\n\x1B[2K\x1B[1G" } else { "" },
-               frac_out,
-               if !frac { "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A" } else { "" },
+        print!("{}\x1b[0m\n\x1B[2K\x1B[1G{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
+               if frac
+               {
+                   format!("\x1b[0m\n\x1B[2K\x1B[1G{}", frac_out)
+               }
+               else
+               {
+                   "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A".to_string()
+               },
                output,
                if frac { "\x1b[A" } else { "" },
                if print_options.prompt
@@ -297,13 +307,13 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                {
                    ""
                },
-               unmodified_input);
+               &unmodified_input[start..end]);
     }
     frac
 }
 fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String, String)
 {
-    let mut n = String::new();
+    let mut n;
     if print_options.base != 10
     {
         (if num.real() != &0.0
@@ -366,57 +376,32 @@ fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String
     }
     else
     {
-        (if num.real() != &0.0
+        n = add_commas(&to_string(num.real(), print_options.decimal_places), print_options.comma);
+        let sign = if n == "0" { "".to_string() } else { sign };
+        let im = add_commas(&to_string(num.imag(), print_options.decimal_places), print_options.comma);
+        (if n == "0" && im != "0" { "".to_string() } else { n },
+         if im == "0"
          {
-             n = add_commas(&to_string(num.real(), print_options.decimal_places), print_options.comma);
-             if n == "0" || n == "-0"
-             {
-                 "".to_string()
-             }
-             else
-             {
-                 n.clone()
-             }
-         }
-         else if num.imag() == &0.0
-         {
-             "0".to_owned()
+             "".to_string()
          }
          else
          {
-             "".to_string()
-         },
-         if num.imag() != &0.0
-         {
-             let sign = if n == "0" { "".to_string() } else { sign };
-             n = add_commas(&to_string(num.imag(), print_options.decimal_places), print_options.comma);
-             if n == "0" || n == "-0"
-             {
-                 "".to_string()
-             }
-             else
-             {
-                 sign + &n + if print_options.color { "\x1b[93mi" } else { "i" }
-             }
-         }
-         else
-         {
-             "".to_string()
+             sign + &im + if print_options.color { "\x1b[93mi" } else { "i" }
          })
     }
 }
 fn to_string(num:&Float, decimals:usize) -> String
 {
     let (neg, mut str, exp) = num.to_sign_string_exp(10, None);
-    let neg = if neg { "-" } else { "" };
+    let mut neg = if neg { "-" } else { "" };
     if exp.is_none()
     {
-        return format!("{}{}", neg, str);
+        return if str == "0" { "0".to_string() } else { format!("{}{}", neg, str) };
     }
     let exp = exp.unwrap();
     if str.len() as i32 == exp
     {
-        return format!("{}{}", neg, str);
+        return if str == "0" { "0".to_string() } else { format!("{}{}", neg, str) };
     }
     if exp > str.len() as i32
     {
@@ -438,7 +423,7 @@ fn to_string(num:&Float, decimals:usize) -> String
     let mut r = split.next().unwrap().to_string();
     if r.is_empty()
     {
-        return format!("{}{}", neg, l);
+        return if str == "0" { "0".to_string() } else { format!("{}{}", neg, l) };
     }
     if r.len() > decimals
     {
@@ -459,9 +444,27 @@ fn to_string(num:&Float, decimals:usize) -> String
         l = t.to_integer().unwrap().to_string();
         d = Integer::new();
     }
-    format!("{}{}.{}{}", neg, if l.is_empty() { "0" } else { &l }, zeros, d).trim_end_matches(|c| c == '0')
-                                                                            .trim_end_matches(|c| c == '.')
-                                                                            .to_string()
+    if d.to_string() == "0" && (l.is_empty() || l == "0")
+    {
+        neg = ""
+    }
+    if decimals == 0
+    {
+        if zeros.is_empty() && d.to_string().chars().next().unwrap().to_digit(10).unwrap() == 1
+        {
+            format!("{}{}", neg, Integer::from_str(&l).unwrap_or(Integer::new()) + 1)
+        }
+        else
+        {
+            format!("{}{}", neg, if l.is_empty() { "0" } else { &l })
+        }
+    }
+    else
+    {
+        format!("{}{}.{}{}", neg, if l.is_empty() { "0" } else { &l }, zeros, d).trim_end_matches('0')
+                                                                                .trim_end_matches('.')
+                                                                                .to_string()
+    }
 }
 fn add_commas(input:&str, commas:bool) -> String
 {

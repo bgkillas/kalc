@@ -21,7 +21,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
         c = chars[i];
         if c.is_numeric()
         {
-            if !word.is_empty()
+            if !word.is_empty() && word != "0."
             {
                 find_word = false;
                 func.push(Str(word.clone()));
@@ -37,8 +37,12 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     {
                         word.push(*c);
                     }
-                    '.' if !deci =>
+                    '.' =>
                     {
+                        if deci
+                        {
+                            return Err(());
+                        }
                         deci = true;
                         word.push(*c);
                     }
@@ -88,7 +92,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     }
                     'x' | 'y' =>
                     {
-                        if i != 0 && i != chars.len() && chars[i - 1] == '}' && chars[i + 1] == '{' && chars[i - 1] == ']' && chars[i + 1] == '['
+                        if i != 0 && i + 1 < chars.len() && ((chars[i - 1] == '}' && chars[i + 1] == '{') || (chars[i - 1] == ']' && chars[i + 1] == '['))
                         {
                             func.pop();
                             func.push(Str("cross".to_string()));
@@ -178,7 +182,14 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
             {
                 '.' =>
                 {
-                    func.push(Str("dot".to_string()));
+                    if i != 0 && i + 1 < chars.len() && ((chars[i - 1] == '}' && chars[i + 1] == '{') || (chars[i - 1] == ']' && chars[i + 1] == '['))
+                    {
+                        func.push(Str("dot".to_string()));
+                    }
+                    else
+                    {
+                        word.push_str("0.");
+                    }
                 }
                 '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
                 {
@@ -212,7 +223,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                         func.push(Str("<=".to_string()));
                     }
                 }
-                '[' =>
+                '{' | '[' =>
                 {
                     place_multiplier(&mut func, &find_word);
                     if neg
@@ -221,17 +232,10 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                         func.push(Str('*'.to_string()));
                         neg = false;
                     }
-                    func.push(Str("car".to_string()));
-                    pos = func.len();
-                }
-                '{' =>
-                {
-                    place_multiplier(&mut func, &find_word);
-                    if neg
+                    if c == '['
                     {
-                        func.push(Num(n1.clone()));
-                        func.push(Str('*'.to_string()));
-                        neg = false;
+                        func.push(Str("(".to_string()));
+                        func.push(Str("car".to_string()));
                     }
                     pos = func.len();
                 }
@@ -249,6 +253,10 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     }
                     func.push(Vector(v));
                     func.drain(pos..func.len() - 1);
+                    if c == ']'
+                    {
+                        func.push(Str(")".to_string()));
+                    }
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
                 '+' if i != 0 && i + 1 != chars.len() => func.push(Str('+'.to_string())),

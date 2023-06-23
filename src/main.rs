@@ -16,11 +16,14 @@ use std::io::stdin;
 use std::thread::JoinHandle;
 use options::{arg_opts, file_opts};
 #[cfg(not(unix))]
-use console::{Key, Term};
+use {
+    console::{Key, Term}, term_size::dimensions
+};
 #[cfg(unix)]
 use {
-    libc::{ECHO, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
+    libc::{ECHO, ioctl, STDOUT_FILENO, TIOCGWINSZ, winsize, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
+// implement home(cursor start) and end(cursor end)
 // gui support
 // support unit conversions
 // allow units to be used in the input, and be outputted
@@ -83,7 +86,7 @@ fn main()
     let mut last = String::new();
     let mut current = String::new();
     let mut inputs:Vec<String>;
-    let (mut c, mut i, mut max, mut cursor, mut frac, mut len, mut l, mut r, mut split, mut funcs, mut v);
+    let (mut c, mut i, mut max, mut frac, mut l, mut r, mut split, mut funcs, mut v, mut start, mut end, mut placement);
     let mut exit = false;
     'main: loop
     {
@@ -123,7 +126,7 @@ fn main()
             }
             if !(input.is_empty()
                  || input.contains('#')
-                 || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
+                 || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x[") && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                  || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
                  || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
@@ -148,8 +151,9 @@ fn main()
             unmod_lines = lines.clone();
             i = lines.len() as i32;
             max = i;
-            cursor = 0;
+            placement = 0;
             last = lines.last().unwrap_or(&String::new()).clone();
+            start = 0;
             'outer: loop
             {
                 c = read_single_char();
@@ -161,9 +165,14 @@ fn main()
                 {
                     '\n' =>
                     {
+                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
                         if !print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec, start, end);
                         }
                         if frac
                         {
@@ -171,7 +180,7 @@ fn main()
                         }
                         if !(input.is_empty()
                              || input.contains('#')
-                             || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && vars.iter().all(|i| i[0] != "x"))
+                             || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x[") && vars.iter().all(|i| i[0] != "x"))
                              || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
                              || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
                              || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
@@ -183,7 +192,11 @@ fn main()
                     }
                     '\x08' =>
                     {
-                        if cursor == 0
+                        if placement - start == 0 && start != 0
+                        {
+                            start -= 1;
+                        }
+                        if placement == 0
                         {
                             if input.is_empty()
                             {
@@ -207,8 +220,13 @@ fn main()
                             }
                             continue;
                         }
-                        cursor -= 1;
-                        input.remove(cursor);
+                        placement -= 1;
+                        input.remove(placement);
+                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
                         if i == max
                         {
                             current = input.clone();
@@ -217,14 +235,13 @@ fn main()
                         {
                             lines[i as usize] = input.clone();
                         }
-                        print!("\x1B[2K\x1B[1G{}", input);
                         frac = if input.is_empty()
                         {
                             false
                         }
                         else if print_options.real_time_output
                         {
-                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec)
+                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec, start, end)
                         }
                         else
                         {
@@ -248,21 +265,19 @@ fn main()
                                    {
                                        ""
                                    },
-                                   input);
+                                   &input[start..end]);
                             false
                         };
-                        len = input.len();
                         if let Some(time) = watch
                         {
                             let time = time.elapsed().as_nanos();
-                            len += time.to_string().len() + 1;
-                            print!(" {}", time);
+                            print!(" {}{}", time, "\x08".repeat(time.to_string().len() + 1 + end - start - (placement - start)));
                         }
-                        for _ in 0..(len - cursor)
+                        else
                         {
-                            print!("\x08");
+                            print!("{}", "\x08".repeat(end - start - (placement - start)));
                         }
-                        if cursor == 0 && input.is_empty()
+                        if placement == 0 && input.is_empty()
                         {
                             print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
                                    if print_options.prompt
@@ -287,32 +302,44 @@ fn main()
                         // up history
                         i -= if i > 0 { 1 } else { 0 };
                         input = lines[i as usize].clone();
-                        cursor = input.len();
+                        placement = input.len();
+                        end = input.len();
+                        start = if get_terminal_width() - if print_options.prompt { 3 } else { 0 } > input.len()
+                        {
+                            0
+                        }
+                        else
+                        {
+                            input.len() - (get_terminal_width() - if print_options.prompt { 3 } else { 0 })
+                        };
                         if print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec, start, end);
                         }
-                        print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                               if print_options.prompt
-                               {
-                                   if print_options.color
+                        else
+                        {
+                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                   if print_options.prompt
                                    {
-                                       "\x1b[94m> \x1b[96m"
+                                       if print_options.color
+                                       {
+                                           "\x1b[94m> \x1b[96m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else if print_options.color
+                                   {
+                                       "\x1b[96m"
                                    }
                                    else
                                    {
-                                       "> "
-                                   }
-                               }
-                               else if print_options.color
-                               {
-                                   "\x1b[96m"
-                               }
-                               else
-                               {
-                                   ""
-                               },
-                               input);
+                                       ""
+                                   },
+                                   &input[start..]);
+                        }
                     }
                     '\x1E' =>
                     {
@@ -341,7 +368,8 @@ fn main()
                                            ""
                                        });
                                 stdout().flush().unwrap();
-                                cursor = 0;
+                                placement = 0;
+                                start = 0;
                                 continue 'outer;
                             }
                         }
@@ -349,87 +377,19 @@ fn main()
                         {
                             input = lines[i as usize].clone();
                         }
-                        cursor = input.len();
-                        if print_options.real_time_output
+                        placement = input.len();
+                        end = input.len();
+                        start = if get_terminal_width() - if print_options.prompt { 3 } else { 0 } > input.len()
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
-                        }
-                        print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                               if print_options.prompt
-                               {
-                                   if print_options.color
-                                   {
-                                       "\x1b[94m> \x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       "> "
-                                   }
-                               }
-                               else if print_options.color
-                               {
-                                   "\x1b[96m"
-                               }
-                               else
-                               {
-                                   ""
-                               },
-                               input);
-                    }
-                    '\x1B' =>
-                    {
-                        // go left
-                        if cursor == 0
-                        {
-                            continue;
-                        }
-                        cursor -= 1;
-                        print!("\x08");
-                    }
-                    '\x1C' =>
-                    {
-                        // go right
-                        if cursor == input.len()
-                        {
-                            continue;
-                        }
-                        cursor += 1;
-                        print!("\x1b[1C")
-                    }
-                    _ =>
-                    {
-                        if c == 'π'
-                        {
-                            input.insert(cursor, 'p');
-                            cursor += 1;
-                            input.insert(cursor, 'i');
-                            cursor += 1;
-                        }
-                        else if c == 'τ'
-                        {
-                            input.insert(cursor, 't');
-                            cursor += 1;
-                            input.insert(cursor, 'a');
-                            cursor += 1;
-                            input.insert(cursor, 'u');
-                            cursor += 1;
+                            0
                         }
                         else
                         {
-                            input.insert(cursor, c);
-                            cursor += 1;
-                        }
-                        if i == max
-                        {
-                            current = input.clone();
-                        }
-                        else
-                        {
-                            lines[i as usize] = input.clone();
-                        }
+                            input.len() - (get_terminal_width() - if print_options.prompt { 3 } else { 0 })
+                        };
                         if print_options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec, start, end);
                         }
                         else
                         {
@@ -453,18 +413,169 @@ fn main()
                                    {
                                        ""
                                    },
-                                   input);
+                                   &input[start..]);
                         }
-                        len = input.len();
+                    }
+                    '\x1B' =>
+                    {
+                        // go left
+                        if placement - start == 0 && placement != 0 && start != 0
+                        {
+                            start -= 1;
+                            placement -= 1;
+                            end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                            if end > input.len()
+                            {
+                                end = input.len()
+                            }
+                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m{}",
+                                   if print_options.prompt
+                                   {
+                                       if print_options.color
+                                       {
+                                           "\x1b[94m> \x1b[96m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else if print_options.color
+                                   {
+                                       "\x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   },
+                                   &input[start..end],
+                                   "\x08".repeat(end - start - (placement - start)));
+                            stdout().flush().unwrap();
+                        }
+                        else if placement != 0
+                        {
+                            placement -= 1;
+                            print!("\x08");
+                        }
+                    }
+                    '\x1C' =>
+                    {
+                        // go right
+                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
+                        if placement == end && end != input.len()
+                        {
+                            start += 1;
+                            placement += 1;
+                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                   if print_options.prompt
+                                   {
+                                       if print_options.color
+                                       {
+                                           "\x1b[94m> \x1b[96m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else if print_options.color
+                                   {
+                                       "\x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   },
+                                   &input[start..end + 1]);
+                        }
+                        else if placement != input.len()
+                        {
+                            placement += 1;
+                            print!("\x1b[1C")
+                        }
+                    }
+                    _ =>
+                    {
+                        if c == 'π'
+                        {
+                            input.insert_str(placement, "pi");
+                            placement += 2;
+                        }
+                        else if c == 'τ'
+                        {
+                            input.insert_str(placement, "tau");
+                            placement += 3;
+                        }
+                        else
+                        {
+                            input.insert(placement, c);
+                            placement += 1;
+                        }
+                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 } + 1;
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
+                        else if c == 'π'
+                        {
+                            start += 2;
+                        }
+                        else if c == 'τ'
+                        {
+                            start += 3;
+                        }
+                        else
+                        {
+                            start += 1;
+                        }
+                        if i == max
+                        {
+                            current = input.clone();
+                        }
+                        else
+                        {
+                            lines[i as usize] = input.clone();
+                        }
+                        if print_options.real_time_output
+                        {
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec, start, end);
+                        }
+                        else
+                        {
+                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                   if print_options.prompt
+                                   {
+                                       if print_options.color
+                                       {
+                                           "\x1b[94m> \x1b[96m"
+                                       }
+                                       else
+                                       {
+                                           "> "
+                                       }
+                                   }
+                                   else if print_options.color
+                                   {
+                                       "\x1b[96m"
+                                   }
+                                   else
+                                   {
+                                       ""
+                                   },
+                                   &input[start..end]);
+                        }
                         if let Some(time) = watch
                         {
                             let time = time.elapsed().as_nanos();
-                            len += time.to_string().len() + 1;
-                            print!(" {}", time);
+                            print!(" {}{}", time, "\x08".repeat(time.to_string().len() + 1 + end - start - (placement - start)));
                         }
-                        for _ in 0..(len - cursor)
+                        else if placement != input.len()
                         {
-                            print!("\x08");
+                            print!("{}", "\x08".repeat(end - start - (placement - start)));
                         }
                     }
                 }
@@ -826,7 +937,7 @@ fn main()
             continue;
         }
         else if input.contains('#')
-                  || (input.replace("exp", "").replace("}x{", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
+                  || (input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
                   || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
             input = input.replace("zeta", "##ta##").replace('z', "(x+y*i)").replace("##ta##", "zeta");
@@ -851,21 +962,21 @@ fn main()
         }
     }
 }
-// #[cfg(unix)]
-// fn get_terminal_width() -> u16
-// {
-//     unsafe {
-//         let mut size:winsize = std::mem::zeroed();
-//         if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0
-//         {
-//             size.ws_col
-//         }
-//         else
-//         {
-//             80
-//         }
-//     }
-// }
+#[cfg(unix)]
+fn get_terminal_width() -> usize
+{
+    unsafe {
+        let mut size:winsize = std::mem::zeroed();
+        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0
+        {
+            size.ws_col as usize
+        }
+        else
+        {
+            80
+        }
+    }
+}
 #[cfg(unix)]
 fn read_single_char() -> char
 {
@@ -950,6 +1061,18 @@ fn read_single_char() -> char
     }
 }
 #[cfg(not(unix))]
+fn get_terminal_width() -> usize
+{
+    if let Some((width, _)) = dimensions()
+    {
+        width
+    }
+    else
+    {
+        80
+    }
+}
+#[cfg(not(unix))]
 fn read_single_char() -> char
 {
     let term = Term::stdout();
@@ -1014,7 +1137,7 @@ fn help()
     println!(
              "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
 FLAGS: --help (this message)\n\
---PrintOptions.3 fractions are shown in PrintOptions.3 instead of pi\n\
+--tau fractions are shown in tau instead of pi\n\
 --deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
 --2d [num] number of points to graph in 2D\n\
 --3d [num] number of points to graph in 3D\n\
@@ -1065,10 +1188,12 @@ FLAGS: --help (this message)\n\
 - Type \"f(x)=...\" to define a function\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
-- Type \"...=\" add missing brackets, turns vars/functions into there defined states and prints output
+- Type \"...=\" add missing brackets, turns vars/functions into there defined states and prints output\n\
 - Type \"f...=null\" to delete a function or variable\n\
 - Type \"{{x,y,z...}}\" to define a cartesian vector\n\
 - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\
+- Type \"{{vec}}#\" to graph a vector\n\
+- Type \"number#\" to graph a complex number\n\
 - Type \"polar\" to toggle polar output\n\
 - Type \"frac\" to toggle fraction display\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
@@ -1097,9 +1222,8 @@ Vector operations/functions:\n\
 - cross product: {{vec1}}x{{vec2}}\n\
 - magnitude: |{{vec}}|\n\
 - normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
-- convert to polar: pol{{vec}} outputs (magnitude, theta, phi)\n\
-- convert to cartesian: car{{vec}} outputs (x, y, z)\n\
-- graph{{vec}} graphs the vector (just add #{{vec}} to add another vector)\n\n\
+- convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
+- convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

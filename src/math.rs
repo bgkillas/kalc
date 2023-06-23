@@ -354,7 +354,7 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                                 b
                             }
                         }
-                        "cis" => a.clone().cos() + a.sin() * Complex::with_val(prec, (0.0, 1.0)),
+                        "cis" => (a.clone() / to_deg.clone()).cos() + (a / to_deg.clone()).sin() * Complex::with_val(prec, (0.0, 1.0)),
                         "ln" | "aexp" =>
                         {
                             if a.imag() == &0.0

@@ -13,20 +13,22 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
     thread::spawn(move || {
         let mut fg = Figure::new();
         fg.set_enhanced_text(false);
-        let re1col = "#9400D3";
-        let im1col = "#009E73";
-        let re2col = "#56B4E9";
-        let im2col = "#E69F00";
-        let re3col = "#F0E442";
-        let im3col = "#0072B2";
-        let re4col = "#D55E00";
-        let im4col = "#CC79A7";
-        let re5col = "#000000";
-        let im5col = "#0033cc";
+        let re1col = "#ff5555";
+        let re2col = "#55ff55";
+        let re3col = "#ffff55";
+        let re4col = "#5555ff";
+        let re5col = "#ff55ff";
+        let re6col = "#55ffff";
+        let im1col = "#aa0000";
+        let im2col = "#00aa00";
+        let im3col = "#aaaa00";
+        let im4col = "#0000aa";
+        let im5col = "#aa00aa";
+        let im6col = "#00aaaa";
         let xticks = Some((Fix((options.xr[1] - options.xr[0]) / 20.0), 1));
         let yticks = Some((Fix((options.yr[1] - options.yr[0]) / 20.0), 1));
-        let mut re_cap:[String; 5] = Default::default();
-        let mut im_cap:[String; 5] = Default::default();
+        let mut re_cap:[String; 6] = Default::default();
+        let mut im_cap:[String; 6] = Default::default();
         if !input[0].contains('x')
         {
             let mut re = Vec::new();
@@ -42,7 +44,7 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
             }
             if re[0].len() == 2
             {
-                for _ in 0..5 - func.len()
+                for _ in 0..6 - func.len()
                 {
                     re.push(vec![Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0)]);
                 }
@@ -55,11 +57,12 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .lines([0.0, re[1][0].real().to_f64()], [0.0, re[1][1].real().to_f64()], &[Caption(&re_cap[1]), Color(re2col)])
                   .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], &[Caption(&re_cap[2]), Color(re3col)])
                   .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], &[Caption(&re_cap[3]), Color(re4col)])
-                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], &[Caption(&re_cap[4]), Color(re5col)]);
+                  .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], &[Caption(&re_cap[4]), Color(re5col)])
+                  .lines([0.0, re[5][0].real().to_f64()], [0.0, re[5][1].real().to_f64()], &[Caption(&re_cap[5]), Color(re6col)]);
             }
             else if re[0].len() == 3
             {
-                for _ in 0..5 - func.len()
+                for _ in 0..6 - func.len()
                 {
                     re.push(vec![Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0)]);
                 }
@@ -88,14 +91,17 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                                                                                                                               Color(re4col)])
                   .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], [0.0, re[4][2].real().to_f64()], &[Caption(&re_cap
                                                                                                                                           [4]),
-                                                                                                                              Color(re5col)]);
+                                                                                                                              Color(re5col)])
+                  .lines([0.0, re[5][0].real().to_f64()], [0.0, re[5][1].real().to_f64()], [0.0, re[5][2].real().to_f64()], &[Caption(&re_cap
+                                                                                                                                          [5]),
+                                                                                                                              Color(re6col)]);
             }
         }
         else if input[0].contains('y')
         {
             let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
-            let mut re = vec![Vec::new(); 5];
-            let mut im = vec![Vec::new(); 5];
+            let mut re = vec![Vec::new(); 6];
+            let mut im = vec![Vec::new(); 6];
             let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
@@ -144,6 +150,8 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
               .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(im4col)])
               .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(re5col)])
               .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+              .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(re6col)])
+              .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(im6col)])
               .points(re[0].iter().map(|i| i[0]), re[0].iter().map(|i| i[1]), re[0].iter().map(|i| i[2]), &[PointSymbol(options.point_style),
                                                                                                             Color(re1col)])
               .points(im[0].iter().map(|i| i[0]), im[0].iter().map(|i| i[1]), im[0].iter().map(|i| i[2]), &[PointSymbol(options.point_style),
@@ -163,12 +171,16 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
               .points(re[4].iter().map(|i| i[0]), re[4].iter().map(|i| i[1]), re[4].iter().map(|i| i[2]), &[PointSymbol(options.point_style),
                                                                                                             Color(re5col)])
               .points(im[4].iter().map(|i| i[0]), im[4].iter().map(|i| i[1]), im[4].iter().map(|i| i[2]), &[PointSymbol(options.point_style),
-                                                                                                            Color(im5col)]);
+                                                                                                            Color(im5col)])
+              .points(re[5].iter().map(|i| i[0]), re[5].iter().map(|i| i[1]), re[5].iter().map(|i| i[2]), &[PointSymbol(options.point_style),
+                                                                                                            Color(re6col)])
+              .points(im[5].iter().map(|i| i[0]), im[5].iter().map(|i| i[1]), im[5].iter().map(|i| i[2]), &[PointSymbol(options.point_style),
+                                                                                                            Color(im6col)]);
         }
         else
         {
-            let mut re = vec![Vec::new(); 5];
-            let mut im = vec![Vec::new(); 5];
+            let mut re = vec![Vec::new(); 6];
+            let mut im = vec![Vec::new(); 6];
             let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
@@ -214,6 +226,8 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .lines([0], [0], &[Caption(&im_cap[3]), Color(im4col)])
                   .lines([0], [0], &[Caption(&re_cap[4]), Color(re5col)])
                   .lines([0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+                  .lines([0], [0], &[Caption(&re_cap[5]), Color(re6col)])
+                  .lines([0], [0], &[Caption(&im_cap[5]), Color(im6col)])
                   .lines(re[0].iter().map(|x| x[0]), re[0].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re1col)])
                   .lines(im[0].iter().map(|x| x[0]), im[0].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im1col)])
                   .lines(re[1].iter().map(|x| x[0]), re[1].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re2col)])
@@ -223,7 +237,9 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .lines(re[3].iter().map(|x| x[0]), re[3].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re4col)])
                   .lines(im[3].iter().map(|x| x[0]), im[3].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im4col)])
                   .lines(re[4].iter().map(|x| x[0]), re[4].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re5col)])
-                  .lines(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im5col)]);
+                  .lines(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im5col)])
+                  .lines(re[5].iter().map(|x| x[0]), re[5].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re6col)])
+                  .lines(im[5].iter().map(|x| x[0]), im[5].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im6col)]);
             }
             else
             {
@@ -242,6 +258,8 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .lines([0], [0], &[Caption(&im_cap[3]), Color(im4col)])
                   .lines([0], [0], &[Caption(&re_cap[4]), Color(re5col)])
                   .lines([0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+                  .lines([0], [0], &[Caption(&re_cap[5]), Color(re6col)])
+                  .lines([0], [0], &[Caption(&im_cap[5]), Color(im6col)])
                   .points(re[0].iter().map(|x| x[0]), re[0].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re1col)])
                   .points(im[0].iter().map(|x| x[0]), im[0].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im1col)])
                   .points(re[1].iter().map(|x| x[0]), re[1].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re2col)])
@@ -251,7 +269,9 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
                   .points(re[3].iter().map(|x| x[0]), re[3].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re4col)])
                   .points(im[3].iter().map(|x| x[0]), im[3].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im4col)])
                   .points(re[4].iter().map(|x| x[0]), re[4].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re5col)])
-                  .points(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im5col)]);
+                  .points(im[4].iter().map(|x| x[0]), im[4].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im5col)])
+                  .points(re[5].iter().map(|x| x[0]), re[5].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(re6col)])
+                  .points(im[5].iter().map(|x| x[0]), im[5].iter().map(|x| x[1]), &[PointSymbol(options.point_style), Color(im6col)]);
             }
         }
         if let Some(time) = watch

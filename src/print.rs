@@ -27,8 +27,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
     };
     if let Num(n) = num
     {
-        let sign = if n.real() != &0.0 && n.imag().is_sign_positive() { "+" } else { "" }.to_owned();
-        let a = get_output(&print_options, &n, sign);
+        let a = get_output(&print_options, &n);
         print!("{}{}{}", a.0, a.1, if print_options.color { "\x1b[0m" } else { "" });
     }
     else if let Vector(mut v) = num
@@ -47,11 +46,9 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
         }
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();
         let mut out;
-        let mut sign;
         for (k, i) in v.iter().enumerate()
         {
-            sign = if i.real() != &0.0 && i.imag() != &0.0 { "+" } else { "" }.to_owned();
-            out = get_output(&print_options, i, sign);
+            out = get_output(&print_options, i);
             output += out.0.as_str();
             output += out.1.as_str();
             if print_options.color
@@ -155,7 +152,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                  }
                  else
                  {
-                     sign.clone() + fb.as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
+                     sign + fb.as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
                  })
             }
             (true, _) =>
@@ -168,7 +165,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                  }
                  else
                  {
-                     sign.clone() + b.to_string().as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
+                     sign + b.to_string().as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
                  })
             }
             (_, true) =>
@@ -181,12 +178,12 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                  }
                  else
                  {
-                     sign.clone() + fb.as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
+                     sign + fb.as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
                  })
             }
             _ => ("".to_string(), "".to_string()),
         };
-        let output = get_output(&print_options, &n, sign);
+        let output = get_output(&print_options, &n);
         if frac && !print_options.frac
         {
             frac = false;
@@ -241,12 +238,10 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();
         let mut frac_out = if print_options.polar { "[" } else { "{" }.to_string();
         let mut out;
-        let mut sign;
         let mut frac_temp;
         for (k, i) in v.iter().enumerate()
         {
-            sign = if i.real() != &0.0 && i.imag() != &0.0 { "+" } else { "" }.to_owned();
-            out = get_output(&print_options, i, sign);
+            out = get_output(&print_options, i);
             frac_temp = fraction(i.real().clone(), print_options.tau, print_options.decimal_places);
             frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
             frac_temp = fraction(i.imag().clone(), print_options.tau, print_options.decimal_places);
@@ -311,8 +306,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
     }
     frac
 }
-fn get_output(print_options:&PrintOptions, num:&Complex, sign:String) -> (String, String)
+pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
 {
+    let sign = if num.real() != &0.0 && num.imag() != &0.0 { "+" } else { "" }.to_owned();
     let mut n;
     if print_options.base != 10
     {

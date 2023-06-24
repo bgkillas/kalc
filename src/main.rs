@@ -23,6 +23,10 @@ use {
 use {
     libc::{ECHO, ioctl, STDOUT_FILENO, TIOCGWINSZ, winsize, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
+use crate::math::NumStr::{Num, Str, Vector};
+use crate::print::get_output;
+// fix 0's and infinities of sin, cos, tan and cis
+// complex vectors
 // gui support
 // support unit conversions
 // allow units to be used in the input, and be outputted
@@ -986,7 +990,31 @@ fn main()
             }
             if r.is_empty()
             {
-                println!("{}", input_var(l, &vars, None));
+                for i in get_func(&input_var(l, &vars, None), prec, print_options.deg).unwrap()
+                {
+                    match i
+                    {
+                        Num(n) =>
+                        {
+                            let n = get_output(&print_options, &n);
+                            print!("{}{}\x1b[0m", n.0, n.1)
+                        }
+                        Vector(n) =>
+                        {
+                            let mut str = String::new();
+                            let mut num;
+                            for i in n
+                            {
+                                num = get_output(&print_options, &i);
+                                str.push_str(&format!("{}{}\x1b[0m,", num.0, num.1));
+                            }
+                            str.pop();
+                            print!("{{{}}}", str)
+                        }
+                        Str(n) => print!("{}", n),
+                    }
+                }
+                println!();
                 continue;
             }
             for (i, v) in vars.iter().enumerate()
@@ -1264,7 +1292,7 @@ FLAGS: --help (this message)\n\
 - Type \"f(x)=...\" to define a function\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
-- Type \"...=\" add missing brackets, turns vars/functions into there defined states and prints output\n\
+- Type \"...=\" display parsed input, show values of stuff like xr/deci/prec etc\n\
 - Type \"f...=null\" to delete a function or variable\n\
 - Type \"{{x,y,z...}}\" to define a cartesian vector\n\
 - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\

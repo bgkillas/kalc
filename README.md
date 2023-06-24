@@ -83,7 +83,7 @@ FLAGS: --help (this message)
 - Type "f(x)=..." to define a function
 - Type "f(x,y)=..." to define a 2 variable function
 - Type "f(x,y,z...)=..." to define a multi variable function
-- Type "...=" add missing brackets, turns vars/functions into there defined states and prints output
+- Type "...=" display parsed input, show values of stuff like xr/deci/prec etc
 - Type "f...=null" to delete a function or variable
 - Type "{x,y,z...}" to define a cartesian vector
 - Type "[radius,theta,phi]" to define a polar vector (same as car{vec})

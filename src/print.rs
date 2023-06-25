@@ -367,11 +367,12 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
 {
     let sign = if num.real() != &0.0 && num.imag().is_sign_positive() { "+" } else { "" }.to_owned();
     let mut n;
+    let dec = if print_options.decimal_places == 0 { 1 } else { print_options.decimal_places };
     if print_options.base != 10
     {
         (if num.real() != &0.0
          {
-             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.base as i32, None));
+             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.base as i32, None), dec);
              if n.contains('e')
              {
                  n
@@ -391,7 +392,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.base as i32, None));
+             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.base as i32, None), dec);
              sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if print_options.color { "\x1b[93mi" } else { "i" }
          }
          else
@@ -401,10 +402,9 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
     }
     else if print_options.sci
     {
-        let dec = if print_options.decimal_places == 0 { 1 } else { print_options.decimal_places };
         (if num.real() != &0.0
          {
-             add_commas(&remove_trailing_zeros(&format!("{:.dec$e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" })),
+             add_commas(&remove_trailing_zeros(&format!("{:e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" }), dec),
                         print_options.comma).replace("e0", "")
                                             .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
@@ -418,7 +418,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             add_commas(&remove_trailing_zeros(&format!("{}{:.dec$e}{}", sign, num.imag(), if print_options.color { "\x1b[93mi" } else { "i" })),
+             add_commas(&(sign.as_str().to_owned() + &remove_trailing_zeros(&format!("{:e}{}", num.imag(), if print_options.color { "\x1b[93mi" } else { "i" }), dec)),
                         print_options.comma).replace("e0", "")
                                             .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
@@ -566,28 +566,31 @@ fn add_commas(input:&str, commas:bool) -> String
     }
     result.chars().rev().collect::<String>()
 }
-fn remove_trailing_zeros(input:&str) -> String
+fn remove_trailing_zeros(input:&str, dec:usize) -> String
 {
-    let chars = input.chars();
-    let mut result = Vec::new();
-    let mut found = false;
-    let mut non_zero = false;
-    for c in chars.rev()
+    let pos = match input.find('e')
     {
-        if !non_zero && found && (c == '0' || c == '.')
-        {
-            continue;
-        }
-        else
-        {
-            non_zero = true;
-        }
-        if c == 'e'
-        {
-            found = true;
-            non_zero = false;
-        }
-        result.push(c);
+        Some(n) => n,
+        None => return input.trim_end_matches('0').trim_end_matches('.').to_string(),
+    };
+    if dec + 1 > pos
+    {
+        input[..pos].trim_end_matches('0').trim_end_matches('.').to_string() + &input[pos..]
     }
-    result.iter().rev().collect::<String>()
+    else
+    {
+        let chars:Vec<char> = input.chars().collect();
+        (input[..dec].to_string()
+         + (if dec + 2 != chars.len() && chars[dec + 1].to_digit(10).unwrap() >= 5
+           {
+               (chars[dec].to_digit(10).unwrap() + 1).to_string()
+           }
+           else
+           {
+               chars[dec].to_string()
+           }).as_str()).trim_end_matches('0')
+                       .trim_end_matches('.')
+                       .to_string()
+        + &input[pos..]
+    }
 }

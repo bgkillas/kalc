@@ -5,7 +5,7 @@ use crate::fraction::fraction;
 use crate::math::{do_math, NumStr, to_polar};
 use crate::math::NumStr::{Num, Str, Vector};
 use crate::parse::get_func;
-use crate::PrintOptions;
+use crate::{get_terminal_width, PrintOptions};
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, prec:u32)
 {
     if input.contains('#')
@@ -184,7 +184,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
             _ => ("".to_string(), "".to_string()),
         };
         let output = get_output(&print_options, &n);
-        if frac && !print_options.frac
+        if (frac && !print_options.frac) || frac_a.len() + frac_b.len() - if print_options.color && !frac_b.is_empty() { 5 } else { 0 } > get_terminal_width()
         {
             frac = false;
         }
@@ -245,7 +245,31 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
             frac_temp = fraction(i.real().clone(), print_options.tau);
             frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
             frac_temp = fraction(i.imag().clone(), print_options.tau);
-            frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.1 };
+            frac_out += &if !frac_temp.is_empty()
+            {
+                format!("{}{}{}",
+                        (if i.real() != &0.0 && i.imag().is_sign_positive() && i.imag() != &0.0 { "+" } else { "" }),
+                        frac_temp,
+                        (if i.imag() != &0.0
+                        {
+                            if print_options.color
+                            {
+                                "\x1b[93mi"
+                            }
+                            else
+                            {
+                                "i"
+                            }
+                        }
+                        else
+                        {
+                            ""
+                        }))
+            }
+            else
+            {
+                out.clone().1
+            };
             output += &out.0;
             output += &out.1;
             if print_options.color
@@ -268,7 +292,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             frac = true;
         }
-        if frac && !print_options.frac
+        if (frac && !print_options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").len() > get_terminal_width()
         {
             frac = false;
         }

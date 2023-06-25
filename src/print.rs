@@ -188,38 +188,71 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             frac = false;
         }
-        print!("{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
-               if frac
-               {
-                   format!("\x1b[0m\n\x1B[2K\x1B[1G{}{}", frac_a, frac_b)
-               }
-               else
-               {
-                   "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A".to_string()
-               },
-               output.0,
-               output.1,
-               if frac { "\x1b[A" } else { "" },
-               if print_options.prompt
-               {
-                   if print_options.color
+        let len1 = output.0.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len();
+        let len2 = output.1.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len();
+        let terlen = get_terminal_width();
+        if len1 + len2 > terlen && len1 <= terlen && len2 - 1 <= terlen
+        {
+            frac = true;
+            print!("\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1b[0m\n\x1B[2K\x1B[1G{}\n{}\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
+                   output.0,
+                   &output.1[1..],
+                   if print_options.prompt
                    {
-                       "\x1b[94m> \x1b[96m"
+                       if print_options.color
+                       {
+                           "\x1b[94m> \x1b[96m"
+                       }
+                       else
+                       {
+                           "> "
+                       }
+                   }
+                   else if print_options.color
+                   {
+                       "\x1b[96m"
                    }
                    else
                    {
-                       "> "
+                       ""
+                   },
+                   &unmodified_input[start..end]);
+        }
+        else
+        {
+            print!("{}\x1b[0m\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}\x1b[0m",
+                   if frac
+                   {
+                       format!("\x1b[0m\n\x1B[2K\x1B[1G{}{}", frac_a, frac_b)
                    }
-               }
-               else if print_options.color
-               {
-                   "\x1b[96m"
-               }
-               else
-               {
-                   ""
-               },
-               &unmodified_input[start..end]);
+                   else
+                   {
+                       "\n\n\x1B[2K\x1B[1G\x1b[A\x1b[A".to_string()
+                   },
+                   output.0,
+                   output.1,
+                   if frac { "\x1b[A" } else { "" },
+                   if print_options.prompt
+                   {
+                       if print_options.color
+                       {
+                           "\x1b[94m> \x1b[96m"
+                       }
+                       else
+                       {
+                           "> "
+                       }
+                   }
+                   else if print_options.color
+                   {
+                       "\x1b[96m"
+                   }
+                   else
+                   {
+                       ""
+                   },
+                   &unmodified_input[start..end]);
+        }
     }
     else if let Vector(mut v) = num
     {
@@ -292,7 +325,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             frac = true;
         }
-        if (frac && !print_options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").len() > get_terminal_width()
+        if (frac && !print_options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len() > get_terminal_width()
         {
             frac = false;
         }

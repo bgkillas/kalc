@@ -25,7 +25,6 @@ use {
 };
 use crate::math::NumStr::{Num, Str, Vector};
 use crate::print::get_output;
-// fix output being to long for terminal width
 // fix 0's and infinities of sin, cos, tan and cis
 // complex vectors
 // gui support

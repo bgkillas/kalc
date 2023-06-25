@@ -1,7 +1,8 @@
 // as per continued fraction expansion
 use rug::Float;
 use rug::float::Constant::Pi;
-pub fn fraction(value:Float, tau:bool, dec:usize) -> String
+use crate::get_terminal_width;
+pub fn fraction(value:Float, tau:bool) -> String
 {
     let prec = value.prec();
     if value.clone().fract() == 0.0
@@ -19,20 +20,14 @@ pub fn fraction(value:Float, tau:bool, dec:usize) -> String
         orig = val.clone() / constant;
         if orig.clone().fract() == 0.0
         {
-            return if i == 0
+            let out = format!("{}{}{}", sign, if orig == 1.0 { "".to_string() } else { orig.to_integer().unwrap().to_string() }, match i
             {
-                String::new()
-            }
-            else
-            {
-                format!("{}{}{}", sign, if orig == 1.0 { "".to_string() } else { orig.to_integer().unwrap().to_string() }, match i
-                {
-                    1 => tau,
-                    2 => "sqrt(2)",
-                    3 => "sqrt(3)",
-                    _ => "",
-                })
-            };
+                1 => tau,
+                2 => "sqrt(2)",
+                3 => "sqrt(3)",
+                _ => "",
+            });
+            return if i == 0 || out.len() > get_terminal_width() { String::new() } else { out };
         }
         number = orig.clone().fract();
         nums.clear();
@@ -50,21 +45,18 @@ pub fn fraction(value:Float, tau:bool, dec:usize) -> String
                 }
                 let recip = recip.to_integer().unwrap();
                 let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
-                if recip.to_string().len() > dec || last.to_string().len() > dec || (recip == 1 && i == 0)
-                {
-                    return String::new();
-                }
-                return format!("{sign}{}{}{}",
-                               if last == 1 && i != 0 { "".to_string() } else { last.to_string() },
-                               match i
-                               {
-                                   0 => "",
-                                   1 => tau,
-                                   2 => "sqrt(2)",
-                                   3 => "sqrt(3)",
-                                   _ => "",
-                               },
-                               if recip == 1 { "".to_string() } else { "/".to_owned() + &recip.to_string() });
+                let out = format!("{sign}{}{}{}",
+                                  if last == 1 && i != 0 { "".to_string() } else { last.to_string() },
+                                  match i
+                                  {
+                                      0 => "",
+                                      1 => tau,
+                                      2 => "sqrt(2)",
+                                      3 => "sqrt(3)",
+                                      _ => "",
+                                  },
+                                  if recip == 1 { "".to_string() } else { "/".to_owned() + &recip.to_string() });
+                return if out.len() > get_terminal_width() { String::new() } else { out };
             }
             nums.push(recip);
             number = fract;

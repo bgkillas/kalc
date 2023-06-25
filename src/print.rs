@@ -137,8 +137,8 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
     {
         let a = n.real().to_f64();
         let b = n.imag().to_f64();
-        let fa = fraction(n.real().clone(), print_options.tau, print_options.decimal_places);
-        let fb = fraction(n.imag().clone(), print_options.tau, print_options.decimal_places);
+        let fa = fraction(n.real().clone(), print_options.tau);
+        let fb = fraction(n.imag().clone(), print_options.tau);
         let sign = if a != 0.0 && b.is_sign_positive() { "+" } else { "" }.to_owned();
         let (frac_a, frac_b) = match (!fa.is_empty(), !fb.is_empty())
         {
@@ -242,9 +242,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         for (k, i) in v.iter().enumerate()
         {
             out = get_output(&print_options, i);
-            frac_temp = fraction(i.real().clone(), print_options.tau, print_options.decimal_places);
+            frac_temp = fraction(i.real().clone(), print_options.tau);
             frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
-            frac_temp = fraction(i.imag().clone(), print_options.tau, print_options.decimal_places);
+            frac_temp = fraction(i.imag().clone(), print_options.tau);
             frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.1 };
             output += &out.0;
             output += &out.1;
@@ -308,7 +308,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
 }
 pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
 {
-    let sign = if num.real() != &0.0 && num.imag() != &0.0 { "+" } else { "" }.to_owned();
+    let sign = if num.real() != &0.0 && num.imag().is_sign_positive() { "+" } else { "" }.to_owned();
     let mut n;
     if print_options.base != 10
     {

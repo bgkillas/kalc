@@ -16,6 +16,7 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
     let (mut c, mut deci);
     let n1 = Complex::with_val(prec, -1.0);
     let mut pos = 0;
+    let mut open = false;
     'outer: while i < input.len()
     {
         c = chars[i];
@@ -65,8 +66,11 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
             }
             func.push(Num(Complex::with_val(prec, Complex::parse(word.as_bytes()).unwrap())));
             word.clear();
-            func.extend(vec![Str(")".to_string()); count as usize]);
-            count = 0;
+            if !open
+            {
+                func.extend(vec![Str(")".to_string()); count as usize]);
+                count = 0;
+            }
             continue;
         }
         else if c.is_ascii_alphabetic()
@@ -89,9 +93,13 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     'E' =>
                     {
                         func.push(Num(Complex::with_val(prec, 10.0)));
-                        func.push(Str('^'.to_string()));
-                        func.push(Str('('.to_string()));
-                        count += 1;
+                        if i + 1 != chars.len()
+                           && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '-' || chars[i + 1] == '+' || chars[i + 1] == '(' || chars[i + 1] == '{' || chars[i + 1] == '[')
+                        {
+                            func.push(Str('^'.to_string()));
+                            func.push(Str('('.to_string()));
+                            count += 1;
+                        }
                     }
                     'x' | 'y' =>
                     {
@@ -109,8 +117,11 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                             word.clear();
                         }
                         func.push(Str(c.to_string()));
-                        func.extend(vec![Str(")".to_string()); count as usize]);
-                        count = 0;
+                        if !open
+                        {
+                            func.extend(vec![Str(")".to_string()); count as usize]);
+                            count = 0;
+                        }
                     }
                     'i' =>
                     {
@@ -264,7 +275,10 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                     }
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
-                '+' if i != 0 && i + 1 != chars.len() && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}' || chars[i - 1] == ']') => func.push(Str('+'.to_string())),
+                '+' if i != 0 && i + 1 != chars.len() && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}' || chars[i - 1] == ']') && chars[i - 1] != 'E' =>
+                {
+                    func.push(Str('+'.to_string()))
+                }
                 '<' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
                 {
                     if chars[i + 1] == '<'
@@ -317,10 +331,15 @@ pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
                 '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
                 '(' if i + 1 != chars.len() =>
                 {
+                    open = true;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' if i != 0 => func.push(Str(")".to_string())),
+                ')' if i != 0 =>
+                {
+                    open = false;
+                    func.push(Str(")".to_string()))
+                }
                 '|' =>
                 {
                     if i + 1 != chars.len() && chars[i + 1] == '|'

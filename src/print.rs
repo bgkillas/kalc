@@ -1,6 +1,7 @@
 use std::str::FromStr;
 use rug::{Complex, Float, Integer};
 use rug::float::Constant::Pi;
+use rug::ops::CompleteRound;
 use crate::fraction::fraction;
 use crate::math::{do_math, NumStr, to_polar};
 use crate::math::NumStr::{Num, Str, Vector};
@@ -372,7 +373,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
     {
         (if num.real() != &0.0
          {
-             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.base as i32, None), dec);
+             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.base as i32, None), dec, num.real().prec());
              if n.contains('e')
              {
                  n
@@ -392,7 +393,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.base as i32, None), dec);
+             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.base as i32, None), dec, num.real().prec());
              sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if print_options.color { "\x1b[93mi" } else { "i" }
          }
          else
@@ -404,7 +405,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
     {
         (if num.real() != &0.0
          {
-             add_commas(&remove_trailing_zeros(&format!("{:e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" }), dec),
+             add_commas(&remove_trailing_zeros(&format!("{:e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" }), dec, num.real().prec()),
                         print_options.comma).replace("e0", "")
                                             .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
@@ -418,7 +419,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             add_commas(&(sign.as_str().to_owned() + &remove_trailing_zeros(&format!("{:e}{}", num.imag(), if print_options.color { "\x1b[93mi" } else { "i" }), dec)),
+             add_commas(&(sign.as_str().to_owned() + &remove_trailing_zeros(&format!("{:e}{}", num.imag(), if print_options.color { "\x1b[93mi" } else { "i" }), dec, num.real().prec())),
                         print_options.comma).replace("e0", "")
                                             .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
          }
@@ -566,31 +567,33 @@ fn add_commas(input:&str, commas:bool) -> String
     }
     result.chars().rev().collect::<String>()
 }
-fn remove_trailing_zeros(input:&str, dec:usize) -> String
+fn remove_trailing_zeros(input:&str, dec:usize, prec:u32) -> String
 {
     let pos = match input.find('e')
     {
         Some(n) => n,
         None => return input.trim_end_matches('0').trim_end_matches('.').to_string(),
     };
-    if dec + 1 > pos
+    if dec > pos
     {
         input[..pos].trim_end_matches('0').trim_end_matches('.').to_string() + &input[pos..]
     }
     else
     {
-        let chars:Vec<char> = input.chars().collect();
-        (input[..dec].to_string()
-         + (if dec + 2 != chars.len() && chars[dec + 1].to_digit(10).unwrap() >= 5
-           {
-               (chars[dec].to_digit(10).unwrap() + 1).to_string()
-           }
-           else
-           {
-               chars[dec].to_string()
-           }).as_str()).trim_end_matches('0')
-                       .trim_end_matches('.')
-                       .to_string()
-        + &input[pos..]
+        let mut sign = String::new();
+        let mut num = if input.starts_with('-')
+        {
+            sign = "-".to_string();
+            input[1..pos].to_string()
+        }
+        else
+        {
+            input[0..pos].to_string()
+        };
+        num.remove(1);
+        num.insert(dec, '.');
+        num = Float::parse(num).unwrap().complete(prec).to_integer().unwrap().to_string();
+        num.insert(1, '.');
+        sign + num.trim_end_matches('0').trim_end_matches('.') + &input[pos..]
     }
 }

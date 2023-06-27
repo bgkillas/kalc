@@ -2,7 +2,7 @@ use rug::{Complex, Float};
 use rug::float::Constant::Pi;
 use crate::math::{do_math, NumStr};
 use crate::math::NumStr::{Num, Str, Vector};
-pub fn get_func(input:&str, prec:u32, deg:bool) -> Result<Vec<NumStr>, ()>
+pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
 {
     let mut count:i32 = 0;
     let mut exp = String::new();

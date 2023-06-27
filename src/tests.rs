@@ -7,7 +7,7 @@ use crate::math::do_math;
 fn test_math()
 {
     let input = input_var("pi+tau*e/2i^(sqrt(2))/3*3-log(2-2i,-3+i)+sqrt(2)^(sqrt(2))", &get_vars(512), None);
-    let output = get_func(&input, 512, false).unwrap();
+    let output = get_func(&input, 512, 0).unwrap();
     let expected = vec![Num(Complex::with_val(512, Pi)),
                         Str("+".to_string()),
                         Num(2 * Complex::with_val(512, Pi)),
@@ -53,8 +53,8 @@ fn test_math()
                         Num(Complex::with_val(512, 2.0)),
                         Str(")".to_string()),
                         Str(")".to_string())];
-    let out = do_math(output, false, 512).unwrap().num().unwrap();
-    let answer = do_math(expected, false, 512).unwrap().num().unwrap();
+    let out = do_math(output, 0, 512).unwrap().num().unwrap();
+    let answer = do_math(expected, 0, 512).unwrap().num().unwrap();
     assert_eq!(out.real().to_string(), answer.real().to_string());
     assert_eq!(out.imag().to_string(), answer.imag().to_string());
     assert_eq!(&out.real().to_string()[..20], "2.009877988310399125");

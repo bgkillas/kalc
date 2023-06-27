@@ -32,7 +32,9 @@ cargo build --release
 Usage: kalc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
 --tau fractions are shown in tau instead of pi
---deg compute in degrees, gets rid of complex support for non hyperbolic trig functions
+--deg compute in degrees
+--rad compute in radians
+--grad compute in gradians
 --2d [num] number of points to graph in 2D
 --3d [num] number of points to graph in 3D
 --xr [min] [max] x range for graphing
@@ -60,6 +62,7 @@ FLAGS: --help (this message)
 - Type "history" to see the history of calculations
 - Type "deg" to switch to degrees mode
 - Type "rad" to switch to radians mode
+- Type "grad" to switch to gradians mode
 - Type "tau" to show fractions in tau
 - Type "pi" to show fractions in pi
 - Type "prompt" to toggle the prompt

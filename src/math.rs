@@ -37,7 +37,7 @@ impl NumStr
         }
     }
 }
-pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
+pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
 {
     if func.len() == 1
     {
@@ -129,13 +129,17 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
     i = 0;
     let (mut a, mut b);
     let mut place = Vec::new();
-    let to_deg = if deg
+    let to_deg = if deg == 0
+    {
+        Complex::with_val(prec, 1.0)
+    }
+    else if deg == 1
     {
         Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
     }
     else
     {
-        Complex::with_val(prec, 1.0)
+        Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
     };
     while i < function.len() - 1
     {
@@ -421,8 +425,51 @@ pub fn do_math(func:Vec<NumStr>, deg:bool, prec:u32) -> Result<NumStr, ()>
                         }
                         "sqrt" | "asquare" => a.sqrt(),
                         "abs" => a.abs(),
-                        "deg" | "degree" => a * to_deg.clone(),
-                        "rad" | "radian" => a / to_deg.clone(),
+                        "deg" | "degree" =>
+                        {
+                            if deg == 0
+                            {
+                                a * Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+                            }
+                            else if deg == 2
+                            {
+                                a * 180.0 / 200.0
+                            }
+                            else
+                            {
+                                a
+                            }
+                        }
+                        "rad" | "radians" =>
+                        {
+                            if deg == 0
+                            {
+                                a
+                            }
+                            else if deg == 2
+                            {
+                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200.0)
+                            }
+                            else
+                            {
+                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180.0)
+                            }
+                        }
+                        "grad" | "gradians" =>
+                        {
+                            if deg == 0
+                            {
+                                a * Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
+                            }
+                            else if deg == 2
+                            {
+                                a
+                            }
+                            else
+                            {
+                                a * 200.0 / 180.0
+                            }
+                        }
                         "re" | "real" => Complex::with_val(prec, a.real()),
                         "im" | "imag" => Complex::with_val(prec, a.imag()),
                         "sgn" | "sign" => Complex::with_val(prec, a.clone() / a.abs()),
@@ -847,7 +894,7 @@ fn subfact(a:f64) -> f64
     }
     curr
 }
-fn sum(function:Vec<NumStr>, var:&str, start:i64, end:i64, product:bool, deg:bool, prec:u32) -> Result<Complex, ()>
+fn sum(function:Vec<NumStr>, var:&str, start:i64, end:i64, product:bool, deg:u8, prec:u32) -> Result<Complex, ()>
 {
     let mut value:Complex = Complex::new(prec);
     let mut func;

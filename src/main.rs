@@ -625,14 +625,21 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.deg = true;
+                    print_options.deg = 1;
                     continue;
                 }
                 "rad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.deg = false;
+                    print_options.deg = 0;
+                    continue;
+                }
+                "grad" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    print_options.deg = 2;
                     continue;
                 }
                 "rt" =>
@@ -1242,7 +1249,9 @@ fn help()
              "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
 FLAGS: --help (this message)\n\
 --tau fractions are shown in tau instead of pi\n\
---deg compute in degrees, gets rid of complex support for non hyperbolic trig functions\n\
+--deg compute in degrees\n\
+--rad compute in radians\n\
+--grad compute in gradians\n\
 --2d [num] number of points to graph in 2D\n\
 --3d [num] number of points to graph in 3D\n\
 --xr [min] [max] x range for graphing\n\
@@ -1269,6 +1278,7 @@ FLAGS: --help (this message)\n\
 - Type \"history\" to see the history of calculations\n\
 - Type \"deg\" to switch to degrees mode\n\
 - Type \"rad\" to switch to radians mode\n\
+- Type \"grad\" to switch to gradians mode\n\
 - Type \"tau\" to show fractions in tau\n\
 - Type \"pi\" to show fractions in pi\n\
 - Type \"prompt\" to toggle the prompt\n\
@@ -1363,7 +1373,7 @@ pub struct GraphOptions
 pub struct PrintOptions
 {
     sci:bool,
-    deg:bool,
+    deg:u8, // 0=rad,1=deg,2=grad
     base:usize,
     tau:bool,
     polar:bool,
@@ -1379,7 +1389,7 @@ impl Default for PrintOptions
     fn default() -> Self
     {
         PrintOptions { sci:false,
-                       deg:false,
+                       deg:0,
                        base:10,
                        tau:false,
                        polar:false,

@@ -36,13 +36,17 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
         if print_options.polar
         {
             v = to_polar(&v,
-                         if print_options.deg
+                         if print_options.deg == 0
+                         {
+                             Complex::with_val(prec, 1.0)
+                         }
+                         else if print_options.deg == 1
                          {
                              Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
                          }
                          else
                          {
-                             Complex::with_val(prec, 1.0)
+                             Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
                          });
         }
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();
@@ -260,13 +264,17 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         if print_options.polar
         {
             v = to_polar(&v,
-                         if print_options.deg
+                         if print_options.deg == 0
+                         {
+                             Complex::with_val(prec, 1.0)
+                         }
+                         else if print_options.deg == 1
                          {
                              Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
                          }
                          else
                          {
-                             Complex::with_val(prec, 1.0)
+                             Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
                          });
         }
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();

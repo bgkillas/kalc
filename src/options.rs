@@ -23,7 +23,9 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
         {
             "--debug" => *debug = !*debug,
             "--tau" => print_options.tau = !print_options.tau,
-            "--deg" => print_options.deg = !print_options.deg,
+            "--deg" => print_options.deg = 1,
+            "--rad" => print_options.deg = 0,
+            "--grad" => print_options.deg = 2,
             "--prompt" => print_options.prompt = !print_options.prompt,
             "--color" => print_options.color = !print_options.color,
             "--line" => graph_options.lines = !graph_options.lines,
@@ -625,19 +627,9 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         }
                     }
                 }
-                "deg" =>
-                {
-                    print_options.deg = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid degree bool");
-                            err = true;
-                            continue;
-                        }
-                    }
-                }
+                "deg" => print_options.deg = 0,
+                "rad" => print_options.deg = 1,
+                "grad" => print_options.deg = 2,
                 "tau" =>
                 {
                     print_options.tau = match split.next().unwrap().parse::<bool>()

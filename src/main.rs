@@ -23,6 +23,7 @@ use {
 use {
     libc::{ECHO, ioctl, STDOUT_FILENO, TIOCGWINSZ, winsize, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
 };
+use crate::math::do_math;
 use crate::math::NumStr::{Num, Str, Vector};
 use crate::print::get_output;
 // fix 0's and infinities of sin, cos, tan and cis
@@ -731,9 +732,21 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
+                    let mut n;
                     for v in vars.iter()
                     {
-                        println!("{}={}", v[0], v[1]);
+                        if v[0].contains('(')
+                        {
+                            println!("{}={}", v[0], v[1]);
+                        }
+                        else
+                        {
+                            n = get_output(&print_options,
+                                           &do_math(get_func(&input_var(&v[1], &vars, Some(&v[0])), prec, print_options.deg).unwrap(), print_options.deg, prec).unwrap()
+                                                                                                                                                               .num()
+                                                                                                                                                               .unwrap());
+                            println!("{}={}{}", v[0], n.0, n.1);
+                        }
                     }
                     continue;
                 }

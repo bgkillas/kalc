@@ -750,6 +750,16 @@ fn main()
                     }
                     continue;
                 }
+                "lvars" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    for v in vars.iter()
+                    {
+                        println!("{}={}", v[0], v[1]);
+                    }
+                    continue;
+                }
                 "version" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1309,6 +1319,7 @@ FLAGS: --help (this message)\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"vars\" to list all variables\n\
+- Type \"lvars\" to list all variables without equating them\n\
 - Type \"base=[num]\" to set the number base (2-36)\n\
 - Type \"_\" to use the previous answer\n\
 - Type \"a=[num]\" to define a variable\n\

@@ -1362,7 +1362,7 @@ Other functions:\n\
 - fact, subfact\n\
 - sinc, cis, exp\n\
 - zeta, gamma, erf, erfc, digamma, ai\n\
-- deg(to_degrees), rad(to_radians)\n\
+- deg(to_degrees), rad(to_radians), grad(to_gradians)\n\
 - re(real part), im(imaginary part)\n\n\
 Vector operations/functions:\n\
 - dot product: {{vec1}}.{{vec2}}\n\

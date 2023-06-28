@@ -117,7 +117,7 @@ Other functions:
 - fact, subfact
 - sinc, cis, exp
 - zeta, gamma, erf, erfc, digamma, ai
-- deg(to_degrees), rad(to_radians)
+- deg(to_degrees), rad(to_radians), grad(to_gradians)
 - re(real part), im(imaginary part)
 
 Vector operations/functions:

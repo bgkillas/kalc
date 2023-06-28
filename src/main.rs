@@ -891,90 +891,99 @@ fn main()
                 }
                 "xr" =>
                 {
-                    if r.is_empty()
+                    if r.contains(',')
                     {
-                        println!("{},{}", graph_options.xr[0], graph_options.xr[1]);
-                    }
-                    else
-                    {
-                        graph_options.xr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        if r.is_empty()
                         {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid x range");
-                                graph_options.xr[0]
-                            }
-                        };
-                        graph_options.xr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                            println!("{},{}", graph_options.xr[0], graph_options.xr[1]);
+                        }
+                        else
                         {
-                            Ok(n) => n,
-                            Err(_) =>
+                            graph_options.xr[0] = match r.split(',').next().unwrap().parse::<f64>()
                             {
-                                println!("Invalid x range");
-                                graph_options.xr[1]
-                            }
-                        };
+                                Ok(n) => n,
+                                Err(_) =>
+                                {
+                                    println!("Invalid x range");
+                                    graph_options.xr[0]
+                                }
+                            };
+                            graph_options.xr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                            {
+                                Ok(n) => n,
+                                Err(_) =>
+                                {
+                                    println!("Invalid x range");
+                                    graph_options.xr[1]
+                                }
+                            };
+                        }
+                        continue;
                     }
-                    continue;
                 }
                 "yr" =>
                 {
-                    if r.is_empty()
+                    if r.contains(',')
                     {
-                        println!("{},{}", graph_options.yr[0], graph_options.yr[1]);
-                    }
-                    else
-                    {
-                        graph_options.yr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        if r.is_empty()
                         {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid y range");
-                                graph_options.yr[0]
-                            }
-                        };
-                        graph_options.yr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                            println!("{},{}", graph_options.yr[0], graph_options.yr[1]);
+                        }
+                        else
                         {
-                            Ok(n) => n,
-                            Err(_) =>
+                            graph_options.yr[0] = match r.split(',').next().unwrap().parse::<f64>()
                             {
-                                println!("Invalid y range");
-                                graph_options.yr[1]
-                            }
-                        };
+                                Ok(n) => n,
+                                Err(_) =>
+                                {
+                                    println!("Invalid y range");
+                                    graph_options.yr[0]
+                                }
+                            };
+                            graph_options.yr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                            {
+                                Ok(n) => n,
+                                Err(_) =>
+                                {
+                                    println!("Invalid y range");
+                                    graph_options.yr[1]
+                                }
+                            };
+                        }
+                        continue;
                     }
-                    continue;
                 }
                 "zr" =>
                 {
-                    if r.is_empty()
+                    if r.contains(',')
                     {
-                        println!("{},{}", graph_options.zr[0], graph_options.zr[1]);
-                    }
-                    else
-                    {
-                        graph_options.zr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        if r.is_empty()
                         {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid z range");
-                                graph_options.zr[0]
-                            }
-                        };
-                        graph_options.zr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                            println!("{},{}", graph_options.zr[0], graph_options.zr[1]);
+                        }
+                        else
                         {
-                            Ok(n) => n,
-                            Err(_) =>
+                            graph_options.zr[0] = match r.split(',').next().unwrap().parse::<f64>()
                             {
-                                println!("Invalid z range");
-                                graph_options.zr[1]
-                            }
-                        };
+                                Ok(n) => n,
+                                Err(_) =>
+                                {
+                                    println!("Invalid z range");
+                                    graph_options.zr[0]
+                                }
+                            };
+                            graph_options.zr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                            {
+                                Ok(n) => n,
+                                Err(_) =>
+                                {
+                                    println!("Invalid z range");
+                                    graph_options.zr[1]
+                                }
+                            };
+                        }
+                        continue;
                     }
-                    continue;
                 }
                 "2d" =>
                 {

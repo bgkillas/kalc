@@ -365,7 +365,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                     {
                         func.push(Str("!=".to_string()));
                     }
-                    else if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')')
+                    else if i != 0 && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '(' || chars[i - 1] == ')' || chars[i - 1] == '|')
                     {
                         if let Num(a) = func.clone().last().unwrap()
                         {
@@ -421,7 +421,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                         func.insert(func.len() - 1, Str("(".to_string()));
                         func.push(Str(")".to_string()));
                     }
-                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')' || chars[i + 1] == '-')
+                    else if i != chars.len() - 1 && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '(' || chars[i + 1] == ')' || chars[i + 1] == '|' || chars[i + 1] == '-')
                     {
                         if neg
                         {

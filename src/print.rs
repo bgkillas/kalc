@@ -170,13 +170,13 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                  }
                  else
                  {
-                     sign + b.to_string().as_str() + if print_options.color { "\x1b[93mi" } else { "i" }
+                     get_output(&print_options, &n).1 + if print_options.color { "\x1b[93mi" } else { "i" }
                  })
             }
             (_, true) =>
             {
                 frac = true;
-                (if a == 0.0 && b != 0.0 { "".to_string() } else { a.to_string() },
+                (if a == 0.0 && b != 0.0 { "".to_string() } else { get_output(&print_options, &n).0 },
                  if b == 0.0
                  {
                      "".to_string()

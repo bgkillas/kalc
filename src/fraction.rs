@@ -50,17 +50,24 @@ pub fn fraction(value:Float, tau:bool) -> String
                 }
                 let recip = recip.to_integer().unwrap();
                 let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
-                return format!("{sign}{}{}{}",
-                               if last == 1 && i != 0 { "".to_string() } else { last.to_string() },
-                               match i
-                               {
-                                   0 => "",
-                                   1 => tau,
-                                   2 => "sqrt(2)",
-                                   3 => "sqrt(3)",
-                                   _ => "",
-                               },
-                               if recip == 1 { "".to_string() } else { "/".to_owned() + &recip.to_string() });
+                return if recip == 1 && i == 0
+                {
+                    String::new()
+                }
+                else
+                {
+                    format!("{sign}{}{}{}",
+                            if last == 1 && i != 0 { "".to_string() } else { last.to_string() },
+                            match i
+                            {
+                                0 => "",
+                                1 => tau,
+                                2 => "sqrt(2)",
+                                3 => "sqrt(3)",
+                                _ => "",
+                            },
+                            if recip == 1 { "".to_string() } else { "/".to_owned() + &recip.to_string() })
+                };
             }
             nums.push(recip);
             number = fract;

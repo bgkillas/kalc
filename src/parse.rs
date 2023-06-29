@@ -275,7 +275,10 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                     }
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
-                '+' if i != 0 && i + 1 != chars.len() && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}' || chars[i - 1] == ']') && chars[i - 1] != 'E' =>
+                '+' if i != 0
+                       && i + 1 != chars.len()
+                       && (chars[i - 1].is_ascii_alphanumeric() || func.last().unwrap().str_is(")") || chars[i - 1] == '}' || chars[i - 1] == ']')
+                       && chars[i - 1] != 'E' =>
                 {
                     func.push(Str('+'.to_string()))
                 }
@@ -311,7 +314,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                         func.push(Num(n1.clone()));
                         count += 1;
                     }
-                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == ')' || chars[i - 1] == '}' || chars[i - 1] == ']'))
+                    else if i == 0 || !(chars[i - 1] != 'E' && (chars[i - 1].is_ascii_alphanumeric() || func.last().unwrap().str_is(")") || chars[i - 1] == '}' || chars[i - 1] == ']'))
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
@@ -353,13 +356,8 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                         func.push(Str("abs".to_string()));
                         func.push(Str("(".to_string()));
                         count += 1;
+                        abs = !abs;
                     }
-                    else
-                    {
-                        func.push(Str(")".to_string()));
-                        count -= 1;
-                    }
-                    abs = !abs;
                 }
                 '!' =>
                 {
@@ -379,21 +377,38 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                                 func.insert(func.len() - 1, Str("*".to_string()));
                             }
                         }
-                        if chars[i - 1] == ')'
+                        if func.clone().last().unwrap().str_is(")")
                         {
                             let mut count = 0;
-                            for (j, c) in chars[..i].iter().enumerate().rev()
+                            for (j, c) in func.iter().enumerate().rev()
                             {
-                                if c == &'('
+                                if let Str(s) = c
                                 {
-                                    count -= 1;
-                                }
-                                else if c == &')'
-                                {
-                                    count += 1;
+                                    if s == "("
+                                    {
+                                        count -= 1;
+                                    }
+                                    else if s == ")"
+                                    {
+                                        count += 1;
+                                    }
                                 }
                                 if count == 0
                                 {
+                                    if j != 0
+                                    {
+                                        if let Str(s) = &func[j - 1]
+                                        {
+                                            if s != "subfact"
+                                            {
+                                                func.insert(j - 1, Str("(".to_string()));
+                                                func.insert(j - 1, Str("fact".to_string()));
+                                                func.push(Str(")".to_string()));
+                                                i += 1;
+                                                continue 'outer;
+                                            }
+                                        }
+                                    }
                                     func.insert(j + 1, Str("(".to_string()));
                                     func.insert(j + 1, Str("fact".to_string()));
                                     func.push(Str(")".to_string()));

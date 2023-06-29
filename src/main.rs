@@ -103,7 +103,7 @@ fn main()
             break;
         }
         input.clear();
-        frac = false;
+        frac = 0;
         if !args.is_empty()
         {
             if debug
@@ -178,10 +178,6 @@ fn main()
                         {
                             frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, prec, start, end);
                         }
-                        if frac
-                        {
-                            println!();
-                        }
                         if !(input.is_empty()
                              || input.contains('#')
                              || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x[") && vars.iter().all(|i| i[0] != "x"))
@@ -191,7 +187,7 @@ fn main()
                         {
                             println!();
                         }
-                        println!();
+                        println!("{}", "\n".repeat(frac));
                         break;
                     }
                     '\x08' =>
@@ -204,7 +200,7 @@ fn main()
                         {
                             if input.is_empty()
                             {
-                                print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                                print!("\x1B[0J\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
                                        if print_options.prompt
                                        {
                                            if print_options.color
@@ -241,7 +237,7 @@ fn main()
                         }
                         frac = if input.is_empty()
                         {
-                            false
+                            0
                         }
                         else if print_options.real_time_output
                         {
@@ -270,7 +266,7 @@ fn main()
                                        ""
                                    },
                                    &input[start..end]);
-                            false
+                            0
                         };
                         if let Some(time) = watch
                         {
@@ -322,7 +318,7 @@ fn main()
                         }
                         else
                         {
-                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                            print!("\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
                                    if print_options.prompt
                                    {
                                        if print_options.color
@@ -355,7 +351,7 @@ fn main()
                             i = max;
                             if input.is_empty()
                             {
-                                print!("\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
+                                print!("\x1B[0J\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
                                        if print_options.prompt
                                        {
                                            if print_options.color
@@ -567,7 +563,7 @@ fn main()
                         }
                         else
                         {
-                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
+                            print!("\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
                                    if print_options.prompt
                                    {
                                        if print_options.color
@@ -778,7 +774,7 @@ fn main()
         }
         if input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))
         {
-            print!("\x1b[2K\x1b[1G");
+            print!("\x1B[0J");
             stdout().flush().unwrap();
             split = input.split('=');
             l = split.next().unwrap();

@@ -52,7 +52,7 @@ FLAGS: --help (this message)
 --polar toggles displaying polar vectors
 --frac toggles fraction display
 --prec [num] sets the precision
---deci [num] sets how many decimals to display, also max length of numerator and denominator in fractions
+--deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places
 --def ignores config file
 --debug displays computation time in nanoseconds
 
@@ -76,7 +76,7 @@ FLAGS: --help (this message)
 - Type "yr=[min],[max]" to set the y range for graphing
 - Type "zr=[min],[max]" to set the z range for graphing
 - Type "prec=[num]" to set the precision
-- Type "deci=[num]" to set how many decimals to display, also max length of numerator and denominator in fractions
+- Type "deci=[num]" to set how many decimals to display, -1 for length of terminal, -2 for maximum decimal places
 - Type "point=[char]" to set the point style for graphing
 - Type "sci" to toggle scientific notation
 - Type "vars" to list all variables

@@ -67,17 +67,28 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    print_options.decimal_places = match args[1].parse::<usize>()
+                    if args[1] == "-1"
                     {
-                        Ok(x) => x,
-                        Err(_) =>
+                        print_options.decimal_places = usize::MAX - 1;
+                    }
+                    else if args[1] == "-2"
+                    {
+                        print_options.decimal_places = usize::MAX;
+                    }
+                    else
+                    {
+                        print_options.decimal_places = match args[1].parse::<usize>()
                         {
-                            println!("Invalid decimal");
-                            err = true;
-                            args.remove(0);
-                            continue;
-                        }
-                    };
+                            Ok(x) => x,
+                            Err(_) =>
+                            {
+                                println!("Invalid decimal");
+                                err = true;
+                                args.remove(0);
+                                continue;
+                            }
+                        };
+                    }
                     args.remove(0);
                 }
             }
@@ -449,16 +460,28 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "decimal" | "deci" | "decimals" =>
                 {
-                    print_options.decimal_places = match split.next().unwrap().parse::<usize>()
+                    let r = split.next().unwrap();
+                    if r == "-1"
                     {
-                        Ok(x) => x,
-                        Err(_) =>
+                        print_options.decimal_places = usize::MAX - 1;
+                    }
+                    else if r == "-2"
+                    {
+                        print_options.decimal_places = usize::MAX;
+                    }
+                    else
+                    {
+                        print_options.decimal_places = match r.parse::<usize>()
                         {
-                            println!("Invalid decimal places");
-                            err = true;
-                            continue;
-                        }
-                    };
+                            Ok(x) => x,
+                            Err(_) =>
+                            {
+                                println!("Invalid decimal places");
+                                err = true;
+                                continue;
+                            }
+                        };
+                    }
                 }
                 "rt" =>
                 {

@@ -838,6 +838,14 @@ fn main()
                     {
                         println!("{}", print_options.decimal_places);
                     }
+                    else if r == "-1"
+                    {
+                        print_options.decimal_places = usize::MAX - 1;
+                    }
+                    else if r == "-2"
+                    {
+                        print_options.decimal_places = usize::MAX;
+                    }
                     else
                     {
                         print_options.decimal_places = match r.parse::<usize>()
@@ -1297,7 +1305,7 @@ FLAGS: --help (this message)\n\
 --polar toggles displaying polar vectors\n\
 --frac toggles fraction display\n\
 --prec [num] sets the precision\n\
---deci [num] sets how many decimals to display, also max length of numerator and denominator in fractions\n\
+--deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places\n\
 --def ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
@@ -1320,7 +1328,7 @@ FLAGS: --help (this message)\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
 - Type \"prec=[num]\" to set the precision\n\
-- Type \"deci=[num]\" to set how many decimals to display, also max length of numerator and denominator in fractions\n\
+- Type \"deci=[num]\" to set how many decimals to display, -1 for length of terminal, -2 for maximum decimal places\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"vars\" to list all variables\n\

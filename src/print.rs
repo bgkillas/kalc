@@ -414,9 +414,9 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
     {
         (if num.real() != &0.0
          {
-             add_commas(&remove_trailing_zeros(&format!("{:e}{}", num.real(), if print_options.color { "\x1b[0m" } else { "" }), dec, num.real().prec()),
-                        print_options.comma).replace("e0", "")
-                                            .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
+             add_commas(&remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec()), print_options.comma).replace("e0", "")
+                                                                                                                          .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
+             + if print_options.color { "\x1b[0m" } else { "" }
          }
          else if num.imag() == &0.0
          {
@@ -462,6 +462,22 @@ fn to_string(num:&Float, decimals:usize) -> String
         return if str == "0" { "0".to_string() } else { format!("{}{}", neg, str) };
     }
     let exp = exp.unwrap();
+    let decimals = if decimals != usize::MAX - 1 && (get_terminal_width() as i32) < (2i32 + exp)
+    {
+        decimals
+    }
+    else if exp == 0
+    {
+        get_terminal_width() - 2
+    }
+    else if exp < 0
+    {
+        get_terminal_width() - 3
+    }
+    else
+    {
+        (get_terminal_width() as i32 - 1i32 - exp) as usize
+    };
     if str.len() as i32 == exp
     {
         return if str == "0" { "0".to_string() } else { format!("{}{}", neg, str) };
@@ -582,6 +598,21 @@ fn remove_trailing_zeros(input:&str, dec:usize, prec:u32) -> String
     {
         Some(n) => n,
         None => return input.trim_end_matches('0').trim_end_matches('.').to_string(),
+    };
+    let dec = if dec == usize::MAX - 1
+    {
+        if &input[pos..] == "e0"
+        {
+            get_terminal_width() - 1
+        }
+        else
+        {
+            get_terminal_width() - (input.len() - pos) - 1
+        }
+    }
+    else
+    {
+        dec
     };
     if dec > pos
     {

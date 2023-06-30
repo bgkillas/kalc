@@ -188,7 +188,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         let len2 = output.1.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len();
         if len1 + len2 > terlen
         {
-            let num = (len1 as f64 / terlen as f64).floor() as usize + if len2 != 0 { ((len2 - 1) as f64 / terlen as f64).floor() as usize } else { 0 };
+            let num = (len1 as f64 / terlen as f64).ceil() as usize + if len2 != 0 { ((len2 - 1) as f64 / terlen as f64).ceil() as usize - 1 } else { 0 } - 1;
             print!("\x1B[0J{}\x1b[0m\n\x1B[2K\x1B[1G{}{}{}{}\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}\x1b[0m",
                    if frac == 1
                    {
@@ -601,14 +601,15 @@ fn remove_trailing_zeros(input:&str, dec:usize, prec:u32) -> String
     };
     let dec = if dec == usize::MAX - 1
     {
-        if &input[pos..] == "e0"
+        (if &input[pos..] == "e0" || &input[pos..] == "e0\x1b[93mi"
         {
             get_terminal_width() - 1
         }
         else
         {
             get_terminal_width() - (input.len() - pos) - 1
-        }
+        })
+        + if input.ends_with("\x1b[93mi") { 5 } else { 0 }
     }
     else
     {

@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::str::FromStr;
 use rug::{Complex, Float, Integer};
 use rug::float::Constant::Pi;
@@ -439,9 +440,9 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
     }
     else
     {
-        n = add_commas(&to_string(num.real(), print_options.decimal_places), print_options.comma);
+        n = add_commas(&to_string(num.real(), print_options.decimal_places, false), print_options.comma);
         let sign = if n == "0" { "".to_string() } else { sign };
-        let im = add_commas(&to_string(num.imag(), print_options.decimal_places), print_options.comma);
+        let im = add_commas(&to_string(num.imag(), print_options.decimal_places, true), print_options.comma);
         (if n == "0" && im != "0" { "".to_string() } else { n },
          if im == "0"
          {
@@ -453,7 +454,7 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          })
     }
 }
-fn to_string(num:&Float, decimals:usize) -> String
+fn to_string(num:&Float, decimals:usize, imag:bool) -> String
 {
     let (neg, mut str, exp) = num.to_sign_string_exp(10, None);
     let mut neg = if neg { "-" } else { "" };
@@ -466,17 +467,17 @@ fn to_string(num:&Float, decimals:usize) -> String
     {
         decimals
     }
-    else if exp == 0
-    {
-        get_terminal_width() - 2
-    }
-    else if exp < 0
-    {
-        get_terminal_width() - 3
-    }
     else
     {
-        (get_terminal_width() as i32 - 1i32 - exp) as usize
+        (get_terminal_width() as i32
+         - match exp.cmp(&0)
+         {
+             Ordering::Equal => 2i32,
+             Ordering::Less => 3i32,
+             Ordering::Greater => 1i32 - exp,
+         }) as usize
+        - if imag { 1 } else { 0 }
+        - if !neg.is_empty() { 1 } else { 0 }
     };
     if str.len() as i32 == exp
     {
@@ -610,6 +611,7 @@ fn remove_trailing_zeros(input:&str, dec:usize, prec:u32) -> String
             get_terminal_width() - (input.len() - pos) - 1
         })
         + if input.ends_with("\x1b[93mi") { 5 } else { 0 }
+        - if input.starts_with('-') { 1 } else { 0 }
     }
     else
     {

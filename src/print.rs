@@ -166,7 +166,15 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                 (true, _) =>
                 {
                     frac = 1;
-                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { fa }, if n.imag() == &0.0 { "".to_string() } else { get_output(&print_options, &n).1 })
+                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { fa },
+                     if n.imag() == &0.0
+                     {
+                         "".to_string()
+                     }
+                     else
+                     {
+                         get_output(&print_options, &n).1 + if print_options.color { "\x1b[0m" } else { "" }
+                     })
                 }
                 (_, true) =>
                 {

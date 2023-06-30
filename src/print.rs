@@ -11,10 +11,10 @@ use crate::{get_terminal_width, PrintOptions};
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
 {
     if input.contains('#')
-       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x["))
+       || input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x')
        || input.contains('y')
-       || (input.contains('z') && !input.contains("zeta"))
-       || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
+       || input.replace("zeta", "").contains('z')
+       || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('=')
     {
         return;
     }
@@ -76,10 +76,10 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
 pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, start:usize, end:usize) -> usize
 {
     if input.contains('#')
-       || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x["))
+       || input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x')
        || input.contains('y')
-       || (input.contains('z') && !input.contains("zeta"))
-       || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<=")))
+       || input.replace("zeta", "").contains('z')
+       || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('=')
     {
         print!("\x1B[2K\x1B[1G\x1B[0J{}{}{}",
                if print_options.prompt

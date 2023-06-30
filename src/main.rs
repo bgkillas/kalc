@@ -127,10 +127,10 @@ fn main()
             }
             if !(input.is_empty()
                  || input.contains('#')
-                 || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x[") && vars.iter().all(|i| i[0] != "x"))
+                 || (input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
                  || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                 || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
-                 || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
+                 || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+                 || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('='))
             {
                 println!();
             }
@@ -177,10 +177,10 @@ fn main()
                         }
                         if !(input.is_empty()
                              || input.contains('#')
-                             || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x[") && vars.iter().all(|i| i[0] != "x"))
+                             || (input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
                              || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                             || (input.contains('z') && !input.contains("zeta") && vars.iter().all(|i| i[0] != "z"))
-                             || (input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))))
+                             || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+                             || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('='))
                         {
                             println!();
                         }
@@ -817,11 +817,11 @@ fn main()
             }
             continue;
         }
-        if input.contains('=') && !(input.contains("!=") || input.contains("==") || input.contains(">=") || input.contains("<="))
+        if input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('=')
         {
             print!("\x1B[0J");
             stdout().flush().unwrap();
-            split = input.split('=');
+            split = input.splitn(2, '=');
             l = split.next().unwrap();
             r = split.next().unwrap();
             if l.is_empty()

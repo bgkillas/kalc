@@ -447,11 +447,7 @@ fn to_string(num:&Float, decimals:usize, imag:bool) -> String
         return if str == "0" { "0".to_string() } else { format!("{}{}", neg, str) };
     }
     let exp = exp.unwrap();
-    let decimals = if decimals != usize::MAX - 1 && (get_terminal_width() as i32) < (2i32 + exp)
-    {
-        decimals
-    }
-    else
+    let decimals = if decimals == usize::MAX - 1 && (get_terminal_width() as i32) > (2i32 + exp)
     {
         (get_terminal_width() as i32
          - match exp.cmp(&0)
@@ -462,6 +458,10 @@ fn to_string(num:&Float, decimals:usize, imag:bool) -> String
          }
          - if imag { 1 } else { 0 }
          - if !neg.is_empty() { 1 } else { 0 }) as usize
+    }
+    else
+    {
+        decimals
     };
     if str.len() as i32 == exp
     {

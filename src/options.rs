@@ -92,6 +92,24 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                     args.remove(0);
                 }
             }
+            "--frac_iter" =>
+            {
+                if args.len() > 1
+                {
+                    print_options.frac_iter = match args[1].parse::<usize>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid frac iter");
+                            err = true;
+                            args.remove(0);
+                            continue;
+                        }
+                    };
+                    args.remove(0);
+                }
+            }
             "--2d" =>
             {
                 if args.len() > 1
@@ -316,6 +334,19 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
             split = line.split('=');
             match split.next().unwrap()
             {
+                "frac_iter" =>
+                {
+                    print_options.frac_iter = match split.next().unwrap().parse::<usize>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid frac iter");
+                            err = true;
+                            continue;
+                        }
+                    }
+                }
                 "2d" =>
                 {
                     graph_options.samples_2d = match split.next().unwrap().parse::<f64>()

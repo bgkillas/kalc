@@ -474,10 +474,10 @@ fn to_string(num:&Float, decimals:usize, imag:bool) -> String
          {
              Ordering::Equal => 2i32,
              Ordering::Less => 3i32,
-             Ordering::Greater => 1i32 - exp,
-         }) as usize
-        - if imag { 1 } else { 0 }
-        - if !neg.is_empty() { 1 } else { 0 }
+             Ordering::Greater => 1i32 + exp,
+         }
+         - if imag { 1 } else { 0 }
+         - if !neg.is_empty() { 1 } else { 0 }) as usize
     };
     if str.len() as i32 == exp
     {
@@ -602,15 +602,18 @@ fn remove_trailing_zeros(input:&str, dec:usize, prec:u32) -> String
     };
     let dec = if dec == usize::MAX - 1
     {
-        (if &input[pos..] == "e0" || &input[pos..] == "e0\x1b[93mi"
+        (if &input[pos..] == "e0"
         {
             get_terminal_width() - 1
         }
+        else if &input[pos..] == "e0\x1b[93mi"
+        {
+            get_terminal_width() - 2
+        }
         else
         {
-            get_terminal_width() - (input.len() - pos) - 1
+            get_terminal_width() - (input.len() - pos) - 1 + if input.ends_with("\x1b[93mi") { 5 } else { 0 }
         })
-        + if input.ends_with("\x1b[93mi") { 5 } else { 0 }
         - if input.starts_with('-') { 1 } else { 0 }
     }
     else

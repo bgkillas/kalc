@@ -8,7 +8,7 @@ use crate::math::{do_math, NumStr, to_polar};
 use crate::math::NumStr::{Num, Str, Vector};
 use crate::parse::get_func;
 use crate::{get_terminal_width, PrintOptions};
-pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, prec:u32)
+pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
 {
     if input.contains('#')
        || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x["))
@@ -18,7 +18,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
     {
         return;
     }
-    let num = match do_math(func, print_options.deg, prec)
+    let num = match do_math(func, print_options.deg, print_options.prec)
     {
         Ok(num) => num,
         Err(_) =>
@@ -39,15 +39,15 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
             v = to_polar(&v,
                          if print_options.deg == 0
                          {
-                             Complex::with_val(prec, 1.0)
+                             Complex::with_val(print_options.prec, 1.0)
                          }
                          else if print_options.deg == 1
                          {
-                             Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+                             Complex::with_val(print_options.prec, 180.0) / Complex::with_val(print_options.prec, Pi)
                          }
                          else
                          {
-                             Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
+                             Complex::with_val(print_options.prec, 200.0) / Complex::with_val(print_options.prec, Pi)
                          });
         }
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();
@@ -73,7 +73,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions, pr
         print!("{}{}", output, if print_options.color { "\x1b[0m" } else { "" });
     }
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, prec:u32, start:usize, end:usize) -> usize
+pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, start:usize, end:usize) -> usize
 {
     if input.contains('#')
        || (input.contains('x') && !input.contains("exp") && !input.contains("}x{") && !input.contains("]x["))
@@ -105,7 +105,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                if print_options.color { "\x1b[0m" } else { "" });
         return 0;
     }
-    let func = match get_func(input, prec, print_options.deg)
+    let func = match get_func(input, print_options.prec, print_options.deg)
     {
         Ok(f) => f,
         Err(_) =>
@@ -136,50 +136,57 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         }
     };
     let mut frac = 0;
-    let mut num = do_math(func, print_options.deg, prec).unwrap_or(Num(Complex::with_val(256, 0.0)));
+    let mut num = do_math(func, print_options.deg, print_options.prec).unwrap_or(Num(Complex::with_val(print_options.prec, 0.0)));
     if let Str(_) = num
     {
-        num = Num(Complex::with_val(256, 0.0));
+        num = Num(Complex::with_val(print_options.prec, 0.0));
     }
     if let Num(n) = num
     {
-        let fa = fraction(n.real().clone(), print_options.tau);
-        let fb = fraction(n.imag().clone(), print_options.tau);
         let sign = if n.real() != &0.0 && n.imag().is_sign_positive() { "+" } else { "" }.to_owned();
-        let (frac_a, frac_b) = match (!fa.is_empty(), !fb.is_empty())
+        let (frac_a, frac_b) = if print_options.frac || print_options.frac_iter == 0
         {
-            (true, true) =>
+            let fa = fraction(n.real().clone(), print_options.tau, print_options.frac_iter);
+            let fb = fraction(n.imag().clone(), print_options.tau, print_options.frac_iter);
+            match (!fa.is_empty(), !fb.is_empty())
             {
-                frac = 1;
-                (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { fa },
-                 if n.imag() == &0.0
-                 {
-                     "".to_string()
-                 }
-                 else
-                 {
-                     sign + fb.as_str() + if print_options.color { "\x1b[93mi\x1b[0m" } else { "i" }
-                 })
+                (true, true) =>
+                {
+                    frac = 1;
+                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { fa },
+                     if n.imag() == &0.0
+                     {
+                         "".to_string()
+                     }
+                     else
+                     {
+                         sign + fb.as_str() + if print_options.color { "\x1b[93mi\x1b[0m" } else { "i" }
+                     })
+                }
+                (true, _) =>
+                {
+                    frac = 1;
+                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { fa }, if n.imag() == &0.0 { "".to_string() } else { get_output(&print_options, &n).1 })
+                }
+                (_, true) =>
+                {
+                    frac = 1;
+                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { get_output(&print_options, &n).0 },
+                     if n.imag() == &0.0
+                     {
+                         "".to_string()
+                     }
+                     else
+                     {
+                         sign + fb.as_str() + if print_options.color { "\x1b[93mi\x1b[0m" } else { "i" }
+                     })
+                }
+                _ => ("".to_string(), "".to_string()),
             }
-            (true, _) =>
-            {
-                frac = 1;
-                (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { fa }, if n.imag() == &0.0 { "".to_string() } else { get_output(&print_options, &n).1 })
-            }
-            (_, true) =>
-            {
-                frac = 1;
-                (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { get_output(&print_options, &n).0 },
-                 if n.imag() == &0.0
-                 {
-                     "".to_string()
-                 }
-                 else
-                 {
-                     sign + fb.as_str() + if print_options.color { "\x1b[93mi\x1b[0m" } else { "i" }
-                 })
-            }
-            _ => ("".to_string(), "".to_string()),
+        }
+        else
+        {
+            ("".to_string(), "".to_string())
         };
         let output = get_output(&print_options, &n);
         let terlen = get_terminal_width();
@@ -258,15 +265,15 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
             v = to_polar(&v,
                          if print_options.deg == 0
                          {
-                             Complex::with_val(prec, 1.0)
+                             Complex::with_val(print_options.prec, 1.0)
                          }
                          else if print_options.deg == 1
                          {
-                             Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+                             Complex::with_val(print_options.prec, 180.0) / Complex::with_val(print_options.prec, Pi)
                          }
                          else
                          {
-                             Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
+                             Complex::with_val(print_options.prec, 200.0) / Complex::with_val(print_options.prec, Pi)
                          });
         }
         let mut output = if print_options.polar { "[" } else { "{" }.to_string();
@@ -276,34 +283,37 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         for (k, i) in v.iter().enumerate()
         {
             out = get_output(&print_options, i);
-            frac_temp = fraction(i.real().clone(), print_options.tau);
-            frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
-            frac_temp = fraction(i.imag().clone(), print_options.tau);
-            frac_out += &if !frac_temp.is_empty()
+            if print_options.frac || print_options.frac_iter == 0
             {
-                format!("{}{}{}",
-                        (if i.real() != &0.0 && i.imag().is_sign_positive() && i.imag() != &0.0 { "+" } else { "" }),
-                        frac_temp,
-                        (if i.imag() != &0.0
-                        {
-                            if print_options.color
+                frac_temp = fraction(i.real().clone(), print_options.tau, print_options.frac_iter);
+                frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
+                frac_temp = fraction(i.imag().clone(), print_options.tau, print_options.frac_iter);
+                frac_out += &if !frac_temp.is_empty()
+                {
+                    format!("{}{}{}",
+                            (if i.real() != &0.0 && i.imag().is_sign_positive() && i.imag() != &0.0 { "+" } else { "" }),
+                            frac_temp,
+                            (if i.imag() != &0.0
                             {
-                                "\x1b[93mi\x1b[0m"
+                                if print_options.color
+                                {
+                                    "\x1b[93mi\x1b[0m"
+                                }
+                                else
+                                {
+                                    "i"
+                                }
                             }
                             else
                             {
-                                "i"
-                            }
-                        }
-                        else
-                        {
-                            ""
-                        }))
+                                ""
+                            }))
+                }
+                else
+                {
+                    out.clone().1
+                };
             }
-            else
-            {
-                out.clone().1
-            };
             output += &out.0;
             output += &out.1;
             if print_options.color

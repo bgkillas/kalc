@@ -1,7 +1,7 @@
 // as per continued fraction expansion
 use rug::Float;
 use rug::float::Constant::Pi;
-pub fn fraction(value:Float, tau:bool) -> String
+pub fn fraction(value:Float, tau:bool, frac_iter:usize) -> String
 {
     let prec = value.prec();
     if value.clone().fract() == 0.0
@@ -36,7 +36,7 @@ pub fn fraction(value:Float, tau:bool) -> String
         }
         number = orig.clone().fract();
         nums.clear();
-        for _ in 0..=50
+        for _ in 0..=frac_iter
         {
             recip = number.clone().recip();
             fract = recip.clone().fract();

@@ -345,7 +345,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                 }
                 '|' =>
                 {
-                    if i + 1 != chars.len() && chars[i + 1] == '|'
+                    if i + 1 != chars.len() && chars[i + 1] == '|' && abs
                     {
                         func.push(Str("||".to_string()));
                         i += 2;
@@ -353,10 +353,15 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                     }
                     else if abs
                     {
+                        place_multiplier(&mut func, &find_word);
                         func.push(Str("abs".to_string()));
                         func.push(Str("(".to_string()));
-                        count += 1;
-                        abs = !abs;
+                        abs = false;
+                    }
+                    else
+                    {
+                        func.push(Str(")".to_string()));
+                        abs = true;
                     }
                 }
                 '!' =>
@@ -451,6 +456,10 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                       Ok(n) => n,
                       Err(_) => return Err(()),
                   })));
+    }
+    if !abs
+    {
+        func.push(Str(")".to_string()));
     }
     if neg
     {

@@ -51,6 +51,7 @@ FLAGS: --help (this message)
 --rt toggles real time printing
 --polar toggles displaying polar vectors
 --frac toggles fraction display
+--frac_iter [num] how many iterations to check for fractions
 --prec [num] sets the precision
 --deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
 --def ignores config file
@@ -95,6 +96,7 @@ FLAGS: --help (this message)
 - Type "number#" to graph a complex number
 - Type "polar" to toggle polar output
 - Type "frac" to toggle fraction display
+- Type "frac_iter=[num]" how many iterations to check for fractions
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:

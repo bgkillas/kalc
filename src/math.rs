@@ -836,16 +836,38 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
             match s.as_str()
             {
                 "%" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real() % function[i + 1].num()?.real())),
-                "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() < function[i + 1].num()?.real()) as i32 as f64)),
-                ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() > function[i + 1].num()?.real()) as i32 as f64)),
-                ">=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() >= function[i + 1].num()?.real()) as i32 as f64)),
-                "<=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() <= function[i + 1].num()?.real()) as i32 as f64)),
-                "==" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()? == function[i + 1].num()?) as i32 as f64)),
-                "!=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()? != function[i + 1].num()?) as i32 as f64)),
+                "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() < function[i + 1].num()?.abs().real()) as i32)),
+                ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() > function[i + 1].num()?.abs().real()) as i32)),
+                ">=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() >= function[i + 1].num()?.abs().real()) as i32)),
+                "<=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() <= function[i + 1].num()?.abs().real()) as i32)),
+                "==" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()? == function[i + 1].num()?) as i32)),
+                "!=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()? != function[i + 1].num()?) as i32)),
                 ">>" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.shr(function[i + 1].num()?.real().to_u32_saturating().unwrap_or(0)))),
                 "<<" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.shl(function[i + 1].num()?.real().to_u32_saturating().unwrap_or(0)))),
-                "&&" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 && function[i + 1].num()?.real() != &0.0) as i32 as f64)),
-                "||" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 || function[i + 1].num()?.real() != &0.0) as i32 as f64)),
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
+        {
+            i += 1;
+            continue;
+        }
+        function.remove(i + 1);
+        function.remove(i - 1);
+    }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "&&" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 && function[i + 1].num()?.real() != &0.0) as i32)),
+                "||" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 || function[i + 1].num()?.real() != &0.0) as i32)),
                 _ =>
                 {
                     i += 1;

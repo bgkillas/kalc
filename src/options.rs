@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use crate::{GraphOptions, help, PrintOptions};
-pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, prec:&mut u32, args:&mut Vec<String>) -> bool
+pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, args:&mut Vec<String>) -> bool
 {
     let mut err = false;
     args.remove(0);
@@ -36,7 +36,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    *prec = match args[1].parse::<u32>()
+                    print_options.prec = match args[1].parse::<u32>()
                     {
                         Ok(x) =>
                         {
@@ -294,7 +294,6 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 *print_options = PrintOptions::default();
                 *graph_options = GraphOptions::default();
-                *prec = 256;
                 *allow_vars = true;
                 *debug = false;
             }
@@ -304,7 +303,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
     }
     err
 }
-pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, prec:&mut u32, file_path:&String) -> bool
+pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, file_path:&String) -> bool
 {
     let mut err = false;
     if File::open(file_path).is_ok()
@@ -435,7 +434,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "prec" | "precision" =>
                 {
-                    *prec = match split.next().unwrap().parse::<u32>()
+                    print_options.prec = match split.next().unwrap().parse::<u32>()
                     {
                         Ok(x) =>
                         {

@@ -200,7 +200,7 @@ fn main()
                         {
                             if input.is_empty()
                             {
-                                print!("\x1B[0J\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                                print!("\x1B[0J\x1B[2K\x1B[1G{}",
                                        if print_options.prompt
                                        {
                                            if print_options.color
@@ -279,7 +279,7 @@ fn main()
                         }
                         if placement == 0 && input.is_empty()
                         {
-                            print!("\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A{}",
+                            print!("\x1B[0J\x1B[2K\x1B[1G{}",
                                    if print_options.prompt
                                    {
                                        if print_options.color
@@ -1305,7 +1305,7 @@ FLAGS: --help (this message)\n\
 --polar toggles displaying polar vectors\n\
 --frac toggles fraction display\n\
 --prec [num] sets the precision\n\
---deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places\n\
+--deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\
 --def ignores config file\n\
 --debug displays computation time in nanoseconds\n\n\
 - Type \"exit\" to exit the program\n\
@@ -1328,7 +1328,7 @@ FLAGS: --help (this message)\n\
 - Type \"yr=[min],[max]\" to set the y range for graphing\n\
 - Type \"zr=[min],[max]\" to set the z range for graphing\n\
 - Type \"prec=[num]\" to set the precision\n\
-- Type \"deci=[num]\" to set how many decimals to display, -1 for length of terminal, -2 for maximum decimal places\n\
+- Type \"deci=[num]\" to set how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\
 - Type \"point=[char]\" to set the point style for graphing\n\
 - Type \"sci\" to toggle scientific notation\n\
 - Type \"vars\" to list all variables\n\

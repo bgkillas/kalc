@@ -1,13 +1,17 @@
-use std::cmp::Ordering;
-use std::str::FromStr;
-use rug::{Complex, Float, Integer};
-use rug::float::Constant::Pi;
-use rug::ops::CompleteRound;
-use crate::fraction::fraction;
-use crate::math::{do_math, NumStr, to_polar};
-use crate::math::NumStr::{Num, Str, Vector};
-use crate::parse::get_func;
-use crate::{get_terminal_width, PrintOptions};
+use std::{cmp::Ordering, str::FromStr};
+use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
+use crate::{
+    fraction::fraction,
+    get_terminal_width,
+    math::{
+        do_math,
+        to_polar,
+        NumStr,
+        NumStr::{Num, Str, Vector},
+    },
+    parse::get_func,
+    PrintOptions,
+};
 pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
 {
     if input.contains('#')

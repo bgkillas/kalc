@@ -1,6 +1,8 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use crate::{GraphOptions, help, PrintOptions};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
+use crate::{help, GraphOptions, PrintOptions};
 pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, args:&mut Vec<String>) -> bool
 {
     let mut err = false;

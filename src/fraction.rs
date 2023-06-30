@@ -1,6 +1,5 @@
 // as per continued fraction expansion
-use rug::Float;
-use rug::float::Constant::Pi;
+use rug::{float::Constant::Pi, Float};
 pub fn fraction(value:Float, tau:bool, frac_iter:usize) -> String
 {
     let prec = value.prec();

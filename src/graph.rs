@@ -1,13 +1,14 @@
-use std::thread;
-use std::thread::JoinHandle;
-use std::time::Instant;
+use std::{thread, thread::JoinHandle, time::Instant};
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
-use crate::GraphOptions;
-use crate::math::{
-    do_math, NumStr, NumStr::{Num, Str}
+use crate::{
+    math::{
+        do_math,
+        NumStr,
+        NumStr::{Num, Str, Vector},
+    },
+    GraphOptions,
 };
-use crate::math::NumStr::Vector;
 pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg:u8, prec:u32, watch:Option<Instant>) -> JoinHandle<()>
 {
     thread::spawn(move || {

@@ -1,8 +1,11 @@
-use rug::Complex;
-use rug::float::Constant::Pi;
-use crate::math::NumStr::{Num, Str};
-use crate::parse::{get_func, get_vars, input_var};
-use crate::math::do_math;
+use rug::{float::Constant::Pi, Complex};
+use crate::{
+    math::{
+        do_math,
+        NumStr::{Num, Str},
+    },
+    parse::{get_func, get_vars, input_var},
+};
 #[test]
 fn test_math()
 {

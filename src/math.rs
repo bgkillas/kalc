@@ -1,8 +1,6 @@
 use std::ops::{Shl, Shr};
 use crate::math::NumStr::{Num, Str, Vector};
-use rug::{Complex, Float};
-use rug::float::Constant::Pi;
-use rug::ops::Pow;
+use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 #[derive(Clone)]
 pub enum NumStr
 {

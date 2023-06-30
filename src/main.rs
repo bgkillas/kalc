@@ -7,25 +7,30 @@ mod print;
 #[cfg(test)]
 mod tests;
 use parse::{get_func, get_vars, input_var};
-use std::env::{args, var};
-use std::io::{BufRead, BufReader, IsTerminal, stdout, Write};
-use std::fs::{File, OpenOptions};
+use std::{
+    env::{args, var},
+    fs::{File, OpenOptions},
+    io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
+    thread::JoinHandle,
+};
 use graph::graph;
-use print::{print_answer, print_concurrent};
-use std::io::stdin;
-use std::thread::JoinHandle;
+use print::{get_output, print_answer, print_concurrent};
 use options::{arg_opts, file_opts};
+use math::{
+    do_math,
+    NumStr::{Num, Str, Vector},
+};
 #[cfg(not(unix))]
 use {
-    console::{Key, Term}, term_size::dimensions
+    console::{Key, Term},
+    term_size::dimensions,
 };
 #[cfg(unix)]
 use {
-    libc::{ECHO, ioctl, STDOUT_FILENO, TIOCGWINSZ, winsize, ICANON, tcgetattr, TCSANOW, tcsetattr, VMIN, VTIME}, std::io::Read, std::os::fd::AsRawFd
+    libc::{ioctl, tcgetattr, tcsetattr, winsize, ECHO, ICANON, STDOUT_FILENO, TCSANOW, TIOCGWINSZ, VMIN, VTIME},
+    std::io::Read,
+    std::os::fd::AsRawFd,
 };
-use crate::math::do_math;
-use crate::math::NumStr::{Num, Str, Vector};
-use crate::print::get_output;
 // fix 0's and infinities of sin, cos, tan and cis
 // complex vectors
 // gui support

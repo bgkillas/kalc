@@ -8,20 +8,21 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
     let mut err = false;
     args.remove(0);
     let (mut split, mut l);
-    while !args.is_empty()
+    let mut i = 0;
+    while i < args.len()
     {
-        if args[0].contains('-') && (args[0].contains('=') || args[0].contains(','))
+        if args[i].contains('-') && (args[i].contains('=') || args[i].contains(','))
         {
-            l = args[0].clone();
+            l = args[i].clone();
             split = l.split(|c| c == '=' || c == ',');
-            args[0] = split.next().unwrap().to_string();
-            args.insert(1, split.next().unwrap().to_string());
+            args[i] = split.next().unwrap().to_string();
+            args.insert(i + 1, split.next().unwrap().to_string());
             if split.clone().count() > 0
             {
-                args.insert(2, split.next().unwrap().to_string());
+                args.insert(i + 2, split.next().unwrap().to_string());
             }
         }
-        match args[0].as_str()
+        match args[i].as_str()
         {
             "--debug" => *debug = !*debug,
             "--tau" => print_options.tau = !print_options.tau,
@@ -38,7 +39,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    print_options.prec = match args[1].parse::<u32>()
+                    print_options.prec = match args[i + 1].parse::<u32>()
                     {
                         Ok(x) =>
                         {
@@ -46,7 +47,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                             {
                                 println!("Invalid precision");
                                 err = true;
-                                args.remove(0);
+                                args.remove(i);
                                 continue;
                             }
                             else
@@ -58,191 +59,191 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                         {
                             println!("Invalid precision");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
+                    args.remove(i);
                 }
             }
             "--decimal" | "--deci" | "--decimals" =>
             {
                 if args.len() > 1
                 {
-                    if args[1] == "-1"
+                    if args[i + 1] == "-1"
                     {
                         print_options.decimal_places = usize::MAX - 1;
                     }
-                    else if args[1] == "-2"
+                    else if args[i + 1] == "-2"
                     {
                         print_options.decimal_places = usize::MAX;
                     }
                     else
                     {
-                        print_options.decimal_places = match args[1].parse::<usize>()
+                        print_options.decimal_places = match args[i + 1].parse::<usize>()
                         {
                             Ok(x) => x,
                             Err(_) =>
                             {
                                 println!("Invalid decimal");
                                 err = true;
-                                args.remove(0);
+                                args.remove(i);
                                 continue;
                             }
                         };
                     }
-                    args.remove(0);
+                    args.remove(i);
                 }
             }
             "--frac_iter" =>
             {
                 if args.len() > 1
                 {
-                    print_options.frac_iter = match args[1].parse::<usize>()
+                    print_options.frac_iter = match args[i + 1].parse::<usize>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid frac iter");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
+                    args.remove(i);
                 }
             }
             "--2d" =>
             {
                 if args.len() > 1
                 {
-                    graph_options.samples_2d = match args[1].parse::<f64>()
+                    graph_options.samples_2d = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid 2d sample size");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
+                    args.remove(i);
                 }
             }
             "--3d" =>
             {
                 if args.len() > 1
                 {
-                    graph_options.samples_3d = match args[1].parse::<f64>()
+                    graph_options.samples_3d = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid 3d sample size");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
+                    args.remove(i);
                 }
             }
             "--yr" =>
             {
                 if args.len() > 2
                 {
-                    graph_options.yr[0] = match args[1].parse::<f64>()
+                    graph_options.yr[0] = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid y range");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    graph_options.yr[1] = match args[2].parse::<f64>()
+                    graph_options.yr[1] = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid y range");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
-                    args.remove(0);
+                    args.remove(i);
+                    args.remove(i);
                 }
             }
             "--xr" =>
             {
                 if args.len() > 2
                 {
-                    graph_options.xr[0] = match args[1].parse::<f64>()
+                    graph_options.xr[0] = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid x range");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    graph_options.xr[1] = match args[2].parse::<f64>()
+                    graph_options.xr[1] = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid x range");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
-                    args.remove(0);
+                    args.remove(i);
+                    args.remove(i);
                 }
             }
             "--zr" =>
             {
                 if args.len() > 2
                 {
-                    graph_options.zr[0] = match args[1].parse::<f64>()
+                    graph_options.zr[0] = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid z range");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    graph_options.zr[1] = match args[2].parse::<f64>()
+                    graph_options.zr[1] = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
                         {
                             println!("Invalid z range");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
-                    args.remove(0);
+                    args.remove(i);
+                    args.remove(i);
                 }
             }
             "--base" =>
             {
                 if args.len() > 1
                 {
-                    print_options.base = match args[1].parse::<usize>()
+                    print_options.base = match args[i + 1].parse::<usize>()
                     {
                         Ok(x) =>
                         {
@@ -250,7 +251,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                             {
                                 println!("Invalid base");
                                 err = true;
-                                args.remove(0);
+                                args.remove(i);
                                 continue;
                             }
                             else
@@ -262,18 +263,18 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                         {
                             println!("Invalid base");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     };
-                    args.remove(0);
+                    args.remove(i);
                 }
             }
             "--comma" => print_options.comma = !print_options.comma,
             "--sci" | "--scientific" => print_options.sci = !print_options.sci,
             "--point" =>
             {
-                graph_options.point_style = match args[1].chars().next()
+                graph_options.point_style = match args[i + 1].chars().next()
                 {
                     Some(x) =>
                     {
@@ -285,7 +286,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                         {
                             println!("Invalid point char");
                             err = true;
-                            args.remove(0);
+                            args.remove(i);
                             continue;
                         }
                     }
@@ -293,11 +294,11 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                     {
                         println!("Invalid point char");
                         err = true;
-                        args.remove(0);
+                        args.remove(i);
                         continue;
                     }
                 };
-                args.remove(0);
+                args.remove(i);
             }
             "--help" | "-h" =>
             {
@@ -317,9 +318,13 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                 *allow_vars = true;
                 *debug = false;
             }
-            _ => break,
+            _ =>
+            {
+                i += 1;
+                continue;
+            }
         }
-        args.remove(0);
+        args.remove(i);
     }
     err
 }

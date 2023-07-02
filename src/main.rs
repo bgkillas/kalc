@@ -1,3 +1,4 @@
+mod complex;
 mod fraction;
 mod graph;
 mod math;
@@ -39,27 +40,24 @@ use {
 // allow units to be used in the input, and be outputted
 fn main()
 {
-    let mut graph_options = GraphOptions::default();
-    let mut print_options = PrintOptions::default();
+    let mut options = Options::default();
     let mut watch = None;
-    let mut allow_vars = true;
-    let mut debug = false;
     let mut handles:Vec<JoinHandle<()>> = Vec::new();
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
     #[cfg(not(unix))]
     let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.config", var("USERNAME").unwrap());
     let mut args = args().collect::<Vec<String>>();
-    if file_opts(&mut graph_options, &mut print_options, &mut allow_vars, &mut debug, file_path) || arg_opts(&mut graph_options, &mut print_options, &mut allow_vars, &mut debug, &mut args)
+    if file_opts(&mut options, file_path) || arg_opts(&mut options, &mut args)
     {
         std::process::exit(1);
     }
-    let mut vars:Vec<[String; 2]> = if allow_vars { get_vars(print_options.prec) } else { Vec::new() };
+    let mut vars:Vec<[String; 2]> = if options.allow_vars { get_vars(options.prec) } else { Vec::new() };
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
     #[cfg(not(unix))]
     let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.vars", var("USERNAME").unwrap());
-    if File::open(file_path).is_ok() && allow_vars
+    if File::open(file_path).is_ok() && options.allow_vars
     {
         let lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect::<Vec<String>>();
         let mut split;
@@ -110,14 +108,14 @@ fn main()
         frac = 0;
         if !args.is_empty()
         {
-            if debug
+            if options.debug
             {
                 watch = Some(std::time::Instant::now());
             }
             input = args.first().unwrap().replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
-                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None), print_options.prec, print_options.deg)
+                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None), options.prec, options.deg)
                          {
                              Ok(f) => f,
                              Err(()) =>
@@ -126,7 +124,7 @@ fn main()
                                  return;
                              }
                          },
-                         print_options);
+                         options);
             if let Some(time) = watch
             {
                 print!(" {}", time.elapsed().as_nanos());
@@ -148,9 +146,9 @@ fn main()
         }
         else
         {
-            if print_options.prompt
+            if options.prompt
             {
-                print!("{}> \x1b[0m", if print_options.color { "\x1b[94m" } else { "" });
+                print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
                 stdout().flush().unwrap();
             }
             current.clear();
@@ -164,7 +162,7 @@ fn main()
             'outer: loop
             {
                 c = read_single_char();
-                if debug
+                if options.debug
                 {
                     watch = Some(std::time::Instant::now());
                 }
@@ -172,14 +170,14 @@ fn main()
                 {
                     '\n' =>
                     {
-                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
                         if end > input.len()
                         {
                             end = input.len()
                         }
-                        if !print_options.real_time_output
+                        if !options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, start, end);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
                         }
                         if !(input.is_empty()
                              || input.contains('#')
@@ -204,9 +202,9 @@ fn main()
                             if input.is_empty()
                             {
                                 print!("\x1B[0J\x1B[2K\x1B[1G{}",
-                                       if print_options.prompt
+                                       if options.prompt
                                        {
-                                           if print_options.color
+                                           if options.color
                                            {
                                                "\x1b[94m> \x1b[0m"
                                            }
@@ -225,7 +223,7 @@ fn main()
                         }
                         placement -= 1;
                         input.remove(placement);
-                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -242,16 +240,16 @@ fn main()
                         {
                             0
                         }
-                        else if print_options.real_time_output
+                        else if options.real_time_output
                         {
-                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, start, end)
+                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end)
                         }
                         else
                         {
                             print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[96m"
                                        }
@@ -260,7 +258,7 @@ fn main()
                                            "> "
                                        }
                                    }
-                                   else if print_options.color
+                                   else if options.color
                                    {
                                        "\x1b[96m"
                                    }
@@ -283,9 +281,9 @@ fn main()
                         if placement == 0 && input.is_empty()
                         {
                             print!("\x1B[0J\x1B[2K\x1B[1G{}",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[0m"
                                        }
@@ -307,24 +305,24 @@ fn main()
                         input = lines[i as usize].clone();
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if print_options.prompt { 3 } else { 0 } > input.len()
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 } > input.len()
                         {
                             0
                         }
                         else
                         {
-                            input.len() - (get_terminal_width() - if print_options.prompt { 3 } else { 0 })
+                            input.len() - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
-                        if print_options.real_time_output
+                        if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, start, end);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
                         }
                         else
                         {
                             print!("\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[96m"
                                        }
@@ -333,7 +331,7 @@ fn main()
                                            "> "
                                        }
                                    }
-                                   else if print_options.color
+                                   else if options.color
                                    {
                                        "\x1b[96m"
                                    }
@@ -355,9 +353,9 @@ fn main()
                             if input.is_empty()
                             {
                                 print!("\x1B[0J\n\x1B[2K\x1B[1G\n\x1B[2K\x1B[1G\x1b[A\x1b[A\x1B[2K\x1B[1G{}",
-                                       if print_options.prompt
+                                       if options.prompt
                                        {
-                                           if print_options.color
+                                           if options.color
                                            {
                                                "\x1b[94m> \x1b[0m"
                                            }
@@ -382,24 +380,24 @@ fn main()
                         }
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if print_options.prompt { 3 } else { 0 } > input.len()
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 } > input.len()
                         {
                             0
                         }
                         else
                         {
-                            input.len() - (get_terminal_width() - if print_options.prompt { 3 } else { 0 })
+                            input.len() - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
-                        if print_options.real_time_output
+                        if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, start, end);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
                         }
                         else
                         {
                             print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[96m"
                                        }
@@ -408,7 +406,7 @@ fn main()
                                            "> "
                                        }
                                    }
-                                   else if print_options.color
+                                   else if options.color
                                    {
                                        "\x1b[96m"
                                    }
@@ -426,15 +424,15 @@ fn main()
                         {
                             start -= 1;
                             placement -= 1;
-                            end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                            end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
                             if end > input.len()
                             {
                                 end = input.len()
                             }
                             print!("\x1B[2K\x1B[1G{}{}\x1b[0m{}",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[96m"
                                        }
@@ -443,7 +441,7 @@ fn main()
                                            "> "
                                        }
                                    }
-                                   else if print_options.color
+                                   else if options.color
                                    {
                                        "\x1b[96m"
                                    }
@@ -464,7 +462,7 @@ fn main()
                     '\x1C' =>
                     {
                         // go right
-                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -474,9 +472,9 @@ fn main()
                             start += 1;
                             placement += 1;
                             print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[96m"
                                        }
@@ -485,7 +483,7 @@ fn main()
                                            "> "
                                        }
                                    }
-                                   else if print_options.color
+                                   else if options.color
                                    {
                                        "\x1b[96m"
                                    }
@@ -520,7 +518,7 @@ fn main()
                             input.insert(placement, c);
                             placement += 1;
                         }
-                        end = start + get_terminal_width() - if print_options.prompt { 3 } else { 0 } + 1;
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 } + 1;
                         if end > input.len()
                         {
                             end = input.len()
@@ -560,16 +558,16 @@ fn main()
                         {
                             lines[i as usize] = input.clone();
                         }
-                        if print_options.real_time_output
+                        if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), print_options, start, end);
+                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
                         }
                         else
                         {
                             print!("\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if print_options.prompt
+                                   if options.prompt
                                    {
-                                       if print_options.color
+                                       if options.color
                                        {
                                            "\x1b[94m> \x1b[96m"
                                        }
@@ -578,7 +576,7 @@ fn main()
                                            "> "
                                        }
                                    }
-                                   else if print_options.color
+                                   else if options.color
                                    {
                                        "\x1b[96m"
                                    }
@@ -611,53 +609,53 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.color = !print_options.color;
+                    options.color = !options.color;
                     continue;
                 }
                 "prompt" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.prompt = !print_options.prompt;
+                    options.prompt = !options.prompt;
                     continue;
                 }
                 "deg" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.deg = 1;
+                    options.deg = 1;
                     continue;
                 }
                 "rad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.deg = 0;
+                    options.deg = 0;
                     continue;
                 }
                 "grad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.deg = 2;
+                    options.deg = 2;
                     continue;
                 }
                 "rt" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.real_time_output = !print_options.real_time_output;
+                    options.real_time_output = !options.real_time_output;
                     continue;
                 }
                 "tau" =>
                 {
-                    print_options.tau = true;
+                    options.tau = true;
                     write(&input, &mut file, &unmod_lines);
                     continue;
                 }
                 "pi" =>
                 {
-                    print_options.tau = false;
+                    options.tau = false;
                     write(&input, &mut file, &unmod_lines);
                     continue;
                 }
@@ -665,7 +663,7 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.sci = !print_options.sci;
+                    options.sci = !options.sci;
                     continue;
                 }
                 "clear" =>
@@ -678,7 +676,7 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    debug = !debug;
+                    options.debug = !options.debug;
                     watch = None;
                     continue;
                 }
@@ -693,28 +691,28 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    graph_options.lines = !graph_options.lines;
+                    options.lines = !options.lines;
                     continue;
                 }
                 "polar" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.polar = !print_options.polar;
+                    options.polar = !options.polar;
                     continue;
                 }
                 "frac" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.frac = !print_options.frac;
+                    options.frac = !options.frac;
                     continue;
                 }
                 "comma" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    print_options.comma = !print_options.comma;
+                    options.comma = !options.comma;
                     continue;
                 }
                 "history" =>
@@ -740,12 +738,10 @@ fn main()
                         }
                         else
                         {
-                            n = get_output(&print_options,
-                                           &do_math(get_func(&input_var(&v[1], &vars, Some(&v[0])), print_options.prec, print_options.deg).unwrap(),
-                                                    print_options.deg,
-                                                    print_options.prec).unwrap()
-                                                                       .num()
-                                                                       .unwrap());
+                            n = get_output(&options,
+                                           &do_math(get_func(&input_var(&v[1], &vars, Some(&v[0])), options.prec, options.deg).unwrap(), options.deg, options.prec).unwrap()
+                                                                                                                                                                   .num()
+                                                                                                                                                                   .unwrap());
                             println!("{}={}{}", v[0], n.0, n.1);
                         }
                     }
@@ -782,25 +778,29 @@ fn main()
             l = &input[..input.len() - 1];
             match l
             {
-                "point" => println!("{}", graph_options.point_style),
-                "base" => println!("{}", print_options.base),
-                "decimal" | "deci" | "decimals" => println!("{}", print_options.decimal_places),
-                "prec" | "precision" => println!("{}", print_options.prec),
-                "xr" => println!("{},{}", graph_options.xr[0], graph_options.xr[1]),
-                "yr" => println!("{},{}", graph_options.yr[0], graph_options.yr[1]),
-                "zr" => println!("{},{}", graph_options.zr[0], graph_options.zr[1]),
-                "frac_iter" => println!("{}", print_options.frac_iter),
-                "2d" => println!("{}", graph_options.samples_2d),
-                "3d" => println!("{}", graph_options.samples_3d),
+                "point" => println!("{}", options.point_style),
+                "base" => println!("{}", options.base),
+                "decimal" | "deci" | "decimals" => println!("{}", options.decimal_places),
+                "prec" | "precision" => println!("{}", options.prec),
+                "xr" => println!("{},{}", options.xr[0], options.xr[1]),
+                "yr" => println!("{},{}", options.yr[0], options.yr[1]),
+                "zr" => println!("{},{}", options.zr[0], options.zr[1]),
+                "frac_iter" => println!("{}", options.frac_iter),
+                "2d" => println!("{}", options.samples_2d),
+                "3d" => println!("{}", options.samples_3d),
                 _ =>
                 {
-                    for i in get_func(&input_var(l, &vars, None), print_options.prec, print_options.deg).unwrap()
+                    for i in match get_func(&input_var(l, &vars, None), options.prec, options.deg)
+                    {
+                        Ok(n) => n,
+                        Err(_) => continue,
+                    }
                     {
                         match i
                         {
                             Num(n) =>
                             {
-                                let n = get_output(&print_options, &n);
+                                let n = get_output(&options, &n);
                                 print!("{}{}\x1b[0m", n.0, n.1)
                             }
                             Vector(n) =>
@@ -809,7 +809,7 @@ fn main()
                                 let mut num;
                                 for i in n
                                 {
-                                    num = get_output(&print_options, &i);
+                                    num = get_output(&options, &i);
                                     str.push_str(&format!("{}{}\x1b[0m,", num.0, num.1));
                                 }
                                 str.pop();
@@ -840,7 +840,7 @@ fn main()
                 {
                     if r == "." || r == "+" || r == "x" || r == "*" || r == "s" || r == "S" || r == "o" || r == "O" || r == "t" || r == "T" || r == "d" || r == "D" || r == "r" || r == "R"
                     {
-                        graph_options.point_style = r.chars().next().unwrap();
+                        options.point_style = r.chars().next().unwrap();
                     }
                     else
                     {
@@ -850,14 +850,14 @@ fn main()
                 }
                 "base" =>
                 {
-                    print_options.base = match r.parse::<usize>()
+                    options.base = match r.parse::<usize>()
                     {
                         Ok(n) =>
                         {
                             if !(2..=36).contains(&n)
                             {
                                 println!("Invalid base");
-                                print_options.base
+                                options.base
                             }
                             else
                             {
@@ -867,7 +867,7 @@ fn main()
                         Err(_) =>
                         {
                             println!("Invalid base");
-                            print_options.base
+                            options.base
                         }
                     };
                     continue;
@@ -876,21 +876,21 @@ fn main()
                 {
                     if r == "-1"
                     {
-                        print_options.decimal_places = usize::MAX - 1;
+                        options.decimal_places = usize::MAX - 1;
                     }
                     else if r == "-2"
                     {
-                        print_options.decimal_places = usize::MAX;
+                        options.decimal_places = usize::MAX;
                     }
                     else
                     {
-                        print_options.decimal_places = match r.parse::<usize>()
+                        options.decimal_places = match r.parse::<usize>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid decimal");
-                                print_options.decimal_places
+                                options.decimal_places
                             }
                         };
                     }
@@ -898,10 +898,10 @@ fn main()
                 }
                 "prec" | "precision" =>
                 {
-                    print_options.prec = if r == "0"
+                    options.prec = if r == "0"
                     {
                         println!("Invalid precision");
-                        print_options.prec
+                        options.prec
                     }
                     else
                     {
@@ -911,13 +911,13 @@ fn main()
                             Err(_) =>
                             {
                                 println!("Invalid precision");
-                                print_options.prec
+                                options.prec
                             }
                         }
                     };
-                    if allow_vars
+                    if options.allow_vars
                     {
-                        v = get_vars(print_options.prec);
+                        v = get_vars(options.prec);
                         vars = [v.clone(), vars[v.len()..].to_vec()].concat();
                     }
                     continue;
@@ -926,22 +926,22 @@ fn main()
                 {
                     if r.contains(',')
                     {
-                        graph_options.xr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        options.xr[0] = match r.split(',').next().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid x range");
-                                graph_options.xr[0]
+                                options.xr[0]
                             }
                         };
-                        graph_options.xr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                        options.xr[1] = match r.split(',').last().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid x range");
-                                graph_options.xr[1]
+                                options.xr[1]
                             }
                         };
                         continue;
@@ -951,22 +951,22 @@ fn main()
                 {
                     if r.contains(',')
                     {
-                        graph_options.yr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        options.yr[0] = match r.split(',').next().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid y range");
-                                graph_options.yr[0]
+                                options.yr[0]
                             }
                         };
-                        graph_options.yr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                        options.yr[1] = match r.split(',').last().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid y range");
-                                graph_options.yr[1]
+                                options.yr[1]
                             }
                         };
                         continue;
@@ -976,22 +976,22 @@ fn main()
                 {
                     if r.contains(',')
                     {
-                        graph_options.zr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        options.zr[0] = match r.split(',').next().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid z range");
-                                graph_options.zr[0]
+                                options.zr[0]
                             }
                         };
-                        graph_options.zr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                        options.zr[1] = match r.split(',').last().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid z range");
-                                graph_options.zr[1]
+                                options.zr[1]
                             }
                         };
                         continue;
@@ -999,39 +999,39 @@ fn main()
                 }
                 "frac_iter" =>
                 {
-                    print_options.frac_iter = match r.parse::<usize>()
+                    options.frac_iter = match r.parse::<usize>()
                     {
                         Ok(n) => n,
                         Err(_) =>
                         {
                             println!("Invalid frac_iter");
-                            print_options.frac_iter
+                            options.frac_iter
                         }
                     };
                     continue;
                 }
                 "2d" =>
                 {
-                    graph_options.samples_2d = match r.parse::<f64>()
+                    options.samples_2d = match r.parse::<f64>()
                     {
                         Ok(n) => n,
                         Err(_) =>
                         {
                             println!("Invalid 2d sample size");
-                            graph_options.samples_2d
+                            options.samples_2d
                         }
                     };
                     continue;
                 }
                 "3d" =>
                 {
-                    graph_options.samples_3d = match r.parse::<f64>()
+                    options.samples_3d = match r.parse::<f64>()
                     {
                         Ok(n) => n,
                         Err(_) =>
                         {
                             println!("Invalid 3d sample size");
-                            graph_options.samples_3d
+                            options.samples_3d
                         }
                     };
                     continue;
@@ -1076,13 +1076,13 @@ fn main()
                 {
                     continue;
                 }
-                funcs.push(match get_func(&input_var(i, &vars, None), print_options.prec, print_options.deg)
+                funcs.push(match get_func(&input_var(i, &vars, None), options.prec, options.deg)
                      {
                          Ok(f) => f,
                          _ => continue 'main,
                      });
             }
-            handles.push(graph(inputs, funcs, graph_options, print_options.deg, print_options.prec, watch));
+            handles.push(graph(inputs, funcs, options, options.deg, options.prec, watch));
             continue;
         }
     }
@@ -1376,18 +1376,7 @@ Constants:\n\
     );
 }
 #[derive(Clone, Copy)]
-pub struct GraphOptions
-{
-    xr:[f64; 2],
-    yr:[f64; 2],
-    zr:[f64; 2],
-    samples_2d:f64,
-    samples_3d:f64,
-    point_style:char,
-    lines:bool,
-}
-#[derive(Clone, Copy)]
-pub struct PrintOptions
+pub struct Options
 {
     sci:bool,
     deg:u8, // 0=rad,1=deg,2=grad
@@ -1402,36 +1391,41 @@ pub struct PrintOptions
     comma:bool,
     prec:u32,
     frac_iter:usize,
+    xr:[f64; 2],
+    yr:[f64; 2],
+    zr:[f64; 2],
+    samples_2d:f64,
+    samples_3d:f64,
+    point_style:char,
+    lines:bool,
+    allow_vars:bool,
+    debug:bool,
 }
-impl Default for PrintOptions
+impl Default for Options
 {
     fn default() -> Self
     {
-        PrintOptions { sci:false,
-                       deg:0,
-                       base:10,
-                       tau:false,
-                       polar:false,
-                       frac:true,
-                       real_time_output:true,
-                       decimal_places:12,
-                       color:true,
-                       prompt:true,
-                       comma:false,
-                       prec:512,
-                       frac_iter:50 }
-    }
-}
-impl Default for GraphOptions
-{
-    fn default() -> Self
-    {
-        GraphOptions { xr:[-10.0, 10.0],
-                       yr:[-10.0, 10.0],
-                       zr:[-10.0, 10.0],
-                       samples_2d:20000.0,
-                       samples_3d:400.0,
-                       point_style:'.',
-                       lines:false }
+        Options { sci:false,
+                  deg:0,
+                  base:10,
+                  tau:false,
+                  polar:false,
+                  frac:true,
+                  real_time_output:true,
+                  decimal_places:12,
+                  color:true,
+                  prompt:true,
+                  comma:false,
+                  prec:512,
+                  frac_iter:50,
+                  xr:[-10.0, 10.0],
+                  yr:[-10.0, 10.0],
+                  zr:[-10.0, 10.0],
+                  samples_2d:20000.0,
+                  samples_3d:400.0,
+                  point_style:'.',
+                  lines:false,
+                  allow_vars:true,
+                  debug:false }
     }
 }

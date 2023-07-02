@@ -10,9 +10,9 @@ use crate::{
         NumStr::{Num, Str, Vector},
     },
     parse::get_func,
-    PrintOptions,
+    Options,
 };
-pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
+pub fn print_answer(input:&str, func:Vec<NumStr>, options:Options)
 {
     if input.contains('#')
        || input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x')
@@ -22,7 +22,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
     {
         return;
     }
-    let num = match do_math(func, print_options.deg, print_options.prec)
+    let num = match do_math(func, options.deg, options.prec)
     {
         Ok(num) => num,
         Err(_) =>
@@ -33,51 +33,51 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, print_options:PrintOptions)
     };
     if let Num(n) = num
     {
-        let a = get_output(&print_options, &n);
-        print!("{}{}{}", a.0, a.1, if print_options.color { "\x1b[0m" } else { "" });
+        let a = get_output(&options, &n);
+        print!("{}{}{}", a.0, a.1, if options.color { "\x1b[0m" } else { "" });
     }
     else if let Vector(mut v) = num
     {
-        if print_options.polar
+        if options.polar
         {
             v = to_polar(&v,
-                         if print_options.deg == 0
+                         if options.deg == 0
                          {
-                             Complex::with_val(print_options.prec, 1.0)
+                             Complex::with_val(options.prec, 1.0)
                          }
-                         else if print_options.deg == 1
+                         else if options.deg == 1
                          {
-                             Complex::with_val(print_options.prec, 180.0) / Complex::with_val(print_options.prec, Pi)
+                             Complex::with_val(options.prec, 180.0) / Complex::with_val(options.prec, Pi)
                          }
                          else
                          {
-                             Complex::with_val(print_options.prec, 200.0) / Complex::with_val(print_options.prec, Pi)
+                             Complex::with_val(options.prec, 200.0) / Complex::with_val(options.prec, Pi)
                          });
         }
-        let mut output = if print_options.polar { "[" } else { "{" }.to_string();
+        let mut output = if options.polar { "[" } else { "{" }.to_string();
         let mut out;
         for (k, i) in v.iter().enumerate()
         {
-            out = get_output(&print_options, i);
+            out = get_output(&options, i);
             output += out.0.as_str();
             output += out.1.as_str();
-            if print_options.color
+            if options.color
             {
                 output += "\x1b[0m";
             }
             if k == v.len() - 1
             {
-                output += if print_options.polar { "]" } else { "}" };
+                output += if options.polar { "]" } else { "}" };
             }
             else
             {
                 output += ",";
             }
         }
-        print!("{}{}", output, if print_options.color { "\x1b[0m" } else { "" });
+        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
 }
-pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOptions, start:usize, end:usize) -> usize
+pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, start:usize, end:usize) -> usize
 {
     if input.contains('#')
        || input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x')
@@ -86,9 +86,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
        || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('=')
     {
         print!("\x1B[2K\x1B[1G\x1B[0J{}{}{}",
-               if print_options.prompt
+               if options.prompt
                {
-                   if print_options.color
+                   if options.color
                    {
                        "\x1b[94m> \x1b[96m"
                    }
@@ -97,7 +97,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                        "> "
                    }
                }
-               else if print_options.color
+               else if options.color
                {
                    "\x1b[96m"
                }
@@ -106,18 +106,18 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                    ""
                },
                &unmodified_input[start..end],
-               if print_options.color { "\x1b[0m" } else { "" });
+               if options.color { "\x1b[0m" } else { "" });
         return 0;
     }
-    let func = match get_func(input, print_options.prec, print_options.deg)
+    let func = match get_func(input, options.prec, options.deg)
     {
         Ok(f) => f,
         Err(_) =>
         {
             print!("\x1B[2K\x1B[1G\x1B[0J{}{}{}",
-                   if print_options.prompt
+                   if options.prompt
                    {
-                       if print_options.color
+                       if options.color
                        {
                            "\x1b[94m> \x1b[96m"
                        }
@@ -126,7 +126,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                            "> "
                        }
                    }
-                   else if print_options.color
+                   else if options.color
                    {
                        "\x1b[96m"
                    }
@@ -135,23 +135,23 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                        ""
                    },
                    &unmodified_input[start..end],
-                   if print_options.color { "\x1b[0m" } else { "" });
+                   if options.color { "\x1b[0m" } else { "" });
             return 0;
         }
     };
     let mut frac = 0;
-    let mut num = do_math(func, print_options.deg, print_options.prec).unwrap_or(Num(Complex::with_val(print_options.prec, 0.0)));
+    let mut num = do_math(func, options.deg, options.prec).unwrap_or(Num(Complex::with_val(options.prec, 0.0)));
     if let Str(_) = num
     {
-        num = Num(Complex::with_val(print_options.prec, 0.0));
+        num = Num(Complex::with_val(options.prec, 0.0));
     }
     if let Num(n) = num
     {
         let sign = if n.real() != &0.0 && n.imag().is_sign_positive() { "+" } else { "" }.to_owned();
-        let (frac_a, frac_b) = if print_options.frac || print_options.frac_iter == 0
+        let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
         {
-            let fa = fraction(n.real().clone(), print_options.tau, print_options.frac_iter);
-            let fb = fraction(n.imag().clone(), print_options.tau, print_options.frac_iter);
+            let fa = fraction(n.real().clone(), options.tau, options.frac_iter);
+            let fb = fraction(n.imag().clone(), options.tau, options.frac_iter);
             match (!fa.is_empty(), !fb.is_empty())
             {
                 (true, true) =>
@@ -164,7 +164,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                      }
                      else
                      {
-                         sign + fb.as_str() + if print_options.color { "\x1b[93mi\x1b[0m" } else { "i" }
+                         sign + fb.as_str() + if options.color { "\x1b[93mi\x1b[0m" } else { "i" }
                      })
                 }
                 (true, _) =>
@@ -177,20 +177,20 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                      }
                      else
                      {
-                         get_output(&print_options, &n).1 + if print_options.color { "\x1b[0m" } else { "" }
+                         get_output(&options, &n).1 + if options.color { "\x1b[0m" } else { "" }
                      })
                 }
                 (_, true) =>
                 {
                     frac = 1;
-                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { get_output(&print_options, &n).0 },
+                    (if n.real() == &0.0 && n.imag() != &0.0 { "".to_string() } else { get_output(&options, &n).0 },
                      if n.imag() == &0.0
                      {
                          "".to_string()
                      }
                      else
                      {
-                         sign + fb.as_str() + if print_options.color { "\x1b[93mi\x1b[0m" } else { "i" }
+                         sign + fb.as_str() + if options.color { "\x1b[93mi\x1b[0m" } else { "i" }
                      })
                 }
                 _ => ("".to_string(), "".to_string()),
@@ -200,9 +200,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             ("".to_string(), "".to_string())
         };
-        let output = get_output(&print_options, &n);
+        let output = get_output(&options, &n);
         let terlen = get_terminal_width();
-        if (frac == 1 && !print_options.frac) || (frac_a.len() + frac_b.len() - if print_options.color && !frac_b.is_empty() { 5 } else { 0 }) > terlen
+        if (frac == 1 && !options.frac) || (frac_a.len() + frac_b.len() - if options.color && !frac_b.is_empty() { 5 } else { 0 }) > terlen
         {
             frac = 0;
         }
@@ -217,9 +217,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                    if len1 != 0 && len2 != 0 { "\n" } else { "" },
                    &output.1.replace('+', ""),
                    "\x1b[A".repeat(num + frac - if len1 == 0 || len2 == 0 { 1 } else { 0 }),
-                   if print_options.prompt
+                   if options.prompt
                    {
-                       if print_options.color
+                       if options.color
                        {
                            "\x1b[94m> \x1b[96m"
                        }
@@ -228,7 +228,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                            "> "
                        }
                    }
-                   else if print_options.color
+                   else if options.color
                    {
                        "\x1b[96m"
                    }
@@ -237,7 +237,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                        ""
                    },
                    &unmodified_input[start..end],
-                   if print_options.color { "\x1b[0m" } else { "" },);
+                   if options.color { "\x1b[0m" } else { "" },);
             frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
         }
         else
@@ -247,9 +247,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                    output.0,
                    output.1,
                    if frac == 1 { "\x1b[A" } else { "" },
-                   if print_options.prompt
+                   if options.prompt
                    {
-                       if print_options.color
+                       if options.color
                        {
                            "\x1b[94m> \x1b[96m"
                        }
@@ -258,7 +258,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                            "> "
                        }
                    }
-                   else if print_options.color
+                   else if options.color
                    {
                        "\x1b[96m"
                    }
@@ -267,39 +267,39 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                        ""
                    },
                    &unmodified_input[start..end],
-                   if print_options.color { "\x1b[0m" } else { "" });
+                   if options.color { "\x1b[0m" } else { "" });
         }
     }
     else if let Vector(mut v) = num
     {
-        if print_options.polar
+        if options.polar
         {
             v = to_polar(&v,
-                         if print_options.deg == 0
+                         if options.deg == 0
                          {
-                             Complex::with_val(print_options.prec, 1.0)
+                             Complex::with_val(options.prec, 1.0)
                          }
-                         else if print_options.deg == 1
+                         else if options.deg == 1
                          {
-                             Complex::with_val(print_options.prec, 180.0) / Complex::with_val(print_options.prec, Pi)
+                             Complex::with_val(options.prec, 180.0) / Complex::with_val(options.prec, Pi)
                          }
                          else
                          {
-                             Complex::with_val(print_options.prec, 200.0) / Complex::with_val(print_options.prec, Pi)
+                             Complex::with_val(options.prec, 200.0) / Complex::with_val(options.prec, Pi)
                          });
         }
-        let mut output = if print_options.polar { "[" } else { "{" }.to_string();
-        let mut frac_out = if print_options.polar { "[" } else { "{" }.to_string();
+        let mut output = if options.polar { "[" } else { "{" }.to_string();
+        let mut frac_out = if options.polar { "[" } else { "{" }.to_string();
         let mut out;
         let mut frac_temp;
         for (k, i) in v.iter().enumerate()
         {
-            out = get_output(&print_options, i);
-            if print_options.frac || print_options.frac_iter == 0
+            out = get_output(&options, i);
+            if options.frac || options.frac_iter == 0
             {
-                frac_temp = fraction(i.real().clone(), print_options.tau, print_options.frac_iter);
+                frac_temp = fraction(i.real().clone(), options.tau, options.frac_iter);
                 frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
-                frac_temp = fraction(i.imag().clone(), print_options.tau, print_options.frac_iter);
+                frac_temp = fraction(i.imag().clone(), options.tau, options.frac_iter);
                 frac_out += &if !frac_temp.is_empty()
                 {
                     format!("{}{}{}",
@@ -307,7 +307,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                             frac_temp,
                             (if i.imag() != &0.0
                             {
-                                if print_options.color
+                                if options.color
                                 {
                                     "\x1b[93mi\x1b[0m"
                                 }
@@ -328,15 +328,15 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
             }
             output += &out.0;
             output += &out.1;
-            if print_options.color
+            if options.color
             {
                 output += "\x1b[0m";
                 frac_out += "\x1b[0m";
             }
             if k == v.len() - 1
             {
-                output += if print_options.polar { "]" } else { "}" };
-                frac_out += if print_options.polar { "]" } else { "}" };
+                output += if options.polar { "]" } else { "}" };
+                frac_out += if options.polar { "]" } else { "}" };
             }
             else
             {
@@ -348,7 +348,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
         {
             frac = 1;
         }
-        if (frac == 1 && !print_options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len() > get_terminal_width()
+        if (frac == 1 && !options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len() > get_terminal_width()
         {
             frac = 0;
         }
@@ -356,9 +356,9 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                if frac == 1 { format!("\n\x1B[2K\x1B[1G{}", frac_out) } else { "".to_string() },
                output,
                if frac == 1 { "\x1b[A" } else { "" },
-               if print_options.prompt
+               if options.prompt
                {
-                   if print_options.color
+                   if options.color
                    {
                        "\x1b[94m> \x1b[96m"
                    }
@@ -367,7 +367,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                        "> "
                    }
                }
-               else if print_options.color
+               else if options.color
                {
                    "\x1b[96m"
                }
@@ -376,20 +376,20 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, print_options:PrintOp
                    ""
                },
                &unmodified_input[start..end],
-               if print_options.color { "\x1b[0m" } else { "" });
+               if options.color { "\x1b[0m" } else { "" });
     }
     frac
 }
-pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
+pub fn get_output(options:&Options, num:&Complex) -> (String, String)
 {
     let sign = if num.real() != &0.0 && num.imag().is_sign_positive() { "+" } else { "" }.to_owned();
     let mut n;
-    let dec = if print_options.decimal_places == 0 { 1 } else { print_options.decimal_places };
-    if print_options.base != 10
+    let dec = if options.decimal_places == 0 { 1 } else { options.decimal_places };
+    if options.base != 10
     {
         (if num.real() != &0.0
          {
-             n = remove_trailing_zeros(&num.real().to_string_radix(print_options.base as i32, None), dec, num.real().prec());
+             n = remove_trailing_zeros(&num.real().to_string_radix(options.base as i32, None), dec, num.real().prec());
              if n.contains('e')
              {
                  n
@@ -409,21 +409,21 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             n = remove_trailing_zeros(&num.imag().to_string_radix(print_options.base as i32, None), dec, num.real().prec());
-             sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if print_options.color { "\x1b[93mi" } else { "i" }
+             n = remove_trailing_zeros(&num.imag().to_string_radix(options.base as i32, None), dec, num.real().prec());
+             sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if options.color { "\x1b[93mi" } else { "i" }
          }
          else
          {
              "".to_string()
          })
     }
-    else if print_options.sci
+    else if options.sci
     {
         (if num.real() != &0.0
          {
-             add_commas(&remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec()), print_options.comma).replace("e0", "")
-                                                                                                                          .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
-             + if print_options.color { "\x1b[0m" } else { "" }
+             add_commas(&remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec()), options.comma).replace("e0", "")
+                                                                                                                    .replace('e', if options.color { "\x1b[92mE" } else { "E" })
+             + if options.color { "\x1b[0m" } else { "" }
          }
          else if num.imag() == &0.0
          {
@@ -435,9 +435,9 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             add_commas(&(sign.as_str().to_owned() + &remove_trailing_zeros(&format!("{:e}{}", num.imag(), if print_options.color { "\x1b[93mi" } else { "i" }), dec, num.real().prec())),
-                        print_options.comma).replace("e0", "")
-                                            .replace('e', if print_options.color { "\x1b[92mE" } else { "E" })
+             add_commas(&(sign.as_str().to_owned() + &remove_trailing_zeros(&format!("{:e}{}", num.imag(), if options.color { "\x1b[93mi" } else { "i" }), dec, num.real().prec())),
+                        options.comma).replace("e0", "")
+                                      .replace('e', if options.color { "\x1b[92mE" } else { "E" })
          }
          else
          {
@@ -446,18 +446,10 @@ pub fn get_output(print_options:&PrintOptions, num:&Complex) -> (String, String)
     }
     else
     {
-        n = add_commas(&to_string(num.real(), print_options.decimal_places, false), print_options.comma);
+        n = add_commas(&to_string(num.real(), options.decimal_places, false), options.comma);
         let sign = if n == "0" { "".to_string() } else { sign };
-        let im = add_commas(&to_string(num.imag(), print_options.decimal_places, true), print_options.comma);
-        (if n == "0" && im != "0" { "".to_string() } else { n },
-         if im == "0"
-         {
-             "".to_string()
-         }
-         else
-         {
-             sign + &im + if print_options.color { "\x1b[93mi" } else { "i" }
-         })
+        let im = add_commas(&to_string(num.imag(), options.decimal_places, true), options.comma);
+        (if n == "0" && im != "0" { "".to_string() } else { n }, if im == "0" { "".to_string() } else { sign + &im + if options.color { "\x1b[93mi" } else { "i" } })
     }
 }
 fn to_string(num:&Float, decimals:usize, imag:bool) -> String

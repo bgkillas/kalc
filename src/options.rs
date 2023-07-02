@@ -2,8 +2,8 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
-use crate::{help, GraphOptions, PrintOptions};
-pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, args:&mut Vec<String>) -> bool
+use crate::{help, Options};
+pub fn arg_opts(options:&mut Options, args:&mut Vec<String>) -> bool
 {
     let mut err = false;
     args.remove(0);
@@ -24,22 +24,22 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
         }
         match args[i].as_str()
         {
-            "--debug" => *debug = !*debug,
-            "--tau" => print_options.tau = !print_options.tau,
-            "--deg" => print_options.deg = 1,
-            "--rad" => print_options.deg = 0,
-            "--grad" => print_options.deg = 2,
-            "--prompt" => print_options.prompt = !print_options.prompt,
-            "--color" => print_options.color = !print_options.color,
-            "--line" => graph_options.lines = !graph_options.lines,
-            "--rt" => print_options.real_time_output = !print_options.real_time_output,
-            "--polar" => print_options.polar = !print_options.polar,
-            "--frac" => print_options.frac = !print_options.frac,
+            "--debug" => options.debug = !options.debug,
+            "--tau" => options.tau = !options.tau,
+            "--deg" => options.deg = 1,
+            "--rad" => options.deg = 0,
+            "--grad" => options.deg = 2,
+            "--prompt" => options.prompt = !options.prompt,
+            "--color" => options.color = !options.color,
+            "--line" => options.lines = !options.lines,
+            "--rt" => options.real_time_output = !options.real_time_output,
+            "--polar" => options.polar = !options.polar,
+            "--frac" => options.frac = !options.frac,
             "--prec" | "--precision" =>
             {
                 if args.len() > 1
                 {
-                    print_options.prec = match args[i + 1].parse::<u32>()
+                    options.prec = match args[i + 1].parse::<u32>()
                     {
                         Ok(x) =>
                         {
@@ -72,15 +72,15 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                 {
                     if args[i + 1] == "-1"
                     {
-                        print_options.decimal_places = usize::MAX - 1;
+                        options.decimal_places = usize::MAX - 1;
                     }
                     else if args[i + 1] == "-2"
                     {
-                        print_options.decimal_places = usize::MAX;
+                        options.decimal_places = usize::MAX;
                     }
                     else
                     {
-                        print_options.decimal_places = match args[i + 1].parse::<usize>()
+                        options.decimal_places = match args[i + 1].parse::<usize>()
                         {
                             Ok(x) => x,
                             Err(_) =>
@@ -99,7 +99,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    print_options.frac_iter = match args[i + 1].parse::<usize>()
+                    options.frac_iter = match args[i + 1].parse::<usize>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -117,7 +117,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    graph_options.samples_2d = match args[i + 1].parse::<f64>()
+                    options.samples_2d = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -135,7 +135,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    graph_options.samples_3d = match args[i + 1].parse::<f64>()
+                    options.samples_3d = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -153,7 +153,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 2
                 {
-                    graph_options.yr[0] = match args[i + 1].parse::<f64>()
+                    options.yr[0] = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -164,7 +164,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                             continue;
                         }
                     };
-                    graph_options.yr[1] = match args[i + 2].parse::<f64>()
+                    options.yr[1] = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -183,7 +183,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 2
                 {
-                    graph_options.xr[0] = match args[i + 1].parse::<f64>()
+                    options.xr[0] = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -194,7 +194,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                             continue;
                         }
                     };
-                    graph_options.xr[1] = match args[i + 2].parse::<f64>()
+                    options.xr[1] = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -213,7 +213,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 2
                 {
-                    graph_options.zr[0] = match args[i + 1].parse::<f64>()
+                    options.zr[0] = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -224,7 +224,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                             continue;
                         }
                     };
-                    graph_options.zr[1] = match args[i + 2].parse::<f64>()
+                    options.zr[1] = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -243,7 +243,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
             {
                 if args.len() > 1
                 {
-                    print_options.base = match args[i + 1].parse::<usize>()
+                    options.base = match args[i + 1].parse::<usize>()
                     {
                         Ok(x) =>
                         {
@@ -270,11 +270,11 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                     args.remove(i);
                 }
             }
-            "--comma" => print_options.comma = !print_options.comma,
-            "--sci" | "--scientific" => print_options.sci = !print_options.sci,
+            "--comma" => options.comma = !options.comma,
+            "--sci" | "--scientific" => options.sci = !options.sci,
             "--point" =>
             {
-                graph_options.point_style = match args[i + 1].chars().next()
+                options.point_style = match args[i + 1].chars().next()
                 {
                     Some(x) =>
                     {
@@ -310,13 +310,10 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
                 println!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
             }
-            "--vars" => *allow_vars = !*allow_vars,
+            "--vars" => options.allow_vars = !options.allow_vars,
             "--default" | "--def" =>
             {
-                *print_options = PrintOptions::default();
-                *graph_options = GraphOptions::default();
-                *allow_vars = true;
-                *debug = false;
+                *options = Options::default();
             }
             _ =>
             {
@@ -328,7 +325,7 @@ pub fn arg_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions
     }
     err
 }
-pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOptions, allow_vars:&mut bool, debug:&mut bool, file_path:&String) -> bool
+pub fn file_opts(options:&mut Options, file_path:&String) -> bool
 {
     let mut err = false;
     if File::open(file_path).is_ok()
@@ -343,7 +340,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
             {
                 "frac_iter" =>
                 {
-                    print_options.frac_iter = match split.next().unwrap().parse::<usize>()
+                    options.frac_iter = match split.next().unwrap().parse::<usize>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -356,7 +353,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "2d" =>
                 {
-                    graph_options.samples_2d = match split.next().unwrap().parse::<f64>()
+                    options.samples_2d = match split.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -369,7 +366,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "3d" =>
                 {
-                    graph_options.samples_3d = match split.next().unwrap().parse::<f64>()
+                    options.samples_3d = match split.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -389,7 +386,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         err = true;
                         continue;
                     }
-                    graph_options.xr[0] = match xr.next().unwrap().parse::<f64>()
+                    options.xr[0] = match xr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -399,7 +396,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                             continue;
                         }
                     };
-                    graph_options.xr[1] = match xr.next().unwrap().parse::<f64>()
+                    options.xr[1] = match xr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -419,7 +416,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         err = true;
                         continue;
                     }
-                    graph_options.yr[0] = match yr.next().unwrap().parse::<f64>()
+                    options.yr[0] = match yr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -429,7 +426,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                             continue;
                         }
                     };
-                    graph_options.yr[1] = match yr.next().unwrap().parse::<f64>()
+                    options.yr[1] = match yr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -449,7 +446,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         err = true;
                         continue;
                     }
-                    graph_options.zr[0] = match zr.next().unwrap().parse::<f64>()
+                    options.zr[0] = match zr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -459,7 +456,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                             continue;
                         }
                     };
-                    graph_options.zr[1] = match zr.next().unwrap().parse::<f64>()
+                    options.zr[1] = match zr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -472,7 +469,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "prec" | "precision" =>
                 {
-                    print_options.prec = match split.next().unwrap().parse::<u32>()
+                    options.prec = match split.next().unwrap().parse::<u32>()
                     {
                         Ok(x) =>
                         {
@@ -500,15 +497,15 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                     let r = split.next().unwrap();
                     if r == "-1"
                     {
-                        print_options.decimal_places = usize::MAX - 1;
+                        options.decimal_places = usize::MAX - 1;
                     }
                     else if r == "-2"
                     {
-                        print_options.decimal_places = usize::MAX;
+                        options.decimal_places = usize::MAX;
                     }
                     else
                     {
-                        print_options.decimal_places = match r.parse::<usize>()
+                        options.decimal_places = match r.parse::<usize>()
                         {
                             Ok(x) => x,
                             Err(_) =>
@@ -522,7 +519,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "rt" =>
                 {
-                    print_options.real_time_output = match split.next().unwrap().parse::<bool>()
+                    options.real_time_output = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -535,7 +532,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "line" =>
                 {
-                    graph_options.lines = match split.next().unwrap().parse::<bool>()
+                    options.lines = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -548,7 +545,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "polar" =>
                 {
-                    print_options.polar = match split.next().unwrap().parse::<bool>()
+                    options.polar = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -561,7 +558,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "frac" =>
                 {
-                    print_options.polar = match split.next().unwrap().parse::<bool>()
+                    options.polar = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -574,7 +571,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "prompt" =>
                 {
-                    print_options.prompt = match split.next().unwrap().parse::<bool>()
+                    options.prompt = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -587,7 +584,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "comma" =>
                 {
-                    print_options.comma = match split.next().unwrap().parse::<bool>()
+                    options.comma = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -600,7 +597,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "color" =>
                 {
-                    print_options.color = match split.next().unwrap().parse::<bool>()
+                    options.color = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -613,7 +610,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "point" =>
                 {
-                    graph_options.point_style = match split.next().unwrap().chars().next()
+                    options.point_style = match split.next().unwrap().chars().next()
                     {
                         Some(x) =>
                         {
@@ -638,7 +635,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "sci" | "scientific" =>
                 {
-                    print_options.sci = match split.next().unwrap().parse::<bool>()
+                    options.sci = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -651,7 +648,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "base" =>
                 {
-                    print_options.base = match split.next().unwrap().parse::<usize>()
+                    options.base = match split.next().unwrap().parse::<usize>()
                     {
                         Ok(x) =>
                         {
@@ -676,7 +673,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "debug" =>
                 {
-                    *debug = match split.next().unwrap().parse::<bool>()
+                    options.debug = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -687,12 +684,12 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                         }
                     }
                 }
-                "deg" => print_options.deg = 0,
-                "rad" => print_options.deg = 1,
-                "grad" => print_options.deg = 2,
+                "deg" => options.deg = 0,
+                "rad" => options.deg = 1,
+                "grad" => options.deg = 2,
                 "tau" =>
                 {
-                    print_options.tau = match split.next().unwrap().parse::<bool>()
+                    options.tau = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -705,7 +702,7 @@ pub fn file_opts(graph_options:&mut GraphOptions, print_options:&mut PrintOption
                 }
                 "vars" =>
                 {
-                    *allow_vars = match split.next().unwrap().parse::<bool>()
+                    options.allow_vars = match split.next().unwrap().parse::<bool>()
                     {
                         Ok(x) => x,
                         Err(_) =>

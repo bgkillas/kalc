@@ -647,11 +647,11 @@ pub fn input_var(input:&str, vars:&[[String; 2]], dont_do:Option<&str>) -> Strin
                         count = 0;
                         for (f, c) in temp.chars().enumerate()
                         {
-                            if c == '('
+                            if c == '(' || c == '{' || c == '['
                             {
                                 count += 1;
                             }
-                            else if c == ')'
+                            else if c == ')' || c == '}' || c == ']'
                             {
                                 count -= 1;
                             }

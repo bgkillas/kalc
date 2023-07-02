@@ -7,9 +7,9 @@ use crate::{
         NumStr,
         NumStr::{Num, Str, Vector},
     },
-    GraphOptions,
+    Options,
 };
-pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg:u8, prec:u32, watch:Option<Instant>) -> JoinHandle<()>
+pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, prec:u32, watch:Option<Instant>) -> JoinHandle<()>
 {
     thread::spawn(move || {
         let mut fg = Figure::new();
@@ -282,7 +282,7 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:GraphOptions, deg
         fg.show().unwrap();
     })
 }
-pub fn get_list_2d(func:&[NumStr], range:GraphOptions, deg:u8, prec:u32) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func:&[NumStr], range:Options, deg:u8, prec:u32) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if let Num(n) = &func[0]
     {
@@ -334,7 +334,7 @@ pub fn get_list_2d(func:&[NumStr], range:GraphOptions, deg:u8, prec:u32) -> (Vec
     }
     (re, im)
 }
-pub fn get_list_3d(func:&[NumStr], range:GraphOptions, deg:u8, prec:u32) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func:&[NumStr], range:Options, deg:u8, prec:u32) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if let Num(n) = &func[0]
     {

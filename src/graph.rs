@@ -45,9 +45,10 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, 
             }
             if re[0].len() == 2
             {
+                let z = vec![Complex::with_val(prec, 0); 2];
                 for _ in 0..6 - func.len()
                 {
-                    re.push(vec![Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0)]);
+                    re.push(z.clone());
                 }
                 fg.axes2d()
                   .set_x_ticks(xticks, &[], &[])
@@ -63,9 +64,10 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, 
             }
             else if re[0].len() == 3
             {
+                let z = vec![Complex::with_val(prec, 0); 3];
                 for _ in 0..6 - func.len()
                 {
-                    re.push(vec![Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0), Complex::with_val(prec, 0.0)]);
+                    re.push(z.clone());
                 }
                 let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
                 fg.axes3d()

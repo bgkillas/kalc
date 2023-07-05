@@ -129,15 +129,15 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     let mut place = Vec::new();
     let to_deg = if deg == 0
     {
-        Complex::with_val(prec, 1.0)
+        Complex::with_val(prec, 1)
     }
     else if deg == 1
     {
-        Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+        Complex::with_val(prec, 180) / Complex::with_val(prec, Pi)
     }
     else
     {
-        Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
+        Complex::with_val(prec, 200) / Complex::with_val(prec, Pi)
     };
     while i < function.len() - 1
     {
@@ -200,7 +200,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                     {
                         "abs" =>
                         {
-                            let mut n = Complex::with_val(prec, 0.0);
+                            let mut n = Complex::with_val(prec, 0);
                             for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
                             {
                                 n += i;
@@ -302,7 +302,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 b = function[i + 3].num()?;
                                 function.remove(i + 3);
                                 function.remove(i + 2);
-                                let i = Complex::with_val(prec, (0.0, 1.0));
+                                let i = Complex::with_val(prec, (0, 1));
                                 ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs()).ln() * -i * to_deg.clone()
                             }
                             else
@@ -418,7 +418,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "sqrt" | "asquare" => a.sqrt(),
@@ -427,7 +427,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                         {
                             if deg == 0
                             {
-                                a * Complex::with_val(prec, 180.0) / Complex::with_val(prec, Pi)
+                                a * Complex::with_val(prec, 180) / Complex::with_val(prec, Pi)
                             }
                             else if deg == 2
                             {
@@ -446,18 +446,18 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else if deg == 2
                             {
-                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200.0)
+                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200)
                             }
                             else
                             {
-                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180.0)
+                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180)
                             }
                         }
                         "grad" | "gradians" =>
                         {
                             if deg == 0
                             {
-                                a * Complex::with_val(prec, 200.0) / Complex::with_val(prec, Pi)
+                                a * Complex::with_val(prec, 200) / Complex::with_val(prec, Pi)
                             }
                             else if deg == 2
                             {
@@ -476,7 +476,14 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                         {
                             if a.imag() == &0.0
                             {
-                                Complex::with_val(prec, a.real() / a.real().clone().abs() * a.real().clone().abs().pow(3f64.recip()))
+                                if a.real() == &0.0
+                                {
+                                    Complex::with_val(prec, 0)
+                                }
+                                else
+                                {
+                                    Complex::with_val(prec, a.real() / a.real().clone().abs() * a.real().clone().abs().pow(3f64.recip()))
+                                }
                             }
                             else
                             {
@@ -496,7 +503,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "subfact" =>
@@ -517,7 +524,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "erfc" =>
@@ -528,7 +535,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "ai" =>
@@ -539,7 +546,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "digamma" =>
@@ -550,7 +557,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "zeta" =>
@@ -561,7 +568,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0.0)
+                                Complex::with_val(prec, 0)
                             }
                         }
                         _ =>
@@ -585,7 +592,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
             {
                 "dot" =>
                 {
-                    let mut n = Complex::with_val(prec, 0.0);
+                    let mut n = Complex::with_val(prec, 0);
                     for i in function[i - 1].vec()?.iter().zip(function[i + 1].vec()?.iter()).map(|(a, b)| a * b)
                     {
                         n += i;

@@ -16,7 +16,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
     let mut i = 0;
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
-    let n1 = Complex::with_val(prec, -1.0);
+    let n1 = Complex::with_val(prec, -1);
     let mut pos = 0;
     let mut open = false;
     'outer: while i < input.len()
@@ -94,7 +94,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                 {
                     'E' =>
                     {
-                        func.push(Num(Complex::with_val(prec, 10.0)));
+                        func.push(Num(Complex::with_val(prec, 10)));
                         if i + 1 != chars.len()
                            && (chars[i + 1].is_ascii_alphanumeric() || chars[i + 1] == '-' || chars[i + 1] == '+' || chars[i + 1] == '(' || chars[i + 1] == '{' || chars[i + 1] == '[')
                         {
@@ -134,7 +134,7 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                         }
                         else
                         {
-                            func.push(Num(Complex::with_val(prec, (0.0, 1.0))));
+                            func.push(Num(Complex::with_val(prec, (0, 1))));
                         }
                     }
                     _ =>

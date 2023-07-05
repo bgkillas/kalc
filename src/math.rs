@@ -80,7 +80,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
             {
                 if let Str(k) = &function[i - 1]
                 {
-                    if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root" || k == "atan"
+                    if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root" || k == "atan" || k == "bi" || k == "binomial"
                     {
                         single = 0;
                         count = 0;
@@ -408,6 +408,34 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             else
                             {
                                 a.sqrt()
+                            }
+                        }
+                        "bi" | "binomial" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                b = function[i + 3].num()?;
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                if a.imag() != &0.0 && b.imag() != &0.0
+                                {
+                                    Complex::with_val(prec, 0)
+                                }
+                                else if a.real().clone().fract() == 0.0 && b.real().clone().fract() == 0.0
+                                {
+                                    Complex::with_val(prec, a.real().to_integer().unwrap().binomial(b.real().to_f64() as u32))
+                                }
+                                else
+                                {
+                                    let c:Float = a.real().clone() + 1;
+                                    let d:Float = b.real().clone() + 1;
+                                    let e:Float = a.real().clone() - b.real().clone() + 1;
+                                    Complex::with_val(prec, c.gamma() / (d.gamma() * e.gamma()))
+                                }
+                            }
+                            else
+                            {
+                                Complex::with_val(prec, 0)
                             }
                         }
                         "gamma" =>

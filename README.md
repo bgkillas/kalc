@@ -118,7 +118,7 @@ Other functions:
 - ceil, floor, round, int, frac
 - fact, subfact
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai
+- zeta, gamma, erf, erfc, digamma, ai, bi
 - deg(to_degrees), rad(to_radians), grad(to_gradians)
 - re(real part), im(imaginary part)
 

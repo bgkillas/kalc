@@ -52,75 +52,131 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     let (mut j, mut v);
     'outer: while i < function.len() - 1
     {
-        if function[i].str_is("(")
+        if let Str(s) = &function[i]
         {
-            j = i + 1;
-            count = 1;
-            while count > 0
+            if s == "{"
             {
-                if j >= function.len()
+                j = i + 1;
+                count = 1;
+                while count > 0
+                {
+                    if j >= function.len()
+                    {
+                        return Err(());
+                    }
+                    match &function[j]
+                    {
+                        Str(s) if s == "{" => count += 1,
+                        Str(s) if s == "}" => count -= 1,
+                        _ =>
+                        {}
+                    }
+                    j += 1;
+                }
+                if i + 1 == j - 1
                 {
                     return Err(());
                 }
-                match &function[j]
+                v = function[i + 1..j - 1].to_vec();
+                single = 0;
+                count = 0;
+                let mut vec = Vec::new();
+                for (f, n) in v.iter().enumerate()
                 {
-                    Str(s) if s == "(" => count += 1,
-                    Str(s) if s == ")" => count -= 1,
-                    _ =>
-                    {}
-                }
-                j += 1;
-            }
-            if i + 1 == j - 1
-            {
-                return Err(());
-            }
-            v = function[i + 1..j - 1].to_vec();
-            if i != 0
-            {
-                if let Str(k) = &function[i - 1]
-                {
-                    if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root" || k == "atan" || k == "bi" || k == "binomial"
+                    if let Str(s) = n
                     {
-                        single = 0;
-                        count = 0;
-                        for (f, n) in v.iter().enumerate()
+                        if s == "," && count == 0
                         {
-                            if let Str(s) = n
-                            {
-                                if s == "," && count == 0
-                                {
-                                    if single != 0
-                                    {
-                                        i = j - 1;
-                                        continue 'outer;
-                                    }
-                                    single = f;
-                                }
-                                else if s == "("
-                                {
-                                    count += 1;
-                                }
-                                else if s == ")"
-                                {
-                                    count -= 1;
-                                }
-                            }
+                            vec.push(do_math(v[single..f].to_vec(), deg, prec)?.num()?);
+                            single = f + 1;
                         }
-                        if single != 0
+                        else if s == "{"
                         {
-                            function.drain(i..j);
-                            function.insert(i, do_math(v[..single].to_vec(), deg, prec)?);
-                            function.insert(i + 1, Str(",".to_string()));
-                            function.insert(i + 2, do_math(v[single + 1..].to_vec(), deg, prec)?);
-                            i += 1;
-                            continue 'outer;
+                            count += 1;
+                        }
+                        else if s == "}"
+                        {
+                            count -= 1;
                         }
                     }
                 }
+                if single != v.len()
+                {
+                    vec.push(do_math(v[single..].to_vec(), deg, prec)?.num()?);
+                }
+                function.drain(i..j);
+                function.insert(i, Vector(vec));
             }
-            function[i] = do_math(v, deg, prec)?;
-            function.drain(i + 1..j);
+            else if s == "("
+            {
+                j = i + 1;
+                count = 1;
+                while count > 0
+                {
+                    if j >= function.len()
+                    {
+                        return Err(());
+                    }
+                    match &function[j]
+                    {
+                        Str(s) if s == "(" => count += 1,
+                        Str(s) if s == ")" => count -= 1,
+                        _ =>
+                        {}
+                    }
+                    j += 1;
+                }
+                if i + 1 == j - 1
+                {
+                    return Err(());
+                }
+                v = function[i + 1..j - 1].to_vec();
+                if i != 0
+                {
+                    if let Str(k) = &function[i - 1]
+                    {
+                        if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root" || k == "atan" || k == "bi" || k == "binomial"
+                        {
+                            single = 0;
+                            count = 0;
+                            for (f, n) in v.iter().enumerate()
+                            {
+                                if let Str(s) = n
+                                {
+                                    if s == "," && count == 0
+                                    {
+                                        if single != 0
+                                        {
+                                            i = j - 1;
+                                            continue 'outer;
+                                        }
+                                        single = f;
+                                    }
+                                    else if s == "("
+                                    {
+                                        count += 1;
+                                    }
+                                    else if s == ")"
+                                    {
+                                        count -= 1;
+                                    }
+                                }
+                            }
+                            if single != 0
+                            {
+                                function.drain(i..j);
+                                function.insert(i, do_math(v[..single].to_vec(), deg, prec)?);
+                                function.insert(i + 1, Str(",".to_string()));
+                                function.insert(i + 2, do_math(v[single + 1..].to_vec(), deg, prec)?);
+                                i += 1;
+                                continue 'outer;
+                            }
+                        }
+                    }
+                }
+                function[i] = do_math(v, deg, prec)?;
+                function.drain(i + 1..j);
+            }
         }
         i += 1;
     }

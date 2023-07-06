@@ -33,6 +33,7 @@ use {
     std::os::fd::AsRawFd,
 };
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
+// support matrixes
 // fix 0's and infinities of sin, cos, tan and cis
 // complex vectors
 // gui support
@@ -115,7 +116,7 @@ fn main()
             input = args.first().unwrap().replace('_', &format!("({})", last));
             args.remove(0);
             print_answer(&input,
-                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None), options.prec, options.deg)
+                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None), options.prec)
                          {
                              Ok(f) => f,
                              Err(()) =>
@@ -739,9 +740,9 @@ fn main()
                         else
                         {
                             n = get_output(&options,
-                                           &do_math(get_func(&input_var(&v[1], &vars, Some(&v[0])), options.prec, options.deg).unwrap(), options.deg, options.prec).unwrap()
-                                                                                                                                                                   .num()
-                                                                                                                                                                   .unwrap());
+                                           &do_math(get_func(&input_var(&v[1], &vars, Some(&v[0])), options.prec).unwrap(), options.deg, options.prec).unwrap()
+                                                                                                                                                      .num()
+                                                                                                                                                      .unwrap());
                             println!("{}={}{}", v[0], n.0, n.1);
                         }
                     }
@@ -790,7 +791,7 @@ fn main()
                 "3d" => println!("{}", options.samples_3d),
                 _ =>
                 {
-                    for i in match get_func(&input_var(l, &vars, None), options.prec, options.deg)
+                    for i in match get_func(&input_var(l, &vars, None), options.prec)
                     {
                         Ok(n) => n,
                         Err(_) => continue,
@@ -1076,7 +1077,7 @@ fn main()
                 {
                     continue;
                 }
-                funcs.push(match get_func(&input_var(i, &vars, None), options.prec, options.deg)
+                funcs.push(match get_func(&input_var(i, &vars, None), options.prec)
                      {
                          Ok(f) => f,
                          _ => continue 'main,

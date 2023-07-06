@@ -48,13 +48,13 @@ impl Float for (f64, f64)
             // (a)/(c+di)=(ac)/(c^2+d^2)-((ad)/(c^2+d^2))i
             {
                 let d = other.0 * other.0 + other.1 * other.1;
-                ((self.0 * other.0) / d, -(self.0 * other.1) / d)
+                (self.0 * other.0 / d, -self.0 * other.1 / d)
             }
             (true, false, false, false) =>
             // (bi)/(c+di)=
             {
                 let d = other.0 * other.0 + other.1 * other.1;
-                ((self.1 * other.1) / d, (self.1 * other.0) / d)
+                (self.1 * other.1 / d, self.1 * other.0 / d)
             }
             (false, false, false, false) =>
             // (a+bi)/(c+di)=(ac+bd)/(c^2+d^2)+((bc-ad)/(c^2+d^2))i

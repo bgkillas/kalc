@@ -109,7 +109,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
                if options.color { "\x1b[0m" } else { "" });
         return 0;
     }
-    let func = match get_func(input, options.prec, options.deg)
+    let func = match get_func(input, options.prec)
     {
         Ok(f) => f,
         Err(_) =>

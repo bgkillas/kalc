@@ -1,10 +1,9 @@
 use rug::{float::Constant::Pi, Complex, Float};
 use crate::math::{
-    do_math,
     NumStr,
     NumStr::{Num, Str, Vector},
 };
-pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
+pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
 {
     let mut count:i32 = 0;
     let mut exp = String::new();
@@ -17,7 +16,6 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
     let n1 = Complex::with_val(prec, -1);
-    let mut pos = 0;
     let mut open = false;
     'outer: while i < input.len()
     {
@@ -255,22 +253,11 @@ pub fn get_func(input:&str, prec:u32, deg:u8) -> Result<Vec<NumStr>, ()>
                         func.push(Str("(".to_string()));
                         func.push(Str("car".to_string()));
                     }
-                    pos = func.len();
+                    func.push(Str("{".to_string()));
                 }
                 '}' | ']' =>
                 {
-                    let mut v = Vec::new();
-                    let mut start = pos;
-                    for (k, numstr) in func.iter().skip(pos).take(func.len() - pos).enumerate()
-                    {
-                        if numstr.str_is(",") || k == func.len() - pos - 1
-                        {
-                            v.push(do_math(func[start..].to_vec(), deg, prec)?.num()?);
-                            start = pos + k + 1;
-                        }
-                    }
-                    func.push(Vector(v));
-                    func.drain(pos..func.len() - 1);
+                    func.push(Str("}".to_string()));
                     if c == ']'
                     {
                         func.push(Str(")".to_string()));
@@ -515,11 +502,13 @@ pub fn input_var(input:&str, vars:&[[String; 2]], dont_do:Option<&str>) -> Strin
     let mut vec_count:isize = 0;
     let mut vec_car_count:isize = 0;
     let mut commas:Vec<usize>;
+    let mut last = false;
     for i in chars.clone()
     {
         if i == '('
         {
             count += 1;
+            last = false;
         }
         else if i == ')'
         {
@@ -533,6 +522,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]], dont_do:Option<&str>) -> Strin
         else if i == '{'
         {
             vec_count += 1;
+            last = true;
         }
         else if i == '}'
         {
@@ -546,6 +536,7 @@ pub fn input_var(input:&str, vars:&[[String; 2]], dont_do:Option<&str>) -> Strin
         else if i == '['
         {
             vec_car_count += 1;
+            last = true;
         }
         else if i == ']'
         {
@@ -557,9 +548,18 @@ pub fn input_var(input:&str, vars:&[[String; 2]], dont_do:Option<&str>) -> Strin
             vec_car_count -= 1;
         }
     }
-    chars.extend(&vec![']'; vec_car_count as usize]);
-    chars.extend(&vec!['}'; vec_count as usize]);
-    chars.extend(&vec![')'; count as usize]);
+    if !last
+    {
+        chars.extend(&vec![')'; count as usize]);
+        chars.extend(&vec![']'; vec_car_count as usize]);
+        chars.extend(&vec!['}'; vec_count as usize]);
+    }
+    else
+    {
+        chars.extend(&vec![']'; vec_car_count as usize]);
+        chars.extend(&vec!['}'; vec_count as usize]);
+        chars.extend(&vec![')'; count as usize]);
+    }
     let input = chars.iter().collect::<String>();
     while i < chars.len()
     {

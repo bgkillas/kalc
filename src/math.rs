@@ -283,7 +283,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
-                        "polar" | "pol" => Vector(to_polar(a, to_deg.clone())),
+                        "polar" | "pol" => Vector(to_polar(a.clone(), to_deg.clone())),
                         _ =>
                         {
                             i += 1;
@@ -974,17 +974,57 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     }
     Ok(function[0].clone())
 }
-pub fn to_polar(a:&Vec<Complex>, to_deg:Complex) -> Vec<Complex>
+pub fn to_polar(a:Vec<Complex>, to_deg:Complex) -> Vec<Complex>
 {
+    let mut a = a;
+    if a.len() == 1
+    {
+        a.push(Complex::with_val(a[0].prec(), 0));
+    }
     if a.len() != 2 && a.len() != 3
     {
         vec![]
     }
     else if a.len() == 2
     {
-        let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-        n = n.sqrt();
-        vec![n.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg]
+        if a[1].eq0()
+        {
+            if a[0].eq0()
+            {
+                vec![Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+            }
+            else
+            {
+                vec![a[0].clone().abs(),
+                     if a[0].real().is_sign_positive()
+                     {
+                         Complex::with_val(a[0].prec(), 0)
+                     }
+                     else
+                     {
+                         to_deg * Complex::with_val(a[0].prec(), Pi)
+                     }]
+            }
+        }
+        else
+        {
+            let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+            n = n.sqrt();
+            vec![n.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg]
+        }
+    }
+    else if a[1].eq0() && a[2].eq0()
+    {
+        if a[0].eq0()
+        {
+            vec![Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+        }
+        else
+        {
+            let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+            n = n.sqrt();
+            vec![n.clone(), (&a[2] / n).acos() * to_deg.clone(), Complex::with_val(a[0].prec(), 0)]
+        }
     }
     else
     {

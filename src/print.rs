@@ -40,7 +40,7 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, options:Options)
     {
         if options.polar
         {
-            v = to_polar(&v,
+            v = to_polar(v,
                          if options.deg == 0
                          {
                              Complex::with_val(options.prec, 1.0)
@@ -274,7 +274,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
     {
         if options.polar
         {
-            v = to_polar(&v,
+            v = to_polar(v,
                          if options.deg == 0
                          {
                              Complex::with_val(options.prec, 1.0)

@@ -1013,11 +1013,18 @@ pub fn to_polar(a:Vec<Complex>, to_deg:Complex) -> Vec<Complex>
             vec![n.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg]
         }
     }
-    else if a[1].eq0() && a[2].eq0()
+    else if a[1].eq0()
     {
         if a[0].eq0()
         {
-            vec![Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+            if a[2].eq0()
+            {
+                vec![Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+            }
+            else
+            {
+                vec![a[2].clone().abs(), Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+            }
         }
         else
         {

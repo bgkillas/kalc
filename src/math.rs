@@ -1,5 +1,5 @@
 use std::ops::{Shl, Shr};
-use crate::math::NumStr::{Num, Str, Vector};
+use crate::math::NumStr::{Matrix, Num, Str, Vector};
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 #[derive(Clone)]
 pub enum NumStr
@@ -7,6 +7,7 @@ pub enum NumStr
     Num(Complex),
     Str(String),
     Vector(Vec<Complex>),
+    Matrix(Vec<Vec<Complex>>),
 }
 impl NumStr
 {
@@ -49,7 +50,8 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     let mut i = 0;
     let mut single;
     let mut count = 0;
-    let (mut j, mut v);
+    let (mut j, mut v, mut vec, mut mat);
+    let mut len = 0;
     'outer: while i < function.len() - 1
     {
         if let Str(s) = &function[i]
@@ -80,14 +82,25 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 v = function[i + 1..j - 1].to_vec();
                 single = 0;
                 count = 0;
-                let mut vec = Vec::new();
+                vec = Vec::new();
+                mat = Vec::new();
                 for (f, n) in v.iter().enumerate()
                 {
                     if let Str(s) = n
                     {
                         if s == "," && count == 0
                         {
-                            vec.push(do_math(v[single..f].to_vec(), deg, prec)?.num()?);
+                            let z = do_math(v[single..f].to_vec(), deg, prec)?;
+                            match z
+                            {
+                                Num(n) => vec.push(n),
+                                Vector(n) if len == n.len() || single == 0 =>
+                                {
+                                    len = n.len();
+                                    mat.push(n)
+                                }
+                                _ => return Err(()),
+                            }
                             single = f + 1;
                         }
                         else if s == "{"
@@ -102,10 +115,30 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 }
                 if single != v.len()
                 {
-                    vec.push(do_math(v[single..].to_vec(), deg, prec)?.num()?);
+                    let z = do_math(v[single..].to_vec(), deg, prec)?;
+                    match z
+                    {
+                        Num(n) => vec.push(n),
+                        Vector(n) if len == n.len() || single == 0 => mat.push(n),
+                        _ => return Err(()),
+                    }
                 }
                 function.drain(i..j);
-                function.insert(i, Vector(vec));
+                if !mat.is_empty()
+                {
+                    if vec.is_empty()
+                    {
+                        function.insert(i, Matrix(mat));
+                    }
+                    else
+                    {
+                        return Err(());
+                    }
+                }
+                else
+                {
+                    function.insert(i, Vector(vec));
+                }
             }
             else if s == "("
             {

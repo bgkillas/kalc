@@ -7,7 +7,7 @@ use crate::{
         do_math,
         to_polar,
         NumStr,
-        NumStr::{Num, Str, Vector},
+        NumStr::{Matrix, Num, Str, Vector},
     },
     parse::get_func,
     Options,
@@ -74,6 +74,39 @@ pub fn print_answer(input:&str, func:Vec<NumStr>, options:Options)
                 output += ",";
             }
         }
+        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+    }
+    else if let Matrix(v) = num
+    {
+        let mut output = "{".to_string();
+        let mut out;
+        for (l, j) in v.iter().enumerate()
+        {
+            output += "{";
+            for (k, i) in j.iter().enumerate()
+            {
+                out = get_output(&options, i);
+                output += out.0.as_str();
+                output += out.1.as_str();
+                if options.color
+                {
+                    output += "\x1b[0m";
+                }
+                if k == j.len() - 1
+                {
+                    output += if options.polar { "]" } else { "}" };
+                }
+                else
+                {
+                    output += ",";
+                }
+            }
+            if l != v.len() - 1
+            {
+                output += ",";
+            }
+        }
+        output += "}";
         print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
 }
@@ -344,6 +377,111 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
                 frac_out += ",";
             }
         }
+        if frac_out != output
+        {
+            frac = 1;
+        }
+        if (frac == 1 && !options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len() > get_terminal_width()
+        {
+            frac = 0;
+        }
+        print!("\x1B[0J{}\n\x1B[2K\x1B[1G{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
+               if frac == 1 { format!("\n\x1B[2K\x1B[1G{}", frac_out) } else { "".to_string() },
+               output,
+               if frac == 1 { "\x1b[A" } else { "" },
+               if options.prompt
+               {
+                   if options.color
+                   {
+                       "\x1b[94m> \x1b[96m"
+                   }
+                   else
+                   {
+                       "> "
+                   }
+               }
+               else if options.color
+               {
+                   "\x1b[96m"
+               }
+               else
+               {
+                   ""
+               },
+               &unmodified_input[start..end],
+               if options.color { "\x1b[0m" } else { "" });
+    }
+    else if let Matrix(v) = num
+    {
+        let mut output = "{".to_string();
+        let mut frac_out = "{".to_string();
+        let mut out;
+        let mut frac_temp;
+        for (l, j) in v.iter().enumerate()
+        {
+            output += "{";
+            frac_out += "{";
+            for (k, i) in j.iter().enumerate()
+            {
+                out = get_output(&options, i);
+                if options.frac || options.frac_iter == 0
+                {
+                    frac_temp = fraction(i.real().clone(), options.tau, options.frac_iter);
+                    frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
+                    frac_temp = fraction(i.imag().clone(), options.tau, options.frac_iter);
+                    frac_out += &if !frac_temp.is_empty()
+                    {
+                        format!("{}{}{}",
+                                (if i.real() != &0.0 && i.imag().is_sign_positive() && i.imag() != &0.0 { "+" } else { "" }),
+                                frac_temp,
+                                (if i.imag() != &0.0
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[93mi\x1b[0m"
+                                    }
+                                    else
+                                    {
+                                        "i"
+                                    }
+                                }
+                                else
+                                {
+                                    ""
+                                }))
+                    }
+                    else
+                    {
+                        out.clone().1
+                    };
+                }
+                output += &out.0;
+                output += &out.1;
+                if options.color
+                {
+                    output += "\x1b[0m";
+                    frac_out += "\x1b[0m";
+                }
+                if k == j.len() - 1
+                {
+                    output += "}";
+                    frac_out += "}";
+                }
+                else
+                {
+                    output += ",";
+                    frac_out += ",";
+                }
+            }
+            if l != v.len() - 1
+            {
+                output += ",";
+
+                frac_out += ",";
+            }
+        }
+        output += "}";
+        frac_out += "}";
         if frac_out != output
         {
             frac = 1;

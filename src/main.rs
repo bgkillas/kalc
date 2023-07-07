@@ -32,6 +32,7 @@ use {
     std::io::Read,
     std::os::fd::AsRawFd,
 };
+use crate::math::NumStr::Matrix;
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // support matrixes
 // fix 0's and infinities of sin, cos, tan and cis
@@ -802,7 +803,7 @@ fn main()
                             Num(n) =>
                             {
                                 let n = get_output(&options, &n);
-                                print!("{}{}\x1b[0m", n.0, n.1)
+                                print!("{}{}{}", n.0, n.1, if options.color { "\x1b[0m" } else { "" })
                             }
                             Vector(n) =>
                             {
@@ -811,7 +812,22 @@ fn main()
                                 for i in n
                                 {
                                     num = get_output(&options, &i);
-                                    str.push_str(&format!("{}{}\x1b[0m,", num.0, num.1));
+                                    str.push_str(&format!("{}{}{},", num.0, num.1, if options.color { "\x1b[0m" } else { "" }));
+                                }
+                                str.pop();
+                                print!("{{{}}}", str)
+                            }
+                            Matrix(n) =>
+                            {
+                                let mut str = String::new();
+                                let mut num;
+                                for i in n
+                                {
+                                    for j in i
+                                    {
+                                        num = get_output(&options, &j);
+                                        str.push_str(&format!("{}{}{},", num.0, num.1, if options.color { "\x1b[0m" } else { "" }));
+                                    }
                                 }
                                 str.pop();
                                 print!("{{{}}}", str)

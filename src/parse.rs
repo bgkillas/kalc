@@ -478,7 +478,7 @@ fn place_multiplier(func:&mut Vec<NumStr>, find_word:&bool)
 {
     if let Some(Str(s)) = func.last()
     {
-        if !find_word && (s == ")" || s == "x" || s == "y")
+        if !find_word && (s == ")" || s == "x" || s == "y" || s == "]" || s == "}")
         {
             func.push(Str('*'.to_string()))
         }

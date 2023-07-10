@@ -103,13 +103,6 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
                     }
                     'x' | 'y' =>
                     {
-                        if i != 0 && i + 1 < chars.len() && ((chars[i - 1] == '}' && chars[i + 1] == '{') || (chars[i - 1] == ']' && chars[i + 1] == '['))
-                        {
-                            func.pop();
-                            func.push(Str("cross".to_string()));
-                            i += 1;
-                            continue;
-                        }
                         if !word.is_empty()
                         {
                             find_word = false;
@@ -196,17 +189,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
             }
             match c
             {
-                '.' =>
-                {
-                    if i != 0 && i + 1 < chars.len() && ((chars[i - 1] == '}' && chars[i + 1] == '{') || (chars[i - 1] == ']' && chars[i + 1] == '['))
-                    {
-                        func.push(Str("dot".to_string()));
-                    }
-                    else
-                    {
-                        word.push_str("0.");
-                    }
-                }
+                '.' => word.push_str("0."),
                 '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
                 {
                     func.push(Str("&&".to_string()));
@@ -470,6 +453,7 @@ pub fn get_func(input:&str, prec:u32) -> Result<Vec<NumStr>, ()>
     //         Str(s) => println!("{}", s),
     //         Num(n) => println!("{}", n),
     //         Vector(v) => println!("{:?}", v),
+    //         Matrix(m) => println!("{:?}", m),
     //     }
     // }
     Ok(func)

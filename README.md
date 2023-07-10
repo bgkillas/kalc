@@ -123,8 +123,9 @@ Other functions:
 - re(real part), im(imaginary part)
 
 Vector operations/functions:
-- dot product: {vec1}.{vec2}
-- cross product: {vec1}x{vec2}
+- dot product: dot({vec1},{vec2})
+- cross product: cross({vec1},{vec2})
+- angle between vectors: angle({vec1},{vec2})
 - magnitude: |{vec}|
 - normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
 - convert to polar: pol{vec} outputs (radius, theta, phi)

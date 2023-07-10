@@ -19,7 +19,7 @@ use print::{get_output, print_answer, print_concurrent};
 use options::{arg_opts, file_opts};
 use math::{
     do_math,
-    NumStr::{Num, Str, Vector},
+    NumStr::{Matrix, Num, Str, Vector},
 };
 #[cfg(not(unix))]
 use {
@@ -32,12 +32,11 @@ use {
     std::io::Read,
     std::os::fd::AsRawFd,
 };
-use crate::math::NumStr::Matrix;
-// allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // support matrixes
+// allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // fix 0's and infinities of sin, cos, tan and cis
 // complex vectors
-// gui support
+// gui support (via egui prob)
 // support unit conversions
 // allow units to be used in the input, and be outputted
 fn main()
@@ -1366,8 +1365,9 @@ Other functions:\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians)\n\
 - re(real part), im(imaginary part)\n\n\
 Vector operations/functions:\n\
-- dot product: {{vec1}}.{{vec2}}\n\
-- cross product: {{vec1}}x{{vec2}}\n\
+- dot product: dot({{vec1}},{{vec2}})\n\
+- cross product: cross({{vec1}},{{vec2}})\n\
+- angle between vectors: angle({{vec1}},{{vec2}})\n\
 - magnitude: |{{vec}}|\n\
 - normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\

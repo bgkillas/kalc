@@ -168,7 +168,20 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     if let Str(k) = &function[i - 1]
                     {
-                        if k == "log" || k == "sum" || k == "summation" || k == "product" || k == "prod" || k == "root" || k == "atan" || k == "bi" || k == "binomial"
+                        if k == "log"
+                           || k == "sum"
+                           || k == "summation"
+                           || k == "product"
+                           || k == "prod"
+                           || k == "root"
+                           || k == "atan"
+                           || k == "arctan"
+                           || k == "atan2"
+                           || k == "bi"
+                           || k == "binomial"
+                           || k == "angle"
+                           || k == "cross"
+                           || k == "dot"
                         {
                             single = 0;
                             count = 0;
@@ -185,11 +198,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                         }
                                         single = f;
                                     }
-                                    else if s == "("
+                                    else if s == "(" || s == "{"
                                     {
                                         count += 1;
                                     }
-                                    else if s == ")"
+                                    else if s == ")" || s == "}"
                                     {
                                         count -= 1;
                                     }
@@ -283,7 +296,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                         return Err(());
                     }
                 }
-                else if let Vector(a) = &function[i + 1]
+                else if let Vector(a) = function[i + 1].clone()
                 {
                     function[i] = match s.as_str()
                     {
@@ -317,6 +330,80 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                         }
                         "polar" | "pol" => Vector(to_polar(a.clone(), to_deg.clone())),
+                        "angle" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                let b = function[i + 3].vec()?;
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                if a.len() == 3 && b.len() == 3
+                                {
+                                    let c:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+                                    let d:Complex = b[0].clone().pow(2) + b[1].clone().pow(2) + b[2].clone().pow(2);
+                                    Num(((a[0].clone() * b[0].clone() + a[1].clone() * b[1].clone() + a[2].clone() * b[2].clone()) / (c.sqrt() * d.sqrt())).acos() * to_deg.clone())
+                                }
+                                else if a.len() == 2 && b.len() == 2
+                                {
+                                    let c:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+                                    let d:Complex = b[0].clone().pow(2) + b[1].clone().pow(2);
+                                    Num(((a[0].clone() * b[0].clone() + a[1].clone() * b[1].clone()) / (c.sqrt() * d.sqrt())).acos() * to_deg.clone())
+                                }
+                                else
+                                {
+                                    return Err(());
+                                }
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "cross" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                let b = function[i + 3].vec()?;
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                if a.len() == 3 && b.len() == 3
+                                {
+                                    Vector(vec![a[1].clone() * &b[2] - a[2].clone() * &b[1],
+                                                a[2].clone() * &b[0] - a[0].clone() * &b[2],
+                                                a[0].clone() * &b[1] - a[1].clone() * &b[0]])
+                                }
+                                else if a.len() == 2 && b.len() == 2
+                                {
+                                    Num(a[0].clone() * &b[1] - a[1].clone() * &b[0])
+                                }
+                                else
+                                {
+                                    return Err(());
+                                }
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "dot" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                let mut n = Complex::with_val(prec, 0);
+                                for i in a.iter().zip(function[i + 3].vec()?.iter()).map(|(a, b)| a * b)
+                                {
+                                    n += i;
+                                }
+                                function.remove(i + 3);
+                                function.remove(i + 2);
+                                Num(n)
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
                         _ =>
                         {
                             i += 1;
@@ -384,7 +471,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 b
                             }
                         }
-                        "atan" | "arctan" =>
+                        "atan" | "arctan" | "atan2" =>
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
@@ -699,52 +786,6 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
             }
         }
         i += 1;
-    }
-    i = 1;
-    while i < function.len() - 1
-    {
-        if let Str(s) = &function[i]
-        {
-            match s.as_str()
-            {
-                "dot" =>
-                {
-                    let mut n = Complex::with_val(prec, 0);
-                    for i in function[i - 1].vec()?.iter().zip(function[i + 1].vec()?.iter()).map(|(a, b)| a * b)
-                    {
-                        n += i;
-                    }
-                    function[i] = Num(n);
-                }
-                "cross" =>
-                {
-                    let a = function[i - 1].vec()?;
-                    let b = function[i + 1].vec()?;
-                    if a.len() == 2 && b.len() == 2
-                    {
-                        function[i] = Num(Complex::with_val(prec, a[0].clone() * &b[1] - a[1].clone() * &b[0]));
-                    }
-                    if a.len() == 3 && b.len() == 3
-                    {
-                        function[i] = Vector(vec![a[1].clone() * &b[2] - a[2].clone() * &b[1],
-                                                  a[2].clone() * &b[0] - a[0].clone() * &b[2],
-                                                  a[0].clone() * &b[1] - a[1].clone() * &b[0]]);
-                    }
-                }
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            }
-        }
-        else
-        {
-            i += 1;
-            continue;
-        }
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     if function.len() > 1
     {

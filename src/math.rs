@@ -296,6 +296,55 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                         return Err(());
                     }
                 }
+                else if let Matrix(a) = function[i + 1].clone()
+                {
+                    function[i] = match s.as_str()
+                    {
+                        "tr" | "trace" =>
+                        {
+                            let mut n = Complex::with_val(prec, 0);
+                            for (i, j) in a.iter().enumerate()
+                            {
+                                if j.len() == i
+                                {
+                                    break;
+                                }
+                                n += j[i].clone();
+                            }
+                            Num(n)
+                        }
+                        "det" | "determinant" =>
+                        {
+                            if a.len() == a[0].len()
+                            {
+                                if a.len() == 2
+                                {
+                                    Num(a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone())
+                                }
+                                else if a.len() == 3
+                                {
+                                    Num(a[0][0].clone() * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
+                                        + a[0][1].clone() * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
+                                        + a[0][2].clone() * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone()))
+                                }
+                                else
+                                {
+                                    return Err(());
+                                }
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        _ =>
+                        {
+                            i += 1;
+                            continue;
+                        }
+                    };
+                    function.remove(i + 1);
+                }
                 else if let Vector(a) = function[i + 1].clone()
                 {
                     function[i] = match s.as_str()

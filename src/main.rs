@@ -1343,6 +1343,7 @@ FLAGS: --help (this message)\n\
 - Type \"polar\" to toggle polar output\n\
 - Type \"frac\" to toggle fraction display\n\
 - Type \"frac_iter=[num]\" how many iterations to check for fractions\n\
+- Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\
 - Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
 Operators:\n\
 - +, -, *, /, ^, %, <, >, <=, >=\n\
@@ -1372,6 +1373,9 @@ Vector operations/functions:\n\
 - normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
+Matrix operations/functions:\n\
+- trace: tr{{matrix}}\n\
+- determinant: det{{matrix}}\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

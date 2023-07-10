@@ -97,6 +97,7 @@ FLAGS: --help (this message)
 - Type "polar" to toggle polar output
 - Type "frac" to toggle fraction display
 - Type "frac_iter=[num]" how many iterations to check for fractions
+- Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 - Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:
@@ -130,6 +131,10 @@ Vector operations/functions:
 - normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
+
+Matrix operations/functions:
+- trace: tr{matrix}
+- determinant: det{matrix}
 
 Constants:
 - c: speed of light, 299792458 m/s

@@ -1,7 +1,10 @@
 [package]
-name = "kalc"
-version = "0.7.4"
-edition = "2021"
+name         = "kalc"
+description  = "a complex numbers, 2d/3d graphing, arbitrary precision, vector, cli calculator with real-time output"
+license      = "GPL-3.0-only"
+repository   = "https://github.com/bgkillas/kalc"
+version      = "0.7.4"
+edition      = "2021"
 
 [profile.release]
 codegen-units = 1

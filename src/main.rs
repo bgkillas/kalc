@@ -35,7 +35,6 @@ use {
 // support matrixes
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // fix 0's and infinities of sin, cos, tan and cis
-// complex vectors
 // gui support (via egui prob)
 // support unit conversions
 // allow units to be used in the input, and be outputted

@@ -1093,8 +1093,18 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
         {
             match s.as_str()
             {
-                "&&" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 && function[i + 1].num()?.real() != &0.0) as i32)),
-                "||" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.real() != &0.0 || function[i + 1].num()?.real() != &0.0) as i32)),
+                "&&" =>
+                {
+                    a = function[i - 1].num()?;
+                    b = function[i - 1].num()?;
+                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && a.real() != &0.0 && b.real() != &0.0) as i32))
+                }
+                "||" =>
+                {
+                    a = function[i - 1].num()?;
+                    b = function[i - 1].num()?;
+                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && (a.real() != &0.0 || b.real() != &0.0)) as i32))
+                }
                 _ =>
                 {
                     i += 1;

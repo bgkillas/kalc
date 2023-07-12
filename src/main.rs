@@ -1357,13 +1357,13 @@ Trigonometric functions:\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\
 Other functions:\n\
 - sqrt, cbrt, square, cube\n\
-- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end)\n\
+- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end) (start and end are rounded to integers)\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\
-- fact, subfact\n\
+- fact(real), subfact(natural)\n\
 - sinc, cis, exp\n\
-- zeta, gamma, erf, erfc, digamma, ai, bi\n\
-- deg(to_degrees), rad(to_radians), grad(to_gradians)\n\
+- zeta, gamma, erf, erfc, digamma, ai, bi (all real only)\n\
+- deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re(real part), im(imaginary part)\n\n\
 Vector operations/functions:\n\
 - dot product: dot({{vec1}},{{vec2}})\n\

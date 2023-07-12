@@ -1047,7 +1047,22 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
         {
             match s.as_str()
             {
-                "%" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.real() % function[i + 1].num()?.real())),
+                "%" =>
+                {
+                    function[i] = {
+                        a = function[i - 1].num()?;
+                        b = function[i + 1].num()?;
+                        if a.imag() == &0.0 && b.imag() == &0.0
+                        {
+                            Num(Complex::with_val(prec, a.real() % b.real()))
+                        }
+                        else
+                        {
+                            let c = -a.clone() / b.clone();
+                            Num(a + b * (c.real().clone().ceil() + c.imag().clone().ceil()))
+                        }
+                    }
+                }
                 "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() < function[i + 1].num()?.abs().real()) as i32)),
                 ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() > function[i + 1].num()?.abs().real()) as i32)),
                 ">=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() >= function[i + 1].num()?.abs().real()) as i32)),

@@ -114,13 +114,13 @@ Trigonometric functions:
 
 Other functions:
 - sqrt, cbrt, square, cube
-- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end)
+- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end) (start and end are rounded to integers)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
-- fact, subfact
+- fact(real), subfact(natural)
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai, bi
-- deg(to_degrees), rad(to_radians), grad(to_gradians)
+- zeta, gamma, erf, erfc, digamma, ai, bi (all real only)
+- deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re(real part), im(imaginary part)
 
 Vector operations/functions:

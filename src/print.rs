@@ -527,7 +527,7 @@ pub fn get_output(options:&Options, num:&Complex) -> (String, String)
     {
         (if num.real() != &0.0
          {
-             n = remove_trailing_zeros(&num.real().to_string_radix(options.base as i32, None), dec, num.real().prec());
+             n = num.real().to_string_radix(options.base as i32, None);
              if n.contains('e')
              {
                  n
@@ -547,7 +547,7 @@ pub fn get_output(options:&Options, num:&Complex) -> (String, String)
          },
          if num.imag() != &0.0
          {
-             n = remove_trailing_zeros(&num.imag().to_string_radix(options.base as i32, None), dec, num.real().prec());
+             n = num.imag().to_string_radix(options.base as i32, None);
              sign + &if n.contains('e') { n } else { n.trim_end_matches('0').trim_end_matches('.').to_owned() } + if options.color { "\x1b[93mi" } else { "i" }
          }
          else

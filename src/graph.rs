@@ -41,7 +41,8 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, 
                       Num(n) => vec![Complex::with_val(prec, n.real()), Complex::with_val(prec, n.imag())],
                       _ => return,
                   });
-                re_cap[i] = input[i].to_owned();
+                re_cap[i] = input[i].to_owned() + ":re";
+                im_cap[i] = input[i].to_owned() + ":im";
             }
             if re[0].len() == 2
             {
@@ -60,7 +61,13 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, 
                   .lines([0.0, re[2][0].real().to_f64()], [0.0, re[2][1].real().to_f64()], &[Caption(&re_cap[2]), Color(re3col)])
                   .lines([0.0, re[3][0].real().to_f64()], [0.0, re[3][1].real().to_f64()], &[Caption(&re_cap[3]), Color(re4col)])
                   .lines([0.0, re[4][0].real().to_f64()], [0.0, re[4][1].real().to_f64()], &[Caption(&re_cap[4]), Color(re5col)])
-                  .lines([0.0, re[5][0].real().to_f64()], [0.0, re[5][1].real().to_f64()], &[Caption(&re_cap[5]), Color(re6col)]);
+                  .lines([0.0, re[5][0].real().to_f64()], [0.0, re[5][1].real().to_f64()], &[Caption(&re_cap[5]), Color(re6col)])
+                  .lines([0.0, re[0][0].imag().to_f64()], [0.0, re[0][1].imag().to_f64()], &[Caption(&im_cap[0]), Color(im1col)])
+                  .lines([0.0, re[1][0].imag().to_f64()], [0.0, re[1][1].imag().to_f64()], &[Caption(&im_cap[1]), Color(im2col)])
+                  .lines([0.0, re[2][0].imag().to_f64()], [0.0, re[2][1].imag().to_f64()], &[Caption(&im_cap[2]), Color(im3col)])
+                  .lines([0.0, re[3][0].imag().to_f64()], [0.0, re[3][1].imag().to_f64()], &[Caption(&im_cap[3]), Color(im4col)])
+                  .lines([0.0, re[4][0].imag().to_f64()], [0.0, re[4][1].imag().to_f64()], &[Caption(&im_cap[4]), Color(im5col)])
+                  .lines([0.0, re[5][0].imag().to_f64()], [0.0, re[5][1].imag().to_f64()], &[Caption(&im_cap[5]), Color(im6col)]);
             }
             else if re[0].len() == 3
             {
@@ -97,7 +104,25 @@ pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, 
                                                                                                                               Color(re5col)])
                   .lines([0.0, re[5][0].real().to_f64()], [0.0, re[5][1].real().to_f64()], [0.0, re[5][2].real().to_f64()], &[Caption(&re_cap
                                                                                                                                           [5]),
-                                                                                                                              Color(re6col)]);
+                                                                                                                              Color(re6col)])
+                  .lines([0.0, re[0][0].imag().to_f64()], [0.0, re[0][1].imag().to_f64()], [0.0, re[0][2].imag().to_f64()], &[Caption(&im_cap
+                                                                                                                                          [0]),
+                                                                                                                              Color(im1col)])
+                  .lines([0.0, re[1][0].imag().to_f64()], [0.0, re[1][1].imag().to_f64()], [0.0, re[1][2].imag().to_f64()], &[Caption(&im_cap
+                                                                                                                                          [1]),
+                                                                                                                              Color(im2col)])
+                  .lines([0.0, re[2][0].imag().to_f64()], [0.0, re[2][1].imag().to_f64()], [0.0, re[2][2].imag().to_f64()], &[Caption(&im_cap
+                                                                                                                                          [2]),
+                                                                                                                              Color(im3col)])
+                  .lines([0.0, re[3][0].imag().to_f64()], [0.0, re[3][1].imag().to_f64()], [0.0, re[3][2].imag().to_f64()], &[Caption(&im_cap
+                                                                                                                                          [3]),
+                                                                                                                              Color(im4col)])
+                  .lines([0.0, re[4][0].imag().to_f64()], [0.0, re[4][1].imag().to_f64()], [0.0, re[4][2].imag().to_f64()], &[Caption(&im_cap
+                                                                                                                                          [4]),
+                                                                                                                              Color(im5col)])
+                  .lines([0.0, re[5][0].imag().to_f64()], [0.0, re[5][1].imag().to_f64()], [0.0, re[5][2].imag().to_f64()], &[Caption(&im_cap
+                                                                                                                                          [5]),
+                                                                                                                              Color(im6col)]);
             }
         }
         else if input[0].contains('y')

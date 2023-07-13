@@ -1,15 +1,15 @@
 # kalc
-[![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
+[![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/) ![crates.io](https://img.shields.io/crates/v/kalc.svg)
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/d6b6775e-0080-409a-be0b-9aa4e3fae871)
 
 requires gnuplot for graphing, a modern terminal like windows terminal on windows
 
-history file is stored in ``~/.config/kalc.history`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history``
+history file is stored in ```~/.config/kalc.history``` or ```C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history```
 
-config file is stored in ``~/.config/kalc.config`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config``
+config file is stored in ```~/.config/kalc.config``` or ```C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config```
 
-you can set permanent variables and functions in the file ``~/.config/kalc.vars`` or ``C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.vars``
+you can set permanent variables and functions in the file ```~/.config/kalc.vars``` or ```C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.vars```
 
 parsing tries to comply with wolfram alpha
 

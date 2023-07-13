@@ -1,5 +1,5 @@
 # kalc
-[![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/) [![crates.io](https://img.shields.io/crates/v/kalc.svg)](https://crates.io/crates/kalc)
+[![crates.io](https://img.shields.io/crates/v/kalc.svg)](https://crates.io/crates/kalc) [![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/d6b6775e-0080-409a-be0b-9aa4e3fae871)
 

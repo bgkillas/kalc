@@ -1422,12 +1422,13 @@ Vector operations/functions:\n\
 - cross product: cross({{vec1}},{{vec2}})\n\
 - angle between vectors: angle({{vec1}},{{vec2}})\n\
 - magnitude: |{{vec}}|\n\
-- normal operations: {{vec}}^{{vec}}, {{vec}}*{{vec}}, {{vec}}/{{vec}}, {{vec}}+{{vec}}, {{vec}}-{{vec}} (works with scalars too)\n\
+- normal operations ^,*,/,+,- \n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
 Matrix operations/functions:\n\
-- trace: tr{{matrix}}\n\
-- determinant: det{{matrix}}\n\n\
+- trace: tr{{mat}}\n\
+- determinant: det{{mat}}\n\
+- normal operations ^,*,/,+,- \n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

@@ -412,10 +412,11 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
     }
     else if let Matrix(v) = num
     {
-        let mut output = "{".to_string();
-        let mut frac_out = "{".to_string();
+        let mut output = if !options.multi { "{" } else { "" }.to_string();
+        let mut frac_out = if !options.multi { "{" } else { "" }.to_string();
         let mut out;
         let mut frac_temp;
+        let mut n = 0;
         for (l, j) in v.iter().enumerate()
         {
             output += "{";
@@ -423,7 +424,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
             for (k, i) in j.iter().enumerate()
             {
                 out = get_output(&options, i);
-                if options.frac || options.frac_iter == 0
+                if (options.frac || options.frac_iter == 0) && !options.multi
                 {
                     frac_temp = fraction(i.real().clone(), options.tau, options.frac_iter);
                     frac_out += if !frac_temp.is_empty() { &frac_temp } else { &out.0 };
@@ -474,24 +475,35 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
             }
             if l != v.len() - 1
             {
-                output += ",";
-
-                frac_out += ",";
+                if options.multi
+                {
+                    n += 1;
+                    output += "\n";
+                }
+                else
+                {
+                    output += ",";
+                    frac_out += ",";
+                }
             }
         }
-        output += "}";
-        frac_out += "}";
+        if !options.multi
+        {
+            output += "}";
+            frac_out += "}";
+        }
         if frac_out != output
         {
             frac = 1;
         }
-        if (frac == 1 && !options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len() > get_terminal_width()
+        if (frac == 1 && !options.frac) || frac_out.replace("\x1b[0m", "").replace("\x1b[93m", "").replace("\x1b[92m", "").len() > get_terminal_width() || options.multi
         {
             frac = 0;
         }
-        print!("\x1B[0J{}\n\x1B[2K\x1B[1G{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
+        print!("\x1B[0J{}\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
                if frac == 1 { format!("\n\x1B[2K\x1B[1G{}", frac_out) } else { "".to_string() },
                output,
+               "\x1b[A".repeat(n),
                if frac == 1 { "\x1b[A" } else { "" },
                if options.prompt
                {
@@ -514,6 +526,7 @@ pub fn print_concurrent(unmodified_input:&str, input:&str, options:Options, star
                },
                &unmodified_input[start..end],
                if options.color { "\x1b[0m" } else { "" });
+        frac += n;
     }
     frac
 }

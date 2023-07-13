@@ -35,6 +35,7 @@ pub fn arg_opts(options:&mut Options, args:&mut Vec<String>) -> bool
             "--rt" => options.real_time_output = !options.real_time_output,
             "--polar" => options.polar = !options.polar,
             "--frac" => options.frac = !options.frac,
+            "--multi" => options.multi = !options.multi,
             "--prec" | "--precision" =>
             {
                 if args.len() > 1
@@ -516,6 +517,19 @@ pub fn file_opts(options:&mut Options, file_path:&String) -> bool
                             }
                         };
                     }
+                }
+                "multi" =>
+                {
+                    options.multi = match split.next().unwrap().parse::<bool>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid multi bool");
+                            err = true;
+                            continue;
+                        }
+                    };
                 }
                 "rt" =>
                 {

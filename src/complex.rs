@@ -18,10 +18,10 @@ impl NumStr
             (Num(b), Vector(a)) | (Vector(a), Num(b)) => Vector(a.iter().map(|a| a * b.clone()).collect()),
             (Vector(a), Vector(b)) if a.len() == b.len() => Vector(a.iter().zip(b.iter()).map(|(a, b)| a * b.clone()).collect()),
             (Num(b), Matrix(a)) | (Matrix(a), Num(b)) => Matrix(a.iter().map(|a| a.iter().map(|a| a * b.clone()).collect()).collect()),
-            (Vector(b), Matrix(a)) | (Matrix(a), Vector(b)) if a.len() == b.len() =>
+            (Vector(b), Matrix(a)) | (Matrix(a), Vector(b)) if a[0].len() == b.len() =>
             {
-                Vector((0..a[0].len()).map(|j| (0..b.len()).map(|i| b[i].clone() * a[i][j].clone()).fold(Complex::new(b[0].prec()), |sum, val| sum + val))
-                                      .collect::<Vec<Complex>>())
+                Vector((0..a.len()).map(|j| (0..a[0].len()).map(|i| b[i].clone() * a[j][i].clone()).fold(Complex::new(b[0].prec()), |sum, val| sum + val))
+                                   .collect::<Vec<Complex>>())
             }
             (Matrix(a), Matrix(b)) if a.len() == b[0].len() =>
             {

@@ -35,14 +35,14 @@ FLAGS: --help (this message)
 --deg compute in degrees
 --rad compute in radians
 --grad compute in gradians
---2d [num] number of points to graph in 2D
---3d [num] number of points to graph in 3D
---xr [min] [max] x range for graphing
---yr [min] [max] y range for graphing
---zr [min] [max] z range for graphing
+--2d=[num] number of points to graph in 2D
+--3d=[num] number of points to graph in 3D
+--xr=[min],[max] x range for graphing
+--yr=[min],[max] y range for graphing
+--zr=[min],[max] z range for graphing
 --point [char] point style for graphing
 --sci toggles scientific notation
---base [num] sets the number base (2,8,16)
+--base=[num] sets the number base (2,8,16)
 --prompt toggles the prompt
 --color toggles color
 --comma toggles comma seperation
@@ -51,40 +51,21 @@ FLAGS: --help (this message)
 --rt toggles real time printing
 --polar toggles displaying polar vectors
 --frac toggles fraction display
---frac_iter [num] how many iterations to check for fractions
---prec [num] sets the precision
---deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
+--frac_iter=[num] how many iterations to check for fractions
+--prec=[num] sets the precision
+--deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
 --def ignores config file
+--multi toggles multi line display for matrixes
 --debug displays computation time in nanoseconds
 
+- flags can be executed in runtime just without the --\n\
 - Type "exit" to exit the program
 - Type "clear" to clear the screen
-- Type "help" to see this message
 - Type "history" to see the history of calculations
-- Type "deg" to switch to degrees mode
-- Type "rad" to switch to radians mode
-- Type "grad" to switch to gradians mode
-- Type "tau" to show fractions in tau
-- Type "pi" to show fractions in pi
-- Type "prompt" to toggle the prompt
-- Type "line" to toggle line graphing
-- Type "rt" to toggle real time printing
-- Type "color" to toggle color
-- Type "comma" to toggle comma seperation
-- Type "2d=[num]" to set the number of points in 2D graphs
-- Type "3d=[num]" to set the number of points in 3D graphs
-- Type "xr=[min],[max]" to set the x range for graphing
-- Type "yr=[min],[max]" to set the y range for graphing
-- Type "zr=[min],[max]" to set the z range for graphing
-- Type "prec=[num]" to set the precision
-- Type "deci=[num]" to set how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
-- Type "point=[char]" to set the point style for graphing
-- Type "sci" to toggle scientific notation
 - Type "vars" to list all variables
 - Type "lvars" to list all variables without equating them
-- Type "base=[num]" to set the number base (2-36)
 - Type "_" to use the previous answer
-- Type "a=[num]" to define a variable
+- Type "a={expr}" to define a variable
 - Type "f(x)=..." to define a function
 - Type "f(x,y)=..." to define a 2 variable function
 - Type "f(x,y,z...)=..." to define a multi variable function
@@ -94,11 +75,7 @@ FLAGS: --help (this message)
 - Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
 - Type "{vec}#" to graph a vector
 - Type "number#" to graph a complex number
-- Type "polar" to toggle polar output
-- Type "frac" to toggle fraction display
-- Type "frac_iter=[num]" how many iterations to check for fractions
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
-- Type "debug" toggles displaying computation time in nanoseconds
 
 Operators:
 - +, -, *, /, ^, %, <, >, <=, >=
@@ -128,14 +105,14 @@ Vector operations/functions:
 - cross product: cross({vec1},{vec2})
 - angle between vectors: angle({vec1},{vec2})
 - magnitude: |{vec}|
-- normal operations ^,*,/,+,- 
+- normal operations ^,*,/,+,-
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
 
 Matrix operations/functions:
 - trace: tr{mat}
 - determinant: det{mat}
-- normal operations ^,*,/,+,- 
+- normal operations ^,*,/,+,-
 
 Constants:
 - c: speed of light, 299792458 m/s

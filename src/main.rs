@@ -33,6 +33,7 @@ use {
     std::os::fd::AsRawFd,
 };
 // support matrixes
+// matrix/vector working at small screen size
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // fix 0's and infinities of sin, cos, tan and cis
 // gui support (via egui prob)
@@ -60,6 +61,7 @@ pub struct Options
     samples_3d:f64,
     point_style:char,
     lines:bool,
+    multi:bool,
     allow_vars:bool,
     debug:bool,
 }
@@ -87,6 +89,7 @@ impl Default for Options
                   samples_3d:400.0,
                   point_style:'.',
                   lines:false,
+                  multi:true,
                   allow_vars:true,
                   debug:false }
     }
@@ -761,6 +764,13 @@ fn main()
                     options.frac = !options.frac;
                     continue;
                 }
+                "multi" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    options.multi = !options.multi;
+                    continue;
+                }
                 "comma" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1334,14 +1344,14 @@ FLAGS: --help (this message)\n\
 --deg compute in degrees\n\
 --rad compute in radians\n\
 --grad compute in gradians\n\
---2d [num] number of points to graph in 2D\n\
---3d [num] number of points to graph in 3D\n\
---xr [min] [max] x range for graphing\n\
---yr [min] [max] y range for graphing\n\
---zr [min] [max] z range for graphing\n\
+--2d=[num] number of points to graph in 2D\n\
+--3d=[num] number of points to graph in 3D\n\
+--xr=[min],[max] x range for graphing\n\
+--yr=[min],[max] y range for graphing\n\
+--zr=[min],[max] z range for graphing\n\
 --point [char] point style for graphing\n\
 --sci toggles scientific notation\n\
---base [num] sets the number base (2,8,16)\n\
+--base=[num] sets the number base (2,8,16)\n\
 --prompt toggles the prompt\n\
 --color toggles color\n\
 --comma toggles comma seperation\n\
@@ -1350,39 +1360,20 @@ FLAGS: --help (this message)\n\
 --rt toggles real time printing\n\
 --polar toggles displaying polar vectors\n\
 --frac toggles fraction display\n\
---frac_iter [num] how many iterations to check for fractions\n\
---prec [num] sets the precision\n\
---deci [num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\
+--frac_iter=[num] how many iterations to check for fractions\n\
+--prec=[num] sets the precision\n\
+--deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\
 --def ignores config file\n\
+--multi toggles multi line display for matrixes\n\
 --debug displays computation time in nanoseconds\n\n\
+- flags can be executed in runtime just without the --\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
-- Type \"help\" to see this message\n\
 - Type \"history\" to see the history of calculations\n\
-- Type \"deg\" to switch to degrees mode\n\
-- Type \"rad\" to switch to radians mode\n\
-- Type \"grad\" to switch to gradians mode\n\
-- Type \"tau\" to show fractions in tau\n\
-- Type \"pi\" to show fractions in pi\n\
-- Type \"prompt\" to toggle the prompt\n\
-- Type \"line\" to toggle line graphing\n\
-- Type \"rt\" to toggle real time printing\n\
-- Type \"color\" to toggle color\n\
-- Type \"comma\" to toggle comma seperation\n\
-- Type \"2d=[num]\" to set the number of points in 2D graphs\n\
-- Type \"3d=[num]\" to set the number of points in 3D graphs\n\
-- Type \"xr=[min],[max]\" to set the x range for graphing\n\
-- Type \"yr=[min],[max]\" to set the y range for graphing\n\
-- Type \"zr=[min],[max]\" to set the z range for graphing\n\
-- Type \"prec=[num]\" to set the precision\n\
-- Type \"deci=[num]\" to set how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\
-- Type \"point=[char]\" to set the point style for graphing\n\
-- Type \"sci\" to toggle scientific notation\n\
 - Type \"vars\" to list all variables\n\
 - Type \"lvars\" to list all variables without equating them\n\
-- Type \"base=[num]\" to set the number base (2-36)\n\
 - Type \"_\" to use the previous answer\n\
-- Type \"a=[num]\" to define a variable\n\
+- Type \"a={{expr}}\" to define a variable\n\
 - Type \"f(x)=...\" to define a function\n\
 - Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
@@ -1392,11 +1383,7 @@ FLAGS: --help (this message)\n\
 - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\
 - Type \"{{vec}}#\" to graph a vector\n\
 - Type \"number#\" to graph a complex number\n\
-- Type \"polar\" to toggle polar output\n\
-- Type \"frac\" to toggle fraction display\n\
-- Type \"frac_iter=[num]\" how many iterations to check for fractions\n\
-- Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\
-- Type \"debug\" toggles displaying computation time in nanoseconds\n\n\
+- Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\n\
 Operators:\n\
 - +, -, *, /, ^, %, <, >, <=, >=\n\
 - !x (subfact), x! (fact)\n\
@@ -1422,13 +1409,13 @@ Vector operations/functions:\n\
 - cross product: cross({{vec1}},{{vec2}})\n\
 - angle between vectors: angle({{vec1}},{{vec2}})\n\
 - magnitude: |{{vec}}|\n\
-- normal operations ^,*,/,+,- \n\
+- normal operations ^,*,/,+,-\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
 Matrix operations/functions:\n\
 - trace: tr{{mat}}\n\
 - determinant: det{{mat}}\n\
-- normal operations ^,*,/,+,- \n\n\
+- normal operations ^,*,/,+,-\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

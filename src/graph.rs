@@ -2,11 +2,11 @@ use std::{thread, thread::JoinHandle, time::Instant};
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
 use crate::{
-    math::{
-        do_math,
+    complex::{
         NumStr,
         NumStr::{Num, Str, Vector},
     },
+    math::do_math,
     Options,
 };
 pub fn graph(input:Vec<String>, func:Vec<Vec<NumStr>>, options:Options, deg:u8, prec:u32, watch:Option<Instant>) -> JoinHandle<()>

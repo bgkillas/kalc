@@ -1,41 +1,9 @@
 use std::ops::{Shl, Shr};
-use crate::math::NumStr::{Matrix, Num, Str, Vector};
+use crate::complex::{
+    NumStr,
+    NumStr::{Matrix, Num, Str, Vector},
+};
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
-#[derive(Clone)]
-pub enum NumStr
-{
-    Num(Complex),
-    Str(String),
-    Vector(Vec<Complex>),
-    Matrix(Vec<Vec<Complex>>),
-}
-impl NumStr
-{
-    pub fn str_is(&self, s:&str) -> bool
-    {
-        match self
-        {
-            Str(s2) => s == s2,
-            _ => false,
-        }
-    }
-    pub fn num(&self) -> Result<Complex, ()>
-    {
-        match self
-        {
-            Num(n) => Ok(n.clone()),
-            _ => Err(()),
-        }
-    }
-    pub fn vec(&self) -> Result<Vec<Complex>, ()>
-    {
-        match self
-        {
-            Vector(v) => Ok(v.clone()),
-            _ => Err(()),
-        }
-    }
-}
 pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
 {
     if func.len() == 1
@@ -883,36 +851,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
         {
             match s.as_str()
             {
-                "*" =>
-                {
-                    function[i] = {
-                        if let Num(n1) = &function[i - 1]
-                        {
-                            if let Num(n2) = &function[i + 1]
-                            {
-                                Num(n1.clone() * n2)
-                            }
-                            else
-                            {
-                                Vector(function[i + 1].vec()?.iter().map(|x| x * n1.clone()).collect())
-                            }
-                        }
-                        else if let Num(n2) = &function[i + 1]
-                        {
-                            Vector(function[i - 1].vec()?.iter().map(|x| x * n2.clone()).collect())
-                        }
-                        else
-                        {
-                            let v1 = function[i - 1].vec()?;
-                            let v2 = function[i + 1].vec()?;
-                            if v1.len() != v2.len()
-                            {
-                                return Err(());
-                            }
-                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() * y).collect())
-                        }
-                    }
-                }
+                "*" => function[i] = function[i - 1].mul(&function[i + 1])?,
                 "/" =>
                 {
                     function[i] = {
@@ -1097,13 +1036,13 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     a = function[i - 1].num()?;
                     b = function[i - 1].num()?;
-                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && a.real() != &0.0 && b.real() != &0.0) as i32))
+                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && a.real() == &1.0 && b.real() == &1.0) as i32))
                 }
                 "||" =>
                 {
                     a = function[i - 1].num()?;
                     b = function[i - 1].num()?;
-                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && (a.real() != &0.0 || b.real() != &0.0)) as i32))
+                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && (a.real() == &1.0 || b.real() == &1.0)) as i32))
                 }
                 _ =>
                 {

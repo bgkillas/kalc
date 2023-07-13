@@ -1,4 +1,66 @@
 use rug::Complex;
+use crate::complex::NumStr::{Matrix, Num, Str, Vector};
+#[derive(Clone)]
+pub enum NumStr
+{
+    Num(Complex),
+    Str(String),
+    Vector(Vec<Complex>),
+    Matrix(Vec<Vec<Complex>>),
+}
+impl NumStr
+{
+    pub fn mul(&self, b:&Self) -> Result<Self, ()>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Num(a.clone() * b),
+            (Num(b), Vector(a)) | (Vector(a), Num(b)) => Vector(a.iter().map(|a| a * b.clone()).collect()),
+            (Vector(a), Vector(b)) if a.len() == b.len() => Vector(a.iter().zip(b.iter()).map(|(a, b)| a * b.clone()).collect()),
+            (Num(b), Matrix(a)) | (Matrix(a), Num(b)) => Matrix(a.iter().map(|a| a.iter().map(|a| a * b.clone()).collect()).collect()),
+            (Vector(b), Matrix(a)) | (Matrix(a), Vector(b)) if a.len() == b.len() =>
+            {
+                Vector((0..a[0].len()).map(|j| (0..b.len()).map(|i| b[i].clone() * a[i][j].clone()).fold(Complex::new(b[0].prec()), |sum, val| sum + val))
+                                      .collect::<Vec<Complex>>())
+            }
+            (Matrix(a), Matrix(b)) =>
+            {
+                Matrix(a.iter()
+                        .map(|row| {
+                            (0..b[0].len()).map(|j| (0..b.len()).map(|i| row[i].clone() * b[i][j].clone()).fold(Complex::new(a[0][0].prec()), |sum, val| sum + val))
+                                           .collect::<Vec<Complex>>()
+                        })
+                        .collect())
+            }
+            _ => return Err(()),
+        })
+    }
+    pub fn str_is(&self, s:&str) -> bool
+    {
+        match self
+        {
+            Str(s2) => s == s2,
+            _ => false,
+        }
+    }
+    pub fn num(&self) -> Result<Complex, ()>
+    {
+        match self
+        {
+            Num(n) => Ok(n.clone()),
+            _ => Err(()),
+        }
+    }
+    pub fn vec(&self) -> Result<Vec<Complex>, ()>
+    {
+        match self
+        {
+            Vector(v) => Ok(v.clone()),
+            _ => Err(()),
+        }
+    }
+}
+
 pub trait Float
 {
     fn add(self, other:Self) -> Self;

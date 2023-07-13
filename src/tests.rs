@@ -1,10 +1,10 @@
 use rug::{float::Constant::Pi, Complex};
 use crate::{
-    complex::Float,
-    math::{
-        do_math,
+    complex::{
+        Float,
         NumStr::{Num, Str},
     },
+    math::do_math,
     parse::{get_func, get_vars, input_var},
 };
 #[test]

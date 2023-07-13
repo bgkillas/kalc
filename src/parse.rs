@@ -1,5 +1,5 @@
 use rug::{float::Constant::Pi, Complex, Float};
-use crate::math::{
+use crate::complex::{
     NumStr,
     NumStr::{Num, Str, Vector},
 };

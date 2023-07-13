@@ -7,19 +7,19 @@ mod parse;
 mod print;
 #[cfg(test)]
 mod tests;
-use parse::{get_func, get_vars, input_var};
+use crate::{
+    complex::NumStr::{Matrix, Num, Str, Vector},
+    graph::graph,
+    math::do_math,
+    options::{arg_opts, file_opts},
+    parse::{get_func, get_vars, input_var},
+    print::{get_output, print_answer, print_concurrent},
+};
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
     thread::JoinHandle,
-};
-use graph::graph;
-use print::{get_output, print_answer, print_concurrent};
-use options::{arg_opts, file_opts};
-use math::{
-    do_math,
-    NumStr::{Matrix, Num, Str, Vector},
 };
 #[cfg(not(unix))]
 use {
@@ -36,8 +36,61 @@ use {
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // fix 0's and infinities of sin, cos, tan and cis
 // gui support (via egui prob)
-// support unit conversions
-// allow units to be used in the input, and be outputted
+// support units
+#[derive(Clone, Copy)]
+pub struct Options
+{
+    sci:bool,
+    deg:u8, // 0=rad,1=deg,2=grad
+    base:usize,
+    tau:bool,
+    polar:bool,
+    frac:bool,
+    real_time_output:bool,
+    decimal_places:usize,
+    color:bool,
+    prompt:bool,
+    comma:bool,
+    prec:u32,
+    frac_iter:usize,
+    xr:[f64; 2],
+    yr:[f64; 2],
+    zr:[f64; 2],
+    samples_2d:f64,
+    samples_3d:f64,
+    point_style:char,
+    lines:bool,
+    allow_vars:bool,
+    debug:bool,
+}
+impl Default for Options
+{
+    fn default() -> Self
+    {
+        Options { sci:false,
+                  deg:0,
+                  base:10,
+                  tau:false,
+                  polar:false,
+                  frac:true,
+                  real_time_output:true,
+                  decimal_places:12,
+                  color:true,
+                  prompt:true,
+                  comma:false,
+                  prec:512,
+                  frac_iter:50,
+                  xr:[-10.0, 10.0],
+                  yr:[-10.0, 10.0],
+                  zr:[-10.0, 10.0],
+                  samples_2d:20000.0,
+                  samples_3d:400.0,
+                  point_style:'.',
+                  lines:false,
+                  allow_vars:true,
+                  debug:false }
+    }
+}
 fn main()
 {
     let mut options = Options::default();
@@ -1394,58 +1447,4 @@ Constants:\n\
 - pi: pi, 3.1415926535~\n\
 - tau: tau, 6.2831853071~"
     );
-}
-#[derive(Clone, Copy)]
-pub struct Options
-{
-    sci:bool,
-    deg:u8, // 0=rad,1=deg,2=grad
-    base:usize,
-    tau:bool,
-    polar:bool,
-    frac:bool,
-    real_time_output:bool,
-    decimal_places:usize,
-    color:bool,
-    prompt:bool,
-    comma:bool,
-    prec:u32,
-    frac_iter:usize,
-    xr:[f64; 2],
-    yr:[f64; 2],
-    zr:[f64; 2],
-    samples_2d:f64,
-    samples_3d:f64,
-    point_style:char,
-    lines:bool,
-    allow_vars:bool,
-    debug:bool,
-}
-impl Default for Options
-{
-    fn default() -> Self
-    {
-        Options { sci:false,
-                  deg:0,
-                  base:10,
-                  tau:false,
-                  polar:false,
-                  frac:true,
-                  real_time_output:true,
-                  decimal_places:12,
-                  color:true,
-                  prompt:true,
-                  comma:false,
-                  prec:512,
-                  frac_iter:50,
-                  xr:[-10.0, 10.0],
-                  yr:[-10.0, 10.0],
-                  zr:[-10.0, 10.0],
-                  samples_2d:20000.0,
-                  samples_3d:400.0,
-                  point_style:'.',
-                  lines:false,
-                  allow_vars:true,
-                  debug:false }
-    }
 }

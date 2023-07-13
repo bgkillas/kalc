@@ -1,14 +1,13 @@
 use std::{cmp::Ordering, str::FromStr};
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use crate::{
-    fraction::fraction,
-    get_terminal_width,
-    math::{
-        do_math,
-        to_polar,
+    complex::{
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
+    fraction::fraction,
+    get_terminal_width,
+    math::{do_math, to_polar},
     parse::get_func,
     Options,
 };

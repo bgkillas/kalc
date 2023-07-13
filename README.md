@@ -128,13 +128,14 @@ Vector operations/functions:
 - cross product: cross({vec1},{vec2})
 - angle between vectors: angle({vec1},{vec2})
 - magnitude: |{vec}|
-- normal operations: {vec}^{vec}, {vec}*{vec}, {vec}/{vec}, {vec}+{vec}, {vec}-{vec} (works with scalars too)
+- normal operations ^,*,/,+,- 
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
 
 Matrix operations/functions:
-- trace: tr{matrix}
-- determinant: det{matrix}
+- trace: tr{mat}
+- determinant: det{mat}
+- normal operations ^,*,/,+,- 
 
 Constants:
 - c: speed of light, 299792458 m/s

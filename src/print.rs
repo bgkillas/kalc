@@ -207,11 +207,11 @@ pub fn print_concurrent(
         }
     };
     let mut frac = 0;
-    let mut num = do_math(func, options.deg, options.prec)
-        .unwrap_or(Num(Complex::with_val(options.prec, 0.0)));
+    let mut num =
+        do_math(func, options.deg, options.prec).unwrap_or(Num(Complex::new(options.prec)));
     if let Str(_) = num
     {
-        num = Num(Complex::with_val(options.prec, 0.0));
+        num = Num(Complex::new(options.prec));
     }
     if let Num(n) = num
     {

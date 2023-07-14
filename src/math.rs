@@ -953,48 +953,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                 i -= 1;
                 continue;
             }
-            function[i] = if let Num(n1) = &function[i - 1]
-            {
-                if let Num(n2) = &function[i + 1]
-                {
-                    Num(n1.clone().pow(n2))
-                }
-                else
-                {
-                    Vector(
-                        function[i + 1]
-                            .vec()?
-                            .iter()
-                            .map(|x| n1.clone().pow(x))
-                            .collect(),
-                    )
-                }
-            }
-            else if let Num(n2) = &function[i + 1]
-            {
-                Vector(
-                    function[i - 1]
-                        .vec()?
-                        .iter()
-                        .map(|x| x.pow(n2.clone()))
-                        .collect(),
-                )
-            }
-            else
-            {
-                let v1 = function[i - 1].vec()?;
-                let v2 = function[i + 1].vec()?;
-                if v1.len() != v2.len()
-                {
-                    return Err(());
-                }
-                Vector(
-                    v1.iter()
-                        .zip(v2.iter())
-                        .map(|(x, y)| x.clone().pow(y))
-                        .collect(),
-                )
-            };
+            function[i] = function[i - 1].pow(&function[i + 1])?;
             function.remove(i + 1);
             function.remove(i - 1);
             i -= 1;
@@ -1008,53 +967,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
             match s.as_str()
             {
                 "*" => function[i] = function[i - 1].mul(&function[i + 1])?,
-                "/" =>
-                {
-                    function[i] = {
-                        if let Num(n1) = &function[i - 1]
-                        {
-                            if let Num(n2) = &function[i + 1]
-                            {
-                                Num(n1.clone() / n2)
-                            }
-                            else
-                            {
-                                Vector(
-                                    function[i + 1]
-                                        .vec()?
-                                        .iter()
-                                        .map(|x| n1.clone() / x)
-                                        .collect(),
-                                )
-                            }
-                        }
-                        else if let Num(n2) = &function[i + 1]
-                        {
-                            Vector(
-                                function[i - 1]
-                                    .vec()?
-                                    .iter()
-                                    .map(|x| x / n2.clone())
-                                    .collect(),
-                            )
-                        }
-                        else
-                        {
-                            let v1 = function[i - 1].vec()?;
-                            let v2 = function[i + 1].vec()?;
-                            if v1.len() != v2.len()
-                            {
-                                return Err(());
-                            }
-                            Vector(
-                                v1.iter()
-                                    .zip(v2.iter())
-                                    .map(|(x, y)| x.clone() / y)
-                                    .collect(),
-                            )
-                        }
-                    }
-                }
+                "/" => function[i] = function[i - 1].div(&function[i + 1])?,
                 _ =>
                 {
                     i += 1;
@@ -1077,100 +990,8 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
         {
             match s.as_str()
             {
-                "+" =>
-                {
-                    function[i] = {
-                        if let Num(n1) = &function[i - 1]
-                        {
-                            if let Num(n2) = &function[i + 1]
-                            {
-                                Num(n1.clone() + n2)
-                            }
-                            else
-                            {
-                                Vector(
-                                    function[i + 1]
-                                        .vec()?
-                                        .iter()
-                                        .map(|x| x + n1.clone())
-                                        .collect(),
-                                )
-                            }
-                        }
-                        else if let Num(n2) = &function[i + 1]
-                        {
-                            Vector(
-                                function[i - 1]
-                                    .vec()?
-                                    .iter()
-                                    .map(|x| x + n2.clone())
-                                    .collect(),
-                            )
-                        }
-                        else
-                        {
-                            let v1 = function[i - 1].vec()?;
-                            let v2 = function[i + 1].vec()?;
-                            if v1.len() != v2.len()
-                            {
-                                return Err(());
-                            }
-                            Vector(
-                                v1.iter()
-                                    .zip(v2.iter())
-                                    .map(|(x, y)| x.clone() + y)
-                                    .collect(),
-                            )
-                        }
-                    }
-                }
-                "-" =>
-                {
-                    function[i] = {
-                        if let Num(n1) = &function[i - 1]
-                        {
-                            if let Num(n2) = &function[i + 1]
-                            {
-                                Num(n1.clone() - n2)
-                            }
-                            else
-                            {
-                                Vector(
-                                    function[i + 1]
-                                        .vec()?
-                                        .iter()
-                                        .map(|x| n1.clone() - x)
-                                        .collect(),
-                                )
-                            }
-                        }
-                        else if let Num(n2) = &function[i + 1]
-                        {
-                            Vector(
-                                function[i - 1]
-                                    .vec()?
-                                    .iter()
-                                    .map(|x| x - n2.clone())
-                                    .collect(),
-                            )
-                        }
-                        else
-                        {
-                            let v1 = function[i - 1].vec()?;
-                            let v2 = function[i + 1].vec()?;
-                            if v1.len() != v2.len()
-                            {
-                                return Err(());
-                            }
-                            Vector(
-                                v1.iter()
-                                    .zip(v2.iter())
-                                    .map(|(x, y)| x.clone() - y)
-                                    .collect(),
-                            )
-                        }
-                    }
-                }
+                "+" => function[i] = function[i - 1].add(&function[i + 1])?,
+                "-" => function[i] = function[i - 1].sub(&function[i + 1])?,
                 _ =>
                 {
                     i += 1;
@@ -1349,7 +1170,7 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
     let mut a = a;
     if a.len() == 1
     {
-        a.push(Complex::with_val(a[0].prec(), 0));
+        a.push(Complex::new(a[0].prec()));
     }
     if a.len() != 2 && a.len() != 3
     {
@@ -1361,10 +1182,7 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
         {
             if a[0].eq0()
             {
-                vec![
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
-                ]
+                vec![Complex::new(a[0].prec()), Complex::new(a[0].prec())]
             }
             else
             {

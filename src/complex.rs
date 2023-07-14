@@ -1,4 +1,5 @@
 use crate::complex::NumStr::{Matrix, Num, Str, Vector};
+use rug::ops::Pow;
 use rug::Complex;
 #[derive(Clone)]
 pub enum NumStr
@@ -29,10 +30,10 @@ impl NumStr
                     .collect(),
             ),
             (Vector(b), Matrix(a)) | (Matrix(a), Vector(b)) if a[0].len() == b.len() => Vector(
-                (0..a.len())
+                a.iter()
                     .map(|j| {
                         (0..a[0].len())
-                            .map(|i| b[i].clone() * a[j][i].clone())
+                            .map(|i| b[i].clone() * j[i].clone())
                             .fold(Complex::new(b[0].prec()), |sum, val| sum + val)
                     })
                     .collect::<Vec<Complex>>(),
@@ -46,6 +47,172 @@ impl NumStr
                                     .map(|i| row[i].clone() * b[i][j].clone())
                                     .fold(Complex::new(a[0][0].prec()), |sum, val| sum + val)
                             })
+                            .collect::<Vec<Complex>>()
+                    })
+                    .collect(),
+            ),
+            _ => return Err(()),
+        })
+    }
+    pub fn div(&self, b: &Self) -> Result<Self, ()>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Num(a / b.clone()),
+            (Num(a), Vector(b)) => Vector(b.iter().map(|b| a / b.clone()).collect()),
+            (Vector(a), Num(b)) => Vector(a.iter().map(|a| a / b.clone()).collect()),
+            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            {
+                Vector(a.iter().zip(b.iter()).map(|(a, b)| a / b.clone()).collect())
+            }
+            (Num(a), Matrix(b)) => Matrix(
+                b.iter()
+                    .map(|b| b.iter().map(|b| a / b.clone()).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Num(b)) => Matrix(
+                a.iter()
+                    .map(|a| a.iter().map(|a| a / b.clone()).collect())
+                    .collect(),
+            ),
+            (Vector(a), Matrix(b)) if b.len() == a.len() => Matrix(
+                (0..b.len())
+                    .map(|j| b[j].iter().map(|b| a[j].clone() / b).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| a[j].iter().map(|a| a / b[j].clone()).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| {
+                        (0..a[0].len())
+                            .map(|k| a[j][k].clone() / b[j][k].clone())
+                            .collect::<Vec<Complex>>()
+                    })
+                    .collect(),
+            ),
+            _ => return Err(()),
+        })
+    }
+    pub fn add(&self, b: &Self) -> Result<Self, ()>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Num(a + b.clone()),
+            (Num(a), Vector(b)) | (Vector(b), Num(a)) =>
+            {
+                Vector(b.iter().map(|b| a + b.clone()).collect())
+            }
+            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            {
+                Vector(a.iter().zip(b.iter()).map(|(a, b)| a + b.clone()).collect())
+            }
+            (Num(a), Matrix(b)) | (Matrix(b), Num(a)) => Matrix(
+                b.iter()
+                    .map(|b| b.iter().map(|b| a + b.clone()).collect())
+                    .collect(),
+            ),
+            (Vector(a), Matrix(b)) | (Matrix(b), Vector(a)) if b.len() == a.len() => Matrix(
+                (0..b.len())
+                    .map(|j| b[j].iter().map(|b| a[j].clone() + b).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| {
+                        (0..a[0].len())
+                            .map(|k| a[j][k].clone() + b[j][k].clone())
+                            .collect::<Vec<Complex>>()
+                    })
+                    .collect(),
+            ),
+            _ => return Err(()),
+        })
+    }
+    pub fn sub(&self, b: &Self) -> Result<Self, ()>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Num(a - b.clone()),
+            (Num(a), Vector(b)) => Vector(b.iter().map(|b| a - b.clone()).collect()),
+            (Vector(a), Num(b)) => Vector(a.iter().map(|a| a - b.clone()).collect()),
+            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            {
+                Vector(a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()).collect())
+            }
+            (Num(a), Matrix(b)) => Matrix(
+                b.iter()
+                    .map(|b| b.iter().map(|b| a - b.clone()).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Num(b)) => Matrix(
+                a.iter()
+                    .map(|a| a.iter().map(|a| a - b.clone()).collect())
+                    .collect(),
+            ),
+            (Vector(a), Matrix(b)) if b.len() == a.len() => Matrix(
+                (0..b.len())
+                    .map(|j| b[j].iter().map(|b| a[j].clone() - b).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| a[j].iter().map(|a| a - b[j].clone()).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| {
+                        (0..a[0].len())
+                            .map(|k| a[j][k].clone() - b[j][k].clone())
+                            .collect::<Vec<Complex>>()
+                    })
+                    .collect(),
+            ),
+            _ => return Err(()),
+        })
+    }
+    pub fn pow(&self, b: &Self) -> Result<Self, ()>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Num(a.pow(b.clone())),
+            (Num(a), Vector(b)) => Vector(b.iter().map(|b| a.pow(b.clone())).collect()),
+            (Vector(a), Num(b)) => Vector(a.iter().map(|a| a.pow(b.clone())).collect()),
+            (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
+                a.iter()
+                    .zip(b.iter())
+                    .map(|(a, b)| a.pow(b.clone()))
+                    .collect(),
+            ),
+            (Num(a), Matrix(b)) => Matrix(
+                b.iter()
+                    .map(|b| b.iter().map(|b| a.pow(b.clone())).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Num(b)) => Matrix(
+                a.iter()
+                    .map(|a| a.iter().map(|a| a.pow(b.clone())).collect())
+                    .collect(),
+            ),
+            (Vector(a), Matrix(b)) if b.len() == a.len() => Matrix(
+                (0..b.len())
+                    .map(|j| b[j].iter().map(|b| a[j].clone().pow(b)).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| a[j].iter().map(|a| a.pow(b[j].clone())).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+                (0..a.len())
+                    .map(|j| {
+                        (0..a[0].len())
+                            .map(|k| a[j][k].clone().pow(b[j][k].clone()))
                             .collect::<Vec<Complex>>()
                     })
                     .collect(),

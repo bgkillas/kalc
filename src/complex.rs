@@ -9,39 +9,6 @@ pub enum NumStr
     Vector(Vec<Complex>),
     Matrix(Vec<Vec<Complex>>),
 }
-pub fn determinant(a: Vec<Vec<Complex>>) -> Complex
-{
-    if a.len() == 1
-    {
-        a[0][0].clone()
-    }
-    else if a.len() == 2
-    {
-        a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone()
-    }
-    else if a.len() == 3
-    {
-        a[0][0].clone() * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
-            + a[0][1].clone()
-                * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
-            + a[0][2].clone()
-                * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
-    }
-    else
-    {
-        let mut det = Complex::new(a[0][0].prec());
-        for (i, x) in a[0].iter().enumerate()
-        {
-            let mut sub_matrix = a[1..].to_vec();
-            for row in &mut sub_matrix
-            {
-                row.remove(i);
-            }
-            det += x * determinant(sub_matrix) * if i % 2 == 0 { 1.0 } else { -1.0 };
-        }
-        det
-    }
-}
 impl NumStr
 {
     pub fn mul(&self, b: &Self) -> Result<Self, ()>

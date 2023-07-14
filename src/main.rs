@@ -63,6 +63,7 @@ pub struct Options
     point_style: char,
     lines: bool,
     multi: bool,
+    tabbed: bool,
     allow_vars: bool,
     debug: bool,
 }
@@ -92,6 +93,7 @@ impl Default for Options
             point_style: '.',
             lines: false,
             multi: false,
+            tabbed: false,
             allow_vars: true,
             debug: false,
         }
@@ -929,6 +931,13 @@ fn main()
                     options.multi = !options.multi;
                     continue;
                 }
+                "tabbed" =>
+                {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
+                    options.tabbed = !options.tabbed;
+                    continue;
+                }
                 "comma" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1602,6 +1611,7 @@ FLAGS: --help (this message)\n\
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\
 --def ignores config file\n\
 --multi toggles multi line display for matrixes\n\
+--tabbed toggles tabbed display for matrixes\n\
 --debug displays computation time in nanoseconds\n\n\
 - flags can be executed in runtime just without the dashes\n\
 - Type \"exit\" to exit the program\n\
@@ -1618,6 +1628,7 @@ FLAGS: --help (this message)\n\
 - Type \"{{x,y,z...}}\" to define a cartesian vector\n\
 - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\
 - Type \"{{vec}}#\" to graph a vector\n\
+- Type \"{{mat}}#\" to graph a matrix\n\
 - Type \"number#\" to graph a complex number\n\
 - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\n\
 Operators:\n\
@@ -1650,6 +1661,7 @@ Vector operations/functions:\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
 Matrix operations/functions:\n\
 - trace/tr, determinant/det\n\
+- transpose/trans, adjugate, minor, cofactor\n\
 - part({{mat}},col,row)\n\
 - abs, norm\n\
 - len, wid\n\n\

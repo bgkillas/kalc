@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Str, Vector},
+        NumStr::{Matrix, Num, Str, Vector},
     },
     math::do_math,
     Options,
@@ -40,21 +40,264 @@ pub fn graph(
         if !input[0].contains('x')
         {
             let mut re = Vec::new();
+            let mut matrix = false;
+            let mut x = (Vec::new(), Vec::new());
+            let mut y = (Vec::new(), Vec::new());
+            let mut z = (Vec::new(), Vec::new());
+            let mut d3 = false;
             for (i, f) in func.iter().enumerate()
             {
                 re.push(match do_math(f.to_vec(), deg, prec).unwrap()
                 {
-                    Vector(n) => n,
-                    Num(n) => vec![
-                        Complex::with_val(prec, n.real()),
-                        Complex::with_val(prec, n.imag()),
-                    ],
+                    Vector(n) =>
+                    {
+                        for j in &n
+                        {
+                            if j.real() != &0.0
+                            {
+                                re_cap[i] = input[i].to_owned() + ":re";
+                            }
+                            if j.imag() != &0.0
+                            {
+                                im_cap[i] = input[i].to_owned() + ":im";
+                            }
+                        }
+                        n
+                    }
+                    Matrix(n) =>
+                    {
+                        matrix = true;
+                        d3 = if n[0].len() == 3
+                        {
+                            true
+                        }
+                        else if n[0].len() == 2
+                        {
+                            false
+                        }
+                        else
+                        {
+                            return;
+                        };
+                        x.0.push(n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>());
+                        x.1.push(n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>());
+                        y.0.push(n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>());
+                        y.1.push(n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>());
+                        if d3
+                        {
+                            z.0.push(n.iter().map(|x| x[2].real().to_f64()).collect::<Vec<f64>>());
+                            z.1.push(n.iter().map(|x| x[2].imag().to_f64()).collect::<Vec<f64>>());
+                        }
+                        for k in n
+                        {
+                            for j in k
+                            {
+                                if j.real() != &0.0
+                                {
+                                    re_cap[i] = input[i].to_owned() + ":re";
+                                }
+                                if j.imag() != &0.0
+                                {
+                                    im_cap[i] = input[i].to_owned() + ":im";
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                    Num(n) =>
+                    {
+                        if n.real() != &0.0
+                        {
+                            re_cap[i] = input[i].to_owned() + ":re";
+                        }
+                        if n.imag() != &0.0
+                        {
+                            im_cap[i] = input[i].to_owned() + ":im";
+                        }
+                        vec![
+                            Complex::with_val(prec, n.real()),
+                            Complex::with_val(prec, n.imag()),
+                        ]
+                    }
                     _ => return,
                 });
-                re_cap[i] = input[i].to_owned() + ":re";
-                im_cap[i] = input[i].to_owned() + ":im";
             }
-            if re[0].len() == 2
+            if matrix
+            {
+                if d3
+                {
+                    let n = vec![0.0; 3];
+                    for _ in 0..6 - func.len()
+                    {
+                        x.0.push(n.clone());
+                        y.0.push(n.clone());
+                        z.0.push(n.clone());
+                        x.1.push(n.clone());
+                        y.1.push(n.clone());
+                        z.1.push(n.clone());
+                    }
+                    let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
+                    fg.axes3d()
+                        .set_x_ticks(xticks, &[], &[])
+                        .set_y_ticks(yticks, &[], &[])
+                        .set_z_ticks(zticks, &[], &[])
+                        .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                        .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
+                        .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                        .set_z_label("z", &[])
+                        .set_y_label("y", &[])
+                        .set_x_label("x", &[])
+                        .lines(
+                            x.0[0].clone(),
+                            y.0[0].clone(),
+                            z.0[0].clone(),
+                            &[Caption(&re_cap[0]), Color(re1col)],
+                        )
+                        .lines(
+                            x.0[1].clone(),
+                            y.0[1].clone(),
+                            z.0[1].clone(),
+                            &[Caption(&re_cap[1]), Color(re2col)],
+                        )
+                        .lines(
+                            x.0[2].clone(),
+                            y.0[2].clone(),
+                            z.0[2].clone(),
+                            &[Caption(&re_cap[2]), Color(re3col)],
+                        )
+                        .lines(
+                            x.0[3].clone(),
+                            y.0[3].clone(),
+                            z.0[3].clone(),
+                            &[Caption(&re_cap[3]), Color(re4col)],
+                        )
+                        .lines(
+                            x.0[4].clone(),
+                            y.0[4].clone(),
+                            z.0[4].clone(),
+                            &[Caption(&re_cap[4]), Color(re5col)],
+                        )
+                        .lines(
+                            x.0[5].clone(),
+                            y.0[5].clone(),
+                            z.0[5].clone(),
+                            &[Caption(&re_cap[5]), Color(re6col)],
+                        )
+                        .lines(
+                            x.1[0].clone(),
+                            y.1[0].clone(),
+                            z.1[0].clone(),
+                            &[Caption(&im_cap[0]), Color(im1col)],
+                        )
+                        .lines(
+                            x.1[1].clone(),
+                            y.1[1].clone(),
+                            z.1[1].clone(),
+                            &[Caption(&im_cap[1]), Color(im2col)],
+                        )
+                        .lines(
+                            x.1[2].clone(),
+                            y.1[2].clone(),
+                            z.1[2].clone(),
+                            &[Caption(&im_cap[2]), Color(im3col)],
+                        )
+                        .lines(
+                            x.1[3].clone(),
+                            y.1[3].clone(),
+                            z.1[3].clone(),
+                            &[Caption(&im_cap[3]), Color(im4col)],
+                        )
+                        .lines(
+                            x.1[4].clone(),
+                            y.1[4].clone(),
+                            z.1[4].clone(),
+                            &[Caption(&im_cap[4]), Color(im5col)],
+                        )
+                        .lines(
+                            x.1[5].clone(),
+                            y.1[5].clone(),
+                            z.1[5].clone(),
+                            &[Caption(&im_cap[5]), Color(im6col)],
+                        );
+                }
+                else
+                {
+                    let z = vec![0.0; 2];
+                    for _ in 0..6 - func.len()
+                    {
+                        x.0.push(z.clone());
+                        y.0.push(z.clone());
+                        x.1.push(z.clone());
+                        y.1.push(z.clone());
+                    }
+                    fg.axes2d()
+                        .set_x_ticks(xticks, &[], &[])
+                        .set_y_ticks(yticks, &[], &[])
+                        .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
+                        .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                        .lines(
+                            x.0[0].clone(),
+                            y.0[0].clone(),
+                            &[Caption(&re_cap[0]), Color(re1col)],
+                        )
+                        .lines(
+                            x.0[1].clone(),
+                            y.0[1].clone(),
+                            &[Caption(&re_cap[1]), Color(re2col)],
+                        )
+                        .lines(
+                            x.0[2].clone(),
+                            y.0[2].clone(),
+                            &[Caption(&re_cap[2]), Color(re3col)],
+                        )
+                        .lines(
+                            x.0[3].clone(),
+                            y.0[3].clone(),
+                            &[Caption(&re_cap[3]), Color(re4col)],
+                        )
+                        .lines(
+                            x.0[4].clone(),
+                            y.0[4].clone(),
+                            &[Caption(&re_cap[4]), Color(re5col)],
+                        )
+                        .lines(
+                            x.0[5].clone(),
+                            y.0[5].clone(),
+                            &[Caption(&re_cap[5]), Color(re6col)],
+                        )
+                        .lines(
+                            x.1[0].clone(),
+                            y.1[0].clone(),
+                            &[Caption(&im_cap[0]), Color(im1col)],
+                        )
+                        .lines(
+                            x.1[1].clone(),
+                            y.1[1].clone(),
+                            &[Caption(&im_cap[1]), Color(im2col)],
+                        )
+                        .lines(
+                            x.1[2].clone(),
+                            y.1[2].clone(),
+                            &[Caption(&im_cap[2]), Color(im3col)],
+                        )
+                        .lines(
+                            x.1[3].clone(),
+                            y.1[3].clone(),
+                            &[Caption(&im_cap[3]), Color(im4col)],
+                        )
+                        .lines(
+                            x.1[4].clone(),
+                            y.1[4].clone(),
+                            &[Caption(&im_cap[4]), Color(im5col)],
+                        )
+                        .lines(
+                            x.1[5].clone(),
+                            y.1[5].clone(),
+                            &[Caption(&im_cap[5]), Color(im6col)],
+                        );
+                }
+            }
+            else if re[0].len() == 2
             {
                 let z = vec![Complex::new(prec); 2];
                 for _ in 0..6 - func.len()

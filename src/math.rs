@@ -1,5 +1,5 @@
 use crate::complex::{
-    determinant, NumStr,
+    NumStr,
     NumStr::{Matrix, Num, Str, Vector},
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
@@ -280,6 +280,40 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                 {
                     function[i] = match s.as_str()
                     {
+                        "cofactor" | "cofactors" =>
+                        {
+                            if a.len() == a[0].len() && a.len() > 1
+                            {
+                                Matrix(cofactor(a))
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "minor" | "minors" =>
+                        {
+                            if a.len() == a[0].len() && a.len() > 1
+                            {
+                                Matrix(minors(a))
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "adjugate" =>
+                        {
+                            if a.len() == a[0].len() && a.len() > 1
+                            {
+                                Matrix(transpose(cofactor(a)))
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "transpose" | "trans" => Matrix(transpose(a)),
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
                         "wid" | "width" => Num(Complex::with_val(prec, a[0].len())),
                         "tr" | "trace" =>
@@ -1387,4 +1421,94 @@ fn sum(
         }
     }
     Ok(value)
+}
+fn submatrix(a: Vec<Vec<Complex>>, row: usize, col: usize) -> Vec<Vec<Complex>>
+{
+    a.iter()
+        .enumerate()
+        .filter(|&(i, _)| i != row)
+        .map(|(_, r)| {
+            r.iter()
+                .enumerate()
+                .filter(|&(j, _)| j != col)
+                .map(|(_, value)| value.clone())
+                .collect::<Vec<Complex>>()
+        })
+        .collect()
+}
+fn determinant(a: Vec<Vec<Complex>>) -> Complex
+{
+    if a.len() == 1
+    {
+        a[0][0].clone()
+    }
+    else if a.len() == 2
+    {
+        a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone()
+    }
+    else if a.len() == 3
+    {
+        a[0][0].clone() * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
+            + a[0][1].clone()
+                * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
+            + a[0][2].clone()
+                * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
+    }
+    else
+    {
+        let mut det = Complex::new(a[0][0].prec());
+        for (i, x) in a[0].iter().enumerate()
+        {
+            let mut sub_matrix = a[1..].to_vec();
+            for row in &mut sub_matrix
+            {
+                row.remove(i);
+            }
+            det += x * determinant(sub_matrix) * if i % 2 == 0 { 1.0 } else { -1.0 };
+        }
+        det
+    }
+}
+fn transpose(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
+{
+    let mut b = vec![vec![Complex::new(a[0][0].prec()); a.len()]; a[0].len()];
+    for (i, l) in a.iter().enumerate()
+    {
+        for (j, n) in l.iter().enumerate()
+        {
+            b[j][i] = n.clone();
+        }
+    }
+    b
+}
+fn minors(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
+{
+    let mut result = vec![vec![Complex::new(a[0][0].prec()); a[0].len()]; a.len()];
+    for (i, k) in result.iter_mut().enumerate()
+    {
+        for (j, l) in k.iter_mut().enumerate()
+        {
+            *l = determinant(submatrix(a.clone(), i, j));
+        }
+    }
+    result
+}
+fn cofactor(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
+{
+    let mut result = vec![vec![Complex::new(a[0][0].prec()); a[0].len()]; a.len()];
+    for (i, k) in result.iter_mut().enumerate()
+    {
+        for (j, l) in k.iter_mut().enumerate()
+        {
+            *l = if (i + j) % 2 == 1
+            {
+                -determinant(submatrix(a.clone(), i, j))
+            }
+            else
+            {
+                determinant(submatrix(a.clone(), i, j))
+            };
+        }
+    }
+    result
 }

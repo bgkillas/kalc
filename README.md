@@ -56,6 +56,7 @@ FLAGS: --help (this message)
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
 --def ignores config file
 --multi toggles multi line display for matrixes
+--tabbed toggles tabbed display for matrixes
 --debug displays computation time in nanoseconds
 
 - flags can be executed in runtime just without the dashes\n\
@@ -73,6 +74,7 @@ FLAGS: --help (this message)
 - Type "{x,y,z...}" to define a cartesian vector
 - Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
 - Type "{vec}#" to graph a vector
+- Type "{mat}#" to graph a matrix
 - Type "number#" to graph a complex number
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 
@@ -110,6 +112,7 @@ Vector operations/functions:
 
 Matrix operations/functions:
 - trace/tr, determinant/det
+- transpose/trans, adjugate, minor, cofactor
 - part({mat},col,row)
 - abs, norm
 - len, wid

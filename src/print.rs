@@ -97,7 +97,14 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     }
     else if let Matrix(v) = num
     {
-        let mut output = "{".to_string();
+        let mut output = if options.multi
+        {
+            String::new()
+        }
+        else
+        {
+            "{".to_string()
+        };
         let mut out;
         for (l, j) in v.iter().enumerate()
         {
@@ -115,6 +122,10 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
                 {
                     output += if options.polar { "]" } else { "}" };
                 }
+                else if options.tabbed
+                {
+                    output += "\t";
+                }
                 else
                 {
                     output += ",";
@@ -122,10 +133,20 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
             }
             if l != v.len() - 1
             {
-                output += ",";
+                if options.multi
+                {
+                    output += "\n";
+                }
+                else
+                {
+                    output += ",";
+                }
             }
         }
-        output += "}";
+        if !options.multi
+        {
+            output += "}";
+        }
         print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
 }
@@ -610,7 +631,7 @@ pub fn print_concurrent(
             for (k, i) in j.iter().enumerate()
             {
                 out = get_output(&options, i);
-                if (options.frac || options.frac_iter == 0) && !options.multi
+                if options.frac || options.frac_iter == 0
                 {
                     frac_temp = fraction(i.real().clone(), options);
                     frac_out += if !frac_temp.is_empty()
@@ -669,6 +690,11 @@ pub fn print_concurrent(
                     output += "}";
                     frac_out += "}";
                 }
+                else if options.tabbed
+                {
+                    output += "\t";
+                    frac_out += "\t";
+                }
                 else
                 {
                     output += ",";
@@ -681,6 +707,7 @@ pub fn print_concurrent(
                 {
                     num += 1;
                     output += "\n";
+                    frac_out += "\n";
                 }
                 else
                 {
@@ -713,7 +740,6 @@ pub fn print_concurrent(
                 .len()
                 > terlen
             || len > terlen
-            || options.multi
         {
             frac = 0;
         }
@@ -741,6 +767,8 @@ pub fn print_concurrent(
                     num += 1;
                 }
             }
+            frac_out += "\n";
+            num += frac * 2;
         }
         print!(
             "\x1B[0J{}\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",

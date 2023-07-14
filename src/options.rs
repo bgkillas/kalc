@@ -36,6 +36,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             "--polar" => options.polar = !options.polar,
             "--frac" => options.frac = !options.frac,
             "--multi" => options.multi = !options.multi,
+            "--tabbed" => options.tabbed = !options.tabbed,
             "--prec" | "--precision" =>
             {
                 if args.len() > 1
@@ -539,6 +540,19 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         Err(_) =>
                         {
                             println!("Invalid multi bool");
+                            err = true;
+                            continue;
+                        }
+                    };
+                }
+                "tabbed" =>
+                {
+                    options.tabbed = match split.next().unwrap().parse::<bool>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid tabbed bool");
                             err = true;
                             continue;
                         }

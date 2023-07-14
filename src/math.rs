@@ -20,6 +20,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     let mut count = 0;
     let (mut j, mut v, mut vec, mut mat);
     let mut len = 0;
+    let mut place = Vec::new();
     'outer: while i < function.len() - 1
     {
         if let Str(s) = &function[i]
@@ -136,22 +137,8 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     if let Str(k) = &function[i - 1]
                     {
-                        if k == "log"
-                           || k == "sum"
-                           || k == "summation"
-                           || k == "product"
-                           || k == "prod"
-                           || k == "root"
-                           || k == "atan"
-                           || k == "arctan"
-                           || k == "atan2"
-                           || k == "bi"
-                           || k == "binomial"
-                           || k == "angle"
-                           || k == "cross"
-                           || k == "dot"
+                        if k == "log" || k == "root" || k == "atan" || k == "arctan" || k == "atan2" || k == "bi" || k == "binomial" || k == "angle" || k == "cross" || k == "dot" || k == "part"
                         {
-                            single = 0;
                             count = 0;
                             for (f, n) in v.iter().enumerate()
                             {
@@ -159,12 +146,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 {
                                     if s == "," && count == 0
                                     {
-                                        if single != 0
-                                        {
-                                            i = j - 1;
-                                            continue 'outer;
-                                        }
-                                        single = f;
+                                        place.push(f);
                                     }
                                     else if s == "(" || s == "{"
                                     {
@@ -176,15 +158,23 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                     }
                                 }
                             }
-                            if single != 0
+                            if !place.is_empty()
                             {
                                 function.drain(i..j);
-                                function.insert(i, do_math(v[..single].to_vec(), deg, prec)?);
-                                function.insert(i + 1, Str(",".to_string()));
-                                function.insert(i + 2, do_math(v[single + 1..].to_vec(), deg, prec)?);
-                                i += 1;
+                                function.insert(i, do_math(v[..place[0]].to_vec(), deg, prec)?);
+                                for (k, l) in place.iter().enumerate()
+                                {
+                                    function.insert(i + k + 1, Str(",".to_string()));
+                                    function.insert(i + k + 2, do_math(v[l + 1..].to_vec(), deg, prec)?);
+                                    i += 1;
+                                }
                                 continue 'outer;
                             }
+                        }
+                        else if k == "sum" || k == "summation" || k == "prod" || k == "product"
+                        {
+                            i = j - 1;
+                            continue;
                         }
                     }
                 }
@@ -196,7 +186,6 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     }
     i = 0;
     let (mut a, mut b);
-    let mut place = Vec::new();
     let to_deg = if deg == 0
     {
         Complex::with_val(prec, 1)
@@ -226,11 +215,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 place.push(f);
                             }
-                            else if s == "("
+                            else if s == "(" || s == "{"
                             {
                                 count += 1;
                             }
-                            else if s == ")"
+                            else if s == ")" || s == "}"
                             {
                                 if count == 1
                                 {
@@ -305,6 +294,46 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
+                        "part" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                if function.len() > i + 5 && function[i + 4].str_is(",")
+                                {
+                                    let b = function[i + 3].num()?;
+                                    let c = function[i + 5].num()?;
+                                    function.drain(i + 2..i + 6);
+                                    let n1 = b.clone().real().to_f64() as usize;
+                                    let n2 = c.clone().real().to_f64() as usize;
+                                    if n1 <= a.len() && n1 != 0 && n2 <= a[0].len() && n2 != 0
+                                    {
+                                        Num(a[n1 - 1][n2 - 1].clone())
+                                    }
+                                    else
+                                    {
+                                        return Err(());
+                                    }
+                                }
+                                else
+                                {
+                                    let b = function[i + 3].num()?;
+                                    function.drain(i + 2..i + 4);
+                                    let n = b.clone().real().to_f64() as usize;
+                                    if n <= a.len() && n != 0
+                                    {
+                                        Vector(a[n - 1].clone())
+                                    }
+                                    else
+                                    {
+                                        return Err(());
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
                         _ =>
                         {
                             i += 1;
@@ -352,8 +381,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 let b = function[i + 3].vec()?;
-                                function.remove(i + 3);
-                                function.remove(i + 2);
+                                function.drain(i + 2..i + 4);
                                 if a.len() == 3 && b.len() == 3
                                 {
                                     let c:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
@@ -381,8 +409,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 let b = function[i + 3].vec()?;
-                                function.remove(i + 3);
-                                function.remove(i + 2);
+                                function.drain(i + 2..i + 4);
                                 if a.len() == 3 && b.len() == 3
                                 {
                                     Vector(vec![a[1].clone() * &b[2] - a[2].clone() * &b[1],
@@ -412,9 +439,29 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 {
                                     n += i;
                                 }
-                                function.remove(i + 3);
-                                function.remove(i + 2);
+                                function.drain(i + 2..i + 4);
                                 Num(n)
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "part" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                let b = function[i + 3].num()?;
+                                function.drain(i + 2..i + 4);
+                                let n = b.clone().real().to_f64() as usize;
+                                if n <= a.len() && n != 0
+                                {
+                                    Num(a[n - 1].clone())
+                                }
+                                else
+                                {
+                                    return Err(());
+                                }
                             }
                             else
                             {
@@ -493,8 +540,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
-                                function.remove(i + 3);
-                                function.remove(i + 2);
+                                function.drain(i + 2..i + 4);
                                 let i = Complex::with_val(prec, (0, 1));
                                 ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs()).ln() * -i * to_deg.clone()
                             }
@@ -590,8 +636,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
-                                function.remove(i + 3);
-                                function.remove(i + 2);
+                                function.drain(i + 2..i + 4);
                                 match b.imag() == &0.0 && (b.real().to_f64() / 2.0).fract() != 0.0 && &b.real().clone().trunc() == b.real() && a.imag() == &0.0
                                 {
                                     true => Complex::with_val(prec, a.real() / a.real().clone().abs() * a.real().clone().abs().pow(b.real().clone().recip())),
@@ -608,8 +653,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
                                 b = function[i + 3].num()?;
-                                function.remove(i + 3);
-                                function.remove(i + 2);
+                                function.drain(i + 2..i + 4);
                                 if a.imag() != &0.0 && b.imag() != &0.0
                                 {
                                     Complex::with_val(prec, 0)

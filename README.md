@@ -58,16 +58,15 @@ FLAGS: --help (this message)
 --multi toggles multi line display for matrixes
 --debug displays computation time in nanoseconds
 
-- flags can be executed in runtime just without the --\n\
+- flags can be executed in runtime just without the dashes\n\
 - Type "exit" to exit the program
 - Type "clear" to clear the screen
-- Type "history" to see the history of calculations
+- Type "history [arg]" to see the history, arg indexes it if specified
 - Type "vars" to list all variables
 - Type "lvars" to list all variables without equating them
 - Type "_" to use the previous answer
 - Type "a={expr}" to define a variable
 - Type "f(x)=..." to define a function
-- Type "f(x,y)=..." to define a 2 variable function
 - Type "f(x,y,z...)=..." to define a multi variable function
 - Type "...=" display parsed input, show values of stuff like xr/deci/prec etc
 - Type "f...=null" to delete a function or variable
@@ -105,6 +104,7 @@ Vector operations/functions:
 - cross product: cross({vec1},{vec2})
 - angle between vectors: angle({vec1},{vec2})
 - magnitude: |{vec}|
+- part({{vec}},col)
 - normal operations ^,*,/,+,-
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
@@ -112,6 +112,7 @@ Vector operations/functions:
 Matrix operations/functions:
 - trace: tr{mat}
 - determinant: det{mat}
+- part({mat},col,row)
 - normal operations ^,*,/,+,-
 
 Constants:

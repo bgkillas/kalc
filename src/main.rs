@@ -832,7 +832,23 @@ fn main()
                     break;
                 }
                 _ =>
-                {}
+                {
+                    split = input.splitn(2, ' ');
+                    if split.next().unwrap() == "history"
+                    {
+                        print!("\x1b[A\x1B[2K\x1B[1G");
+                        stdout().flush().unwrap();
+                        r = split.next().unwrap();
+                        for i in lines
+                        {
+                            if i.contains(r)
+                            {
+                                println!("{}", i);
+                            }
+                        }
+                        continue;
+                    }
+                }
             }
             write(&input, &mut file, &unmod_lines);
         }
@@ -1366,16 +1382,15 @@ FLAGS: --help (this message)\n\
 --def ignores config file\n\
 --multi toggles multi line display for matrixes\n\
 --debug displays computation time in nanoseconds\n\n\
-- flags can be executed in runtime just without the --\n\
+- flags can be executed in runtime just without the dashes\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
-- Type \"history\" to see the history of calculations\n\
+- Type \"history [arg]\" to see the history, arg indexes it if specified\n\
 - Type \"vars\" to list all variables\n\
 - Type \"lvars\" to list all variables without equating them\n\
 - Type \"_\" to use the previous answer\n\
 - Type \"a={{expr}}\" to define a variable\n\
 - Type \"f(x)=...\" to define a function\n\
-- Type \"f(x,y)=...\" to define a 2 variable function\n\
 - Type \"f(x,y,z...)=...\" to define a multi variable function\n\
 - Type \"...=\" display parsed input, show values of stuff like xr/deci/prec etc\n\
 - Type \"f...=null\" to delete a function or variable\n\
@@ -1409,12 +1424,14 @@ Vector operations/functions:\n\
 - cross product: cross({{vec1}},{{vec2}})\n\
 - angle between vectors: angle({{vec1}},{{vec2}})\n\
 - magnitude: |{{vec}}|\n\
+- part({{vec}},col)\n\
 - normal operations ^,*,/,+,-\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
 Matrix operations/functions:\n\
 - trace: tr{{mat}}\n\
 - determinant: det{{mat}}\n\
+- part({{mat}},col,row)\n\
 - normal operations ^,*,/,+,-\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\

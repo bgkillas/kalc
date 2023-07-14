@@ -35,8 +35,6 @@ use {
     std::io::Read,
     std::os::fd::AsRawFd,
 };
-// support matrixes
-// matrix/vector working at small screen size
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // fix 0's and infinities of sin, cos, tan and cis
 // gui support (via egui prob)
@@ -234,12 +232,17 @@ fn main()
                 || input.contains('#')
                 || (input
                     .replace("exp", "")
+                    .replace("max", "")
                     .replace("}x{", "")
                     .replace("]x[", "")
                     .contains('x')
                     && vars.iter().all(|i| i[0] != "x"))
                 || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+                || (input
+                    .replace("zeta", "")
+                    .replace("normalize", "")
+                    .contains('z')
+                    && vars.iter().all(|i| i[0] != "z"))
                 || input
                     .replace("==", "")
                     .replace("!=", "")
@@ -307,12 +310,16 @@ fn main()
                             || input.contains('#')
                             || (input
                                 .replace("exp", "")
+                                .replace("max", "")
                                 .replace("}x{", "")
                                 .replace("]x[", "")
                                 .contains('x')
                                 && vars.iter().all(|i| i[0] != "x"))
                             || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                            || (input.replace("zeta", "").contains('z')
+                            || (input
+                                .replace("zeta", "")
+                                .replace("normalize", "")
+                                .contains('z')
                                 && vars.iter().all(|i| i[0] != "z"))
                             || input
                                 .replace("==", "")
@@ -1350,16 +1357,23 @@ fn main()
         else if input.contains('#')
             || (input
                 .replace("exp", "")
+                .replace("max", "")
                 .replace("}x{", "")
                 .replace("]x[", "")
                 .contains('x')
                 && vars.iter().all(|i| i[0] != "x"))
-            || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+            || (input
+                .replace("zeta", "")
+                .replace("normalize", "")
+                .contains('z')
+                && vars.iter().all(|i| i[0] != "z"))
         {
             input = input
                 .replace("zeta", "##ta##")
+                .replace("normalize", "##ma##")
                 .replace('z', "(x+y*i)")
-                .replace("##ta##", "zeta");
+                .replace("##ta##", "zeta")
+                .replace("##ma##", "normalize");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             inputs = input.split('#').map(String::from).collect();
@@ -1625,25 +1639,20 @@ Other functions:\n\
 - sinc, cis, exp\n\
 - zeta, gamma, erf, erfc, digamma, ai, bi (all real only)\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
-- re(real part), im(imaginary part)\n\n\
+- re, im, max(x,y), min(x,y)\n\n\
 Vector operations/functions:\n\
-- dot product: dot({{vec1}},{{vec2}})\n\
-- cross product: cross({{vec1}},{{vec2}})\n\
-- angle between vectors: angle({{vec1}},{{vec2}})\n\
-- magnitude: |{{vec}}|\n\
+- dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}})\n\
+- angle({{vec1}},{{vec2}})\n\
+- norm{{vec}}, normalize{{vec}}\n\
+- abs, len\n\
 - part({{vec}},col)\n\
-- len{{mat}}, length\n\
-- wid{{mat}}, width\n\
-- normal operations ^,*,/,+,-\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
 Matrix operations/functions:\n\
-- trace: tr{{mat}}\n\
-- determinant: det{{mat}}\n\
+- trace/tr, determinant/det\n\
 - part({{mat}},col,row)\n\
-- len{{mat}}, length\n\
-- wid{{mat}}, width\n\
-- normal operations ^,*,/,+,-\n\n\
+- abs, norm\n\
+- len, wid\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

@@ -148,6 +148,8 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                             || k == "cross"
                             || k == "dot"
                             || k == "part"
+                            || k == "max"
+                            || k == "min"
                         {
                             count = 0;
                             for (f, n) in v.iter().enumerate()
@@ -364,6 +366,26 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
+                        "norm" =>
+                        {
+                            let mut n = Complex::new(prec);
+                            for i in a
+                                .iter()
+                                .map(|x| x.iter().map(|x| x.clone().abs().pow(2)).collect())
+                                .collect::<Vec<Vec<Complex>>>()
+                            {
+                                for j in i
+                                {
+                                    n += j;
+                                }
+                            }
+                            Num(n.sqrt())
+                        }
+                        "abs" => Matrix(
+                            a.iter()
+                                .map(|a| a.iter().map(|a| a.clone().abs()).collect())
+                                .collect(),
+                        ),
                         _ =>
                         {
                             i += 1;
@@ -377,14 +399,30 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                     function[i] = match s.as_str()
                     {
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
-                        "abs" =>
+                        "abs" => Vector(a.iter().map(|x| x.clone().abs()).collect()),
+                        "norm" =>
                         {
                             let mut n = Complex::new(prec);
-                            for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
+                            for i in a
+                                .iter()
+                                .map(|x| x.clone().abs().pow(2))
+                                .collect::<Vec<Complex>>()
                             {
                                 n += i;
                             }
                             Num(n.sqrt())
+                        }
+                        "normalize" =>
+                        {
+                            let mut n = Complex::new(prec);
+                            for i in a
+                                .iter()
+                                .map(|x| x.clone().abs().pow(2))
+                                .collect::<Vec<Complex>>()
+                            {
+                                n += i;
+                            }
+                            Vector(a.iter().map(|x| x / n.clone().sqrt()).collect())
                         }
                         "car" | "cartesian" =>
                         {
@@ -769,6 +807,72 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                             else
                             {
                                 Complex::new(prec)
+                            }
+                        }
+                        "max" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                b = function[i + 3].num()?;
+                                function.drain(i + 2..i + 4);
+                                Complex::with_val(
+                                    prec,
+                                    (
+                                        if a.real() > b.real()
+                                        {
+                                            a.real()
+                                        }
+                                        else
+                                        {
+                                            b.real()
+                                        },
+                                        if a.imag() > b.imag()
+                                        {
+                                            a.imag()
+                                        }
+                                        else
+                                        {
+                                            b.imag()
+                                        },
+                                    ),
+                                )
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "min" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                b = function[i + 3].num()?;
+                                function.drain(i + 2..i + 4);
+                                Complex::with_val(
+                                    prec,
+                                    (
+                                        if a.real() < b.real()
+                                        {
+                                            a.real()
+                                        }
+                                        else
+                                        {
+                                            b.real()
+                                        },
+                                        if a.imag() < b.imag()
+                                        {
+                                            a.imag()
+                                        }
+                                        else
+                                        {
+                                            b.imag()
+                                        },
+                                    ),
+                                )
+                            }
+                            else
+                            {
+                                return Err(());
                             }
                         }
                         "sqrt" | "asquare" => a.sqrt(),

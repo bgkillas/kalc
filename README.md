@@ -77,7 +77,7 @@ FLAGS: --help (this message)
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 
 Operators:
-- +, -, *, /, ^, %, <, >, <=, >=
+- +, -, *, /, ^, %, <, >, <=, >=, |(abs)
 - !x (subfact), x! (fact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
@@ -97,26 +97,22 @@ Other functions:
 - sinc, cis, exp
 - zeta, gamma, erf, erfc, digamma, ai, bi (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
-- re(real part), im(imaginary part)
+- re, im, max(x,y), min(x,y)
 
 Vector operations/functions:
-- dot product: dot({vec1},{vec2})
-- cross product: cross({vec1},{vec2})
-- angle between vectors: angle({vec1},{vec2})
-- magnitude: |{vec}|
+- dot({vec1},{vec2}), cross({vec1},{vec2})
+- angle({vec1},{vec2})
+- norm{vec}, normalize{vec}
+- abs, len
 - part({vec},col)
-- len{vec},length
-- normal operations ^,*,/,+,-
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
 
 Matrix operations/functions:
-- trace: tr{mat}
-- determinant: det{mat}
+- trace/tr, determinant/det
 - part({mat},col,row)
-- len{mat}, length
-- wid{mat}, width
-- normal operations ^,*,/,+,-
+- abs, norm
+- len, wid
 
 Constants:
 - c: speed of light, 299792458 m/s

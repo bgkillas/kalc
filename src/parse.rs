@@ -79,7 +79,9 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
         else if c.is_ascii_alphabetic()
         {
             if find_word
-                && (!(c == 'x' || c == 'y') || (chars.len() - 1 != i && chars[i + 1] == 'p'))
+                && (!(c == 'x' || c == 'y')
+                    || (chars.len() - 1 != i && chars[i + 1] == 'p' && word == "e")
+                    || word == "ma")
             {
                 word.push(c);
             }

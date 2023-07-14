@@ -16,11 +16,15 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     if input.contains('#')
         || input
             .replace("exp", "")
+            .replace("max", "")
             .replace("}x{", "")
             .replace("]x[", "")
             .contains('x')
         || input.contains('y')
-        || input.replace("zeta", "").contains('z')
+        || input
+            .replace("zeta", "")
+            .replace("normalize", "")
+            .contains('z')
         || input
             .replace("==", "")
             .replace("!=", "")
@@ -136,11 +140,15 @@ pub fn print_concurrent(
     if input.contains('#')
         || input
             .replace("exp", "")
+            .replace("max", "")
             .replace("}x{", "")
             .replace("]x[", "")
             .contains('x')
         || input.contains('y')
-        || input.replace("zeta", "").contains('z')
+        || input
+            .replace("zeta", "")
+            .replace("normalize", "")
+            .contains('z')
         || input
             .replace("==", "")
             .replace("!=", "")

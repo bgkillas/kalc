@@ -2,6 +2,10 @@
 name         = "kalc"
 description  = "a complex numbers, 2d/3d graphing, arbitrary precision, vector, cli calculator with real-time output"
 license      = "GPL-3.0-only"
+authors      = ["bgkillas <mswalhelm@gmail.com>"]
+readme       = "README.md"
+keywords     = ["cli","calculator"]
+categories   = ["command-line-interface","command-line-utilities","mathematics"]
 repository   = "https://github.com/bgkillas/kalc"
 version      = "0.8.0"
 edition      = "2021"

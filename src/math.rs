@@ -353,7 +353,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                             {
                                 for j in i
                                 {
-                                    n += j.pow(2);
+                                    n += j.abs().pow(2);
                                 }
                             }
                             Num(n.sqrt())
@@ -382,7 +382,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                             let mut n = Complex::new(prec);
                             for i in a
                             {
-                                n += i.pow(2);
+                                n += i.abs().pow(2);
                             }
                             Num(n.sqrt())
                         }

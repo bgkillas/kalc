@@ -124,6 +124,7 @@ fn main()
     {
         Vec::new()
     };
+    let mut old = vars.clone();
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
     #[cfg(not(unix))]
@@ -826,67 +827,49 @@ fn main()
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.color = !options.color;
-                    continue;
                 }
                 "prompt" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.prompt = !options.prompt;
-                    continue;
                 }
                 "deg" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.deg = 1;
-                    continue;
                 }
                 "rad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.deg = 0;
-                    continue;
                 }
                 "grad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.deg = 2;
-                    continue;
                 }
                 "rt" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.real_time_output = !options.real_time_output;
-                    continue;
                 }
-                "tau" =>
-                {
-                    options.tau = true;
-                    write(&input, &mut file, &unmod_lines);
-                    continue;
-                }
-                "pi" =>
-                {
-                    options.tau = false;
-                    write(&input, &mut file, &unmod_lines);
-                    continue;
-                }
+                "tau" => options.tau = true,
+                "pi" => options.tau = false,
                 "sci" | "scientific" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.sci = !options.sci;
-                    continue;
                 }
                 "clear" =>
                 {
                     print!("\x1B[2J\x1B[1;1H");
                     stdout().flush().unwrap();
-                    continue;
                 }
                 "debug" =>
                 {
@@ -894,7 +877,6 @@ fn main()
                     stdout().flush().unwrap();
                     options.debug = !options.debug;
                     watch = None;
-                    continue;
                 }
                 "help" =>
                 {
@@ -908,42 +890,36 @@ fn main()
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.lines = !options.lines;
-                    continue;
                 }
                 "polar" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.polar = !options.polar;
-                    continue;
                 }
                 "frac" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.frac = !options.frac;
-                    continue;
                 }
                 "multi" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.multi = !options.multi;
-                    continue;
                 }
                 "tabbed" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.tabbed = !options.tabbed;
-                    continue;
                 }
                 "comma" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
                     options.comma = !options.comma;
-                    continue;
                 }
                 "history" =>
                 {
@@ -983,7 +959,6 @@ fn main()
                             println!("{}={}{}", v[0], n.0, n.1);
                         }
                     }
-                    continue;
                 }
                 "lvars" =>
                 {
@@ -993,7 +968,6 @@ fn main()
                     {
                         println!("{}={}", v[0], v[1]);
                     }
-                    continue;
                 }
                 "version" =>
                 {
@@ -1002,7 +976,7 @@ fn main()
                     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                     continue;
                 }
-                "exit" | "quit" =>
+                "exit" | "quit" | "break" =>
                 {
                     break;
                 }
@@ -1032,6 +1006,17 @@ fn main()
             l = &input[..input.len() - 1];
             match l
             {
+                "color" => println!("{}", options.color),
+                "prompt" => println!("{}", options.prompt),
+                "rt" => println!("{}", options.real_time_output),
+                "sci" | "scientific" => println!("{}", options.sci),
+                "debug" => println!("{}", options.debug),
+                "line" => println!("{}", options.lines),
+                "polar" => println!("{}", options.polar),
+                "frac" => println!("{}", options.frac),
+                "multi" => println!("{}", options.multi),
+                "tabbed" => println!("{}", options.tabbed),
+                "comma" => println!("{}", options.comma),
                 "point" => println!("{}", options.point_style),
                 "base" => println!("{}", options.base),
                 "decimal" | "deci" | "decimals" => println!("{}", options.decimal_places),
@@ -1220,7 +1205,17 @@ fn main()
                     if options.allow_vars
                     {
                         v = get_vars(options.prec);
-                        vars = [v.clone(), vars[v.len()..].to_vec()].concat();
+                        for i in &old
+                        {
+                            for (j, var) in vars.iter_mut().enumerate()
+                            {
+                                if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
+                                {
+                                    *var = v[j].clone();
+                                }
+                            }
+                        }
+                        old = v;
                     }
                     continue;
                 }

@@ -13,8 +13,7 @@ you can set permanent variables and functions in the file ```~/.config/kalc.vars
 
 parsing tries to comply with wolfram alpha
 
-# known issues
-- setting precision will remove vars if you change or delete any of the default vars
+# wont fix issues
 - sin^-4!(2) fails to parse
 - sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
 

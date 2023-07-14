@@ -28,7 +28,10 @@ use {
 };
 #[cfg(unix)]
 use {
-    libc::{ioctl, tcgetattr, tcsetattr, winsize, ECHO, ICANON, STDOUT_FILENO, TCSANOW, TIOCGWINSZ, VMIN, VTIME},
+    libc::{
+        ioctl, tcgetattr, tcsetattr, winsize, ECHO, ICANON, STDOUT_FILENO, TCSANOW, TIOCGWINSZ,
+        VMIN, VTIME,
+    },
     std::io::Read,
     std::os::fd::AsRawFd,
 };
@@ -41,86 +44,107 @@ use {
 #[derive(Clone, Copy)]
 pub struct Options
 {
-    sci:bool,
-    deg:u8, // 0=rad,1=deg,2=grad
-    base:usize,
-    tau:bool,
-    polar:bool,
-    frac:bool,
-    real_time_output:bool,
-    decimal_places:usize,
-    color:bool,
-    prompt:bool,
-    comma:bool,
-    prec:u32,
-    frac_iter:usize,
-    xr:[f64; 2],
-    yr:[f64; 2],
-    zr:[f64; 2],
-    samples_2d:f64,
-    samples_3d:f64,
-    point_style:char,
-    lines:bool,
-    multi:bool,
-    allow_vars:bool,
-    debug:bool,
+    sci: bool,
+    deg: u8, // 0=rad,1=deg,2=grad
+    base: usize,
+    tau: bool,
+    polar: bool,
+    frac: bool,
+    real_time_output: bool,
+    decimal_places: usize,
+    color: bool,
+    prompt: bool,
+    comma: bool,
+    prec: u32,
+    frac_iter: usize,
+    xr: [f64; 2],
+    yr: [f64; 2],
+    zr: [f64; 2],
+    samples_2d: f64,
+    samples_3d: f64,
+    point_style: char,
+    lines: bool,
+    multi: bool,
+    allow_vars: bool,
+    debug: bool,
 }
 impl Default for Options
 {
     fn default() -> Self
     {
-        Options { sci:false,
-                  deg:0,
-                  base:10,
-                  tau:false,
-                  polar:false,
-                  frac:true,
-                  real_time_output:true,
-                  decimal_places:12,
-                  color:true,
-                  prompt:true,
-                  comma:false,
-                  prec:512,
-                  frac_iter:50,
-                  xr:[-10.0, 10.0],
-                  yr:[-10.0, 10.0],
-                  zr:[-10.0, 10.0],
-                  samples_2d:20000.0,
-                  samples_3d:400.0,
-                  point_style:'.',
-                  lines:false,
-                  multi:true,
-                  allow_vars:true,
-                  debug:false }
+        Options {
+            sci: false,
+            deg: 0,
+            base: 10,
+            tau: false,
+            polar: false,
+            frac: true,
+            real_time_output: true,
+            decimal_places: 12,
+            color: true,
+            prompt: true,
+            comma: false,
+            prec: 512,
+            frac_iter: 50,
+            xr: [-10.0, 10.0],
+            yr: [-10.0, 10.0],
+            zr: [-10.0, 10.0],
+            samples_2d: 20000.0,
+            samples_3d: 400.0,
+            point_style: '.',
+            lines: false,
+            multi: true,
+            allow_vars: true,
+            debug: false,
+        }
     }
 }
 fn main()
 {
     let mut options = Options::default();
     let mut watch = None;
-    let mut handles:Vec<JoinHandle<()>> = Vec::new();
+    let mut handles: Vec<JoinHandle<()>> = Vec::new();
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
     #[cfg(not(unix))]
-    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.config", var("USERNAME").unwrap());
+    let file_path = &format!(
+        "C:\\Users\\{}\\AppData\\Roaming\\kalc.config",
+        var("USERNAME").unwrap()
+    );
     let mut args = args().collect::<Vec<String>>();
     if file_opts(&mut options, file_path) || arg_opts(&mut options, &mut args)
     {
         std::process::exit(1);
     }
-    let mut vars:Vec<[String; 2]> = if options.allow_vars { get_vars(options.prec) } else { Vec::new() };
+    let mut vars: Vec<[String; 2]> = if options.allow_vars
+    {
+        get_vars(options.prec)
+    }
+    else
+    {
+        Vec::new()
+    };
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
     #[cfg(not(unix))]
-    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.vars", var("USERNAME").unwrap());
+    let file_path = &format!(
+        "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
+        var("USERNAME").unwrap()
+    );
     if File::open(file_path).is_ok() && options.allow_vars
     {
-        let lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect::<Vec<String>>();
+        let lines = BufReader::new(File::open(file_path).unwrap())
+            .lines()
+            .map(|l| l.unwrap())
+            .collect::<Vec<String>>();
         let mut split;
         for i in lines
         {
             split = i.split('=');
-            vars.push([split.next().unwrap().to_string(), split.next().unwrap().to_string()]);
+            vars.push([
+                split.next().unwrap().to_string(),
+                split.next().unwrap().to_string(),
+            ]);
         }
     }
     let mut input = String::new();
@@ -137,18 +161,34 @@ fn main()
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
     #[cfg(not(unix))]
-    let file_path = &format!("C:\\Users\\{}\\AppData\\Roaming\\kalc.history", var("USERNAME").unwrap());
+    let file_path = &format!(
+        "C:\\Users\\{}\\AppData\\Roaming\\kalc.history",
+        var("USERNAME").unwrap()
+    );
     if File::open(file_path).is_err()
     {
         File::create(file_path).unwrap();
     }
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
-    let mut lines:Vec<String>;
-    let mut unmod_lines:Vec<String>;
+    let mut lines: Vec<String>;
+    let mut unmod_lines: Vec<String>;
     let mut last = String::new();
     let mut current = String::new();
-    let mut inputs:Vec<String>;
-    let (mut c, mut i, mut max, mut frac, mut l, mut r, mut split, mut funcs, mut v, mut start, mut end, mut placement);
+    let mut inputs: Vec<String>;
+    let (
+        mut c,
+        mut i,
+        mut max,
+        mut frac,
+        mut l,
+        mut r,
+        mut split,
+        mut funcs,
+        mut v,
+        mut start,
+        mut end,
+        mut placement,
+    );
     let mut exit = false;
     'main: loop
     {
@@ -170,27 +210,42 @@ fn main()
             }
             input = args.first().unwrap().replace('_', &format!("({})", last));
             args.remove(0);
-            print_answer(&input,
-                         match get_func(&input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None), options.prec)
-                         {
-                             Ok(f) => f,
-                             Err(()) =>
-                             {
-                                 println!("Invalid function.");
-                                 return;
-                             }
-                         },
-                         options);
+            print_answer(
+                &input,
+                match get_func(
+                    &input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None),
+                    options.prec,
+                )
+                {
+                    Ok(f) => f,
+                    Err(()) =>
+                    {
+                        println!("Invalid function.");
+                        return;
+                    }
+                },
+                options,
+            );
             if let Some(time) = watch
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
             if !(input.is_empty()
-                 || input.contains('#')
-                 || (input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
-                 || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                 || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
-                 || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('='))
+                || input.contains('#')
+                || (input
+                    .replace("exp", "")
+                    .replace("}x{", "")
+                    .replace("]x[", "")
+                    .contains('x')
+                    && vars.iter().all(|i| i[0] != "x"))
+                || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+                || input
+                    .replace("==", "")
+                    .replace("!=", "")
+                    .replace(">=", "")
+                    .replace("<=", "")
+                    .contains('='))
             {
                 println!();
             }
@@ -208,7 +263,10 @@ fn main()
                 stdout().flush().unwrap();
             }
             current.clear();
-            lines = BufReader::new(File::open(file_path).unwrap()).lines().map(|l| l.unwrap()).collect();
+            lines = BufReader::new(File::open(file_path).unwrap())
+                .lines()
+                .map(|l| l.unwrap())
+                .collect();
             unmod_lines = lines.clone();
             i = lines.len() as i32;
             max = i;
@@ -233,14 +291,35 @@ fn main()
                         }
                         if !options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
+                            frac = print_concurrent(
+                                &input,
+                                &input_var(
+                                    &input.replace('_', &format!("({})", last)),
+                                    &vars,
+                                    None,
+                                ),
+                                options,
+                                start,
+                                end,
+                            );
                         }
                         if !(input.is_empty()
-                             || input.contains('#')
-                             || (input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
-                             || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
-                             || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
-                             || input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('='))
+                            || input.contains('#')
+                            || (input
+                                .replace("exp", "")
+                                .replace("}x{", "")
+                                .replace("]x[", "")
+                                .contains('x')
+                                && vars.iter().all(|i| i[0] != "x"))
+                            || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                            || (input.replace("zeta", "").contains('z')
+                                && vars.iter().all(|i| i[0] != "z"))
+                            || input
+                                .replace("==", "")
+                                .replace("!=", "")
+                                .replace(">=", "")
+                                .replace("<=", "")
+                                .contains('='))
                         {
                             println!();
                         }
@@ -257,22 +336,24 @@ fn main()
                         {
                             if input.is_empty()
                             {
-                                print!("\x1B[0J\x1B[2K\x1B[1G{}",
-                                       if options.prompt
-                                       {
-                                           if options.color
-                                           {
-                                               "\x1b[94m> \x1b[0m"
-                                           }
-                                           else
-                                           {
-                                               "> "
-                                           }
-                                       }
-                                       else
-                                       {
-                                           ""
-                                       });
+                                print!(
+                                    "\x1B[0J\x1B[2K\x1B[1G{}",
+                                    if options.prompt
+                                    {
+                                        if options.color
+                                        {
+                                            "\x1b[94m> \x1b[0m"
+                                        }
+                                        else
+                                        {
+                                            "> "
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ""
+                                    }
+                                );
                                 stdout().flush().unwrap();
                             }
                             continue;
@@ -298,37 +379,55 @@ fn main()
                         }
                         else if options.real_time_output
                         {
-                            print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end)
+                            print_concurrent(
+                                &input,
+                                &input_var(
+                                    &input.replace('_', &format!("({})", last)),
+                                    &vars,
+                                    None,
+                                ),
+                                options,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
-                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[96m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else if options.color
-                                   {
-                                       "\x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   },
-                                   &input[start..end]);
+                            print!(
+                                "\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[96m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else if options.color
+                                {
+                                    "\x1b[96m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                &input[start..end]
+                            );
                             0
                         };
                         if let Some(time) = watch
                         {
                             let time = time.elapsed().as_nanos();
-                            print!(" {}{}", time, "\x08".repeat(time.to_string().len() + 1 + end - start - (placement - start)));
+                            print!(
+                                " {}{}",
+                                time,
+                                "\x08".repeat(
+                                    time.to_string().len() + 1 + end - start - (placement - start)
+                                )
+                            );
                         }
                         else
                         {
@@ -336,22 +435,24 @@ fn main()
                         }
                         if placement == 0 && input.is_empty()
                         {
-                            print!("\x1B[0J\x1B[2K\x1B[1G{}",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[0m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   });
+                            print!(
+                                "\x1B[0J\x1B[2K\x1B[1G{}",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[0m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else
+                                {
+                                    ""
+                                }
+                            );
                         }
                     }
                     '\x1D' =>
@@ -361,41 +462,55 @@ fn main()
                         input = lines[i as usize].clone();
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 } > input.len()
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                            > input.len()
                         {
                             0
                         }
                         else
                         {
-                            input.len() - (get_terminal_width() - if options.prompt { 3 } else { 0 })
+                            input.len()
+                                - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
+                            frac = print_concurrent(
+                                &input,
+                                &input_var(
+                                    &input.replace('_', &format!("({})", last)),
+                                    &vars,
+                                    None,
+                                ),
+                                options,
+                                start,
+                                end,
+                            );
                         }
                         else
                         {
-                            print!("\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[96m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else if options.color
-                                   {
-                                       "\x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   },
-                                   &input[start..]);
+                            print!(
+                                "\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[96m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else if options.color
+                                {
+                                    "\x1b[96m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                &input[start..]
+                            );
                         }
                     }
                     '\x1E' =>
@@ -436,41 +551,55 @@ fn main()
                         }
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 } > input.len()
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                            > input.len()
                         {
                             0
                         }
                         else
                         {
-                            input.len() - (get_terminal_width() - if options.prompt { 3 } else { 0 })
+                            input.len()
+                                - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
+                            frac = print_concurrent(
+                                &input,
+                                &input_var(
+                                    &input.replace('_', &format!("({})", last)),
+                                    &vars,
+                                    None,
+                                ),
+                                options,
+                                start,
+                                end,
+                            );
                         }
                         else
                         {
-                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[96m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else if options.color
-                                   {
-                                       "\x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   },
-                                   &input[start..]);
+                            print!(
+                                "\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[96m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else if options.color
+                                {
+                                    "\x1b[96m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                &input[start..]
+                            );
                         }
                     }
                     '\x1B' =>
@@ -485,28 +614,30 @@ fn main()
                             {
                                 end = input.len()
                             }
-                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m{}",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[96m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else if options.color
-                                   {
-                                       "\x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   },
-                                   &input[start..end],
-                                   "\x08".repeat(end - start - (placement - start)));
+                            print!(
+                                "\x1B[2K\x1B[1G{}{}\x1b[0m{}",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[96m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else if options.color
+                                {
+                                    "\x1b[96m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                &input[start..end],
+                                "\x08".repeat(end - start - (placement - start))
+                            );
                             stdout().flush().unwrap();
                         }
                         else if placement != 0
@@ -527,27 +658,29 @@ fn main()
                         {
                             start += 1;
                             placement += 1;
-                            print!("\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[96m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else if options.color
-                                   {
-                                       "\x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   },
-                                   &input[start..end + 1]);
+                            print!(
+                                "\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[96m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else if options.color
+                                {
+                                    "\x1b[96m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                &input[start..end + 1]
+                            );
                         }
                         else if placement != input.len()
                         {
@@ -616,36 +749,54 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &input_var(&input.replace('_', &format!("({})", last)), &vars, None), options, start, end);
+                            frac = print_concurrent(
+                                &input,
+                                &input_var(
+                                    &input.replace('_', &format!("({})", last)),
+                                    &vars,
+                                    None,
+                                ),
+                                options,
+                                start,
+                                end,
+                            );
                         }
                         else
                         {
-                            print!("\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
-                                   if options.prompt
-                                   {
-                                       if options.color
-                                       {
-                                           "\x1b[94m> \x1b[96m"
-                                       }
-                                       else
-                                       {
-                                           "> "
-                                       }
-                                   }
-                                   else if options.color
-                                   {
-                                       "\x1b[96m"
-                                   }
-                                   else
-                                   {
-                                       ""
-                                   },
-                                   &input[start..end]);
+                            print!(
+                                "\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
+                                if options.prompt
+                                {
+                                    if options.color
+                                    {
+                                        "\x1b[94m> \x1b[96m"
+                                    }
+                                    else
+                                    {
+                                        "> "
+                                    }
+                                }
+                                else if options.color
+                                {
+                                    "\x1b[96m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                &input[start..end]
+                            );
                         }
                         if let Some(time) = watch
                         {
                             let time = time.elapsed().as_nanos();
-                            print!(" {}{}", time, "\x08".repeat(time.to_string().len() + 1 + end - start - (placement - start)));
+                            print!(
+                                " {}{}",
+                                time,
+                                "\x08".repeat(
+                                    time.to_string().len() + 1 + end - start - (placement - start)
+                                )
+                            );
                         }
                         else if placement != input.len()
                         {
@@ -801,10 +952,18 @@ fn main()
                         }
                         else
                         {
-                            n = get_output(&options,
-                                           &do_math(get_func(&input_var(&v[1], &vars, Some(&v[0])), options.prec).unwrap(), options.deg, options.prec).unwrap()
-                                                                                                                                                      .num()
-                                                                                                                                                      .unwrap());
+                            n = get_output(
+                                &options,
+                                &do_math(
+                                    get_func(&input_var(&v[1], &vars, Some(&v[0])), options.prec)
+                                        .unwrap(),
+                                    options.deg,
+                                    options.prec,
+                                )
+                                .unwrap()
+                                .num()
+                                .unwrap(),
+                            );
                             println!("{}={}{}", v[0], n.0, n.1);
                         }
                     }
@@ -880,7 +1039,12 @@ fn main()
                             Num(n) =>
                             {
                                 let n = get_output(&options, &n);
-                                print!("{}{}{}", n.0, n.1, if options.color { "\x1b[0m" } else { "" })
+                                print!(
+                                    "{}{}{}",
+                                    n.0,
+                                    n.1,
+                                    if options.color { "\x1b[0m" } else { "" }
+                                )
                             }
                             Vector(n) =>
                             {
@@ -889,7 +1053,12 @@ fn main()
                                 for i in n
                                 {
                                     num = get_output(&options, &i);
-                                    str.push_str(&format!("{}{}{},", num.0, num.1, if options.color { "\x1b[0m" } else { "" }));
+                                    str.push_str(&format!(
+                                        "{}{}{},",
+                                        num.0,
+                                        num.1,
+                                        if options.color { "\x1b[0m" } else { "" }
+                                    ));
                                 }
                                 str.pop();
                                 print!("{{{}}}", str)
@@ -903,7 +1072,12 @@ fn main()
                                     for j in i
                                     {
                                         num = get_output(&options, &j);
-                                        str.push_str(&format!("{}{}{},", num.0, num.1, if options.color { "\x1b[0m" } else { "" }));
+                                        str.push_str(&format!(
+                                            "{}{}{},",
+                                            num.0,
+                                            num.1,
+                                            if options.color { "\x1b[0m" } else { "" }
+                                        ));
                                     }
                                 }
                                 str.pop();
@@ -917,7 +1091,12 @@ fn main()
             }
             continue;
         }
-        if input.replace("==", "").replace("!=", "").replace(">=", "").replace("<=", "").contains('=')
+        if input
+            .replace("==", "")
+            .replace("!=", "")
+            .replace(">=", "")
+            .replace("<=", "")
+            .contains('=')
         {
             print!("\x1B[0J");
             stdout().flush().unwrap();
@@ -932,7 +1111,20 @@ fn main()
             {
                 "point" =>
                 {
-                    if r == "." || r == "+" || r == "x" || r == "*" || r == "s" || r == "S" || r == "o" || r == "O" || r == "t" || r == "T" || r == "d" || r == "D" || r == "r" || r == "R"
+                    if r == "."
+                        || r == "+"
+                        || r == "x"
+                        || r == "*"
+                        || r == "s"
+                        || r == "S"
+                        || r == "o"
+                        || r == "O"
+                        || r == "t"
+                        || r == "T"
+                        || r == "d"
+                        || r == "D"
+                        || r == "r"
+                        || r == "R"
                     {
                         options.point_style = r.chars().next().unwrap();
                     }
@@ -1156,10 +1348,18 @@ fn main()
             continue;
         }
         else if input.contains('#')
-                  || (input.replace("exp", "").replace("}x{", "").replace("]x[", "").contains('x') && vars.iter().all(|i| i[0] != "x"))
-                  || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
+            || (input
+                .replace("exp", "")
+                .replace("}x{", "")
+                .replace("]x[", "")
+                .contains('x')
+                && vars.iter().all(|i| i[0] != "x"))
+            || (input.replace("zeta", "").contains('z') && vars.iter().all(|i| i[0] != "z"))
         {
-            input = input.replace("zeta", "##ta##").replace('z', "(x+y*i)").replace("##ta##", "zeta");
+            input = input
+                .replace("zeta", "##ta##")
+                .replace('z', "(x+y*i)")
+                .replace("##ta##", "zeta");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
             inputs = input.split('#').map(String::from).collect();
@@ -1171,12 +1371,19 @@ fn main()
                     continue;
                 }
                 funcs.push(match get_func(&input_var(i, &vars, None), options.prec)
-                     {
-                         Ok(f) => f,
-                         _ => continue 'main,
-                     });
+                {
+                    Ok(f) => f,
+                    _ => continue 'main,
+                });
             }
-            handles.push(graph(inputs, funcs, options, options.deg, options.prec, watch));
+            handles.push(graph(
+                inputs,
+                funcs,
+                options,
+                options.deg,
+                options.prec,
+                watch,
+            ));
             continue;
         }
     }
@@ -1185,7 +1392,7 @@ fn main()
 fn get_terminal_width() -> usize
 {
     unsafe {
-        let mut size:winsize = std::mem::zeroed();
+        let mut size: winsize = std::mem::zeroed();
         if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0
         {
             size.ws_col as usize
@@ -1301,31 +1508,31 @@ fn read_single_char() -> char
         Key::Char(c) =>
         {
             if c.is_ascii_alphanumeric()
-               || c == '+'
-               || c == '-'
-               || c == '*'
-               || c == '/'
-               || c == '^'
-               || c == '('
-               || c == ')'
-               || c == '.'
-               || c == '='
-               || c == ','
-               || c == 'π'
-               || c == 'τ'
-               || c == '#'
-               || c == '|'
-               || c == '&'
-               || c == '!'
-               || c == '%'
-               || c == '_'
-               || c == '<'
-               || c == '>'
-               || c == ' '
-               || c == '['
-               || c == ']'
-               || c == '{'
-               || c == '}'
+                || c == '+'
+                || c == '-'
+                || c == '*'
+                || c == '/'
+                || c == '^'
+                || c == '('
+                || c == ')'
+                || c == '.'
+                || c == '='
+                || c == ','
+                || c == 'π'
+                || c == 'τ'
+                || c == '#'
+                || c == '|'
+                || c == '&'
+                || c == '!'
+                || c == '%'
+                || c == '_'
+                || c == '<'
+                || c == '>'
+                || c == ' '
+                || c == '['
+                || c == ']'
+                || c == '{'
+                || c == '}'
             {
                 c
             }
@@ -1343,7 +1550,7 @@ fn read_single_char() -> char
         _ => '\0',
     }
 }
-fn write(input:&str, file:&mut File, lines:&Vec<String>)
+fn write(input: &str, file: &mut File, lines: &Vec<String>)
 {
     if lines.is_empty() || lines[lines.len() - 1] != *input
     {
@@ -1425,6 +1632,8 @@ Vector operations/functions:\n\
 - angle between vectors: angle({{vec1}},{{vec2}})\n\
 - magnitude: |{{vec}}|\n\
 - part({{vec}},col)\n\
+- len{{mat}}, length\n\
+- wid{{mat}}, width\n\
 - normal operations ^,*,/,+,-\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
@@ -1432,6 +1641,8 @@ Matrix operations/functions:\n\
 - trace: tr{{mat}}\n\
 - determinant: det{{mat}}\n\
 - part({{mat}},col,row)\n\
+- len{{mat}}, length\n\
+- wid{{mat}}, width\n\
 - normal operations ^,*,/,+,-\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\

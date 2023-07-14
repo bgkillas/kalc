@@ -1,9 +1,9 @@
+use crate::{help, Options};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
-use crate::{help, Options};
-pub fn arg_opts(options:&mut Options, args:&mut Vec<String>) -> bool
+pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
 {
     let mut err = false;
     args.remove(0);
@@ -279,7 +279,20 @@ pub fn arg_opts(options:&mut Options, args:&mut Vec<String>) -> bool
                 {
                     Some(x) =>
                     {
-                        if x == '.' || x == '+' || x == 'x' || x == '*' || x == 's' || x == 'S' || x == 'o' || x == 'O' || x == 't' || x == 'T' || x == 'd' || x == 'D' || x == 'x' || x == 'R'
+                        if x == '.'
+                            || x == '+'
+                            || x == 'x'
+                            || x == '*'
+                            || x == 's'
+                            || x == 'S'
+                            || x == 'o'
+                            || x == 'O'
+                            || x == 't'
+                            || x == 'T'
+                            || x == 'd'
+                            || x == 'D'
+                            || x == 'x'
+                            || x == 'R'
                         {
                             x
                         }
@@ -326,7 +339,7 @@ pub fn arg_opts(options:&mut Options, args:&mut Vec<String>) -> bool
     }
     err
 }
-pub fn file_opts(options:&mut Options, file_path:&String) -> bool
+pub fn file_opts(options: &mut Options, file_path: &String) -> bool
 {
     let mut err = false;
     if File::open(file_path).is_ok()
@@ -628,7 +641,20 @@ pub fn file_opts(options:&mut Options, file_path:&String) -> bool
                     {
                         Some(x) =>
                         {
-                            if x == '.' || x == '+' || x == 'x' || x == '*' || x == 's' || x == 'S' || x == 'o' || x == 'O' || x == 't' || x == 'T' || x == 'd' || x == 'D' || x == 'x' || x == 'R'
+                            if x == '.'
+                                || x == '+'
+                                || x == 'x'
+                                || x == '*'
+                                || x == 's'
+                                || x == 'S'
+                                || x == 'o'
+                                || x == 'O'
+                                || x == 't'
+                                || x == 'T'
+                                || x == 'd'
+                                || x == 'D'
+                                || x == 'x'
+                                || x == 'R'
                             {
                                 x
                             }

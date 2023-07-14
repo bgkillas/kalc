@@ -1,10 +1,10 @@
-use std::ops::{Shl, Shr};
 use crate::complex::{
     NumStr,
     NumStr::{Matrix, Num, Str, Vector},
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
-pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
+use std::ops::{Shl, Shr};
+pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
 {
     if func.len() == 1
     {
@@ -137,7 +137,17 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     if let Str(k) = &function[i - 1]
                     {
-                        if k == "log" || k == "root" || k == "atan" || k == "arctan" || k == "atan2" || k == "bi" || k == "binomial" || k == "angle" || k == "cross" || k == "dot" || k == "part"
+                        if k == "log"
+                            || k == "root"
+                            || k == "atan"
+                            || k == "arctan"
+                            || k == "atan2"
+                            || k == "bi"
+                            || k == "binomial"
+                            || k == "angle"
+                            || k == "cross"
+                            || k == "dot"
+                            || k == "part"
                         {
                             count = 0;
                             for (f, n) in v.iter().enumerate()
@@ -165,7 +175,10 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 for (k, l) in place.iter().enumerate()
                                 {
                                     function.insert(i + k + 1, Str(",".to_string()));
-                                    function.insert(i + k + 2, do_math(v[l + 1..].to_vec(), deg, prec)?);
+                                    function.insert(
+                                        i + k + 2,
+                                        do_math(v[l + 1..].to_vec(), deg, prec)?,
+                                    );
                                     i += 1;
                                 }
                                 continue 'outer;
@@ -234,13 +247,21 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                     {
                         if let Str(l) = &function[place[0] + 1]
                         {
-                            function[i] = Num(sum(function[i + 2..place[0]].to_vec(),
-                                                  l,
-                                                  do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?.num()?.real().to_f64() as i64,
-                                                  do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?.num()?.real().to_f64() as i64,
-                                                  !(s == "sum" || s == "summation"),
-                                                  deg,
-                                                  prec)?);
+                            function[i] = Num(sum(
+                                function[i + 2..place[0]].to_vec(),
+                                l,
+                                do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
+                                    .num()?
+                                    .real()
+                                    .to_f64() as i64,
+                                do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
+                                    .num()?
+                                    .real()
+                                    .to_f64() as i64,
+                                !(s == "sum" || s == "summation"),
+                                deg,
+                                prec,
+                            )?);
                             function.drain(i + 1..=place[3]);
                         }
                         else
@@ -257,9 +278,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     function[i] = match s.as_str()
                     {
+                        "len" | "length" => Num(Complex::with_val(prec, a.len())),
+                        "wid" | "width" => Num(Complex::with_val(prec, a[0].len())),
                         "tr" | "trace" =>
                         {
-                            let mut n = Complex::with_val(prec, 0);
+                            let mut n = Complex::new(prec);
                             for (i, j) in a.iter().enumerate()
                             {
                                 if j.len() == i
@@ -276,13 +299,20 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 if a.len() == 2
                                 {
-                                    Num(a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone())
+                                    Num(a[0][0].clone() * a[1][1].clone()
+                                        - a[1][0].clone() * a[0][1].clone())
                                 }
                                 else if a.len() == 3
                                 {
-                                    Num(a[0][0].clone() * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
-                                        + a[0][1].clone() * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
-                                        + a[0][2].clone() * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone()))
+                                    Num(a[0][0].clone()
+                                        * (a[1][1].clone() * a[2][2].clone()
+                                            - a[1][2].clone() * a[2][1].clone())
+                                        + a[0][1].clone()
+                                            * (a[1][2].clone() * a[2][0].clone()
+                                                - a[1][0].clone() * a[2][2].clone())
+                                        + a[0][2].clone()
+                                            * (a[1][0].clone() * a[2][1].clone()
+                                                - a[1][1].clone() * a[2][0].clone()))
                                 }
                                 else
                                 {
@@ -346,9 +376,10 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     function[i] = match s.as_str()
                     {
+                        "len" | "length" => Num(Complex::with_val(prec, a.len())),
                         "abs" =>
                         {
-                            let mut n = Complex::with_val(prec, 0);
+                            let mut n = Complex::new(prec);
                             for i in a.iter().map(|x| x.clone().pow(2)).collect::<Vec<Complex>>()
                             {
                                 n += i;
@@ -360,15 +391,20 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             if a.len() == 2
                             {
                                 let t = a[1].clone() / to_deg.clone();
-                                Vector(vec![a[0].clone() * t.clone().cos(), a[0].clone() * t.clone().sin()])
+                                Vector(vec![
+                                    a[0].clone() * t.clone().cos(),
+                                    a[0].clone() * t.clone().sin(),
+                                ])
                             }
                             else if a.len() == 3
                             {
                                 let t1 = a[1].clone() / to_deg.clone();
                                 let t2 = a[2].clone() / to_deg.clone();
-                                Vector(vec![a[0].clone() * t1.clone().sin() * t2.clone().cos(),
-                                            a[0].clone() * t1.clone().sin() * t2.clone().sin(),
-                                            a[0].clone() * t1.clone().cos()])
+                                Vector(vec![
+                                    a[0].clone() * t1.clone().sin() * t2.clone().cos(),
+                                    a[0].clone() * t1.clone().sin() * t2.clone().sin(),
+                                    a[0].clone() * t1.clone().cos(),
+                                ])
                             }
                             else
                             {
@@ -384,15 +420,28 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 function.drain(i + 2..i + 4);
                                 if a.len() == 3 && b.len() == 3
                                 {
-                                    let c:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
-                                    let d:Complex = b[0].clone().pow(2) + b[1].clone().pow(2) + b[2].clone().pow(2);
-                                    Num(((a[0].clone() * b[0].clone() + a[1].clone() * b[1].clone() + a[2].clone() * b[2].clone()) / (c.sqrt() * d.sqrt())).acos() * to_deg.clone())
+                                    let c: Complex = a[0].clone().pow(2)
+                                        + a[1].clone().pow(2)
+                                        + a[2].clone().pow(2);
+                                    let d: Complex = b[0].clone().pow(2)
+                                        + b[1].clone().pow(2)
+                                        + b[2].clone().pow(2);
+                                    Num(((a[0].clone() * b[0].clone()
+                                        + a[1].clone() * b[1].clone()
+                                        + a[2].clone() * b[2].clone())
+                                        / (c.sqrt() * d.sqrt()))
+                                    .acos()
+                                        * to_deg.clone())
                                 }
                                 else if a.len() == 2 && b.len() == 2
                                 {
-                                    let c:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-                                    let d:Complex = b[0].clone().pow(2) + b[1].clone().pow(2);
-                                    Num(((a[0].clone() * b[0].clone() + a[1].clone() * b[1].clone()) / (c.sqrt() * d.sqrt())).acos() * to_deg.clone())
+                                    let c: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+                                    let d: Complex = b[0].clone().pow(2) + b[1].clone().pow(2);
+                                    Num(((a[0].clone() * b[0].clone()
+                                        + a[1].clone() * b[1].clone())
+                                        / (c.sqrt() * d.sqrt()))
+                                    .acos()
+                                        * to_deg.clone())
                                 }
                                 else
                                 {
@@ -412,9 +461,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 function.drain(i + 2..i + 4);
                                 if a.len() == 3 && b.len() == 3
                                 {
-                                    Vector(vec![a[1].clone() * &b[2] - a[2].clone() * &b[1],
-                                                a[2].clone() * &b[0] - a[0].clone() * &b[2],
-                                                a[0].clone() * &b[1] - a[1].clone() * &b[0]])
+                                    Vector(vec![
+                                        a[1].clone() * &b[2] - a[2].clone() * &b[1],
+                                        a[2].clone() * &b[0] - a[0].clone() * &b[2],
+                                        a[0].clone() * &b[1] - a[1].clone() * &b[0],
+                                    ])
                                 }
                                 else if a.len() == 2 && b.len() == 2
                                 {
@@ -434,8 +485,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                let mut n = Complex::with_val(prec, 0);
-                                for i in a.iter().zip(function[i + 3].vec()?.iter()).map(|(a, b)| a * b)
+                                let mut n = Complex::new(prec);
+                                for i in a
+                                    .iter()
+                                    .zip(function[i + 3].vec()?.iter())
+                                    .map(|(a, b)| a * b)
                                 {
                                     n += i;
                                 }
@@ -542,7 +596,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 b = function[i + 3].num()?;
                                 function.drain(i + 2..i + 4);
                                 let i = Complex::with_val(prec, (0, 1));
-                                ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs()).ln() * -i * to_deg.clone()
+                                ((a.clone() + b.clone() * i.clone())
+                                    / (a.clone() + b.clone() * i.clone()).abs())
+                                .ln()
+                                    * -i
+                                    * to_deg.clone()
                             }
                             else
                             {
@@ -595,7 +653,11 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 b
                             }
                         }
-                        "cis" => (a.clone() / to_deg.clone()).cos() + (a / to_deg.clone()).sin() * Complex::with_val(prec, (0.0, 1.0)),
+                        "cis" =>
+                        {
+                            (a.clone() / to_deg.clone()).cos()
+                                + (a / to_deg.clone()).sin() * Complex::with_val(prec, (0.0, 1.0))
+                        }
                         "ln" | "aexp" =>
                         {
                             if a.imag() == &0.0
@@ -604,9 +666,18 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             a.ln()
                         }
-                        "ceil" => Complex::with_val(prec, (a.real().clone().ceil(), a.imag().clone().ceil())),
-                        "floor" => Complex::with_val(prec, (a.real().clone().floor(), a.imag().clone().floor())),
-                        "round" => Complex::with_val(prec, (a.real().clone().round(), a.imag().clone().round())),
+                        "ceil" => Complex::with_val(
+                            prec,
+                            (a.real().clone().ceil(), a.imag().clone().ceil()),
+                        ),
+                        "floor" => Complex::with_val(
+                            prec,
+                            (a.real().clone().floor(), a.imag().clone().floor()),
+                        ),
+                        "round" => Complex::with_val(
+                            prec,
+                            (a.real().clone().round(), a.imag().clone().round()),
+                        ),
                         "recip" => a.recip(),
                         "exp" | "aln" => a.exp(),
                         "log" =>
@@ -637,9 +708,16 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 b = function[i + 3].num()?;
                                 function.drain(i + 2..i + 4);
-                                match b.imag() == &0.0 && (b.real().to_f64() / 2.0).fract() != 0.0 && &b.real().clone().trunc() == b.real() && a.imag() == &0.0
+                                match b.imag() == &0.0
+                                    && (b.real().to_f64() / 2.0).fract() != 0.0
+                                    && &b.real().clone().trunc() == b.real()
+                                    && a.imag() == &0.0
                                 {
-                                    true => Complex::with_val(prec, a.real() / a.real().clone().abs() * a.real().clone().abs().pow(b.real().clone().recip())),
+                                    true => Complex::with_val(
+                                        prec,
+                                        a.real() / a.real().clone().abs()
+                                            * a.real().clone().abs().pow(b.real().clone().recip()),
+                                    ),
                                     false => a.pow(b.recip()),
                                 }
                             }
@@ -656,23 +734,30 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 function.drain(i + 2..i + 4);
                                 if a.imag() != &0.0 && b.imag() != &0.0
                                 {
-                                    Complex::with_val(prec, 0)
+                                    Complex::new(prec)
                                 }
-                                else if a.real().clone().fract() == 0.0 && b.real().clone().fract() == 0.0
+                                else if a.real().clone().fract() == 0.0
+                                    && b.real().clone().fract() == 0.0
                                 {
-                                    Complex::with_val(prec, a.real().to_integer().unwrap().binomial(b.real().to_f64() as u32))
+                                    Complex::with_val(
+                                        prec,
+                                        a.real()
+                                            .to_integer()
+                                            .unwrap()
+                                            .binomial(b.real().to_f64() as u32),
+                                    )
                                 }
                                 else
                                 {
-                                    let c:Float = a.real().clone() + 1;
-                                    let d:Float = b.real().clone() + 1;
-                                    let e:Float = a.real().clone() - b.real().clone() + 1;
+                                    let c: Float = a.real().clone() + 1;
+                                    let d: Float = b.real().clone() + 1;
+                                    let e: Float = a.real().clone() - b.real().clone() + 1;
                                     Complex::with_val(prec, c.gamma() / (d.gamma() * e.gamma()))
                                 }
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "gamma" =>
@@ -683,7 +768,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "sqrt" | "asquare" => a.sqrt(),
@@ -743,11 +828,15 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 if a.real() == &0.0
                                 {
-                                    Complex::with_val(prec, 0)
+                                    Complex::new(prec)
                                 }
                                 else
                                 {
-                                    Complex::with_val(prec, a.real() / a.real().clone().abs() * a.real().clone().abs().pow(3f64.recip()))
+                                    Complex::with_val(
+                                        prec,
+                                        a.real() / a.real().clone().abs()
+                                            * a.real().clone().abs().pow(3f64.recip()),
+                                    )
                                 }
                             }
                             else
@@ -755,20 +844,26 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                                 a.pow(3f64.recip())
                             }
                         }
-                        "frac" | "fract" => Complex::with_val(prec, (a.real().clone().fract(), a.imag().clone().fract())),
-                        "int" | "trunc" => Complex::with_val(prec, (a.real().clone().trunc(), a.imag().clone().trunc())),
+                        "frac" | "fract" => Complex::with_val(
+                            prec,
+                            (a.real().clone().fract(), a.imag().clone().fract()),
+                        ),
+                        "int" | "trunc" => Complex::with_val(
+                            prec,
+                            (a.real().clone().trunc(), a.imag().clone().trunc()),
+                        ),
                         "square" | "asqrt" => a.pow(2),
                         "cube" | "acbrt" => a.pow(3),
                         "fact" =>
                         {
                             if a.imag() == &0.0
                             {
-                                let b:Float = a.real().clone() + 1;
+                                let b: Float = a.real().clone() + 1;
                                 Complex::with_val(prec, b.gamma())
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "subfact" =>
@@ -789,7 +884,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "erfc" =>
@@ -800,7 +895,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "ai" =>
@@ -811,7 +906,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "digamma" =>
@@ -822,7 +917,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         "zeta" =>
@@ -833,7 +928,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Complex::with_val(prec, 0)
+                                Complex::new(prec)
                             }
                         }
                         _ =>
@@ -866,12 +961,24 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 }
                 else
                 {
-                    Vector(function[i + 1].vec()?.iter().map(|x| n1.clone().pow(x)).collect())
+                    Vector(
+                        function[i + 1]
+                            .vec()?
+                            .iter()
+                            .map(|x| n1.clone().pow(x))
+                            .collect(),
+                    )
                 }
             }
             else if let Num(n2) = &function[i + 1]
             {
-                Vector(function[i - 1].vec()?.iter().map(|x| x.pow(n2.clone())).collect())
+                Vector(
+                    function[i - 1]
+                        .vec()?
+                        .iter()
+                        .map(|x| x.pow(n2.clone()))
+                        .collect(),
+                )
             }
             else
             {
@@ -881,7 +988,12 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     return Err(());
                 }
-                Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone().pow(y)).collect())
+                Vector(
+                    v1.iter()
+                        .zip(v2.iter())
+                        .map(|(x, y)| x.clone().pow(y))
+                        .collect(),
+                )
             };
             function.remove(i + 1);
             function.remove(i - 1);
@@ -907,12 +1019,24 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Vector(function[i + 1].vec()?.iter().map(|x| n1.clone() / x).collect())
+                                Vector(
+                                    function[i + 1]
+                                        .vec()?
+                                        .iter()
+                                        .map(|x| n1.clone() / x)
+                                        .collect(),
+                                )
                             }
                         }
                         else if let Num(n2) = &function[i + 1]
                         {
-                            Vector(function[i - 1].vec()?.iter().map(|x| x / n2.clone()).collect())
+                            Vector(
+                                function[i - 1]
+                                    .vec()?
+                                    .iter()
+                                    .map(|x| x / n2.clone())
+                                    .collect(),
+                            )
                         }
                         else
                         {
@@ -922,7 +1046,12 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 return Err(());
                             }
-                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() / y).collect())
+                            Vector(
+                                v1.iter()
+                                    .zip(v2.iter())
+                                    .map(|(x, y)| x.clone() / y)
+                                    .collect(),
+                            )
                         }
                     }
                 }
@@ -959,12 +1088,24 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Vector(function[i + 1].vec()?.iter().map(|x| x + n1.clone()).collect())
+                                Vector(
+                                    function[i + 1]
+                                        .vec()?
+                                        .iter()
+                                        .map(|x| x + n1.clone())
+                                        .collect(),
+                                )
                             }
                         }
                         else if let Num(n2) = &function[i + 1]
                         {
-                            Vector(function[i - 1].vec()?.iter().map(|x| x + n2.clone()).collect())
+                            Vector(
+                                function[i - 1]
+                                    .vec()?
+                                    .iter()
+                                    .map(|x| x + n2.clone())
+                                    .collect(),
+                            )
                         }
                         else
                         {
@@ -974,7 +1115,12 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 return Err(());
                             }
-                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() + y).collect())
+                            Vector(
+                                v1.iter()
+                                    .zip(v2.iter())
+                                    .map(|(x, y)| x.clone() + y)
+                                    .collect(),
+                            )
                         }
                     }
                 }
@@ -989,12 +1135,24 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             }
                             else
                             {
-                                Vector(function[i + 1].vec()?.iter().map(|x| n1.clone() - x).collect())
+                                Vector(
+                                    function[i + 1]
+                                        .vec()?
+                                        .iter()
+                                        .map(|x| n1.clone() - x)
+                                        .collect(),
+                                )
                             }
                         }
                         else if let Num(n2) = &function[i + 1]
                         {
-                            Vector(function[i - 1].vec()?.iter().map(|x| x - n2.clone()).collect())
+                            Vector(
+                                function[i - 1]
+                                    .vec()?
+                                    .iter()
+                                    .map(|x| x - n2.clone())
+                                    .collect(),
+                            )
                         }
                         else
                         {
@@ -1004,7 +1162,12 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                             {
                                 return Err(());
                             }
-                            Vector(v1.iter().zip(v2.iter()).map(|(x, y)| x.clone() - y).collect())
+                            Vector(
+                                v1.iter()
+                                    .zip(v2.iter())
+                                    .map(|(x, y)| x.clone() - y)
+                                    .collect(),
+                            )
                         }
                     }
                 }
@@ -1046,14 +1209,78 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                         }
                     }
                 }
-                "<" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() < function[i + 1].num()?.abs().real()) as i32)),
-                ">" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() > function[i + 1].num()?.abs().real()) as i32)),
-                ">=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() >= function[i + 1].num()?.abs().real()) as i32)),
-                "<=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()?.abs().real() <= function[i + 1].num()?.abs().real()) as i32)),
-                "==" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()? == function[i + 1].num()?) as i32)),
-                "!=" => function[i] = Num(Complex::with_val(prec, (function[i - 1].num()? != function[i + 1].num()?) as i32)),
-                ">>" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.shr(function[i + 1].num()?.real().to_u32_saturating().unwrap_or(0)))),
-                "<<" => function[i] = Num(Complex::with_val(prec, function[i - 1].num()?.shl(function[i + 1].num()?.real().to_u32_saturating().unwrap_or(0)))),
+                "<" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (function[i - 1].num()?.abs().real() < function[i + 1].num()?.abs().real())
+                            as i32,
+                    ))
+                }
+                ">" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (function[i - 1].num()?.abs().real() > function[i + 1].num()?.abs().real())
+                            as i32,
+                    ))
+                }
+                ">=" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (function[i - 1].num()?.abs().real() >= function[i + 1].num()?.abs().real())
+                            as i32,
+                    ))
+                }
+                "<=" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (function[i - 1].num()?.abs().real() <= function[i + 1].num()?.abs().real())
+                            as i32,
+                    ))
+                }
+                "==" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (function[i - 1].num()? == function[i + 1].num()?) as i32,
+                    ))
+                }
+                "!=" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (function[i - 1].num()? != function[i + 1].num()?) as i32,
+                    ))
+                }
+                ">>" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        function[i - 1].num()?.shr(
+                            function[i + 1]
+                                .num()?
+                                .real()
+                                .to_u32_saturating()
+                                .unwrap_or(0),
+                        ),
+                    ))
+                }
+                "<<" =>
+                {
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        function[i - 1].num()?.shl(
+                            function[i + 1]
+                                .num()?
+                                .real()
+                                .to_u32_saturating()
+                                .unwrap_or(0),
+                        ),
+                    ))
+                }
                 _ =>
                 {
                     i += 1;
@@ -1080,13 +1307,25 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
                 {
                     a = function[i - 1].num()?;
                     b = function[i - 1].num()?;
-                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && a.real() == &1.0 && b.real() == &1.0) as i32))
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (a.imag() == &0.0
+                            && b.imag() == &0.0
+                            && a.real() == &1.0
+                            && b.real() == &1.0) as i32,
+                    ))
                 }
                 "||" =>
                 {
                     a = function[i - 1].num()?;
                     b = function[i - 1].num()?;
-                    function[i] = Num(Complex::with_val(prec, (a.imag() == &0.0 && b.imag() == &0.0 && (a.real() == &1.0 || b.real() == &1.0)) as i32))
+                    function[i] = Num(Complex::with_val(
+                        prec,
+                        (a.imag() == &0.0
+                            && b.imag() == &0.0
+                            && (a.real() == &1.0 || b.real() == &1.0))
+                            as i32,
+                    ))
                 }
                 _ =>
                 {
@@ -1105,7 +1344,7 @@ pub fn do_math(func:Vec<NumStr>, deg:u8, prec:u32) -> Result<NumStr, ()>
     }
     Ok(function[0].clone())
 }
-pub fn to_polar(a:Vec<Complex>, to_deg:Complex) -> Vec<Complex>
+pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
 {
     let mut a = a;
     if a.len() == 1
@@ -1122,26 +1361,34 @@ pub fn to_polar(a:Vec<Complex>, to_deg:Complex) -> Vec<Complex>
         {
             if a[0].eq0()
             {
-                vec![Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+                vec![
+                    Complex::with_val(a[0].prec(), 0),
+                    Complex::with_val(a[0].prec(), 0),
+                ]
             }
             else
             {
-                vec![a[0].clone().abs(),
-                     if a[0].real().is_sign_positive()
-                     {
-                         Complex::with_val(a[0].prec(), 0)
-                     }
-                     else
-                     {
-                         to_deg * Complex::with_val(a[0].prec(), Pi)
-                     }]
+                vec![
+                    a[0].clone().abs(),
+                    if a[0].real().is_sign_positive()
+                    {
+                        Complex::with_val(a[0].prec(), 0)
+                    }
+                    else
+                    {
+                        to_deg * Complex::with_val(a[0].prec(), Pi)
+                    },
+                ]
             }
         }
         else
         {
-            let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+            let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
             n = n.sqrt();
-            vec![n.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg]
+            vec![
+                n.clone(),
+                a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg,
+            ]
         }
     }
     else if a[1].eq0()
@@ -1150,29 +1397,45 @@ pub fn to_polar(a:Vec<Complex>, to_deg:Complex) -> Vec<Complex>
         {
             if a[2].eq0()
             {
-                vec![Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+                vec![
+                    Complex::with_val(a[0].prec(), 0),
+                    Complex::with_val(a[0].prec(), 0),
+                    Complex::with_val(a[0].prec(), 0),
+                ]
             }
             else
             {
-                vec![a[2].clone().abs(), Complex::with_val(a[0].prec(), 0), Complex::with_val(a[0].prec(), 0)]
+                vec![
+                    a[2].clone().abs(),
+                    Complex::with_val(a[0].prec(), 0),
+                    Complex::with_val(a[0].prec(), 0),
+                ]
             }
         }
         else
         {
-            let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+            let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
             n = n.sqrt();
-            vec![n.clone(), (&a[2] / n).acos() * to_deg.clone(), Complex::with_val(a[0].prec(), 0)]
+            vec![
+                n.clone(),
+                (&a[2] / n).acos() * to_deg.clone(),
+                Complex::with_val(a[0].prec(), 0),
+            ]
         }
     }
     else
     {
-        let mut n:Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+        let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
         n = n.sqrt();
-        let t:Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-        vec![n.clone(), (&a[2] / n).acos() * to_deg.clone(), a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg]
+        let t: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+        vec![
+            n.clone(),
+            (&a[2] / n).acos() * to_deg.clone(),
+            a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg,
+        ]
     }
 }
-fn subfact(a:f64) -> f64
+fn subfact(a: f64) -> f64
 {
     if a == 0.0
     {
@@ -1193,9 +1456,17 @@ fn subfact(a:f64) -> f64
     }
     curr
 }
-fn sum(function:Vec<NumStr>, var:&str, start:i64, end:i64, product:bool, deg:u8, prec:u32) -> Result<Complex, ()>
+fn sum(
+    function: Vec<NumStr>,
+    var: &str,
+    start: i64,
+    end: i64,
+    product: bool,
+    deg: u8,
+    prec: u32,
+) -> Result<Complex, ()>
 {
-    let mut value:Complex = Complex::new(prec);
+    let mut value: Complex = Complex::new(prec);
     let mut func;
     let mut math;
     for z in start..=end

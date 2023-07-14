@@ -104,7 +104,8 @@ Vector operations/functions:
 - cross product: cross({vec1},{vec2})
 - angle between vectors: angle({vec1},{vec2})
 - magnitude: |{vec}|
-- part({{vec}},col)
+- part({vec},col)
+- len{vec},length
 - normal operations ^,*,/,+,-
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
@@ -113,6 +114,8 @@ Matrix operations/functions:
 - trace: tr{mat}
 - determinant: det{mat}
 - part({mat},col,row)
+- len{mat}, length
+- wid{mat}, width
 - normal operations ^,*,/,+,-
 
 Constants:

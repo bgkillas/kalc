@@ -1,6 +1,7 @@
 // as per continued fraction expansion
+use crate::Options;
 use rug::{float::Constant::Pi, Float};
-pub fn fraction(value: Float, tau: bool, frac_iter: usize) -> String
+pub fn fraction(value: Float, options: Options) -> String
 {
     let prec = value.prec();
     if value.clone().fract() == 0.0
@@ -11,7 +12,7 @@ pub fn fraction(value: Float, tau: bool, frac_iter: usize) -> String
     let rt3 = Float::with_val(prec, 3).sqrt();
     let values = [
         Float::with_val(prec, 1.0),
-        if tau
+        if options.tau
         {
             2 * Float::with_val(prec, Pi)
         }
@@ -34,7 +35,7 @@ pub fn fraction(value: Float, tau: bool, frac_iter: usize) -> String
     };
     let val = value.abs();
     let (mut number, mut recip, mut fract, mut orig);
-    let tau = if tau { "τ" } else { "π" };
+    let tau = if options.tau { "τ" } else { "π" };
     for (i, constant) in values.iter().enumerate()
     {
         orig = val.clone() / constant;
@@ -71,7 +72,7 @@ pub fn fraction(value: Float, tau: bool, frac_iter: usize) -> String
         }
         number = orig.clone().fract();
         nums.clear();
-        for _ in 0..=frac_iter
+        for _ in 0..=options.frac_iter
         {
             recip = number.clone().recip();
             fract = recip.clone().fract();
@@ -85,7 +86,9 @@ pub fn fraction(value: Float, tau: bool, frac_iter: usize) -> String
                 }
                 let recip = recip.to_integer().unwrap();
                 let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
-                return if recip == 1 && i == 0
+                return if (recip == 1 && i == 0)
+                    || recip.to_string().len() > options.decimal_places
+                    || last.to_string().len() > options.decimal_places
                 {
                     String::new()
                 }

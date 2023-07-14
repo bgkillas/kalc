@@ -1,5 +1,5 @@
 use crate::complex::{
-    NumStr,
+    determinant, NumStr,
     NumStr::{Matrix, Num, Str, Vector},
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
@@ -299,27 +299,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                         {
                             if a.len() == a[0].len()
                             {
-                                if a.len() == 2
-                                {
-                                    Num(a[0][0].clone() * a[1][1].clone()
-                                        - a[1][0].clone() * a[0][1].clone())
-                                }
-                                else if a.len() == 3
-                                {
-                                    Num(a[0][0].clone()
-                                        * (a[1][1].clone() * a[2][2].clone()
-                                            - a[1][2].clone() * a[2][1].clone())
-                                        + a[0][1].clone()
-                                            * (a[1][2].clone() * a[2][0].clone()
-                                                - a[1][0].clone() * a[2][2].clone())
-                                        + a[0][2].clone()
-                                            * (a[1][0].clone() * a[2][1].clone()
-                                                - a[1][1].clone() * a[2][0].clone()))
-                                }
-                                else
-                                {
-                                    return Err(());
-                                }
+                                Num(determinant(a))
                             }
                             else
                             {
@@ -370,13 +350,10 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                         {
                             let mut n = Complex::new(prec);
                             for i in a
-                                .iter()
-                                .map(|x| x.iter().map(|x| x.clone().abs().pow(2)).collect())
-                                .collect::<Vec<Vec<Complex>>>()
                             {
                                 for j in i
                                 {
-                                    n += j;
+                                    n += j.pow(2);
                                 }
                             }
                             Num(n.sqrt())
@@ -404,23 +381,17 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                         {
                             let mut n = Complex::new(prec);
                             for i in a
-                                .iter()
-                                .map(|x| x.clone().abs().pow(2))
-                                .collect::<Vec<Complex>>()
                             {
-                                n += i;
+                                n += i.pow(2);
                             }
                             Num(n.sqrt())
                         }
                         "normalize" =>
                         {
                             let mut n = Complex::new(prec);
-                            for i in a
-                                .iter()
-                                .map(|x| x.clone().abs().pow(2))
-                                .collect::<Vec<Complex>>()
+                            for i in a.clone()
                             {
-                                n += i;
+                                n += i.pow(2);
                             }
                             Vector(a.iter().map(|x| x / n.clone().sqrt()).collect())
                         }

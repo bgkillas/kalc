@@ -91,7 +91,7 @@ impl Default for Options
             samples_3d: 400.0,
             point_style: '.',
             lines: false,
-            multi: true,
+            multi: false,
             allow_vars: true,
             debug: false,
         }

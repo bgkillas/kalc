@@ -234,8 +234,8 @@ pub fn print_concurrent(
         .to_owned();
         let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
         {
-            let fa = fraction(n.real().clone(), options.tau, options.frac_iter);
-            let fb = fraction(n.imag().clone(), options.tau, options.frac_iter);
+            let fa = fraction(n.real().clone(), options);
+            let fb = fraction(n.imag().clone(), options);
             match (!fa.is_empty(), !fb.is_empty())
             {
                 (true, true) =>
@@ -473,7 +473,7 @@ pub fn print_concurrent(
             out = get_output(&options, i);
             if options.frac || options.frac_iter == 0
             {
-                frac_temp = fraction(i.real().clone(), options.tau, options.frac_iter);
+                frac_temp = fraction(i.real().clone(), options);
                 frac_out += if !frac_temp.is_empty()
                 {
                     &frac_temp
@@ -482,7 +482,7 @@ pub fn print_concurrent(
                 {
                     &out.0
                 };
-                frac_temp = fraction(i.imag().clone(), options.tau, options.frac_iter);
+                frac_temp = fraction(i.imag().clone(), options);
                 frac_out += &if !frac_temp.is_empty()
                 {
                     format!(
@@ -612,7 +612,7 @@ pub fn print_concurrent(
                 out = get_output(&options, i);
                 if (options.frac || options.frac_iter == 0) && !options.multi
                 {
-                    frac_temp = fraction(i.real().clone(), options.tau, options.frac_iter);
+                    frac_temp = fraction(i.real().clone(), options);
                     frac_out += if !frac_temp.is_empty()
                     {
                         &frac_temp
@@ -621,7 +621,7 @@ pub fn print_concurrent(
                     {
                         &out.0
                     };
-                    frac_temp = fraction(i.imag().clone(), options.tau, options.frac_iter);
+                    frac_temp = fraction(i.imag().clone(), options);
                     frac_out += &if !frac_temp.is_empty()
                     {
                         format!(

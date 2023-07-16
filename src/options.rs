@@ -11,7 +11,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
     let mut i = 0;
     while i < args.len()
     {
-        if args[i].contains('-') && (args[i].contains('=') || args[i].contains(','))
+        if args[i].starts_with("--") && (args[i].contains('=') || args[i].contains(','))
         {
             l = args[i].clone();
             split = l.split(|c| c == '=' || c == ',');

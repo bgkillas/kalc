@@ -215,7 +215,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
     };
     while i < function.len() - 1
     {
-        if let Str(s) = &function[i]
+        if let Str(s) = &function[i].clone()
         {
             if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
             {
@@ -280,7 +280,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                 {
                     function[i] = match s.as_str()
                     {
-                        "cofactor" | "cofactors" =>
+                        "cofactor" | "cofactors" | "cof" =>
                         {
                             if a.len() == a[0].len() && a.len() > 1
                             {
@@ -302,7 +302,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
-                        "adjugate" =>
+                        "adjugate" | "adj" =>
                         {
                             if a.len() == a[0].len() && a.len() > 1
                             {
@@ -313,6 +313,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
+                        "inverse" | "inv" => Matrix(inverse(a)?),
                         "transpose" | "trans" => Matrix(transpose(a)),
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
                         "wid" | "width" => Num(Complex::with_val(prec, a[0].len())),
@@ -399,8 +400,36 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                         ),
                         _ =>
                         {
-                            i += 1;
-                            continue;
+                            let mut mat = Vec::new();
+                            let mut vec = Vec::new();
+                            for i in a
+                            {
+                                vec.clear();
+                                for j in i
+                                {
+                                    vec.push(functions(
+                                        &mut function,
+                                        Some(j),
+                                        0,
+                                        to_deg.clone(),
+                                        s,
+                                        deg,
+                                    )?)
+                                }
+                                if !vec.is_empty()
+                                {
+                                    mat.push(vec.clone());
+                                }
+                            }
+                            if mat.is_empty()
+                            {
+                                i += 1;
+                                continue;
+                            }
+                            else
+                            {
+                                Matrix(mat)
+                            }
                         }
                     };
                     function.remove(i + 1);
@@ -567,485 +596,34 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                         }
                         _ =>
                         {
-                            i += 1;
-                            continue;
+                            let mut vec = Vec::new();
+                            for i in a
+                            {
+                                vec.push(functions(
+                                    &mut function,
+                                    Some(i),
+                                    0,
+                                    to_deg.clone(),
+                                    s,
+                                    deg,
+                                )?)
+                            }
+                            if vec.is_empty()
+                            {
+                                i += 1;
+                                continue;
+                            }
+                            else
+                            {
+                                Vector(vec)
+                            }
                         }
                     };
                     function.remove(i + 1);
                 }
                 else
                 {
-                    a = function[i + 1].num()?;
-                    function[i] = Num(match s.to_string().as_str()
-                    {
-                        "sin" => (a / to_deg.clone()).sin(),
-                        "csc" => (a / to_deg.clone()).sin().recip(),
-                        "cos" => (a / to_deg.clone()).cos(),
-                        "sec" => (a / to_deg.clone()).cos().recip(),
-                        "tan" => (a / to_deg.clone()).tan(),
-                        "cot" => (a / to_deg.clone()).tan().recip(),
-                        "asin" | "arcsin" =>
-                        {
-                            b = a.clone().asin() * to_deg.clone();
-                            if a.imag() == &0.0 && a.real() >= &1.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "acsc" | "arccsc" =>
-                        {
-                            b = a.clone().recip().asin() * to_deg.clone();
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "acos" | "arccos" =>
-                        {
-                            b = a.clone().acos() * to_deg.clone();
-                            if a.imag() == &0.0 && a.real() >= &1.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "asec" | "arcsec" =>
-                        {
-                            b = a.clone().recip().acos() * to_deg.clone();
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "atan" | "arctan" | "atan2" =>
-                        {
-                            if function.len() > i + 3 && function[i + 2].str_is(",")
-                            {
-                                b = function[i + 3].num()?;
-                                function.drain(i + 2..i + 4);
-                                let i = Complex::with_val(prec, (0, 1));
-                                ((a.clone() + b.clone() * i.clone())
-                                    / (a.clone() + b.clone() * i.clone()).abs())
-                                .ln()
-                                    * -i
-                                    * to_deg.clone()
-                            }
-                            else
-                            {
-                                a.atan() * to_deg.clone()
-                            }
-                        }
-                        "acot" | "arccot" => a.recip().atan() * to_deg.clone(),
-                        "sinh" => a.sinh(),
-                        "csch" => a.sinh().recip(),
-                        "cosh" => a.cosh(),
-                        "sech" => a.cosh().recip(),
-                        "tanh" => a.tanh(),
-                        "coth" => a.tanh().recip(),
-                        "asinh" | "arcsinh" => a.asinh(),
-                        "acsch" | "arccsch" => a.recip().asinh(),
-                        "acosh" | "arccosh" => a.acosh(),
-                        "asech" | "arcsech" =>
-                        {
-                            b = a.clone().recip().acosh();
-                            if a.imag() == &0.0 && a.real() < &0.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "atanh" | "arctanh" =>
-                        {
-                            b = a.clone().atanh();
-                            if a.imag() == &0.0 && a.real() >= &1.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "acoth" | "arccoth" =>
-                        {
-                            b = a.clone().recip().atanh();
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, (b.real(), -b.imag()))
-                            }
-                            else
-                            {
-                                b
-                            }
-                        }
-                        "cis" =>
-                        {
-                            (a.clone() / to_deg.clone()).cos()
-                                + (a / to_deg.clone()).sin() * Complex::with_val(prec, (0.0, 1.0))
-                        }
-                        "ln" | "aexp" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                a = Complex::with_val(prec, a.real());
-                            }
-                            a.ln()
-                        }
-                        "ceil" => Complex::with_val(
-                            prec,
-                            (a.real().clone().ceil(), a.imag().clone().ceil()),
-                        ),
-                        "floor" => Complex::with_val(
-                            prec,
-                            (a.real().clone().floor(), a.imag().clone().floor()),
-                        ),
-                        "round" => Complex::with_val(
-                            prec,
-                            (a.real().clone().round(), a.imag().clone().round()),
-                        ),
-                        "recip" => a.recip(),
-                        "exp" | "aln" => a.exp(),
-                        "log" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                a = Complex::with_val(prec, a.real());
-                            }
-                            if function.len() > i + 3 && function[i + 2].str_is(",")
-                            {
-                                b = function[i + 3].num()?;
-                                if b.imag() == &0.0
-                                {
-                                    b = Complex::with_val(prec, b.real());
-                                }
-                                function.remove(i + 3);
-                                function.remove(i + 2);
-                                b.ln() / a.ln()
-                            }
-                            else
-                            {
-                                a.ln()
-                            }
-                        }
-                        "root" =>
-                        {
-                            if function.len() > i + 3 && function[i + 2].str_is(",")
-                            {
-                                b = function[i + 3].num()?;
-                                function.drain(i + 2..i + 4);
-                                match b.imag() == &0.0
-                                    && (b.real().to_f64() / 2.0).fract() != 0.0
-                                    && &b.real().clone().trunc() == b.real()
-                                    && a.imag() == &0.0
-                                {
-                                    true => Complex::with_val(
-                                        prec,
-                                        a.real() / a.real().clone().abs()
-                                            * a.real().clone().abs().pow(b.real().clone().recip()),
-                                    ),
-                                    false => a.pow(b.recip()),
-                                }
-                            }
-                            else
-                            {
-                                a.sqrt()
-                            }
-                        }
-                        "bi" | "binomial" =>
-                        {
-                            if function.len() > i + 3 && function[i + 2].str_is(",")
-                            {
-                                b = function[i + 3].num()?;
-                                function.drain(i + 2..i + 4);
-                                if a.imag() != &0.0 && b.imag() != &0.0
-                                {
-                                    Complex::new(prec)
-                                }
-                                else if a.real().clone().fract() == 0.0
-                                    && b.real().clone().fract() == 0.0
-                                {
-                                    Complex::with_val(
-                                        prec,
-                                        a.real()
-                                            .to_integer()
-                                            .unwrap()
-                                            .binomial(b.real().to_f64() as u32),
-                                    )
-                                }
-                                else
-                                {
-                                    let c: Float = a.real().clone() + 1;
-                                    let d: Float = b.real().clone() + 1;
-                                    let e: Float = a.real().clone() - b.real().clone() + 1;
-                                    Complex::with_val(prec, c.gamma() / (d.gamma() * e.gamma()))
-                                }
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "gamma" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, a.real().clone().gamma())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "max" =>
-                        {
-                            if function.len() > i + 3 && function[i + 2].str_is(",")
-                            {
-                                b = function[i + 3].num()?;
-                                function.drain(i + 2..i + 4);
-                                Complex::with_val(
-                                    prec,
-                                    (
-                                        if a.real() > b.real()
-                                        {
-                                            a.real()
-                                        }
-                                        else
-                                        {
-                                            b.real()
-                                        },
-                                        if a.imag() > b.imag()
-                                        {
-                                            a.imag()
-                                        }
-                                        else
-                                        {
-                                            b.imag()
-                                        },
-                                    ),
-                                )
-                            }
-                            else
-                            {
-                                return Err(());
-                            }
-                        }
-                        "min" =>
-                        {
-                            if function.len() > i + 3 && function[i + 2].str_is(",")
-                            {
-                                b = function[i + 3].num()?;
-                                function.drain(i + 2..i + 4);
-                                Complex::with_val(
-                                    prec,
-                                    (
-                                        if a.real() < b.real()
-                                        {
-                                            a.real()
-                                        }
-                                        else
-                                        {
-                                            b.real()
-                                        },
-                                        if a.imag() < b.imag()
-                                        {
-                                            a.imag()
-                                        }
-                                        else
-                                        {
-                                            b.imag()
-                                        },
-                                    ),
-                                )
-                            }
-                            else
-                            {
-                                return Err(());
-                            }
-                        }
-                        "sqrt" | "asquare" => a.sqrt(),
-                        "abs" => a.abs(),
-                        "deg" | "degree" =>
-                        {
-                            if deg == 0
-                            {
-                                a * Complex::with_val(prec, 180) / Complex::with_val(prec, Pi)
-                            }
-                            else if deg == 2
-                            {
-                                a * 180.0 / 200.0
-                            }
-                            else
-                            {
-                                a
-                            }
-                        }
-                        "rad" | "radians" =>
-                        {
-                            if deg == 0
-                            {
-                                a
-                            }
-                            else if deg == 2
-                            {
-                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200)
-                            }
-                            else
-                            {
-                                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180)
-                            }
-                        }
-                        "grad" | "gradians" =>
-                        {
-                            if deg == 0
-                            {
-                                a * Complex::with_val(prec, 200) / Complex::with_val(prec, Pi)
-                            }
-                            else if deg == 2
-                            {
-                                a
-                            }
-                            else
-                            {
-                                a * 200.0 / 180.0
-                            }
-                        }
-                        "re" | "real" => Complex::with_val(prec, a.real()),
-                        "im" | "imag" => Complex::with_val(prec, a.imag()),
-                        "sgn" | "sign" => Complex::with_val(prec, a.clone() / a.abs()),
-                        "arg" => a.arg(),
-                        "cbrt" | "acube" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                if a.real() == &0.0
-                                {
-                                    Complex::new(prec)
-                                }
-                                else
-                                {
-                                    Complex::with_val(
-                                        prec,
-                                        a.real() / a.real().clone().abs()
-                                            * a.real().clone().abs().pow(3f64.recip()),
-                                    )
-                                }
-                            }
-                            else
-                            {
-                                a.pow(3f64.recip())
-                            }
-                        }
-                        "frac" | "fract" => Complex::with_val(
-                            prec,
-                            (a.real().clone().fract(), a.imag().clone().fract()),
-                        ),
-                        "int" | "trunc" => Complex::with_val(
-                            prec,
-                            (a.real().clone().trunc(), a.imag().clone().trunc()),
-                        ),
-                        "square" | "asqrt" => a.pow(2),
-                        "cube" | "acbrt" => a.pow(3),
-                        "fact" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                let b: Float = a.real().clone() + 1;
-                                Complex::with_val(prec, b.gamma())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "subfact" =>
-                        {
-                            if a.imag() != &0.0 || a.real() < &0.0
-                            {
-                                return Err(());
-                            }
-                            Complex::with_val(prec, subfact(a.real().to_f64()))
-                        }
-                        "sinc" => a.clone().sin() / a,
-                        "conj" | "conjugate" => a.conj(),
-                        "erf" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, a.real().clone().erf())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "erfc" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, a.real().clone().erfc())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "ai" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, a.real().clone().ai())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "digamma" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, a.real().clone().digamma())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        "zeta" =>
-                        {
-                            if a.imag() == &0.0
-                            {
-                                Complex::with_val(prec, a.real().clone().zeta())
-                            }
-                            else
-                            {
-                                Complex::new(prec)
-                            }
-                        }
-                        _ =>
-                        {
-                            i += 1;
-                            continue;
-                        }
-                    });
+                    function[i] = Num(functions(&mut function, None, i, to_deg.clone(), s, deg)?);
                     function.remove(i + 1);
                 }
             }
@@ -1511,4 +1089,495 @@ fn cofactor(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
         }
     }
     result
+}
+pub fn inverse(a: Vec<Vec<Complex>>) -> Result<Vec<Vec<Complex>>, ()>
+{
+    if a.len() == a[0].len() && a.len() > 1
+    {
+        Matrix(transpose(cofactor(a.clone())))
+            .div(&Num(determinant(a)))?
+            .mat()
+    }
+    else
+    {
+        Err(())
+    }
+}
+fn functions(
+    function: &mut Vec<NumStr>,
+    n: Option<Complex>,
+    i: usize,
+    to_deg: Complex,
+    s: &str,
+    deg: u8,
+) -> Result<Complex, ()>
+{
+    let mut a = if let Some(g) = n
+    {
+        g
+    }
+    else
+    {
+        function[i + 1].num()?
+    };
+    let mut b;
+    let prec = to_deg.prec();
+    Ok(match s
+    {
+        "sin" => (a / to_deg.clone()).sin(),
+        "csc" => (a / to_deg.clone()).sin().recip(),
+        "cos" => (a / to_deg.clone()).cos(),
+        "sec" => (a / to_deg.clone()).cos().recip(),
+        "tan" => (a / to_deg.clone()).tan(),
+        "cot" => (a / to_deg.clone()).tan().recip(),
+        "asin" | "arcsin" =>
+        {
+            b = a.clone().asin() * to_deg.clone();
+            if a.imag() == &0.0 && a.real() >= &1.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "acsc" | "arccsc" =>
+        {
+            b = a.clone().recip().asin() * to_deg.clone();
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "acos" | "arccos" =>
+        {
+            b = a.clone().acos() * to_deg.clone();
+            if a.imag() == &0.0 && a.real() >= &1.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "asec" | "arcsec" =>
+        {
+            b = a.clone().recip().acos() * to_deg.clone();
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "atan" | "arctan" | "atan2" =>
+        {
+            if function.len() > i + 3 && function[i + 2].str_is(",")
+            {
+                b = function[i + 3].num()?;
+                function.drain(i + 2..i + 4);
+                let i = Complex::with_val(prec, (0, 1));
+                ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs())
+                    .ln()
+                    * -i
+                    * to_deg.clone()
+            }
+            else
+            {
+                a.atan() * to_deg.clone()
+            }
+        }
+        "acot" | "arccot" => a.recip().atan() * to_deg.clone(),
+        "sinh" => a.sinh(),
+        "csch" => a.sinh().recip(),
+        "cosh" => a.cosh(),
+        "sech" => a.cosh().recip(),
+        "tanh" => a.tanh(),
+        "coth" => a.tanh().recip(),
+        "asinh" | "arcsinh" => a.asinh(),
+        "acsch" | "arccsch" => a.recip().asinh(),
+        "acosh" | "arccosh" => a.acosh(),
+        "asech" | "arcsech" =>
+        {
+            b = a.clone().recip().acosh();
+            if a.imag() == &0.0 && a.real() < &0.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "atanh" | "arctanh" =>
+        {
+            b = a.clone().atanh();
+            if a.imag() == &0.0 && a.real() >= &1.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "acoth" | "arccoth" =>
+        {
+            b = a.clone().recip().atanh();
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, (b.real(), -b.imag()))
+            }
+            else
+            {
+                b
+            }
+        }
+        "cis" =>
+        {
+            (a.clone() / to_deg.clone()).cos()
+                + (a / to_deg.clone()).sin() * Complex::with_val(prec, (0.0, 1.0))
+        }
+        "ln" | "aexp" =>
+        {
+            if a.imag() == &0.0
+            {
+                a = Complex::with_val(prec, a.real());
+            }
+            a.ln()
+        }
+        "ceil" => Complex::with_val(prec, (a.real().clone().ceil(), a.imag().clone().ceil())),
+        "floor" => Complex::with_val(prec, (a.real().clone().floor(), a.imag().clone().floor())),
+        "round" => Complex::with_val(prec, (a.real().clone().round(), a.imag().clone().round())),
+        "recip" => a.recip(),
+        "exp" | "aln" => a.exp(),
+        "log" =>
+        {
+            if a.imag() == &0.0
+            {
+                a = Complex::with_val(prec, a.real());
+            }
+            if function.len() > i + 3 && function[i + 2].str_is(",")
+            {
+                b = function[i + 3].num()?;
+                if b.imag() == &0.0
+                {
+                    b = Complex::with_val(prec, b.real());
+                }
+                function.remove(i + 3);
+                function.remove(i + 2);
+                b.ln() / a.ln()
+            }
+            else
+            {
+                a.ln()
+            }
+        }
+        "root" =>
+        {
+            if function.len() > i + 3 && function[i + 2].str_is(",")
+            {
+                b = function[i + 3].num()?;
+                function.drain(i + 2..i + 4);
+                match b.imag() == &0.0
+                    && (b.real().to_f64() / 2.0).fract() != 0.0
+                    && &b.real().clone().trunc() == b.real()
+                    && a.imag() == &0.0
+                {
+                    true => Complex::with_val(
+                        prec,
+                        a.real() / a.real().clone().abs()
+                            * a.real().clone().abs().pow(b.real().clone().recip()),
+                    ),
+                    false => a.pow(b.recip()),
+                }
+            }
+            else
+            {
+                a.sqrt()
+            }
+        }
+        "bi" | "binomial" =>
+        {
+            if function.len() > i + 3 && function[i + 2].str_is(",")
+            {
+                b = function[i + 3].num()?;
+                function.drain(i + 2..i + 4);
+                if a.imag() != &0.0 && b.imag() != &0.0
+                {
+                    Complex::new(prec)
+                }
+                else if a.real().clone().fract() == 0.0 && b.real().clone().fract() == 0.0
+                {
+                    Complex::with_val(
+                        prec,
+                        a.real()
+                            .to_integer()
+                            .unwrap()
+                            .binomial(b.real().to_f64() as u32),
+                    )
+                }
+                else
+                {
+                    let c: Float = a.real().clone() + 1;
+                    let d: Float = b.real().clone() + 1;
+                    let e: Float = a.real().clone() - b.real().clone() + 1;
+                    Complex::with_val(prec, c.gamma() / (d.gamma() * e.gamma()))
+                }
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "gamma" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, a.real().clone().gamma())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "max" =>
+        {
+            if function.len() > i + 3 && function[i + 2].str_is(",")
+            {
+                b = function[i + 3].num()?;
+                function.drain(i + 2..i + 4);
+                Complex::with_val(
+                    prec,
+                    (
+                        if a.real() > b.real()
+                        {
+                            a.real()
+                        }
+                        else
+                        {
+                            b.real()
+                        },
+                        if a.imag() > b.imag()
+                        {
+                            a.imag()
+                        }
+                        else
+                        {
+                            b.imag()
+                        },
+                    ),
+                )
+            }
+            else
+            {
+                return Err(());
+            }
+        }
+        "min" =>
+        {
+            if function.len() > i + 3 && function[i + 2].str_is(",")
+            {
+                b = function[i + 3].num()?;
+                function.drain(i + 2..i + 4);
+                Complex::with_val(
+                    prec,
+                    (
+                        if a.real() < b.real()
+                        {
+                            a.real()
+                        }
+                        else
+                        {
+                            b.real()
+                        },
+                        if a.imag() < b.imag()
+                        {
+                            a.imag()
+                        }
+                        else
+                        {
+                            b.imag()
+                        },
+                    ),
+                )
+            }
+            else
+            {
+                return Err(());
+            }
+        }
+        "sqrt" | "asquare" => a.sqrt(),
+        "abs" => a.abs(),
+        "deg" | "degree" =>
+        {
+            if deg == 0
+            {
+                a * Complex::with_val(prec, 180) / Complex::with_val(prec, Pi)
+            }
+            else if deg == 2
+            {
+                a * 180.0 / 200.0
+            }
+            else
+            {
+                a
+            }
+        }
+        "rad" | "radians" =>
+        {
+            if deg == 0
+            {
+                a
+            }
+            else if deg == 2
+            {
+                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200)
+            }
+            else
+            {
+                a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180)
+            }
+        }
+        "grad" | "gradians" =>
+        {
+            if deg == 0
+            {
+                a * Complex::with_val(prec, 200) / Complex::with_val(prec, Pi)
+            }
+            else if deg == 2
+            {
+                a
+            }
+            else
+            {
+                a * 200.0 / 180.0
+            }
+        }
+        "re" | "real" => Complex::with_val(prec, a.real()),
+        "im" | "imag" => Complex::with_val(prec, a.imag()),
+        "sgn" | "sign" => Complex::with_val(prec, a.clone() / a.abs()),
+        "arg" => a.arg(),
+        "cbrt" | "acube" =>
+        {
+            if a.imag() == &0.0
+            {
+                if a.real() == &0.0
+                {
+                    Complex::new(prec)
+                }
+                else
+                {
+                    Complex::with_val(
+                        prec,
+                        a.real() / a.real().clone().abs()
+                            * a.real().clone().abs().pow(3f64.recip()),
+                    )
+                }
+            }
+            else
+            {
+                a.pow(3f64.recip())
+            }
+        }
+        "frac" | "fract" =>
+        {
+            Complex::with_val(prec, (a.real().clone().fract(), a.imag().clone().fract()))
+        }
+        "int" | "trunc" =>
+        {
+            Complex::with_val(prec, (a.real().clone().trunc(), a.imag().clone().trunc()))
+        }
+        "square" | "asqrt" => a.pow(2),
+        "cube" | "acbrt" => a.pow(3),
+        "fact" =>
+        {
+            if a.imag() == &0.0
+            {
+                let b: Float = a.real().clone() + 1;
+                Complex::with_val(prec, b.gamma())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "subfact" =>
+        {
+            if a.imag() != &0.0 || a.real() < &0.0
+            {
+                return Err(());
+            }
+            Complex::with_val(prec, subfact(a.real().to_f64()))
+        }
+        "sinc" => a.clone().sin() / a,
+        "conj" | "conjugate" => a.conj(),
+        "erf" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, a.real().clone().erf())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "erfc" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, a.real().clone().erfc())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "ai" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, a.real().clone().ai())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "digamma" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, a.real().clone().digamma())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        "zeta" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, a.real().clone().zeta())
+            }
+            else
+            {
+                Complex::new(prec)
+            }
+        }
+        _ =>
+        {
+            return Err(());
+        }
+    })
 }

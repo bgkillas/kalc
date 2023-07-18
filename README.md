@@ -14,6 +14,7 @@ you can set permanent variables and functions in the file ```~/.config/kalc.vars
 parsing tries to comply with wolfram alpha
 
 # wont fix issues
+- matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
 - sin^-4!(2) fails to parse
 - sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
 
@@ -103,18 +104,20 @@ Other functions:
 Vector operations/functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2})
 - angle({vec1},{vec2})
-- norm{vec}, normalize{vec}
+- norm, normalize
 - abs, len
 - part({vec},col)
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
+- other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
 Matrix operations/functions:
-- trace/tr, determinant/det
-- transpose/trans, adjugate, minor, cofactor
+- trace/tr, determinant/det, inverse/inv
+- transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row)
 - abs, norm
 - len, wid
+- other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 
 Constants:
 - c: speed of light, 299792458 m/s

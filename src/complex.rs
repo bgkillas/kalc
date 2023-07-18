@@ -1,4 +1,5 @@
 use crate::complex::NumStr::{Matrix, Num, Str, Vector};
+use crate::math::inverse;
 use rug::ops::Pow;
 use rug::Complex;
 #[derive(Clone)]
@@ -193,11 +194,30 @@ impl NumStr
                     .map(|b| b.iter().map(|b| a.pow(b.clone())).collect())
                     .collect(),
             ),
-            (Matrix(a), Num(b)) => Matrix(
-                a.iter()
-                    .map(|a| a.iter().map(|a| a.pow(b.clone())).collect())
-                    .collect(),
-            ),
+            (Matrix(a), Num(b)) =>
+            {
+                if b.imag() == &0.0 && b.real().clone().fract() == 0.0
+                {
+                    let mut mat = Matrix(a.clone());
+                    let c = b.real().to_f64().abs() as usize;
+                    for _ in 1..c
+                    {
+                        mat = mat.mul(&Matrix(a.clone()))?;
+                    }
+                    if b.real() > &0.0
+                    {
+                        mat
+                    }
+                    else
+                    {
+                        Matrix(inverse(mat.mat()?)?)
+                    }
+                }
+                else
+                {
+                    return Err(());
+                }
+            }
             (Vector(a), Matrix(b)) if b.len() == a.len() => Matrix(
                 (0..b.len())
                     .map(|j| b[j].iter().map(|b| a[j].clone().pow(b)).collect())
@@ -241,6 +261,14 @@ impl NumStr
         match self
         {
             Vector(v) => Ok(v.clone()),
+            _ => Err(()),
+        }
+    }
+    pub fn mat(&self) -> Result<Vec<Vec<Complex>>, ()>
+    {
+        match self
+        {
+            Matrix(m) => Ok(m.clone()),
             _ => Err(()),
         }
     }

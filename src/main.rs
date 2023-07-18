@@ -35,6 +35,7 @@ use {
     std::io::Read,
     std::os::fd::AsRawFd,
 };
+// allow log({2,3},{6,7})
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // fix 0's and infinities of sin, cos, tan and cis
 // gui support (via egui prob)
@@ -1649,17 +1650,19 @@ Other functions:\n\
 Vector operations/functions:\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}})\n\
 - angle({{vec1}},{{vec2}})\n\
-- norm{{vec}}, normalize{{vec}}\n\
+- norm, normalize\n\
 - abs, len\n\
 - part({{vec}},col)\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
-- convert to cartesian: car{{vec}} outputs (x, y, z)\n\n\
+- convert to cartesian: car{{vec}} outputs (x, y, z)\n\
+- other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\n\n\
 Matrix operations/functions:\n\
-- trace/tr, determinant/det\n\
-- transpose/trans, adjugate, minor, cofactor\n\
+- trace/tr, determinant/det, inverse/inv\n\
+- transpose/trans, adjugate/adj, cofactor/cof, minor\n\
 - part({{mat}},col,row)\n\
 - abs, norm\n\
-- len, wid\n\n\
+- len, wid\n\
+- other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\
 - g: gravity, 9.80665 m/s^2\n\

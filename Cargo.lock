@@ -44,9 +44,9 @@ dependencies = [
 
 [[package]]
 name = "gnuplot"
-version = "0.0.38"
+version = "0.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3980f1547c7c19b51b5a89fbc6b8913a7d441c7f017547d5b40079ba7ca0321"
+checksum = "2529467b8aef62bdf0c97dc984ca33244b84f8b5eb9517328f24bbb9afa0fb31"
 dependencies = [
  "byteorder",
 ]

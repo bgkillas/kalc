@@ -17,7 +17,7 @@ strip = true
 
 [dependencies]
 rug          = { version = "1.19.2", default-features = false, features = ["complex","integer"] }
-gnuplot      = { version = "0.0.38", default-features = false }
+gnuplot      = { version = "0.0.39", default-features = false }
 
 [target.'cfg(not(unix))'.dependencies]
 console      = { version = "0.15.7", default-features = false }

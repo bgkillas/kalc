@@ -16,6 +16,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
     let n1 = Complex::with_val(prec, -1);
+    let mut open = false;
     'outer: while i < input.len()
     {
         c = chars[i];
@@ -68,8 +69,11 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                 Complex::parse(word.as_bytes()).unwrap(),
             )));
             word.clear();
-            func.extend(vec![Str(")".to_string()); count as usize]);
-            count = 0;
+            if !open
+            {
+                func.extend(vec![Str(")".to_string()); count as usize]);
+                count = 0;
+            }
             continue;
         }
         else if c.is_ascii_alphabetic()
@@ -117,8 +121,11 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                             word.clear();
                         }
                         func.push(Str(c.to_string()));
-                        func.extend(vec![Str(")".to_string()); count as usize]);
-                        count = 0;
+                        if !open
+                        {
+                            func.extend(vec![Str(")".to_string()); count as usize]);
+                            count = 0;
+                        }
                     }
                     'i' =>
                     {
@@ -254,6 +261,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str("car".to_string()));
                     }
                     func.push(Str("{".to_string()));
+                    open = true;
                 }
                 '}' | ']' =>
                 {
@@ -262,6 +270,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     {
                         func.push(Str(")".to_string()));
                     }
+                    open = false;
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
                 '+' if i != 0
@@ -364,7 +373,8 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     }
                     else if i != 0
                         && (chars[i - 1].is_ascii_alphanumeric()
-                            || (!func.is_empty() && func.last().unwrap().str_is(")")))
+                            || (!func.is_empty() && func.last().unwrap().str_is(")")
+                                || func.last().unwrap().str_is("}")))
                     {
                         if let Num(a) = func.clone().last().unwrap()
                         {
@@ -377,17 +387,18 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                             }
                         }
                         if func.clone().last().unwrap().str_is(")")
+                            || func.last().unwrap().str_is("}")
                         {
                             let mut count = 0;
                             for (j, c) in func.iter().enumerate().rev()
                             {
                                 if let Str(s) = c
                                 {
-                                    if s == "("
+                                    if s == "(" || s == "{"
                                     {
                                         count -= 1;
                                     }
-                                    else if s == ")"
+                                    else if s == ")" || s == "}"
                                     {
                                         count += 1;
                                     }
@@ -408,8 +419,8 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                                             }
                                         }
                                     }
-                                    func.insert(j + 1, Str("(".to_string()));
-                                    func.insert(j + 1, Str("fact".to_string()));
+                                    func.insert(j, Str("(".to_string()));
+                                    func.insert(j, Str("fact".to_string()));
                                     func.push(Str(")".to_string()));
                                     i += 1;
                                     continue 'outer;
@@ -423,7 +434,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     else if i != chars.len() - 1
                         && (chars[i + 1].is_ascii_alphanumeric()
                             || chars[i + 1] == '('
-                            || chars[i + 1] == ')'
+                            || chars[i + 1] == '{'
                             || chars[i + 1] == '|'
                             || chars[i + 1] == '-'
                             || chars[i + 1] == '!')

@@ -108,7 +108,10 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
         let mut out;
         for (l, j) in v.iter().enumerate()
         {
-            output += "{";
+            if !options.multi
+            {
+                output += "{";
+            }
             for (k, i) in j.iter().enumerate()
             {
                 out = get_output(&options, i);
@@ -120,7 +123,10 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
                 }
                 if k == j.len() - 1
                 {
-                    output += if options.polar { "]" } else { "}" };
+                    if !options.multi
+                    {
+                        output += "}";
+                    }
                 }
                 else if options.tabbed
                 {
@@ -626,8 +632,11 @@ pub fn print_concurrent(
         let mut num = 0;
         for (l, j) in v.iter().enumerate()
         {
-            output += "{";
-            frac_out += "{";
+            if !options.multi
+            {
+                output += "{";
+                frac_out += "{";
+            }
             for (k, i) in j.iter().enumerate()
             {
                 out = get_output(&options, i);
@@ -687,8 +696,11 @@ pub fn print_concurrent(
                 }
                 if k == j.len() - 1
                 {
-                    output += "}";
-                    frac_out += "}";
+                    if !options.multi
+                    {
+                        output += "}";
+                        frac_out += "}";
+                    }
                 }
                 else if options.tabbed
                 {

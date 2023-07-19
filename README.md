@@ -13,11 +13,11 @@ you can set permanent variables and functions in the file ```~/.config/kalc.vars
 
 parsing tries to comply with wolfram alpha
 
-# wont fix issues
-- matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
-- sin^-4!(2) fails to parse
-- sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
-
+# issues
+- might fix: 0's and infinities of trig functions dont show up as 0 or infinity. i cant conceive of a nice way to fix this
+- might fix: matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
+- wont fix: sin^-4!(2) fails to parse
+- wont fix: sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
 # build instructions
 rust>=1.70.0 diffutils gcc m4 make
 ```
@@ -97,7 +97,7 @@ Other functions:
 - ceil, floor, round, int, frac
 - fact(real), subfact(natural)
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai, bi (all real only)
+- zeta, gamma, erf, erfc, digamma, ai, binomial/bi (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re, im, max(x,y), min(x,y)
 

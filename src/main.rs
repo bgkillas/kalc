@@ -35,9 +35,7 @@ use {
     std::io::Read,
     std::os::fd::AsRawFd,
 };
-// allow log({2,3},{6,7})
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
-// fix 0's and infinities of sin, cos, tan and cis
 // gui support (via egui prob)
 // support units
 #[derive(Clone, Copy)]
@@ -1644,7 +1642,7 @@ Other functions:\n\
 - ceil, floor, round, int, frac\n\
 - fact(real), subfact(natural)\n\
 - sinc, cis, exp\n\
-- zeta, gamma, erf, erfc, digamma, ai, bi (all real only)\n\
+- zeta, gamma, erf, erfc, digamma, ai, binomial/bi (all real only)\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re, im, max(x,y), min(x,y)\n\n\
 Vector operations/functions:\n\

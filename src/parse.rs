@@ -16,7 +16,6 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
     let chars = input.chars().collect::<Vec<char>>();
     let (mut c, mut deci);
     let n1 = Complex::with_val(prec, -1);
-    let mut open = false;
     'outer: while i < input.len()
     {
         c = chars[i];
@@ -69,11 +68,8 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                 Complex::parse(word.as_bytes()).unwrap(),
             )));
             word.clear();
-            if !open
-            {
-                func.extend(vec![Str(")".to_string()); count as usize]);
-                count = 0;
-            }
+            func.extend(vec![Str(")".to_string()); count as usize]);
+            count = 0;
             continue;
         }
         else if c.is_ascii_alphabetic()
@@ -121,11 +117,8 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                             word.clear();
                         }
                         func.push(Str(c.to_string()));
-                        if !open
-                        {
-                            func.extend(vec![Str(")".to_string()); count as usize]);
-                            count = 0;
-                        }
+                        func.extend(vec![Str(")".to_string()); count as usize]);
+                        count = 0;
                     }
                     'i' =>
                     {
@@ -338,15 +331,10 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                 '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
                 '(' if i + 1 != chars.len() =>
                 {
-                    open = true;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' if i != 0 =>
-                {
-                    open = false;
-                    func.push(Str(")".to_string()))
-                }
+                ')' if i != 0 => func.push(Str(")".to_string())),
                 '|' =>
                 {
                     if i + 1 != chars.len() && chars[i + 1] == '|' && abs

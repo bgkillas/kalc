@@ -249,7 +249,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                     {
                         if let Str(l) = &function[place[0] + 1]
                         {
-                            function[i] = Num(sum(
+                            function[i] = sum(
                                 function[i + 2..place[0]].to_vec(),
                                 l,
                                 do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
@@ -263,7 +263,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 !(s == "sum" || s == "summation"),
                                 deg,
                                 prec,
-                            )?);
+                            )?;
                             function.drain(i + 1..=place[3]);
                         }
                         else
@@ -398,39 +398,14 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 .map(|a| a.iter().map(|a| a.clone().abs()).collect())
                                 .collect(),
                         ),
-                        _ =>
-                        {
-                            let mut mat = Vec::new();
-                            let mut vec = Vec::new();
-                            for i in a
-                            {
-                                vec.clear();
-                                for j in i
-                                {
-                                    vec.push(functions(
-                                        &mut function,
-                                        Some(j),
-                                        0,
-                                        to_deg.clone(),
-                                        s,
-                                        deg,
-                                    )?)
-                                }
-                                if !vec.is_empty()
-                                {
-                                    mat.push(vec.clone());
-                                }
-                            }
-                            if mat.is_empty()
-                            {
-                                i += 1;
-                                continue;
-                            }
-                            else
-                            {
-                                Matrix(mat)
-                            }
-                        }
+                        _ => do_functions(
+                            function[i + 1].clone(),
+                            deg,
+                            &mut function,
+                            i,
+                            &to_deg,
+                            s,
+                        )?,
                     };
                     function.remove(i + 1);
                 }
@@ -594,36 +569,21 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 return Err(());
                             }
                         }
-                        _ =>
-                        {
-                            let mut vec = Vec::new();
-                            for i in a
-                            {
-                                vec.push(functions(
-                                    &mut function,
-                                    Some(i),
-                                    0,
-                                    to_deg.clone(),
-                                    s,
-                                    deg,
-                                )?)
-                            }
-                            if vec.is_empty()
-                            {
-                                i += 1;
-                                continue;
-                            }
-                            else
-                            {
-                                Vector(vec)
-                            }
-                        }
+                        _ => do_functions(
+                            function[i + 1].clone(),
+                            deg,
+                            &mut function,
+                            i,
+                            &to_deg,
+                            s,
+                        )?,
                     };
                     function.remove(i + 1);
                 }
                 else
                 {
-                    function[i] = Num(functions(&mut function, None, i, to_deg.clone(), s, deg)?);
+                    function[i] =
+                        do_functions(function[i + 1].clone(), deg, &mut function, i, &to_deg, s)?;
                     function.remove(i + 1);
                 }
             }
@@ -852,6 +812,133 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
     }
     Ok(function[0].clone())
 }
+fn do_functions(
+    a: NumStr,
+    deg: u8,
+    function: &mut Vec<NumStr>,
+    k: usize,
+    to_deg: &Complex,
+    s: &str,
+) -> Result<NumStr, ()>
+{
+    let mut vec = Vec::new();
+    if function.len() > k + 3 && function[k + 2].str_is(",")
+    {
+        let b = function[k + 3].clone();
+        function.drain(k + 2..k + 4);
+        match (a, b)
+        {
+            (Num(a), Num(b)) => Ok(Num(functions(a, Some(b), to_deg.clone(), s, deg)?)),
+            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            {
+                for i in 0..b.len()
+                {
+                    vec.push(functions(
+                        a[i].clone(),
+                        Some(b[i].clone()),
+                        to_deg.clone(),
+                        s,
+                        deg,
+                    )?)
+                }
+                Ok(Vector(vec))
+            }
+            (Matrix(a), Matrix(b)) if a.len() == b.len() && a[0].len() == b[0].len() =>
+            {
+                let mut mat = Vec::new();
+                for i in 0..a.len()
+                {
+                    vec.clear();
+                    for j in 0..a[0].len()
+                    {
+                        vec.push(functions(
+                            a[i][j].clone(),
+                            Some(b[i][j].clone()),
+                            to_deg.clone(),
+                            s,
+                            deg,
+                        )?)
+                    }
+                    mat.push(vec.clone());
+                }
+                Ok(Matrix(mat))
+            }
+            (Num(a), Vector(b)) | (Vector(b), Num(a)) =>
+            {
+                for i in b
+                {
+                    vec.push(functions(i, Some(a.clone()), to_deg.clone(), s, deg)?)
+                }
+                Ok(Vector(vec))
+            }
+            (Num(a), Matrix(b)) | (Matrix(b), Num(a)) =>
+            {
+                let mut mat = Vec::new();
+                for i in b
+                {
+                    vec.clear();
+                    for j in i
+                    {
+                        vec.push(functions(j, Some(a.clone()), to_deg.clone(), s, deg)?)
+                    }
+                    mat.push(vec.clone());
+                }
+                Ok(Matrix(mat))
+            }
+            (Matrix(a), Vector(b)) | (Vector(b), Matrix(a)) if a.len() == b.len() =>
+            {
+                let mut mat = Vec::new();
+                for i in 0..a.len()
+                {
+                    vec.clear();
+                    for j in 0..a[0].len()
+                    {
+                        vec.push(functions(
+                            a[i][j].clone(),
+                            Some(b[i].clone()),
+                            to_deg.clone(),
+                            s,
+                            deg,
+                        )?)
+                    }
+                    mat.push(vec.clone());
+                }
+                Ok(Matrix(mat))
+            }
+            _ => Err(()),
+        }
+    }
+    else
+    {
+        match a
+        {
+            Matrix(a) =>
+            {
+                let mut mat = Vec::new();
+                for i in a
+                {
+                    vec.clear();
+                    for j in i
+                    {
+                        vec.push(functions(j, None, to_deg.clone(), s, deg)?)
+                    }
+                    mat.push(vec.clone());
+                }
+                Ok(Matrix(mat))
+            }
+            Vector(a) =>
+            {
+                for i in a
+                {
+                    vec.push(functions(i, None, to_deg.clone(), s, deg)?)
+                }
+                Ok(Vector(vec))
+            }
+            Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, deg)?)),
+            _ => Err(()),
+        }
+    }
+}
 pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
 {
     let mut a = a;
@@ -969,12 +1056,19 @@ fn sum(
     product: bool,
     deg: u8,
     prec: u32,
-) -> Result<Complex, ()>
+) -> Result<NumStr, ()>
 {
-    let mut value: Complex = Complex::new(prec);
-    let mut func;
+    let mut func = function.clone();
     let mut math;
-    for z in start..=end
+    for k in func.iter_mut()
+    {
+        if k.str_is(var)
+        {
+            *k = Num(Complex::with_val(prec, start));
+        }
+    }
+    let mut value = do_math(func, deg, prec)?;
+    for z in start + 1..=end
     {
         func = function.clone();
         for k in func.iter_mut()
@@ -984,18 +1078,14 @@ fn sum(
                 *k = Num(Complex::with_val(prec, z));
             }
         }
-        math = do_math(func, deg, prec)?.num()?;
+        math = do_math(func, deg, prec)?;
         if !product
         {
-            value += math;
-        }
-        else if z == start
-        {
-            value = math;
+            value = value.add(&math)?;
         }
         else
         {
-            value *= math;
+            value = value.mul(&math)?;
         }
     }
     Ok(value)
@@ -1104,23 +1194,14 @@ pub fn inverse(a: Vec<Vec<Complex>>) -> Result<Vec<Vec<Complex>>, ()>
     }
 }
 fn functions(
-    function: &mut Vec<NumStr>,
-    n: Option<Complex>,
-    i: usize,
+    a: Complex,
+    c: Option<Complex>,
     to_deg: Complex,
     s: &str,
     deg: u8,
 ) -> Result<Complex, ()>
 {
-    let mut a = if let Some(g) = n
-    {
-        g
-    }
-    else
-    {
-        function[i + 1].num()?
-    };
-    let mut b;
+    let b;
     let prec = to_deg.prec();
     Ok(match s
     {
@@ -1180,10 +1261,8 @@ fn functions(
         }
         "atan" | "arctan" | "atan2" =>
         {
-            if function.len() > i + 3 && function[i + 2].str_is(",")
+            if let Some(b) = c
             {
-                b = function[i + 3].num()?;
-                function.drain(i + 2..i + 4);
                 let i = Complex::with_val(prec, (0, 1));
                 ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs())
                     .ln()
@@ -1250,9 +1329,12 @@ fn functions(
         {
             if a.imag() == &0.0
             {
-                a = Complex::with_val(prec, a.real());
+                Complex::with_val(prec, a.real()).ln()
             }
-            a.ln()
+            else
+            {
+                a.ln()
+            }
         }
         "ceil" => Complex::with_val(prec, (a.real().clone().ceil(), a.imag().clone().ceil())),
         "floor" => Complex::with_val(prec, (a.real().clone().floor(), a.imag().clone().floor())),
@@ -1261,32 +1343,35 @@ fn functions(
         "exp" | "aln" => a.exp(),
         "log" =>
         {
-            if a.imag() == &0.0
+            let a = if a.imag() == &0.0
             {
-                a = Complex::with_val(prec, a.real());
-            }
-            if function.len() > i + 3 && function[i + 2].str_is(",")
-            {
-                b = function[i + 3].num()?;
-                if b.imag() == &0.0
-                {
-                    b = Complex::with_val(prec, b.real());
-                }
-                function.remove(i + 3);
-                function.remove(i + 2);
-                b.ln() / a.ln()
+                Complex::with_val(prec, a.real()).ln()
             }
             else
             {
                 a.ln()
+            };
+            if let Some(b) = c
+            {
+                let b = if b.imag() == &0.0
+                {
+                    Complex::with_val(prec, b.real()).ln()
+                }
+                else
+                {
+                    b.ln()
+                };
+                b / a
+            }
+            else
+            {
+                a
             }
         }
         "root" =>
         {
-            if function.len() > i + 3 && function[i + 2].str_is(",")
+            if let Some(b) = c
             {
-                b = function[i + 3].num()?;
-                function.drain(i + 2..i + 4);
                 match b.imag() == &0.0
                     && (b.real().to_f64() / 2.0).fract() != 0.0
                     && &b.real().clone().trunc() == b.real()
@@ -1307,10 +1392,8 @@ fn functions(
         }
         "bi" | "binomial" =>
         {
-            if function.len() > i + 3 && function[i + 2].str_is(",")
+            if let Some(b) = c
             {
-                b = function[i + 3].num()?;
-                function.drain(i + 2..i + 4);
                 if a.imag() != &0.0 && b.imag() != &0.0
                 {
                     Complex::new(prec)
@@ -1351,10 +1434,8 @@ fn functions(
         }
         "max" =>
         {
-            if function.len() > i + 3 && function[i + 2].str_is(",")
+            if let Some(b) = c
             {
-                b = function[i + 3].num()?;
-                function.drain(i + 2..i + 4);
                 Complex::with_val(
                     prec,
                     (
@@ -1384,10 +1465,8 @@ fn functions(
         }
         "min" =>
         {
-            if function.len() > i + 3 && function[i + 2].str_is(",")
+            if let Some(b) = c
             {
-                b = function[i + 3].num()?;
-                function.drain(i + 2..i + 4);
                 Complex::with_val(
                     prec,
                     (

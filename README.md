@@ -102,7 +102,7 @@ Other functions:
 - re, im, max(x,y), min(x,y)
 
 Vector operations/functions:
-- dot({vec1},{vec2}), cross({vec1},{vec2})
+- dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len

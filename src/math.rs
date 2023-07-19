@@ -150,6 +150,8 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                             || k == "part"
                             || k == "max"
                             || k == "min"
+                            || k == "proj"
+                            || k == "project"
                         {
                             count = 0;
                             for (f, n) in v.iter().enumerate()
@@ -517,6 +519,36 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                                 else if a.len() == 2 && b.len() == 2
                                 {
                                     Num(a[0].clone() * &b[1] - a[1].clone() * &b[0])
+                                }
+                                else
+                                {
+                                    return Err(());
+                                }
+                            }
+                            else
+                            {
+                                return Err(());
+                            }
+                        }
+                        "project" | "proj" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                let b = function[i + 3].clone();
+                                if b.vec()?.len() == a.len()
+                                {
+                                    let mut dot = Complex::new(prec);
+                                    for i in a.iter().zip(b.vec()?.iter()).map(|(a, b)| a * b)
+                                    {
+                                        dot += i;
+                                    }
+                                    let mut norm = Complex::new(prec);
+                                    for i in b.vec()?
+                                    {
+                                        norm += i.abs().pow(2);
+                                    }
+                                    function.drain(i + 2..i + 4);
+                                    Num(dot / norm).mul(&b)?
                                 }
                                 else
                                 {

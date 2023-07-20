@@ -32,8 +32,7 @@ use {
         ioctl, tcgetattr, tcsetattr, winsize, ECHO, ICANON, STDOUT_FILENO, TCSANOW, TIOCGWINSZ,
         VMIN, VTIME,
     },
-    std::io::Read,
-    std::os::fd::AsRawFd,
+    std::{io::Read, os::fd::AsRawFd},
 };
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // gui support (via egui prob)
@@ -1646,6 +1645,7 @@ Other functions:\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re, im, max(x,y), min(x,y)\n\n\
 Vector operations/functions:\n\
+- *,/,+,-,^\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\
 - angle({{vec1}},{{vec2}})\n\
 - norm, normalize\n\
@@ -1655,11 +1655,13 @@ Vector operations/functions:\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\n\n\
 Matrix operations/functions:\n\
+- *,/,+,-,^\n\
 - trace/tr, determinant/det, inverse/inv\n\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\n\
 - part({{mat}},col,row)\n\
 - abs, norm\n\
 - len, wid\n\
+- rotate(theta) produces a rotational matrix\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\n\
 Constants:\n\
 - c: speed of light, 299792458 m/s\n\

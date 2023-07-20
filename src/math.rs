@@ -614,8 +614,18 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
                 }
                 else
                 {
-                    function[i] =
-                        do_functions(function[i + 1].clone(), deg, &mut function, i, &to_deg, s)?;
+                    function[i] = if s == "rotate"
+                    {
+                        a = function[i + 1].num()? / to_deg.clone();
+                        Matrix(vec![
+                            vec![a.clone().cos(), -a.clone().sin()],
+                            vec![a.clone().sin(), a.cos()],
+                        ])
+                    }
+                    else
+                    {
+                        do_functions(function[i + 1].clone(), deg, &mut function, i, &to_deg, s)?
+                    };
                     function.remove(i + 1);
                 }
             }

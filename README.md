@@ -59,7 +59,7 @@ FLAGS: --help (this message)
 --tabbed toggles tabbed display for matrixes
 --debug displays computation time in nanoseconds
 
-- flags can be executed in runtime just without the dashes\n\
+- flags can be executed in runtime just without the dashes
 - Type "exit" to exit the program
 - Type "clear" to clear the screen
 - Type "history [arg]" to see the history, arg indexes it if specified
@@ -102,6 +102,7 @@ Other functions:
 - re, im, max(x,y), min(x,y)
 
 Vector operations/functions:
+- *,/,+,-,^
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
 - angle({vec1},{vec2})
 - norm, normalize
@@ -112,11 +113,13 @@ Vector operations/functions:
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
 Matrix operations/functions:
+- *,/,+,-,^
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row)
 - abs, norm
 - len, wid
+- rotate(theta) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 
 Constants:

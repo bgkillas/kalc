@@ -1,7 +1,8 @@
-use crate::complex::NumStr::{Matrix, Num, Str, Vector};
-use crate::math::inverse;
-use rug::ops::Pow;
-use rug::Complex;
+use crate::{
+    complex::NumStr::{Matrix, Num, Str, Vector},
+    math::inverse,
+};
+use rug::{ops::Pow, Complex};
 #[derive(Clone)]
 pub enum NumStr
 {

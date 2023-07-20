@@ -246,7 +246,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str("<=".to_string()));
                     }
                 }
-                '{' | '[' =>
+                '{' =>
                 {
                     place_multiplier(&mut func, &find_word);
                     if neg
@@ -255,21 +255,12 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                         func.push(Str('*'.to_string()));
                         neg = false;
                     }
-                    if c == '['
-                    {
-                        func.push(Str("(".to_string()));
-                        func.push(Str("car".to_string()));
-                    }
                     func.push(Str("{".to_string()));
                     open = true;
                 }
-                '}' | ']' =>
+                '}' =>
                 {
                     func.push(Str("}".to_string()));
-                    if c == ']'
-                    {
-                        func.push(Str(")".to_string()));
-                    }
                     open = false;
                 }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
@@ -519,7 +510,11 @@ fn place_multiplier(func: &mut Vec<NumStr>, find_word: &bool)
 }
 pub fn input_var(input: &str, vars: &[[String; 2]], dont_do: Option<&str>) -> String
 {
-    let mut chars = input.chars().collect::<Vec<char>>();
+    let chars = input
+        .replace('[', "(car{")
+        .replace(']', "})")
+        .chars()
+        .collect::<Vec<char>>();
     let mut output = String::new();
     let (
         mut not_pushed,
@@ -534,69 +529,52 @@ pub fn input_var(input: &str, vars: &[[String; 2]], dont_do: Option<&str>) -> St
         mut o,
     );
     let mut i = 0;
-    let mut count: isize = 0;
-    let mut vec_count: isize = 0;
-    let mut vec_car_count: isize = 0;
     let mut commas: Vec<usize>;
-    let mut last = false;
-    for i in chars.clone()
+    let mut stack_end = Vec::new();
+    let mut stack_start = Vec::new();
+    for c in &chars
     {
-        if i == '('
+        match c
         {
-            count += 1;
-            last = false;
-        }
-        else if i == ')'
-        {
-            if count == 0
+            '(' => stack_end.push(')'),
+            '{' => stack_end.push('}'),
+            ')' | '}' =>
             {
-                chars.insert(0, '(');
-                count += 1;
+                if let Some(top) = stack_end.last()
+                {
+                    if top == c
+                    {
+                        stack_end.pop();
+                    }
+                }
+                else
+                {
+                    match c
+                    {
+                        ')' => stack_start.push('('),
+                        '}' => stack_start.push('{'),
+                        _ => (),
+                    }
+                }
             }
-            count -= 1;
-        }
-        else if i == '{'
-        {
-            vec_count += 1;
-            last = true;
-        }
-        else if i == '}'
-        {
-            if vec_count == 0
-            {
-                chars.insert(0, '{');
-                vec_count += 1;
-            }
-            vec_count -= 1;
-        }
-        else if i == '['
-        {
-            vec_car_count += 1;
-            last = true;
-        }
-        else if i == ']'
-        {
-            if vec_car_count == 0
-            {
-                chars.insert(0, '[');
-                vec_car_count += 1;
-            }
-            vec_car_count -= 1;
+            _ => (),
         }
     }
-    if !last
+    let mut input = String::new();
+    while let Some(top) = stack_start.pop()
     {
-        chars.extend(&vec![')'; count as usize]);
-        chars.extend(&vec![']'; vec_car_count as usize]);
-        chars.extend(&vec!['}'; vec_count as usize]);
+        input.push(top);
     }
-    else
+    for i in &chars
     {
-        chars.extend(&vec![']'; vec_car_count as usize]);
-        chars.extend(&vec!['}'; vec_count as usize]);
-        chars.extend(&vec![')'; count as usize]);
+        input.push(*i)
     }
-    let input = chars.iter().collect::<String>();
+    while let Some(top) = stack_end.pop()
+    {
+        input.push(top);
+    }
+    let chars = input.chars().collect::<Vec<char>>();
+    let mut count;
     while i < chars.len()
     {
         c = chars[i];

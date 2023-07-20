@@ -905,15 +905,23 @@ fn do_functions(
                 }
                 Ok(Matrix(mat))
             }
-            (Num(a), Vector(b)) | (Vector(b), Num(a)) =>
+            (Num(a), Vector(b)) =>
             {
                 for i in b
                 {
-                    vec.push(functions(i, Some(a.clone()), to_deg.clone(), s, deg)?)
+                    vec.push(functions(a.clone(), Some(i), to_deg.clone(), s, deg)?)
                 }
                 Ok(Vector(vec))
             }
-            (Num(a), Matrix(b)) | (Matrix(b), Num(a)) =>
+            (Vector(a), Num(b)) =>
+            {
+                for i in a
+                {
+                    vec.push(functions(i, Some(b.clone()), to_deg.clone(), s, deg)?)
+                }
+                Ok(Vector(vec))
+            }
+            (Num(a), Matrix(b)) =>
             {
                 let mut mat = Vec::new();
                 for i in b
@@ -921,13 +929,27 @@ fn do_functions(
                     vec.clear();
                     for j in i
                     {
-                        vec.push(functions(j, Some(a.clone()), to_deg.clone(), s, deg)?)
+                        vec.push(functions(a.clone(), Some(j), to_deg.clone(), s, deg)?)
                     }
                     mat.push(vec.clone());
                 }
                 Ok(Matrix(mat))
             }
-            (Matrix(a), Vector(b)) | (Vector(b), Matrix(a)) if a.len() == b.len() =>
+            (Matrix(a), Num(b)) =>
+            {
+                let mut mat = Vec::new();
+                for i in a
+                {
+                    vec.clear();
+                    for j in i
+                    {
+                        vec.push(functions(j, Some(b.clone()), to_deg.clone(), s, deg)?)
+                    }
+                    mat.push(vec.clone());
+                }
+                Ok(Matrix(mat))
+            }
+            (Matrix(a), Vector(b)) if a.len() == b.len() =>
             {
                 let mut mat = Vec::new();
                 for i in 0..a.len()
@@ -938,6 +960,26 @@ fn do_functions(
                         vec.push(functions(
                             a[i][j].clone(),
                             Some(b[i].clone()),
+                            to_deg.clone(),
+                            s,
+                            deg,
+                        )?)
+                    }
+                    mat.push(vec.clone());
+                }
+                Ok(Matrix(mat))
+            }
+            (Vector(a), Matrix(b)) if a.len() == b.len() =>
+            {
+                let mut mat = Vec::new();
+                for i in 0..b.len()
+                {
+                    vec.clear();
+                    for j in 0..b[0].len()
+                    {
+                        vec.push(functions(
+                            a[i].clone(),
+                            Some(b[i][j].clone()),
                             to_deg.clone(),
                             s,
                             deg,

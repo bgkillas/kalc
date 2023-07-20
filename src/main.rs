@@ -32,7 +32,10 @@ use {
         ioctl, tcgetattr, tcsetattr, winsize, ECHO, ICANON, STDOUT_FILENO, TCSANOW, TIOCGWINSZ,
         VMIN, VTIME,
     },
-    std::{io::Read, os::fd::AsRawFd},
+    std::{
+        io::{Read, Stdin},
+        os::fd::AsRawFd,
+    },
 };
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // gui support (via egui prob)
@@ -99,6 +102,8 @@ impl Default for Options
 }
 fn main()
 {
+    #[cfg(unix)]
+    let mut stdin = stdin();
     let mut options = Options::default();
     let mut watch = None;
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
@@ -147,9 +152,9 @@ fn main()
         }
     }
     let mut input = String::new();
-    if !stdin().is_terminal()
+    if !stdin.is_terminal()
     {
-        for line in stdin().lock().lines()
+        for line in stdin.lock().lines()
         {
             if !line.as_ref().unwrap().is_empty()
             {
@@ -279,7 +284,7 @@ fn main()
             start = 0;
             'outer: loop
             {
-                c = read_single_char();
+                c = read_single_char(&mut stdin);
                 if options.debug
                 {
                     watch = Some(std::time::Instant::now());
@@ -1420,9 +1425,9 @@ fn get_terminal_width() -> usize
     }
 }
 #[cfg(unix)]
-fn read_single_char() -> char
+fn read_single_char(stdin: &mut Stdin) -> char
 {
-    let stdin_fd = stdin().as_raw_fd();
+    let stdin_fd = stdin.as_raw_fd();
     let orig_termios = unsafe {
         let mut termios = std::mem::zeroed();
         tcgetattr(stdin_fd, &mut termios);
@@ -1436,7 +1441,7 @@ fn read_single_char() -> char
         tcsetattr(stdin_fd, TCSANOW, &new_termios);
     }
     let mut input = [0u8; 1];
-    stdin().read_exact(&mut input).unwrap();
+    stdin.read_exact(&mut input).unwrap();
     unsafe {
         tcsetattr(stdin_fd, TCSANOW, &orig_termios);
     }
@@ -1445,12 +1450,12 @@ fn read_single_char() -> char
         27 =>
         {
             let mut seq = [0u8; 1];
-            stdin().read_exact(&mut seq).unwrap();
+            stdin.read_exact(&mut seq).unwrap();
             if seq[0] != 91
             {
                 return seq[0] as char;
             }
-            stdin().read_exact(&mut seq).unwrap();
+            stdin.read_exact(&mut seq).unwrap();
             match seq[0]
             {
                 65 => '\x1D', // Up arrow key
@@ -1463,7 +1468,7 @@ fn read_single_char() -> char
         207 =>
         {
             let mut seq = [0u8; 1];
-            stdin().read_exact(&mut seq).unwrap();
+            stdin.read_exact(&mut seq).unwrap();
             match seq[0]
             {
                 128 => 'π',

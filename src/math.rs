@@ -1579,7 +1579,7 @@ fn functions(
             }
         }
         "sqrt" | "asquare" => a.sqrt(),
-        "abs" => a.abs(),
+        "abs" | "norm" => a.abs(),
         "deg" | "degree" =>
         {
             if deg == 0

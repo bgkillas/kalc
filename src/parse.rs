@@ -346,7 +346,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     else if abs
                     {
                         place_multiplier(&mut func, &find_word);
-                        func.push(Str("abs".to_string()));
+                        func.push(Str("norm".to_string()));
                         func.push(Str("(".to_string()));
                         abs = false;
                     }

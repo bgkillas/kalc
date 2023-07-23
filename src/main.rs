@@ -11,7 +11,7 @@ use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     graph::graph,
     math::do_math,
-    options::{arg_opts, file_opts},
+    options::{arg_opts, file_opts, AngleType},
     parse::{get_func, get_vars, input_var},
     print::{get_output, print_answer, print_concurrent},
 };
@@ -44,7 +44,7 @@ use {
 pub struct Options
 {
     sci: bool,
-    deg: u8, // 0=rad,1=deg,2=grad
+    deg: AngleType, // 0=rad,1=deg,2=grad
     base: usize,
     tau: bool,
     polar: bool,
@@ -74,7 +74,7 @@ impl Default for Options
     {
         Options {
             sci: false,
-            deg: 0,
+            deg: AngleType::Radians,
             base: 10,
             tau: false,
             polar: false,
@@ -841,19 +841,19 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    options.deg = 1;
+                    options.deg = AngleType::Degrees;
                 }
                 "rad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    options.deg = 0;
+                    options.deg = AngleType::Radians;
                 }
                 "grad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    options.deg = 2;
+                    options.deg = AngleType::Gradians;
                 }
                 "rt" =>
                 {

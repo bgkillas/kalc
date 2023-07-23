@@ -5,6 +5,7 @@ use crate::{
     },
     math::do_math,
     Options,
+    AngleType,
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
@@ -13,7 +14,7 @@ pub fn graph(
     input: Vec<String>,
     func: Vec<Vec<NumStr>>,
     options: Options,
-    deg: u8,
+    deg: AngleType,
     prec: u32,
     watch: Option<Instant>,
 ) -> JoinHandle<()>
@@ -805,7 +806,7 @@ pub fn graph(
 pub fn get_list_2d(
     func: &[NumStr],
     range: Options,
-    deg: u8,
+    deg: AngleType,
     prec: u32,
 ) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
@@ -859,7 +860,7 @@ pub fn get_list_2d(
 pub fn get_list_3d(
     func: &[NumStr],
     range: Options,
-    deg: u8,
+    deg: AngleType,
     prec: u32,
 ) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {

@@ -15,6 +15,9 @@ use crate::{
     parse::{get_func, get_vars, input_var},
     print::{get_output, print_answer, print_concurrent},
 };
+use console::{Key, Term};
+#[cfg(unix)]
+use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -22,24 +25,11 @@ use std::{
     thread::JoinHandle,
 };
 #[cfg(not(unix))]
-use {
-    console::{Key, Term},
-    term_size::dimensions,
-};
-#[cfg(unix)]
-use {
-    libc::{
-        ioctl, tcgetattr, tcsetattr, winsize, ECHO, ICANON, STDOUT_FILENO, TCSANOW, TIOCGWINSZ,
-        VMIN, VTIME,
-    },
-    std::{
-        io::{Read, Stdin},
-        os::fd::AsRawFd,
-    },
-};
+use term_size::dimensions;
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // gui support (via egui prob)
 // support units
+// support plus-minus via a 2 vector
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -102,8 +92,6 @@ impl Default for Options
 }
 fn main()
 {
-    #[cfg(unix)]
-    let mut stdin = stdin();
     let mut options = Options::default();
     let mut watch = None;
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
@@ -152,9 +140,9 @@ fn main()
         }
     }
     let mut input = String::new();
-    if !stdin.is_terminal()
+    if !stdin().is_terminal()
     {
-        for line in stdin.lock().lines()
+        for line in stdin().lock().lines()
         {
             if !line.as_ref().unwrap().is_empty()
             {
@@ -217,7 +205,38 @@ fn main()
             print_answer(
                 &input,
                 match get_func(
-                    &input_var(&input.replace('π', "pi").replace('τ', "tau"), &vars, None),
+                    &input_var(
+                        &input
+                            .chars()
+                            .map(convert)
+                            .collect::<String>()
+                            .replace('π', "pi")
+                            .replace('τ', "tau")
+                            .replace('√', "sqrt")
+                            .replace('∛', "cbrt")
+                            .replace('¼', "1/4")
+                            .replace('½', "1/2")
+                            .replace('¾', "3/4")
+                            .replace('⅐', "1/7")
+                            .replace('⅑', "1/9")
+                            .replace('⅒', "1/10")
+                            .replace('⅓', "1/3")
+                            .replace('⅔', "2/3")
+                            .replace('⅕', "1/5")
+                            .replace('⅖', "2/5")
+                            .replace('⅗', "3/5")
+                            .replace('⅘', "4/5")
+                            .replace('⅙', "1/6")
+                            .replace('⅚', "5/6")
+                            .replace('⅛', "1/8")
+                            .replace('⅜', "3/8")
+                            .replace('⅝', "5/8")
+                            .replace('⅞', "7/8")
+                            .replace('⅟', "1/")
+                            .replace('↉', "0/3"),
+                        &vars,
+                        None,
+                    ),
                     options.prec,
                 )
                 {
@@ -284,7 +303,7 @@ fn main()
             start = 0;
             'outer: loop
             {
-                c = read_single_char(&mut stdin);
+                c = read_single_char();
                 if options.debug
                 {
                     watch = Some(std::time::Instant::now());
@@ -705,21 +724,7 @@ fn main()
                     {}
                     _ =>
                     {
-                        if c == 'π'
-                        {
-                            input.insert_str(placement, "pi");
-                            placement += 2;
-                        }
-                        else if c == 'τ'
-                        {
-                            input.insert_str(placement, "tau");
-                            placement += 3;
-                        }
-                        else
-                        {
-                            input.insert(placement, c);
-                            placement += 1;
-                        }
+                        convert_str(&mut input, c, &mut placement);
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 0 } + 1;
                         if end > input.len()
                         {
@@ -1424,89 +1429,6 @@ fn get_terminal_width() -> usize
         }
     }
 }
-#[cfg(unix)]
-fn read_single_char(stdin: &mut Stdin) -> char
-{
-    let stdin_fd = stdin.as_raw_fd();
-    let orig_termios = unsafe {
-        let mut termios = std::mem::zeroed();
-        tcgetattr(stdin_fd, &mut termios);
-        termios
-    };
-    let mut new_termios = orig_termios;
-    new_termios.c_lflag &= !(ICANON | ECHO);
-    new_termios.c_cc[VMIN] = 1;
-    new_termios.c_cc[VTIME] = 0;
-    unsafe {
-        tcsetattr(stdin_fd, TCSANOW, &new_termios);
-    }
-    let mut input = [0u8; 1];
-    stdin.read_exact(&mut input).unwrap();
-    unsafe {
-        tcsetattr(stdin_fd, TCSANOW, &orig_termios);
-    }
-    match input[0]
-    {
-        27 =>
-        {
-            let mut seq = [0u8; 1];
-            stdin.read_exact(&mut seq).unwrap();
-            if seq[0] != 91
-            {
-                return seq[0] as char;
-            }
-            stdin.read_exact(&mut seq).unwrap();
-            match seq[0]
-            {
-                65 => '\x1D', // Up arrow key
-                66 => '\x1E', // Down arrow key
-                67 => '\x1C', // Right arrow key
-                68 => '\x1B', // Left arrow key
-                _ => '\0',
-            }
-        }
-        207 =>
-        {
-            let mut seq = [0u8; 1];
-            stdin.read_exact(&mut seq).unwrap();
-            match seq[0]
-            {
-                128 => 'π',
-                132 => 'τ',
-                _ => '\0',
-            }
-        }
-        127 => '\x08',
-        b'a'..=b'z'
-        | b'A'..=b'Z'
-        | b'0'..=b'9'
-        | b'+'
-        | b'-'
-        | b'*'
-        | b'/'
-        | b'^'
-        | b'('
-        | b')'
-        | b'.'
-        | b'='
-        | b','
-        | b'#'
-        | b'|'
-        | b'&'
-        | b'!'
-        | b'%'
-        | b'_'
-        | b'<'
-        | b'>'
-        | b' '
-        | b'\n'
-        | b'['
-        | b']'
-        | b'{'
-        | b'}' => input[0] as char,
-        _ => '\0',
-    }
-}
 #[cfg(not(unix))]
 fn get_terminal_width() -> usize
 {
@@ -1519,49 +1441,439 @@ fn get_terminal_width() -> usize
         80
     }
 }
-#[cfg(not(unix))]
+pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
+{
+    match c
+    {
+        '⁰' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('0')
+            }
+            else
+            {
+                output.push('0')
+            }
+            true
+        }
+        '⁹' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('9')
+            }
+            else
+            {
+                output.push('9')
+            }
+            true
+        }
+        '⁸' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('8')
+            }
+            else
+            {
+                output.push('8')
+            }
+            true
+        }
+        '⁷' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('7')
+            }
+            else
+            {
+                output.push('7')
+            }
+            true
+        }
+        '⁶' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('6')
+            }
+            else
+            {
+                output.push('6')
+            }
+            true
+        }
+        '⁵' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('5')
+            }
+            else
+            {
+                output.push('5')
+            }
+            true
+        }
+        '⁴' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('4')
+            }
+            else
+            {
+                output.push('4')
+            }
+            true
+        }
+        '³' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('3')
+            }
+            else
+            {
+                output.push('3')
+            }
+            true
+        }
+        '²' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('2')
+            }
+            else
+            {
+                output.push('2')
+            }
+            true
+        }
+        '¹' =>
+        {
+            if i != 0 && chars[i - 1].is_numeric()
+            {
+                output.push('^');
+                output.push('1')
+            }
+            else
+            {
+                output.push('1')
+            }
+            true
+        }
+        _ => false,
+    }
+}
+fn convert_str(input: &mut String, c: char, placement: &mut usize)
+{
+    match c
+    {
+        'π' =>
+        {
+            input.insert_str(*placement, "pi");
+            *placement += 2;
+        }
+        'τ' =>
+        {
+            input.insert_str(*placement, "tau");
+            *placement += 3;
+        }
+        '√' =>
+        {
+            input.insert_str(*placement, "sqrt");
+            *placement += 4;
+        }
+        '∛' =>
+        {
+            input.insert_str(*placement, "cbrt");
+            *placement += 4;
+        }
+        '¼' =>
+        {
+            input.insert_str(*placement, "1/4");
+            *placement += 3;
+        }
+        '½' =>
+        {
+            input.insert_str(*placement, "1/2");
+            *placement += 3;
+        }
+        '¾' =>
+        {
+            input.insert_str(*placement, "3/4");
+            *placement += 3;
+        }
+        '⅐' =>
+        {
+            input.insert_str(*placement, "1/7");
+            *placement += 3;
+        }
+        '⅑' =>
+        {
+            input.insert_str(*placement, "1/9");
+            *placement += 3;
+        }
+        '⅒' =>
+        {
+            input.insert_str(*placement, "1/10");
+            *placement += 4;
+        }
+        '⅓' =>
+        {
+            input.insert_str(*placement, "1/3");
+            *placement += 3;
+        }
+        '⅔' =>
+        {
+            input.insert_str(*placement, "2/3");
+            *placement += 3;
+        }
+        '⅕' =>
+        {
+            input.insert_str(*placement, "1/5");
+            *placement += 3;
+        }
+        '⅖' =>
+        {
+            input.insert_str(*placement, "2/5");
+            *placement += 3;
+        }
+        '⅗' =>
+        {
+            input.insert_str(*placement, "3/5");
+            *placement += 3;
+        }
+        '⅘' =>
+        {
+            input.insert_str(*placement, "4/5");
+            *placement += 3;
+        }
+        '⅙' =>
+        {
+            input.insert_str(*placement, "1/6");
+            *placement += 3;
+        }
+        '⅚' =>
+        {
+            input.insert_str(*placement, "5/6");
+            *placement += 3;
+        }
+        '⅛' =>
+        {
+            input.insert_str(*placement, "1/8");
+            *placement += 3;
+        }
+        '⅜' =>
+        {
+            input.insert_str(*placement, "3/8");
+            *placement += 3;
+        }
+        '⅝' =>
+        {
+            input.insert_str(*placement, "5/8");
+            *placement += 3;
+        }
+        '⅞' =>
+        {
+            input.insert_str(*placement, "7/8");
+            *placement += 3;
+        }
+        '⅟' =>
+        {
+            input.insert_str(*placement, "1/");
+            *placement += 3;
+        }
+        '↉' =>
+        {
+            input.insert_str(*placement, "0/3");
+            *placement += 3;
+        }
+        '⁰' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^0");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '0');
+                *placement += 1;
+            }
+        }
+        '⁹' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^9");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '9');
+                *placement += 1;
+            }
+        }
+        '⁸' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^8");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '8');
+                *placement += 1;
+            }
+        }
+        '⁷' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^7");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '7');
+                *placement += 1;
+            }
+        }
+        '⁶' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^6");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '6');
+                *placement += 1;
+            }
+        }
+        '⁵' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^5");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '5');
+                *placement += 1;
+            }
+        }
+        '⁴' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^4");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '4');
+                *placement += 1;
+            }
+        }
+        '³' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^3");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '3');
+                *placement += 1;
+            }
+        }
+        '²' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^2");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '2');
+                *placement += 1;
+            }
+        }
+        '¹' =>
+        {
+            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            {
+                input.insert_str(*placement, "^1");
+                *placement += 2;
+            }
+            else
+            {
+                input.insert(*placement, '1');
+                *placement += 1;
+            }
+        }
+        _ =>
+        {
+            input.insert(*placement, c);
+            *placement += 1;
+        }
+    }
+}
+fn convert(c: char) -> char
+{
+    let valid_chars = [
+        '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
+        '{', '}', '√', '∛', '¼', '½', '¾', '⅐', '⅑', '⅒', '⅓', '⅔', '⅕', '⅖', '⅗', '⅘', '⅙', '⅚',
+        '⁹', '⁸', '⁷', '⁶', '⁵', '⁴', '³', '²', '¹', '⁰', '⅛', '⅜', '⅝', '⅞', '⅟', '↉',
+    ];
+    match c
+    {
+        c if c.is_ascii_alphanumeric() || valid_chars.contains(&c) => c,
+        'ⲡ' | '𝜋' | '𝛑' | '𝝿' | '𝞹' | '𝝅' | 'ℼ' | 'π' => 'π',
+        'ⲧ' | '𝛕' | '𝜏' | '𝝉' | '𝞃' | '𝞽' | 'τ' => 'τ',
+        '∗' | '∙' | '*' | '·' | '⋅' => '*',
+        '∕' | '⁄' | '/' => '/',
+        '−' | '-' => '-',
+        '₀' => '0',
+        '₁' => '1',
+        '₂' => '2',
+        '₃' => '3',
+        '₄' => '4',
+        '₅' => '5',
+        '₆' => '6',
+        '₇' => '7',
+        '₈' => '8',
+        '₉' => '9',
+        _ => '\0',
+    }
+}
 fn read_single_char() -> char
 {
     let term = Term::stdout();
     let key = term.read_key().unwrap();
     match key
     {
-        Key::Char(c) =>
-        {
-            if c.is_ascii_alphanumeric()
-                || c == '+'
-                || c == '-'
-                || c == '*'
-                || c == '/'
-                || c == '^'
-                || c == '('
-                || c == ')'
-                || c == '.'
-                || c == '='
-                || c == ','
-                || c == 'π'
-                || c == 'τ'
-                || c == '#'
-                || c == '|'
-                || c == '&'
-                || c == '!'
-                || c == '%'
-                || c == '_'
-                || c == '<'
-                || c == '>'
-                || c == ' '
-                || c == '['
-                || c == ']'
-                || c == '{'
-                || c == '}'
-            {
-                c
-            }
-            else
-            {
-                '\0'
-            }
-        }
+        Key::Char(c) => convert(c),
         Key::Enter => '\n',
         Key::Backspace => '\x08',
         Key::ArrowLeft => '\x1B',

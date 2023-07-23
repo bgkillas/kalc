@@ -1,8 +1,15 @@
-use crate::complex::{
-    NumStr,
-    NumStr::{Num, Str, Vector},
+use crate::{
+    complex::{
+        NumStr,
+        NumStr::{Num, Str, Vector},
+    },
+    parse,
 };
 use rug::{float::Constant::Pi, Complex, Float};
+use std::{
+    collections::HashSet,
+    io::{stdin, IsTerminal},
+};
 pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
 {
     let mut count: i32 = 0;
@@ -20,12 +27,36 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
     'outer: while i < input.len()
     {
         c = chars[i];
-        if c.is_numeric()
+        if c == ' '
+        {
+            if !word.is_empty()
+            {
+                find_word = false;
+                if is_func(&word)
+                {
+                    place_multiplier(&mut func, &find_word);
+                    func.push(Str(word.clone()));
+                }
+                word.clear();
+            }
+            else if i != 0
+                && i + 1 != chars.len()
+                && chars[i - 1].is_numeric()
+                && chars[i + 1].is_numeric()
+            {
+                func.push(Str('*'.to_string()))
+            }
+        }
+        else if c.is_numeric()
         {
             if !word.is_empty() && word != "0."
             {
                 find_word = false;
-                func.push(Str(word.clone()));
+                if is_func(&word)
+                {
+                    place_multiplier(&mut func, &find_word);
+                    func.push(Str(word.clone()));
+                }
                 word.clear();
             }
             place_multiplier(&mut func, &find_word);
@@ -87,7 +118,6 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
             }
             else
             {
-                place_multiplier(&mut func, &find_word);
                 if neg
                 {
                     func.push(Num(n1.clone()));
@@ -98,6 +128,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                 {
                     'E' =>
                     {
+                        place_multiplier(&mut func, &find_word);
                         func.push(Num(Complex::with_val(prec, 10)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_ascii_alphanumeric()
@@ -117,7 +148,11 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                         if !word.is_empty()
                         {
                             find_word = false;
-                            func.push(Str(word.clone()));
+                            if is_func(&word)
+                            {
+                                place_multiplier(&mut func, &find_word);
+                                func.push(Str(word.clone()));
+                            }
                             word.clear();
                         }
                         func.push(Str(c.to_string()));
@@ -136,6 +171,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                         }
                         else
                         {
+                            place_multiplier(&mut func, &find_word);
                             func.push(Num(Complex::with_val(prec, (0, 1))));
                         }
                     }
@@ -159,6 +195,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     && chars[i + 3] == '1'
                     && chars[i + 4] == ')'
                 {
+                    place_multiplier(&mut func, &find_word);
                     word.insert(0, 'a');
                     func.push(Str(word.clone()));
                     word.clear();
@@ -170,6 +207,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     && chars[i + 1] == '-'
                     && chars[i + 2] == '1'
                 {
+                    place_multiplier(&mut func, &find_word);
                     word.insert(0, 'a');
                     func.push(Str(word.clone()));
                     word.clear();
@@ -180,6 +218,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     && chars[i] == '^'
                     && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
                 {
+                    place_multiplier(&mut func, &find_word);
                     func.push(Str(word.clone()));
                     word.clear();
                     let pos = chars.iter().skip(i + 1).position(|&c| c == '(' || c == ')');
@@ -195,8 +234,12 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     i += pos.unwrap() + 1;
                     continue;
                 }
-                func.push(Str(word.clone()));
-                word.clear();
+                if is_func(&word)
+                {
+                    place_multiplier(&mut func, &find_word);
+                    func.push(Str(word.clone()));
+                    word.clear();
+                }
             }
             if !exp.is_empty() && c != '(' && c != ')'
             {
@@ -267,7 +310,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                 '+' if i != 0
                     && i + 1 != chars.len()
                     && (chars[i - 1].is_ascii_alphanumeric()
-                        || func.last().unwrap().str_is(")")
+                        || (!func.is_empty() && func.last().unwrap().str_is(")"))
                         || chars[i - 1] == '}'
                         || chars[i - 1] == ']')
                     && chars[i - 1] != 'E' =>
@@ -469,11 +512,6 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
     {
         func.push(Num(n1));
     }
-    if !word.is_empty()
-    {
-        func.push(Str(word.clone()));
-        word.clear();
-    }
     if func.is_empty()
     {
         return Err(());
@@ -579,6 +617,17 @@ pub fn input_var(input: &str, vars: &[[String; 2]], dont_do: Option<&str>) -> St
     {
         c = chars[i];
         not_pushed = true;
+        if stdin().is_terminal() && parse(&mut output, c, i, &chars)
+        {
+            i += 1;
+            continue;
+        }
+        if !c.is_alphabetic()
+        {
+            output.push(c);
+            i += 1;
+            continue;
+        }
         for var in vars
         {
             j = i;
@@ -742,7 +791,7 @@ pub fn input_var(input: &str, vars: &[[String; 2]], dont_do: Option<&str>) -> St
                 output.push(')');
             }
         }
-        if not_pushed && c != ' '
+        if (c != ' ' || (i == 0 || chars[i - 1] != ' ')) && not_pushed
         {
             output.push(c);
         }
@@ -756,6 +805,142 @@ pub fn input_var(input: &str, vars: &[[String; 2]], dont_do: Option<&str>) -> St
     {
         output
     }
+}
+fn is_func(word: &str) -> bool
+{
+    let functions: HashSet<_> = [
+        "sum",
+        "product",
+        "prod",
+        "summation",
+        "cofactor",
+        "cofactors",
+        "cof",
+        "minor",
+        "minors",
+        "adjugate",
+        "adj",
+        "inv",
+        "inverse",
+        "transpose",
+        "trans",
+        "len",
+        "length",
+        "wid",
+        "width",
+        "tr",
+        "trace",
+        "det",
+        "determinant",
+        "part",
+        "norm",
+        "abs",
+        "normalize",
+        "car",
+        "cartesian",
+        "polar",
+        "pol",
+        "angle",
+        "cross",
+        "proj",
+        "project",
+        "dot",
+        "rotate",
+        "sin",
+        "csc",
+        "cos",
+        "sec",
+        "tan",
+        "cot",
+        "asin",
+        "arcsin",
+        "acsc",
+        "arccsc",
+        "acos",
+        "arccos",
+        "asec",
+        "arcsec",
+        "atan",
+        "arctan",
+        "atan2",
+        "acot",
+        "arccot",
+        "sinh",
+        "csch",
+        "cosh",
+        "sech",
+        "tanh",
+        "coth",
+        "asinh",
+        "arcsinh",
+        "acsch",
+        "arccsch",
+        "acosh",
+        "arccosh",
+        "asech",
+        "arcsech",
+        "atanh",
+        "arctanh",
+        "acoth",
+        "arccoth",
+        "cis",
+        "ln",
+        "aexp",
+        "ceil",
+        "floor",
+        "round",
+        "recip",
+        "exp",
+        "aln",
+        "log",
+        "root",
+        "bi",
+        "binomial",
+        "gamma",
+        "max",
+        "min",
+        "sqrt",
+        "asquare",
+        "abs",
+        "norm",
+        "deg",
+        "degree",
+        "rad",
+        "radian",
+        "gradian",
+        "re",
+        "real",
+        "im",
+        "imag",
+        "sgn",
+        "sign",
+        "arg",
+        "cbrt",
+        "acube",
+        "frac",
+        "fract",
+        "int",
+        "trunc",
+        "square",
+        "asqrt",
+        "cube",
+        "acbrt",
+        "fact",
+        "subfact",
+        "sinc",
+        "conj",
+        "conjugate",
+        "erf",
+        "erfc",
+        "ai",
+        "digamma",
+        "zeta
+",
+    ]
+    .iter()
+    .cloned()
+    .collect();
+    functions.contains(word)
 }
 pub fn get_vars(prec: u32) -> Vec<[String; 2]>
 {

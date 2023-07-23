@@ -1595,7 +1595,7 @@ fn functions(
                 a
             }
         }
-        "rad" | "radians" =>
+        "rad" | "radian" =>
         {
             if deg == 0
             {
@@ -1610,7 +1610,7 @@ fn functions(
                 a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180)
             }
         }
-        "grad" | "gradians" =>
+        "grad" | "gradian" =>
         {
             if deg == 0
             {

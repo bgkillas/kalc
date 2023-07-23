@@ -2,9 +2,10 @@ use crate::complex::{
     NumStr,
     NumStr::{Matrix, Num, Str, Vector},
 };
+use crate::options::AngleType;
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 use std::ops::{Shl, Shr};
-pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
+pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, ()>
 {
     if func.len() == 1
     {
@@ -203,11 +204,11 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
     }
     i = 0;
     let (mut a, mut b);
-    let to_deg = if deg == 0
+    let to_deg = if deg == AngleType::Radians
     {
         Complex::with_val(prec, 1)
     }
-    else if deg == 1
+    else if deg == AngleType::Degrees
     {
         Complex::with_val(prec, 180) / Complex::with_val(prec, Pi)
     }
@@ -856,7 +857,7 @@ pub fn do_math(func: Vec<NumStr>, deg: u8, prec: u32) -> Result<NumStr, ()>
 }
 fn do_functions(
     a: NumStr,
-    deg: u8,
+    deg: AngleType,
     function: &mut Vec<NumStr>,
     k: usize,
     to_deg: &Complex,
@@ -1138,7 +1139,7 @@ fn sum(
     start: i64,
     end: i64,
     product: bool,
-    deg: u8,
+    deg: AngleType,
     prec: u32,
 ) -> Result<NumStr, ()>
 {
@@ -1282,7 +1283,7 @@ fn functions(
     c: Option<Complex>,
     to_deg: Complex,
     s: &str,
-    deg: u8,
+    deg: AngleType,
 ) -> Result<Complex, ()>
 {
     let b;
@@ -1582,11 +1583,11 @@ fn functions(
         "abs" | "norm" => a.abs(),
         "deg" | "degree" =>
         {
-            if deg == 0
+            if deg == AngleType::Radians
             {
                 a * Complex::with_val(prec, 180) / Complex::with_val(prec, Pi)
             }
-            else if deg == 2
+            else if deg == AngleType::Gradians
             {
                 a * 180.0 / 200.0
             }
@@ -1597,11 +1598,11 @@ fn functions(
         }
         "rad" | "radian" =>
         {
-            if deg == 0
+            if deg == AngleType::Radians
             {
                 a
             }
-            else if deg == 2
+            else if deg == AngleType::Gradians
             {
                 a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200)
             }
@@ -1612,11 +1613,11 @@ fn functions(
         }
         "grad" | "gradian" =>
         {
-            if deg == 0
+            if deg == AngleType::Radians
             {
                 a * Complex::with_val(prec, 200) / Complex::with_val(prec, Pi)
             }
-            else if deg == 2
+            else if deg == AngleType::Gradians
             {
                 a
             }

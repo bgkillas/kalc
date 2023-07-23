@@ -8,6 +8,7 @@ use crate::{
     math::{do_math, to_polar},
     parse::get_func,
     Options,
+    AngleType,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
@@ -59,11 +60,11 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
         {
             v = to_polar(
                 v,
-                if options.deg == 0
+                if options.deg == AngleType::Radians
                 {
                     Complex::with_val(options.prec, 1.0)
                 }
-                else if options.deg == 1
+                else if options.deg == AngleType::Degrees
                 {
                     Complex::with_val(options.prec, 180.0) / Complex::with_val(options.prec, Pi)
                 }
@@ -477,11 +478,11 @@ pub fn print_concurrent(
         {
             v = to_polar(
                 v,
-                if options.deg == 0
+                if options.deg == AngleType::Radians
                 {
                     Complex::with_val(options.prec, 1.0)
                 }
-                else if options.deg == 1
+                else if options.deg == AngleType::Degrees
                 {
                     Complex::with_val(options.prec, 180.0) / Complex::with_val(options.prec, Pi)
                 }

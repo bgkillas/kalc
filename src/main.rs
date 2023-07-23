@@ -44,7 +44,7 @@ use {
 pub struct Options
 {
     sci: bool,
-    deg: AngleType, // 0=rad,1=deg,2=grad
+    deg: AngleType,
     base: usize,
     tau: bool,
     polar: bool,

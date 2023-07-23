@@ -1,4 +1,8 @@
-use crate::{help, Options};
+use crate::{
+    help,
+    options::AngleType::{Degrees, Gradians, Radians},
+    Options,
+};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -26,9 +30,9 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
         {
             "--debug" => options.debug = !options.debug,
             "--tau" => options.tau = !options.tau,
-            "--rad" => options.deg = AngleType::Radians,
-            "--deg" => options.deg = AngleType::Degrees,
-            "--grad" => options.deg = AngleType::Gradians,
+            "--rad" => options.deg = Radians,
+            "--deg" => options.deg = Degrees,
+            "--grad" => options.deg = Gradians,
             "--prompt" => options.prompt = !options.prompt,
             "--color" => options.color = !options.color,
             "--line" => options.lines = !options.lines,
@@ -738,9 +742,9 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         }
                     }
                 }
-                "deg" => options.deg = AngleType::Radians,
-                "rad" => options.deg = AngleType::Degrees,
-                "grad" => options.deg = AngleType::Gradians,
+                "deg" => options.deg = Radians,
+                "rad" => options.deg = Degrees,
+                "grad" => options.deg = Gradians,
                 "tau" =>
                 {
                     options.tau = match split.next().unwrap().parse::<bool>()
@@ -776,7 +780,8 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
 }
 
 #[derive(Copy, Clone, PartialEq)]
-pub enum AngleType{
+pub enum AngleType
+{
     Radians,
     Degrees,
     Gradians,

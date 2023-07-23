@@ -4,6 +4,7 @@ use crate::{
         NumStr::{Num, Str},
     },
     math::do_math,
+    options::AngleType::Radians,
     parse::{get_func, get_vars, input_var},
 };
 use rug::{float::Constant::Pi, Complex};
@@ -63,8 +64,8 @@ fn test_math()
         Str(")".to_string()),
         Str(")".to_string()),
     ];
-    let out = do_math(output, 0, 512).unwrap().num().unwrap();
-    let answer = do_math(expected, 0, 512).unwrap().num().unwrap();
+    let out = do_math(output, Radians, 512).unwrap().num().unwrap();
+    let answer = do_math(expected, Radians, 512).unwrap().num().unwrap();
     assert_eq!(out.real().to_string(), answer.real().to_string());
     assert_eq!(out.imag().to_string(), answer.imag().to_string());
     assert_eq!(&out.real().to_string()[..20], "2.009877988310399125");

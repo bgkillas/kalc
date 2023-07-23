@@ -613,14 +613,19 @@ pub fn input_var(input: &str, vars: &[[String; 2]], dont_do: Option<&str>) -> St
     }
     let chars = input.chars().collect::<Vec<char>>();
     let mut count;
+    let mut exp = false;
     while i < chars.len()
     {
         c = chars[i];
         not_pushed = true;
-        if stdin().is_terminal() && parse(&mut output, c, i, &chars)
+        if stdin().is_terminal() && parse(&mut output, c, i, &chars, &mut exp)
         {
             i += 1;
             continue;
+        }
+        else
+        {
+            exp = false
         }
         if !c.is_alphabetic()
         {

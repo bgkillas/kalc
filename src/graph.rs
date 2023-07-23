@@ -4,8 +4,7 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     math::do_math,
-    Options,
-    AngleType,
+    AngleType, Options,
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;

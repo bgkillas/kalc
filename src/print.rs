@@ -7,8 +7,8 @@ use crate::{
     get_terminal_width,
     math::{do_math, to_polar},
     parse::get_func,
+    AngleType::{Degrees, Gradians, Radians},
     Options,
-    AngleType,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
@@ -60,17 +60,17 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
         {
             v = to_polar(
                 v,
-                if options.deg == AngleType::Radians
+                match options.deg
                 {
-                    Complex::with_val(options.prec, 1.0)
-                }
-                else if options.deg == AngleType::Degrees
-                {
-                    Complex::with_val(options.prec, 180.0) / Complex::with_val(options.prec, Pi)
-                }
-                else
-                {
-                    Complex::with_val(options.prec, 200.0) / Complex::with_val(options.prec, Pi)
+                    Degrees =>
+                    {
+                        Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi)
+                    }
+                    Radians => Complex::with_val(options.prec, 1),
+                    Gradians =>
+                    {
+                        Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi)
+                    }
                 },
             );
         }
@@ -478,17 +478,17 @@ pub fn print_concurrent(
         {
             v = to_polar(
                 v,
-                if options.deg == AngleType::Radians
+                match options.deg
                 {
-                    Complex::with_val(options.prec, 1.0)
-                }
-                else if options.deg == AngleType::Degrees
-                {
-                    Complex::with_val(options.prec, 180.0) / Complex::with_val(options.prec, Pi)
-                }
-                else
-                {
-                    Complex::with_val(options.prec, 200.0) / Complex::with_val(options.prec, Pi)
+                    Degrees =>
+                    {
+                        Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi)
+                    }
+                    Radians => Complex::with_val(options.prec, 1),
+                    Gradians =>
+                    {
+                        Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi)
+                    }
                 },
             );
         }

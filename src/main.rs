@@ -11,7 +11,10 @@ use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     graph::graph,
     math::do_math,
-    options::{arg_opts, file_opts, AngleType},
+    options::{
+        arg_opts, file_opts, AngleType,
+        AngleType::{Degrees, Gradians, Radians},
+    },
     parse::{get_func, get_vars, input_var},
     print::{get_output, print_answer, print_concurrent},
 };
@@ -64,7 +67,7 @@ impl Default for Options
     {
         Options {
             sci: false,
-            deg: AngleType::Radians,
+            deg: Radians,
             base: 10,
             tau: false,
             polar: false,
@@ -181,6 +184,7 @@ fn main()
         mut end,
         mut placement,
     );
+    let mut exp = false;
     let mut exit = false;
     'main: loop
     {
@@ -724,7 +728,7 @@ fn main()
                     {}
                     _ =>
                     {
-                        convert_str(&mut input, c, &mut placement);
+                        convert_str(&mut input, c, &mut placement, &mut exp);
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 0 } + 1;
                         if end > input.len()
                         {
@@ -846,19 +850,19 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    options.deg = AngleType::Degrees;
+                    options.deg = Degrees;
                 }
                 "rad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    options.deg = AngleType::Radians;
+                    options.deg = Radians;
                 }
                 "grad" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    options.deg = AngleType::Gradians;
+                    options.deg = Gradians;
                 }
                 "rt" =>
                 {
@@ -1441,14 +1445,15 @@ fn get_terminal_width() -> usize
         80
     }
 }
-pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
+pub fn parse(output: &mut String, c: char, i: usize, chars: &[char], exp: &mut bool) -> bool
 {
     match c
     {
         '⁰' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('0')
             }
@@ -1460,8 +1465,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '⁹' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('9')
             }
@@ -1473,8 +1479,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '⁸' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('8')
             }
@@ -1486,8 +1493,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '⁷' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('7')
             }
@@ -1499,8 +1507,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '⁶' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('6')
             }
@@ -1512,8 +1521,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '⁵' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('5')
             }
@@ -1525,8 +1535,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '⁴' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('4')
             }
@@ -1538,8 +1549,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '³' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('3')
             }
@@ -1551,8 +1563,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '²' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('2')
             }
@@ -1564,8 +1577,9 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         }
         '¹' =>
         {
-            if i != 0 && chars[i - 1].is_numeric()
+            if !*exp && i != 0 && chars[i - 1].is_numeric()
             {
+                *exp = true;
                 output.push('^');
                 output.push('1')
             }
@@ -1578,134 +1592,159 @@ pub fn parse(output: &mut String, c: char, i: usize, chars: &Vec<char>) -> bool
         _ => false,
     }
 }
-fn convert_str(input: &mut String, c: char, placement: &mut usize)
+fn convert_str(input: &mut String, c: char, placement: &mut usize, exp: &mut bool)
 {
     match c
     {
         'π' =>
         {
+            *exp = false;
             input.insert_str(*placement, "pi");
             *placement += 2;
         }
         'τ' =>
         {
+            *exp = false;
             input.insert_str(*placement, "tau");
             *placement += 3;
         }
         '√' =>
         {
+            *exp = false;
             input.insert_str(*placement, "sqrt");
             *placement += 4;
         }
         '∛' =>
         {
+            *exp = false;
             input.insert_str(*placement, "cbrt");
             *placement += 4;
         }
         '¼' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/4");
             *placement += 3;
         }
         '½' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/2");
             *placement += 3;
         }
         '¾' =>
         {
+            *exp = false;
             input.insert_str(*placement, "3/4");
             *placement += 3;
         }
         '⅐' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/7");
             *placement += 3;
         }
         '⅑' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/9");
             *placement += 3;
         }
         '⅒' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/10");
             *placement += 4;
         }
         '⅓' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/3");
             *placement += 3;
         }
         '⅔' =>
         {
+            *exp = false;
             input.insert_str(*placement, "2/3");
             *placement += 3;
         }
         '⅕' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/5");
             *placement += 3;
         }
         '⅖' =>
         {
+            *exp = false;
             input.insert_str(*placement, "2/5");
             *placement += 3;
         }
         '⅗' =>
         {
+            *exp = false;
             input.insert_str(*placement, "3/5");
             *placement += 3;
         }
         '⅘' =>
         {
+            *exp = false;
             input.insert_str(*placement, "4/5");
             *placement += 3;
         }
         '⅙' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/6");
             *placement += 3;
         }
         '⅚' =>
         {
+            *exp = false;
             input.insert_str(*placement, "5/6");
             *placement += 3;
         }
         '⅛' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/8");
             *placement += 3;
         }
         '⅜' =>
         {
+            *exp = false;
             input.insert_str(*placement, "3/8");
             *placement += 3;
         }
         '⅝' =>
         {
+            *exp = false;
             input.insert_str(*placement, "5/8");
             *placement += 3;
         }
         '⅞' =>
         {
+            *exp = false;
             input.insert_str(*placement, "7/8");
             *placement += 3;
         }
         '⅟' =>
         {
+            *exp = false;
             input.insert_str(*placement, "1/");
             *placement += 3;
         }
         '↉' =>
         {
+            *exp = false;
             input.insert_str(*placement, "0/3");
             *placement += 3;
         }
         '⁰' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^0");
                 *placement += 2;
             }
@@ -1717,8 +1756,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '⁹' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^9");
                 *placement += 2;
             }
@@ -1730,8 +1770,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '⁸' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^8");
                 *placement += 2;
             }
@@ -1743,8 +1784,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '⁷' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^7");
                 *placement += 2;
             }
@@ -1756,8 +1798,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '⁶' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^6");
                 *placement += 2;
             }
@@ -1769,8 +1812,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '⁵' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^5");
                 *placement += 2;
             }
@@ -1782,8 +1826,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '⁴' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^4");
                 *placement += 2;
             }
@@ -1795,8 +1840,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '³' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^3");
                 *placement += 2;
             }
@@ -1808,8 +1854,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '²' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^2");
                 *placement += 2;
             }
@@ -1821,8 +1868,9 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         '¹' =>
         {
-            if !input.is_empty() && input.chars().last().unwrap().is_numeric()
+            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
             {
+                *exp = true;
                 input.insert_str(*placement, "^1");
                 *placement += 2;
             }
@@ -1834,6 +1882,7 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize)
         }
         _ =>
         {
+            *exp = false;
             input.insert(*placement, c);
             *placement += 1;
         }

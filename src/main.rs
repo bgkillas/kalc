@@ -1114,7 +1114,8 @@ fn main()
             print!("\x1B[0J");
             stdout().flush().unwrap();
             split = input.splitn(2, '=');
-            l = split.next().unwrap();
+            let s = split.next().unwrap().replace(' ', "");
+            l = &s;
             r = split.next().unwrap();
             if l.is_empty()
             {

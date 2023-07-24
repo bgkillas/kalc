@@ -34,7 +34,7 @@ use term_size::dimensions;
 // support units
 // support plus-minus via a 2 vector
 // something something digraphs
-// fix 2³³ == 2^3^3 and ³/4 not working
+// fix ³/4 not working
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -329,6 +329,56 @@ fn main()
             'outer: loop
             {
                 c = read_single_char();
+                if c == '\x1A'
+                {
+                    c = match read_single_char()
+                    {
+                        'a' => 'α',
+                        'A' => 'Α',
+                        'b' => 'β',
+                        'B' => 'Β',
+                        'c' => 'χ',
+                        'C' => 'Χ',
+                        'd' => 'Δ',
+                        'D' => 'δ',
+                        'e' => 'ε',
+                        'E' => 'Ε',
+                        'f' => 'φ',
+                        'F' => 'Φ',
+                        'g' => 'γ',
+                        'G' => 'Γ',
+                        //Η η
+                        //Ι ι
+                        'k' => 'κ',
+                        'Κ' => 'Κ',
+                        'l' => 'λ',
+                        'L' => 'Λ',
+                        'm' => 'μ',
+                        'M' => 'Μ',
+                        'n' => 'ν',
+                        'Ν' => 'Ν',
+                        //Ω ω
+                        'o' => 'ο',
+                        'O' => 'Ο',
+                        'p' => 'π',
+                        'P' => 'Π',
+                        'r' => 'ρ',
+                        'R' => 'Ρ',
+                        's' => 'σ',
+                        'S' => 'Σ',
+                        //Τ τ
+                        //Ψ ψ
+                        't' => 'θ',
+                        'T' => 'Θ',
+                        'u' => 'υ',
+                        'U' => 'Υ',
+                        'x' => 'ξ',
+                        'X' => 'Ξ',
+                        'z' => 'ζ',
+                        'Z' => 'Ζ',
+                        _ => continue,
+                    }
+                }
                 if options.debug
                 {
                     watch = Some(std::time::Instant::now());
@@ -1522,7 +1572,7 @@ fn convert(c: &char) -> char
     let valid_chars = [
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
         '{', '}', '√', '∛', '¼', '½', '¾', '⅐', '⅑', '⅒', '⅓', '⅔', '⅕', '⅖', '⅗', '⅘', '⅙', '⅚',
-        '⁹', '⁸', '⁷', '⁶', '⁵', '⁴', '³', '²', '¹', '⁰', '⅛', '⅜', '⅝', '⅞', '⅟', '↉',
+        '⁹', '⁸', '⁷', '⁶', '⁵', '⁴', '³', '²', '¹', '⁰', '⅛', '⅜', '⅝', '⅞', '⅟', '↉', '⁻', 'ⁱ',
     ];
     match c
     {
@@ -1558,6 +1608,7 @@ fn read_single_char() -> char
         Key::ArrowRight => '\x1C',
         Key::ArrowUp => '\x1D',
         Key::ArrowDown => '\x1E',
+        Key::Escape => '\x1A',
         _ => '\0',
     }
 }

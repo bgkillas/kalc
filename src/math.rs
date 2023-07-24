@@ -1505,7 +1505,7 @@ fn functions(
                 return Err("no args");
             }
         }
-        "gamma" =>
+        "gamma" | "Γ" =>
         {
             if a.imag() == &0.0
             {
@@ -1700,7 +1700,7 @@ fn functions(
                 return Err("complex digamma not supported");
             }
         }
-        "zeta" =>
+        "zeta" | "ζ" =>
         {
             if a.imag() == &0.0
             {

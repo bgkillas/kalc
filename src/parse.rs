@@ -5,7 +5,7 @@ use crate::{
     },
     Options,
 };
-use rug::{float::Constant::Pi, Complex, Float};
+use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 use std::collections::HashSet;
 pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static str>
 {
@@ -21,9 +21,42 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let (mut c, mut deci);
     let n1 = Complex::with_val(options.prec, -1);
     let mut open = false;
+    let mut pow = String::new();
     'outer: while i < chars.len()
     {
         c = chars[i];
+        if !(c == '⁰'
+            || c == '⁹'
+            || c == '⁸'
+            || c == '⁷'
+            || c == '⁶'
+            || c == '⁵'
+            || c == '⁴'
+            || c == '³'
+            || c == '²'
+            || c == '¹'
+            || c == '⁻'
+            || c == 'ⁱ')
+            && !pow.is_empty()
+        {
+            let i = pow.matches('i').count() % 4;
+            pow = pow.replace('i', "");
+            if pow.is_empty()
+            {
+                pow = "1".to_string();
+            }
+            func.push(Str("^".to_string()));
+            func.push(Num(Complex::with_val(
+                options.prec,
+                match Complex::parse(pow.as_bytes())
+                {
+                    Ok(n) => n,
+                    Err(_) => return Err("exponent error"),
+                },
+            ) * Complex::with_val(options.prec, (0, 1))
+                .pow(Complex::with_val(options.prec, i))));
+            pow = String::new();
+        }
         if c == ' '
         {
             if !word.is_empty()
@@ -123,13 +156,14 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 }
                 match c
                 {
+                    'ⁱ' => pow.push('i'),
                     'E' | 'e'
                         if (options.small_e && c == 'e') || (!options.small_e && c == 'E') =>
                     {
                         place_multiplier(&mut func, &find_word);
                         func.push(Num(Complex::with_val(options.prec, 10)));
                         if i + 1 != chars.len()
-                            && (chars[i + 1].is_ascii_alphanumeric()
+                            && (chars[i + 1].is_alphanumeric()
                                 || chars[i + 1] == '-'
                                 || chars[i + 1] == '+'
                                 || chars[i + 1] == '('
@@ -280,16 +314,17 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     func.push(Str("/".to_string()))
                 }
                 '↉' => func.push(Num(Complex::new(options.prec))),
-                '⁰' => exp.push('0'),
-                '⁹' => exp.push('9'),
-                '⁸' => exp.push('8'),
-                '⁷' => exp.push('7'),
-                '⁶' => exp.push('6'),
-                '⁵' => exp.push('5'),
-                '⁴' => exp.push('4'),
-                '³' => exp.push('3'),
-                '²' => exp.push('2'),
-                '¹' => exp.push('1'),
+                '⁰' => pow.push('0'),
+                '⁹' => pow.push('9'),
+                '⁸' => pow.push('8'),
+                '⁷' => pow.push('7'),
+                '⁶' => pow.push('6'),
+                '⁵' => pow.push('5'),
+                '⁴' => pow.push('4'),
+                '³' => pow.push('3'),
+                '²' => pow.push('2'),
+                '¹' => pow.push('1'),
+                '⁻' => pow.push('-'),
                 '.' => word.push_str("0."),
                 '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
                 {
@@ -343,7 +378,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
                 '+' if i != 0
                     && i + 1 != chars.len()
-                    && (chars[i - 1].is_ascii_alphanumeric()
+                    && (chars[i - 1].is_alphanumeric()
                         || (!func.is_empty() && func.last().unwrap().str_is(")"))
                         || chars[i - 1] == '}'
                         || chars[i - 1] == ']')
@@ -385,7 +420,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     else if i == 0
                         || !(chars[i - 1] != if options.small_e { 'e' } else { 'E' }
-                            && (chars[i - 1].is_ascii_alphanumeric()
+                            && (chars[i - 1].is_alphanumeric()
                                 || func.last().unwrap().str_is(")")
                                 || chars[i - 1] == '}'
                                 || chars[i - 1] == ']'))
@@ -440,7 +475,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str("!=".to_string()));
                     }
                     else if i != 0
-                        && (chars[i - 1].is_ascii_alphanumeric()
+                        && (chars[i - 1].is_alphanumeric()
                             || (!func.is_empty() && func.last().unwrap().str_is(")")
                                 || func.last().unwrap().str_is("}")))
                     {
@@ -503,7 +538,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str(")".to_string()));
                     }
                     else if i != chars.len() - 1
-                        && (chars[i + 1].is_ascii_alphanumeric()
+                        && (chars[i + 1].is_alphanumeric()
                             || chars[i + 1] == '('
                             || chars[i + 1] == '{'
                             || chars[i + 1] == '|'
@@ -529,6 +564,25 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         i += 1;
     }
     func.extend(vec![Str(")".to_string()); count as usize]);
+    if !pow.is_empty()
+    {
+        let i = pow.matches('i').count() % 4;
+        pow = pow.replace('i', "");
+        if pow.is_empty()
+        {
+            pow = "1".to_string();
+        }
+        func.push(Str("^".to_string()));
+        func.push(Num(Complex::with_val(
+            options.prec,
+            match Complex::parse(pow.as_bytes())
+            {
+                Ok(n) => n,
+                Err(_) => return Err("exponent error"),
+            },
+        ) * Complex::with_val(options.prec, (0, 1))
+            .pow(Complex::with_val(options.prec, i))));
+    }
     if !exp.is_empty()
     {
         func.push(Str("^".to_string()));
@@ -1005,6 +1059,8 @@ fn is_func(word: &str) -> bool
         "ai",
         "digamma",
         "zeta",
+        "Γ",
+        "ζ",
     ]
     .iter()
     .cloned()

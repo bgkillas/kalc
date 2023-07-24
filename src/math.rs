@@ -219,7 +219,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
     {
         if let Str(s) = &function[i].clone()
         {
-            if s.len() > 1 && s.chars().next().unwrap().is_ascii_alphabetic()
+            if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
             {
                 if s == "sum" || s == "product" || s == "prod" || s == "summation"
                 {

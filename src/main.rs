@@ -33,7 +33,6 @@ use term_size::dimensions;
 // gui support (via egui prob)
 // support units
 // support plus-minus via a 2 vector
-// change stuff like Ω to Omega and ω to omega https://en.wikipedia.org/wiki/Greek_alphabet
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -1898,7 +1897,7 @@ fn convert_str(input: &mut String, c: char, placement: &mut usize, exp: &mut boo
         {
             *exp = false;
             input.insert(*placement, c);
-            *placement += 1;
+            *placement += c.len_utf8();
         }
     }
 }
@@ -1911,7 +1910,7 @@ fn convert(c: char) -> char
     ];
     match c
     {
-        c if c.is_ascii_alphanumeric() || valid_chars.contains(&c) => c,
+        c if c.is_alphanumeric() || valid_chars.contains(&c) => c,
         'ⲡ' | '𝜋' | '𝛑' | '𝝿' | '𝞹' | '𝝅' | 'ℼ' | 'π' => 'π',
         'ⲧ' | '𝛕' | '𝜏' | '𝝉' | '𝞃' | '𝞽' | 'τ' => 'τ',
         '∗' | '∙' | '*' | '·' | '⋅' => '*',

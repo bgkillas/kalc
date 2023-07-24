@@ -33,6 +33,8 @@ use term_size::dimensions;
 // gui support (via egui prob)
 // support units
 // support plus-minus via a 2 vector
+// something something digraphs
+// fix 2³³ == 2^3^3 and ³/4 not working
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -144,7 +146,6 @@ fn main()
             ]);
         }
     }
-    let mut input = String::new();
     if !stdin().is_terminal()
     {
         for line in stdin().lock().lines()
@@ -169,8 +170,9 @@ fn main()
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut lines: Vec<String>;
     let mut unmod_lines: Vec<String>;
-    let mut last = String::new();
-    let mut current = String::new();
+    let mut last: Vec<char> = Vec::new();
+    let mut input: Vec<char> = Vec::new();
+    let mut current: Vec<char> = Vec::new();
     let mut inputs: Vec<String>;
     let (
         mut c,
@@ -186,7 +188,6 @@ fn main()
         mut end,
         mut placement,
     );
-    let mut exp = false;
     let mut exit = false;
     'main: loop
     {
@@ -206,14 +207,19 @@ fn main()
             {
                 watch = Some(std::time::Instant::now());
             }
-            input = args.first().unwrap().replace('_', &format!("({})", last));
+            input = args
+                .first()
+                .unwrap()
+                .replace('_', &format!("({})", last.iter().collect::<String>()))
+                .chars()
+                .collect();
             args.remove(0);
             print_answer(
-                &input,
+                &input.iter().collect::<String>(),
                 match get_func(
                     &input_var(
                         &input
-                            .chars()
+                            .iter()
                             .map(convert)
                             .collect::<String>()
                             .replace('π', "pi")
@@ -261,21 +267,28 @@ fn main()
                 print!(" {}", time.elapsed().as_nanos());
             }
             if !(input.is_empty()
-                || input.contains('#')
+                || input.contains(&'#')
                 || (input
+                    .iter()
+                    .collect::<String>()
                     .replace("exp", "")
                     .replace("max", "")
                     .replace("}x{", "")
                     .replace("]x[", "")
                     .contains('x')
                     && vars.iter().all(|i| i[0] != "x"))
-                || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                || (input.iter().collect::<String>().contains('y')
+                    && vars.iter().all(|i| i[0] != "y"))
                 || (input
+                    .iter()
+                    .collect::<String>()
                     .replace("zeta", "")
                     .replace("normalize", "")
                     .contains('z')
                     && vars.iter().all(|i| i[0] != "z"))
                 || input
+                    .iter()
+                    .collect::<String>()
                     .replace("==", "")
                     .replace("!=", "")
                     .replace(">=", "")
@@ -306,7 +319,12 @@ fn main()
             i = lines.len() as i32;
             max = i;
             placement = 0;
-            last = lines.last().unwrap_or(&String::new()).clone();
+            last = lines
+                .last()
+                .unwrap_or(&String::new())
+                .clone()
+                .chars()
+                .collect::<Vec<char>>();
             start = 0;
             'outer: loop
             {
@@ -329,7 +347,10 @@ fn main()
                             frac = print_concurrent(
                                 &input,
                                 &input_var(
-                                    &input.replace('_', &format!("({})", last)),
+                                    &input.iter().collect::<String>().replace(
+                                        '_',
+                                        &format!("({})", last.iter().collect::<String>()),
+                                    ),
                                     &vars,
                                     None,
                                     options,
@@ -340,21 +361,28 @@ fn main()
                             );
                         }
                         if !(input.is_empty()
-                            || input.contains('#')
+                            || input.contains(&'#')
                             || (input
+                                .iter()
+                                .collect::<String>()
                                 .replace("exp", "")
                                 .replace("max", "")
                                 .replace("}x{", "")
                                 .replace("]x[", "")
                                 .contains('x')
                                 && vars.iter().all(|i| i[0] != "x"))
-                            || (input.contains('y') && vars.iter().all(|i| i[0] != "y"))
+                            || (input.iter().collect::<String>().contains('y')
+                                && vars.iter().all(|i| i[0] != "y"))
                             || (input
+                                .iter()
+                                .collect::<String>()
                                 .replace("zeta", "")
                                 .replace("normalize", "")
                                 .contains('z')
                                 && vars.iter().all(|i| i[0] != "z"))
                             || input
+                                .iter()
+                                .collect::<String>()
                                 .replace("==", "")
                                 .replace("!=", "")
                                 .replace(">=", "")
@@ -411,7 +439,7 @@ fn main()
                         }
                         else
                         {
-                            lines[i as usize] = input.clone();
+                            lines[i as usize] = input.clone().iter().collect::<String>();
                         }
                         frac = if input.is_empty()
                         {
@@ -422,7 +450,10 @@ fn main()
                             print_concurrent(
                                 &input,
                                 &input_var(
-                                    &input.replace('_', &format!("({})", last)),
+                                    &input.iter().collect::<String>().replace(
+                                        '_',
+                                        &format!("({})", last.iter().collect::<String>()),
+                                    ),
                                     &vars,
                                     None,
                                     options,
@@ -455,7 +486,7 @@ fn main()
                                 {
                                     ""
                                 },
-                                &input[start..end]
+                                &input[start..end].iter().collect::<String>()
                             );
                             0
                         };
@@ -500,7 +531,7 @@ fn main()
                     {
                         // up history
                         i -= if i > 0 { 1 } else { 0 };
-                        input = lines[i as usize].clone();
+                        input = lines[i as usize].clone().chars().collect::<Vec<char>>();
                         placement = input.len();
                         end = input.len();
                         start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
@@ -518,7 +549,10 @@ fn main()
                             frac = print_concurrent(
                                 &input,
                                 &input_var(
-                                    &input.replace('_', &format!("({})", last)),
+                                    &input.iter().collect::<String>().replace(
+                                        '_',
+                                        &format!("({})", last.iter().collect::<String>()),
+                                    ),
                                     &vars,
                                     None,
                                     options,
@@ -551,7 +585,7 @@ fn main()
                                 {
                                     ""
                                 },
-                                &input[start..]
+                                &input[start..].iter().collect::<String>()
                             );
                         }
                     }
@@ -589,7 +623,7 @@ fn main()
                         }
                         else
                         {
-                            input = lines[i as usize].clone();
+                            input = lines[i as usize].clone().chars().collect::<Vec<char>>();
                         }
                         placement = input.len();
                         end = input.len();
@@ -608,7 +642,10 @@ fn main()
                             frac = print_concurrent(
                                 &input,
                                 &input_var(
-                                    &input.replace('_', &format!("({})", last)),
+                                    &input.iter().collect::<String>().replace(
+                                        '_',
+                                        &format!("({})", last.iter().collect::<String>()),
+                                    ),
                                     &vars,
                                     None,
                                     options,
@@ -641,7 +678,7 @@ fn main()
                                 {
                                     ""
                                 },
-                                &input[start..]
+                                &input[start..].iter().collect::<String>()
                             );
                         }
                     }
@@ -678,7 +715,7 @@ fn main()
                                 {
                                     ""
                                 },
-                                &input[start..end],
+                                &input[start..end].iter().collect::<String>(),
                                 "\x08".repeat(end - start - (placement - start))
                             );
                             stdout().flush().unwrap();
@@ -722,7 +759,7 @@ fn main()
                                 {
                                     ""
                                 },
-                                &input[start..end + 1]
+                                &input[start..end + 1].iter().collect::<String>()
                             );
                         }
                         else if placement != input.len()
@@ -735,7 +772,9 @@ fn main()
                     {}
                     _ =>
                     {
-                        convert_str(&mut input, c, &mut placement, &mut exp);
+                        //convert_str(&mut input, c, &mut placement, &mut exp);
+                        input.insert(placement, c);
+                        placement += 1;
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 0 } + 1;
                         if end > input.len()
                         {
@@ -774,14 +813,17 @@ fn main()
                         }
                         else
                         {
-                            lines[i as usize] = input.clone();
+                            lines[i as usize] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output
                         {
                             frac = print_concurrent(
                                 &input,
                                 &input_var(
-                                    &input.replace('_', &format!("({})", last)),
+                                    &input.iter().collect::<String>().replace(
+                                        '_',
+                                        &format!("({})", last.iter().collect::<String>()),
+                                    ),
                                     &vars,
                                     None,
                                     options,
@@ -814,7 +856,7 @@ fn main()
                                 {
                                     ""
                                 },
-                                &input[start..end]
+                                &input[start..end].iter().collect::<String>()
                             );
                         }
                         if let Some(time) = watch
@@ -840,7 +882,7 @@ fn main()
             {
                 continue;
             }
-            match input.as_str()
+            match input.iter().collect::<String>().as_str()
             {
                 "color" =>
                 {
@@ -1006,7 +1048,8 @@ fn main()
                 }
                 _ =>
                 {
-                    split = input.splitn(2, ' ');
+                    let n = input.iter().collect::<String>();
+                    split = n.splitn(2, ' ');
                     if split.next().unwrap() == "history"
                     {
                         print!("\x1b[A\x1B[2K\x1B[1G");
@@ -1023,12 +1066,12 @@ fn main()
                     }
                 }
             }
-            write(&input, &mut file, &unmod_lines);
+            write(&input.iter().collect::<String>(), &mut file, &unmod_lines);
         }
-        if input.ends_with('=')
+        if input.ends_with(&['='])
         {
-            l = &input[..input.len() - 1];
-            match l
+            l = input[..input.len() - 1].iter().collect::<String>();
+            match l.as_str()
             {
                 "color" => println!("{}", options.color),
                 "prompt" => println!("{}", options.prompt),
@@ -1053,7 +1096,7 @@ fn main()
                 "3d" => println!("{}", options.samples_3d),
                 _ =>
                 {
-                    for i in match get_func(&input_var(l, &vars, None, options), options)
+                    for i in match get_func(&input_var(&l, &vars, None, options), options)
                     {
                         Ok(n) => n,
                         Err(_) => continue,
@@ -1117,6 +1160,8 @@ fn main()
             continue;
         }
         if input
+            .iter()
+            .collect::<String>()
             .replace("==", "")
             .replace("!=", "")
             .replace(">=", "")
@@ -1125,15 +1170,16 @@ fn main()
         {
             print!("\x1B[0J");
             stdout().flush().unwrap();
-            split = input.splitn(2, '=');
+            let n = input.iter().collect::<String>();
+            split = n.splitn(2, '=');
             let s = split.next().unwrap().replace(' ', "");
-            l = &s;
+            l = s;
             r = split.next().unwrap();
             if l.is_empty()
             {
                 continue;
             }
-            match l
+            match l.as_str()
             {
                 "point" =>
                 {
@@ -1383,8 +1429,10 @@ fn main()
             vars.push([l.to_string(), r.to_string()]);
             continue;
         }
-        else if input.contains('#')
+        else if input.contains(&'#')
             || (input
+                .iter()
+                .collect::<String>()
                 .replace("exp", "")
                 .replace("max", "")
                 .replace("}x{", "")
@@ -1392,20 +1440,21 @@ fn main()
                 .contains('x')
                 && vars.iter().all(|i| i[0] != "x"))
             || (input
+                .iter()
+                .collect::<String>()
                 .replace("zeta", "")
                 .replace("normalize", "")
                 .contains('z')
                 && vars.iter().all(|i| i[0] != "z"))
         {
-            input = input
-                .replace("zeta", "##ta##")
-                .replace("normalize", "##ma##")
-                .replace('z', "(x+y*i)")
-                .replace("##ta##", "zeta")
-                .replace("##ma##", "normalize");
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();
-            inputs = input.split('#').map(String::from).collect();
+            inputs = input
+                .iter()
+                .collect::<String>()
+                .split('#')
+                .map(String::from)
+                .collect();
             funcs = Vec::new();
             for i in &inputs
             {
@@ -1413,11 +1462,21 @@ fn main()
                 {
                     continue;
                 }
-                funcs.push(match get_func(&input_var(i, &vars, None, options), options)
-                {
-                    Ok(f) => f,
-                    _ => continue 'main,
-                });
+                funcs.push(
+                    match get_func(
+                        &input_var(i, &vars, None, options)
+                            .replace("zeta", "##ta##")
+                            .replace("normalize", "##ma##")
+                            .replace('z', "(x+y*i)")
+                            .replace("##ta##", "zeta")
+                            .replace("##ma##", "normalize"),
+                        options,
+                    )
+                    {
+                        Ok(f) => f,
+                        _ => continue 'main,
+                    },
+                );
             }
             handles.push(graph(
                 inputs,
@@ -1458,450 +1517,7 @@ fn get_terminal_width() -> usize
         80
     }
 }
-pub fn parse(output: &mut String, c: char, i: usize, chars: &[char], exp: &mut bool) -> bool
-{
-    match c
-    {
-        '⁰' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('0')
-            }
-            else
-            {
-                output.push('0')
-            }
-            true
-        }
-        '⁹' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('9')
-            }
-            else
-            {
-                output.push('9')
-            }
-            true
-        }
-        '⁸' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('8')
-            }
-            else
-            {
-                output.push('8')
-            }
-            true
-        }
-        '⁷' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('7')
-            }
-            else
-            {
-                output.push('7')
-            }
-            true
-        }
-        '⁶' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('6')
-            }
-            else
-            {
-                output.push('6')
-            }
-            true
-        }
-        '⁵' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('5')
-            }
-            else
-            {
-                output.push('5')
-            }
-            true
-        }
-        '⁴' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('4')
-            }
-            else
-            {
-                output.push('4')
-            }
-            true
-        }
-        '³' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('3')
-            }
-            else
-            {
-                output.push('3')
-            }
-            true
-        }
-        '²' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('2')
-            }
-            else
-            {
-                output.push('2')
-            }
-            true
-        }
-        '¹' =>
-        {
-            if !*exp && i != 0 && chars[i - 1].is_numeric()
-            {
-                *exp = true;
-                output.push('^');
-                output.push('1')
-            }
-            else
-            {
-                output.push('1')
-            }
-            true
-        }
-        _ => false,
-    }
-}
-fn convert_str(input: &mut String, c: char, placement: &mut usize, exp: &mut bool)
-{
-    match c
-    {
-        'π' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "pi");
-            *placement += 2;
-        }
-        'τ' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "tau");
-            *placement += 3;
-        }
-        '√' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "sqrt");
-            *placement += 4;
-        }
-        '∛' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "cbrt");
-            *placement += 4;
-        }
-        '¼' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/4");
-            *placement += 3;
-        }
-        '½' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/2");
-            *placement += 3;
-        }
-        '¾' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "3/4");
-            *placement += 3;
-        }
-        '⅐' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/7");
-            *placement += 3;
-        }
-        '⅑' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/9");
-            *placement += 3;
-        }
-        '⅒' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/10");
-            *placement += 4;
-        }
-        '⅓' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/3");
-            *placement += 3;
-        }
-        '⅔' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "2/3");
-            *placement += 3;
-        }
-        '⅕' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/5");
-            *placement += 3;
-        }
-        '⅖' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "2/5");
-            *placement += 3;
-        }
-        '⅗' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "3/5");
-            *placement += 3;
-        }
-        '⅘' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "4/5");
-            *placement += 3;
-        }
-        '⅙' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/6");
-            *placement += 3;
-        }
-        '⅚' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "5/6");
-            *placement += 3;
-        }
-        '⅛' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/8");
-            *placement += 3;
-        }
-        '⅜' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "3/8");
-            *placement += 3;
-        }
-        '⅝' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "5/8");
-            *placement += 3;
-        }
-        '⅞' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "7/8");
-            *placement += 3;
-        }
-        '⅟' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "1/");
-            *placement += 3;
-        }
-        '↉' =>
-        {
-            *exp = false;
-            input.insert_str(*placement, "0/3");
-            *placement += 3;
-        }
-        '⁰' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^0");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '0');
-                *placement += 1;
-            }
-        }
-        '⁹' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^9");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '9');
-                *placement += 1;
-            }
-        }
-        '⁸' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^8");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '8');
-                *placement += 1;
-            }
-        }
-        '⁷' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^7");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '7');
-                *placement += 1;
-            }
-        }
-        '⁶' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^6");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '6');
-                *placement += 1;
-            }
-        }
-        '⁵' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^5");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '5');
-                *placement += 1;
-            }
-        }
-        '⁴' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^4");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '4');
-                *placement += 1;
-            }
-        }
-        '³' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^3");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '3');
-                *placement += 1;
-            }
-        }
-        '²' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^2");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '2');
-                *placement += 1;
-            }
-        }
-        '¹' =>
-        {
-            if !*exp && !input.is_empty() && input.chars().last().unwrap().is_numeric()
-            {
-                *exp = true;
-                input.insert_str(*placement, "^1");
-                *placement += 2;
-            }
-            else
-            {
-                input.insert(*placement, '1');
-                *placement += 1;
-            }
-        }
-        _ =>
-        {
-            *exp = false;
-            input.insert(*placement, c);
-            *placement += c.len_utf8();
-        }
-    }
-}
-fn convert(c: char) -> char
+fn convert(c: &char) -> char
 {
     let valid_chars = [
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
@@ -1910,7 +1526,7 @@ fn convert(c: char) -> char
     ];
     match c
     {
-        c if c.is_alphanumeric() || valid_chars.contains(&c) => c,
+        c if c.is_alphanumeric() || valid_chars.contains(c) => *c,
         'ⲡ' | '𝜋' | '𝛑' | '𝝿' | '𝞹' | '𝝅' | 'ℼ' | 'π' => 'π',
         'ⲧ' | '𝛕' | '𝜏' | '𝝉' | '𝞃' | '𝞽' | 'τ' => 'τ',
         '∗' | '∙' | '*' | '·' | '⋅' => '*',
@@ -1935,7 +1551,7 @@ fn read_single_char() -> char
     let key = term.read_key().unwrap();
     match key
     {
-        Key::Char(c) => convert(c),
+        Key::Char(c) => convert(&c),
         Key::Enter => '\n',
         Key::Backspace => '\x08',
         Key::ArrowLeft => '\x1B',

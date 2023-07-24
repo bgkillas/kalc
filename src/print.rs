@@ -154,7 +154,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     }
 }
 pub fn print_concurrent(
-    unmodified_input: &str,
+    unmodified_input: &[char],
     input: &str,
     options: Options,
     start: usize,
@@ -201,7 +201,7 @@ pub fn print_concurrent(
             {
                 ""
             },
-            &unmodified_input[start..end],
+            &unmodified_input[start..end].iter().collect::<String>(),
             if options.color { "\x1b[0m" } else { "" }
         );
         return 0;
@@ -233,7 +233,7 @@ pub fn print_concurrent(
                 {
                     ""
                 },
-                &unmodified_input[start..end],
+                &unmodified_input[start..end].iter().collect::<String>(),
                 if options.color { "\x1b[0m" } else { "" },
             );
             return 0;
@@ -267,7 +267,7 @@ pub fn print_concurrent(
                 {
                     ""
                 },
-                &unmodified_input[start..end],
+                &unmodified_input[start..end].iter().collect::<String>(),
                 if options.color { "\x1b[0m" } else { "" },
             );
             return 0;
@@ -456,7 +456,7 @@ pub fn print_concurrent(
                 {
                     ""
                 },
-                &unmodified_input[start..end],
+                &unmodified_input[start..end].iter().collect::<String>(),
                 if options.color { "\x1b[0m" } else { "" },
             );
             frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
@@ -495,7 +495,7 @@ pub fn print_concurrent(
                 {
                     ""
                 },
-                &unmodified_input[start..end],
+                &unmodified_input[start..end].iter().collect::<String>(),
                 if options.color { "\x1b[0m" } else { "" }
             );
         }
@@ -647,7 +647,7 @@ pub fn print_concurrent(
             {
                 ""
             },
-            &unmodified_input[start..end],
+            &unmodified_input[start..end].iter().collect::<String>(),
             if options.color { "\x1b[0m" } else { "" }
         );
         frac += num;
@@ -843,7 +843,7 @@ pub fn print_concurrent(
             {
                 ""
             },
-            &unmodified_input[start..end],
+            &unmodified_input[start..end].iter().collect::<String>(),
             if options.color { "\x1b[0m" } else { "" }
         );
         frac += num;

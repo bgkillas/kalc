@@ -3,13 +3,10 @@ use crate::{
         NumStr,
         NumStr::{Num, Str, Vector},
     },
-    parse, Options,
+    Options,
 };
 use rug::{float::Constant::Pi, Complex, Float};
-use std::{
-    collections::HashSet,
-    io::{stdin, IsTerminal},
-};
+use std::collections::HashSet;
 pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static str>
 {
     let mut count: i32 = 0;
@@ -47,7 +44,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 func.push(Str('*'.to_string()))
             }
         }
-        else if c.is_numeric()
+        else if c.is_ascii_digit()
         {
             if !word.is_empty() && word != "0."
             {
@@ -257,6 +254,42 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             }
             match c
             {
+                '√' => func.push(Str("sqrt".to_string())),
+                '∛' => func.push(Str("cbrt".to_string())),
+                '¼' => func.push(Num(Complex::with_val(options.prec, 0.25))),
+                '½' => func.push(Num(Complex::with_val(options.prec, 0.5))),
+                '¾' => func.push(Num(Complex::with_val(options.prec, 0.75))),
+                '⅒' => func.push(Num(Complex::with_val(options.prec, 0.1))),
+                '⅕' => func.push(Num(Complex::with_val(options.prec, 0.2))),
+                '⅖' => func.push(Num(Complex::with_val(options.prec, 0.4))),
+                '⅗' => func.push(Num(Complex::with_val(options.prec, 0.6))),
+                '⅘' => func.push(Num(Complex::with_val(options.prec, 0.8))),
+                '⅐' => func.push(Num(Complex::with_val(options.prec, 7.0).recip())),
+                '⅑' => func.push(Num(Complex::with_val(options.prec, 9.0).recip())),
+                '⅓' => func.push(Num(Complex::with_val(options.prec, 3.0).recip())),
+                '⅔' => func.push(Num(Complex::with_val(options.prec, 1.5).recip())),
+                '⅙' => func.push(Num(Complex::with_val(options.prec, 6.0).recip())),
+                '⅚' => func.push(Num(Complex::with_val(options.prec, 1.2).recip())),
+                '⅛' => func.push(Num(Complex::with_val(options.prec, 0.125))),
+                '⅜' => func.push(Num(Complex::with_val(options.prec, 0.375))),
+                '⅝' => func.push(Num(Complex::with_val(options.prec, 0.625))),
+                '⅞' => func.push(Num(Complex::with_val(options.prec, 0.875))),
+                '⅟' =>
+                {
+                    func.push(Num(Complex::with_val(options.prec, 1)));
+                    func.push(Str("/".to_string()))
+                }
+                '↉' => func.push(Num(Complex::new(options.prec))),
+                '⁰' => exp.push('0'),
+                '⁹' => exp.push('9'),
+                '⁸' => exp.push('8'),
+                '⁷' => exp.push('7'),
+                '⁶' => exp.push('6'),
+                '⁵' => exp.push('5'),
+                '⁴' => exp.push('4'),
+                '³' => exp.push('3'),
+                '²' => exp.push('2'),
+                '¹' => exp.push('1'),
                 '.' => word.push_str("0."),
                 '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
                 {
@@ -622,21 +655,11 @@ pub fn input_var(
     }
     let chars = input.chars().collect::<Vec<char>>();
     let mut count;
-    let mut exp = false;
     let mut vl;
     while i < chars.len()
     {
         c = chars[i];
         not_pushed = true;
-        if stdin().is_terminal() && parse(&mut output, c, i, &chars, &mut exp)
-        {
-            i += 1;
-            continue;
-        }
-        else
-        {
-            exp = false
-        }
         if !c.is_alphabetic()
         {
             output.push(c);
@@ -732,7 +755,7 @@ pub fn input_var(
                         {
                             not_pushed = false;
                             output.push('(');
-                            temp = &chars[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
+                            temp = &chars[j + var[0].find('(').unwrap()..i + 1];
                             if temp.ends_with(&[')'])
                             {
                                 temp = &temp[..temp.len() - 1];
@@ -1010,6 +1033,8 @@ pub fn get_vars(prec: u32) -> Vec<[String; 2]>
         ["phi".to_string(), phi.to_string()],
         ["e".to_string(), Float::with_val(prec, 1).exp().to_string()],
         ["pi".to_string(), pi.to_string()],
+        ["π".to_string(), pi.to_string()],
         ["tau".to_string(), tau.to_string()],
+        ["τ".to_string(), tau.to_string()],
     ]
 }

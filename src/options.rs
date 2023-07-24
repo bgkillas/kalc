@@ -30,6 +30,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
         {
             "--debug" => options.debug = !options.debug,
             "--tau" => options.tau = !options.tau,
+            "--small_e" => options.small_e = !options.small_e,
             "--rad" => options.deg = Radians,
             "--deg" => options.deg = Degrees,
             "--grad" => options.deg = Gradians,
@@ -544,6 +545,19 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         Err(_) =>
                         {
                             println!("Invalid multi bool");
+                            err = true;
+                            continue;
+                        }
+                    };
+                }
+                "small_e" =>
+                {
+                    options.small_e = match split.next().unwrap().parse::<bool>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid small_e bool");
                             err = true;
                             continue;
                         }

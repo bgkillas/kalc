@@ -33,7 +33,7 @@ use term_size::dimensions;
 // gui support (via egui prob)
 // support units
 // support plus-minus via a 2 vector
-// tell users when an error happened
+// change stuff like Ω to Omega and ω to omega https://en.wikipedia.org/wiki/Greek_alphabet
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -60,6 +60,7 @@ pub struct Options
     multi: bool,
     tabbed: bool,
     allow_vars: bool,
+    small_e: bool,
     debug: bool,
 }
 impl Default for Options
@@ -90,6 +91,7 @@ impl Default for Options
             multi: false,
             tabbed: false,
             allow_vars: true,
+            small_e: false,
             debug: false,
         }
     }
@@ -241,8 +243,9 @@ fn main()
                             .replace('↉', "0/3"),
                         &vars,
                         None,
+                        options,
                     ),
-                    options.prec,
+                    options,
                 )
                 {
                     Ok(f) => f,
@@ -330,6 +333,7 @@ fn main()
                                     &input.replace('_', &format!("({})", last)),
                                     &vars,
                                     None,
+                                    options,
                                 ),
                                 options,
                                 start,
@@ -422,6 +426,7 @@ fn main()
                                     &input.replace('_', &format!("({})", last)),
                                     &vars,
                                     None,
+                                    options,
                                 ),
                                 options,
                                 start,
@@ -517,6 +522,7 @@ fn main()
                                     &input.replace('_', &format!("({})", last)),
                                     &vars,
                                     None,
+                                    options,
                                 ),
                                 options,
                                 start,
@@ -606,6 +612,7 @@ fn main()
                                     &input.replace('_', &format!("({})", last)),
                                     &vars,
                                     None,
+                                    options,
                                 ),
                                 options,
                                 start,
@@ -778,6 +785,7 @@ fn main()
                                     &input.replace('_', &format!("({})", last)),
                                     &vars,
                                     None,
+                                    options,
                                 ),
                                 options,
                                 start,
@@ -873,6 +881,7 @@ fn main()
                 }
                 "tau" => options.tau = true,
                 "pi" => options.tau = false,
+                "small_e" => options.small_e = !options.small_e,
                 "sci" | "scientific" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
@@ -960,8 +969,11 @@ fn main()
                             n = get_output(
                                 &options,
                                 &do_math(
-                                    get_func(&input_var(&v[1], &vars, Some(&v[0])), options.prec)
-                                        .unwrap(),
+                                    get_func(
+                                        &input_var(&v[1], &vars, Some(&v[0]), options),
+                                        options,
+                                    )
+                                    .unwrap(),
                                     options.deg,
                                     options.prec,
                                 )
@@ -1042,7 +1054,7 @@ fn main()
                 "3d" => println!("{}", options.samples_3d),
                 _ =>
                 {
-                    for i in match get_func(&input_var(l, &vars, None), options.prec)
+                    for i in match get_func(&input_var(l, &vars, None, options), options)
                     {
                         Ok(n) => n,
                         Err(_) => continue,
@@ -1402,7 +1414,7 @@ fn main()
                 {
                     continue;
                 }
-                funcs.push(match get_func(&input_var(i, &vars, None), options.prec)
+                funcs.push(match get_func(&input_var(i, &vars, None, options), options)
                 {
                     Ok(f) => f,
                     _ => continue 'main,
@@ -1973,7 +1985,8 @@ FLAGS: --help (this message)\n\
 --def ignores config file\n\
 --multi toggles multi line display for matrixes\n\
 --tabbed toggles tabbed display for matrixes\n\
---debug displays computation time in nanoseconds\n\n\
+--debug displays computation time in nanoseconds\n\
+--small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\n\n\
 - flags can be executed in runtime just without the dashes\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\

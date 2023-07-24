@@ -206,7 +206,7 @@ pub fn print_concurrent(
         );
         return 0;
     }
-    let func = match get_func(input, options.prec)
+    let func = match get_func(input, options)
     {
         Ok(f) => f,
         Err(s) =>
@@ -921,8 +921,28 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                     options.comma,
                 )
                 .replace("e0", "")
-                .replace('e', if options.color { "\x1b[92mE" } else { "E" })
-                    + if options.color { "\x1b[0m" } else { "" }
+                .replace(
+                    'e',
+                    if options.small_e
+                    {
+                        if options.color
+                        {
+                            "\x1b[92me"
+                        }
+                        else
+                        {
+                            "e"
+                        }
+                    }
+                    else if options.color
+                    {
+                        "\x1b[92mE"
+                    }
+                    else
+                    {
+                        "E"
+                    },
+                ) + if options.color { "\x1b[0m" } else { "" }
             }
             else if num.imag() == &0.0
             {
@@ -940,7 +960,14 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                             &format!(
                                 "{:e}{}",
                                 num.imag(),
-                                if options.color { "\x1b[93mi" } else { "i" }
+                                if options.color
+                                {
+                                    "\x1b[93mi\x1b[0m"
+                                }
+                                else
+                                {
+                                    "i"
+                                }
                             ),
                             dec,
                             num.real().prec(),
@@ -948,7 +975,28 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                     options.comma,
                 )
                 .replace("e0", "")
-                .replace('e', if options.color { "\x1b[92mE" } else { "E" })
+                .replace(
+                    'e',
+                    if options.small_e
+                    {
+                        if options.color
+                        {
+                            "\x1b[92me"
+                        }
+                        else
+                        {
+                            "e"
+                        }
+                    }
+                    else if options.color
+                    {
+                        "\x1b[92mE"
+                    }
+                    else
+                    {
+                        "E"
+                    },
+                ) + if options.color { "\x1b[0m" } else { "" }
             }
             else
             {

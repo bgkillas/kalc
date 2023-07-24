@@ -13,7 +13,7 @@ pub enum NumStr
 }
 impl NumStr
 {
-    pub fn mul(&self, b: &Self) -> Result<Self, ()>
+    pub fn mul(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)
         {
@@ -53,10 +53,10 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err(()),
+            _ => return Err("string err"),
         })
     }
-    pub fn div(&self, b: &Self) -> Result<Self, ()>
+    pub fn div(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)
         {
@@ -96,10 +96,10 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err(()),
+            _ => return Err("string err"),
         })
     }
-    pub fn add(&self, b: &Self) -> Result<Self, ()>
+    pub fn add(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)
         {
@@ -131,10 +131,10 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err(()),
+            _ => return Err("string err"),
         })
     }
-    pub fn sub(&self, b: &Self) -> Result<Self, ()>
+    pub fn sub(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)
         {
@@ -174,10 +174,10 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err(()),
+            _ => return Err("string err"),
         })
     }
-    pub fn pow(&self, b: &Self) -> Result<Self, ()>
+    pub fn pow(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)
         {
@@ -216,7 +216,7 @@ impl NumStr
                 }
                 else
                 {
-                    return Err(());
+                    return Err("no imag/fractional support for powers");
                 }
             }
             (Vector(a), Matrix(b)) if b.len() == a.len() => Matrix(
@@ -238,7 +238,7 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err(()),
+            _ => return Err("string err"),
         })
     }
     pub fn str_is(&self, s: &str) -> bool
@@ -249,28 +249,28 @@ impl NumStr
             _ => false,
         }
     }
-    pub fn num(&self) -> Result<Complex, ()>
+    pub fn num(&self) -> Result<Complex, &'static str>
     {
         match self
         {
             Num(n) => Ok(n.clone()),
-            _ => Err(()),
+            _ => Err("failed to get number"),
         }
     }
-    pub fn vec(&self) -> Result<Vec<Complex>, ()>
+    pub fn vec(&self) -> Result<Vec<Complex>, &'static str>
     {
         match self
         {
             Vector(v) => Ok(v.clone()),
-            _ => Err(()),
+            _ => Err("failed to get vector"),
         }
     }
-    pub fn mat(&self) -> Result<Vec<Vec<Complex>>, ()>
+    pub fn mat(&self) -> Result<Vec<Vec<Complex>>, &'static str>
     {
         match self
         {
             Matrix(m) => Ok(m.clone()),
-            _ => Err(()),
+            _ => Err("failed to get matrix"),
         }
     }
 }

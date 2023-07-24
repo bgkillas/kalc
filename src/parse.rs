@@ -10,7 +10,7 @@ use std::{
     collections::HashSet,
     io::{stdin, IsTerminal},
 };
-pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
+pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, &'static str>
 {
     let mut count: i32 = 0;
     let mut exp = String::new();
@@ -73,7 +73,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     {
                         if deci
                         {
-                            return Err(());
+                            return Err("cant have multiple '.'");
                         }
                         deci = true;
                         word.push(*c);
@@ -249,7 +249,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
                     match Complex::parse(exp.as_bytes())
                     {
                         Ok(n) => n,
-                        Err(_) => return Err(()),
+                        Err(_) => return Err("exponent error"),
                     },
                 )));
                 exp = String::new();
@@ -500,7 +500,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
             match Complex::parse(exp.as_bytes())
             {
                 Ok(n) => n,
-                Err(_) => return Err(()),
+                Err(_) => return Err("exponent error"),
             },
         )));
     }
@@ -514,7 +514,7 @@ pub fn get_func(input: &str, prec: u32) -> Result<Vec<NumStr>, ()>
     }
     if func.is_empty()
     {
-        return Err(());
+        return Err("no function");
     }
     // for i in &func
     // {

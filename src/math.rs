@@ -10,7 +10,7 @@ use crate::{
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 use std::ops::{Shl, Shr};
-pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, ()>
+pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &'static str>
 {
     if func.len() == 1
     {
@@ -18,7 +18,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
     }
     if func.is_empty()
     {
-        return Err(());
+        return Err("no function");
     }
     let mut function = func;
     let mut i = 0;
@@ -39,7 +39,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                 {
                     if j >= function.len()
                     {
-                        return Err(());
+                        return Err("idk");
                     }
                     match &function[j]
                     {
@@ -52,7 +52,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                 }
                 if i + 1 == j - 1
                 {
-                    return Err(());
+                    return Err("no interior vector");
                 }
                 v = function[i + 1..j - 1].to_vec();
                 single = 0;
@@ -74,7 +74,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                     len = n.len();
                                     mat.push(n)
                                 }
-                                _ => return Err(()),
+                                _ => return Err("probably unreachable"),
                             }
                             single = f + 1;
                         }
@@ -95,7 +95,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                     {
                         Num(n) => vec.push(n),
                         Vector(n) if len == n.len() || single == 0 => mat.push(n),
-                        _ => return Err(()),
+                        _ => return Err("probably not reachable"),
                     }
                 }
                 function.drain(i..j);
@@ -107,7 +107,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                     }
                     else
                     {
-                        return Err(());
+                        return Err("likely unreachable");
                     }
                 }
                 else
@@ -123,7 +123,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                 {
                     if j >= function.len()
                     {
-                        return Err(());
+                        return Err("unsure");
                     }
                     match &function[j]
                     {
@@ -136,7 +136,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                 }
                 if i + 1 == j - 1
                 {
-                    return Err(());
+                    return Err("no interior bracket");
                 }
                 v = function[i + 1..j - 1].to_vec();
                 if i != 0
@@ -270,12 +270,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                         }
                         else
                         {
-                            return Err(());
+                            return Err("failed to get var for sum/prod");
                         }
                     }
                     else
                     {
-                        return Err(());
+                        return Err("not enough args for sum/prod");
                     }
                 }
                 else if let Matrix(a) = function[i + 1].clone()
@@ -290,7 +290,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                             }
                             else
                             {
-                                return Err(());
+                                return Err("non square matrix");
                             }
                         }
                         "minor" | "minors" =>
@@ -301,7 +301,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                             }
                             else
                             {
-                                return Err(());
+                                return Err("non square matrix");
                             }
                         }
                         "adjugate" | "adj" =>
@@ -312,7 +312,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                             }
                             else
                             {
-                                return Err(());
+                                return Err("non square matrix");
                             }
                         }
                         "inverse" | "inv" => Matrix(inverse(a)?),
@@ -340,7 +340,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                             }
                             else
                             {
-                                return Err(());
+                                return Err("non square matrix");
                             }
                         }
                         "part" =>
@@ -360,7 +360,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                     }
                                     else
                                     {
-                                        return Err(());
+                                        return Err("not in matrix");
                                     }
                                 }
                                 else
@@ -374,13 +374,13 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                     }
                                     else
                                     {
-                                        return Err(());
+                                        return Err("not in matrix");
                                     }
                                 }
                             }
                             else
                             {
-                                return Err(());
+                                return Err("no arg");
                             }
                         }
                         "norm" =>
@@ -457,7 +457,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                             }
                             else
                             {
-                                return Err(());
+                                return Err("incorrect polar form");
                             }
                         }
                         "polar" | "pol" => Vector(to_polar(a.clone(), to_deg.clone())),
@@ -494,12 +494,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                 }
                                 else
                                 {
-                                    return Err(());
+                                    return Err("cant decern angles");
                                 }
                             }
                             else
                             {
-                                return Err(());
+                                return Err("no args");
                             }
                         }
                         "cross" =>
@@ -522,12 +522,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                 }
                                 else
                                 {
-                                    return Err(());
+                                    return Err("cant cross");
                                 }
                             }
                             else
                             {
-                                return Err(());
+                                return Err("no args");
                             }
                         }
                         "project" | "proj" =>
@@ -552,12 +552,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                 }
                                 else
                                 {
-                                    return Err(());
+                                    return Err("cant project");
                                 }
                             }
                             else
                             {
-                                return Err(());
+                                return Err("no args");
                             }
                         }
                         "dot" =>
@@ -577,7 +577,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                             }
                             else
                             {
-                                return Err(());
+                                return Err("no args");
                             }
                         }
                         "part" =>
@@ -593,12 +593,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, (
                                 }
                                 else
                                 {
-                                    return Err(());
+                                    return Err("out of range");
                                 }
                             }
                             else
                             {
-                                return Err(());
+                                return Err("no args");
                             }
                         }
                         _ => do_functions(
@@ -861,7 +861,7 @@ fn do_functions(
     k: usize,
     to_deg: &Complex,
     s: &str,
-) -> Result<NumStr, ()>
+) -> Result<NumStr, &'static str>
 {
     let mut vec = Vec::new();
     if function.len() > k + 3 && function[k + 2].str_is(",")
@@ -989,7 +989,7 @@ fn do_functions(
                 }
                 Ok(Matrix(mat))
             }
-            _ => Err(()),
+            _ => Err("unhreachable"),
         }
     }
     else
@@ -1019,7 +1019,7 @@ fn do_functions(
                 Ok(Vector(vec))
             }
             Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, deg)?)),
-            _ => Err(()),
+            _ => Err("unreachable6"),
         }
     }
 }
@@ -1140,7 +1140,7 @@ fn sum(
     product: bool,
     deg: AngleType,
     prec: u32,
-) -> Result<NumStr, ()>
+) -> Result<NumStr, &'static str>
 {
     let mut func = function.clone();
     let mut math;
@@ -1264,7 +1264,7 @@ fn cofactor(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
     }
     result
 }
-pub fn inverse(a: Vec<Vec<Complex>>) -> Result<Vec<Vec<Complex>>, ()>
+pub fn inverse(a: Vec<Vec<Complex>>) -> Result<Vec<Vec<Complex>>, &'static str>
 {
     if a.len() == a[0].len() && a.len() > 1
     {
@@ -1274,7 +1274,7 @@ pub fn inverse(a: Vec<Vec<Complex>>) -> Result<Vec<Vec<Complex>>, ()>
     }
     else
     {
-        Err(())
+        Err("not square")
     }
 }
 fn functions(
@@ -1283,7 +1283,7 @@ fn functions(
     to_deg: Complex,
     s: &str,
     deg: AngleType,
-) -> Result<Complex, ()>
+) -> Result<Complex, &'static str>
 {
     let b;
     let prec = to_deg.prec();
@@ -1480,7 +1480,7 @@ fn functions(
             {
                 if a.imag() != &0.0 && b.imag() != &0.0
                 {
-                    return Err(());
+                    return Err("binomial complex not supported");
                 }
                 else if a.real().clone().fract() == 0.0 && b.real().clone().fract() == 0.0
                 {
@@ -1502,7 +1502,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("no args");
             }
         }
         "gamma" =>
@@ -1513,7 +1513,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex gamma not supported");
             }
         }
         "max" =>
@@ -1544,7 +1544,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("no args");
             }
         }
         "min" =>
@@ -1575,7 +1575,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("no args");
             }
         }
         "sqrt" | "asquare" => a.sqrt(),
@@ -1643,14 +1643,14 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex factorial not supported");
             }
         }
         "subfact" =>
         {
             if a.imag() != &0.0 || a.real() < &0.0
             {
-                return Err(());
+                return Err("complex/fractional subfactorial not supported");
             }
             Complex::with_val(prec, subfact(a.real().to_f64()))
         }
@@ -1664,7 +1664,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex erf not supported");
             }
         }
         "erfc" =>
@@ -1675,7 +1675,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex erfc not supported");
             }
         }
         "ai" =>
@@ -1686,7 +1686,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex ai not supported");
             }
         }
         "digamma" =>
@@ -1697,7 +1697,7 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex digamma not supported");
             }
         }
         "zeta" =>
@@ -1708,12 +1708,12 @@ fn functions(
             }
             else
             {
-                return Err(());
+                return Err("complex zeta not supported");
             }
         }
         _ =>
         {
-            return Err(());
+            return Err("unreachable7");
         }
     })
 }

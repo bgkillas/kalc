@@ -38,11 +38,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     let num = match do_math(func, options.deg, options.prec)
     {
         Ok(num) => num,
-        Err(_) =>
-        {
-            println!("0");
-            return;
-        }
+        Err(_) => return,
     };
     if let Num(n) = num
     {
@@ -213,10 +209,11 @@ pub fn print_concurrent(
     let func = match get_func(input, options.prec)
     {
         Ok(f) => f,
-        Err(_) =>
+        Err(s) =>
         {
             print!(
-                "\x1B[2K\x1B[1G\x1B[0J{}{}{}",
+                "\x1B[0J\x1B[2K\x1B[1G\n{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
+                s,
                 if options.prompt
                 {
                     if options.color
@@ -237,7 +234,7 @@ pub fn print_concurrent(
                     ""
                 },
                 &unmodified_input[start..end],
-                if options.color { "\x1b[0m" } else { "" }
+                if options.color { "\x1b[0m" } else { "" },
             );
             return 0;
         }
@@ -246,10 +243,11 @@ pub fn print_concurrent(
     let mut num = match do_math(func, options.deg, options.prec)
     {
         Ok(n) => n,
-        Err(_) =>
+        Err(s) =>
         {
             print!(
-                "\x1B[2K\x1B[1G\x1B[0J{}{}{}",
+                "\x1B[0J\x1B[2K\x1B[1G\n{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
+                s,
                 if options.prompt
                 {
                     if options.color
@@ -270,7 +268,7 @@ pub fn print_concurrent(
                     ""
                 },
                 &unmodified_input[start..end],
-                if options.color { "\x1b[0m" } else { "" }
+                if options.color { "\x1b[0m" } else { "" },
             );
             return 0;
         }

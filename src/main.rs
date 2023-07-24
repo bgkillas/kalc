@@ -246,9 +246,9 @@ fn main()
                 )
                 {
                     Ok(f) => f,
-                    Err(()) =>
+                    Err(s) =>
                     {
-                        println!("Invalid function.");
+                        println!("{}", s);
                         return;
                     }
                 },

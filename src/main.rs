@@ -33,6 +33,7 @@ use term_size::dimensions;
 // gui support (via egui prob)
 // support units
 // support plus-minus via a 2 vector
+// tell users when an error happened
 #[derive(Clone, Copy)]
 pub struct Options
 {

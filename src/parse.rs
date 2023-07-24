@@ -939,8 +939,7 @@ fn is_func(word: &str) -> bool
         "erfc",
         "ai",
         "digamma",
-        "zeta
-",
+        "zeta",
     ]
     .iter()
     .cloned()

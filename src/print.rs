@@ -243,8 +243,38 @@ pub fn print_concurrent(
         }
     };
     let mut frac = 0;
-    let mut num =
-        do_math(func, options.deg, options.prec).unwrap_or(Num(Complex::new(options.prec)));
+    let mut num = match do_math(func, options.deg, options.prec)
+    {
+        Ok(n) => n,
+        Err(_) =>
+        {
+            print!(
+                "\x1B[2K\x1B[1G\x1B[0J{}{}{}",
+                if options.prompt
+                {
+                    if options.color
+                    {
+                        "\x1b[94m> \x1b[96m"
+                    }
+                    else
+                    {
+                        "> "
+                    }
+                }
+                else if options.color
+                {
+                    "\x1b[96m"
+                }
+                else
+                {
+                    ""
+                },
+                &unmodified_input[start..end],
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            return 0;
+        }
+    };
     if let Str(_) = num
     {
         num = Num(Complex::new(options.prec));

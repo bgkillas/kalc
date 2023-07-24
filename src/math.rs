@@ -1480,7 +1480,7 @@ fn functions(
             {
                 if a.imag() != &0.0 && b.imag() != &0.0
                 {
-                    Complex::new(prec)
+                    return Err(());
                 }
                 else if a.real().clone().fract() == 0.0 && b.real().clone().fract() == 0.0
                 {
@@ -1502,7 +1502,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "gamma" =>
@@ -1513,7 +1513,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "max" =>
@@ -1643,7 +1643,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "subfact" =>
@@ -1664,7 +1664,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "erfc" =>
@@ -1675,7 +1675,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "ai" =>
@@ -1686,7 +1686,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "digamma" =>
@@ -1697,7 +1697,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         "zeta" =>
@@ -1708,7 +1708,7 @@ fn functions(
             }
             else
             {
-                Complex::new(prec)
+                return Err(());
             }
         }
         _ =>

@@ -35,6 +35,7 @@ use term_size::dimensions;
 // support plus-minus via a 2 vector
 // something something digraphs
 // fix ³/4 not working
+// have '_' go up the stack more
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -207,49 +208,18 @@ fn main()
             {
                 watch = Some(std::time::Instant::now());
             }
-            input = args
-                .first()
-                .unwrap()
-                .replace('_', &format!("({})", last.iter().collect::<String>()))
-                .chars()
-                .collect();
+            input = args.first().unwrap().chars().collect();
             args.remove(0);
             print_answer(
                 &input.iter().collect::<String>(),
                 match get_func(
                     &input_var(
-                        &input
-                            .iter()
-                            .map(convert)
-                            .collect::<String>()
-                            .replace('π', "pi")
-                            .replace('τ', "tau")
-                            .replace('√', "sqrt")
-                            .replace('∛', "cbrt")
-                            .replace('¼', "1/4")
-                            .replace('½', "1/2")
-                            .replace('¾', "3/4")
-                            .replace('⅐', "1/7")
-                            .replace('⅑', "1/9")
-                            .replace('⅒', "1/10")
-                            .replace('⅓', "1/3")
-                            .replace('⅔', "2/3")
-                            .replace('⅕', "1/5")
-                            .replace('⅖', "2/5")
-                            .replace('⅗', "3/5")
-                            .replace('⅘', "4/5")
-                            .replace('⅙', "1/6")
-                            .replace('⅚', "5/6")
-                            .replace('⅛', "1/8")
-                            .replace('⅜', "3/8")
-                            .replace('⅝', "5/8")
-                            .replace('⅞', "7/8")
-                            .replace('⅟', "1/")
-                            .replace('↉', "0/3"),
+                        &input.iter().map(convert).collect::<String>(),
                         &vars,
                         None,
                         options,
-                    ),
+                    )
+                    .replace('_', &format!("({})", last.iter().collect::<String>())),
                     options,
                 )
                 {
@@ -347,8 +317,10 @@ fn main()
                         'F' => 'Φ',
                         'g' => 'γ',
                         'G' => 'Γ',
-                        //Η η
-                        //Ι ι
+                        'h' => 'η',
+                        'H' => 'Η',
+                        'i' => 'ι',
+                        'I' => 'Ι',
                         'k' => 'κ',
                         'Κ' => 'Κ',
                         'l' => 'λ',
@@ -396,15 +368,11 @@ fn main()
                         {
                             frac = print_concurrent(
                                 &input,
-                                &input_var(
-                                    &input.iter().collect::<String>().replace(
+                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
+                                    .replace(
                                         '_',
                                         &format!("({})", last.iter().collect::<String>()),
                                     ),
-                                    &vars,
-                                    None,
-                                    options,
-                                ),
                                 options,
                                 start,
                                 end,
@@ -499,15 +467,11 @@ fn main()
                         {
                             print_concurrent(
                                 &input,
-                                &input_var(
-                                    &input.iter().collect::<String>().replace(
+                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
+                                    .replace(
                                         '_',
                                         &format!("({})", last.iter().collect::<String>()),
                                     ),
-                                    &vars,
-                                    None,
-                                    options,
-                                ),
                                 options,
                                 start,
                                 end,
@@ -598,15 +562,11 @@ fn main()
                         {
                             frac = print_concurrent(
                                 &input,
-                                &input_var(
-                                    &input.iter().collect::<String>().replace(
+                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
+                                    .replace(
                                         '_',
                                         &format!("({})", last.iter().collect::<String>()),
                                     ),
-                                    &vars,
-                                    None,
-                                    options,
-                                ),
                                 options,
                                 start,
                                 end,
@@ -691,15 +651,11 @@ fn main()
                         {
                             frac = print_concurrent(
                                 &input,
-                                &input_var(
-                                    &input.iter().collect::<String>().replace(
+                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
+                                    .replace(
                                         '_',
                                         &format!("({})", last.iter().collect::<String>()),
                                     ),
-                                    &vars,
-                                    None,
-                                    options,
-                                ),
                                 options,
                                 start,
                                 end,
@@ -869,15 +825,11 @@ fn main()
                         {
                             frac = print_concurrent(
                                 &input,
-                                &input_var(
-                                    &input.iter().collect::<String>().replace(
+                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
+                                    .replace(
                                         '_',
                                         &format!("({})", last.iter().collect::<String>()),
                                     ),
-                                    &vars,
-                                    None,
-                                    options,
-                                ),
                                 options,
                                 start,
                                 end,

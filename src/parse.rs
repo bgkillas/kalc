@@ -390,7 +390,15 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     func.push(Str("}".to_string()));
                     open = false;
                 }
-                '±' => func.push(Str("±".to_string())),
+                '±' if i + 1 != chars.len() =>
+                {
+                    if func.is_empty()
+                        || matches!(func.last().unwrap(), Str(s) if !(s == ")" || s == "*"))
+                    {
+                        func.push(Num(Complex::new(options.prec)))
+                    }
+                    func.push(Str("±".to_string()))
+                }
                 '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
                 '+' if i != 0
                     && i + 1 != chars.len()

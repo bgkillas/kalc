@@ -32,10 +32,6 @@ use term_size::dimensions;
 // allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
 // gui support (via egui prob)
 // support units
-// support plus-minus via a 2 vector
-// something something digraphs
-// fix ³/4 not working
-// have '_' go up the stack more
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -355,7 +351,8 @@ fn main()
                         '2' => '²',
                         '1' => '¹',
                         '-' => '⁻',
-                        '=' => 'ⁱ',
+                        '`' => 'ⁱ',
+                        '=' => '±',
                         _ => continue,
                     }
                 }
@@ -374,17 +371,7 @@ fn main()
                         }
                         if !options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input,
-                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
-                                    .replace(
-                                        '_',
-                                        &format!("({})", last.iter().collect::<String>()),
-                                    ),
-                                options,
-                                start,
-                                end,
-                            );
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
                         if !(input.is_empty()
                             || input.contains(&'#')
@@ -467,17 +454,7 @@ fn main()
                         }
                         else if options.real_time_output
                         {
-                            print_concurrent(
-                                &input,
-                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
-                                    .replace(
-                                        '_',
-                                        &format!("({})", last.iter().collect::<String>()),
-                                    ),
-                                options,
-                                start,
-                                end,
-                            )
+                            print_concurrent(&input, &last, &vars, options, start, end)
                         }
                         else
                         {
@@ -562,17 +539,7 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input,
-                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
-                                    .replace(
-                                        '_',
-                                        &format!("({})", last.iter().collect::<String>()),
-                                    ),
-                                options,
-                                start,
-                                end,
-                            );
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
                         else
                         {
@@ -651,17 +618,7 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input,
-                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
-                                    .replace(
-                                        '_',
-                                        &format!("({})", last.iter().collect::<String>()),
-                                    ),
-                                options,
-                                start,
-                                end,
-                            );
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
                         else
                         {
@@ -825,17 +782,7 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input,
-                                &input_var(&input.iter().collect::<String>(), &vars, None, options)
-                                    .replace(
-                                        '_',
-                                        &format!("({})", last.iter().collect::<String>()),
-                                    ),
-                                options,
-                                start,
-                                end,
-                            );
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
                         else
                         {
@@ -1070,7 +1017,14 @@ fn main()
                     }
                 }
             }
-            write(&input.iter().collect::<String>(), &mut file, &unmod_lines);
+            write(
+                &input
+                    .iter()
+                    .collect::<String>()
+                    .replace('_', &format!("({})", last.iter().collect::<String>())),
+                &mut file,
+                &unmod_lines,
+            );
         }
         if input.ends_with(&['='])
         {
@@ -1521,25 +1475,16 @@ fn convert(c: &char) -> char
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
         '{', '}', '√', '∛', '¼', '½', '¾', '⅐', '⅑', '⅒', '⅓', '⅔', '⅕', '⅖', '⅗', '⅘', '⅙', '⅚',
         '⁹', '⁸', '⁷', '⁶', '⁵', '⁴', '³', '²', '¹', '⁰', '⅛', '⅜', '⅝', '⅞', '⅟', '↉', '⁻', 'ⁱ',
+        '±',
     ];
     match c
     {
-        c if c.is_ascii_alphanumeric() || valid_chars.contains(c) => *c,
+        c if c.is_alphanumeric() || valid_chars.contains(c) => *c,
         'ⲡ' | '𝜋' | '𝛑' | '𝝿' | '𝞹' | '𝝅' | 'ℼ' | 'π' => 'π',
         'ⲧ' | '𝛕' | '𝜏' | '𝝉' | '𝞃' | '𝞽' | 'τ' => 'τ',
         '∗' | '∙' | '*' | '·' | '⋅' => '*',
         '∕' | '⁄' | '/' => '/',
         '−' | '-' => '-',
-        '₀' => '0',
-        '₁' => '1',
-        '₂' => '2',
-        '₃' => '3',
-        '₄' => '4',
-        '₅' => '5',
-        '₆' => '6',
-        '₇' => '7',
-        '₈' => '8',
-        '₉' => '9',
         _ => '\0',
     }
 }

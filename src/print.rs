@@ -6,7 +6,7 @@ use crate::{
     fraction::fraction,
     get_terminal_width,
     math::{do_math, to_polar},
-    parse::get_func,
+    parse::{get_func, input_var},
     AngleType::{Degrees, Gradians, Radians},
     Options,
 };
@@ -155,12 +155,20 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
 }
 pub fn print_concurrent(
     unmodified_input: &[char],
-    input: &str,
+    last: &[char],
+    vars: &[[String; 2]],
     options: Options,
     start: usize,
     end: usize,
 ) -> usize
 {
+    let input = &input_var(
+        &unmodified_input.iter().collect::<String>(),
+        vars,
+        None,
+        options,
+    )
+    .replace('_', &format!("({})", last.iter().collect::<String>()));
     if input.contains('#')
         || input
             .replace("exp", "")

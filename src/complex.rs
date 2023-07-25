@@ -99,6 +99,22 @@ impl NumStr
             _ => return Err("string err"),
         })
     }
+    pub fn pm(&self, b: &Self) -> Result<Self, &'static str>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Vector(vec![a + b.clone(), a - b.clone()]),
+            (Num(a), Vector(b)) | (Vector(b), Num(a)) => Matrix(vec![
+                b.iter().map(|b| a + b.clone()).collect(),
+                b.iter().map(|b| a - b.clone()).collect(),
+            ]),
+            (Vector(a), Vector(b)) if a.len() == b.len() => Matrix(vec![
+                a.iter().zip(b.iter()).map(|(a, b)| a + b.clone()).collect(),
+                a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()).collect(),
+            ]),
+            _ => return Err("unsupported"),
+        })
+    }
     pub fn add(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)

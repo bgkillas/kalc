@@ -679,6 +679,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         {
             match s.as_str()
             {
+                "±" => function[i] = function[i - 1].pm(&function[i + 1])?,
                 "+" => function[i] = function[i - 1].add(&function[i + 1])?,
                 "-" => function[i] = function[i - 1].sub(&function[i + 1])?,
                 _ =>

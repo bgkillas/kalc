@@ -1,5 +1,5 @@
 use crate::{
-    help,
+    help::help,
     options::AngleType::{Degrees, Gradians, Radians},
     Options,
 };

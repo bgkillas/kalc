@@ -194,7 +194,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 continue 'outer;
                             }
                         }
-                        else if k == "sum" || k == "summation" || k == "prod" || k == "product"
+                        else if k == "sum"
+                            || k == "summation"
+                            || k == "prod"
+                            || k == "product"
+                            || k == "Σ"
+                            || k == "Π"
                         {
                             i = j - 1;
                             continue;
@@ -221,7 +226,12 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         {
             if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
             {
-                if s == "sum" || s == "product" || s == "prod" || s == "summation"
+                if s == "sum"
+                    || s == "product"
+                    || s == "prod"
+                    || s == "summation"
+                    || s == "Σ"
+                    || s == "Π"
                 {
                     place.clear();
                     for (f, n) in function.iter().enumerate()
@@ -262,7 +272,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                     .num()?
                                     .real()
                                     .to_f64() as i64,
-                                !(s == "sum" || s == "summation"),
+                                !(s == "sum" || s == "summation" || s == "Σ"),
                                 deg,
                                 prec,
                             )?;

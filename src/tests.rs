@@ -5,7 +5,8 @@ use crate::{
     },
     math::do_math,
     options::AngleType::Radians,
-    parse::{get_func, get_vars, input_var},
+    parse::get_func,
+    vars::{get_vars, input_var},
     Options,
 };
 use rug::{float::Constant::Pi, Complex};

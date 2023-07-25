@@ -6,7 +6,8 @@ use crate::{
     fraction::fraction,
     get_terminal_width,
     math::{do_math, to_polar},
-    parse::{get_func, input_var},
+    parse::get_func,
+    vars::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Options,
 };

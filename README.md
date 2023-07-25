@@ -130,28 +130,27 @@ Constants:
 - g: gravity, 9.80665 m/s^2
 - G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)
 - h: planck's constant, 6.62607015E-34 J*s
-- ec: elementary charge, 1.602176634E-19 C
+- ec: elementary charge/electron volt, 1.602176634E-19 C/J
 - me: electron mass, 9.1093837015E-31 kg
 - mp: proton mass, 1.67262192369E-27 kg
 - mn: neutron mass, 1.67492749804E-27 kg
-- ev: electron volt, 1.602176634E-19 J
-- kc: coulomb's constant, 8.9875517923E9 N*m^2/C^2
-- na: avogadro's number, 6.02214076E23 1/mol
-- r: gas constant, 8.31446261815324 J/(mol*K)
-- kb: boltzmann constant, 1.380649E-23 J/K
-- phi: golden ratio, 1.6180339887~
+- k: coulomb's constant, 8.9875517923E9 N*m^2/C^2
+- Na: avogadro's number, 6.02214076E23 1/mol
+- R: gas constant, 8.31446261815324 J/(mol*K)
+- kB: boltzmann constant, 1.380649E-23 J/K
+- phi/φ: golden ratio, 1.6180339887~
 - e: euler's number, 2.7182818284~
-- pi: pi, 3.1415926535~
-- tau: tau, 6.2831853071~
+- pi/π: pi, 3.1415926535~
+- tau/τ: tau, 6.2831853071~
 
 Digraph:
 hit escape then a letter
-a=>α, A=>Α, b=>β, B=>Β, c=>χ, C=>Χ, d=>Δ, D=>δ,
+a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,
 e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,
 i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,
 n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,
 r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,
-w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>ξ, X=>Ξ, z=>ζ, Z=>Ζ,
+w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,
 = >±, `=>ⁱ
 numbers/minus sign convert to superscript acting as exponents
 ```

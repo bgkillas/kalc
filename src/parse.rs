@@ -862,25 +862,17 @@ pub fn input_var(
                                     start = end + 1;
                                 }
                                 split.push(&temp[start..]);
-                                value = input_var(&var[1], vars, Some(&var[0]), options).clone();
+                                value = var[1].clone();
                                 for i in 0..split.len()
                                 {
                                     value = value.replace(
                                         v[v.len()
                                             - 2 * (i as i32 - split.len() as i32).unsigned_abs()
                                                 as usize],
-                                        &format!(
-                                            "({})",
-                                            input_var(
-                                                &split[i].iter().collect::<String>(),
-                                                vars,
-                                                Some(&var[0]),
-                                                options
-                                            )
-                                        ),
+                                        &format!("({})", &split[i].iter().collect::<String>(),),
                                     );
                                 }
-                                output.push_str(&value);
+                                output.push_str(&input_var(&value, vars, Some(&var[0]), options));
                                 output.push(')');
                             }
                         }
@@ -896,15 +888,7 @@ pub fn input_var(
                             output.push_str(
                                 &input_var(&var[1], vars, Some(&var[0]), options).replace(
                                     v[v.len() - 2],
-                                    &format!(
-                                        "({})",
-                                        input_var(
-                                            &temp.iter().collect::<String>(),
-                                            vars,
-                                            Some(&var[0]),
-                                            options
-                                        )
-                                    ),
+                                    &format!("({})", &temp.iter().collect::<String>(),),
                                 ),
                             );
                             output.push(')');

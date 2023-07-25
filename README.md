@@ -82,7 +82,7 @@ FLAGS: --help (this message)
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 
 Operators:
-- +, -, *, /, ^, %, <, >, <=, >=, |(abs)
+- +, -, *, /, ^, %, <, >, <=, >=, |(norm), ±(works well if only 1 is present, creates a vector with plus being first part and minus being second part)
 - !x (subfact), x! (fact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
@@ -152,6 +152,8 @@ i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,
 n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,
 r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,
 w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>ξ, X=>Ξ, z=>ζ, Z=>Ζ,
+= >±, `=>ⁱ
+numbers/minus sign convert to superscript acting as exponents
 ```
 # example usage
 ```

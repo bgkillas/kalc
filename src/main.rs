@@ -1475,7 +1475,7 @@ fn convert(c: &char) -> char
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
         '{', '}', '√', '∛', '¼', '½', '¾', '⅐', '⅑', '⅒', '⅓', '⅔', '⅕', '⅖', '⅗', '⅘', '⅙', '⅚',
         '⁹', '⁸', '⁷', '⁶', '⁵', '⁴', '³', '²', '¹', '⁰', '⅛', '⅜', '⅝', '⅞', '⅟', '↉', '⁻', 'ⁱ',
-        '±',
+        '`', '±',
     ];
     match c
     {
@@ -1565,7 +1565,7 @@ FLAGS: --help (this message)\n\
 - Type \"number#\" to graph a complex number\n\
 - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\n\
 Operators:\n\
-- +, -, *, /, ^, %, <, >, <=, >=\n\
+- +, -, *, /, ^, %, <, >, <=, >=, |(norm), ±(works well if only 1 is present, creates a vector with plus being first part and minus being second part)\n\
 - !x (subfact), x! (fact)\n\
 - && (and), || (or), == (equals), != (not equals)\n\
 - >> (right shift), << (left shift)\n\n\
@@ -1628,6 +1628,8 @@ e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,\n\
 i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,\n\
 n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,\n\
 r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,\n\
-w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>ξ, X=>Ξ, z=>ζ, Z=>Ζ,"
+w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>ξ, X=>Ξ, z=>ζ, Z=>Ζ,\n\
+= >±, `=>ⁱ\n\
+numbers/minus sign convert to superscript acting as exponents"
     );
 }

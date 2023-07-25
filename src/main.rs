@@ -238,24 +238,17 @@ fn main()
             }
             if !(input.is_empty()
                 || input.contains(&'#')
-                || (input
-                    .iter()
-                    .collect::<String>()
+                || input_var(&input.iter().collect::<String>(), &vars, None, options)
                     .replace("exp", "")
                     .replace("max", "")
                     .replace("}x{", "")
                     .replace("]x[", "")
                     .contains('x')
-                    && vars.iter().all(|i| i[0] != "x"))
-                || (input.iter().collect::<String>().contains('y')
-                    && vars.iter().all(|i| i[0] != "y"))
-                || (input
-                    .iter()
-                    .collect::<String>()
+                || input_var(&input.iter().collect::<String>(), &vars, None, options).contains('y')
+                || input_var(&input.iter().collect::<String>(), &vars, None, options)
                     .replace("zeta", "")
                     .replace("normalize", "")
                     .contains('z')
-                    && vars.iter().all(|i| i[0] != "z"))
                 || input
                     .iter()
                     .collect::<String>()
@@ -338,8 +331,8 @@ fn main()
                         'R' => 'Ρ',
                         's' => 'σ',
                         'S' => 'Σ',
-                        //Τ τ
                         //Ψ ψ
+                        //Τ τ
                         't' => 'θ',
                         'T' => 'Θ',
                         'u' => 'υ',
@@ -380,24 +373,18 @@ fn main()
                         }
                         if !(input.is_empty()
                             || input.contains(&'#')
-                            || (input
-                                .iter()
-                                .collect::<String>()
+                            || input_var(&input.iter().collect::<String>(), &vars, None, options)
                                 .replace("exp", "")
                                 .replace("max", "")
                                 .replace("}x{", "")
                                 .replace("]x[", "")
                                 .contains('x')
-                                && vars.iter().all(|i| i[0] != "x"))
-                            || (input.iter().collect::<String>().contains('y')
-                                && vars.iter().all(|i| i[0] != "y"))
-                            || (input
-                                .iter()
-                                .collect::<String>()
+                            || input_var(&input.iter().collect::<String>(), &vars, None, options)
+                                .contains('y')
+                            || input_var(&input.iter().collect::<String>(), &vars, None, options)
                                 .replace("zeta", "")
                                 .replace("normalize", "")
                                 .contains('z')
-                                && vars.iter().all(|i| i[0] != "z"))
                             || input
                                 .iter()
                                 .collect::<String>()
@@ -1432,22 +1419,16 @@ fn main()
             continue;
         }
         else if input.contains(&'#')
-            || (input
-                .iter()
-                .collect::<String>()
+            || input_var(&input.iter().collect::<String>(), &vars, None, options)
                 .replace("exp", "")
                 .replace("max", "")
                 .replace("}x{", "")
                 .replace("]x[", "")
                 .contains('x')
-                && vars.iter().all(|i| i[0] != "x"))
-            || (input
-                .iter()
-                .collect::<String>()
+            || input_var(&input.iter().collect::<String>(), &vars, None, options)
                 .replace("zeta", "")
                 .replace("normalize", "")
                 .contains('z')
-                && vars.iter().all(|i| i[0] != "z"))
         {
             print!("\x1b[2K\x1b[1G");
             stdout().flush().unwrap();

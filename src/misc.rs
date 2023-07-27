@@ -1,3 +1,4 @@
+use crate::Options;
 use console::{Key, Term};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
@@ -70,4 +71,58 @@ pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
         file.write_all(input.as_bytes()).unwrap();
         file.write_all(b"\n").unwrap();
     }
+}
+pub fn clear(input: &[char], start: usize, end: usize, options: Options)
+{
+    print!(
+        "\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
+        if options.prompt
+        {
+            if options.color
+            {
+                "\x1b[94m> \x1b[96m"
+            }
+            else
+            {
+                "> "
+            }
+        }
+        else if options.color
+        {
+            "\x1b[96m"
+        }
+        else
+        {
+            ""
+        },
+        &input[start..end].iter().collect::<String>()
+    );
+}
+pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end: usize)
+{
+    print!(
+        "\x1B[0J\x1B[2K\x1B[1G\n{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
+        err,
+        if options.prompt
+        {
+            if options.color
+            {
+                "\x1b[94m> \x1b[96m"
+            }
+            else
+            {
+                "> "
+            }
+        }
+        else if options.color
+        {
+            "\x1b[96m"
+        }
+        else
+        {
+            ""
+        },
+        &input[start..end].iter().collect::<String>(),
+        if options.color { "\x1b[0m" } else { "" },
+    );
 }

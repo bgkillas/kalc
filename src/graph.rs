@@ -927,3 +927,24 @@ pub fn get_list_3d(
     }
     (re, im)
 }
+pub fn can_graph(input: &str) -> bool
+{
+    input.contains('#')
+        || input
+            .replace("exp", "")
+            .replace("max", "")
+            .replace("}x{", "")
+            .replace("]x[", "")
+            .contains('x')
+        || input.contains('y')
+        || input
+            .replace("zeta", "")
+            .replace("normalize", "")
+            .contains('z')
+        || input
+            .replace("==", "")
+            .replace("!=", "")
+            .replace(">=", "")
+            .replace("<=", "")
+            .contains('=')
+}

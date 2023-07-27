@@ -143,21 +143,24 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     if let Str(k) = &function[i - 1]
                     {
-                        if k == "log"
-                            || k == "root"
-                            || k == "atan"
-                            || k == "arctan"
-                            || k == "atan2"
-                            || k == "bi"
-                            || k == "binomial"
-                            || k == "angle"
-                            || k == "cross"
-                            || k == "dot"
-                            || k == "part"
-                            || k == "max"
-                            || k == "min"
-                            || k == "proj"
-                            || k == "project"
+                        if matches!(
+                            k.as_str(),
+                            "log"
+                                | "root"
+                                | "atan"
+                                | "arctan"
+                                | "atan2"
+                                | "bi"
+                                | "binomial"
+                                | "angle"
+                                | "cross"
+                                | "dot"
+                                | "part"
+                                | "max"
+                                | "min"
+                                | "proj"
+                                | "project"
+                        )
                         {
                             count = 0;
                             for (f, n) in v.iter().enumerate()
@@ -194,12 +197,10 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 continue 'outer;
                             }
                         }
-                        else if k == "sum"
-                            || k == "summation"
-                            || k == "prod"
-                            || k == "product"
-                            || k == "Σ"
-                            || k == "Π"
+                        else if matches!(
+                            k.as_str(),
+                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π"
+                        )
                         {
                             i = j - 1;
                             continue;

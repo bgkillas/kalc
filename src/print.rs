@@ -1,11 +1,13 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{Matrix, Num, Vector},
     },
     fraction::fraction,
     get_terminal_width,
+    graph::can_graph,
     math::{do_math, to_polar},
+    misc::{clear, handle_err},
     parse::get_func,
     vars::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -15,24 +17,7 @@ use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
 pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
 {
-    if input.contains('#')
-        || input
-            .replace("exp", "")
-            .replace("max", "")
-            .replace("}x{", "")
-            .replace("]x[", "")
-            .contains('x')
-        || input.contains('y')
-        || input
-            .replace("zeta", "")
-            .replace("normalize", "")
-            .contains('z')
-        || input
-            .replace("==", "")
-            .replace("!=", "")
-            .replace(">=", "")
-            .replace("<=", "")
-            .contains('=')
+    if can_graph(input)
     {
         return;
     }
@@ -44,7 +29,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     if let Num(n) = num
     {
         let a = get_output(&options, &n);
-        print!(
+        println!(
             "{}{}{}",
             a.0,
             a.1,
@@ -91,7 +76,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
                 output += ",";
             }
         }
-        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+        println!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
     else if let Matrix(v) = num
     {
@@ -151,7 +136,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
         {
             output += "}";
         }
-        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+        println!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
 }
 pub fn print_concurrent(
@@ -170,122 +155,33 @@ pub fn print_concurrent(
         options,
     )
     .replace('_', &format!("({})", last.iter().collect::<String>()));
-    if input.contains('#')
-        || input
-            .replace("exp", "")
-            .replace("max", "")
-            .replace("}x{", "")
-            .replace("]x[", "")
-            .contains('x')
-        || input.contains('y')
-        || input
-            .replace("zeta", "")
-            .replace("normalize", "")
-            .contains('z')
-        || input
-            .replace("==", "")
-            .replace("!=", "")
-            .replace(">=", "")
-            .replace("<=", "")
-            .contains('=')
+    if can_graph(input)
     {
-        print!(
-            "\x1B[2K\x1B[1G\x1B[0J{}{}{}",
-            if options.prompt
-            {
-                if options.color
-                {
-                    "\x1b[94m> \x1b[96m"
-                }
-                else
-                {
-                    "> "
-                }
-            }
-            else if options.color
-            {
-                "\x1b[96m"
-            }
-            else
-            {
-                ""
-            },
-            &unmodified_input[start..end].iter().collect::<String>(),
-            if options.color { "\x1b[0m" } else { "" }
-        );
+        clear(unmodified_input, start, end, options);
         return 0;
     }
-    let func = match get_func(input, options)
-    {
-        Ok(f) => f,
-        Err(s) =>
+    let num = match do_math(
+        match get_func(input, options)
         {
-            print!(
-                "\x1B[0J\x1B[2K\x1B[1G\n{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
-                s,
-                if options.prompt
-                {
-                    if options.color
-                    {
-                        "\x1b[94m> \x1b[96m"
-                    }
-                    else
-                    {
-                        "> "
-                    }
-                }
-                else if options.color
-                {
-                    "\x1b[96m"
-                }
-                else
-                {
-                    ""
-                },
-                &unmodified_input[start..end].iter().collect::<String>(),
-                if options.color { "\x1b[0m" } else { "" },
-            );
-            return 0;
-        }
-    };
-    let mut frac = 0;
-    let mut num = match do_math(func, options.deg, options.prec)
+            Ok(f) => f,
+            Err(s) =>
+            {
+                handle_err(s, unmodified_input, options, start, end);
+                return 0;
+            }
+        },
+        options.deg,
+        options.prec,
+    )
     {
         Ok(n) => n,
         Err(s) =>
         {
-            print!(
-                "\x1B[0J\x1B[2K\x1B[1G\n{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
-                s,
-                if options.prompt
-                {
-                    if options.color
-                    {
-                        "\x1b[94m> \x1b[96m"
-                    }
-                    else
-                    {
-                        "> "
-                    }
-                }
-                else if options.color
-                {
-                    "\x1b[96m"
-                }
-                else
-                {
-                    ""
-                },
-                &unmodified_input[start..end].iter().collect::<String>(),
-                if options.color { "\x1b[0m" } else { "" },
-            );
+            handle_err(s, unmodified_input, options, start, end);
             return 0;
         }
     };
-    if let Str(_) = num
-    {
-        num = Num(Complex::new(options.prec));
-    }
+    let mut frac = 0;
     if let Num(n) = num
     {
         let sign = if n.real() != &0.0 && n.imag().is_sign_positive()

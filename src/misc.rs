@@ -61,6 +61,8 @@ pub fn read_single_char() -> char
         Key::ArrowUp => '\x1D',
         Key::ArrowDown => '\x1E',
         Key::Escape => '\x1A',
+        Key::End => '\x11',
+        Key::Home => '\x10',
         _ => '\0',
     }
 }
@@ -101,8 +103,9 @@ pub fn clear(input: &[char], start: usize, end: usize, options: Options)
 pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end: usize)
 {
     print!(
-        "\x1B[0J\x1B[2K\x1B[1G\n{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
+        "\x1B[0J\x1B[2K\x1B[1G\n{}{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
         err,
+        "\x1b[A".repeat((err.len() as f64 / get_terminal_width() as f64).ceil() as usize - 1),
         if options.prompt
         {
             if options.color

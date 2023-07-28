@@ -338,6 +338,8 @@ fn main()
                         '\x1D' => '\x1D',
                         '\x1E' => '\x1E',
                         '\x1A' => '\x1A',
+                        '\x10' => '\x10',
+                        '\x11' => '\x11',
                         _ => continue,
                     }
                 }
@@ -433,6 +435,54 @@ fn main()
                             clear(&input, start, end, options);
                         }
                     }
+                    '\x11' =>
+                    {
+                        //end
+                        placement = input.len();
+                        end = input.len();
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                            > input.len()
+                        {
+                            0
+                        }
+                        else
+                        {
+                            input.len()
+                                - (get_terminal_width() - if options.prompt { 3 } else { 0 })
+                        };
+                        if options.real_time_output
+                        {
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                        }
+                    }
+                    '\x10' =>
+                    {
+                        //home
+                        placement = 0;
+                        start = 0;
+                        end = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                            > input.len()
+                        {
+                            input.len()
+                        }
+                        else
+                        {
+                            get_terminal_width() - if options.prompt { 3 } else { 0 }
+                        };
+                        if options.real_time_output
+                        {
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                        }
+                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                    }
                     '\x1D' =>
                     {
                         // up history
@@ -469,10 +519,11 @@ fn main()
                             i = max;
                             if input.is_empty()
                             {
-                                clear(&input, start, end, options);
-                                stdout().flush().unwrap();
                                 placement = 0;
                                 start = 0;
+                                end = input.len();
+                                clear(&input, start, end, options);
+                                stdout().flush().unwrap();
                                 continue 'outer;
                             }
                         }

@@ -1,5 +1,8 @@
 use crate::Options;
-use console::{Key, Term};
+use crossterm::{
+    event::{read, Event, KeyCode, KeyEvent, KeyModifiers},
+    terminal,
+};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
 use std::{fs::File, io::Write};
@@ -32,6 +35,85 @@ pub fn get_terminal_width() -> usize
         80
     }
 }
+pub fn digraph() -> char
+{
+    match read_single_char()
+    {
+        'a' => 'α',
+        'A' => 'Α',
+        'b' => 'β',
+        'B' => 'Β',
+        'c' => 'ξ',
+        'C' => 'Ξ',
+        'd' => 'Δ',
+        'D' => 'δ',
+        'e' => 'ε',
+        'E' => 'Ε',
+        'f' => 'φ',
+        'F' => 'Φ',
+        'g' => 'γ',
+        'G' => 'Γ',
+        'h' => 'η',
+        'H' => 'Η',
+        'i' => 'ι',
+        'I' => 'Ι',
+        'k' => 'κ',
+        'Κ' => 'Κ',
+        'l' => 'λ',
+        'L' => 'Λ',
+        'm' => 'μ',
+        'M' => 'Μ',
+        'n' => 'ν',
+        'Ν' => 'Ν',
+        'o' => 'ο',
+        'O' => 'Ο',
+        'p' => 'π',
+        'P' => 'Π',
+        'q' => 'θ',
+        'Q' => 'Θ',
+        'r' => 'ρ',
+        'R' => 'Ρ',
+        's' => 'σ',
+        'S' => 'Σ',
+        't' => 'τ',
+        'T' => 'Τ',
+        'u' => 'υ',
+        'U' => 'Υ',
+        'w' => 'ω',
+        'W' => 'Ω',
+        'y' => 'ψ',
+        'Y' => 'Ψ',
+        'x' => 'χ',
+        'X' => 'Χ',
+        'z' => 'ζ',
+        'Z' => 'Ζ',
+        '0' => '⁰',
+        '9' => '⁹',
+        '8' => '⁸',
+        '7' => '⁷',
+        '6' => '⁶',
+        '5' => '⁵',
+        '4' => '⁴',
+        '3' => '³',
+        '2' => '²',
+        '1' => '¹',
+        '-' => '⁻',
+        ']' => 'ⁱ',
+        '=' => '±',
+        '\n' => '\n',
+        '\x08' => '\x08',
+        '\x1B' => '\x1B',
+        '\x1C' => '\x1C',
+        '\x1D' => '\x1D',
+        '\x1E' => '\x1E',
+        '\x1A' => '\x1A',
+        '\x10' => '\x10',
+        '\x11' => '\x11',
+        '\x12' => '\x12',
+        '\x13' => '\x13',
+        _ => '\0',
+    }
+}
 pub fn convert(c: &char) -> char
 {
     let valid_chars = [
@@ -49,22 +131,40 @@ pub fn convert(c: &char) -> char
 }
 pub fn read_single_char() -> char
 {
-    let term = Term::stdout();
-    let key = term.read_key().unwrap();
-    match key
+    let result = match match read()
     {
-        Key::Char(c) => convert(&c),
-        Key::Enter => '\n',
-        Key::Backspace => '\x08',
-        Key::ArrowLeft => '\x1B',
-        Key::ArrowRight => '\x1C',
-        Key::ArrowUp => '\x1D',
-        Key::ArrowDown => '\x1E',
-        Key::Escape => '\x1A',
-        Key::End => '\x11',
-        Key::Home => '\x10',
-        _ => '\0',
+        Ok(c) => c,
+        Err(_) => return '\0',
     }
+    {
+        Event::Key(KeyEvent {
+            code, modifiers, ..
+        }) => match (code, modifiers)
+        {
+            (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
+            (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
+            (KeyCode::Esc, _) => digraph(),
+            (KeyCode::Enter, KeyModifiers::NONE) => '\n',
+            (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
+            (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
+            (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
+            (KeyCode::Left, KeyModifiers::ALT) => '\x12',
+            (KeyCode::Right, KeyModifiers::ALT) => '\x13',
+            (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
+            (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
+            (KeyCode::End, KeyModifiers::NONE) => '\x11',
+            (KeyCode::Home, KeyModifiers::NONE) => '\x10',
+            _ => '\0',
+        },
+        _ => '\0',
+    };
+    if result == '\x14'
+    {
+        println!();
+        terminal::disable_raw_mode().unwrap();
+        std::process::exit(130);
+    }
+    result
 }
 pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
 {

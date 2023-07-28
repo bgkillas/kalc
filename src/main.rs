@@ -24,6 +24,7 @@ use crate::{
     print::{get_output, print_answer, print_concurrent},
     vars::{get_vars, input_var},
 };
+use crossterm::terminal;
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -155,6 +156,10 @@ fn main()
             }
         }
     }
+    else
+    {
+        terminal::enable_raw_mode().unwrap();
+    }
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
     #[cfg(not(unix))]
@@ -244,9 +249,16 @@ fn main()
         {
             if options.prompt
             {
-                print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
-                stdout().flush().unwrap();
+                print!(
+                    "\x1B[2K\x1B[1G{}> \x1b[0m",
+                    if options.color { "\x1b[94m" } else { "" }
+                );
             }
+            else
+            {
+                print!("\x1B[2K\x1B[1G");
+            }
+            stdout().flush().unwrap();
             current.clear();
             lines = BufReader::new(File::open(file_path).unwrap())
                 .lines()
@@ -266,83 +278,6 @@ fn main()
             'outer: loop
             {
                 c = read_single_char();
-                if c == '\x1A'
-                {
-                    c = match read_single_char()
-                    {
-                        'a' => 'α',
-                        'A' => 'Α',
-                        'b' => 'β',
-                        'B' => 'Β',
-                        'c' => 'ξ',
-                        'C' => 'Ξ',
-                        'd' => 'Δ',
-                        'D' => 'δ',
-                        'e' => 'ε',
-                        'E' => 'Ε',
-                        'f' => 'φ',
-                        'F' => 'Φ',
-                        'g' => 'γ',
-                        'G' => 'Γ',
-                        'h' => 'η',
-                        'H' => 'Η',
-                        'i' => 'ι',
-                        'I' => 'Ι',
-                        'k' => 'κ',
-                        'Κ' => 'Κ',
-                        'l' => 'λ',
-                        'L' => 'Λ',
-                        'm' => 'μ',
-                        'M' => 'Μ',
-                        'n' => 'ν',
-                        'Ν' => 'Ν',
-                        'o' => 'ο',
-                        'O' => 'Ο',
-                        'p' => 'π',
-                        'P' => 'Π',
-                        'q' => 'θ',
-                        'Q' => 'Θ',
-                        'r' => 'ρ',
-                        'R' => 'Ρ',
-                        's' => 'σ',
-                        'S' => 'Σ',
-                        't' => 'τ',
-                        'T' => 'Τ',
-                        'u' => 'υ',
-                        'U' => 'Υ',
-                        'w' => 'ω',
-                        'W' => 'Ω',
-                        'y' => 'ψ',
-                        'Y' => 'Ψ',
-                        'x' => 'χ',
-                        'X' => 'Χ',
-                        'z' => 'ζ',
-                        'Z' => 'Ζ',
-                        '0' => '⁰',
-                        '9' => '⁹',
-                        '8' => '⁸',
-                        '7' => '⁷',
-                        '6' => '⁶',
-                        '5' => '⁵',
-                        '4' => '⁴',
-                        '3' => '³',
-                        '2' => '²',
-                        '1' => '¹',
-                        '-' => '⁻',
-                        '`' => 'ⁱ',
-                        '=' => '±',
-                        '\n' => '\n',
-                        '\x08' => '\x08',
-                        '\x1B' => '\x1B',
-                        '\x1C' => '\x1C',
-                        '\x1D' => '\x1D',
-                        '\x1E' => '\x1E',
-                        '\x1A' => '\x1A',
-                        '\x10' => '\x10',
-                        '\x11' => '\x11',
-                        _ => continue,
-                    }
-                }
                 if options.debug
                 {
                     watch = Some(std::time::Instant::now());
@@ -434,6 +369,16 @@ fn main()
                         {
                             clear(&input, start, end, options);
                         }
+                    }
+                    '\x12' =>
+                    {
+                        //alt+left
+                        //TODO
+                    }
+                    '\x13' =>
+                    {
+                        //alt+right
+                        //TODO
                     }
                     '\x11' =>
                     {
@@ -608,6 +553,7 @@ fn main()
                         {
                             start += 1;
                             placement += 1;
+                            end += 1;
                             clear(&input, start, end, options);
                         }
                         else if placement != input.len()
@@ -855,6 +801,7 @@ fn main()
                 }
                 "exit" | "quit" | "break" =>
                 {
+                    terminal::disable_raw_mode().unwrap();
                     break;
                 }
                 _ =>

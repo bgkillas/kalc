@@ -29,7 +29,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     if let Num(n) = num
     {
         let a = get_output(&options, &n);
-        println!(
+        print!(
             "{}{}{}",
             a.0,
             a.1,
@@ -76,7 +76,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
                 output += ",";
             }
         }
-        println!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
     else if let Matrix(v) = num
     {
@@ -136,7 +136,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
         {
             output += "}";
         }
-        println!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
 }
 pub fn print_concurrent(

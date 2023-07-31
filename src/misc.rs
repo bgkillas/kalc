@@ -160,8 +160,8 @@ pub fn read_single_char() -> char
     };
     if result == '\x14'
     {
-        println!();
         terminal::disable_raw_mode().unwrap();
+        println!();
         std::process::exit(130);
     }
     result

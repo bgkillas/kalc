@@ -35,6 +35,8 @@ use std::{
 // gui support (via egui prob)
 // support units
 // make pi not slow via vars
+// fix sum(a,a,2,3)
+// fix sum(k,k,2,{3,4})
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -156,7 +158,7 @@ fn main()
             }
         }
     }
-    else
+    if args.is_empty()
     {
         terminal::enable_raw_mode().unwrap();
     }
@@ -239,6 +241,7 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
+            println!();
             last = input.clone();
             if args.is_empty()
             {

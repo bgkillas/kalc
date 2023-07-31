@@ -53,7 +53,7 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err("string err"),
+            _ => return Err("mul err"),
         })
     }
     pub fn div(&self, b: &Self) -> Result<Self, &'static str>
@@ -96,7 +96,7 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err("string err"),
+            _ => return Err("div err"),
         })
     }
     pub fn pm(&self, b: &Self) -> Result<Self, &'static str>
@@ -112,7 +112,7 @@ impl NumStr
                 a.iter().zip(b.iter()).map(|(a, b)| a + b.clone()).collect(),
                 a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()).collect(),
             ]),
-            _ => return Err("unsupported"),
+            _ => return Err("plus-minus unsupported"),
         })
     }
     pub fn add(&self, b: &Self) -> Result<Self, &'static str>
@@ -147,7 +147,7 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err("string err"),
+            _ => return Err("add err"),
         })
     }
     pub fn sub(&self, b: &Self) -> Result<Self, &'static str>
@@ -190,7 +190,7 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err("string err"),
+            _ => return Err("sub err"),
         })
     }
     pub fn pow(&self, b: &Self) -> Result<Self, &'static str>
@@ -211,23 +211,49 @@ impl NumStr
                     .map(|b| b.iter().map(|b| a.pow(b.clone())).collect())
                     .collect(),
             ),
-            (Matrix(a), Num(b)) =>
+            (Matrix(a), Num(b)) if a.len() == a[0].len() =>
             {
                 if b.imag() == &0.0 && b.real().clone().fract() == 0.0
                 {
-                    let mut mat = Matrix(a.clone());
-                    let c = b.real().to_f64().abs() as usize;
-                    for _ in 1..c
+                    if b.real() == &0.0
                     {
-                        mat = mat.mul(&Matrix(a.clone()))?;
-                    }
-                    if b.real() > &0.0
-                    {
-                        mat
+                        let mut mat = Vec::new();
+                        for i in 0..a.len()
+                        {
+                            let mut vec = Vec::new();
+                            for j in 0..a.len()
+                            {
+                                vec.push(
+                                    if i == j
+                                    {
+                                        Complex::with_val(a[0][0].prec(), 1)
+                                    }
+                                    else
+                                    {
+                                        Complex::new(a[0][0].prec())
+                                    },
+                                )
+                            }
+                            mat.push(vec);
+                        }
+                        Matrix(mat)
                     }
                     else
                     {
-                        Matrix(inverse(mat.mat()?)?)
+                        let mut mat = Matrix(a.clone());
+                        let c = b.real().to_f64().abs() as usize;
+                        for _ in 1..c
+                        {
+                            mat = mat.mul(&Matrix(a.clone()))?;
+                        }
+                        if b.real() > &0.0
+                        {
+                            mat
+                        }
+                        else
+                        {
+                            Matrix(inverse(mat.mat()?)?)
+                        }
                     }
                 }
                 else
@@ -254,7 +280,7 @@ impl NumStr
                     })
                     .collect(),
             ),
-            _ => return Err("string err"),
+            _ => return Err("pow err"),
         })
     }
     pub fn str_is(&self, s: &str) -> bool

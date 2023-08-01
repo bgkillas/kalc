@@ -373,16 +373,6 @@ fn main()
                             clear(&input, start, end, options);
                         }
                     }
-                    '\x12' =>
-                    {
-                        //alt+left
-                        //TODO
-                    }
-                    '\x13' =>
-                    {
-                        //alt+right
-                        //TODO
-                    }
                     '\x11' =>
                     {
                         //end
@@ -512,31 +502,8 @@ fn main()
                             {
                                 end = input.len()
                             }
-                            print!(
-                                "\x1B[2K\x1B[1G{}{}\x1b[0m{}",
-                                if options.prompt
-                                {
-                                    if options.color
-                                    {
-                                        "\x1b[94m> \x1b[96m"
-                                    }
-                                    else
-                                    {
-                                        "> "
-                                    }
-                                }
-                                else if options.color
-                                {
-                                    "\x1b[96m"
-                                }
-                                else
-                                {
-                                    ""
-                                },
-                                &input[start..end].iter().collect::<String>(),
-                                "\x08".repeat(end - start - (placement - start))
-                            );
-                            stdout().flush().unwrap();
+                            clear(&input, start, end, options);
+                            print!("{}", "\x08".repeat(end - start - (placement - start)))
                         }
                         else if placement != 0
                         {
@@ -565,6 +532,90 @@ fn main()
                             print!("\x1b[1C")
                         }
                     }
+                    '\x12' =>
+                    {
+                        //alt+left
+                        if placement != 0
+                        {
+                            let s = placement;
+                            let mut hit = false;
+                            for (i, j) in input[..s].iter().enumerate().rev()
+                            {
+                                if !j.is_alphanumeric()
+                                {
+                                    if hit
+                                    {
+                                        placement = i + 1;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    hit = true;
+                                }
+                            }
+                            if placement <= start
+                            {
+                                end -= start - placement;
+                                start = start - (start - placement);
+                                clear(&input, start, end, options);
+                                print!(
+                                    "{}",
+                                    "\x08".repeat(
+                                        get_terminal_width() - if options.prompt { 3 } else { 0 }
+                                    )
+                                );
+                            }
+                            else if placement == s
+                            {
+                                placement = 0;
+                                print!("{}", "\x08".repeat(s));
+                            }
+                            else
+                            {
+                                print!("{}", "\x08".repeat(s - placement));
+                            }
+                        }
+                    }
+                    '\x13' =>
+                    {
+                        //alt+right
+                        if placement != input.len()
+                        {
+                            let s = placement;
+                            let mut hit = false;
+                            for (i, j) in input[s + 1..].iter().enumerate()
+                            {
+                                if !j.is_alphanumeric()
+                                {
+                                    if hit
+                                    {
+                                        placement += i + 1;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    hit = true;
+                                }
+                            }
+                            if placement >= end
+                            {
+                                start += placement - end;
+                                end = end + (placement - end);
+                                clear(&input, start, end, options);
+                            }
+                            else if placement == s
+                            {
+                                placement = input.len();
+                                print!("{}", "\x1b[1C".repeat(input.len() - s));
+                            }
+                            else
+                            {
+                                print!("{}", "\x1b[1C".repeat(placement - s));
+                            }
+                        }
+                    }
                     '\0' =>
                     {}
                     _ =>
@@ -578,26 +629,7 @@ fn main()
                         }
                         else if placement == end
                         {
-                            if c == 'π'
-                            {
-                                start += 2;
-                            }
-                            else if c == 'τ'
-                            {
-                                start += 3;
-                            }
-                            else
-                            {
-                                start += 1;
-                            }
-                        }
-                        else if c == 'π'
-                        {
-                            end -= 2;
-                        }
-                        else if c == 'τ'
-                        {
-                            end -= 3;
+                            start += 1;
                         }
                         else
                         {
@@ -804,6 +836,8 @@ fn main()
                 }
                 "exit" | "quit" | "break" =>
                 {
+                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    stdout().flush().unwrap();
                     terminal::disable_raw_mode().unwrap();
                     break;
                 }

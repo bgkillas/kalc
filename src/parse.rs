@@ -465,12 +465,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                 }
                 '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
-                '(' if i + 1 != chars.len() =>
+                '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
                 {
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' if i != 0 => func.push(Str(")".to_string())),
+                ')' if i != 0 && chars[i - 1] != '(' => func.push(Str(")".to_string())),
                 '|' =>
                 {
                     if i + 1 != chars.len() && chars[i + 1] == '|' && abs

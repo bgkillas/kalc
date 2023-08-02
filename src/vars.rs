@@ -1,4 +1,4 @@
-use crate::Options;
+use crate::{parse::is_func, Options};
 use rug::{float::Constant::Pi, Float};
 pub fn input_var(
     input: &str,
@@ -81,6 +81,7 @@ pub fn input_var(
         if !c.is_alphabetic()
         {
             output.push(c);
+            push = true;
             i += 1;
             continue;
         }
@@ -246,6 +247,7 @@ pub fn input_var(
                 else if i + vl <= chars.len()
                     && chars[i..i + vl].iter().collect::<String>() == var[0]
                     && push
+                    && !is_func(&get_word(&chars[i..].iter().collect::<String>()))
                 {
                     if let Some(n) = dont_do
                     {
@@ -264,7 +266,7 @@ pub fn input_var(
         }
         if (c != ' ' || (i == 0 || chars[i - 1] != ' ')) && not_pushed
         {
-            if c.is_alphabetic() && c != 'i'
+            if c.is_alphabetic()
             {
                 push = false;
             }
@@ -280,6 +282,19 @@ pub fn input_var(
     {
         output
     }
+}
+pub fn get_word(word: &str) -> String
+{
+    let mut pos = 0;
+    for (i, c) in word.chars().enumerate()
+    {
+        if !c.is_alphabetic()
+        {
+            pos = i;
+            break;
+        }
+    }
+    word[..pos].to_string()
 }
 pub fn get_vars(prec: u32) -> Vec<[String; 2]>
 {

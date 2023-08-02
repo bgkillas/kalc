@@ -753,6 +753,10 @@ pub fn print_concurrent(
         );
         frac += num;
     }
+    else
+    {
+        handle_err("str err", unmodified_input, options, start, end);
+    }
     frac
 }
 pub fn get_output(options: &Options, num: &Complex) -> (String, String)

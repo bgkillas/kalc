@@ -16,7 +16,6 @@ parsing tries to comply with wolfram alpha
 defaults listed in kalc.config
 
 # issues
-- likely to fix: sum(a,a,2,3) does not work as 'a' is ignored for not being a function name, so you need to use sin/cos or other function names, i cant think of a way to do this without losing functionality
 - might fix: 0's and infinities of trig functions dont show up as 0 or infinity. i cant conceive of a nice way to fix this
 - might fix: matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
 - wont fix: sin^-4!(2) fails to parse

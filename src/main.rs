@@ -24,7 +24,6 @@ use crate::{
     print::{get_output, print_answer, print_concurrent},
     vars::{get_vars, input_var},
 };
-use crossterm::terminal;
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -141,10 +140,16 @@ fn main()
         for i in lines
         {
             split = i.split('=');
-            vars.push([
-                split.next().unwrap().to_string(),
-                split.next().unwrap().to_string(),
-            ]);
+            let l = split.next().unwrap().to_string();
+            let r = split.next().unwrap().to_string();
+            for (i, j) in vars.clone().iter().enumerate()
+            {
+                if j[0].chars().count() <= l.chars().count()
+                {
+                    vars.insert(i, [l, r]);
+                    break;
+                }
+            }
         }
     }
     if !stdin().is_terminal()
@@ -156,10 +161,6 @@ fn main()
                 args.push(line.unwrap());
             }
         }
-    }
-    if args.is_empty()
-    {
-        terminal::enable_raw_mode().unwrap();
     }
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
@@ -837,7 +838,6 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    terminal::disable_raw_mode().unwrap();
                     break;
                 }
                 _ =>
@@ -1237,7 +1237,14 @@ fn main()
                 println!("0");
                 stdout().flush().unwrap();
             }
-            vars.push([l.to_string(), r.to_string()]);
+            for (i, j) in vars.iter().enumerate()
+            {
+                if j[0].chars().count() <= l.chars().count()
+                {
+                    vars.insert(i, [l.to_string(), r.to_string()]);
+                    break;
+                }
+            }
             continue;
         }
         else if input.contains(&'#')

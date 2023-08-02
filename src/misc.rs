@@ -131,6 +131,7 @@ pub fn convert(c: &char) -> char
 }
 pub fn read_single_char() -> char
 {
+    terminal::enable_raw_mode().unwrap();
     let result = match match read()
     {
         Ok(c) => c,
@@ -158,9 +159,9 @@ pub fn read_single_char() -> char
         },
         _ => '\0',
     };
+    terminal::disable_raw_mode().unwrap();
     if result == '\x14'
     {
-        terminal::disable_raw_mode().unwrap();
         println!();
         std::process::exit(130);
     }

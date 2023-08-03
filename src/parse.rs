@@ -209,6 +209,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                             }
                             word.clear();
                         }
+                        place_multiplier(&mut func, &find_word);
                         func.push(Str(c.to_string()));
                     }
                     'i' =>

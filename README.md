@@ -117,6 +117,7 @@ Vector operations/functions:
 
 Matrix operations/functions:
 - *,/,+,-,^
+- eigenvalues, eigenvectors
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row)

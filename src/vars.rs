@@ -288,7 +288,7 @@ pub fn get_word(word: &str) -> String
     let mut pos = 0;
     for (i, c) in word.chars().enumerate()
     {
-        if !c.is_alphabetic()
+        if !c.is_alphabetic() || (c == 'x' && i + 1 == word.len())
         {
             pos = i;
             break;

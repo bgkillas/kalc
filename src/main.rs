@@ -241,7 +241,15 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            println!();
+            if !(can_graph(&input_var(
+                &input.iter().collect::<String>(),
+                &vars,
+                None,
+                options,
+            )))
+            {
+                println!();
+            }
             last = input.clone();
             if args.is_empty()
             {
@@ -740,7 +748,7 @@ fn main()
                     help();
                     continue;
                 }
-                "line" =>
+                "line" | "lines" =>
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();

@@ -36,7 +36,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             "--grad" => options.deg = Gradians,
             "--prompt" => options.prompt = !options.prompt,
             "--color" => options.color = !options.color,
-            "--line" => options.lines = !options.lines,
+            "--line" | "--lines" => options.lines = !options.lines,
             "--rt" => options.real_time_output = !options.real_time_output,
             "--polar" => options.polar = !options.polar,
             "--frac" => options.frac = !options.frac,
@@ -589,7 +589,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         }
                     };
                 }
-                "line" =>
+                "line" | "lines" =>
                 {
                     options.lines = match split.next().unwrap().parse::<bool>()
                     {

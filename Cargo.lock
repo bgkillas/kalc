@@ -59,9 +59,9 @@ dependencies = [
 
 [[package]]
 name = "gmp-mpfr-sys"
-version = "1.5.3"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13eabc29d16e4a621b495e3919c71ebb7caaed24380955671e7d417370fea95d"
+checksum = "87010f41b33d28887e0379114e7b065ad39f34e2589a8e8e0fe02c8559c68466"
 dependencies = [
  "libc",
  "windows-sys 0.42.0",
@@ -155,9 +155,9 @@ dependencies = [
 
 [[package]]
 name = "rug"
-version = "1.19.2"
+version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "555e8b44763d034526db899c88cd56ccc4486cd38b444c8aa0e79d4e70ae5a34"
+checksum = "dbb4d5df59c9927cbfbe0d0b168a3c59b31f4055b76f12590bee6a09e39af27a"
 dependencies = [
  "az",
  "gmp-mpfr-sys",

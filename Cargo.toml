@@ -16,7 +16,7 @@ lto = true
 strip = true
 
 [dependencies]
-rug          = "1.19.2"
+rug          = "1.20.0"
 gnuplot      = "0.0.39"
 crossterm    = "0.26.1"
 

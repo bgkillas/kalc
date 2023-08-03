@@ -247,7 +247,7 @@ pub fn input_var(
                 else if i + vl <= chars.len()
                     && chars[i..i + vl].iter().collect::<String>() == var[0]
                     && push
-                    && !is_func(&get_word(&chars[i..].iter().collect::<String>()))
+                    && !is_func(&get_word(&chars[i..]))
                 {
                     if let Some(n) = dont_do
                     {
@@ -283,18 +283,19 @@ pub fn input_var(
         output
     }
 }
-pub fn get_word(word: &str) -> String
+pub fn get_word(word: &[char]) -> String
 {
     let mut pos = 0;
-    for (i, c) in word.chars().enumerate()
+    for (i, c) in word.iter().enumerate()
     {
-        if !c.is_alphabetic() || (c == 'x' && i + 1 == word.len())
+        if !c.is_alphabetic()
+            || (*c == 'x' && (i + 1 == word.len() || !word[i + 1].is_alphabetic()))
         {
             pos = i;
             break;
         }
     }
-    word[..pos].to_string()
+    word[..pos].iter().collect::<String>()
 }
 pub fn get_vars(prec: u32) -> Vec<[String; 2]>
 {

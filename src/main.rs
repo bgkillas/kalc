@@ -316,6 +316,7 @@ fn main()
                             println!();
                         }
                         println!("{}\x1B[1G", "\n".repeat(frac));
+                        end = 0;
                         break;
                     }
                     '\x08' =>

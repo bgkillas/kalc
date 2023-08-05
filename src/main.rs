@@ -315,7 +315,10 @@ fn main()
                         {
                             println!();
                         }
-                        println!("{}\x1B[1G", "\n".repeat(frac));
+                        if !input.is_empty()
+                        {
+                            println!("{}", "\n".repeat(frac));
+                        }
                         end = 0;
                         break;
                     }

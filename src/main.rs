@@ -302,7 +302,7 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if !options.real_time_output
+                        if !options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
@@ -356,7 +356,7 @@ fn main()
                         {
                             0
                         }
-                        else if options.real_time_output
+                        else if options.real_time_output && !input.is_empty()
                         {
                             print_concurrent(&input, &last, &vars, options, start, end)
                         }
@@ -400,7 +400,7 @@ fn main()
                             input.len()
                                 - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
@@ -423,7 +423,7 @@ fn main()
                         {
                             get_terminal_width() - if options.prompt { 3 } else { 0 }
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
@@ -450,7 +450,7 @@ fn main()
                             input.len()
                                 - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
@@ -493,7 +493,7 @@ fn main()
                             input.len()
                                 - (get_terminal_width() - if options.prompt { 3 } else { 0 })
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }
@@ -655,7 +655,7 @@ fn main()
                         {
                             lines[i as usize] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output
+                        if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(&input, &last, &vars, options, start, end);
                         }

@@ -8,8 +8,7 @@ use crate::{
 };
 use rug::{float::Constant::Pi, Complex};
 #[test]
-fn test_math()
-{
+fn test_math() {
     let input = input_var(
         "pi+tau*e/2i^(sqrt(2))/3*3-log(2-2i,-3+i)+sqrt(2)^(sqrt(2))",
         &get_vars(512),

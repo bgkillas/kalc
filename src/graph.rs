@@ -16,8 +16,7 @@ pub fn graph(
     deg: AngleType,
     prec: u32,
     watch: Option<Instant>,
-) -> JoinHandle<()>
-{
+) -> JoinHandle<()> {
     thread::spawn(move || {
         let mut fg = Figure::new();
         fg.set_enhanced_text(false);
@@ -37,81 +36,60 @@ pub fn graph(
         let yticks = Some((Fix((options.yr[1] - options.yr[0]) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
-        if !input[0].contains('x')
-        {
+        if !input[0].contains('x') {
             let mut re = Vec::new();
             let mut matrix = false;
             let mut x = (Vec::new(), Vec::new());
             let mut y = (Vec::new(), Vec::new());
             let mut z = (Vec::new(), Vec::new());
             let mut d3 = false;
-            for (i, f) in func.iter().enumerate()
-            {
-                re.push(match do_math(f.to_vec(), deg, prec).unwrap()
-                {
-                    Vector(n) =>
-                    {
-                        for j in &n
-                        {
-                            if j.real() != &0.0
-                            {
+            for (i, f) in func.iter().enumerate() {
+                re.push(match do_math(f.to_vec(), deg, prec).unwrap() {
+                    Vector(n) => {
+                        for j in &n {
+                            if j.real() != &0.0 {
                                 re_cap[i] = input[i].to_owned() + ":re";
                             }
-                            if j.imag() != &0.0
-                            {
+                            if j.imag() != &0.0 {
                                 im_cap[i] = input[i].to_owned() + ":im";
                             }
                         }
                         n
                     }
-                    Matrix(n) =>
-                    {
+                    Matrix(n) => {
                         matrix = true;
-                        d3 = if n[0].len() == 3
-                        {
+                        d3 = if n[0].len() == 3 {
                             true
-                        }
-                        else if n[0].len() == 2
-                        {
+                        } else if n[0].len() == 2 {
                             false
-                        }
-                        else
-                        {
+                        } else {
                             return;
                         };
                         x.0.push(n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>());
                         x.1.push(n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>());
                         y.0.push(n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>());
                         y.1.push(n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>());
-                        if d3
-                        {
+                        if d3 {
                             z.0.push(n.iter().map(|x| x[2].real().to_f64()).collect::<Vec<f64>>());
                             z.1.push(n.iter().map(|x| x[2].imag().to_f64()).collect::<Vec<f64>>());
                         }
-                        for k in n
-                        {
-                            for j in k
-                            {
-                                if j.real() != &0.0
-                                {
+                        for k in n {
+                            for j in k {
+                                if j.real() != &0.0 {
                                     re_cap[i] = input[i].to_owned() + ":re";
                                 }
-                                if j.imag() != &0.0
-                                {
+                                if j.imag() != &0.0 {
                                     im_cap[i] = input[i].to_owned() + ":im";
                                 }
                             }
                         }
                         continue;
                     }
-                    Num(n) =>
-                    {
-                        if n.real() != &0.0
-                        {
+                    Num(n) => {
+                        if n.real() != &0.0 {
                             re_cap[i] = input[i].to_owned() + ":re";
                         }
-                        if n.imag() != &0.0
-                        {
+                        if n.imag() != &0.0 {
                             im_cap[i] = input[i].to_owned() + ":im";
                         }
                         vec![
@@ -122,13 +100,10 @@ pub fn graph(
                     _ => return,
                 });
             }
-            if matrix
-            {
-                if d3
-                {
+            if matrix {
+                if d3 {
                     let n = vec![0.0; 3];
-                    for _ in 0..6 - func.len()
-                    {
+                    for _ in 0..6 - func.len() {
                         x.0.push(n.clone());
                         y.0.push(n.clone());
                         z.0.push(n.clone());
@@ -219,12 +194,9 @@ pub fn graph(
                             z.1[5].clone(),
                             &[Caption(&im_cap[5]), Color(im6col)],
                         );
-                }
-                else
-                {
+                } else {
                     let z = vec![0.0; 2];
-                    for _ in 0..6 - func.len()
-                    {
+                    for _ in 0..6 - func.len() {
                         x.0.push(z.clone());
                         y.0.push(z.clone());
                         x.1.push(z.clone());
@@ -296,12 +268,9 @@ pub fn graph(
                             &[Caption(&im_cap[5]), Color(im6col)],
                         );
                 }
-            }
-            else if re[0].len() == 2
-            {
+            } else if re[0].len() == 2 {
                 let z = vec![Complex::new(prec); 2];
-                for _ in 0..6 - func.len()
-                {
+                for _ in 0..6 - func.len() {
                     re.push(z.clone());
                 }
                 fg.axes2d()
@@ -369,12 +338,9 @@ pub fn graph(
                         [0.0, re[5][1].imag().to_f64()],
                         &[Caption(&im_cap[5]), Color(im6col)],
                     );
-            }
-            else if re[0].len() == 3
-            {
+            } else if re[0].len() == 3 {
                 let z = vec![Complex::new(prec); 3];
-                for _ in 0..6 - func.len()
-                {
+                for _ in 0..6 - func.len() {
                     re.push(z.clone());
                 }
                 let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
@@ -461,15 +427,12 @@ pub fn graph(
                         &[Caption(&im_cap[5]), Color(im6col)],
                     );
             }
-        }
-        else if input[0].contains('y')
-        {
+        } else if input[0].contains('y') {
             let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
             let (mut re2, mut im2);
-            for (i, f) in func.iter().enumerate()
-            {
+            for (i, f) in func.iter().enumerate() {
                 (re2, im2) = get_list_3d(f, options, deg, prec);
                 if re2
                     .iter()
@@ -477,9 +440,7 @@ pub fn graph(
                     .all(|i| i)
                 {
                     re2.clear();
-                }
-                else
-                {
+                } else {
                     re_cap[i] = input[i].to_owned() + ":re";
                 }
                 if im2
@@ -488,16 +449,13 @@ pub fn graph(
                     .all(|i| i)
                 {
                     im2.clear();
-                }
-                else
-                {
+                } else {
                     im_cap[i] = input[i].to_owned() + ":im";
                 }
                 re[i].extend(re2);
                 im[i].extend(im2);
             }
-            if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
-            {
+            if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty()) {
                 println!("No data to plot");
                 return;
             }
@@ -595,14 +553,11 @@ pub fn graph(
                     im[5].iter().map(|i| i[2]),
                     &[PointSymbol(options.point_style), Color(im6col)],
                 );
-        }
-        else
-        {
+        } else {
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
             let (mut re2, mut im2);
-            for (i, f) in func.iter().enumerate()
-            {
+            for (i, f) in func.iter().enumerate() {
                 (re2, im2) = get_list_2d(f, options, deg, prec);
                 if re2
                     .iter()
@@ -610,9 +565,7 @@ pub fn graph(
                     .all(|i| i)
                 {
                     re2.clear();
-                }
-                else
-                {
+                } else {
                     re_cap[i] = input[i].to_owned() + ":re";
                 }
                 if im2
@@ -621,21 +574,17 @@ pub fn graph(
                     .all(|i| i)
                 {
                     im2.clear();
-                }
-                else
-                {
+                } else {
                     im_cap[i] = input[i].to_owned() + ":im";
                 }
                 re[i].extend(re2);
                 im[i].extend(im2);
             }
-            if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
-            {
+            if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty()) {
                 println!("No data to plot");
                 return;
             }
-            if options.lines
-            {
+            if options.lines {
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
@@ -713,9 +662,7 @@ pub fn graph(
                         im[5].iter().map(|x| x[1]),
                         &[PointSymbol(options.point_style), Color(im6col)],
                     );
-            }
-            else
-            {
+            } else {
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
@@ -795,8 +742,7 @@ pub fn graph(
                     );
             }
         }
-        if let Some(time) = watch
-        {
+        if let Some(time) = watch {
             println!("{}ms", time.elapsed().as_millis());
         }
         fg.show().unwrap();
@@ -807,12 +753,9 @@ pub fn get_list_2d(
     range: Options,
     deg: AngleType,
     prec: u32,
-) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
-{
-    if let Num(n) = &func[0]
-    {
-        if func.len() == 1 && n.eq0()
-        {
+) -> (Vec<[f64; 2]>, Vec<[f64; 2]>) {
+    if let Num(n) = &func[0] {
+        if func.len() == 1 && n.eq0() {
             return (Vec::new(), Vec::new());
         }
     }
@@ -823,34 +766,28 @@ pub fn get_list_2d(
     let den = range.samples_2d;
     let den_range = (max - min) / den;
     let (mut n, mut num);
-    for i in 0..=den as i32
-    {
+    for i in 0..=den as i32 {
         n = min + i as f64 * den_range;
         num = match do_math(
             func.iter()
-                .map(|i| match i
-                {
+                .map(|i| match i {
                     Str(s) if s == "x" => Num(Complex::with_val(prec, n)),
                     _ => i.clone(),
                 })
                 .collect(),
             deg,
             prec,
-        )
-        {
-            Ok(n) => match n.num()
-            {
+        ) {
+            Ok(n) => match n.num() {
                 Ok(n) => n,
                 _ => continue,
             },
             Err(_) => continue,
         };
-        if num.real().is_finite()
-        {
+        if num.real().is_finite() {
             re.push([n, num.real().to_f64()]);
         }
-        if num.imag().is_finite()
-        {
+        if num.imag().is_finite() {
             im.push([n, num.imag().to_f64()]);
         }
     }
@@ -861,12 +798,9 @@ pub fn get_list_3d(
     range: Options,
     deg: AngleType,
     prec: u32,
-) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
-{
-    if let Num(n) = &func[0]
-    {
-        if func.len() == 1 && n.eq0()
-        {
+) -> (Vec<[f64; 3]>, Vec<[f64; 3]>) {
+    if let Num(n) = &func[0] {
+        if func.len() == 1 && n.eq0() {
             return (Vec::new(), Vec::new());
         }
     }
@@ -881,54 +815,45 @@ pub fn get_list_3d(
     let den_y_range = (max_y - min_y) / den;
     let (mut n, mut f, mut num);
     let mut modified: Vec<NumStr>;
-    for i in 0..=den as i32
-    {
+    for i in 0..=den as i32 {
         n = min_x + i as f64 * den_x_range;
         modified = func
             .iter()
-            .map(|i| match i
-            {
+            .map(|i| match i {
                 Str(s) if s == "x" => Num(Complex::with_val(prec, n)),
                 _ => i.clone(),
             })
             .collect();
-        for g in 0..=den as i32
-        {
+        for g in 0..=den as i32 {
             f = min_y + g as f64 * den_y_range;
             num = match do_math(
                 modified
                     .iter()
-                    .map(|j| match j
-                    {
+                    .map(|j| match j {
                         Str(s) if s == "y" => Num(Complex::with_val(prec, f)),
                         _ => j.clone(),
                     })
                     .collect(),
                 deg,
                 prec,
-            )
-            {
-                Ok(n) => match n.num()
-                {
+            ) {
+                Ok(n) => match n.num() {
                     Ok(n) => n,
                     _ => continue,
                 },
                 Err(_) => continue,
             };
-            if num.real().is_finite()
-            {
+            if num.real().is_finite() {
                 re.push([n, f, num.real().to_f64()]);
             }
-            if num.imag().is_finite()
-            {
+            if num.imag().is_finite() {
                 im.push([n, f, num.imag().to_f64()]);
             }
         }
     }
     (re, im)
 }
-pub fn can_graph(input: &str) -> bool
-{
+pub fn can_graph(input: &str) -> bool {
     input.contains('#')
         || input
             .replace("exp", "")

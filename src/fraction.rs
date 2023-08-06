@@ -1,23 +1,18 @@
 // as per continued fraction expansion
 use crate::Options;
 use rug::{float::Constant::Pi, Float};
-pub fn fraction(value: Float, options: Options) -> String
-{
+pub fn fraction(value: Float, options: Options) -> String {
     let prec = value.prec();
-    if value.clone().fract() == 0.0
-    {
+    if value.clone().fract() == 0.0 {
         return String::new();
     }
     let mut nums: Vec<Float> = vec![];
     let rt3 = Float::with_val(prec, 3).sqrt();
     let values = [
         Float::with_val(prec, 1.0),
-        if options.tau
-        {
+        if options.tau {
             2 * Float::with_val(prec, Pi)
-        }
-        else
-        {
+        } else {
             Float::with_val(prec, Pi)
         },
         Float::with_val(prec, 2).sqrt(),
@@ -25,41 +20,29 @@ pub fn fraction(value: Float, options: Options) -> String
         Float::with_val(prec, 2 + rt3.clone()).sqrt(),
         Float::with_val(prec, 2 - rt3).sqrt(),
     ];
-    let sign: String = if value < 0.0
-    {
+    let sign: String = if value < 0.0 {
         "-".to_string()
-    }
-    else
-    {
+    } else {
         "".to_string()
     };
     let val = value.abs();
     let (mut number, mut recip, mut fract, mut orig);
     let tau = if options.tau { "τ" } else { "π" };
-    for (i, constant) in values.iter().enumerate()
-    {
+    for (i, constant) in values.iter().enumerate() {
         orig = val.clone() / constant;
-        if orig.clone().fract() == 0.0
-        {
-            return if i == 0
-            {
+        if orig.clone().fract() == 0.0 {
+            return if i == 0 {
                 String::new()
-            }
-            else
-            {
+            } else {
                 format!(
                     "{}{}{}",
                     sign,
-                    if orig == 1.0
-                    {
+                    if orig == 1.0 {
                         "".to_string()
-                    }
-                    else
-                    {
+                    } else {
                         orig.to_integer().unwrap().to_string()
                     },
-                    match i
-                    {
+                    match i {
                         1 => tau,
                         2 => "sqrt(2)",
                         3 => "sqrt(3)",
@@ -72,15 +55,12 @@ pub fn fraction(value: Float, options: Options) -> String
         }
         number = orig.clone().fract();
         nums.clear();
-        for _ in 0..=options.frac_iter
-        {
+        for _ in 0..=options.frac_iter {
             recip = number.clone().recip();
             fract = recip.clone().fract();
-            if fract < 1e-6
-            {
+            if fract < 1e-6 {
                 let mut last = Float::with_val(prec, 1.0);
-                for j in (0..nums.len()).rev()
-                {
+                for j in (0..nums.len()).rev() {
                     last = recip.clone();
                     recip *= &nums[j];
                 }
@@ -91,21 +71,15 @@ pub fn fraction(value: Float, options: Options) -> String
                     || last.to_string().len() > options.decimal_places
                 {
                     String::new()
-                }
-                else
-                {
+                } else {
                     format!(
                         "{sign}{}{}{}",
-                        if last == 1 && i != 0
-                        {
+                        if last == 1 && i != 0 {
                             "".to_string()
-                        }
-                        else
-                        {
+                        } else {
                             last.to_string()
                         },
-                        match i
-                        {
+                        match i {
                             0 => "",
                             1 => tau,
                             2 => "sqrt(2)",
@@ -114,12 +88,9 @@ pub fn fraction(value: Float, options: Options) -> String
                             5 => "sqrt(2-sqrt(3))",
                             _ => "",
                         },
-                        if recip == 1
-                        {
+                        if recip == 1 {
                             "".to_string()
-                        }
-                        else
-                        {
+                        } else {
                             "/".to_owned() + &recip.to_string()
                         }
                     )

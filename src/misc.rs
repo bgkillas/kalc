@@ -9,36 +9,26 @@ use std::{fs::File, io::Write};
 #[cfg(not(unix))]
 use term_size::dimensions;
 #[cfg(unix)]
-pub fn get_terminal_width() -> usize
-{
+pub fn get_terminal_width() -> usize {
     unsafe {
         let mut size: winsize = std::mem::zeroed();
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0
-        {
+        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0 {
             size.ws_col as usize
-        }
-        else
-        {
+        } else {
             80
         }
     }
 }
 #[cfg(not(unix))]
-pub fn get_terminal_width() -> usize
-{
-    if let Some((width, _)) = dimensions()
-    {
+pub fn get_terminal_width() -> usize {
+    if let Some((width, _)) = dimensions() {
         width
-    }
-    else
-    {
+    } else {
         80
     }
 }
-pub fn digraph() -> char
-{
-    match read_single_char()
-    {
+pub fn digraph() -> char {
+    match read_single_char() {
         'a' => 'α',
         'A' => 'Α',
         'b' => 'β',
@@ -114,14 +104,12 @@ pub fn digraph() -> char
         _ => '\0',
     }
 }
-pub fn convert(c: &char) -> char
-{
+pub fn convert(c: &char) -> char {
     let valid_chars = [
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
         '{', '}', '√', '∛', '⁻', 'ⁱ', '`', '±',
     ];
-    match c
-    {
+    match c {
         c if c.is_alphanumeric() || valid_chars.contains(c) => *c,
         '∗' | '∙' | '·' | '⋅' | '*' => '*',
         '∕' | '⁄' | '/' => '/',
@@ -129,19 +117,15 @@ pub fn convert(c: &char) -> char
         _ => '\0',
     }
 }
-pub fn read_single_char() -> char
-{
+pub fn read_single_char() -> char {
     terminal::enable_raw_mode().unwrap();
-    let result = match match read()
-    {
+    let result = match match read() {
         Ok(c) => c,
         Err(_) => return '\0',
-    }
-    {
+    } {
         Event::Key(KeyEvent {
             code, modifiers, ..
-        }) => match (code, modifiers)
-        {
+        }) => match (code, modifiers) {
             (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
             (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
             (KeyCode::Esc, _) => digraph(),
@@ -160,70 +144,49 @@ pub fn read_single_char() -> char
         _ => '\0',
     };
     terminal::disable_raw_mode().unwrap();
-    if result == '\x14'
-    {
+    if result == '\x14' {
         println!();
         std::process::exit(130);
     }
     result
 }
-pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
-{
-    if lines.is_empty() || lines[lines.len() - 1] != *input
-    {
+pub fn write(input: &str, file: &mut File, lines: &Vec<String>) {
+    if lines.is_empty() || lines[lines.len() - 1] != *input {
         file.write_all(input.as_bytes()).unwrap();
         file.write_all(b"\n").unwrap();
     }
 }
-pub fn clear(input: &[char], start: usize, end: usize, options: Options)
-{
+pub fn clear(input: &[char], start: usize, end: usize, options: Options) {
     print!(
         "\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
-        if options.prompt
-        {
-            if options.color
-            {
+        if options.prompt {
+            if options.color {
                 "\x1b[94m> \x1b[96m"
-            }
-            else
-            {
+            } else {
                 "> "
             }
-        }
-        else if options.color
-        {
+        } else if options.color {
             "\x1b[96m"
-        }
-        else
-        {
+        } else {
             ""
         },
         &input[start..end].iter().collect::<String>()
     );
 }
-pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end: usize)
-{
+pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end: usize) {
     print!(
         "\x1B[0J\x1B[2K\x1B[1G\n{}{}\x1b[A\x1B[2K\x1B[1G{}{}{}",
         err,
         "\x1b[A".repeat((err.len() as f64 / get_terminal_width() as f64).ceil() as usize - 1),
-        if options.prompt
-        {
-            if options.color
-            {
+        if options.prompt {
+            if options.color {
                 "\x1b[94m> \x1b[96m"
-            }
-            else
-            {
+            } else {
                 "> "
             }
-        }
-        else if options.color
-        {
+        } else if options.color {
             "\x1b[96m"
-        }
-        else
-        {
+        } else {
             ""
         },
         &input[start..end].iter().collect::<String>(),

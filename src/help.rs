@@ -1,5 +1,4 @@
-pub fn help()
-{
+pub fn help() {
     println!(
              "Usage: kalc [FLAGS] function_1 function_2 function_3...\n\
 FLAGS: --help (this message)\n\
@@ -117,7 +116,6 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\n\
 numbers/minus sign convert to superscript acting as exponents"
     );
 }
-pub fn get_help(s: &str)
-{
+pub fn get_help(s: &str) {
     println!("{}", s);
 }

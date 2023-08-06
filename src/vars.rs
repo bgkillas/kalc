@@ -5,8 +5,7 @@ pub fn input_var(
     vars: &[[String; 2]],
     dont_do: Option<&str>,
     options: Options,
-) -> String
-{
+) -> String {
     let chars = input
         .replace('[', "(car{")
         .replace(']', "})")
@@ -29,25 +28,17 @@ pub fn input_var(
     let mut commas: Vec<usize>;
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
-    for c in &chars
-    {
-        match c
-        {
+    for c in &chars {
+        match c {
             '(' => stack_end.push(')'),
             '{' => stack_end.push('}'),
-            ')' | '}' =>
-            {
-                if let Some(top) = stack_end.last()
-                {
-                    if top == c
-                    {
+            ')' | '}' => {
+                if let Some(top) = stack_end.last() {
+                    if top == c {
                         stack_end.pop();
                     }
-                }
-                else
-                {
-                    match c
-                    {
+                } else {
+                    match c {
                         ')' => stack_start.push('('),
                         '}' => stack_start.push('{'),
                         _ => (),
@@ -58,35 +49,29 @@ pub fn input_var(
         }
     }
     let mut input = String::new();
-    while let Some(top) = stack_start.pop()
-    {
+    while let Some(top) = stack_start.pop() {
         input.push(top);
     }
-    for i in &chars
-    {
+    for i in &chars {
         input.push(*i)
     }
-    while let Some(top) = stack_end.pop()
-    {
+    while let Some(top) = stack_end.pop() {
         input.push(top);
     }
     let chars = input.chars().collect::<Vec<char>>();
     let mut count;
     let mut vl;
     let mut push = true;
-    while i < chars.len()
-    {
+    while i < chars.len() {
         c = chars[i];
         not_pushed = true;
-        if !c.is_alphabetic()
-        {
+        if !c.is_alphabetic() {
             output.push(c);
             push = true;
             i += 1;
             continue;
         }
-        for var in vars
-        {
+        for var in vars {
             vl = var[0].chars().collect::<Vec<char>>().len();
             if var[0] != "e"
                 || (!options.small_e
@@ -108,32 +93,23 @@ pub fn input_var(
                 {
                     o = i;
                     count = 0;
-                    for (f, c) in chars[i..].iter().enumerate()
-                    {
-                        if *c == '('
-                        {
+                    for (f, c) in chars[i..].iter().enumerate() {
+                        if *c == '(' {
                             count += 1;
-                        }
-                        else if *c == ')'
-                        {
+                        } else if *c == ')' {
                             count -= 1;
-                            if count == 0
-                            {
+                            if count == 0 {
                                 i += f;
                                 break;
                             }
                         }
                     }
-                    if i == j
-                    {
+                    if i == j {
                         i = input.len() - 1
                     }
-                    if chars[j..i + 1].iter().collect::<String>() == var[0]
-                    {
-                        if let Some(n) = dont_do
-                        {
-                            if n == var[0]
-                            {
+                    if chars[j..i + 1].iter().collect::<String>() == var[0] {
+                        if let Some(n) = dont_do {
+                            if n == var[0] {
                                 return String::new();
                             }
                         }
@@ -141,75 +117,55 @@ pub fn input_var(
                         output.push('(');
                         output.push_str(&input_var(&var[1], vars, Some(&var[0]), options));
                         output.push(')');
-                    }
-                    else if push
-                    {
+                    } else if push {
                         k = 0;
-                        for (f, c) in chars[j + 2..].iter().enumerate()
-                        {
-                            if *c == ')'
-                            {
+                        for (f, c) in chars[j + 2..].iter().enumerate() {
+                            if *c == ')' {
                                 k = f + j + 3;
                                 break;
-                            }
-                            else if f + j + 3 == chars.len()
-                            {
+                            } else if f + j + 3 == chars.len() {
                                 k = f + j + 4;
                                 break;
                             }
                         }
-                        if k == 0
-                        {
+                        if k == 0 {
                             continue;
                         }
                         v = var[0].chars().collect::<Vec<char>>();
-                        if let Some(n) = dont_do
-                        {
-                            if n == var[0]
-                            {
+                        if let Some(n) = dont_do {
+                            if n == var[0] {
                                 return String::new();
                             }
                         }
-                        if input.contains(',') && var[0].contains(',') && chars.len() > 4
-                        {
+                        if input.contains(',') && var[0].contains(',') && chars.len() > 4 {
                             not_pushed = false;
                             output.push('(');
                             temp = &chars
                                 [j + var[0].chars().position(|c| c == '(').unwrap() + 1..i + 1];
-                            if temp.ends_with(&[')'])
-                            {
+                            if temp.ends_with(&[')']) {
                                 temp = &temp[..temp.len() - 1];
                             }
                             commas = Vec::new();
                             count = 0;
-                            for (f, c) in temp.iter().enumerate()
-                            {
-                                if c == &'(' || c == &'{' || c == &'['
-                                {
+                            for (f, c) in temp.iter().enumerate() {
+                                if c == &'(' || c == &'{' || c == &'[' {
                                     count += 1;
-                                }
-                                else if c == &')' || c == &'}' || c == &']'
-                                {
+                                } else if c == &')' || c == &'}' || c == &']' {
                                     count -= 1;
-                                }
-                                else if c == &',' && count == 0
-                                {
+                                } else if c == &',' && count == 0 {
                                     commas.push(f);
                                 }
                             }
-                            if commas.len() == var[0].matches(',').count()
-                            {
+                            if commas.len() == var[0].matches(',').count() {
                                 start = 0;
                                 split = Vec::new();
-                                for end in commas
-                                {
+                                for end in commas {
                                     split.push(&temp[start..end]);
                                     start = end + 1;
                                 }
                                 split.push(&temp[start..]);
                                 value = var[1].clone();
-                                for i in 0..split.len()
-                                {
+                                for i in 0..split.len() {
                                     value = value.replace(
                                         v[v.len()
                                             - 2 * (i as i32 - split.len() as i32).unsigned_abs()
@@ -220,14 +176,11 @@ pub fn input_var(
                                 output.push_str(&input_var(&value, vars, Some(&var[0]), options));
                                 output.push(')');
                             }
-                        }
-                        else
-                        {
+                        } else {
                             not_pushed = false;
                             output.push('(');
                             temp = &chars[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
-                            if temp.ends_with(&[')'])
-                            {
+                            if temp.ends_with(&[')']) {
                                 temp = &temp[..temp.len() - 1];
                             }
                             output.push_str(
@@ -238,21 +191,16 @@ pub fn input_var(
                             );
                             output.push(')');
                         }
-                    }
-                    else
-                    {
+                    } else {
                         i = o;
                     }
-                }
-                else if i + vl <= chars.len()
+                } else if i + vl <= chars.len()
                     && chars[i..i + vl].iter().collect::<String>() == var[0]
                     && push
                     && !is_func(&get_word(&chars[i..]))
                 {
-                    if let Some(n) = dont_do
-                    {
-                        if n == var[0]
-                        {
+                    if let Some(n) = dont_do {
+                        if n == var[0] {
                             return String::new();
                         }
                     }
@@ -264,30 +212,23 @@ pub fn input_var(
                 }
             }
         }
-        if (c != ' ' || (i == 0 || chars[i - 1] != ' ')) && not_pushed
-        {
-            if c.is_alphabetic()
-            {
+        if (c != ' ' || (i == 0 || chars[i - 1] != ' ')) && not_pushed {
+            if c.is_alphabetic() {
                 push = false;
             }
             output.push(c);
         }
         i += 1;
     }
-    if output.is_empty()
-    {
+    if output.is_empty() {
         input.to_string()
-    }
-    else
-    {
+    } else {
         output
     }
 }
-pub fn get_word(word: &[char]) -> String
-{
+pub fn get_word(word: &[char]) -> String {
     let mut pos = 0;
-    for (i, c) in word.iter().enumerate()
-    {
+    for (i, c) in word.iter().enumerate() {
         if !c.is_alphabetic()
             || (*c == 'x' && (i + 1 == word.len() || !word[i + 1].is_alphabetic()))
         {
@@ -297,8 +238,7 @@ pub fn get_word(word: &[char]) -> String
     }
     word[..pos].iter().collect::<String>()
 }
-pub fn get_vars(prec: u32) -> Vec<[String; 2]>
-{
+pub fn get_vars(prec: u32) -> Vec<[String; 2]> {
     let pi = Float::with_val(prec, Pi);
     let tau: Float = pi.clone() * 2;
     let phi: Float = (1 + Float::with_val(prec, 5).sqrt()) / 2;

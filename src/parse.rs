@@ -17,7 +17,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut abs = true;
     let mut neg = false;
     let mut i = 0;
-    let chars = input.chars().collect::<Vec<char>>();
+    let chars = input.replace(' ', "").chars().collect::<Vec<char>>();
     let (mut c, mut deci);
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
@@ -72,31 +72,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 .pow(Complex::with_val(options.prec, i))));
             pow = String::new();
         }
-        if c == ' '
-        {
-            if !word.is_empty()
-            {
-                find_word = false;
-                if is_func(&word) || sum != 0
-                {
-                    place_multiplier(&mut func, &find_word);
-                    func.push(Str(word.clone()));
-                    if word == "sum" && sum == 0
-                    {
-                        sum = count + 1;
-                    }
-                }
-                word.clear();
-            }
-            else if i != 0
-                && i + 1 != chars.len()
-                && chars[i - 1].is_numeric()
-                && chars[i + 1].is_numeric()
-            {
-                func.push(Str('*'.to_string()))
-            }
-        }
-        else if c.is_ascii_digit()
+        if c.is_ascii_digit()
         {
             if !word.is_empty() && word != "0."
             {

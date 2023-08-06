@@ -16,8 +16,24 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut find_word = false;
     let mut abs = true;
     let mut neg = false;
-    let mut i = 0;
-    let chars = input.replace(' ', "").chars().collect::<Vec<char>>();
+    let mut i = 1;
+    let mut chars = input.chars().collect::<Vec<char>>();
+    while i < chars.len() - 1
+    {
+        if chars[i].is_whitespace()
+        {
+            if chars[i - 1].is_numeric() && chars[i + 1].is_numeric()
+            {
+                chars[i] = '*'
+            }
+            else
+            {
+                chars.remove(i);
+            }
+        }
+        i += 1;
+    }
+    i = 0;
     let (mut c, mut deci);
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();

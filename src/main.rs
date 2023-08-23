@@ -295,7 +295,7 @@ fn main()
                 }
                 match c
                 {
-                    '\n' => 
+                    '\n' =>
                     {
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
                         if end > input.len()
@@ -322,7 +322,7 @@ fn main()
                         end = 0;
                         break;
                     }
-                    '\x08' => //Backspace
+                    '\x08' =>
                     {
                         if placement - start == 0 && start != 0
                         {

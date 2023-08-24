@@ -385,6 +385,68 @@ fn main()
                             clear(&input, start, end, options);
                         }
                     }
+                    '\x7F' => //Delete
+                    {
+                        if placement - start == 0 && start != 0
+                        {
+                            start -= 1;
+                        }
+                        if placement == end
+                        {
+                            if input.is_empty()
+                            {
+                                clear(&input, start, end, options);
+                                stdout().flush().unwrap();
+                            }
+                            continue;
+                        }
+                        input.remove(placement);
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
+                        if i == max
+                        {
+                            current = input.clone();
+                        }
+                        else
+                        {
+                            lines[i as usize] = input.clone().iter().collect::<String>();
+                        }
+                        frac = if input.is_empty()
+                        {
+                            0
+                        }
+                        else if options.real_time_output && !input.is_empty()
+                        {
+                            print_concurrent(&input, &last, &vars, options, start, end)
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                            0
+                        };
+                        if let Some(time) = watch
+                        {
+                            let time = time.elapsed().as_nanos();
+                            print!(
+                                " {}{}",
+                                time,
+                                "\x08".repeat(
+                                    time.to_string().len() + 1 + end - start - (placement - start)
+                                )
+                            );
+                        }
+                        else
+                        {
+                            print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        }
+                        if placement == 0 && input.is_empty()
+                        {
+                            clear(&input, start, end, options);
+                        }
+                    }
                     '\x11' =>
                     {
                         //end

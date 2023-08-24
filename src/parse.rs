@@ -181,8 +181,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                 || chars[i + 1] == '[')
                         {
                             func.push(Str('^'.to_string()));
-                            func.push(Str('('.to_string()));
-                            count += 1;
                         }
                     }
                     'x' | 'y' =>

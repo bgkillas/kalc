@@ -195,6 +195,7 @@ fn main()
     );
     let mut end = 0;
     let mut exit = false;
+    let mut cut: Vec<char> = Vec::new();
     'main: loop
     {
         if exit
@@ -385,7 +386,8 @@ fn main()
                             clear(&input, start, end, options);
                         }
                     }
-                    '\x7F' => //Delete
+                    '\x7F' =>
+                    //Delete
                     {
                         if placement - start == 0 && start != 0
                         {
@@ -470,6 +472,90 @@ fn main()
                         {
                             clear(&input, start, end, options);
                         }
+                    }
+                    '\x18' =>
+                    {
+                        //ctrl+u
+                        cut = input.drain(..placement).collect();
+                        end -= placement;
+                        placement = 0;
+                        if options.real_time_output && !input.is_empty()
+                        {
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                        }
+                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                    }
+                    '\x19' =>
+                    {
+                        //ctrl+k
+                        cut = input.drain(placement..).collect();
+                        end = input.len();
+                        if options.real_time_output && !input.is_empty()
+                        {
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                        }
+                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                    }
+                    '\x20' =>
+                    {
+                        //ctrl+y
+                        let mut cut = cut.clone();
+                        end += cut.len();
+                        cut.extend(input.drain(placement..));
+                        input.extend(cut);
+                        if options.real_time_output && !input.is_empty()
+                        {
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                        }
+                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                    }
+                    '\x16' =>
+                    {
+                        //ctrl+t
+                        if placement + 1 < input.len()
+                        {
+                            let char = input.remove(placement);
+                            input.insert(placement + 1, char);
+                            if options.real_time_output && !input.is_empty()
+                            {
+                                frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            }
+                            else
+                            {
+                                clear(&input, start, end, options);
+                            }
+                            print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        }
+                    }
+                    '\x17' =>
+                    {
+                        //alt+t
+                    }
+                    '\x15' =>
+                    {
+                        //ctrl+l
+                        print!("\x1b[H\x1b[J");
+                        if options.real_time_output && !input.is_empty()
+                        {
+                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                        }
+                        else
+                        {
+                            clear(&input, start, end, options);
+                        }
+                        print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
                     '\x10' =>
                     {

@@ -144,6 +144,22 @@ pub fn read_single_char() -> char
         }) => match (code, modifiers)
         {
             (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
+            (KeyCode::Home, KeyModifiers::NONE) | (KeyCode::Char('a'), KeyModifiers::CONTROL) =>
+            {
+                '\x10'
+            }
+            (KeyCode::End, KeyModifiers::NONE) | (KeyCode::Char('e'), KeyModifiers::CONTROL) =>
+            {
+                '\x11'
+            }
+            (KeyCode::Left, KeyModifiers::ALT) | (KeyCode::Char('b'), KeyModifiers::ALT) => '\x12',
+            (KeyCode::Right, KeyModifiers::ALT) | (KeyCode::Char('f'), KeyModifiers::ALT) => '\x13',
+            (KeyCode::Char('l'), KeyModifiers::CONTROL) => '\x15',
+            (KeyCode::Char('t'), KeyModifiers::CONTROL) => '\x16',
+            //(KeyCode::Char('t'), KeyModifiers::ALT) => '\x17',
+            (KeyCode::Char('u'), KeyModifiers::CONTROL) => '\x18',
+            (KeyCode::Char('k'), KeyModifiers::CONTROL) => '\x19',
+            (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x20',
             (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
             (KeyCode::Esc, _) => digraph(),
             (KeyCode::Enter, KeyModifiers::NONE) => '\n',
@@ -151,12 +167,8 @@ pub fn read_single_char() -> char
             (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
             (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
             (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
-            (KeyCode::Left, KeyModifiers::ALT) => '\x12',
-            (KeyCode::Right, KeyModifiers::ALT) => '\x13',
             (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
             (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
-            (KeyCode::End, KeyModifiers::NONE) => '\x11',
-            (KeyCode::Home, KeyModifiers::NONE) => '\x10',
             _ => '\0',
         },
         _ => '\0',

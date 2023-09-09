@@ -591,7 +591,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         }
         i += 1;
     }
-    func.extend(vec![Str(")".to_string()); count as usize]);
+    if !count.is_negative()
+    {
+        func.extend(vec![Str(")".to_string()); count as usize]);
+    }
     if !pow.is_empty()
     {
         let i = pow.matches('i').count() % 4;

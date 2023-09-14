@@ -199,7 +199,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         }
                         else if matches!(
                             k.as_str(),
-                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π"
+                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "mvec"
                         )
                         {
                             i = j - 1;
@@ -227,12 +227,10 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         {
             if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
             {
-                if s == "sum"
-                    || s == "product"
-                    || s == "prod"
-                    || s == "summation"
-                    || s == "Σ"
-                    || s == "Π"
+                if matches!(
+                    s.as_str(),
+                    "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "mvec"
+                )
                 {
                     place.clear();
                     for (f, n) in function.iter().enumerate()
@@ -260,23 +258,75 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     }
                     if place.len() == 4
                     {
-                        if let Str(l) = &function[place[0] + 1]
+                        if let Str(l) = &function[place[0] - 1]
                         {
-                            function[i] = sum(
-                                function[i + 2..place[0]].to_vec(),
-                                l,
-                                do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
-                                    .num()?
-                                    .real()
-                                    .to_f64() as i64,
-                                do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
-                                    .num()?
-                                    .real()
-                                    .to_f64() as i64,
-                                !(s == "sum" || s == "summation" || s == "Σ"),
-                                deg,
-                                prec,
-                            )?;
+                            function[i] = if s == "mvec"
+                            {
+                                let mut vec = Vec::new();
+                                let mut mat = Vec::new();
+                                let start =
+                                    do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
+                                        .num()?
+                                        .real()
+                                        .to_f64() as u128;
+                                let end =
+                                    do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
+                                        .num()?
+                                        .real()
+                                        .to_f64() as u128;
+                                let function = function[i + 4..place[1]].to_vec();
+                                let mut func;
+                                for z in start..end + 1
+                                {
+                                    func = function.clone();
+                                    for k in func.iter_mut()
+                                    {
+                                        if k.str_is(l)
+                                        {
+                                            *k = Num(Complex::with_val(prec, z));
+                                        }
+                                    }
+                                    let math = do_math(func, deg, prec)?;
+                                    if let Num(n) = math
+                                    {
+                                        vec.push(n)
+                                    }
+                                    else if let Vector(v) = math
+                                    {
+                                        mat.push(v)
+                                    }
+                                    else
+                                    {
+                                        return Err("cant create 3d matrix");
+                                    }
+                                }
+                                if mat.is_empty()
+                                {
+                                    Vector(vec)
+                                }
+                                else
+                                {
+                                    Matrix(mat)
+                                }
+                            }
+                            else
+                            {
+                                sum(
+                                    function[i + 4..place[1]].to_vec(),
+                                    l,
+                                    do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
+                                        .num()?
+                                        .real()
+                                        .to_f64() as u128,
+                                    do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
+                                        .num()?
+                                        .real()
+                                        .to_f64() as u128,
+                                    !(s == "sum" || s == "summation" || s == "Σ"),
+                                    deg,
+                                    prec,
+                                )?
+                            };
                             function.drain(i + 1..=place[3]);
                         }
                         else
@@ -612,6 +662,38 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 return Err("no args");
                             }
                         }
+                        "factors" | "factor" =>
+                        {
+                            let mut mat = Vec::new();
+                            for num in a
+                            {
+                                if num.imag().clone() == 0.0
+                                {
+                                    if num.real().clone().fract() == 0.0
+                                    {
+                                        let mut vec = Vec::new();
+                                        let n = num.real().to_f64() as u128;
+                                        for i in 1..=n
+                                        {
+                                            if n % i == 0
+                                            {
+                                                vec.push(Complex::with_val(prec, i));
+                                            }
+                                        }
+                                        mat.push(vec);
+                                    }
+                                    else
+                                    {
+                                        return Err("fractional factors not supported");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("complex factors not supported");
+                                }
+                            }
+                            Matrix(mat)
+                        }
                         _ => do_functions(
                             function[i + 1].clone(),
                             deg,
@@ -625,17 +707,52 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 }
                 else
                 {
-                    function[i] = if s == "rotate"
+                    function[i] = match s.as_str()
                     {
-                        a = function[i + 1].num()? / to_deg.clone();
-                        Matrix(vec![
-                            vec![a.clone().cos(), -a.clone().sin()],
-                            vec![a.clone().sin(), a.cos()],
-                        ])
-                    }
-                    else
-                    {
-                        do_functions(function[i + 1].clone(), deg, &mut function, i, &to_deg, s)?
+                        "rotate" =>
+                        {
+                            a = function[i + 1].num()? / to_deg.clone();
+                            Matrix(vec![
+                                vec![a.clone().cos(), -a.clone().sin()],
+                                vec![a.clone().sin(), a.cos()],
+                            ])
+                        }
+                        "factors" | "factor" =>
+                        {
+                            a = function[i + 1].num()? / to_deg.clone();
+                            if a.imag().clone() == 0.0
+                            {
+                                if a.real().clone().fract() == 0.0
+                                {
+                                    let mut vec = Vec::new();
+                                    let n = a.real().to_f64() as u128;
+                                    for i in 1..=n
+                                    {
+                                        if n % i == 0
+                                        {
+                                            vec.push(Complex::with_val(prec, i));
+                                        }
+                                    }
+                                    Vector(vec)
+                                }
+                                else
+                                {
+                                    return Err("fractional factors not supported");
+                                }
+                            }
+                            else
+                            {
+                                return Err("complex factors not supported");
+                            }
+                        }
+                        _ => do_functions(
+                            function[i + 1].clone(),
+                            deg,
+                            &mut function,
+                            i,
+                            &to_deg,
+                            s,
+                        )?,
                     };
                     function.remove(i + 1);
                 }
@@ -1048,9 +1165,9 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
     }
     else if a.len() == 2
     {
-        if a[1].eq0()
+        if a[1].is_zero()
         {
-            if a[0].eq0()
+            if a[0].is_zero()
             {
                 vec![Complex::new(a[0].prec()), Complex::new(a[0].prec())]
             }
@@ -1079,11 +1196,11 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
             ]
         }
     }
-    else if a[1].eq0()
+    else if a[1].is_zero()
     {
-        if a[0].eq0()
+        if a[0].is_zero()
         {
-            if a[2].eq0()
+            if a[2].is_zero()
             {
                 vec![
                     Complex::with_val(a[0].prec(), 0),
@@ -1147,8 +1264,8 @@ fn subfact(a: f64) -> f64
 fn sum(
     function: Vec<NumStr>,
     var: &str,
-    start: i64,
-    end: i64,
+    start: u128,
+    end: u128,
     product: bool,
     deg: AngleType,
     prec: u32,
@@ -1723,9 +1840,66 @@ fn functions(
                 return Err("complex zeta not supported");
             }
         }
+        "prime" =>
+        {
+            if a.imag() == &0.0
+            {
+                Complex::with_val(prec, nth_prime(a.real().to_f64() as u128))
+            }
+            else
+            {
+                return Err("cant get a complex prime");
+            }
+        }
         _ =>
         {
             return Err("unreachable7");
         }
     })
+}
+fn is_prime(num: u128) -> bool
+{
+    if num <= 1
+    {
+        return false;
+    }
+    if num <= 3
+    {
+        return true;
+    }
+    if num % 2 == 0 || num % 3 == 0
+    {
+        return false;
+    }
+    let mut i = 5;
+    while i * i <= num
+    {
+        if num % i == 0 || num % (i + 2) == 0
+        {
+            return false;
+        }
+        i += 6;
+    }
+    true
+}
+fn nth_prime(n: u128) -> u128
+{
+    let mut count = 0;
+    let mut num = 2;
+    if n == 0
+    {
+        num = 0
+    }
+    while count < n
+    {
+        if is_prime(num)
+        {
+            count += 1;
+        }
+        if count < n
+        {
+            num += 1;
+        }
+    }
+    num
 }

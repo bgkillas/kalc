@@ -97,7 +97,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 {
                     place_multiplier(&mut func, &find_word);
                     func.push(Str(word.clone()));
-                    if word == "sum" && sum == 0
+                    if matches!(
+                        word.as_str(),
+                        "sum" | "summation" | "prod" | "production" | "mvec" | "Σ" | "Π"
+                    ) && sum == 0
                     {
                         sum = count + 1;
                     }
@@ -192,7 +195,16 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                             {
                                 place_multiplier(&mut func, &find_word);
                                 func.push(Str(word.clone()));
-                                if word == "sum" && sum == 0
+                                if matches!(
+                                    word.as_str(),
+                                    "sum"
+                                        | "summation"
+                                        | "prod"
+                                        | "production"
+                                        | "mvec"
+                                        | "Σ"
+                                        | "Π"
+                                ) && sum == 0
                                 {
                                     sum = count + 1;
                                 }
@@ -278,7 +290,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 {
                     place_multiplier(&mut func, &find_word);
                     func.push(Str(word.clone()));
-                    if word == "sum" && sum == 0
+                    if matches!(
+                        word.as_str(),
+                        "sum" | "summation" | "prod" | "production" | "mvec" | "Σ" | "Π"
+                    ) && sum == 0
                     {
                         sum = count + 1;
                     }
@@ -805,6 +820,10 @@ pub fn is_func(word: &str) -> bool
         "ζ",
         "Σ",
         "Π",
+        "factor",
+        "factors",
+        "mvec",
+        "prime",
     ]
     .iter()
     .cloned()

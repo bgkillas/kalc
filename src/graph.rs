@@ -811,7 +811,7 @@ pub fn get_list_2d(
 {
     if let Num(n) = &func[0]
     {
-        if func.len() == 1 && n.eq0()
+        if func.len() == 1 && n.is_zero()
         {
             return (Vec::new(), Vec::new());
         }
@@ -865,7 +865,7 @@ pub fn get_list_3d(
 {
     if let Num(n) = &func[0]
     {
-        if func.len() == 1 && n.eq0()
+        if func.len() == 1 && n.is_zero()
         {
             return (Vec::new(), Vec::new());
         }

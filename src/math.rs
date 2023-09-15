@@ -23,7 +23,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
     let mut function = func;
     let mut i = 0;
     let mut single;
-    let mut count = 0;
+    let mut count;
     let (mut j, mut v, mut vec, mut mat);
     let mut len = 0;
     let mut place = Vec::new();
@@ -233,13 +233,14 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 )
                 {
                     place.clear();
-                    for (f, n) in function.iter().enumerate()
+                    let mut count = 0;
+                    for (f, n) in function[i + 2..].iter().enumerate()
                     {
                         if let Str(s) = n
                         {
-                            if s == "," && count == 1
+                            if s == "," && count == 0
                             {
-                                place.push(f);
+                                place.push(f + i + 2);
                             }
                             else if s == "(" || s == "{"
                             {
@@ -247,9 +248,9 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             }
                             else if s == ")" || s == "}"
                             {
-                                if count == 1
+                                if count == 0
                                 {
-                                    place.push(f);
+                                    place.push(f + i + 2);
                                     break;
                                 }
                                 count -= 1;
@@ -287,17 +288,11 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                         }
                                     }
                                     let math = do_math(func, deg, prec)?;
-                                    if let Num(n) = math
+                                    match math
                                     {
-                                        vec.push(n)
-                                    }
-                                    else if let Vector(v) = math
-                                    {
-                                        mat.push(v)
-                                    }
-                                    else
-                                    {
-                                        return Err("cant create 3d matrix");
+                                        Num(n) => vec.push(n),
+                                        Vector(v) => mat.push(v),
+                                        _ => return Err("cant create 3d matrix"),
                                     }
                                 }
                                 if mat.is_empty()
@@ -410,32 +405,113 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             {
                                 if function.len() > i + 5 && function[i + 4].str_is(",")
                                 {
-                                    let b = function[i + 3].num()?;
-                                    let c = function[i + 5].num()?;
-                                    function.drain(i + 2..i + 6);
-                                    let n1 = b.clone().real().to_f64() as usize;
-                                    let n2 = c.clone().real().to_f64() as usize;
-                                    if n1 <= a.len() && n1 != 0 && n2 <= a[0].len() && n2 != 0
+                                    match (function[i + 3].clone(), function[i + 5].clone())
                                     {
-                                        Num(a[n1 - 1][n2 - 1].clone())
-                                    }
-                                    else
-                                    {
-                                        return Err("not in matrix");
+                                        (Num(b), Num(c)) =>
+                                        {
+                                            function.drain(i + 2..i + 6);
+                                            let n1 = b.clone().real().to_f64() as usize;
+                                            let n2 = c.clone().real().to_f64() as usize;
+                                            if n1 <= a.len()
+                                                && n1 != 0
+                                                && n2 <= a[0].len()
+                                                && n2 != 0
+                                            {
+                                                Num(a[n1 - 1][n2 - 1].clone())
+                                            }
+                                            else
+                                            {
+                                                return Err("not in matrix");
+                                            }
+                                        }
+                                        (Vector(b), Num(c)) | (Num(c), Vector(b)) =>
+                                        {
+                                            function.drain(i + 2..i + 6);
+                                            let n2 = c.clone().real().to_f64() as usize;
+                                            let mut vec = Vec::new();
+                                            for n in b
+                                            {
+                                                let n1 = n.clone().real().to_f64() as usize;
+                                                if n1 <= a.len()
+                                                    && n1 != 0
+                                                    && n2 <= a[0].len()
+                                                    && n2 != 0
+                                                {
+                                                    vec.push(a[n1 - 1][n2 - 1].clone())
+                                                }
+                                                else
+                                                {
+                                                    return Err("not in matrix");
+                                                }
+                                            }
+                                            Vector(vec)
+                                        }
+                                        (Vector(b), Vector(c)) =>
+                                        {
+                                            function.drain(i + 2..i + 6);
+                                            let mut mat = Vec::new();
+                                            for g in b
+                                            {
+                                                let mut vec = Vec::new();
+                                                let n1 = g.clone().real().to_f64() as usize;
+                                                for n in c.clone()
+                                                {
+                                                    let n2 = n.clone().real().to_f64() as usize;
+                                                    if n1 <= a.len()
+                                                        && n1 != 0
+                                                        && n2 <= a[0].len()
+                                                        && n2 != 0
+                                                    {
+                                                        vec.push(a[n1 - 1][n2 - 1].clone())
+                                                    }
+                                                    else
+                                                    {
+                                                        return Err("not in matrix");
+                                                    }
+                                                }
+                                                mat.push(vec);
+                                            }
+                                            Matrix(mat)
+                                        }
+                                        _ => return Err("wrong part num"),
                                     }
                                 }
                                 else
                                 {
-                                    let b = function[i + 3].num()?;
-                                    function.drain(i + 2..i + 4);
-                                    let n = b.clone().real().to_f64() as usize;
-                                    if n <= a.len() && n != 0
+                                    match function[i + 3].clone()
                                     {
-                                        Vector(a[n - 1].clone())
-                                    }
-                                    else
-                                    {
-                                        return Err("not in matrix");
+                                        Num(b) =>
+                                        {
+                                            function.drain(i + 2..i + 4);
+                                            let n = b.clone().real().to_f64() as usize;
+                                            if n <= a.len() && n != 0
+                                            {
+                                                Vector(a[n - 1].clone())
+                                            }
+                                            else
+                                            {
+                                                return Err("out of range");
+                                            }
+                                        }
+                                        Vector(b) =>
+                                        {
+                                            function.drain(i + 2..i + 4);
+                                            let mut vec = Vec::new();
+                                            for i in b
+                                            {
+                                                let n = i.clone().real().to_f64() as usize;
+                                                if n <= a.len() && n != 0
+                                                {
+                                                    vec.push(a[n - 1].clone());
+                                                }
+                                                else
+                                                {
+                                                    return Err("out of range");
+                                                }
+                                            }
+                                            Matrix(vec)
+                                        }
+                                        _ => return Err("non num/vec"),
                                     }
                                 }
                             }
@@ -645,16 +721,40 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                let b = function[i + 3].num()?;
-                                function.drain(i + 2..i + 4);
-                                let n = b.clone().real().to_f64() as usize;
-                                if n <= a.len() && n != 0
+                                match function[i + 3].clone()
                                 {
-                                    Num(a[n - 1].clone())
-                                }
-                                else
-                                {
-                                    return Err("out of range");
+                                    Num(b) =>
+                                    {
+                                        function.drain(i + 2..i + 4);
+                                        let n = b.clone().real().to_f64() as usize;
+                                        if n <= a.len() && n != 0
+                                        {
+                                            Num(a[n - 1].clone())
+                                        }
+                                        else
+                                        {
+                                            return Err("out of range");
+                                        }
+                                    }
+                                    Vector(b) =>
+                                    {
+                                        function.drain(i + 2..i + 4);
+                                        let mut vec = Vec::new();
+                                        for i in b
+                                        {
+                                            let n = i.clone().real().to_f64() as usize;
+                                            if n <= a.len() && n != 0
+                                            {
+                                                vec.push(a[n - 1].clone());
+                                            }
+                                            else
+                                            {
+                                                return Err("out of range");
+                                            }
+                                        }
+                                        Vector(vec)
+                                    }
+                                    _ => return Err("non num/vec"),
                                 }
                             }
                             else

@@ -112,7 +112,7 @@ Vector operations/functions:
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len
-- part({vec},col)
+- part({vec},col), add
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
@@ -121,7 +121,7 @@ Matrix operations/functions:
 - *,/,+,-,^
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
-- part({mat},col,row)
+- part({mat},col,row), add
 - abs, norm
 - len, wid
 - rotate(theta) produces a rotational matrix

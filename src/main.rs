@@ -504,7 +504,7 @@ fn main()
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
-                    '\x20' =>
+                    '\x21' =>
                     {
                         //ctrl+y
                         let mut cut = cut.clone();
@@ -950,7 +950,6 @@ fn main()
                 {
                     print!("\x1b[A\x1B[2K\x1B[1G");
                     stdout().flush().unwrap();
-                    let mut n;
                     for v in vars.iter()
                     {
                         if v[0].contains('(')
@@ -959,22 +958,52 @@ fn main()
                         }
                         else
                         {
-                            n = get_output(
-                                &options,
-                                &do_math(
-                                    get_func(
-                                        &input_var(&v[1], &vars, Some(&v[0]), options),
-                                        options,
-                                    )
+                            match &do_math(
+                                get_func(&input_var(&v[1], &vars, Some(&v[0]), options), options)
                                     .unwrap(),
-                                    options.deg,
-                                    options.prec,
-                                )
-                                .unwrap()
-                                .num()
-                                .unwrap(),
-                            );
-                            println!("{}={}{}", v[0], n.0, n.1);
+                                options.deg,
+                                options.prec,
+                            )
+                            .unwrap()
+                            {
+                                Num(n) =>
+                                {
+                                    let n = get_output(&options, n);
+                                    println!("{}={}{}", v[0], n.0, n.1)
+                                }
+                                Vector(m) =>
+                                {
+                                    let mut st = String::new();
+                                    for i in m
+                                    {
+                                        let n = get_output(&options, i);
+                                        st.push_str(&n.0);
+                                        st.push_str(&n.1);
+                                        st.push(',');
+                                    }
+                                    println!("{}={{{}}}", v[0], st.trim_end_matches(','))
+                                }
+                                Matrix(m) =>
+                                {
+                                    let mut st = String::new();
+                                    for i in m
+                                    {
+                                        st.push('{');
+                                        for g in i
+                                        {
+                                            let n = get_output(&options, g);
+                                            st.push_str(&n.0);
+                                            st.push_str(&n.1);
+                                            st.push(',');
+                                        }
+                                        st = st.trim_end_matches(',').to_string();
+                                        st.push('}');
+                                        st.push(',');
+                                    }
+                                    println!("{}={{{}}}", v[0], st.trim_end_matches(','))
+                                }
+                                _ => continue,
+                            }
                         }
                     }
                 }

@@ -77,7 +77,7 @@ Vector operations/functions:\n\
 - angle({{vec1}},{{vec2}})\n\
 - norm, normalize\n\
 - abs, len\n\
-- part({{vec}},col)\n\
+- part({{vec}},col), add\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\n\n\
@@ -85,7 +85,7 @@ Matrix operations/functions:\n\
 - *,/,+,-,^\n\
 - trace/tr, determinant/det, inverse/inv\n\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\n\
-- part({{mat}},col,row)\n\
+- part({{mat}},col,row), add\n\
 - abs, norm\n\
 - len, wid\n\
 - rotate(theta) produces a rotational matrix\n\

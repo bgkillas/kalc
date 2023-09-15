@@ -275,7 +275,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                         .num()?
                                         .real()
                                         .to_f64() as u128;
-                                let function = function[i + 4..place[1]].to_vec();
+                                let function = function[place[0] + 1..place[1]].to_vec();
                                 let mut func;
                                 for z in start..end + 1
                                 {
@@ -307,7 +307,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             else
                             {
                                 sum(
-                                    function[i + 4..place[1]].to_vec(),
+                                    function[place[0] + 1..place[1]].to_vec(),
                                     l,
                                     do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
                                         .num()?
@@ -338,6 +338,18 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "add" =>
+                        {
+                            let mut num = Complex::new(prec);
+                            for i in a
+                            {
+                                for n in i
+                                {
+                                    num += n
+                                }
+                            }
+                            Num(num)
+                        }
                         "cofactor" | "cofactors" | "cof" =>
                         {
                             if a.len() == a[0].len() && a.len() > 1
@@ -716,6 +728,15 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             {
                                 return Err("no args");
                             }
+                        }
+                        "add" =>
+                        {
+                            let mut num = Complex::new(prec);
+                            for n in a
+                            {
+                                num += n
+                            }
+                            Num(num)
                         }
                         "part" =>
                         {

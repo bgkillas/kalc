@@ -159,7 +159,7 @@ pub fn read_single_char() -> char
             //(KeyCode::Char('t'), KeyModifiers::ALT) => '\x17',
             (KeyCode::Char('u'), KeyModifiers::CONTROL) => '\x18',
             (KeyCode::Char('k'), KeyModifiers::CONTROL) => '\x19',
-            (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x20',
+            (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x21',
             (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
             (KeyCode::Esc, _) => digraph(),
             (KeyCode::Enter, KeyModifiers::NONE) => '\n',

@@ -25,7 +25,6 @@ pub fn input_var(
         mut value,
         mut o,
     );
-    let mut i = 0;
     let mut commas: Vec<usize>;
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
@@ -74,7 +73,8 @@ pub fn input_var(
     let mut count;
     let mut vl;
     let mut push = true;
-    while i < chars.len()
+    let mut i = 0;
+    'main: while i < chars.len()
     {
         c = chars[i];
         not_pushed = true;
@@ -256,11 +256,11 @@ pub fn input_var(
                             return String::new();
                         }
                     }
-                    i += vl - 1;
-                    not_pushed = false;
+                    i += vl;
                     output.push('(');
                     output.push_str(&input_var(&var[1], vars, Some(&var[0]), options));
                     output.push(')');
+                    continue 'main;
                 }
             }
         }

@@ -504,7 +504,7 @@ fn main()
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
-                    '\x21' =>
+                    '\x17' =>
                     {
                         //ctrl+y
                         let mut cut = cut.clone();
@@ -538,10 +538,6 @@ fn main()
                             }
                             print!("{}", "\x08".repeat(end - start - (placement - start)));
                         }
-                    }
-                    '\x17' =>
-                    {
-                        //alt+t
                     }
                     '\x15' =>
                     {

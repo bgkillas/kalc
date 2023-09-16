@@ -18,6 +18,7 @@ defaults listed in kalc.config
 # issues
 - might fix: 0's and infinities of trig functions dont show up as 0 or infinity. i cant conceive of a nice way to fix this
 - might fix: matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
+- might fix: multiple vars with same base name but different arg count acts weirdly
 - wont fix: sin^-4!(2) fails to parse
 - wont fix: sin^(-4+2)(2) will not parse as sin(2)^(-4+2)
 # build instructions

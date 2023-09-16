@@ -137,19 +137,20 @@ fn main()
             .map(|l| l.unwrap())
             .collect::<Vec<String>>();
         let mut split;
-        for i in lines
+        'main: for i in lines
         {
             split = i.splitn(2, '=');
             let l = split.next().unwrap().to_string();
             let r = split.next().unwrap().to_string();
             for (i, j) in vars.clone().iter().enumerate()
             {
-                if j[0].chars().count() <= l.chars().count()
+                if j[0] == l
                 {
                     vars.insert(i, [l, r]);
-                    break;
+                    continue 'main;
                 }
             }
+            vars.push([l, r]);
         }
     }
     if !stdin().is_terminal()

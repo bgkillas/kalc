@@ -25,7 +25,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
     let mut single;
     let mut count;
     let (mut j, mut v, mut vec, mut mat);
-    let mut len = 0;
     let mut place = Vec::new();
     'outer: while i < function.len() - 1
     {
@@ -69,11 +68,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             match z
                             {
                                 Num(n) => vec.push(n),
-                                Vector(n) if len == n.len() || single == 0 =>
-                                {
-                                    len = n.len();
-                                    mat.push(n)
-                                }
+                                Vector(n) => mat.push(n),
                                 _ => return Err("probably unreachable"),
                             }
                             single = f + 1;
@@ -94,7 +89,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     match z
                     {
                         Num(n) => vec.push(n),
-                        Vector(n) if len == n.len() || single == 0 => mat.push(n),
+                        Vector(n) => mat.push(n),
                         _ => return Err("probably not reachable"),
                     }
                 }
@@ -1088,7 +1083,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 "&&" =>
                 {
                     a = function[i - 1].num()?;
-                    b = function[i - 1].num()?;
+                    b = function[i + 1].num()?;
                     function[i] = Num(Complex::with_val(
                         prec,
                         (a.imag() == &0.0
@@ -1100,7 +1095,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 "||" =>
                 {
                     a = function[i - 1].num()?;
-                    b = function[i - 1].num()?;
+                    b = function[i + 1].num()?;
                     function[i] = Num(Complex::with_val(
                         prec,
                         (a.imag() == &0.0

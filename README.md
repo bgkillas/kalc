@@ -112,6 +112,7 @@ Vector operations/functions:
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len
+- reverse, link
 - part({vec},col), add
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)

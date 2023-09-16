@@ -825,6 +825,8 @@ pub fn is_func(word: &str) -> bool
         "mvec",
         "prime",
         "add",
+        "reverse",
+        "link",
     ]
     .iter()
     .cloned()

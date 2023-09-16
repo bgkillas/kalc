@@ -160,6 +160,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 | "min"
                                 | "proj"
                                 | "project"
+                                | "link"
                         )
                         {
                             count = 0;
@@ -564,6 +565,27 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "reverse" =>
+                        {
+                            let mut a = a;
+                            a.reverse();
+                            Vector(a)
+                        }
+                        "link" =>
+                        {
+                            if function.len() > i + 3 && function[i + 2].str_is(",")
+                            {
+                                let b = function[i + 3].vec()?;
+                                function.drain(i + 2..i + 4);
+                                let mut a = a;
+                                a.extend(b);
+                                Vector(a)
+                            }
+                            else
+                            {
+                                return Err("no args");
+                            }
+                        }
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
                         "abs" => Vector(a.iter().map(|x| x.clone().abs()).collect()),
                         "norm" =>

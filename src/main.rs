@@ -139,7 +139,7 @@ fn main()
         let mut split;
         for i in lines
         {
-            split = i.split('=');
+            split = i.splitn(2, '=');
             let l = split.next().unwrap().to_string();
             let r = split.next().unwrap().to_string();
             for (i, j) in vars.clone().iter().enumerate()

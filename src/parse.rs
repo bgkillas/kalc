@@ -273,7 +273,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     place_multiplier(&mut func, &find_word);
                     func.push(Str(word.clone()));
                     word.clear();
-                    let pos = chars.iter().skip(i + 1).position(|&c| c == '(' || c == ')');
+                    let pos = chars
+                        .iter()
+                        .skip(i + 1)
+                        .position(|&c| c == '(' || c == ')' || c == ',');
                     if pos.is_none()
                     {
                         continue;

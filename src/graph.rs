@@ -461,6 +461,79 @@ pub fn graph(
                         &[Caption(&im_cap[5]), Color(im6col)],
                     );
             }
+            else
+            {
+                let z = vec![Complex::new(prec); re[0].len()];
+                for _ in 0..6 - func.len()
+                {
+                    re.push(z.clone());
+                }
+                fg.axes2d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
+                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                    .lines(
+                        0..re[0].len(),
+                        re[0].iter().map(|x| x.real().to_f64()),
+                        &[Caption(&re_cap[0]), Color(re1col)],
+                    )
+                    .lines(
+                        0..re[1].len(),
+                        re[1].iter().map(|x| x.real().to_f64()),
+                        &[Caption(&re_cap[1]), Color(re2col)],
+                    )
+                    .lines(
+                        0..re[2].len(),
+                        re[2].iter().map(|x| x.real().to_f64()),
+                        &[Caption(&re_cap[2]), Color(re3col)],
+                    )
+                    .lines(
+                        0..re[3].len(),
+                        re[3].iter().map(|x| x.real().to_f64()),
+                        &[Caption(&re_cap[3]), Color(re4col)],
+                    )
+                    .lines(
+                        0..re[4].len(),
+                        re[4].iter().map(|x| x.real().to_f64()),
+                        &[Caption(&re_cap[4]), Color(re5col)],
+                    )
+                    .lines(
+                        0..re[5].len(),
+                        re[5].iter().map(|x| x.real().to_f64()),
+                        &[Caption(&re_cap[5]), Color(re6col)],
+                    )
+                    .lines(
+                        0..re[0].len(),
+                        re[0].iter().map(|x| x.imag().to_f64()),
+                        &[Caption(&im_cap[0]), Color(im1col)],
+                    )
+                    .lines(
+                        0..re[1].len(),
+                        re[1].iter().map(|x| x.imag().to_f64()),
+                        &[Caption(&im_cap[1]), Color(im2col)],
+                    )
+                    .lines(
+                        0..re[2].len(),
+                        re[2].iter().map(|x| x.imag().to_f64()),
+                        &[Caption(&im_cap[2]), Color(im3col)],
+                    )
+                    .lines(
+                        0..re[3].len(),
+                        re[3].iter().map(|x| x.imag().to_f64()),
+                        &[Caption(&im_cap[3]), Color(im4col)],
+                    )
+                    .lines(
+                        0..re[4].len(),
+                        re[4].iter().map(|x| x.imag().to_f64()),
+                        &[Caption(&im_cap[4]), Color(im5col)],
+                    )
+                    .lines(
+                        0..re[5].len(),
+                        re[5].iter().map(|x| x.imag().to_f64()),
+                        &[Caption(&im_cap[5]), Color(im6col)],
+                    );
+            }
         }
         else if input[0].contains('y')
         {

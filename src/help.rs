@@ -86,7 +86,7 @@ Matrix operations/functions:\n\
 - *,/,+,-,^\n\
 - trace/tr, determinant/det, inverse/inv\n\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\n\
-- part({{mat}},col,row), add\n\
+- part({{mat}},col,row), flatten, add\n\
 - abs, norm\n\
 - len, wid\n\
 - rotate(theta) produces a rotational matrix\n\

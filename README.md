@@ -123,7 +123,7 @@ Matrix operations/functions:
 - *,/,+,-,^
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
-- part({mat},col,row), add
+- part({mat},col,row), flatten, add
 - abs, norm
 - len, wid
 - rotate(theta) produces a rotational matrix

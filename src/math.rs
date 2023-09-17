@@ -334,6 +334,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Complex>>()),
                         "add" =>
                         {
                             let mut num = Complex::new(prec);

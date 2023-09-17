@@ -830,6 +830,7 @@ pub fn is_func(word: &str) -> bool
         "add",
         "reverse",
         "link",
+        "flatten",
     ]
     .iter()
     .cloned()

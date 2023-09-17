@@ -74,19 +74,64 @@ pub fn input_var(
     let mut vl;
     let mut push = true;
     let mut i = 0;
+    let mut word;
+    let mut sum = (0, String::new());
+    let mut sumrec = Vec::new();
+    let mut bracket = 0;
     'main: while i < chars.len()
     {
         c = chars[i];
         not_pushed = true;
         if !c.is_alphabetic()
         {
+            if c == '('
+            {
+                bracket += 1;
+            }
+            else if c == ')'
+            {
+                if sum.0 == bracket
+                {
+                    sum.0 = 0;
+                    sum.1 = String::new();
+                    sumrec.pop();
+                }
+                bracket -= 1;
+            }
             output.push(c);
             push = true;
             i += 1;
             continue;
         }
+        count = chars[i..]
+            .iter()
+            .position(|x| !x.is_alphabetic())
+            .unwrap_or(0);
+        word = chars[i..i + count].iter().collect::<String>();
+        if matches!(
+            word.as_str(),
+            "sum" | "summation" | "prod" | "production" | "mvec" | "Σ" | "Π"
+        )
+        {
+            sum.0 = bracket + 1;
+            let count2 = chars[i + count + 1..]
+                .iter()
+                .position(|x| x == &',')
+                .unwrap_or(0);
+            if count2 != 0
+            {
+                sum.1 = chars[i + count + 1..i + count + count2 + 1]
+                    .iter()
+                    .collect::<String>();
+            }
+            sumrec.push(sum.clone());
+        }
         for var in vars
         {
+            if sumrec.iter().any(|a| a.1 == var[0])
+            {
+                continue;
+            }
             vl = var[0].chars().collect::<Vec<char>>().len();
             if var[0] != "e"
                 || (!options.small_e

@@ -151,8 +151,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 | "cross"
                                 | "dot"
                                 | "part"
-                                | "max"
-                                | "min"
                                 | "proj"
                                 | "project"
                                 | "link"
@@ -334,6 +332,40 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "max" =>
+                        {
+                            let mut vec = Vec::new();
+                            for j in a
+                            {
+                                let mut max = j[0].clone();
+                                for i in j
+                                {
+                                    if i.real() > max.real()
+                                    {
+                                        max = i
+                                    }
+                                }
+                                vec.push(max)
+                            }
+                            Vector(vec)
+                        }
+                        "min" =>
+                        {
+                            let mut vec = Vec::new();
+                            for j in a
+                            {
+                                let mut min = j[0].clone();
+                                for i in j
+                                {
+                                    if i.real() < min.real()
+                                    {
+                                        min = i
+                                    }
+                                }
+                                vec.push(min)
+                            }
+                            Vector(vec)
+                        }
                         "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Complex>>()),
                         "add" =>
                         {
@@ -561,6 +593,30 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "max" =>
+                        {
+                            let mut max = a[0].clone();
+                            for i in a
+                            {
+                                if i.real() > max.real()
+                                {
+                                    max = i
+                                }
+                            }
+                            Num(max)
+                        }
+                        "min" =>
+                        {
+                            let mut min = a[0].clone();
+                            for i in a
+                            {
+                                if i.real() < min.real()
+                                {
+                                    min = i
+                                }
+                            }
+                            Num(min)
+                        }
                         "reverse" =>
                         {
                             let mut a = a;
@@ -1782,68 +1838,6 @@ fn functions(
             else
             {
                 return Err("complex gamma not supported");
-            }
-        }
-        "max" =>
-        {
-            if let Some(b) = c
-            {
-                Complex::with_val(
-                    prec,
-                    (
-                        if a.real() > b.real()
-                        {
-                            a.real()
-                        }
-                        else
-                        {
-                            b.real()
-                        },
-                        if a.imag() > b.imag()
-                        {
-                            a.imag()
-                        }
-                        else
-                        {
-                            b.imag()
-                        },
-                    ),
-                )
-            }
-            else
-            {
-                return Err("no args");
-            }
-        }
-        "min" =>
-        {
-            if let Some(b) = c
-            {
-                Complex::with_val(
-                    prec,
-                    (
-                        if a.real() < b.real()
-                        {
-                            a.real()
-                        }
-                        else
-                        {
-                            b.real()
-                        },
-                        if a.imag() < b.imag()
-                        {
-                            a.imag()
-                        }
-                        else
-                        {
-                            b.imag()
-                        },
-                    ),
-                )
-            }
-            else
-            {
-                return Err("no args");
             }
         }
         "sqrt" | "asquare" => a.sqrt(),

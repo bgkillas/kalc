@@ -103,7 +103,7 @@ Other functions:
 - sinc, cis, exp
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
-- re, im, max(x,y), min(x,y)
+- re, im
 - factors, prime
 - mvec(func,var,start,end) (makes a vector/matrix)
 
@@ -113,6 +113,7 @@ Vector operations/functions:
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len
+- max, min
 - reverse, link
 - part({vec},col), add
 - convert to polar: pol{vec} outputs (radius, theta, phi)
@@ -126,6 +127,7 @@ Matrix operations/functions:
 - part({mat},col,row), flatten, add
 - abs, norm
 - len, wid
+- max, min
 - rotate(theta) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 

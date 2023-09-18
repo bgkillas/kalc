@@ -1405,6 +1405,7 @@ fn main()
             for (i, v) in vars.iter().enumerate()
             {
                 if v[0].split('(').next() == l.split('(').next()
+                    && v[0].find(',').iter().count() == l.find(',').iter().count()
                 {
                     if r == "null"
                     {
@@ -1417,11 +1418,6 @@ fn main()
                     continue 'main;
                 }
             }
-            if r.is_empty()
-            {
-                println!("0");
-                stdout().flush().unwrap();
-            }
             for (i, j) in vars.iter().enumerate()
             {
                 if j[0].chars().count() <= l.chars().count()
@@ -1429,6 +1425,10 @@ fn main()
                     vars.insert(i, [l.to_string(), r.to_string()]);
                     break;
                 }
+            }
+            if vars.is_empty()
+            {
+                vars.push([l.to_string(), r.to_string()]);
             }
             continue;
         }

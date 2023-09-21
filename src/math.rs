@@ -57,7 +57,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 single = 0;
                 count = 0;
                 vec = Vec::new();
-                mat = Vec::new();
+                mat = Vec::<Vec<Complex>>::new();
                 for (f, n) in v.iter().enumerate()
                 {
                     if let Str(s) = n
@@ -68,8 +68,11 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             match z
                             {
                                 Num(n) => vec.push(n),
-                                Vector(n) => mat.push(n),
-                                _ => return Err("probably unreachable"),
+                                Vector(n) if mat.is_empty() || n.len() == mat[0].len() =>
+                                {
+                                    mat.push(n)
+                                }
+                                _ => return Err("broken matrix"),
                             }
                             single = f + 1;
                         }
@@ -89,8 +92,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     match z
                     {
                         Num(n) => vec.push(n),
-                        Vector(n) => mat.push(n),
-                        _ => return Err("probably not reachable"),
+                        Vector(n) if mat.is_empty() || n.len() == mat[0].len() => mat.push(n),
+                        _ => return Err("broken matrix"),
                     }
                 }
                 function.drain(i..j);
@@ -904,6 +907,28 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "iden" =>
+                        {
+                            let a = function[i + 1].num()?.real().to_f64() as usize;
+                            let mut mat = Vec::with_capacity(a);
+                            for i in 0..a
+                            {
+                                let mut vec = Vec::with_capacity(a);
+                                for j in 0..a
+                                {
+                                    if i == j
+                                    {
+                                        vec.push(Complex::with_val(prec, 1));
+                                    }
+                                    else
+                                    {
+                                        vec.push(Complex::new(prec));
+                                    }
+                                }
+                                mat.push(vec);
+                            }
+                            Matrix(mat)
+                        }
                         "rotate" =>
                         {
                             a = function[i + 1].num()? / to_deg.clone();
@@ -914,7 +939,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         }
                         "factors" | "factor" =>
                         {
-                            a = function[i + 1].num()? / to_deg.clone();
+                            a = function[i + 1].num()?;
                             if a.imag().clone() == 0.0
                             {
                                 if a.real().clone().fract() == 0.0

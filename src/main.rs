@@ -298,7 +298,7 @@ fn main()
                 {
                     '\n' =>
                     {
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -340,7 +340,7 @@ fn main()
                         }
                         placement -= 1;
                         input.remove(placement);
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -403,7 +403,7 @@ fn main()
                             continue;
                         }
                         input.remove(placement);
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -454,7 +454,7 @@ fn main()
                         //end
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             0
@@ -462,7 +462,7 @@ fn main()
                         else
                         {
                             input.len()
-                                - (get_terminal_width() - if options.prompt { 3 } else { 0 })
+                                - (get_terminal_width() - if options.prompt { 3 } else { 1 })
                         };
                         if options.real_time_output && !input.is_empty()
                         {
@@ -558,14 +558,14 @@ fn main()
                         //home
                         placement = 0;
                         start = 0;
-                        end = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                        end = if get_terminal_width() - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             input.len()
                         }
                         else
                         {
-                            get_terminal_width() - if options.prompt { 3 } else { 0 }
+                            get_terminal_width() - if options.prompt { 3 } else { 1 }
                         };
                         if options.real_time_output && !input.is_empty()
                         {
@@ -584,7 +584,7 @@ fn main()
                         input = lines[i as usize].clone().chars().collect::<Vec<char>>();
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             0
@@ -592,7 +592,7 @@ fn main()
                         else
                         {
                             input.len()
-                                - (get_terminal_width() - if options.prompt { 3 } else { 0 })
+                                - (get_terminal_width() - if options.prompt { 3 } else { 1 })
                         };
                         if options.real_time_output && !input.is_empty()
                         {
@@ -627,7 +627,7 @@ fn main()
                         }
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 0 }
+                        start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             0
@@ -635,7 +635,7 @@ fn main()
                         else
                         {
                             input.len()
-                                - (get_terminal_width() - if options.prompt { 3 } else { 0 })
+                                - (get_terminal_width() - if options.prompt { 3 } else { 1 })
                         };
                         if options.real_time_output && !input.is_empty()
                         {
@@ -653,7 +653,7 @@ fn main()
                         {
                             start -= 1;
                             placement -= 1;
-                            end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
+                            end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                             if end > input.len()
                             {
                                 end = input.len()
@@ -670,7 +670,7 @@ fn main()
                     '\x1C' =>
                     {
                         // go right
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 };
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -718,7 +718,7 @@ fn main()
                                 print!(
                                     "{}",
                                     "\x08".repeat(
-                                        get_terminal_width() - if options.prompt { 3 } else { 0 }
+                                        get_terminal_width() - if options.prompt { 3 } else { 1 }
                                     )
                                 );
                             }
@@ -778,7 +778,7 @@ fn main()
                     {
                         input.insert(placement, c);
                         placement += 1;
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 0 } + 1;
+                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 } + 1;
                         if end > input.len()
                         {
                             end = input.len()

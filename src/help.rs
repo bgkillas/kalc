@@ -89,6 +89,7 @@ Matrix operations/functions:\n\
 - part({{mat}},col,row), flatten, add\n\
 - abs, norm\n\
 - len, wid\n\
+- iden(n) produces n identity matrix\n\
 - rotate(theta) produces a rotational matrix\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\n\
 Constants:\n\

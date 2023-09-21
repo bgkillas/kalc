@@ -125,6 +125,7 @@ Matrix operations/functions:
 - abs, norm
 - len, wid
 - max, min
+- iden(n) produces n identity matrix
 - rotate(theta) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 

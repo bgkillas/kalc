@@ -678,24 +678,41 @@ pub fn print_concurrent(
         {
             frac = 1;
         }
-        if (frac == 1 && !options.frac)
-            || frac_out
-                .replace("\x1b[0m", "")
-                .replace("\x1b[93m", "")
-                .replace("\x1b[92m", "")
-                .len()
-                > terlen
-            || len > terlen
-        {
-            frac = 0;
-        }
         if !options.multi
         {
             num += (len as f64 / terlen as f64).floor() as usize;
+            if (frac == 1 && !options.frac)
+                || frac_out
+                    .replace("\x1b[0m", "")
+                    .replace("\x1b[93m", "")
+                    .replace("\x1b[92m", "")
+                    .len()
+                    > terlen
+                || len > terlen
+            {
+                frac = 0;
+            }
         }
         else
         {
             let mut len = 0;
+            for i in frac_out
+                .replace("\x1b[0m", "")
+                .replace("\x1b[93m", "")
+                .replace("\x1b[92m", "")
+                .chars()
+            {
+                len += 1;
+                if i == '\n'
+                {
+                    len = 0
+                }
+                else if len > terlen
+                {
+                    frac = 0;
+                    break;
+                }
+            }
             for i in output
                 .replace("\x1b[0m", "")
                 .replace("\x1b[93m", "")
@@ -714,12 +731,13 @@ pub fn print_concurrent(
                 }
             }
             frac_out += "\n";
-            num += frac * 2;
         }
         print!(
             "\x1B[0J{}\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
             if frac == 1
             {
+                num *= 2;
+                num += 1;
                 format!("\n\x1B[2K\x1B[1G{}", frac_out)
             }
             else

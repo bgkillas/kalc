@@ -133,45 +133,44 @@ pub fn convert(c: &char) -> char
 pub fn read_single_char() -> char
 {
     terminal::enable_raw_mode().unwrap();
-    let result = match match read()
-    {
-        Ok(c) => c,
-        Err(_) => return '\0',
-    }
-    {
-        Event::Key(KeyEvent {
-            code, modifiers, ..
-        }) => match (code, modifiers)
+    let result =
+        match match read()
         {
-            (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
-            (KeyCode::Home, KeyModifiers::NONE) | (KeyCode::Char('a'), KeyModifiers::CONTROL) =>
+            Ok(c) => c,
+            Err(_) => return '\0',
+        }
+        {
+            Event::Key(KeyEvent {
+                code, modifiers, ..
+            }) => match (code, modifiers)
             {
-                '\x10'
-            }
-            (KeyCode::End, KeyModifiers::NONE) | (KeyCode::Char('e'), KeyModifiers::CONTROL) =>
-            {
-                '\x11'
-            }
-            (KeyCode::Left, KeyModifiers::ALT) | (KeyCode::Char('b'), KeyModifiers::ALT) => '\x12',
-            (KeyCode::Right, KeyModifiers::ALT) | (KeyCode::Char('f'), KeyModifiers::ALT) => '\x13',
-            (KeyCode::Char('l'), KeyModifiers::CONTROL) => '\x15',
-            (KeyCode::Char('t'), KeyModifiers::CONTROL) => '\x16',
-            (KeyCode::Char('u'), KeyModifiers::CONTROL) => '\x18',
-            (KeyCode::Char('k'), KeyModifiers::CONTROL) => '\x19',
-            (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x17',
-            (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
-            (KeyCode::Esc, _) => digraph(),
-            (KeyCode::Enter, KeyModifiers::NONE) => '\n',
-            (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
-            (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
-            (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
-            (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
-            (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
-            (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
+                (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
+                (KeyCode::Home, KeyModifiers::NONE)
+                | (KeyCode::Char('a'), KeyModifiers::CONTROL) => '\x10',
+                (KeyCode::End, KeyModifiers::NONE)
+                | (KeyCode::Char('e'), KeyModifiers::CONTROL) => '\x11',
+                (KeyCode::Left, KeyModifiers::CONTROL)
+                | (KeyCode::Char('b'), KeyModifiers::ALT) => '\x12',
+                (KeyCode::Right, KeyModifiers::CONTROL)
+                | (KeyCode::Char('f'), KeyModifiers::ALT) => '\x13',
+                (KeyCode::Char('l'), KeyModifiers::CONTROL) => '\x15',
+                (KeyCode::Char('t'), KeyModifiers::CONTROL) => '\x16',
+                (KeyCode::Char('u'), KeyModifiers::CONTROL) => '\x18',
+                (KeyCode::Char('k'), KeyModifiers::CONTROL) => '\x19',
+                (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x17',
+                (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
+                (KeyCode::Esc, _) => digraph(),
+                (KeyCode::Enter, KeyModifiers::NONE) => '\n',
+                (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
+                (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
+                (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
+                (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
+                (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
+                (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
+                _ => '\0',
+            },
             _ => '\0',
-        },
-        _ => '\0',
-    };
+        };
     terminal::disable_raw_mode().unwrap();
     if result == '\x14'
     {

@@ -216,7 +216,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     'i' =>
                     {
-                        if i + 1 != chars.len() && (chars[i + 1] == 'n' || chars[i + 1] == 'm')
+                        if i + 1 != chars.len()
+                            && (chars[i + 1] == 'n' || chars[i + 1] == 'm' || chars[i + 1] == 'd')
                         {
                             word.push(c);
                             find_word = true;
@@ -831,6 +832,7 @@ pub fn is_func(word: &str) -> bool
         "reverse",
         "link",
         "flatten",
+        "iden",
     ]
     .iter()
     .cloned()

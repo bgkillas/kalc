@@ -1,5 +1,6 @@
 use crate::{
     complex::{
+        cofactor, determinant, inverse, minors, nth_prime, subfact, sum, to_polar, transpose,
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
@@ -68,10 +69,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             match z
                             {
                                 Num(n) => vec.push(n),
-                                Vector(n) if mat.is_empty() || n.len() == mat[0].len() =>
-                                {
-                                    mat.push(n)
-                                }
+                                Vector(n) => mat.push(n),
                                 _ => return Err("broken matrix"),
                             }
                             single = f + 1;
@@ -92,7 +90,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     match z
                     {
                         Num(n) => vec.push(n),
-                        Vector(n) if mat.is_empty() || n.len() == mat[0].len() => mat.push(n),
+                        Vector(n) => mat.push(n),
                         _ => return Err("broken matrix"),
                     }
                 }
@@ -386,7 +384,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         {
                             if a.len() == a[0].len() && a.len() > 1
                             {
-                                Matrix(cofactor(a))
+                                Matrix(cofactor(&a))
                             }
                             else
                             {
@@ -397,7 +395,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         {
                             if a.len() == a[0].len() && a.len() > 1
                             {
-                                Matrix(minors(a))
+                                Matrix(minors(&a))
                             }
                             else
                             {
@@ -408,15 +406,15 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         {
                             if a.len() == a[0].len() && a.len() > 1
                             {
-                                Matrix(transpose(cofactor(a)))
+                                Matrix(transpose(&cofactor(&a)))
                             }
                             else
                             {
                                 return Err("non square matrix");
                             }
                         }
-                        "inverse" | "inv" => Matrix(inverse(a)?),
-                        "transpose" | "trans" => Matrix(transpose(a)),
+                        "inverse" | "inv" => Matrix(inverse(&a)?),
+                        "transpose" | "trans" => Matrix(transpose(&a)),
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
                         "wid" | "width" => Num(Complex::with_val(prec, a[0].len())),
                         "tr" | "trace" =>
@@ -436,7 +434,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         {
                             if a.len() == a[0].len()
                             {
-                                Num(determinant(a))
+                                Num(determinant(&a))
                             }
                             else
                             {
@@ -1372,260 +1370,6 @@ fn do_functions(
         }
     }
 }
-pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
-{
-    let mut a = a;
-    if a.len() == 1
-    {
-        a.push(Complex::new(a[0].prec()));
-    }
-    if a.len() != 2 && a.len() != 3
-    {
-        vec![]
-    }
-    else if a.len() == 2
-    {
-        if a[1].is_zero()
-        {
-            if a[0].is_zero()
-            {
-                vec![Complex::new(a[0].prec()), Complex::new(a[0].prec())]
-            }
-            else
-            {
-                vec![
-                    a[0].clone().abs(),
-                    if a[0].real().is_sign_positive()
-                    {
-                        Complex::with_val(a[0].prec(), 0)
-                    }
-                    else
-                    {
-                        to_deg * Complex::with_val(a[0].prec(), Pi)
-                    },
-                ]
-            }
-        }
-        else
-        {
-            let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-            n = n.sqrt();
-            vec![
-                n.clone(),
-                a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg,
-            ]
-        }
-    }
-    else if a[1].is_zero()
-    {
-        if a[0].is_zero()
-        {
-            if a[2].is_zero()
-            {
-                vec![
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
-                ]
-            }
-            else
-            {
-                vec![
-                    a[2].clone().abs(),
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
-                ]
-            }
-        }
-        else
-        {
-            let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
-            n = n.sqrt();
-            vec![
-                n.clone(),
-                (&a[2] / n).acos() * to_deg.clone(),
-                Complex::with_val(a[0].prec(), 0),
-            ]
-        }
-    }
-    else
-    {
-        let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
-        n = n.sqrt();
-        let t: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-        vec![
-            n.clone(),
-            (&a[2] / n).acos() * to_deg.clone(),
-            a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg,
-        ]
-    }
-}
-fn subfact(a: f64) -> f64
-{
-    if a == 0.0
-    {
-        return 1.0;
-    }
-    if a.fract() != 0.0
-    {
-        return f64::NAN;
-    }
-    let mut prev = 1.0;
-    let mut curr = 0.0;
-    let mut next;
-    for i in 2..=(a as usize)
-    {
-        next = (i - 1) as f64 * (prev + curr);
-        prev = curr;
-        curr = next;
-    }
-    curr
-}
-fn sum(
-    function: Vec<NumStr>,
-    var: &str,
-    start: u128,
-    end: u128,
-    product: bool,
-    deg: AngleType,
-    prec: u32,
-) -> Result<NumStr, &'static str>
-{
-    let mut func = function.clone();
-    let mut math;
-    for k in func.iter_mut()
-    {
-        if k.str_is(var)
-        {
-            *k = Num(Complex::with_val(prec, start));
-        }
-    }
-    let mut value = do_math(func, deg, prec)?;
-    for z in start + 1..=end
-    {
-        func = function.clone();
-        for k in func.iter_mut()
-        {
-            if k.str_is(var)
-            {
-                *k = Num(Complex::with_val(prec, z));
-            }
-        }
-        math = do_math(func, deg, prec)?;
-        if !product
-        {
-            value = value.add(&math)?;
-        }
-        else
-        {
-            value = value.mul(&math)?;
-        }
-    }
-    Ok(value)
-}
-fn submatrix(a: Vec<Vec<Complex>>, row: usize, col: usize) -> Vec<Vec<Complex>>
-{
-    a.iter()
-        .enumerate()
-        .filter(|&(i, _)| i != row)
-        .map(|(_, r)| {
-            r.iter()
-                .enumerate()
-                .filter(|&(j, _)| j != col)
-                .map(|(_, value)| value.clone())
-                .collect::<Vec<Complex>>()
-        })
-        .collect()
-}
-fn determinant(a: Vec<Vec<Complex>>) -> Complex
-{
-    if a.len() == 1
-    {
-        a[0][0].clone()
-    }
-    else if a.len() == 2
-    {
-        a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone()
-    }
-    else if a.len() == 3
-    {
-        a[0][0].clone() * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
-            + a[0][1].clone()
-                * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
-            + a[0][2].clone()
-                * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
-    }
-    else
-    {
-        let mut det = Complex::new(a[0][0].prec());
-        for (i, x) in a[0].iter().enumerate()
-        {
-            let mut sub_matrix = a[1..].to_vec();
-            for row in &mut sub_matrix
-            {
-                row.remove(i);
-            }
-            det += x * determinant(sub_matrix) * if i % 2 == 0 { 1.0 } else { -1.0 };
-        }
-        det
-    }
-}
-fn transpose(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
-{
-    let mut b = vec![vec![Complex::new(a[0][0].prec()); a.len()]; a[0].len()];
-    for (i, l) in a.iter().enumerate()
-    {
-        for (j, n) in l.iter().enumerate()
-        {
-            b[j][i] = n.clone();
-        }
-    }
-    b
-}
-fn minors(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
-{
-    let mut result = vec![vec![Complex::new(a[0][0].prec()); a[0].len()]; a.len()];
-    for (i, k) in result.iter_mut().enumerate()
-    {
-        for (j, l) in k.iter_mut().enumerate()
-        {
-            *l = determinant(submatrix(a.clone(), i, j));
-        }
-    }
-    result
-}
-fn cofactor(a: Vec<Vec<Complex>>) -> Vec<Vec<Complex>>
-{
-    let mut result = vec![vec![Complex::new(a[0][0].prec()); a[0].len()]; a.len()];
-    for (i, k) in result.iter_mut().enumerate()
-    {
-        for (j, l) in k.iter_mut().enumerate()
-        {
-            *l = if (i + j) % 2 == 1
-            {
-                -determinant(submatrix(a.clone(), i, j))
-            }
-            else
-            {
-                determinant(submatrix(a.clone(), i, j))
-            };
-        }
-    }
-    result
-}
-pub fn inverse(a: Vec<Vec<Complex>>) -> Result<Vec<Vec<Complex>>, &'static str>
-{
-    if a.len() == a[0].len() && a.len() > 1
-    {
-        Matrix(transpose(cofactor(a.clone())))
-            .div(&Num(determinant(a)))?
-            .mat()
-    }
-    else
-    {
-        Err("not square")
-    }
-}
 fn functions(
     a: Complex,
     c: Option<Complex>,
@@ -2014,50 +1758,4 @@ fn functions(
             return Err("unreachable7");
         }
     })
-}
-fn is_prime(num: u128) -> bool
-{
-    if num <= 1
-    {
-        return false;
-    }
-    if num <= 3
-    {
-        return true;
-    }
-    if num % 2 == 0 || num % 3 == 0
-    {
-        return false;
-    }
-    let mut i = 5;
-    while i * i <= num
-    {
-        if num % i == 0 || num % (i + 2) == 0
-        {
-            return false;
-        }
-        i += 6;
-    }
-    true
-}
-fn nth_prime(n: u128) -> u128
-{
-    let mut count = 0;
-    let mut num = 2;
-    if n == 0
-    {
-        num = 0
-    }
-    while count < n
-    {
-        if is_prime(num)
-        {
-            count += 1;
-        }
-        if count < n
-        {
-            num += 1;
-        }
-    }
-    num
 }

@@ -1,12 +1,12 @@
 use crate::{
     complex::{
-        NumStr,
+        to_polar, NumStr,
         NumStr::{Matrix, Num, Vector},
     },
     fraction::fraction,
     get_terminal_width,
     graph::can_graph,
-    math::{do_math, to_polar},
+    math::do_math,
     misc::{clear, handle_err},
     parse::get_func,
     vars::input_var,

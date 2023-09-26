@@ -194,7 +194,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         }
                         else if matches!(
                             k.as_str(),
-                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "mvec"
+                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
                         )
                         {
                             i = j - 1;
@@ -224,7 +224,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
             {
                 if matches!(
                     s.as_str(),
-                    "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "mvec"
+                    "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "vec" | "mat"
                 )
                 {
                     place.clear();
@@ -256,52 +256,60 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     {
                         if let Str(l) = &function[place[0] - 1]
                         {
-                            function[i] = if s == "mvec"
+                            function[i] = match s.as_str()
                             {
-                                let mut vec = Vec::new();
-                                let mut mat = Vec::new();
-                                let start =
-                                    do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
-                                        .num()?
-                                        .real()
-                                        .to_f64() as u128;
-                                let end =
-                                    do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
-                                        .num()?
-                                        .real()
-                                        .to_f64() as u128;
-                                let function = function[place[0] + 1..place[1]].to_vec();
-                                let mut func;
-                                for z in start..end + 1
+                                "vec" | "mat" =>
                                 {
-                                    func = function.clone();
-                                    for k in func.iter_mut()
+                                    let mut vec = Vec::new();
+                                    let mut mat = Vec::new();
+                                    let start = do_math(
+                                        function[place[1] + 1..place[2]].to_vec(),
+                                        deg,
+                                        prec,
+                                    )?
+                                    .num()?
+                                    .real()
+                                    .to_f64()
+                                        as u128;
+                                    let end = do_math(
+                                        function[place[2] + 1..place[3]].to_vec(),
+                                        deg,
+                                        prec,
+                                    )?
+                                    .num()?
+                                    .real()
+                                    .to_f64() as u128;
+                                    let function = function[place[0] + 1..place[1]].to_vec();
+                                    let mut func;
+                                    for z in start..end + 1
                                     {
-                                        if k.str_is(l)
+                                        func = function.clone();
+                                        for k in func.iter_mut()
                                         {
-                                            *k = Num(Complex::with_val(prec, z));
+                                            if k.str_is(l)
+                                            {
+                                                *k = Num(Complex::with_val(prec, z));
+                                            }
+                                        }
+                                        let math = do_math(func, deg, prec)?;
+                                        match math
+                                        {
+                                            Num(n) => vec.push(n),
+                                            Vector(v) if s == "vec" => vec.extend(v),
+                                            Vector(v) => mat.push(v),
+                                            _ => return Err("cant create 3d matrix"),
                                         }
                                     }
-                                    let math = do_math(func, deg, prec)?;
-                                    match math
+                                    if mat.is_empty()
                                     {
-                                        Num(n) => vec.push(n),
-                                        Vector(v) => mat.push(v),
-                                        _ => return Err("cant create 3d matrix"),
+                                        Vector(vec)
+                                    }
+                                    else
+                                    {
+                                        Matrix(mat)
                                     }
                                 }
-                                if mat.is_empty()
-                                {
-                                    Vector(vec)
-                                }
-                                else
-                                {
-                                    Matrix(mat)
-                                }
-                            }
-                            else
-                            {
-                                sum(
+                                _ => sum(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     l,
                                     do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
@@ -315,7 +323,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                     !(s == "sum" || s == "summation" || s == "Σ"),
                                     deg,
                                     prec,
-                                )?
+                                )?,
                             };
                             function.drain(i + 1..=place[3]);
                         }

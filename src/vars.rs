@@ -110,7 +110,7 @@ pub fn input_var(
         word = chars[i..i + count].iter().collect::<String>();
         if matches!(
             word.as_str(),
-            "sum" | "summation" | "prod" | "production" | "mvec" | "Σ" | "Π"
+            "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
         )
         {
             sum.0 = bracket + 1;

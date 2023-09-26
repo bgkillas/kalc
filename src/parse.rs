@@ -99,7 +99,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     func.push(Str(word.clone()));
                     if matches!(
                         word.as_str(),
-                        "sum" | "summation" | "prod" | "production" | "mvec" | "Σ" | "Π"
+                        "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
                     ) && sum == 0
                     {
                         sum = count + 1;
@@ -201,7 +201,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                         | "summation"
                                         | "prod"
                                         | "production"
-                                        | "mvec"
+                                        | "vec"
+                                        | "mat"
                                         | "Σ"
                                         | "Π"
                                 ) && sum == 0
@@ -296,7 +297,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     func.push(Str(word.clone()));
                     if matches!(
                         word.as_str(),
-                        "sum" | "summation" | "prod" | "production" | "mvec" | "Σ" | "Π"
+                        "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
                     ) && sum == 0
                     {
                         sum = count + 1;
@@ -826,7 +827,8 @@ pub fn is_func(word: &str) -> bool
         "Π",
         "factor",
         "factors",
-        "mvec",
+        "vec",
+        "mat",
         "prime",
         "add",
         "reverse",

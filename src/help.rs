@@ -70,7 +70,7 @@ Other functions:\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re, im, max(x,y), min(x,y)\n\
 - factors, prime\n\
-- mvec(func,var,start,end) (makes a vector/matrix)\n\n\
+- vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)\n\n\
 Vector operations/functions:\n\
 - *,/,+,-,^\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\

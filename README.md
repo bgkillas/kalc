@@ -102,7 +102,7 @@ Other functions:
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re, im
 - factors, prime
-- mvec(func,var,start,end) (makes a vector/matrix)
+- vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)
 
 Vector operations/functions:
 - *,/,+,-,^

@@ -713,6 +713,7 @@ pub fn print_concurrent(
                     break;
                 }
             }
+            len = 0;
             for i in output
                 .replace("\x1b[0m", "")
                 .replace("\x1b[93m", "")
@@ -1103,6 +1104,10 @@ fn add_commas(input: &str, commas: bool) -> String
     let mut exp = false;
     for c in split.next().unwrap().chars().rev()
     {
+        if c == '-'
+        {
+            count -= 1;
+        }
         if c == 'e'
         {
             exp = true;
@@ -1122,6 +1127,10 @@ fn add_commas(input: &str, commas: bool) -> String
         count = 0;
         for c in split.next().unwrap().chars()
         {
+            if c == '-'
+            {
+                count -= 1;
+            }
             if c == 'e'
             {
                 exp = true;

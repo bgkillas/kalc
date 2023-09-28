@@ -140,14 +140,17 @@ fn main()
         for i in lines
         {
             split = i.splitn(2, '=');
-            let l = split.next().unwrap().to_string();
-            let r = split.next().unwrap().to_string();
-            for (i, j) in vars.clone().iter().enumerate()
+            if split.clone().count() == 2
             {
-                if j[0].chars().count() <= l.chars().count()
+                let l = split.next().unwrap().to_string();
+                let r = split.next().unwrap().to_string();
+                for (i, j) in vars.clone().iter().enumerate()
                 {
-                    vars.insert(i, [l, r]);
-                    break;
+                    if j[0].chars().count() <= l.chars().count()
+                    {
+                        vars.insert(i, [l, r]);
+                        break;
+                    }
                 }
             }
         }

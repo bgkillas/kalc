@@ -98,7 +98,7 @@ Other functions:
 - ceil, floor, round, int, frac
 - fact(real), subfact(natural)
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai, binomial/bi (all real only)
+- zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re, im
 - factors, prime

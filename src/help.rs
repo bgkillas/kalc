@@ -66,7 +66,7 @@ Other functions:\n\
 - ceil, floor, round, int, frac\n\
 - fact(real), subfact(natural)\n\
 - sinc, cis, exp\n\
-- zeta, gamma, erf, erfc, digamma, ai, binomial/bi (all real only)\n\
+- zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re, im, max(x,y), min(x,y)\n\
 - factors, prime\n\

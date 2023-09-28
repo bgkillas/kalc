@@ -155,6 +155,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 | "proj"
                                 | "project"
                                 | "link"
+                                | "C"
+                                | "P"
                         )
                         {
                             count = 0;
@@ -220,7 +222,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
     {
         if let Str(s) = &function[i].clone()
         {
-            if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
+            if (s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
+                || matches!(s.as_str(), "C" | "P")
             {
                 if matches!(
                     s.as_str(),
@@ -1226,19 +1229,25 @@ fn do_functions(
         match (a, b)
         {
             (Num(a), Num(b)) => Ok(Num(functions(a, Some(b), to_deg.clone(), s, deg)?)),
-            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            (Vector(a), Vector(b)) =>
             {
-                for i in 0..b.len()
+                let mut mat = Vec::new();
+                for a in a
                 {
-                    vec.push(functions(
-                        a[i].clone(),
-                        Some(b[i].clone()),
-                        to_deg.clone(),
-                        s,
-                        deg,
-                    )?)
+                    let mut vec = Vec::new();
+                    for b in &b
+                    {
+                        vec.push(functions(
+                            a.clone(),
+                            Some(b.clone()),
+                            to_deg.clone(),
+                            s,
+                            deg,
+                        )?)
+                    }
+                    mat.push(vec);
                 }
-                Ok(Vector(vec))
+                Ok(Matrix(mat))
             }
             (Matrix(a), Matrix(b)) if a.len() == b.len() && a[0].len() == b[0].len() =>
             {
@@ -1575,7 +1584,24 @@ fn functions(
                 a.sqrt()
             }
         }
-        "bi" | "binomial" =>
+        "P" =>
+        {
+            if let Some(b) = c
+            {
+                if a.imag() != &0.0 && b.imag() != &0.0
+                {
+                    return Err("binomial complex not supported");
+                }
+                let d: Float = a.real().clone() - b.real() + 1;
+                let a: Float = a.real().clone() + 1;
+                (a.gamma() / d.gamma()).into()
+            }
+            else
+            {
+                return Err("no args");
+            }
+        }
+        "C" | "bi" | "binomial" =>
         {
             if let Some(b) = c
             {

@@ -92,6 +92,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         {
             if !word.is_empty() && word != "0."
             {
+                if c == '2' && word == "atan"
+                {
+                    word.push(c);
+                    i += 1;
+                    continue;
+                }
                 find_word = false;
                 if is_func(&word) || sum != 0
                 {
@@ -565,8 +571,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                         {
                                             if s != "subfact" && s != "("
                                             {
-                                                func.insert(j - 1, Str("(".to_string()));
-                                                func.insert(j - 1, Str("fact".to_string()));
+                                                func.insert(j, Str("(".to_string()));
+                                                func.insert(j, Str("fact".to_string()));
                                                 func.push(Str(")".to_string()));
                                                 i += 1;
                                                 continue 'outer;
@@ -835,6 +841,8 @@ pub fn is_func(word: &str) -> bool
         "link",
         "flatten",
         "iden",
+        "P",
+        "C",
     ]
     .iter()
     .cloned()

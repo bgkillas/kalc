@@ -160,6 +160,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         )
                         {
                             count = 0;
+                            place.clear();
                             for (f, n) in v.iter().enumerate()
                             {
                                 if let Str(s) = n

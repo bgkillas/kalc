@@ -1,6 +1,6 @@
 use crate::{
     complex::{
-        cofactor, determinant, inverse, minors, nth_prime, subfact, sum, to_polar, transpose,
+        cofactor, determinant, inverse, minors, mvec, nth_prime, subfact, sum, to_polar, transpose,
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
@@ -39,14 +39,17 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     if j >= function.len()
                     {
-                        return Err("idk");
+                        return Err("curly bracket err");
                     }
-                    match &function[j]
+                    if let Str(s) = &function[j]
                     {
-                        Str(s) if s == "{" => count += 1,
-                        Str(s) if s == "}" => count -= 1,
-                        _ =>
-                        {}
+                        match s.as_str()
+                        {
+                            "{" => count += 1,
+                            "}" => count -= 1,
+                            _ =>
+                            {}
+                        }
                     }
                     j += 1;
                 }
@@ -63,24 +66,23 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     if let Str(s) = n
                     {
-                        if s == "," && count == 0
+                        match s.as_str()
                         {
-                            let z = do_math(v[single..f].to_vec(), deg, prec)?;
-                            match z
+                            "," if count == 0 =>
                             {
-                                Num(n) => vec.push(n),
-                                Vector(n) => mat.push(n),
-                                _ => return Err("broken matrix"),
+                                let z = do_math(v[single..f].to_vec(), deg, prec)?;
+                                match z
+                                {
+                                    Num(n) => vec.push(n),
+                                    Vector(n) => mat.push(n),
+                                    _ => return Err("broken matrix"),
+                                }
+                                single = f + 1;
                             }
-                            single = f + 1;
-                        }
-                        else if s == "{"
-                        {
-                            count += 1;
-                        }
-                        else if s == "}"
-                        {
-                            count -= 1;
+                            "{" | "(" => count += 1,
+                            "}" | ")" => count -= 1,
+                            _ =>
+                            {}
                         }
                     }
                 }
@@ -103,7 +105,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     }
                     else
                     {
-                        return Err("likely unreachable");
+                        return Err("vector err");
                     }
                 }
                 else
@@ -119,14 +121,17 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     if j >= function.len()
                     {
-                        return Err("unsure");
+                        return Err("round bracket err");
                     }
-                    match &function[j]
+                    if let Str(s) = &function[j]
                     {
-                        Str(s) if s == "(" => count += 1,
-                        Str(s) if s == ")" => count -= 1,
-                        _ =>
-                        {}
+                        match s.as_str()
+                        {
+                            "(" => count += 1,
+                            ")" => count -= 1,
+                            _ =>
+                            {}
+                        }
                     }
                     j += 1;
                 }
@@ -165,17 +170,13 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             {
                                 if let Str(s) = n
                                 {
-                                    if s == "," && count == 0
+                                    match s.as_str()
                                     {
-                                        place.push(f);
-                                    }
-                                    else if s == "(" || s == "{"
-                                    {
-                                        count += 1;
-                                    }
-                                    else if s == ")" || s == "}"
-                                    {
-                                        count -= 1;
+                                        "," if count == 0 => place.push(f),
+                                        "(" | "{" => count += 1,
+                                        ")" | "}" => count -= 1,
+                                        _ =>
+                                        {}
                                     }
                                 }
                             }
@@ -258,72 +259,36 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     }
                     if place.len() == 4
                     {
-                        if let Str(l) = &function[place[0] - 1]
+                        if let Str(var) = &function[place[0] - 1]
                         {
                             function[i] = match s.as_str()
                             {
-                                "vec" | "mat" =>
-                                {
-                                    let mut vec = Vec::new();
-                                    let mut mat = Vec::new();
-                                    let start = do_math(
-                                        function[place[1] + 1..place[2]].to_vec(),
-                                        deg,
-                                        prec,
-                                    )?
-                                    .num()?
-                                    .real()
-                                    .to_f64()
-                                        as u128;
-                                    let end = do_math(
-                                        function[place[2] + 1..place[3]].to_vec(),
-                                        deg,
-                                        prec,
-                                    )?
-                                    .num()?
-                                    .real()
-                                    .to_f64() as u128;
-                                    let function = function[place[0] + 1..place[1]].to_vec();
-                                    let mut func;
-                                    for z in start..end + 1
-                                    {
-                                        func = function.clone();
-                                        for k in func.iter_mut()
-                                        {
-                                            if k.str_is(l)
-                                            {
-                                                *k = Num(Complex::with_val(prec, z));
-                                            }
-                                        }
-                                        let math = do_math(func, deg, prec)?;
-                                        match math
-                                        {
-                                            Num(n) => vec.push(n),
-                                            Vector(v) if s == "vec" => vec.extend(v),
-                                            Vector(v) => mat.push(v),
-                                            _ => return Err("cant create 3d matrix"),
-                                        }
-                                    }
-                                    if mat.is_empty()
-                                    {
-                                        Vector(vec)
-                                    }
-                                    else
-                                    {
-                                        Matrix(mat)
-                                    }
-                                }
-                                _ => sum(
+                                "vec" | "mat" => mvec(
                                     function[place[0] + 1..place[1]].to_vec(),
-                                    l,
+                                    var,
                                     do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
                                         .num()?
                                         .real()
-                                        .to_f64() as u128,
+                                        .to_f64() as u64,
                                     do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
                                         .num()?
                                         .real()
-                                        .to_f64() as u128,
+                                        .to_f64() as u64,
+                                    s == "vec",
+                                    deg,
+                                    prec,
+                                )?,
+                                _ => sum(
+                                    function[place[0] + 1..place[1]].to_vec(),
+                                    var,
+                                    do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
+                                        .num()?
+                                        .real()
+                                        .to_f64() as u64,
+                                    do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
+                                        .num()?
+                                        .real()
+                                        .to_f64() as u64,
                                     !(s == "sum" || s == "summation" || s == "Σ"),
                                     deg,
                                     prec,

@@ -450,11 +450,52 @@ pub fn subfact(a: f64) -> f64
     }
     curr
 }
+pub fn mvec(
+    function: Vec<NumStr>,
+    var: &str,
+    start: u64,
+    end: u64,
+    mvec: bool,
+    deg: AngleType,
+    prec: u32,
+) -> Result<NumStr, &'static str>
+{
+    let mut vec = Vec::new();
+    let mut mat = Vec::new();
+    let mut func;
+    for z in start..end + 1
+    {
+        func = function.clone();
+        for k in func.iter_mut()
+        {
+            if k.str_is(var)
+            {
+                *k = Num(Complex::with_val(prec, z));
+            }
+        }
+        let math = do_math(func, deg, prec)?;
+        match math
+        {
+            Num(n) => vec.push(n),
+            Vector(v) if mvec => vec.extend(v),
+            Vector(v) => mat.push(v),
+            _ => return Err("cant create 3d matrix"),
+        }
+    }
+    if mat.is_empty()
+    {
+        Ok(Vector(vec))
+    }
+    else
+    {
+        Ok(Matrix(mat))
+    }
+}
 pub fn sum(
     function: Vec<NumStr>,
     var: &str,
-    start: u128,
-    end: u128,
+    start: u64,
+    end: u64,
     product: bool,
     deg: AngleType,
     prec: u32,

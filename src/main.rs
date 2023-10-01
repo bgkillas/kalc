@@ -1403,7 +1403,8 @@ fn main()
                     };
                     continue;
                 }
-                _ => (),
+                _ =>
+                {}
             }
             for (i, v) in vars.iter().enumerate()
             {

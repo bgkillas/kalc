@@ -49,11 +49,13 @@ pub fn input_var(
                     {
                         ')' => stack_start.push('('),
                         '}' => stack_start.push('{'),
-                        _ => (),
+                        _ =>
+                        {}
                     }
                 }
             }
-            _ => (),
+            _ =>
+            {}
         }
     }
     let mut input = String::new();

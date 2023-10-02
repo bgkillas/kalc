@@ -44,7 +44,6 @@ pub fn graph(
             let mut x = (Vec::new(), Vec::new());
             let mut y = (Vec::new(), Vec::new());
             let mut z = (Vec::new(), Vec::new());
-            let mut d3 = false;
             for (i, f) in func.iter().enumerate()
             {
                 re.push(match do_math(f.to_vec(), deg, prec).unwrap()
@@ -66,29 +65,24 @@ pub fn graph(
                     }
                     Matrix(n) =>
                     {
-                        matrix = true;
-                        d3 = if n[0].len() == 3
+                        if n[0].len() <= 3 && n[0].len() > 1
                         {
-                            true
+                            matrix = true;
+                            x.0.push(n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>());
+                            x.1.push(n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>());
+                            y.0.push(n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>());
+                            y.1.push(n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>());
+                            if n[0].len() == 3
+                            {
+                                z.0.push(
+                                    n.iter().map(|x| x[2].real().to_f64()).collect::<Vec<f64>>(),
+                                );
+                                z.1.push(
+                                    n.iter().map(|x| x[2].imag().to_f64()).collect::<Vec<f64>>(),
+                                );
+                            }
                         }
-                        else if n[0].len() == 2
-                        {
-                            false
-                        }
-                        else
-                        {
-                            return;
-                        };
-                        x.0.push(n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>());
-                        x.1.push(n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>());
-                        y.0.push(n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>());
-                        y.1.push(n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>());
-                        if d3
-                        {
-                            z.0.push(n.iter().map(|x| x[2].real().to_f64()).collect::<Vec<f64>>());
-                            z.1.push(n.iter().map(|x| x[2].imag().to_f64()).collect::<Vec<f64>>());
-                        }
-                        for k in n
+                        for k in &n
                         {
                             for j in k
                             {
@@ -102,7 +96,12 @@ pub fn graph(
                                 }
                             }
                         }
-                        continue;
+                        if n[0].len() <= 3 && n[0].len() > 1
+                        {
+                            continue;
+                        }
+                        matrix = false;
+                        n.into_iter().flatten().collect()
                     }
                     Num(n) =>
                     {
@@ -124,7 +123,7 @@ pub fn graph(
             }
             if matrix
             {
-                if d3
+                if !z.0.is_empty()
                 {
                     let n = vec![0.0; 3];
                     for _ in 0..6 - func.len()

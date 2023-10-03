@@ -479,6 +479,7 @@ pub fn mvec(
             Num(n) => vec.push(n),
             Vector(v) if mvec => vec.extend(v),
             Vector(v) => mat.push(v),
+            Matrix(m) if !mvec => mat.extend(m),
             _ => return Err("cant create 3d matrix"),
         }
     }

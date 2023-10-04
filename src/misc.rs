@@ -190,7 +190,7 @@ pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
 pub fn clear(input: &[char], start: usize, end: usize, options: Options)
 {
     print!(
-        "\x1B[0J\x1B[2K\x1B[1G{}{}\x1b[0m",
+        "\x1B[2K\x1B[1G{}{}\x1b[0m",
         if options.prompt
         {
             if options.color

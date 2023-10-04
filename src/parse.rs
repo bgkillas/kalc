@@ -9,6 +9,10 @@ use rug::{ops::Pow, Complex};
 use std::collections::HashSet;
 pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static str>
 {
+    if input.is_empty()
+    {
+        return Ok(Vec::new());
+    }
     let mut count: i32 = 0;
     let mut exp = String::new();
     let mut func: Vec<NumStr> = Vec::new();

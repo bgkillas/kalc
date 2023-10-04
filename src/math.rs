@@ -19,7 +19,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
     }
     if func.is_empty()
     {
-        return Err("no function");
+        return Err(" ");
     }
     let mut function = func;
     let mut i = 0;

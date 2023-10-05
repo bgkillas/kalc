@@ -30,11 +30,6 @@ use std::{
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
     thread::JoinHandle,
 };
-// allow f16/f32/f64/f128 instead of arbitary precision for performance reasons
-// gui support (via egui prob)
-// support units
-// make pi not slow via vars
-// fix sum(k,k,2,{3,4})
 #[derive(Clone, Copy)]
 pub struct Options
 {

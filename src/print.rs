@@ -1210,6 +1210,10 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             .unwrap()
             .to_string();
         num.insert(1, '.');
-        sign + num.trim_end_matches('0').trim_end_matches('.') + &input[pos..]
+        sign + num.trim_end_matches('0').trim_end_matches('.')
+            + "e"
+            + &(input[pos + 1..].parse::<isize>().unwrap()
+                + if num.len() - 1 > dec { 1 } else { 0 })
+            .to_string()
     }
 }

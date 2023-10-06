@@ -1002,12 +1002,7 @@ pub fn get_list_3d(
 pub fn can_graph(input: &str) -> bool
 {
     input.contains('#')
-        || input
-            .replace("exp", "")
-            .replace("max", "")
-            .replace("}x{", "")
-            .replace("]x[", "")
-            .contains('x')
+        || input.replace("exp", "").replace("max", "").contains('x')
         || input.contains('y')
         || input
             .replace("zeta", "")

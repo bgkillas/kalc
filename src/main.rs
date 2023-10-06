@@ -1395,16 +1395,12 @@ fn main()
             continue;
         }
         else if input.contains(&'#')
-            || input_var(&input.iter().collect::<String>(), &vars, None, options)
-                .replace("exp", "")
-                .replace("max", "")
-                .replace("}x{", "")
-                .replace("]x[", "")
-                .contains('x')
-            || input_var(&input.iter().collect::<String>(), &vars, None, options)
-                .replace("zeta", "")
-                .replace("normalize", "")
-                .contains('z')
+            || can_graph(&input_var(
+                &input.iter().collect::<String>(),
+                &vars,
+                None,
+                options,
+            ))
         {
             print!("\x1b[G\x1b[K");
             stdout().flush().unwrap();
@@ -1427,7 +1423,7 @@ fn main()
                     .replace('z', "(x+y*i)")
                     .replace("##ta##", "zeta")
                     .replace("##ma##", "normalize");
-                funcs.push(match get_func(&i, options)
+                funcs.push(match get_func(i, options)
                 {
                     Ok(f) => f,
                     _ => continue 'main,

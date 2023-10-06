@@ -130,7 +130,7 @@ pub fn input_var(
         }
         for var in vars
         {
-            if sumrec.iter().any(|a| a.1 == var[0])
+            if sumrec.iter().any(|a| a.1.contains(&var[0]))
             {
                 continue;
             }

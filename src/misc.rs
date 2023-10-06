@@ -124,7 +124,7 @@ pub fn convert(c: &char) -> char
     match c
     {
         c if c.is_alphanumeric() || valid_chars.contains(c) => *c,
-        '∗' | '∙' | '·' | '⋅' | '*' => '*',
+        '∗' | '∙' | '·' | '⋅' | '*' | '×' => '*',
         '∕' | '⁄' | '/' => '/',
         '−' | '-' => '-',
         _ => '\0',

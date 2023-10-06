@@ -260,13 +260,13 @@ fn main()
             if options.prompt
             {
                 print!(
-                    "\x1B[2K\x1B[1G{}> \x1b[0m",
+                    "\x1b[G\x1b[K{}> \x1b[0m",
                     if options.color { "\x1b[94m" } else { "" }
                 );
             }
             else
             {
-                print!("\x1B[2K\x1B[1G");
+                print!("\x1b[G\x1b[K");
             }
             stdout().flush().unwrap();
             current.clear();
@@ -646,12 +646,12 @@ fn main()
                         else if placement != input.len()
                         {
                             placement += 1;
-                            print!("\x1b[1C")
+                            print!("\x1b[C")
                         }
                     }
                     '\x12' =>
                     {
-                        //alt+left
+                        //ctrl+left
                         if placement != 0
                         {
                             let s = placement;
@@ -696,7 +696,7 @@ fn main()
                     }
                     '\x13' =>
                     {
-                        //alt+right
+                        //ctrl+right
                         if placement != input.len()
                         {
                             let s = placement;
@@ -725,11 +725,11 @@ fn main()
                             else if placement == s
                             {
                                 placement = input.len();
-                                print!("{}", "\x1b[1C".repeat(input.len() - s));
+                                print!("{}", "\x1b[C".repeat(input.len() - s));
                             }
                             else
                             {
-                                print!("{}", "\x1b[1C".repeat(placement - s));
+                                print!("{}", "\x1b[C".repeat(placement - s));
                             }
                         }
                     }
@@ -795,37 +795,37 @@ fn main()
             {
                 "color" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.color = !options.color;
                 }
                 "prompt" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.prompt = !options.prompt;
                 }
                 "deg" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.deg = Degrees;
                 }
                 "rad" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.deg = Radians;
                 }
                 "grad" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.deg = Gradians;
                 }
                 "rt" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.real_time_output = !options.real_time_output;
                 }
@@ -834,68 +834,68 @@ fn main()
                 "small_e" => options.small_e = !options.small_e,
                 "sci" | "scientific" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.sci = !options.sci;
                 }
                 "clear" =>
                 {
-                    print!("\x1B[2J\x1B[1;1H");
+                    print!("\x1b[H\x1b[J");
                     stdout().flush().unwrap();
                 }
                 "debug" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.debug = !options.debug;
                     watch = None;
                 }
                 "help" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     help();
                     continue;
                 }
                 "line" | "lines" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.lines = !options.lines;
                 }
                 "polar" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.polar = !options.polar;
                 }
                 "frac" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.frac = !options.frac;
                 }
                 "multi" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.multi = !options.multi;
                 }
                 "tabbed" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.tabbed = !options.tabbed;
                 }
                 "comma" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.comma = !options.comma;
                 }
                 "history" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     for l in lines
                     {
@@ -905,7 +905,7 @@ fn main()
                 }
                 "vars" | "variables" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     for v in vars.iter()
                     {
@@ -966,7 +966,7 @@ fn main()
                 }
                 "lvars" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     for v in vars.iter()
                     {
@@ -975,14 +975,14 @@ fn main()
                 }
                 "version" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                     continue;
                 }
                 "exit" | "quit" | "break" =>
                 {
-                    print!("\x1b[A\x1B[2K\x1B[1G");
+                    print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     break;
                 }
@@ -993,7 +993,7 @@ fn main()
                     let next = split.next().unwrap();
                     if next == "history"
                     {
-                        print!("\x1b[A\x1B[2K\x1B[1G");
+                        print!("\x1b[A\x1b[G\x1b[K");
                         stdout().flush().unwrap();
                         r = split.next().unwrap();
                         for i in lines
@@ -1007,7 +1007,7 @@ fn main()
                     }
                     if next == "help"
                     {
-                        print!("\x1b[A\x1B[2K\x1B[1G");
+                        print!("\x1b[A\x1b[G\x1b[K");
                         stdout().flush().unwrap();
                         get_help(split.next().unwrap());
                         continue;
@@ -1123,7 +1123,7 @@ fn main()
             .replace("<=", "")
             .contains('=')
         {
-            print!("\x1B[0J");
+            print!("\x1b[J");
             stdout().flush().unwrap();
             let n = input.iter().collect::<String>();
             split = n.splitn(2, '=');
@@ -1406,7 +1406,7 @@ fn main()
                 .replace("normalize", "")
                 .contains('z')
         {
-            print!("\x1b[2K\x1b[1G");
+            print!("\x1b[G\x1b[K");
             stdout().flush().unwrap();
             inputs = input
                 .iter()
@@ -1415,27 +1415,23 @@ fn main()
                 .map(String::from)
                 .collect();
             funcs = Vec::new();
-            for i in &inputs
+            for i in inputs.iter_mut()
             {
                 if i.is_empty()
                 {
                     continue;
                 }
-                funcs.push(
-                    match get_func(
-                        &input_var(i, &vars, None, options)
-                            .replace("zeta", "##ta##")
-                            .replace("normalize", "##ma##")
-                            .replace('z', "(x+y*i)")
-                            .replace("##ta##", "zeta")
-                            .replace("##ma##", "normalize"),
-                        options,
-                    )
-                    {
-                        Ok(f) => f,
-                        _ => continue 'main,
-                    },
-                );
+                *i = input_var(i, &vars, None, options)
+                    .replace("zeta", "##ta##")
+                    .replace("normalize", "##ma##")
+                    .replace('z', "(x+y*i)")
+                    .replace("##ta##", "zeta")
+                    .replace("##ma##", "normalize");
+                funcs.push(match get_func(&i, options)
+                {
+                    Ok(f) => f,
+                    _ => continue 'main,
+                });
             }
             handles.push(graph(
                 inputs,

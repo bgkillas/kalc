@@ -157,6 +157,7 @@ pub fn print_concurrent(
     .replace('_', &format!("({})", last.iter().collect::<String>()));
     if can_graph(input)
     {
+        print!("\x1b[J");
         clear(unmodified_input, start, end, options);
         return 0;
     }
@@ -329,10 +330,10 @@ pub fn print_concurrent(
                 }
                 - 1;
             print!(
-                "\x1B[0J{}\n\x1B[2K\x1B[1G{}{}{}{}\x1b[A\x1b[A\x1B[2K\x1B[1G{}{}{}",
+                "\x1b[J{}\n\x1b[G\x1b[K{}{}{}{}\x1b[A\x1b[A\x1b[G\x1b[K{}{}{}",
                 if frac == 1
                 {
-                    format!("\n\x1B[2K\x1B[1G{}{}", frac_a, frac_b)
+                    format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
                 }
                 else
                 {
@@ -369,10 +370,10 @@ pub fn print_concurrent(
         else
         {
             print!(
-                "\x1B[0J{}\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
+                "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
                 if frac == 1
                 {
-                    format!("\n\x1B[2K\x1B[1G{}{}", frac_a, frac_b)
+                    format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
                 }
                 else
                 {
@@ -521,10 +522,10 @@ pub fn print_concurrent(
         }
         let num = (len as f64 / terlen as f64).floor() as usize;
         print!(
-            "\x1B[0J{}\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
+            "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
             if frac == 1
             {
-                format!("\n\x1B[2K\x1B[1G{}", frac_out)
+                format!("\n\x1b[G\x1b[K{}", frac_out)
             }
             else
             {
@@ -734,12 +735,12 @@ pub fn print_concurrent(
             frac_out += "\n";
         }
         print!(
-            "\x1B[0J{}\n\x1B[2K\x1B[1G{}{}\x1b[A{}\x1B[2K\x1B[1G{}{}{}",
+            "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
             if frac == 1
             {
                 num *= 2;
                 num += 1;
-                format!("\n\x1B[2K\x1B[1G{}", frac_out)
+                format!("\n\x1b[G\x1b[K{}", frac_out)
             }
             else
             {

@@ -674,10 +674,11 @@ pub fn graph(
             for (i, f) in func.iter().enumerate()
             {
                 (re2, im2) = get_list_2d(f, options, deg, prec);
-                if re2
-                    .iter()
-                    .map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0)
-                    .all(|i| i)
+                if !options.depth
+                    && re2
+                        .iter()
+                        .map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0)
+                        .all(|i| i)
                 {
                     re2.clear();
                 }
@@ -685,10 +686,11 @@ pub fn graph(
                 {
                     re_cap[i] = input[i].to_owned() + ":re";
                 }
-                if im2
-                    .iter()
-                    .map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0)
-                    .all(|i| i)
+                if !options.depth
+                    && im2
+                        .iter()
+                        .map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0)
+                        .all(|i| i)
                 {
                     im2.clear();
                 }

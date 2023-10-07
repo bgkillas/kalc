@@ -30,6 +30,7 @@ FLAGS: --help (this message)\n\
 --multi toggles multi line display for matrixes\n\
 --tabbed toggles tabbed display for matrixes\n\
 --debug displays computation time in nanoseconds\n\
+--depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\n\
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\n\n\
 - flags can be executed in runtime just without the dashes\n\
 - Type \"exit\" to exit the program\n\

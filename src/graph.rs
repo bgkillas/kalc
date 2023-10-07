@@ -35,6 +35,7 @@ pub fn graph(
         let im6col = "#00aaaa";
         let xticks = Some((Fix((options.xr[1] - options.xr[0]) / 20.0), 1));
         let yticks = Some((Fix((options.yr[1] - options.yr[0]) / 20.0), 1));
+        let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
         if !input[0].contains('x')
@@ -135,7 +136,6 @@ pub fn graph(
                         y.1.push(n.clone());
                         z.1.push(n.clone());
                     }
-                    let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
                     fg.axes3d()
                         .set_x_ticks(xticks, &[], &[])
                         .set_y_ticks(yticks, &[], &[])
@@ -376,7 +376,6 @@ pub fn graph(
                 {
                     re.push(z.clone());
                 }
-                let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
                 fg.axes3d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
@@ -536,7 +535,6 @@ pub fn graph(
         }
         else if input[0].contains('y')
         {
-            let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
             let (mut re2, mut im2);
@@ -784,6 +782,61 @@ pub fn graph(
                         im[5].iter().map(|x| x[0]),
                         im[5].iter().map(|x| x[1]),
                         &[PointSymbol(options.point_style), Color(im6col)],
+                    );
+            }
+            else if options.depth
+            {
+                fg.axes3d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_z_ticks(zticks, &[], &[])
+                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
+                    .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                    .set_z_label("z", &[])
+                    .set_y_label("y", &[])
+                    .set_x_label("x", &[])
+                    .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(re6col)])
+                    .points(
+                        re[0].iter().map(|x| x[0]),
+                        re[0].iter().map(|x| x[1]),
+                        im[0].iter().map(|x| x[1]),
+                        &[PointSymbol(options.point_style), Color(re1col)],
+                    )
+                    .points(
+                        re[1].iter().map(|x| x[0]),
+                        re[1].iter().map(|x| x[1]),
+                        im[1].iter().map(|x| x[1]),
+                        &[PointSymbol(options.point_style), Color(re2col)],
+                    )
+                    .points(
+                        re[2].iter().map(|x| x[0]),
+                        re[2].iter().map(|x| x[1]),
+                        im[2].iter().map(|x| x[1]),
+                        &[PointSymbol(options.point_style), Color(re3col)],
+                    )
+                    .points(
+                        re[3].iter().map(|x| x[0]),
+                        re[3].iter().map(|x| x[1]),
+                        im[3].iter().map(|x| x[1]),
+                        &[PointSymbol(options.point_style), Color(re4col)],
+                    )
+                    .points(
+                        re[4].iter().map(|x| x[0]),
+                        re[4].iter().map(|x| x[1]),
+                        im[4].iter().map(|x| x[1]),
+                        &[PointSymbol(options.point_style), Color(re5col)],
+                    )
+                    .points(
+                        re[5].iter().map(|x| x[0]),
+                        re[5].iter().map(|x| x[1]),
+                        im[5].iter().map(|x| x[1]),
+                        &[PointSymbol(options.point_style), Color(re6col)],
                     );
             }
             else

@@ -29,6 +29,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
         match args[i].as_str()
         {
             "--debug" => options.debug = !options.debug,
+            "--depth" => options.depth = !options.depth,
             "--tau" => options.tau = !options.tau,
             "--small_e" => options.small_e = !options.small_e,
             "--rad" => options.deg = Radians,
@@ -355,6 +356,10 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
         let mut split;
         for line in reader.lines().map(|l| l.unwrap())
         {
+            if line.starts_with('#')
+            {
+                continue;
+            }
             split = line.split('=');
             match split.next().unwrap()
             {
@@ -545,6 +550,19 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         Err(_) =>
                         {
                             println!("Invalid multi bool");
+                            err = true;
+                            continue;
+                        }
+                    };
+                }
+                "depth" =>
+                {
+                    options.depth = match split.next().unwrap().parse::<bool>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid depth bool");
                             err = true;
                             continue;
                         }

@@ -58,6 +58,7 @@ pub struct Options
     allow_vars: bool,
     small_e: bool,
     debug: bool,
+    depth: bool,
 }
 impl Default for Options
 {
@@ -89,6 +90,7 @@ impl Default for Options
             allow_vars: true,
             small_e: false,
             debug: false,
+            depth: false,
         }
     }
 }
@@ -804,6 +806,12 @@ fn main()
                     print!("\x1b[A\x1b[G\x1b[K");
                     stdout().flush().unwrap();
                     options.prompt = !options.prompt;
+                }
+                "depth" =>
+                {
+                    print!("\x1b[A\x1b[G\x1b[K");
+                    stdout().flush().unwrap();
+                    options.depth = !options.depth;
                 }
                 "deg" =>
                 {

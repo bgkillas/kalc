@@ -58,6 +58,7 @@ FLAGS: --help (this message)
 --multi toggles multi line display for matrixes
 --tabbed toggles tabbed display for matrixes
 --debug displays computation time in nanoseconds
+--depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number
 
 - flags can be executed in runtime just without the dashes

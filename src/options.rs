@@ -187,6 +187,31 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                     args.remove(i);
                 }
             }
+            "--range" =>
+            {
+                if args.len() > 1
+                {
+                    (
+                        options.xr[0],
+                        options.xr[1],
+                        options.yr[0],
+                        options.yr[1],
+                        options.zr[0],
+                        options.zr[1],
+                    ) = match args[i + 1].parse::<f64>()
+                    {
+                        Ok(n) => (-n, n, -n, n, -n, n),
+                        Err(_) =>
+                        {
+                            println!("Invalid range");
+                            err = true;
+                            args.remove(i);
+                            continue;
+                        }
+                    };
+                    args.remove(i);
+                }
+            }
             "--xr" =>
             {
                 if args.len() > 2
@@ -401,6 +426,26 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                             continue;
                         }
                     }
+                }
+                "range" =>
+                {
+                    (
+                        options.xr[0],
+                        options.xr[1],
+                        options.yr[0],
+                        options.yr[1],
+                        options.zr[0],
+                        options.zr[1],
+                    ) = match split.next().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => (-n, n, -n, n, -n, n),
+                        Err(_) =>
+                        {
+                            println!("Invalid range");
+                            err = true;
+                            continue;
+                        }
+                    };
                 }
                 "xr" =>
                 {

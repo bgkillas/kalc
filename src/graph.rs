@@ -965,12 +965,41 @@ pub fn get_list_2d(
             prec,
         )
         {
-            Ok(n) => match n.num()
+            Ok(Num(n)) => n,
+            Ok(Vector(v)) =>
             {
-                Ok(n) => n,
-                _ => continue,
-            },
-            Err(_) => continue,
+                for num in v
+                {
+                    if num.real().is_finite()
+                    {
+                        re.push([n, num.real().to_f64()]);
+                    }
+                    if num.imag().is_finite()
+                    {
+                        im.push([n, num.imag().to_f64()]);
+                    }
+                }
+                continue;
+            }
+            Ok(Matrix(m)) =>
+            {
+                for v in m
+                {
+                    for num in v
+                    {
+                        if num.real().is_finite()
+                        {
+                            re.push([n, num.real().to_f64()]);
+                        }
+                        if num.imag().is_finite()
+                        {
+                            im.push([n, num.imag().to_f64()]);
+                        }
+                    }
+                }
+                continue;
+            }
+            _ => continue,
         };
         if num.real().is_finite()
         {
@@ -1035,12 +1064,41 @@ pub fn get_list_3d(
                 prec,
             )
             {
-                Ok(n) => match n.num()
+                Ok(Num(n)) => n,
+                Ok(Vector(v)) =>
                 {
-                    Ok(n) => n,
-                    _ => continue,
-                },
-                Err(_) => continue,
+                    for num in v
+                    {
+                        if num.real().is_finite()
+                        {
+                            re.push([n, f, num.real().to_f64()]);
+                        }
+                        if num.imag().is_finite()
+                        {
+                            im.push([n, f, num.imag().to_f64()]);
+                        }
+                    }
+                    continue;
+                }
+                Ok(Matrix(m)) =>
+                {
+                    for v in m
+                    {
+                        for num in v
+                        {
+                            if num.real().is_finite()
+                            {
+                                re.push([n, f, num.real().to_f64()]);
+                            }
+                            if num.imag().is_finite()
+                            {
+                                im.push([n, f, num.imag().to_f64()]);
+                            }
+                        }
+                    }
+                    continue;
+                }
+                _ => continue,
             };
             if num.real().is_finite()
             {

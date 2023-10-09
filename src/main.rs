@@ -1054,6 +1054,15 @@ fn main()
                 "xr" => println!("{},{}", options.xr[0], options.xr[1]),
                 "yr" => println!("{},{}", options.yr[0], options.yr[1]),
                 "zr" => println!("{},{}", options.zr[0], options.zr[1]),
+                "range" => println!(
+                    "x:{},{} y:{},{} z:{},{}",
+                    options.xr[0],
+                    options.xr[1],
+                    options.yr[0],
+                    options.yr[1],
+                    options.zr[0],
+                    options.zr[1]
+                ),
                 "frac_iter" => println!("{}", options.frac_iter),
                 "2d" => println!("{}", options.samples_2d),
                 "3d" => println!("{}", options.samples_3d),
@@ -1255,6 +1264,32 @@ fn main()
                     }
                     continue;
                 }
+                "range" =>
+                {
+                    (
+                        options.xr[0],
+                        options.xr[1],
+                        options.yr[0],
+                        options.yr[1],
+                        options.zr[0],
+                        options.zr[1],
+                    ) = match r.parse::<f64>()
+                    {
+                        Ok(n) => (-n, n, -n, n, -n, n),
+                        Err(_) =>
+                        {
+                            println!("Invalid range");
+                            (
+                                options.xr[0],
+                                options.xr[1],
+                                options.yr[0],
+                                options.yr[1],
+                                options.zr[0],
+                                options.zr[1],
+                            )
+                        }
+                    }
+                }
                 "xr" =>
                 {
                     if r.contains(',')
@@ -1278,6 +1313,18 @@ fn main()
                             }
                         };
                         continue;
+                    }
+                    else
+                    {
+                        (options.xr[0], options.xr[1]) = match r.parse::<f64>()
+                        {
+                            Ok(n) => (-n, n),
+                            Err(_) =>
+                            {
+                                println!("Invalid x range");
+                                (options.xr[0], options.xr[1])
+                            }
+                        }
                     }
                 }
                 "yr" =>
@@ -1304,6 +1351,18 @@ fn main()
                         };
                         continue;
                     }
+                    else
+                    {
+                        (options.yr[0], options.yr[1]) = match r.parse::<f64>()
+                        {
+                            Ok(n) => (-n, n),
+                            Err(_) =>
+                            {
+                                println!("Invalid y range");
+                                (options.yr[0], options.yr[1])
+                            }
+                        }
+                    }
                 }
                 "zr" =>
                 {
@@ -1328,6 +1387,18 @@ fn main()
                             }
                         };
                         continue;
+                    }
+                    else
+                    {
+                        (options.zr[0], options.zr[1]) = match r.parse::<f64>()
+                        {
+                            Ok(n) => (-n, n),
+                            Err(_) =>
+                            {
+                                println!("Invalid z range");
+                                (options.zr[0], options.zr[1])
+                            }
+                        }
                     }
                 }
                 "frac_iter" =>

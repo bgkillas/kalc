@@ -12,6 +12,7 @@ FLAGS: --help (this message)\n\
 --xr=[min],[max] x range for graphing\n\
 --yr=[min],[max] y range for graphing\n\
 --zr=[min],[max] z range for graphing\n\
+--range=[num] sets all ranges to [-num],[num]\n\
 --point [char] point style for graphing\n\
 --sci toggles scientific notation\n\
 --base=[num] sets the number base (2,8,16)\n\
@@ -51,7 +52,7 @@ FLAGS: --help (this message)\n\
 - Type \"number#\" to graph a complex number\n\
 - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\n\
 Operators:\n\
-- +, -, *, /, ^, %, <, >, <=, >=, |(norm), ±(works well if only 1 is present, creates a vector with plus being first part and minus being second part)\n\
+- +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-\n\
 - !x (subfact), x! (fact)\n\
 - && (and), || (or), == (equals), != (not equals)\n\
 - >> (right shift), << (left shift)\n\n\
@@ -73,7 +74,7 @@ Other functions:\n\
 - factors, prime\n\
 - vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)\n\n\
 Vector operations/functions:\n\
-- *,/,+,-,^\n\
+- *, /, +, -, ^\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\
 - angle({{vec1}},{{vec2}})\n\
 - norm, normalize\n\
@@ -84,7 +85,7 @@ Vector operations/functions:\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\n\n\
 Matrix operations/functions:\n\
-- *,/,+,-,^\n\
+- *, /, +, -, ^\n\
 - trace/tr, determinant/det, inverse/inv\n\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\n\
 - part({{mat}},col,row), flatten, add\n\

@@ -21,6 +21,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut abs = true;
     let mut neg = false;
     let mut i = 1;
+    let mut scientific = false;
     let mut chars = input.chars().collect::<Vec<char>>();
     while i < chars.len() - 1
     {
@@ -161,6 +162,11 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 options.prec,
                 Complex::parse(word.as_bytes()).unwrap(),
             )));
+            if scientific
+            {
+                func.push(Str(")".to_string()));
+                scientific = false;
+            }
             word.clear();
             continue;
         }
@@ -187,17 +193,33 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     'E' | 'e'
                         if (options.small_e && c == 'e') || (!options.small_e && c == 'E') =>
                     {
+                        if let Some(last) = func.last()
+                        {
+                            if last.num().is_ok() || last.str_is("x") || last.str_is("y")
+                            {
+                                func.insert(func.len() - 1, Str("(".to_string()));
+                                if i + 1 != chars.len()
+                                    && matches!(
+                                        chars[i + 1],
+                                        '0'..='9' | '-' | '+' | 'x' | 'y' | 'i'
+                                    )
+                                {
+                                    scientific = true;
+                                }
+                            }
+                        }
                         place_multiplier(&mut func, &find_word);
                         func.push(Num(Complex::with_val(options.prec, 10)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
-                                || chars[i + 1] == '-'
-                                || chars[i + 1] == '+'
-                                || chars[i + 1] == '('
-                                || chars[i + 1] == '{'
-                                || chars[i + 1] == '[')
+                                || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '['))
                         {
                             func.push(Str('^'.to_string()));
+                        }
+                        if !(i + 1 != chars.len()
+                            && matches!(chars[i + 1], '0'..='9' | '-' | '+' | 'x' | 'y' | 'i'))
+                        {
+                            func.push(Str(")".to_string()));
                         }
                     }
                     'x' | 'y' =>
@@ -228,6 +250,11 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         }
                         place_multiplier(&mut func, &find_word);
                         func.push(Str(c.to_string()));
+                        if scientific
+                        {
+                            func.push(Str(")".to_string()));
+                            scientific = false;
+                        }
                     }
                     'i' =>
                     {
@@ -241,6 +268,11 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         {
                             place_multiplier(&mut func, &find_word);
                             func.push(Num(Complex::with_val(options.prec, (0, 1))));
+                            if scientific
+                            {
+                                func.push(Str(")".to_string()));
+                                scientific = false;
+                            }
                         }
                     }
                     _ =>

@@ -34,9 +34,9 @@ pub fn graph(
         let im4col = "#0000aa";
         let im5col = "#aa00aa";
         let im6col = "#00aaaa";
-        let xticks = Some((Fix((options.xr[1] - options.xr[0]) / 20.0), 1));
-        let yticks = Some((Fix((options.yr[1] - options.yr[0]) / 20.0), 1));
-        let zticks = Some((Fix((options.zr[1] - options.zr[0]) / 20.0), 1));
+        let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+        let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
+        let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
         if !input[0].contains('x')
@@ -141,9 +141,9 @@ pub fn graph(
                         .set_x_ticks(xticks, &[], &[])
                         .set_y_ticks(yticks, &[], &[])
                         .set_z_ticks(zticks, &[], &[])
-                        .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
-                        .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                        .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                        .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                        .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                        .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                         .set_z_label("z", &[])
                         .set_y_label("y", &[])
                         .set_x_label("x", &[])
@@ -233,8 +233,8 @@ pub fn graph(
                     fg.axes2d()
                         .set_x_ticks(xticks, &[], &[])
                         .set_y_ticks(yticks, &[], &[])
-                        .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                        .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                        .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                        .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                         .lines(
                             x.0[0].clone(),
                             y.0[0].clone(),
@@ -307,8 +307,8 @@ pub fn graph(
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .lines(
                         [0.0, re[0][0].real().to_f64()],
                         [0.0, re[0][1].real().to_f64()],
@@ -381,9 +381,9 @@ pub fn graph(
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
                     .set_z_ticks(zticks, &[], &[])
-                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
-                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                    .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                     .set_z_label("z", &[])
                     .set_y_label("y", &[])
                     .set_x_label("x", &[])
@@ -470,8 +470,8 @@ pub fn graph(
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .lines(
                         0..re[0].len(),
                         re[0].iter().map(|x| x.real().to_f64()),
@@ -576,9 +576,9 @@ pub fn graph(
                 .set_x_ticks(xticks, &[], &[])
                 .set_y_ticks(yticks, &[], &[])
                 .set_z_ticks(zticks, &[], &[])
-                .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
-                .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                 .set_z_label("z", &[])
                 .set_y_label("y", &[])
                 .set_x_label("x", &[])
@@ -712,8 +712,8 @@ pub fn graph(
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .lines([0], [0], &[Caption(&re_cap[0]), Color(re1col)])
                     .lines([0], [0], &[Caption(&im_cap[0]), Color(im1col)])
                     .lines([0], [0], &[Caption(&re_cap[1]), Color(re2col)])
@@ -793,9 +793,9 @@ pub fn graph(
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
                     .set_z_ticks(zticks, &[], &[])
-                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
-                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                    .set_z_range(Fix(options.zr[0]), Fix(options.zr[1]))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                     .set_z_label("z", &[])
                     .set_y_label("y", &[])
                     .set_x_label("x", &[])
@@ -847,8 +847,8 @@ pub fn graph(
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr[0]), Fix(options.yr[1]))
-                    .set_x_range(Fix(options.xr[0]), Fix(options.xr[1]))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .lines([0], [0], &[Caption(&re_cap[0]), Color(re1col)])
                     .lines([0], [0], &[Caption(&im_cap[0]), Color(im1col)])
                     .lines([0], [0], &[Caption(&re_cap[1]), Color(re2col)])
@@ -946,8 +946,8 @@ pub fn get_list_2d(
     }
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let min = range.xr[0];
-    let max = range.xr[1];
+    let min = range.xr.0;
+    let max = range.xr.1;
     let den = range.samples_2d;
     let den_range = (max - min) / den;
     let (mut n, mut num);
@@ -1030,15 +1030,15 @@ pub fn get_list_3d(
     let mut re = Vec::new();
     let mut im = Vec::new();
     let den = range.samples_3d;
-    let min_x = range.xr[0];
-    let max_x = range.xr[1];
-    let den_x_range = (max_x - min_x) / den;
-    let min_y = range.yr[0];
-    let max_y = range.yr[1];
-    let den_y_range = (max_y - min_y) / den;
+    let min_x = range.xr.0;
+    let max_x = range.xr.1;
+    let den_x_range = (max_x - min_x) / den.0;
+    let min_y = range.yr.0;
+    let max_y = range.yr.1;
+    let den_y_range = (max_y - min_y) / den.1;
     let (mut n, mut f, mut num);
     let mut modified: Vec<NumStr>;
-    for i in 0..=den as i32
+    for i in 0..=den.0 as i32
     {
         n = min_x + i as f64 * den_x_range;
         modified = func
@@ -1049,7 +1049,7 @@ pub fn get_list_3d(
                 _ => i.clone(),
             })
             .collect();
-        for g in 0..=den as i32
+        for g in 0..=den.1 as i32
         {
             f = min_y + g as f64 * den_y_range;
             num = match do_math(

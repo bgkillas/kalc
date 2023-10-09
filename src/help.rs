@@ -8,7 +8,7 @@ FLAGS: --help (this message)\n\
 --rad compute in radians\n\
 --grad compute in gradians\n\
 --2d=[num] number of points to graph in 2D\n\
---3d=[num] number of points to graph in 3D\n\
+--3d=[x],[y] number of points to graph in 3D\n\
 --xr=[min],[max] x range for graphing\n\
 --yr=[min],[max] y range for graphing\n\
 --zr=[min],[max] z range for graphing\n\

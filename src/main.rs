@@ -30,7 +30,6 @@ use std::{
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
     thread::JoinHandle,
 };
-//TODO square super-root
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -47,11 +46,11 @@ pub struct Options
     comma: bool,
     prec: u32,
     frac_iter: usize,
-    xr: [f64; 2],
-    yr: [f64; 2],
-    zr: [f64; 2],
+    xr: (f64, f64),
+    yr: (f64, f64),
+    zr: (f64, f64),
     samples_2d: f64,
-    samples_3d: f64,
+    samples_3d: (f64, f64),
     point_style: char,
     lines: bool,
     multi: bool,
@@ -79,11 +78,11 @@ impl Default for Options
             comma: false,
             prec: 512,
             frac_iter: 50,
-            xr: [-10.0, 10.0],
-            yr: [-10.0, 10.0],
-            zr: [-10.0, 10.0],
+            xr: (-10.0, 10.0),
+            yr: (-10.0, 10.0),
+            zr: (-10.0, 10.0),
             samples_2d: 20000.0,
-            samples_3d: 400.0,
+            samples_3d: (20.0, 20.0),
             point_style: '.',
             lines: false,
             multi: false,
@@ -1052,21 +1051,21 @@ fn main()
                 "base" => println!("{}", options.base),
                 "decimal" | "deci" | "decimals" => println!("{}", options.decimal_places),
                 "prec" | "precision" => println!("{}", options.prec),
-                "xr" => println!("{},{}", options.xr[0], options.xr[1]),
-                "yr" => println!("{},{}", options.yr[0], options.yr[1]),
-                "zr" => println!("{},{}", options.zr[0], options.zr[1]),
+                "xr" => println!("{},{}", options.xr.0, options.xr.1),
+                "yr" => println!("{},{}", options.yr.0, options.yr.1),
+                "zr" => println!("{},{}", options.zr.0, options.zr.1),
                 "range" => println!(
                     "x:{},{} y:{},{} z:{},{}",
-                    options.xr[0],
-                    options.xr[1],
-                    options.yr[0],
-                    options.yr[1],
-                    options.zr[0],
-                    options.zr[1]
+                    options.xr.0,
+                    options.xr.1,
+                    options.yr.0,
+                    options.yr.1,
+                    options.zr.0,
+                    options.zr.1
                 ),
                 "frac_iter" => println!("{}", options.frac_iter),
                 "2d" => println!("{}", options.samples_2d),
-                "3d" => println!("{}", options.samples_3d),
+                "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
                 _ =>
                 {
                     for i in match get_func(&input_var(&l, &vars, None, options), options)
@@ -1270,12 +1269,12 @@ fn main()
                     if r.contains(',')
                     {
                         (
-                            options.xr[0],
-                            options.xr[1],
-                            options.yr[0],
-                            options.yr[1],
-                            options.zr[0],
-                            options.zr[1],
+                            options.xr.0,
+                            options.xr.1,
+                            options.yr.0,
+                            options.yr.1,
+                            options.zr.0,
+                            options.zr.1,
                         ) = match (
                             r.split(',').next().unwrap().parse::<f64>(),
                             r.split(',').last().unwrap().parse::<f64>(),
@@ -1286,12 +1285,12 @@ fn main()
                             {
                                 println!("Invalid range");
                                 (
-                                    options.xr[0],
-                                    options.xr[1],
-                                    options.yr[0],
-                                    options.yr[1],
-                                    options.zr[0],
-                                    options.zr[1],
+                                    options.xr.0,
+                                    options.xr.1,
+                                    options.yr.0,
+                                    options.yr.1,
+                                    options.zr.0,
+                                    options.zr.1,
                                 )
                             }
                         }
@@ -1299,12 +1298,12 @@ fn main()
                     else
                     {
                         (
-                            options.xr[0],
-                            options.xr[1],
-                            options.yr[0],
-                            options.yr[1],
-                            options.zr[0],
-                            options.zr[1],
+                            options.xr.0,
+                            options.xr.1,
+                            options.yr.0,
+                            options.yr.1,
+                            options.zr.0,
+                            options.zr.1,
                         ) = match r.parse::<f64>()
                         {
                             Ok(n) => (-n, n, -n, n, -n, n),
@@ -1312,12 +1311,12 @@ fn main()
                             {
                                 println!("Invalid range");
                                 (
-                                    options.xr[0],
-                                    options.xr[1],
-                                    options.yr[0],
-                                    options.yr[1],
-                                    options.zr[0],
-                                    options.zr[1],
+                                    options.xr.0,
+                                    options.xr.1,
+                                    options.yr.0,
+                                    options.yr.1,
+                                    options.zr.0,
+                                    options.zr.1,
                                 )
                             }
                         }
@@ -1327,35 +1326,35 @@ fn main()
                 {
                     if r.contains(',')
                     {
-                        options.xr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        options.xr.0 = match r.split(',').next().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid x range");
-                                options.xr[0]
+                                options.xr.0
                             }
                         };
-                        options.xr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                        options.xr.1 = match r.split(',').last().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid x range");
-                                options.xr[1]
+                                options.xr.1
                             }
                         };
                         continue;
                     }
                     else
                     {
-                        (options.xr[0], options.xr[1]) = match r.parse::<f64>()
+                        (options.xr.0, options.xr.1) = match r.parse::<f64>()
                         {
                             Ok(n) => (-n, n),
                             Err(_) =>
                             {
                                 println!("Invalid x range");
-                                (options.xr[0], options.xr[1])
+                                (options.xr.0, options.xr.1)
                             }
                         }
                     }
@@ -1364,35 +1363,35 @@ fn main()
                 {
                     if r.contains(',')
                     {
-                        options.yr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        options.yr.0 = match r.split(',').next().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid y range");
-                                options.yr[0]
+                                options.yr.0
                             }
                         };
-                        options.yr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                        options.yr.1 = match r.split(',').last().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid y range");
-                                options.yr[1]
+                                options.yr.1
                             }
                         };
                         continue;
                     }
                     else
                     {
-                        (options.yr[0], options.yr[1]) = match r.parse::<f64>()
+                        (options.yr.0, options.yr.1) = match r.parse::<f64>()
                         {
                             Ok(n) => (-n, n),
                             Err(_) =>
                             {
                                 println!("Invalid y range");
-                                (options.yr[0], options.yr[1])
+                                (options.yr.0, options.yr.1)
                             }
                         }
                     }
@@ -1401,35 +1400,35 @@ fn main()
                 {
                     if r.contains(',')
                     {
-                        options.zr[0] = match r.split(',').next().unwrap().parse::<f64>()
+                        options.zr.0 = match r.split(',').next().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid z range");
-                                options.zr[0]
+                                options.zr.0
                             }
                         };
-                        options.zr[1] = match r.split(',').last().unwrap().parse::<f64>()
+                        options.zr.1 = match r.split(',').last().unwrap().parse::<f64>()
                         {
                             Ok(n) => n,
                             Err(_) =>
                             {
                                 println!("Invalid z range");
-                                options.zr[1]
+                                options.zr.1
                             }
                         };
                         continue;
                     }
                     else
                     {
-                        (options.zr[0], options.zr[1]) = match r.parse::<f64>()
+                        (options.zr.0, options.zr.1) = match r.parse::<f64>()
                         {
                             Ok(n) => (-n, n),
                             Err(_) =>
                             {
                                 println!("Invalid z range");
-                                (options.zr[0], options.zr[1])
+                                (options.zr.0, options.zr.1)
                             }
                         }
                     }
@@ -1462,16 +1461,35 @@ fn main()
                 }
                 "3d" =>
                 {
-                    options.samples_3d = match r.parse::<f64>()
+                    if r.contains(',')
                     {
-                        Ok(n) => n,
-                        Err(_) =>
+                        options.samples_3d = match (
+                            r.split(',').next().unwrap().parse::<f64>(),
+                            r.split(',').last().unwrap().parse::<f64>(),
+                        )
                         {
-                            println!("Invalid 3d sample size");
-                            options.samples_3d
-                        }
-                    };
-                    continue;
+                            (Ok(n), Ok(b)) => (n, b),
+                            _ =>
+                            {
+                                println!("Invalid 3d sample size");
+                                options.samples_3d
+                            }
+                        };
+                        continue;
+                    }
+                    else
+                    {
+                        options.samples_3d = match r.parse::<f64>()
+                        {
+                            Ok(n) => (n, n),
+                            Err(_) =>
+                            {
+                                println!("Invalid 3d sample size");
+                                options.samples_3d
+                            }
+                        };
+                        continue;
+                    }
                 }
                 _ =>
                 {}

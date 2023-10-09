@@ -840,9 +840,9 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             let mut mat = Vec::new();
                             for num in a
                             {
-                                if num.imag().clone() == 0.0
+                                if num.imag().clone().is_zero()
                                 {
-                                    if num.real().clone().fract() == 0.0
+                                    if num.real().clone().fract().is_zero()
                                     {
                                         let mut vec = Vec::new();
                                         let n = num.real().to_f64() as u128;
@@ -915,9 +915,9 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         "factors" | "factor" =>
                         {
                             a = function[i + 1].num()?;
-                            if a.imag().clone() == 0.0
+                            if a.imag().clone().is_zero()
                             {
-                                if a.real().clone().fract() == 0.0
+                                if a.real().clone().fract().is_zero()
                                 {
                                     let mut vec = Vec::new();
                                     let n = a.real().to_f64() as u128;
@@ -1053,7 +1053,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     function[i] = {
                         a = function[i - 1].num()?;
                         b = function[i + 1].num()?;
-                        if a.imag() == &0.0 && b.imag() == &0.0
+                        if a.imag().is_zero() && b.imag().is_zero()
                         {
                             Num(Complex::with_val(prec, a.real() % b.real()))
                         }
@@ -1164,8 +1164,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     b = function[i + 1].num()?;
                     function[i] = Num(Complex::with_val(
                         prec,
-                        (a.imag() == &0.0
-                            && b.imag() == &0.0
+                        (a.imag().is_zero()
+                            && b.imag().is_zero()
                             && a.real() == &1.0
                             && b.real() == &1.0) as i32,
                     ))
@@ -1176,8 +1176,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     b = function[i + 1].num()?;
                     function[i] = Num(Complex::with_val(
                         prec,
-                        (a.imag() == &0.0
-                            && b.imag() == &0.0
+                        (a.imag().is_zero()
+                            && b.imag().is_zero()
                             && (a.real() == &1.0 || b.real() == &1.0))
                             as i32,
                     ))
@@ -1395,7 +1395,7 @@ fn functions(
         "asin" | "arcsin" =>
         {
             b = a.clone().asin() * to_deg.clone();
-            if a.imag() == &0.0 && a.real() >= &1.0
+            if a.imag().is_zero() && a.real() >= &1.0
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1407,7 +1407,7 @@ fn functions(
         "acsc" | "arccsc" =>
         {
             b = a.clone().recip().asin() * to_deg.clone();
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1419,7 +1419,7 @@ fn functions(
         "acos" | "arccos" =>
         {
             b = a.clone().acos() * to_deg.clone();
-            if a.imag() == &0.0 && a.real() >= &1.0
+            if a.imag().is_zero() && a.real() >= &1.0
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1431,7 +1431,7 @@ fn functions(
         "asec" | "arcsec" =>
         {
             b = a.clone().recip().acos() * to_deg.clone();
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1468,7 +1468,7 @@ fn functions(
         "asech" | "arcsech" =>
         {
             b = a.clone().recip().acosh();
-            if a.imag() == &0.0 && a.real() < &0.0
+            if a.imag().is_zero() && a.real() < &0.0
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1480,7 +1480,7 @@ fn functions(
         "atanh" | "arctanh" =>
         {
             b = a.clone().atanh();
-            if a.imag() == &0.0 && a.real() >= &1.0
+            if a.imag().is_zero() && a.real() >= &1.0
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1492,7 +1492,7 @@ fn functions(
         "acoth" | "arccoth" =>
         {
             b = a.clone().recip().atanh();
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1508,7 +1508,7 @@ fn functions(
         }
         "ln" | "aexp" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real()).ln()
             }
@@ -1524,7 +1524,7 @@ fn functions(
         "exp" | "aln" => a.exp(),
         "log" =>
         {
-            let a = if a.imag() == &0.0
+            let a = if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real()).ln()
             }
@@ -1534,7 +1534,7 @@ fn functions(
             };
             if let Some(b) = c
             {
-                let b = if b.imag() == &0.0
+                let b = if b.imag().is_zero()
                 {
                     Complex::with_val(prec, b.real()).ln()
                 }
@@ -1553,10 +1553,10 @@ fn functions(
         {
             if let Some(b) = c
             {
-                match b.imag() == &0.0
+                match b.imag().is_zero()
                     && (b.real().to_f64() / 2.0).fract() != 0.0
                     && &b.real().clone().trunc() == b.real()
-                    && a.imag() == &0.0
+                    && a.imag().is_zero()
                 {
                     true => Complex::with_val(
                         prec,
@@ -1596,7 +1596,7 @@ fn functions(
                 {
                     return Err("binomial complex not supported");
                 }
-                else if a.real().clone().fract() == 0.0 && b.real().clone().fract() == 0.0
+                else if a.real().clone().fract().is_zero() && b.real().clone().fract().is_zero()
                 {
                     Complex::with_val(
                         prec,
@@ -1621,7 +1621,7 @@ fn functions(
         }
         "gamma" | "Γ" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real().clone().gamma())
             }
@@ -1656,9 +1656,9 @@ fn functions(
         "arg" => a.arg(),
         "cbrt" | "acube" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
-                if a.real() == &0.0
+                if a.real().is_zero()
                 {
                     Complex::new(prec)
                 }
@@ -1688,7 +1688,7 @@ fn functions(
         "cube" | "acbrt" => a.pow(3),
         "fact" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 let b: Float = a.real().clone() + 1;
                 Complex::with_val(prec, b.gamma())
@@ -1710,7 +1710,7 @@ fn functions(
         "conj" | "conjugate" => a.conj(),
         "erf" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real().clone().erf())
             }
@@ -1721,7 +1721,7 @@ fn functions(
         }
         "erfc" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real().clone().erfc())
             }
@@ -1732,7 +1732,7 @@ fn functions(
         }
         "ai" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real().clone().ai())
             }
@@ -1743,7 +1743,7 @@ fn functions(
         }
         "digamma" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real().clone().digamma())
             }
@@ -1754,7 +1754,7 @@ fn functions(
         }
         "zeta" | "ζ" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, a.real().clone().zeta())
             }
@@ -1765,7 +1765,7 @@ fn functions(
         }
         "prime" =>
         {
-            if a.imag() == &0.0
+            if a.imag().is_zero()
             {
                 Complex::with_val(prec, nth_prime(a.real().to_f64() as u128))
             }

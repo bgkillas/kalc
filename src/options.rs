@@ -141,9 +141,20 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             }
             "--3d" =>
             {
-                if args.len() > 1
+                if args.len() > 2
                 {
-                    options.samples_3d = match args[i + 1].parse::<f64>()
+                    options.samples_3d.0 = match args[i + 1].parse::<f64>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid 3d sample size");
+                            err = true;
+                            args.remove(i);
+                            continue;
+                        }
+                    };
+                    options.samples_3d.1 = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -155,13 +166,14 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                         }
                     };
                     args.remove(i);
+                    args.remove(i);
                 }
             }
             "--yr" =>
             {
                 if args.len() > 2
                 {
-                    options.yr[0] = match args[i + 1].parse::<f64>()
+                    options.yr.0 = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -172,7 +184,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                             continue;
                         }
                     };
-                    options.yr[1] = match args[i + 2].parse::<f64>()
+                    options.yr.1 = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -192,12 +204,12 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                 if args.len() > 1
                 {
                     (
-                        options.xr[0],
-                        options.xr[1],
-                        options.yr[0],
-                        options.yr[1],
-                        options.zr[0],
-                        options.zr[1],
+                        options.xr.0,
+                        options.xr.1,
+                        options.yr.0,
+                        options.yr.1,
+                        options.zr.0,
+                        options.zr.1,
                     ) = match args[i + 1].parse::<f64>()
                     {
                         Ok(n) => (-n, n, -n, n, -n, n),
@@ -216,7 +228,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 2
                 {
-                    options.xr[0] = match args[i + 1].parse::<f64>()
+                    options.xr.0 = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -227,7 +239,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                             continue;
                         }
                     };
-                    options.xr[1] = match args[i + 2].parse::<f64>()
+                    options.xr.1 = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -246,7 +258,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 2
                 {
-                    options.zr[0] = match args[i + 1].parse::<f64>()
+                    options.zr.0 = match args[i + 1].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -257,7 +269,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                             continue;
                         }
                     };
-                    options.zr[1] = match args[i + 2].parse::<f64>()
+                    options.zr.1 = match args[i + 2].parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -416,7 +428,24 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                 }
                 "3d" =>
                 {
-                    options.samples_3d = match split.next().unwrap().parse::<f64>()
+                    let mut den = split.next().unwrap().split(',');
+                    if den.clone().count() != 2
+                    {
+                        println!("Invalid x range");
+                        err = true;
+                        continue;
+                    }
+                    options.samples_3d.0 = match den.next().unwrap().parse::<f64>()
+                    {
+                        Ok(x) => x,
+                        Err(_) =>
+                        {
+                            println!("Invalid 3d sample size");
+                            err = true;
+                            continue;
+                        }
+                    };
+                    options.samples_3d.1 = match den.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -430,12 +459,12 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                 "range" =>
                 {
                     (
-                        options.xr[0],
-                        options.xr[1],
-                        options.yr[0],
-                        options.yr[1],
-                        options.zr[0],
-                        options.zr[1],
+                        options.xr.0,
+                        options.xr.1,
+                        options.yr.0,
+                        options.yr.1,
+                        options.zr.0,
+                        options.zr.1,
                     ) = match split.next().unwrap().parse::<f64>()
                     {
                         Ok(n) => (-n, n, -n, n, -n, n),
@@ -456,7 +485,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         err = true;
                         continue;
                     }
-                    options.xr[0] = match xr.next().unwrap().parse::<f64>()
+                    options.xr.0 = match xr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -466,7 +495,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                             continue;
                         }
                     };
-                    options.xr[1] = match xr.next().unwrap().parse::<f64>()
+                    options.xr.1 = match xr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -486,7 +515,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         err = true;
                         continue;
                     }
-                    options.yr[0] = match yr.next().unwrap().parse::<f64>()
+                    options.yr.0 = match yr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -496,7 +525,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                             continue;
                         }
                     };
-                    options.yr[1] = match yr.next().unwrap().parse::<f64>()
+                    options.yr.1 = match yr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -516,7 +545,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                         err = true;
                         continue;
                     }
-                    options.zr[0] = match zr.next().unwrap().parse::<f64>()
+                    options.zr.0 = match zr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>
@@ -526,7 +555,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                             continue;
                         }
                     };
-                    options.zr[1] = match zr.next().unwrap().parse::<f64>()
+                    options.zr.1 = match zr.next().unwrap().parse::<f64>()
                     {
                         Ok(x) => x,
                         Err(_) =>

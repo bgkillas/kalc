@@ -4,7 +4,7 @@ use rug::{float::Constant::Pi, Float};
 pub fn fraction(value: Float, options: Options) -> String
 {
     let prec = value.prec();
-    if value.clone().fract() == 0.0
+    if value.clone().fract().is_zero()
     {
         return String::new();
     }
@@ -39,7 +39,7 @@ pub fn fraction(value: Float, options: Options) -> String
     for (i, constant) in values.iter().enumerate()
     {
         orig = val.clone() / constant;
-        if orig.clone().fract() == 0.0
+        if orig.clone().fract().is_zero()
         {
             return if i == 0
             {

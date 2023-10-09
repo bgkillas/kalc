@@ -36,7 +36,7 @@ FLAGS: --help (this message)
 --rad compute in radians
 --grad compute in gradians
 --2d=[num] number of points to graph in 2D
---3d=[num] number of points to graph in 3D
+--3d=[x],[y] number of points to graph in 3D
 --xr=[min],[max] x range for graphing
 --yr=[min],[max] y range for graphing
 --zr=[min],[max] z range for graphing

@@ -262,9 +262,9 @@ impl NumStr
             ),
             (Matrix(a), Num(b)) if a.len() == a[0].len() =>
             {
-                if b.imag() == &0.0 && b.real().clone().fract() == 0.0
+                if b.imag().is_zero() && b.real().clone().fract().is_zero()
                 {
-                    if b.real() == &0.0
+                    if b.real().is_zero()
                     {
                         let mut mat = Vec::new();
                         for i in 0..a.len()

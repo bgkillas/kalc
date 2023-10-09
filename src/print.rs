@@ -204,7 +204,7 @@ pub fn print_concurrent(
                 {
                     frac = 1;
                     (
-                        if n.real() == &0.0 && n.imag() != &0.0
+                        if n.real().is_zero() && n.imag() != &0.0
                         {
                             "".to_string()
                         }
@@ -212,7 +212,7 @@ pub fn print_concurrent(
                         {
                             fa
                         },
-                        if n.imag() == &0.0
+                        if n.imag().is_zero()
                         {
                             "".to_string()
                         }
@@ -234,7 +234,7 @@ pub fn print_concurrent(
                 {
                     frac = 1;
                     (
-                        if n.real() == &0.0 && n.imag() != &0.0
+                        if n.real().is_zero() && n.imag() != &0.0
                         {
                             "".to_string()
                         }
@@ -242,7 +242,7 @@ pub fn print_concurrent(
                         {
                             fa
                         },
-                        if n.imag() == &0.0
+                        if n.imag().is_zero()
                         {
                             "".to_string()
                         }
@@ -256,7 +256,7 @@ pub fn print_concurrent(
                 {
                     frac = 1;
                     (
-                        if n.real() == &0.0 && n.imag() != &0.0
+                        if n.real().is_zero() && n.imag() != &0.0
                         {
                             "".to_string()
                         }
@@ -264,7 +264,7 @@ pub fn print_concurrent(
                         {
                             get_output(&options, &n).0
                         },
-                        if n.imag() == &0.0
+                        if n.imag().is_zero()
                         {
                             "".to_string()
                         }
@@ -814,7 +814,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                     n.trim_end_matches('0').trim_end_matches('.').to_owned()
                 }
             }
-            else if num.imag() == &0.0
+            else if num.imag().is_zero()
             {
                 "0".to_owned()
             }
@@ -873,7 +873,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                     },
                 ) + if options.color { "\x1b[0m" } else { "" }
             }
-            else if num.imag() == &0.0
+            else if num.imag().is_zero()
             {
                 "0".to_owned()
             }

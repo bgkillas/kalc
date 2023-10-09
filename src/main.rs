@@ -1266,27 +1266,59 @@ fn main()
                 }
                 "range" =>
                 {
-                    (
-                        options.xr[0],
-                        options.xr[1],
-                        options.yr[0],
-                        options.yr[1],
-                        options.zr[0],
-                        options.zr[1],
-                    ) = match r.parse::<f64>()
+                    if r.contains(',')
                     {
-                        Ok(n) => (-n, n, -n, n, -n, n),
-                        Err(_) =>
+                        (
+                            options.xr[0],
+                            options.xr[1],
+                            options.yr[0],
+                            options.yr[1],
+                            options.zr[0],
+                            options.zr[1],
+                        ) = match (
+                            r.split(',').next().unwrap().parse::<f64>(),
+                            r.split(',').last().unwrap().parse::<f64>(),
+                        )
                         {
-                            println!("Invalid range");
-                            (
-                                options.xr[0],
-                                options.xr[1],
-                                options.yr[0],
-                                options.yr[1],
-                                options.zr[0],
-                                options.zr[1],
-                            )
+                            (Ok(min), Ok(max)) => (min, max, min, max, min, max),
+                            _ =>
+                            {
+                                println!("Invalid range");
+                                (
+                                    options.xr[0],
+                                    options.xr[1],
+                                    options.yr[0],
+                                    options.yr[1],
+                                    options.zr[0],
+                                    options.zr[1],
+                                )
+                            }
+                        }
+                    }
+                    else
+                    {
+                        (
+                            options.xr[0],
+                            options.xr[1],
+                            options.yr[0],
+                            options.yr[1],
+                            options.zr[0],
+                            options.zr[1],
+                        ) = match r.parse::<f64>()
+                        {
+                            Ok(n) => (-n, n, -n, n, -n, n),
+                            Err(_) =>
+                            {
+                                println!("Invalid range");
+                                (
+                                    options.xr[0],
+                                    options.xr[1],
+                                    options.yr[0],
+                                    options.yr[1],
+                                    options.zr[0],
+                                    options.zr[1],
+                                )
+                            }
                         }
                     }
                 }

@@ -31,7 +31,6 @@ use std::{
     thread::JoinHandle,
 };
 //TODO square super-root
-//TODO fix graph name with 'e' or 'pi'
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -1523,6 +1522,7 @@ fn main()
                 .split('#')
                 .map(String::from)
                 .collect();
+            let unmod = inputs.clone();
             funcs = Vec::new();
             for i in inputs.iter_mut()
             {
@@ -1544,6 +1544,7 @@ fn main()
             }
             handles.push(graph(
                 inputs,
+                unmod,
                 funcs,
                 options,
                 options.deg,

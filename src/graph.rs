@@ -11,6 +11,7 @@ use rug::Complex;
 use std::{thread, thread::JoinHandle, time::Instant};
 pub fn graph(
     input: Vec<String>,
+    unmod: Vec<String>,
     func: Vec<Vec<NumStr>>,
     options: Options,
     deg: AngleType,
@@ -55,11 +56,11 @@ pub fn graph(
                         {
                             if j.real() != &0.0
                             {
-                                re_cap[i] = input[i].to_owned() + ":re";
+                                re_cap[i] = unmod[i].to_owned() + ":re";
                             }
                             if j.imag() != &0.0
                             {
-                                im_cap[i] = input[i].to_owned() + ":im";
+                                im_cap[i] = unmod[i].to_owned() + ":im";
                             }
                         }
                         n
@@ -89,11 +90,11 @@ pub fn graph(
                             {
                                 if j.real() != &0.0
                                 {
-                                    re_cap[i] = input[i].to_owned() + ":re";
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
                                 }
                                 if j.imag() != &0.0
                                 {
-                                    im_cap[i] = input[i].to_owned() + ":im";
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
                                 }
                             }
                         }
@@ -108,11 +109,11 @@ pub fn graph(
                     {
                         if n.real() != &0.0
                         {
-                            re_cap[i] = input[i].to_owned() + ":re";
+                            re_cap[i] = unmod[i].to_owned() + ":re";
                         }
                         if n.imag() != &0.0
                         {
-                            im_cap[i] = input[i].to_owned() + ":im";
+                            im_cap[i] = unmod[i].to_owned() + ":im";
                         }
                         vec![
                             Complex::with_val(prec, n.real()),
@@ -550,7 +551,7 @@ pub fn graph(
                 }
                 else
                 {
-                    re_cap[i] = input[i].to_owned() + ":re";
+                    re_cap[i] = unmod[i].to_owned() + ":re";
                 }
                 if im2
                     .iter()
@@ -561,7 +562,7 @@ pub fn graph(
                 }
                 else
                 {
-                    im_cap[i] = input[i].to_owned() + ":im";
+                    im_cap[i] = unmod[i].to_owned() + ":im";
                 }
                 re[i].extend(re2);
                 im[i].extend(im2);
@@ -684,7 +685,7 @@ pub fn graph(
                 }
                 else
                 {
-                    re_cap[i] = input[i].to_owned() + ":re";
+                    re_cap[i] = unmod[i].to_owned() + ":re";
                 }
                 if !options.depth
                     && im2
@@ -696,7 +697,7 @@ pub fn graph(
                 }
                 else
                 {
-                    im_cap[i] = input[i].to_owned() + ":im";
+                    im_cap[i] = unmod[i].to_owned() + ":im";
                 }
                 re[i].extend(re2);
                 im[i].extend(im2);

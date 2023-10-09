@@ -30,6 +30,8 @@ use std::{
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
     thread::JoinHandle,
 };
+//TODO square super-root
+//TODO fix graph name with 'e' or 'pi'
 #[derive(Clone, Copy)]
 pub struct Options
 {

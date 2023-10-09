@@ -960,15 +960,36 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         i = function.len() - 2;
         while i != 0
         {
-            if !function[i].str_is("^")
+            if let Str(s) = &function[i]
+            {
+                match s.as_str()
+                {
+                    "^" =>
+                    {
+                        function[i] = function[i - 1].pow(&function[i + 1])?;
+                        function.remove(i + 1);
+                        function.remove(i - 1);
+                        i -= 1;
+                    }
+                    "^^" =>
+                    {
+                        function[i] = function[i - 1].tetration(&function[i + 1])?;
+                        function.remove(i + 1);
+                        function.remove(i - 1);
+                        i -= 1;
+                    }
+                    _ =>
+                    {
+                        i -= 1;
+                        continue;
+                    }
+                }
+            }
+            else
             {
                 i -= 1;
                 continue;
             }
-            function[i] = function[i - 1].pow(&function[i + 1])?;
-            function.remove(i + 1);
-            function.remove(i - 1);
-            i -= 1;
         }
     }
     i = 1;

@@ -548,7 +548,16 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if i != 0 && i + 1 != chars.len() => func.push(Str('^'.to_string())),
+                '^' if i != 0 && i + 1 != chars.len() => func.push(Str(if chars[i + 1] == '^'
+                {
+                    i += 1;
+                    "^^"
+                }
+                else
+                {
+                    "^"
+                }
+                .to_string())),
                 '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
                 {
                     count += 1;

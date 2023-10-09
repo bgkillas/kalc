@@ -4,6 +4,7 @@ use crate::{
     options::AngleType,
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex};
+use std::ops::{Add, Sub};
 #[derive(Clone)]
 pub enum NumStr
 {
@@ -335,6 +336,56 @@ impl NumStr
             _ => return Err("pow err"),
         })
     }
+    pub fn tetration(&self, b: &Self) -> Result<Self, &'static str>
+    {
+        Ok(match (self, b)
+        {
+            (Num(a), Num(b)) => Num(tetration(a, b)),
+            (Num(a), Vector(b)) => Vector(b.iter().map(|b| tetration(a, b)).collect()),
+            (Vector(a), Num(b)) => Vector(a.iter().map(|a| tetration(a, b)).collect()),
+            (Num(a), Matrix(b)) => Matrix(
+                b.iter()
+                    .map(|b| b.iter().map(|b| tetration(a, b)).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Num(b)) => Matrix(
+                a.iter()
+                    .map(|a| a.iter().map(|a| tetration(a, b)).collect())
+                    .collect(),
+            ),
+            (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
+                a.iter()
+                    .zip(b.iter())
+                    .map(|(a, b)| tetration(a, b))
+                    .collect(),
+            ),
+            (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(
+                a.iter()
+                    .zip(b.iter())
+                    .map(|(a, b)| a.iter().map(|a| tetration(b, a)).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
+                a.iter()
+                    .zip(b.iter())
+                    .map(|(a, b)| a.iter().map(|a| tetration(a, b)).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+                a.iter()
+                    .zip(b.iter())
+                    .map(|(a, b)| {
+                        a.iter()
+                            .zip(b.iter())
+                            .map(|(a, b)| tetration(a, b))
+                            .collect::<Vec<Complex>>()
+                    })
+                    .collect(),
+            ),
+
+            _ => return Err("tetration err"),
+        })
+    }
     pub fn str_is(&self, s: &str) -> bool
     {
         match self
@@ -366,6 +417,23 @@ impl NumStr
             Matrix(m) => Ok(m.clone()),
             _ => Err("failed to get matrix"),
         }
+    }
+}
+fn tetration(a: &Complex, b: &Complex) -> Complex
+{
+    if b.real() > &0.0
+    {
+        a.pow(tetration(a, &b.clone().sub(1)))
+    }
+    else if b.real() <= &-1.0
+    {
+        tetration(a, &b.clone().add(1)).ln() / a.clone().ln()
+    }
+    else
+    {
+        let a = a.clone().ln();
+        1 + (2 * b.clone() * a.clone() / (1 + a.clone()))
+            - (b.clone().pow(2) * (1 - a.clone()) / (1 + a))
     }
 }
 pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>

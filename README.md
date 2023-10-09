@@ -82,7 +82,7 @@ FLAGS: --help (this message)
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 
 Operators:
-- +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-
+- +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-, ^^
 - !x (subfact), x! (fact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
@@ -107,7 +107,7 @@ Other functions:
 - vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)
 
 Vector operations/functions:
-- *, /, +, -, ^
+- *, /, +, -, ^, ±/+-, ^^
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
 - angle({vec1},{vec2})
 - norm, normalize
@@ -120,7 +120,7 @@ Vector operations/functions:
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
 Matrix operations/functions:
-- *, /, +, -, ^
+- *, /, +, -, ^, ±/+-, ^^
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row), flatten, add

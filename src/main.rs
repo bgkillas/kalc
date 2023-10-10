@@ -82,7 +82,7 @@ impl Default for Options
             yr: (-10.0, 10.0),
             zr: (-10.0, 10.0),
             samples_2d: 20000.0,
-            samples_3d: (20.0, 20.0),
+            samples_3d: (300.0, 300.0),
             point_style: '.',
             lines: false,
             multi: false,

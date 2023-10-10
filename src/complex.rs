@@ -421,7 +421,12 @@ impl NumStr
 }
 fn tetration(a: &Complex, b: &Complex) -> Complex
 {
-    if b.real() > &0.0
+    if b.real().clone().fract().is_zero()
+    {
+        (0..=b.real().to_f64() as usize)
+            .fold(Complex::new(b.prec()), |tetration, _| a.pow(tetration))
+    }
+    else if b.real() > &0.0
     {
         a.pow(tetration(a, &b.clone().sub(1)))
     }

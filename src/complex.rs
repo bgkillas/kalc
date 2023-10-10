@@ -8,7 +8,6 @@ use rug::{
     ops::Pow,
     Complex,
 };
-use std::ops::{Add, Sub};
 #[derive(Clone)]
 pub enum NumStr
 {
@@ -432,11 +431,11 @@ fn tetration(a: &Complex, b: &Complex) -> Complex
     }
     else if b.real() > &0.0
     {
-        a.pow(tetration(a, &b.clone().sub(1)))
+        a.pow(tetration(a, &(b.clone() - 1)))
     }
     else if b.real() <= &-1.0
     {
-        tetration(a, &b.clone().add(1)).ln() / a.clone().ln()
+        tetration(a, &(b.clone() + 1)).ln() / a.clone().ln()
     }
     else
     {

@@ -882,6 +882,14 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "split" =>
+                        {
+                            let a = function[i + 1].num()?;
+                            Vector(vec![
+                                Complex::with_val(prec, a.real()),
+                                Complex::with_val(prec, a.imag()),
+                            ])
+                        }
                         "iden" =>
                         {
                             let a = function[i + 1].num()?.real().to_f64() as usize;

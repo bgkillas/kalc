@@ -921,6 +921,7 @@ pub fn is_func(word: &str) -> bool
         "iden",
         "P",
         "C",
+        "split",
     ]
     .iter()
     .cloned()

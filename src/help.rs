@@ -70,8 +70,9 @@ Other functions:\n\
 - sinc, cis, exp\n\
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
-- re, im, max(x,y), min(x,y)\n\
+- re, im, split(splits real/imag into a 2 part vector)\n\
 - factors, prime\n\
+- slog(a,b)\n\
 - vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)\n\n\
 Vector operations/functions:\n\
 - *, /, +, -, ^\n\
@@ -79,6 +80,7 @@ Vector operations/functions:\n\
 - angle({{vec1}},{{vec2}})\n\
 - norm, normalize\n\
 - abs, len\n\
+- max, min\n\
 - reverse, link\n\
 - part({{vec}},col), add\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\n\
@@ -91,6 +93,7 @@ Matrix operations/functions:\n\
 - part({{mat}},col,row), flatten, add\n\
 - abs, norm\n\
 - len, wid\n\
+- max, min\n\
 - iden(n) produces n identity matrix\n\
 - rotate(theta) produces a rotational matrix\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\n\

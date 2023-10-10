@@ -3,7 +3,11 @@ use crate::{
     math::do_math,
     options::AngleType,
 };
-use rug::{float::Constant::Pi, ops::Pow, Complex};
+use rug::{
+    float::{Constant::Pi, Special::Nan},
+    ops::Pow,
+    Complex,
+};
 use std::ops::{Add, Sub};
 #[derive(Clone)]
 pub enum NumStr
@@ -439,6 +443,40 @@ fn tetration(a: &Complex, b: &Complex) -> Complex
         let a = a.clone().ln();
         1 + (2 * b.clone() * a.clone() / (1 + a.clone()))
             - (b.clone().pow(2) * (1 - a.clone()) / (1 + a))
+    }
+}
+pub fn slog(a: &Complex, b: &Complex) -> Complex
+{
+    if b.real() <= &0.0
+    {
+        let z = &a.clone().pow(b);
+        if z.real() <= b.real()
+        {
+            Complex::with_val(a.prec(), Nan)
+        }
+        else
+        {
+            slog(a, z) - 1
+        }
+    }
+    else if b.real() > &1.0
+    {
+        let z = &(b.clone().ln() / a.clone().ln());
+        if z.real() >= b.real()
+        {
+            Complex::with_val(a.prec(), Nan)
+        }
+        else
+        {
+            slog(a, z) + 1
+        }
+    }
+    else
+    {
+        let a = a.clone().ln();
+        (2 * a.clone() * b.clone() / (1 + a.clone()))
+            + (b.clone().pow(2) * (1 - a.clone()) / (1 + a))
+            - 1
     }
 }
 pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>

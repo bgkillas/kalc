@@ -102,8 +102,9 @@ Other functions:
 - sinc, cis, exp
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
-- re, im
+- re, im, split(splits real/imag into a 2 part vector)
 - factors, prime
+- slog(a,b)
 - vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)
 
 Vector operations/functions:

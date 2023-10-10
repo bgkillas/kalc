@@ -1,7 +1,7 @@
 use crate::{
     complex::{
-        cofactor, determinant, inverse, minors, mvec, nth_prime, subfact, sum, to_polar, transpose,
-        NumStr,
+        cofactor, determinant, inverse, minors, mvec, nth_prime, slog, subfact, sum, to_polar,
+        transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::{
@@ -147,6 +147,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         if matches!(
                             k.as_str(),
                             "log"
+                                | "slog"
                                 | "root"
                                 | "atan"
                                 | "arctan"
@@ -1555,6 +1556,24 @@ fn functions(
             else
             {
                 a
+            }
+        }
+        "slog" =>
+        {
+            if let Some(b) = c
+            {
+                if a.real() > &1.0
+                {
+                    slog(&a, &b)
+                }
+                else
+                {
+                    return Err("slog undefined <=1");
+                }
+            }
+            else
+            {
+                return Err("no args");
             }
         }
         "root" =>

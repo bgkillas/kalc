@@ -263,19 +263,31 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     {
                         if let Str(var) = &function[place[0] - 1]
                         {
+                            let start =
+                                do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
+                                    .num()?;
+
+                            let end =
+                                do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
+                                    .num()?;
+                            if !start.imag().is_zero() || !end.imag().is_zero()
+                            {
+                                return Err("imag start/end");
+                            }
+                            if !start.real().clone().fract().is_zero()
+                                || !end.real().clone().fract().is_zero()
+                            {
+                                return Err("fractional start/end");
+                            }
+                            let start = start.real().to_f64() as usize;
+                            let end = end.real().to_f64() as usize;
                             function[i] = match s.as_str()
                             {
                                 "vec" | "mat" => mvec(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     var,
-                                    do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
-                                        .num()?
-                                        .real()
-                                        .to_f64() as u64,
-                                    do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
-                                        .num()?
-                                        .real()
-                                        .to_f64() as u64,
+                                    start,
+                                    end,
                                     s == "vec",
                                     deg,
                                     prec,
@@ -283,14 +295,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 _ => sum(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     var,
-                                    do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
-                                        .num()?
-                                        .real()
-                                        .to_f64() as u64,
-                                    do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
-                                        .num()?
-                                        .real()
-                                        .to_f64() as u64,
+                                    start,
+                                    end,
                                     !(s == "sum" || s == "summation" || s == "Σ"),
                                     deg,
                                     prec,
@@ -889,10 +895,18 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             if function.len() > i + 5
                             {
                                 let a = function[i + 1].num()?;
+                                let b = function[i + 3].num()?;
+                                let c = function[i + 5].num()?;
                                 if a.imag().is_zero()
+                                    && b.imag().is_zero()
+                                    && c.imag().is_zero()
+                                    && a.real().clone().fract().is_zero()
+                                    && b.real().clone().fract().is_zero()
+                                    && c.real().clone().fract().is_zero()
+                                    && a.real() > &0
+                                    && b.real() > &0
+                                    && c.real() > &0
                                 {
-                                    let b = function[i + 3].num()?;
-                                    let c = function[i + 5].num()?;
                                     function.drain(i + 2..i + 6);
                                     Num(hyperoperation(a.real(), &b, &c))
                                 }
@@ -1604,7 +1618,7 @@ fn functions(
             {
                 match b.imag().is_zero()
                     && (b.real().to_f64() / 2.0).fract() != 0.0
-                    && &b.real().clone().trunc() == b.real()
+                    && b.real().clone().fract().is_zero()
                     && a.imag().is_zero()
                 {
                     true => Complex::with_val(
@@ -1628,18 +1642,9 @@ fn functions(
                 {
                     return Err("binomial complex not supported");
                 }
-                if a.real().clone().fract().is_zero() && b.real().clone().fract().is_zero()
-                {
-                    let a = a.real().to_f64() as usize;
-                    let b = b.real().to_f64() as usize;
-                    (b..=a).fold(Complex::with_val(prec, 1), |prod, n| prod * n)
-                }
-                else
-                {
-                    let d: Float = a.real().clone() - b.real() + 1;
-                    let a: Float = a.real().clone() + 1;
-                    (a.gamma() / d.gamma()).into()
-                }
+                let d: Float = a.real().clone() - b.real() + 1;
+                let a: Float = a.real().clone() + 1;
+                (a.gamma() / d.gamma()).into()
             }
             else
             {
@@ -1744,6 +1749,23 @@ fn functions(
         }
         "square" | "asqrt" => a.pow(2),
         "cube" | "acbrt" => a.pow(3),
+        "doublefact" =>
+        {
+            if !a.imag().is_zero()
+            {
+                return Err("complex factorial not supported");
+            }
+            let a = a.real().clone();
+            let two = Complex::with_val(prec, 2);
+            let pi = Complex::with_val(prec, Pi);
+            let gam: Float = a.clone() / 2 + 1;
+            Complex::with_val(
+                prec,
+                two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
+                    * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
+                    * gam.gamma(),
+            )
+        }
         "fact" =>
         {
             if a.imag().is_zero()

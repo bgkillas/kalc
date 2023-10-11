@@ -613,8 +613,8 @@ pub fn subfact(a: f64) -> f64
 pub fn mvec(
     function: Vec<NumStr>,
     var: &str,
-    start: u64,
-    end: u64,
+    start: usize,
+    end: usize,
     mvec: bool,
     deg: AngleType,
     prec: u32,
@@ -655,8 +655,8 @@ pub fn mvec(
 pub fn sum(
     function: Vec<NumStr>,
     var: &str,
-    start: u64,
-    end: u64,
+    start: usize,
+    end: usize,
     product: bool,
     deg: AngleType,
     prec: u32,

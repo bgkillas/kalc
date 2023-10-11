@@ -604,8 +604,9 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     else if i != 0
                         && (chars[i - 1].is_alphanumeric()
-                            || (!func.is_empty() && func.last().unwrap().str_is(")")
-                                || func.last().unwrap().str_is("}")))
+                            || (!func.is_empty()
+                                && (func.last().unwrap().str_is(")")
+                                    || func.last().unwrap().str_is("}"))))
                     {
                         if let Num(a) = func.clone().last().unwrap()
                         {
@@ -646,7 +647,18 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                             if s != "subfact" && s != "("
                                             {
                                                 func.insert(j, Str("(".to_string()));
-                                                func.insert(j, Str("fact".to_string()));
+                                                if i + 1 != chars.len() && chars[i + 1] == '!'
+                                                {
+                                                    i += 1;
+                                                    func.insert(
+                                                        func.len() - 1,
+                                                        Str("doublefact".to_string()),
+                                                    );
+                                                }
+                                                else
+                                                {
+                                                    func.insert(j, Str("fact".to_string()));
+                                                }
                                                 func.push(Str(")".to_string()));
                                                 i += 1;
                                                 continue 'outer;
@@ -654,7 +666,15 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                         }
                                     }
                                     func.insert(j, Str("(".to_string()));
-                                    func.insert(j, Str("fact".to_string()));
+                                    if i + 1 != chars.len() && chars[i + 1] == '!'
+                                    {
+                                        i += 1;
+                                        func.insert(func.len() - 1, Str("doublefact".to_string()));
+                                    }
+                                    else
+                                    {
+                                        func.insert(j, Str("fact".to_string()));
+                                    }
                                     func.push(Str(")".to_string()));
                                     i += 1;
                                     continue 'outer;
@@ -662,7 +682,15 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                             }
                         }
                         func.insert(func.len() - 1, Str("(".to_string()));
-                        func.insert(func.len() - 1, Str("fact".to_string()));
+                        if i + 1 != chars.len() && chars[i + 1] == '!'
+                        {
+                            i += 1;
+                            func.insert(func.len() - 1, Str("doublefact".to_string()));
+                        }
+                        else
+                        {
+                            func.insert(func.len() - 1, Str("fact".to_string()));
+                        }
                         func.insert(func.len() - 1, Str("(".to_string()));
                         func.push(Str(")".to_string()));
                         func.push(Str(")".to_string()));
@@ -924,6 +952,7 @@ pub fn is_func(word: &str) -> bool
         "H",
         "split",
         "slog",
+        "doublefact",
     ]
     .iter()
     .cloned()

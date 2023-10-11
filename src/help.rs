@@ -53,7 +53,7 @@ FLAGS: --help (this message)\n\
 - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\n\
 Operators:\n\
 - +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-\n\
-- !x (subfact), x! (fact)\n\
+- !x (subfact), x! (fact), x!! (doublefact)\n\
 - && (and), || (or), == (equals), != (not equals)\n\
 - >> (right shift), << (left shift)\n\n\
 Trigonometric functions:\n\
@@ -66,13 +66,13 @@ Other functions:\n\
 - ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end) (start and end are rounded to integers)\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\
-- fact(real), subfact(natural)\n\
+- fact(real), doublefact(real), subfact(natural)\n\
 - sinc, cis, exp\n\
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re, im, split(splits real/imag into a 2 part vector)\n\
 - factors, prime\n\
-- slog(a,b)\n\
+- slog(a,b), H(n,a,b)\n\
 - vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)\n\n\
 Vector operations/functions:\n\
 - *, /, +, -, ^\n\

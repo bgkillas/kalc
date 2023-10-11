@@ -280,7 +280,15 @@ pub fn input_var(
                             output.push_str(
                                 &input_var(&var[1], vars, Some(&var[0]), options).replace(
                                     v[v.len() - 2],
-                                    &format!("({})", &temp.iter().collect::<String>(),),
+                                    &format!(
+                                        "({})",
+                                        &input_var(
+                                            &temp.iter().collect::<String>(),
+                                            vars,
+                                            Some(&var[0]),
+                                            options
+                                        ),
+                                    ),
                                 ),
                             );
                             output.push(')');

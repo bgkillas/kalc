@@ -83,7 +83,7 @@ FLAGS: --help (this message)
 
 Operators:
 - +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-, ^^
-- !x (subfact), x! (fact)
+- !x (subfact), x! (fact), x!! (doublefact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
 
@@ -98,13 +98,13 @@ Other functions:
 - ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end) (start and end are rounded to integers)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
-- fact(real), subfact(natural)
+- fact(real), doublefact(real), subfact(natural)
 - sinc, cis, exp
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re, im, split(splits real/imag into a 2 part vector)
 - factors, prime
-- slog(a,b)
+- slog(a,b), H(n,a,b)
 - vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)
 
 Vector operations/functions:

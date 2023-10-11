@@ -1,7 +1,7 @@
 use crate::{
     complex::{
-        cofactor, determinant, inverse, minors, mvec, nth_prime, slog, subfact, sum, to_polar,
-        transpose, NumStr,
+        cofactor, determinant, hyperoperation, inverse, minors, mvec, nth_prime, slog, subfact,
+        sum, to_polar, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::{
@@ -163,6 +163,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                                 | "link"
                                 | "C"
                                 | "P"
+                                | "H"
                         )
                         {
                             count = 0;
@@ -226,7 +227,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         if let Str(s) = &function[i].clone()
         {
             if (s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                || matches!(s.as_str(), "C" | "P")
+                || matches!(s.as_str(), "C" | "P" | "H")
             {
                 if matches!(
                     s.as_str(),
@@ -883,6 +884,28 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "H" =>
+                        {
+                            if function.len() > i + 5
+                            {
+                                let a = function[i + 1].num()?;
+                                if a.imag().is_zero()
+                                {
+                                    let b = function[i + 3].num()?;
+                                    let c = function[i + 5].num()?;
+                                    function.drain(i + 2..i + 6);
+                                    Num(hyperoperation(a.real(), &b, &c))
+                                }
+                                else
+                                {
+                                    return Err("undefined hyperoperation");
+                                }
+                            }
+                            else
+                            {
+                                return Err("no args");
+                            }
+                        }
                         "split" =>
                         {
                             let a = function[i + 1].num()?;
@@ -1175,8 +1198,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         prec,
                         (a.imag().is_zero()
                             && b.imag().is_zero()
-                            && a.real() == &1.0
-                            && b.real() == &1.0) as i32,
+                            && a.real() == &1
+                            && b.real() == &1) as i32,
                     ))
                 }
                 "||" =>
@@ -1187,8 +1210,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         prec,
                         (a.imag().is_zero()
                             && b.imag().is_zero()
-                            && (a.real() == &1.0 || b.real() == &1.0))
-                            as i32,
+                            && (a.real() == &1 || b.real() == &1)) as i32,
                     ))
                 }
                 _ =>
@@ -1404,7 +1426,7 @@ fn functions(
         "asin" | "arcsin" =>
         {
             b = a.clone().asin() * to_deg.clone();
-            if a.imag().is_zero() && a.real() >= &1.0
+            if a.imag().is_zero() && a.real() >= &1
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1428,7 +1450,7 @@ fn functions(
         "acos" | "arccos" =>
         {
             b = a.clone().acos() * to_deg.clone();
-            if a.imag().is_zero() && a.real() >= &1.0
+            if a.imag().is_zero() && a.real() >= &1
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1477,7 +1499,7 @@ fn functions(
         "asech" | "arcsech" =>
         {
             b = a.clone().recip().acosh();
-            if a.imag().is_zero() && a.real() < &0.0
+            if a.imag().is_zero() && a.real() < &0
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1489,7 +1511,7 @@ fn functions(
         "atanh" | "arctanh" =>
         {
             b = a.clone().atanh();
-            if a.imag().is_zero() && a.real() >= &1.0
+            if a.imag().is_zero() && a.real() >= &1
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1562,7 +1584,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if a.real() > &1.0
+                if a.real() > &1
                 {
                     slog(&a, &b)
                 }
@@ -1602,13 +1624,22 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if a.imag() != &0.0 && b.imag() != &0.0
+                if !a.imag().is_zero() && !b.imag().is_zero()
                 {
                     return Err("binomial complex not supported");
                 }
-                let d: Float = a.real().clone() - b.real() + 1;
-                let a: Float = a.real().clone() + 1;
-                (a.gamma() / d.gamma()).into()
+                if a.real().clone().fract().is_zero() && b.real().clone().fract().is_zero()
+                {
+                    let a = a.real().to_f64() as usize;
+                    let b = b.real().to_f64() as usize;
+                    (b..=a).fold(Complex::with_val(prec, 1), |prod, n| prod * n)
+                }
+                else
+                {
+                    let d: Float = a.real().clone() - b.real() + 1;
+                    let a: Float = a.real().clone() + 1;
+                    (a.gamma() / d.gamma()).into()
+                }
             }
             else
             {
@@ -1619,7 +1650,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if a.imag() != &0.0 && b.imag() != &0.0
+                if !a.imag().is_zero() && !b.imag().is_zero()
                 {
                     return Err("binomial complex not supported");
                 }
@@ -1727,7 +1758,7 @@ fn functions(
         }
         "subfact" =>
         {
-            if a.imag() != &0.0 || a.real() < &0.0
+            if !a.imag().is_zero() || a.real() < &0
             {
                 return Err("complex/fractional subfactorial not supported");
             }

@@ -376,11 +376,11 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 '⅖' => func.push(Num(Complex::with_val(options.prec, 0.4))),
                 '⅗' => func.push(Num(Complex::with_val(options.prec, 0.6))),
                 '⅘' => func.push(Num(Complex::with_val(options.prec, 0.8))),
-                '⅐' => func.push(Num(Complex::with_val(options.prec, 7.0).recip())),
-                '⅑' => func.push(Num(Complex::with_val(options.prec, 9.0).recip())),
-                '⅓' => func.push(Num(Complex::with_val(options.prec, 3.0).recip())),
+                '⅐' => func.push(Num(Complex::with_val(options.prec, 7).recip())),
+                '⅑' => func.push(Num(Complex::with_val(options.prec, 9).recip())),
+                '⅓' => func.push(Num(Complex::with_val(options.prec, 3).recip())),
                 '⅔' => func.push(Num(Complex::with_val(options.prec, 1.5).recip())),
-                '⅙' => func.push(Num(Complex::with_val(options.prec, 6.0).recip())),
+                '⅙' => func.push(Num(Complex::with_val(options.prec, 6).recip())),
                 '⅚' => func.push(Num(Complex::with_val(options.prec, 1.2).recip())),
                 '⅛' => func.push(Num(Complex::with_val(options.prec, 0.125))),
                 '⅜' => func.push(Num(Complex::with_val(options.prec, 0.375))),
@@ -609,7 +609,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         if let Num(a) = func.clone().last().unwrap()
                         {
-                            if a.real() < &0.0
+                            if a.real() < &0
                             {
                                 func.pop();
                                 func.push(Num(Complex::with_val(
@@ -921,6 +921,7 @@ pub fn is_func(word: &str) -> bool
         "iden",
         "P",
         "C",
+        "H",
         "split",
         "slog",
     ]

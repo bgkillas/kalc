@@ -185,7 +185,7 @@ pub fn print_concurrent(
     let mut frac = 0;
     if let Num(n) = num
     {
-        let sign = if n.real() != &0.0 && n.imag().is_sign_positive()
+        let sign = if !n.real().is_zero() && n.imag().is_sign_positive()
         {
             "+"
         }
@@ -204,7 +204,7 @@ pub fn print_concurrent(
                 {
                     frac = 1;
                     (
-                        if n.real().is_zero() && n.imag() != &0.0
+                        if n.real().is_zero() && !n.imag().is_zero()
                         {
                             "".to_string()
                         }
@@ -234,7 +234,7 @@ pub fn print_concurrent(
                 {
                     frac = 1;
                     (
-                        if n.real().is_zero() && n.imag() != &0.0
+                        if n.real().is_zero() && !n.imag().is_zero()
                         {
                             "".to_string()
                         }
@@ -256,7 +256,7 @@ pub fn print_concurrent(
                 {
                     frac = 1;
                     (
-                        if n.real().is_zero() && n.imag() != &0.0
+                        if n.real().is_zero() && !n.imag().is_zero()
                         {
                             "".to_string()
                         }
@@ -449,7 +449,9 @@ pub fn print_concurrent(
                 {
                     format!(
                         "{}{}{}",
-                        (if i.real() != &0.0 && i.imag().is_sign_positive() && i.imag() != &0.0
+                        (if !i.real().is_zero()
+                            && !i.imag().is_zero()
+                            && i.imag().is_sign_positive()
                         {
                             "+"
                         }
@@ -458,7 +460,7 @@ pub fn print_concurrent(
                             ""
                         }),
                         frac_temp,
-                        (if i.imag() != &0.0
+                        (if !i.imag().is_zero()
                         {
                             if options.color
                             {
@@ -591,7 +593,9 @@ pub fn print_concurrent(
                     {
                         format!(
                             "{}{}{}",
-                            (if i.real() != &0.0 && i.imag().is_sign_positive() && i.imag() != &0.0
+                            (if !i.real().is_zero()
+                                && !i.imag().is_zero()
+                                && i.imag().is_sign_positive()
                             {
                                 "+"
                             }
@@ -600,7 +604,7 @@ pub fn print_concurrent(
                                 ""
                             }),
                             frac_temp,
-                            (if i.imag() != &0.0
+                            (if !i.imag().is_zero()
                             {
                                 if options.color
                                 {
@@ -781,7 +785,7 @@ pub fn print_concurrent(
 }
 pub fn get_output(options: &Options, num: &Complex) -> (String, String)
 {
-    let sign = if num.real() != &0.0 && num.imag().is_sign_positive()
+    let sign = if !num.real().is_zero() && num.imag().is_sign_positive()
     {
         "+"
     }
@@ -802,7 +806,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     if options.base != 10
     {
         (
-            if num.real() != &0.0
+            if !num.real().is_zero()
             {
                 n = num.real().to_string_radix(options.base as i32, None);
                 if n.contains('e')
@@ -822,7 +826,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             {
                 "".to_owned()
             },
-            if num.imag() != &0.0
+            if !num.imag().is_zero()
             {
                 n = num.imag().to_string_radix(options.base as i32, None);
                 sign + &if n.contains('e')
@@ -843,7 +847,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     else if options.sci
     {
         (
-            if num.real() != &0.0
+            if !num.real().is_zero()
             {
                 add_commas(
                     &remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec()),
@@ -881,7 +885,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             {
                 "".to_owned()
             },
-            if num.imag() != &0.0
+            if !num.imag().is_zero()
             {
                 add_commas(
                     &(sign.as_str().to_owned()

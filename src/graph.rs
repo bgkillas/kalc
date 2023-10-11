@@ -54,11 +54,11 @@ pub fn graph(
                     {
                         for j in &n
                         {
-                            if j.real() != &0.0
+                            if !j.real().is_zero()
                             {
                                 re_cap[i] = unmod[i].to_owned() + ":re";
                             }
-                            if j.imag() != &0.0
+                            if !j.imag().is_zero()
                             {
                                 im_cap[i] = unmod[i].to_owned() + ":im";
                             }
@@ -88,11 +88,11 @@ pub fn graph(
                         {
                             for j in k
                             {
-                                if j.real() != &0.0
+                                if !j.real().is_zero()
                                 {
                                     re_cap[i] = unmod[i].to_owned() + ":re";
                                 }
-                                if j.imag() != &0.0
+                                if !j.imag().is_zero()
                                 {
                                     im_cap[i] = unmod[i].to_owned() + ":im";
                                 }
@@ -107,11 +107,11 @@ pub fn graph(
                     }
                     Num(n) =>
                     {
-                        if n.real() != &0.0
+                        if !n.real().is_zero()
                         {
                             re_cap[i] = unmod[i].to_owned() + ":re";
                         }
-                        if n.imag() != &0.0
+                        if !n.imag().is_zero()
                         {
                             im_cap[i] = unmod[i].to_owned() + ":im";
                         }

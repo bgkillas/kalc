@@ -78,7 +78,7 @@ pub fn fraction(value: Float, options: Options) -> String
             fract = recip.clone().fract();
             if fract < 1e-6
             {
-                let mut last = Float::with_val(prec, 1.0);
+                let mut last = Float::with_val(prec, 1);
                 for j in (0..nums.len()).rev()
                 {
                     last = recip.clone();

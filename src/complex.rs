@@ -6,7 +6,7 @@ use crate::{
 use rug::{
     float::{Constant::Pi, Special::Nan},
     ops::Pow,
-    Complex,
+    Complex, Float,
 };
 #[derive(Clone)]
 pub enum NumStr
@@ -298,7 +298,7 @@ impl NumStr
                         {
                             mat = mat.mul(&Matrix(a.clone()))?;
                         }
-                        if b.real() > &0.0
+                        if b.real() > &0
                         {
                             mat
                         }
@@ -422,6 +422,29 @@ impl NumStr
         }
     }
 }
+pub fn hyperoperation(n: &Float, a: &Complex, b: &Complex) -> Complex
+{
+    if n == &0
+    {
+        b.clone() + 1
+    }
+    else if n == &1 && b == &0
+    {
+        a.clone()
+    }
+    else if n == &2 && b == &0
+    {
+        Complex::new(a.prec())
+    }
+    else if n >= &3 && b == &0
+    {
+        Complex::with_val(a.prec(), 1)
+    }
+    else
+    {
+        hyperoperation(&(n.clone() - 1), a, &hyperoperation(n, a, &(b.clone() - 1)))
+    }
+}
 fn tetration(a: &Complex, b: &Complex) -> Complex
 {
     if b.real().clone().fract().is_zero()
@@ -429,11 +452,11 @@ fn tetration(a: &Complex, b: &Complex) -> Complex
         (0..=b.real().to_f64() as usize)
             .fold(Complex::new(b.prec()), |tetration, _| a.pow(tetration))
     }
-    else if b.real() > &0.0
+    else if b.real() > &0
     {
         a.pow(tetration(a, &(b.clone() - 1)))
     }
-    else if b.real() <= &-1.0
+    else if b.real() <= &-1
     {
         tetration(a, &(b.clone() + 1)).ln() / a.clone().ln()
     }
@@ -446,7 +469,7 @@ fn tetration(a: &Complex, b: &Complex) -> Complex
 }
 pub fn slog(a: &Complex, b: &Complex) -> Complex
 {
-    if b.real() <= &0.0
+    if b.real() <= &0
     {
         let z = &a.clone().pow(b);
         if z.real() <= b.real()
@@ -458,7 +481,7 @@ pub fn slog(a: &Complex, b: &Complex) -> Complex
             slog(a, z) - 1
         }
     }
-    else if b.real() > &1.0
+    else if b.real() > &1
     {
         let z = &(b.clone().ln() / a.clone().ln());
         if z.real() >= b.real()

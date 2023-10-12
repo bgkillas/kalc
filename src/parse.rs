@@ -48,6 +48,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut pow = String::new();
     let mut sum = 0;
     let mut pwr = false;
+    let mut bkt = false;
     'outer: while i < chars.len()
     {
         c = chars[i];
@@ -566,12 +567,22 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 .to_string())),
                 '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
                 {
+                    if pwr
+                    {
+                        pwr = false;
+                        bkt = true;
+                    }
                     count += 1;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
                 ')' if i != 0 && chars[i - 1] != '(' =>
                 {
+                    if bkt
+                    {
+                        bkt = false;
+                        func.push(Str(")".to_string()))
+                    }
                     if sum == count
                     {
                         sum = 0;

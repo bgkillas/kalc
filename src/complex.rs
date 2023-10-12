@@ -589,27 +589,6 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
         ]
     }
 }
-pub fn subfact(a: f64) -> f64
-{
-    if a == 0.0
-    {
-        return 1.0;
-    }
-    if a.fract() != 0.0
-    {
-        return f64::NAN;
-    }
-    let mut prev = 1.0;
-    let mut curr = 0.0;
-    let mut next;
-    for i in 2..=(a as usize)
-    {
-        next = (i - 1) as f64 * (prev + curr);
-        prev = curr;
-        curr = next;
-    }
-    curr
-}
 pub fn mvec(
     function: Vec<NumStr>,
     var: &str,

@@ -1,7 +1,7 @@
 use crate::{
     complex::{
-        cofactor, determinant, hyperoperation, inverse, minors, mvec, nth_prime, slog, subfact,
-        sum, to_polar, transpose, NumStr,
+        cofactor, determinant, hyperoperation, inverse, minors, mvec, nth_prime, slog, sum,
+        to_polar, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::{
@@ -1780,11 +1780,12 @@ fn functions(
         }
         "subfact" =>
         {
-            if !a.imag().is_zero() || a.real() < &0
+            if !a.imag().is_zero() || a.real() < &0 || !a.real().clone().fract().is_zero()
             {
                 return Err("complex/fractional subfactorial not supported");
             }
-            Complex::with_val(prec, subfact(a.real().to_f64()))
+            let b: Float = a.real().clone() + 1;
+            Complex::with_val(prec, (b.gamma() / Float::with_val(prec.0, 1).exp()).round())
         }
         "sinc" => a.clone().sin() / a,
         "conj" | "conjugate" => a.conj(),

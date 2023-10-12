@@ -47,6 +47,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
     let mut sum = 0;
+    let mut pwr = false;
     'outer: while i < chars.len()
     {
         c = chars[i];
@@ -166,6 +167,11 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             {
                 func.push(Str(")".to_string()));
                 scientific = false;
+            }
+            if pwr
+            {
+                func.push(Str(')'.to_string()));
+                pwr = false;
             }
             word.clear();
             continue;
@@ -524,7 +530,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         func.push(Str("(".to_string()));
                         func.push(Num(n1.clone()));
-                        count += 1;
+                        pwr = true;
                     }
                     else if i == 0
                         || !(chars[i - 1] != if options.small_e { 'e' } else { 'E' }

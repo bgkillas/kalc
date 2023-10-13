@@ -47,8 +47,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
     let mut sum = 0;
-    let mut pwr = false;
-    let mut subfact = false;
+    let mut pwr = (false, 0);
+    let mut subfact = (false, 0);
     'outer: while i < chars.len()
     {
         c = chars[i];
@@ -169,16 +169,16 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 func.push(Str(")".to_string()));
                 scientific = false;
             }
-            if pwr
+            if pwr.0 && pwr.1 == 0
             {
                 func.push(Str(')'.to_string()));
-                pwr = false;
+                pwr.0 = false;
             }
-            if subfact
+            if subfact.0 && subfact.1 == 0
             {
                 func.push(Str(')'.to_string()));
                 func.push(Str(')'.to_string()));
-                pwr = false;
+                pwr.0 = false;
             }
             word.clear();
             continue;
@@ -268,14 +268,14 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                             func.push(Str(")".to_string()));
                             scientific = false;
                         }
-                        if pwr
+                        if pwr.0 && pwr.1 == 0
                         {
-                            pwr = false;
+                            pwr.0 = false;
                             func.push(Str(")".to_string()))
                         }
-                        if subfact
+                        if subfact.0 && subfact.1 == 0
                         {
-                            subfact = false;
+                            subfact.0 = false;
                             func.push(Str(")".to_string()));
                             func.push(Str(")".to_string()))
                         }
@@ -548,7 +548,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         func.push(Str("(".to_string()));
                         func.push(Num(n1.clone()));
-                        pwr = true;
+                        pwr.0 = true;
                     }
                     else if i == 0
                         || !(chars[i - 1] != if options.small_e { 'e' } else { 'E' }
@@ -585,19 +585,27 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
                 {
                     count += 1;
+                    if pwr.0
+                    {
+                        pwr.1 = count;
+                    }
+                    if subfact.0
+                    {
+                        subfact.1 = count;
+                    }
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
                 ')' if i != 0 && chars[i - 1] != '(' =>
                 {
-                    if pwr
+                    if pwr.1 == count
                     {
-                        pwr = false;
+                        pwr = (false, 0);
                         func.push(Str(")".to_string()))
                     }
-                    if subfact
+                    if subfact.1 == count
                     {
-                        subfact = false;
+                        subfact = (false, 0);
                         func.push(Str(")".to_string()));
                         func.push(Str(")".to_string()))
                     }
@@ -747,7 +755,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str("(".to_string()));
                         func.push(Str("subfact".to_string()));
                         func.push(Str("(".to_string()));
-                        subfact = true;
+                        subfact.0 = true;
                     }
                 }
                 ',' if i != 0 && i + 1 != chars.len() => func.push(Str(','.to_string())),
@@ -757,10 +765,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             }
         }
         i += 1;
-    }
-    if !count.is_negative()
-    {
-        func.extend(vec![Str(")".to_string()); count as usize]);
     }
     if !pow.is_empty()
     {
@@ -799,6 +803,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     }
     if !abs
     {
+        func.push(Str(")".to_string()));
         func.push(Str(")".to_string()));
     }
     if neg

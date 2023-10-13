@@ -48,7 +48,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut pow = String::new();
     let mut sum = 0;
     let mut pwr = false;
-    let mut bkt = false;
+    let mut subfact = false;
     'outer: while i < chars.len()
     {
         c = chars[i];
@@ -174,6 +174,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 func.push(Str(')'.to_string()));
                 pwr = false;
             }
+            if subfact
+            {
+                func.push(Str(')'.to_string()));
+                func.push(Str(')'.to_string()));
+                pwr = false;
+            }
             word.clear();
             continue;
         }
@@ -261,6 +267,17 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         {
                             func.push(Str(")".to_string()));
                             scientific = false;
+                        }
+                        if pwr
+                        {
+                            pwr = false;
+                            func.push(Str(")".to_string()))
+                        }
+                        if subfact
+                        {
+                            subfact = false;
+                            func.push(Str(")".to_string()));
+                            func.push(Str(")".to_string()))
                         }
                     }
                     'i' =>
@@ -567,20 +584,21 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 .to_string())),
                 '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
                 {
-                    if pwr
-                    {
-                        pwr = false;
-                        bkt = true;
-                    }
                     count += 1;
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
                 ')' if i != 0 && chars[i - 1] != '(' =>
                 {
-                    if bkt
+                    if pwr
                     {
-                        bkt = false;
+                        pwr = false;
+                        func.push(Str(")".to_string()))
+                    }
+                    if subfact
+                    {
+                        subfact = false;
+                        func.push(Str(")".to_string()));
                         func.push(Str(")".to_string()))
                     }
                     if sum == count
@@ -729,7 +747,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str("(".to_string()));
                         func.push(Str("subfact".to_string()));
                         func.push(Str("(".to_string()));
-                        count += 2;
+                        subfact = true;
                     }
                 }
                 ',' if i != 0 && i + 1 != chars.len() => func.push(Str(','.to_string())),

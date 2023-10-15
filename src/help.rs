@@ -128,7 +128,7 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\n\
 numbers/minus sign convert to superscript acting as exponents"
     );
 }
-pub fn get_help(s: &str)
-{
-    println!("{}", s);
-}
+// pub fn get_help(s: &str)
+// {
+//     println!("{}", s);
+// }

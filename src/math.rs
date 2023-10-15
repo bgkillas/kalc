@@ -23,9 +23,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
     }
     let mut function = func;
     let mut i = 0;
-    let mut single;
-    let mut count;
-    let (mut j, mut v, mut vec, mut mat);
     let mut place = Vec::new();
     'outer: while i < function.len() - 1
     {
@@ -33,8 +30,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         {
             if s == "{"
             {
-                j = i + 1;
-                count = 1;
+                let mut j = i + 1;
+                let mut count = 1;
                 while count > 0
                 {
                     if j >= function.len()
@@ -57,11 +54,10 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     return Err("no interior vector");
                 }
-                v = function[i + 1..j - 1].to_vec();
-                single = 0;
-                count = 0;
-                vec = Vec::new();
-                mat = Vec::<Vec<Complex>>::new();
+                let mut single = 0;
+                let v = function[i + 1..j - 1].to_vec();
+                let mut vec = Vec::new();
+                let mut mat = Vec::<Vec<Complex>>::new();
                 for (f, n) in v.iter().enumerate()
                 {
                     if let Str(s) = n
@@ -115,8 +111,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
             }
             else if s == "("
             {
-                j = i + 1;
-                count = 1;
+                let mut j = i + 1;
+                let mut count = 1;
                 while count > 0
                 {
                     if j >= function.len()
@@ -139,7 +135,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     return Err("no interior bracket");
                 }
-                v = function[i + 1..j - 1].to_vec();
+                let v = function[i + 1..j - 1].to_vec();
                 if i != 0
                 {
                     if let Str(k) = &function[i - 1]
@@ -215,7 +211,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
         i += 1;
     }
     i = 0;
-    let (mut a, mut b);
     let to_deg = match deg
     {
         Degrees => Complex::with_val(prec, 180) / Complex::with_val(prec, Pi),
@@ -951,7 +946,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         }
                         "rotate" =>
                         {
-                            a = function[i + 1].num()? / to_deg.clone();
+                            let a = function[i + 1].num()? / to_deg.clone();
                             Matrix(vec![
                                 vec![a.clone().cos(), -a.clone().sin()],
                                 vec![a.clone().sin(), a.cos()],
@@ -959,7 +954,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         }
                         "factors" | "factor" =>
                         {
-                            a = function[i + 1].num()?;
+                            let a = function[i + 1].num()?;
                             if a.imag().clone().is_zero()
                             {
                                 if a.real().clone().fract().is_zero()
@@ -1096,8 +1091,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 "%" =>
                 {
                     function[i] = {
-                        a = function[i - 1].num()?;
-                        b = function[i + 1].num()?;
+                        let a = function[i - 1].num()?;
+                        let b = function[i + 1].num()?;
                         if a.imag().is_zero() && b.imag().is_zero()
                         {
                             Num(Complex::with_val(prec, a.real() % b.real()))
@@ -1205,8 +1200,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
             {
                 "&&" =>
                 {
-                    a = function[i - 1].num()?;
-                    b = function[i + 1].num()?;
+                    let a = function[i - 1].num()?;
+                    let b = function[i + 1].num()?;
                     function[i] = Num(Complex::with_val(
                         prec,
                         (a.imag().is_zero()
@@ -1217,8 +1212,8 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 }
                 "||" =>
                 {
-                    a = function[i - 1].num()?;
-                    b = function[i + 1].num()?;
+                    let a = function[i - 1].num()?;
+                    let b = function[i + 1].num()?;
                     function[i] = Num(Complex::with_val(
                         prec,
                         (a.imag().is_zero()

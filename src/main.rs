@@ -11,17 +11,13 @@ mod print;
 mod tests;
 mod vars;
 use crate::{
-    complex::NumStr::{Matrix, Num, Str, Vector},
     graph::{can_graph, graph},
-    help::{get_help, help},
-    math::do_math,
     misc::{clear, convert, get_terminal_width, read_single_char, write},
     options::{
-        arg_opts, file_opts, AngleType,
-        AngleType::{Degrees, Gradians, Radians},
+        arg_opts, commands, equal_to, file_opts, set_commands, AngleType, AngleType::Radians,
     },
     parse::get_func,
-    print::{get_output, print_answer, print_concurrent},
+    print::{print_answer, print_concurrent},
     vars::{get_vars, input_var},
 };
 use std::{
@@ -29,6 +25,7 @@ use std::{
     fs::{File, OpenOptions},
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
     thread::JoinHandle,
+    time::Instant,
 };
 #[derive(Clone, Copy)]
 pub struct Options
@@ -174,26 +171,6 @@ fn main()
         File::create(file_path).unwrap();
     }
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
-    let mut lines: Vec<String>;
-    let mut unmod_lines: Vec<String>;
-    let mut last: Vec<char> = Vec::new();
-    let mut input: Vec<char> = Vec::new();
-    let mut current: Vec<char> = Vec::new();
-    let mut inputs: Vec<String>;
-    let (
-        mut c,
-        mut i,
-        mut max,
-        mut frac,
-        mut l,
-        mut r,
-        mut split,
-        mut funcs,
-        mut v,
-        mut start,
-        mut placement,
-    );
-    let mut end = 0;
     let mut exit = false;
     let mut cut: Vec<char> = Vec::new();
     'main: loop
@@ -206,13 +183,13 @@ fn main()
             }
             break;
         }
-        input.clear();
-        frac = 0;
+        let mut input = Vec::new();
+        let mut frac = 0;
         if !args.is_empty()
         {
             if options.debug
             {
-                watch = Some(std::time::Instant::now());
+                watch = Some(Instant::now());
             }
             input = args.first().unwrap().chars().collect();
             args.remove(0);
@@ -224,8 +201,7 @@ fn main()
                         &vars,
                         &mut Vec::new(),
                         options,
-                    )
-                    .replace('_', &format!("({})", last.iter().collect::<String>())),
+                    ),
                     options,
                 )
                 {
@@ -251,7 +227,6 @@ fn main()
             {
                 println!();
             }
-            last = input.clone();
             if args.is_empty()
             {
                 exit = true;
@@ -271,28 +246,31 @@ fn main()
                 print!("\x1b[G\x1b[K");
             }
             stdout().flush().unwrap();
-            current.clear();
-            lines = BufReader::new(File::open(file_path).unwrap())
+            let mut current = Vec::new();
+            let mut lines: Vec<String> = BufReader::new(File::open(file_path).unwrap())
                 .lines()
                 .map(|l| l.unwrap())
                 .collect();
-            unmod_lines = lines.clone();
-            i = lines.len() as i32;
-            max = i;
-            placement = 0;
-            last = lines
-                .last()
-                .unwrap_or(&String::new())
-                .clone()
-                .chars()
-                .collect::<Vec<char>>();
-            start = 0;
+            let unmod_lines = lines.clone();
+            let mut i = lines.len();
+            let max = i;
+            let mut placement = 0;
+            let last = if i == 0
+            {
+                Vec::new()
+            }
+            else
+            {
+                lines[i - 1].chars().collect::<Vec<char>>()
+            };
+            let mut start = 0;
+            let mut end = 0;
             loop
             {
-                c = read_single_char();
+                let c = read_single_char();
                 if options.debug
                 {
-                    watch = Some(std::time::Instant::now());
+                    watch = Some(Instant::now());
                 }
                 match c
                 {
@@ -320,7 +298,6 @@ fn main()
                         {
                             println!("{}", "\n".repeat(frac));
                         }
-                        end = 0;
                         break;
                     }
                     '\x08' =>
@@ -345,7 +322,7 @@ fn main()
                         }
                         else
                         {
-                            lines[i as usize] = input.clone().iter().collect::<String>();
+                            lines[i] = input.clone().iter().collect::<String>();
                         }
                         frac = if options.real_time_output
                         {
@@ -394,7 +371,7 @@ fn main()
                         }
                         else
                         {
-                            lines[i as usize] = input.clone().iter().collect::<String>();
+                            lines[i] = input.clone().iter().collect::<String>();
                         }
                         frac = if options.real_time_output
                         {
@@ -553,7 +530,7 @@ fn main()
                     {
                         // up history
                         i -= if i > 0 { 1 } else { 0 };
-                        input = lines[i as usize].clone().chars().collect::<Vec<char>>();
+                        input = lines[i].clone().chars().collect::<Vec<char>>();
                         placement = input.len();
                         end = input.len();
                         start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
@@ -586,7 +563,7 @@ fn main()
                         }
                         else
                         {
-                            input = lines[i as usize].clone().chars().collect::<Vec<char>>();
+                            input = lines[i].clone().chars().collect::<Vec<char>>();
                         }
                         placement = input.len();
                         end = input.len();
@@ -760,7 +737,7 @@ fn main()
                         }
                         else
                         {
-                            lines[i as usize] = input.clone().iter().collect::<String>();
+                            lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output
                         {
@@ -793,243 +770,7 @@ fn main()
             {
                 continue;
             }
-            match input.iter().collect::<String>().as_str()
-            {
-                "color" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.color = !options.color;
-                }
-                "prompt" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.prompt = !options.prompt;
-                }
-                "depth" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.depth = !options.depth;
-                }
-                "deg" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.deg = Degrees;
-                }
-                "rad" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.deg = Radians;
-                }
-                "grad" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.deg = Gradians;
-                }
-                "rt" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.real_time_output = !options.real_time_output;
-                }
-                "tau" => options.tau = true,
-                "pi" => options.tau = false,
-                "small_e" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.small_e = !options.small_e
-                }
-                "sci" | "scientific" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.sci = !options.sci;
-                }
-                "clear" =>
-                {
-                    print!("\x1b[H\x1b[J");
-                    stdout().flush().unwrap();
-                }
-                "debug" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.debug = !options.debug;
-                    watch = None;
-                }
-                "help" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    help();
-                    continue;
-                }
-                "line" | "lines" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.lines = !options.lines;
-                }
-                "polar" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.polar = !options.polar;
-                }
-                "frac" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.frac = !options.frac;
-                }
-                "multi" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.multi = !options.multi;
-                }
-                "tabbed" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.tabbed = !options.tabbed;
-                }
-                "comma" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    options.comma = !options.comma;
-                }
-                "history" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    for l in lines
-                    {
-                        println!("{}", l);
-                    }
-                    continue;
-                }
-                "vars" | "variables" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    for v in vars.iter()
-                    {
-                        if v[0].contains('(')
-                        {
-                            println!("{}={}", v[0], v[1]);
-                        }
-                        else
-                        {
-                            match &do_math(
-                                get_func(
-                                    &input_var(&v[1], &vars, &mut Vec::new(), options),
-                                    options,
-                                )
-                                .unwrap(),
-                                options.deg,
-                                options.prec,
-                            )
-                            .unwrap()
-                            {
-                                Num(n) =>
-                                {
-                                    let n = get_output(&options, n);
-                                    println!("{}={}{}", v[0], n.0, n.1)
-                                }
-                                Vector(m) =>
-                                {
-                                    let mut st = String::new();
-                                    for i in m
-                                    {
-                                        let n = get_output(&options, i);
-                                        st.push_str(&n.0);
-                                        st.push_str(&n.1);
-                                        st.push(',');
-                                    }
-                                    println!("{}={{{}}}", v[0], st.trim_end_matches(','))
-                                }
-                                Matrix(m) =>
-                                {
-                                    let mut st = String::new();
-                                    for i in m
-                                    {
-                                        st.push('{');
-                                        for g in i
-                                        {
-                                            let n = get_output(&options, g);
-                                            st.push_str(&n.0);
-                                            st.push_str(&n.1);
-                                            st.push(',');
-                                        }
-                                        st = st.trim_end_matches(',').to_string();
-                                        st.push('}');
-                                        st.push(',');
-                                    }
-                                    println!("{}={{{}}}", v[0], st.trim_end_matches(','))
-                                }
-                                _ => continue,
-                            }
-                        }
-                    }
-                }
-                "lvars" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    for v in vars.iter()
-                    {
-                        println!("{}={}", v[0], v[1]);
-                    }
-                }
-                "version" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-                    continue;
-                }
-                "exit" | "quit" | "break" =>
-                {
-                    print!("\x1b[A\x1b[G\x1b[K");
-                    stdout().flush().unwrap();
-                    break;
-                }
-                _ =>
-                {
-                    let n = input.iter().collect::<String>();
-                    split = n.splitn(2, ' ');
-                    let next = split.next().unwrap();
-                    if next == "history"
-                    {
-                        print!("\x1b[A\x1b[G\x1b[K");
-                        stdout().flush().unwrap();
-                        r = split.next().unwrap();
-                        for i in lines
-                        {
-                            if i.contains(r)
-                            {
-                                println!("{}", i);
-                            }
-                        }
-                        continue;
-                    }
-                    if next == "help"
-                    {
-                        print!("\x1b[A\x1b[G\x1b[K");
-                        stdout().flush().unwrap();
-                        get_help(split.next().unwrap());
-                        continue;
-                    }
-                }
-            }
+            commands(&mut options, &mut watch, &mut vars, &mut lines, &mut input);
             write(
                 &input
                     .iter()
@@ -1041,106 +782,14 @@ fn main()
         }
         if input.ends_with(&['='])
         {
-            l = input[..input.len() - 1].iter().collect::<String>();
-            match l.as_str()
-            {
-                "color" => println!("{}", options.color),
-                "prompt" => println!("{}", options.prompt),
-                "rt" => println!("{}", options.real_time_output),
-                "sci" | "scientific" => println!("{}", options.sci),
-                "debug" => println!("{}", options.debug),
-                "line" => println!("{}", options.lines),
-                "polar" => println!("{}", options.polar),
-                "frac" => println!("{}", options.frac),
-                "multi" => println!("{}", options.multi),
-                "tabbed" => println!("{}", options.tabbed),
-                "comma" => println!("{}", options.comma),
-                "point" => println!("{}", options.point_style),
-                "base" => println!("{}", options.base),
-                "decimal" | "deci" | "decimals" => println!("{}", options.decimal_places),
-                "prec" | "precision" => println!("{}", options.prec),
-                "xr" => println!("{},{}", options.xr.0, options.xr.1),
-                "yr" => println!("{},{}", options.yr.0, options.yr.1),
-                "zr" => println!("{},{}", options.zr.0, options.zr.1),
-                "range" => println!(
-                    "x:{},{} y:{},{} z:{},{}",
-                    options.xr.0,
-                    options.xr.1,
-                    options.yr.0,
-                    options.yr.1,
-                    options.zr.0,
-                    options.zr.1
-                ),
-                "frac_iter" => println!("{}", options.frac_iter),
-                "2d" => println!("{}", options.samples_2d),
-                "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
-                _ =>
-                {
-                    for i in
-                        match get_func(&input_var(&l, &vars, &mut Vec::new(), options), options)
-                        {
-                            Ok(n) => n,
-                            Err(_) => continue,
-                        }
-                    {
-                        match i
-                        {
-                            Num(n) =>
-                            {
-                                let n = get_output(&options, &n);
-                                print!(
-                                    "{}{}{}",
-                                    n.0,
-                                    n.1,
-                                    if options.color { "\x1b[0m" } else { "" }
-                                )
-                            }
-                            Vector(n) =>
-                            {
-                                let mut str = String::new();
-                                let mut num;
-                                for i in n
-                                {
-                                    num = get_output(&options, &i);
-                                    str.push_str(&format!(
-                                        "{}{}{},",
-                                        num.0,
-                                        num.1,
-                                        if options.color { "\x1b[0m" } else { "" }
-                                    ));
-                                }
-                                str.pop();
-                                print!("{{{}}}", str)
-                            }
-                            Matrix(n) =>
-                            {
-                                let mut str = String::new();
-                                let mut num;
-                                for i in n
-                                {
-                                    for j in i
-                                    {
-                                        num = get_output(&options, &j);
-                                        str.push_str(&format!(
-                                            "{}{}{},",
-                                            num.0,
-                                            num.1,
-                                            if options.color { "\x1b[0m" } else { "" }
-                                        ));
-                                    }
-                                }
-                                str.pop();
-                                print!("{{{}}}", str)
-                            }
-                            Str(n) => print!("{}", n),
-                        }
-                    }
-                    println!();
-                }
-            }
+            equal_to(
+                &mut options,
+                &mut vars,
+                &input[..input.len() - 1].iter().collect::<String>(),
+            );
             continue;
         }
-        if input
+        else if input
             .iter()
             .collect::<String>()
             .replace("==", "")
@@ -1152,356 +801,17 @@ fn main()
             print!("\x1b[J");
             stdout().flush().unwrap();
             let n = input.iter().collect::<String>();
-            split = n.splitn(2, '=');
+            let mut split = n.splitn(2, '=');
             let s = split.next().unwrap().replace(' ', "");
-            l = s;
-            r = split.next().unwrap();
+            let l = s;
+            let r = split.next().unwrap();
             if l.is_empty()
             {
                 continue;
             }
-            match l.as_str()
+            if set_commands(options, &mut vars, &mut old, &l, r)
             {
-                "point" =>
-                {
-                    if matches!(
-                        r,
-                        "." | "+"
-                            | "x"
-                            | "*"
-                            | "s"
-                            | "S"
-                            | "o"
-                            | "O"
-                            | "t"
-                            | "T"
-                            | "d"
-                            | "D"
-                            | "r"
-                            | "R"
-                    )
-                    {
-                        options.point_style = r.chars().next().unwrap();
-                    }
-                    else
-                    {
-                        println!("Invalid point type");
-                    }
-                    continue;
-                }
-                "base" =>
-                {
-                    options.base = match r.parse::<usize>()
-                    {
-                        Ok(n) =>
-                        {
-                            if !(2..=36).contains(&n)
-                            {
-                                println!("Invalid base");
-                                options.base
-                            }
-                            else
-                            {
-                                n
-                            }
-                        }
-                        Err(_) =>
-                        {
-                            println!("Invalid base");
-                            options.base
-                        }
-                    };
-                    continue;
-                }
-                "decimal" | "deci" | "decimals" =>
-                {
-                    if r == "-1"
-                    {
-                        options.decimal_places = usize::MAX - 1;
-                    }
-                    else if r == "-2"
-                    {
-                        options.decimal_places = usize::MAX;
-                    }
-                    else
-                    {
-                        options.decimal_places = match r.parse::<usize>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid decimal");
-                                options.decimal_places
-                            }
-                        };
-                    }
-                    continue;
-                }
-                "prec" | "precision" =>
-                {
-                    options.prec = if r == "0"
-                    {
-                        println!("Invalid precision");
-                        options.prec
-                    }
-                    else
-                    {
-                        match r.parse::<u32>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid precision");
-                                options.prec
-                            }
-                        }
-                    };
-                    if options.allow_vars
-                    {
-                        v = get_vars(options);
-                        for i in &old
-                        {
-                            for (j, var) in vars.iter_mut().enumerate()
-                            {
-                                if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
-                                {
-                                    *var = v[j].clone();
-                                }
-                            }
-                        }
-                        old = v;
-                    }
-                    continue;
-                }
-                "range" =>
-                {
-                    if r.contains(',')
-                    {
-                        (
-                            options.xr.0,
-                            options.xr.1,
-                            options.yr.0,
-                            options.yr.1,
-                            options.zr.0,
-                            options.zr.1,
-                        ) = match (
-                            r.split(',').next().unwrap().parse::<f64>(),
-                            r.split(',').last().unwrap().parse::<f64>(),
-                        )
-                        {
-                            (Ok(min), Ok(max)) => (min, max, min, max, min, max),
-                            _ =>
-                            {
-                                println!("Invalid range");
-                                (
-                                    options.xr.0,
-                                    options.xr.1,
-                                    options.yr.0,
-                                    options.yr.1,
-                                    options.zr.0,
-                                    options.zr.1,
-                                )
-                            }
-                        }
-                    }
-                    else
-                    {
-                        (
-                            options.xr.0,
-                            options.xr.1,
-                            options.yr.0,
-                            options.yr.1,
-                            options.zr.0,
-                            options.zr.1,
-                        ) = match r.parse::<f64>()
-                        {
-                            Ok(n) => (-n, n, -n, n, -n, n),
-                            Err(_) =>
-                            {
-                                println!("Invalid range");
-                                (
-                                    options.xr.0,
-                                    options.xr.1,
-                                    options.yr.0,
-                                    options.yr.1,
-                                    options.zr.0,
-                                    options.zr.1,
-                                )
-                            }
-                        }
-                    }
-                }
-                "xr" =>
-                {
-                    if r.contains(',')
-                    {
-                        options.xr.0 = match r.split(',').next().unwrap().parse::<f64>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid x range");
-                                options.xr.0
-                            }
-                        };
-                        options.xr.1 = match r.split(',').last().unwrap().parse::<f64>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid x range");
-                                options.xr.1
-                            }
-                        };
-                        continue;
-                    }
-                    else
-                    {
-                        (options.xr.0, options.xr.1) = match r.parse::<f64>()
-                        {
-                            Ok(n) => (-n, n),
-                            Err(_) =>
-                            {
-                                println!("Invalid x range");
-                                (options.xr.0, options.xr.1)
-                            }
-                        }
-                    }
-                }
-                "yr" =>
-                {
-                    if r.contains(',')
-                    {
-                        options.yr.0 = match r.split(',').next().unwrap().parse::<f64>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid y range");
-                                options.yr.0
-                            }
-                        };
-                        options.yr.1 = match r.split(',').last().unwrap().parse::<f64>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid y range");
-                                options.yr.1
-                            }
-                        };
-                        continue;
-                    }
-                    else
-                    {
-                        (options.yr.0, options.yr.1) = match r.parse::<f64>()
-                        {
-                            Ok(n) => (-n, n),
-                            Err(_) =>
-                            {
-                                println!("Invalid y range");
-                                (options.yr.0, options.yr.1)
-                            }
-                        }
-                    }
-                }
-                "zr" =>
-                {
-                    if r.contains(',')
-                    {
-                        options.zr.0 = match r.split(',').next().unwrap().parse::<f64>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid z range");
-                                options.zr.0
-                            }
-                        };
-                        options.zr.1 = match r.split(',').last().unwrap().parse::<f64>()
-                        {
-                            Ok(n) => n,
-                            Err(_) =>
-                            {
-                                println!("Invalid z range");
-                                options.zr.1
-                            }
-                        };
-                        continue;
-                    }
-                    else
-                    {
-                        (options.zr.0, options.zr.1) = match r.parse::<f64>()
-                        {
-                            Ok(n) => (-n, n),
-                            Err(_) =>
-                            {
-                                println!("Invalid z range");
-                                (options.zr.0, options.zr.1)
-                            }
-                        }
-                    }
-                }
-                "frac_iter" =>
-                {
-                    options.frac_iter = match r.parse::<usize>()
-                    {
-                        Ok(n) => n,
-                        Err(_) =>
-                        {
-                            println!("Invalid frac_iter");
-                            options.frac_iter
-                        }
-                    };
-                    continue;
-                }
-                "2d" =>
-                {
-                    options.samples_2d = match r.parse::<f64>()
-                    {
-                        Ok(n) => n,
-                        Err(_) =>
-                        {
-                            println!("Invalid 2d sample size");
-                            options.samples_2d
-                        }
-                    };
-                    continue;
-                }
-                "3d" =>
-                {
-                    if r.contains(',')
-                    {
-                        options.samples_3d = match (
-                            r.split(',').next().unwrap().parse::<f64>(),
-                            r.split(',').last().unwrap().parse::<f64>(),
-                        )
-                        {
-                            (Ok(n), Ok(b)) => (n, b),
-                            _ =>
-                            {
-                                println!("Invalid 3d sample size");
-                                options.samples_3d
-                            }
-                        };
-                        continue;
-                    }
-                    else
-                    {
-                        options.samples_3d = match r.parse::<f64>()
-                        {
-                            Ok(n) => (n, n),
-                            Err(_) =>
-                            {
-                                println!("Invalid 3d sample size");
-                                options.samples_3d
-                            }
-                        };
-                        continue;
-                    }
-                }
-                _ =>
-                {}
+                continue;
             }
             if l.contains('(')
             {
@@ -1549,24 +859,25 @@ fn main()
             }
             continue;
         }
-        else if input.contains(&'#')
-            || can_graph(&input_var(
-                &input.iter().collect::<String>(),
-                &vars,
-                &mut Vec::new(),
-                options,
-            ))
+        else if input.iter().collect::<String>() != "history"
+            && (input.contains(&'#')
+                || can_graph(&input_var(
+                    &input.iter().collect::<String>(),
+                    &vars,
+                    &mut Vec::new(),
+                    options,
+                )))
         {
             print!("\x1b[G\x1b[K");
             stdout().flush().unwrap();
-            inputs = input
+            let mut inputs: Vec<String> = input
                 .iter()
                 .collect::<String>()
                 .split('#')
                 .map(String::from)
                 .collect();
             let unmod = inputs.clone();
-            funcs = Vec::new();
+            let mut funcs = Vec::new();
             for i in inputs.iter_mut()
             {
                 if i.is_empty()

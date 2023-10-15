@@ -8,7 +8,6 @@ pub fn fraction(value: Float, options: Options) -> String
     {
         return String::new();
     }
-    let mut nums: Vec<Float> = vec![];
     let rt3 = Float::with_val(prec, 3).sqrt();
     let values = [
         Float::with_val(prec, 1.0),
@@ -34,11 +33,10 @@ pub fn fraction(value: Float, options: Options) -> String
         "".to_string()
     };
     let val = value.abs();
-    let (mut number, mut recip, mut fract, mut orig);
     let tau = if options.tau { "τ" } else { "π" };
     for (i, constant) in values.iter().enumerate()
     {
-        orig = val.clone() / constant;
+        let orig = val.clone() / constant;
         if orig.clone().fract().is_zero()
         {
             return if i == 0
@@ -70,12 +68,12 @@ pub fn fraction(value: Float, options: Options) -> String
                 )
             };
         }
-        number = orig.clone().fract();
-        nums.clear();
+        let mut number = orig.clone().fract();
+        let mut nums = Vec::new();
         for _ in 0..=options.frac_iter
         {
-            recip = number.clone().recip();
-            fract = recip.clone().fract();
+            let mut recip = number.clone().recip();
+            let fract = recip.clone().fract();
             if fract < 1e-6
             {
                 let mut last = Float::with_val(prec, 1);

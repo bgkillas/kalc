@@ -1,11 +1,17 @@
 use crate::{
+    complex::NumStr::{Matrix, Num, Str, Vector},
     help::help,
+    math::do_math,
     options::AngleType::{Degrees, Gradians, Radians},
+    parse::get_func,
+    print::get_output,
+    vars::{get_vars, input_var},
     Options,
 };
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{stdout, BufRead, BufReader, Write},
+    time::Instant,
 };
 pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
 {
@@ -884,7 +890,679 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
     }
     err
 }
-
+pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str)
+{
+    match l
+    {
+        "color" => println!("{}", options.color),
+        "prompt" => println!("{}", options.prompt),
+        "rt" => println!("{}", options.real_time_output),
+        "sci" | "scientific" => println!("{}", options.sci),
+        "debug" => println!("{}", options.debug),
+        "line" => println!("{}", options.lines),
+        "polar" => println!("{}", options.polar),
+        "frac" => println!("{}", options.frac),
+        "multi" => println!("{}", options.multi),
+        "tabbed" => println!("{}", options.tabbed),
+        "comma" => println!("{}", options.comma),
+        "point" => println!("{}", options.point_style),
+        "base" => println!("{}", options.base),
+        "decimal" | "deci" | "decimals" => println!("{}", options.decimal_places),
+        "prec" | "precision" => println!("{}", options.prec),
+        "xr" => println!("{},{}", options.xr.0, options.xr.1),
+        "yr" => println!("{},{}", options.yr.0, options.yr.1),
+        "zr" => println!("{},{}", options.zr.0, options.zr.1),
+        "range" => println!(
+            "x:{},{} y:{},{} z:{},{}",
+            options.xr.0, options.xr.1, options.yr.0, options.yr.1, options.zr.0, options.zr.1
+        ),
+        "frac_iter" => println!("{}", options.frac_iter),
+        "2d" => println!("{}", options.samples_2d),
+        "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
+        _ =>
+        {
+            for i in match get_func(&input_var(l, vars, &mut Vec::new(), *options), *options)
+            {
+                Ok(n) => n,
+                Err(_) => return,
+            }
+            {
+                match i
+                {
+                    Num(n) =>
+                    {
+                        let n = get_output(options, &n);
+                        print!(
+                            "{}{}{}",
+                            n.0,
+                            n.1,
+                            if options.color { "\x1b[0m" } else { "" }
+                        )
+                    }
+                    Vector(n) =>
+                    {
+                        let mut str = String::new();
+                        let mut num;
+                        for i in n
+                        {
+                            num = get_output(options, &i);
+                            str.push_str(&format!(
+                                "{}{}{},",
+                                num.0,
+                                num.1,
+                                if options.color { "\x1b[0m" } else { "" }
+                            ));
+                        }
+                        str.pop();
+                        print!("{{{}}}", str)
+                    }
+                    Matrix(n) =>
+                    {
+                        let mut str = String::new();
+                        let mut num;
+                        for i in n
+                        {
+                            for j in i
+                            {
+                                num = get_output(options, &j);
+                                str.push_str(&format!(
+                                    "{}{}{},",
+                                    num.0,
+                                    num.1,
+                                    if options.color { "\x1b[0m" } else { "" }
+                                ));
+                            }
+                        }
+                        str.pop();
+                        print!("{{{}}}", str)
+                    }
+                    Str(n) => print!("{}", n),
+                }
+            }
+            println!();
+        }
+    }
+}
+pub fn set_commands(
+    mut options: Options,
+    vars: &mut [[String; 2]],
+    old: &mut Vec<[String; 2]>,
+    l: &str,
+    r: &str,
+) -> bool
+{
+    match l
+    {
+        "point" =>
+        {
+            if matches!(
+                r,
+                "." | "+" | "x" | "*" | "s" | "S" | "o" | "O" | "t" | "T" | "d" | "D" | "r" | "R"
+            )
+            {
+                options.point_style = r.chars().next().unwrap();
+            }
+            else
+            {
+                println!("Invalid point type");
+            }
+            return true;
+        }
+        "base" =>
+        {
+            options.base = match r.parse::<usize>()
+            {
+                Ok(n) =>
+                {
+                    if !(2..=36).contains(&n)
+                    {
+                        println!("Invalid base");
+                        options.base
+                    }
+                    else
+                    {
+                        n
+                    }
+                }
+                Err(_) =>
+                {
+                    println!("Invalid base");
+                    options.base
+                }
+            };
+            return true;
+        }
+        "decimal" | "deci" | "decimals" =>
+        {
+            if r == "-1"
+            {
+                options.decimal_places = usize::MAX - 1;
+            }
+            else if r == "-2"
+            {
+                options.decimal_places = usize::MAX;
+            }
+            else
+            {
+                options.decimal_places = match r.parse::<usize>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid decimal");
+                        options.decimal_places
+                    }
+                };
+            }
+            return true;
+        }
+        "prec" | "precision" =>
+        {
+            options.prec = if r == "0"
+            {
+                println!("Invalid precision");
+                options.prec
+            }
+            else
+            {
+                match r.parse::<u32>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid precision");
+                        options.prec
+                    }
+                }
+            };
+            if options.allow_vars
+            {
+                let v = get_vars(options);
+                for i in old.clone()
+                {
+                    for (j, var) in vars.iter_mut().enumerate()
+                    {
+                        if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
+                        {
+                            *var = v[j].clone();
+                        }
+                    }
+                }
+                *old = v;
+            }
+            return true;
+        }
+        "range" =>
+        {
+            if r.contains(',')
+            {
+                (
+                    options.xr.0,
+                    options.xr.1,
+                    options.yr.0,
+                    options.yr.1,
+                    options.zr.0,
+                    options.zr.1,
+                ) = match (
+                    r.split(',').next().unwrap().parse::<f64>(),
+                    r.split(',').last().unwrap().parse::<f64>(),
+                )
+                {
+                    (Ok(min), Ok(max)) => (min, max, min, max, min, max),
+                    _ =>
+                    {
+                        println!("Invalid range");
+                        (
+                            options.xr.0,
+                            options.xr.1,
+                            options.yr.0,
+                            options.yr.1,
+                            options.zr.0,
+                            options.zr.1,
+                        )
+                    }
+                }
+            }
+            else
+            {
+                (
+                    options.xr.0,
+                    options.xr.1,
+                    options.yr.0,
+                    options.yr.1,
+                    options.zr.0,
+                    options.zr.1,
+                ) = match r.parse::<f64>()
+                {
+                    Ok(n) => (-n, n, -n, n, -n, n),
+                    Err(_) =>
+                    {
+                        println!("Invalid range");
+                        (
+                            options.xr.0,
+                            options.xr.1,
+                            options.yr.0,
+                            options.yr.1,
+                            options.zr.0,
+                            options.zr.1,
+                        )
+                    }
+                }
+            }
+        }
+        "xr" =>
+        {
+            if r.contains(',')
+            {
+                options.xr.0 = match r.split(',').next().unwrap().parse::<f64>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid x range");
+                        options.xr.0
+                    }
+                };
+                options.xr.1 = match r.split(',').last().unwrap().parse::<f64>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid x range");
+                        options.xr.1
+                    }
+                };
+                return true;
+            }
+            else
+            {
+                (options.xr.0, options.xr.1) = match r.parse::<f64>()
+                {
+                    Ok(n) => (-n, n),
+                    Err(_) =>
+                    {
+                        println!("Invalid x range");
+                        (options.xr.0, options.xr.1)
+                    }
+                }
+            }
+        }
+        "yr" =>
+        {
+            if r.contains(',')
+            {
+                options.yr.0 = match r.split(',').next().unwrap().parse::<f64>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid y range");
+                        options.yr.0
+                    }
+                };
+                options.yr.1 = match r.split(',').last().unwrap().parse::<f64>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid y range");
+                        options.yr.1
+                    }
+                };
+                return true;
+            }
+            else
+            {
+                (options.yr.0, options.yr.1) = match r.parse::<f64>()
+                {
+                    Ok(n) => (-n, n),
+                    Err(_) =>
+                    {
+                        println!("Invalid y range");
+                        (options.yr.0, options.yr.1)
+                    }
+                }
+            }
+        }
+        "zr" =>
+        {
+            if r.contains(',')
+            {
+                options.zr.0 = match r.split(',').next().unwrap().parse::<f64>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid z range");
+                        options.zr.0
+                    }
+                };
+                options.zr.1 = match r.split(',').last().unwrap().parse::<f64>()
+                {
+                    Ok(n) => n,
+                    Err(_) =>
+                    {
+                        println!("Invalid z range");
+                        options.zr.1
+                    }
+                };
+                return true;
+            }
+            else
+            {
+                (options.zr.0, options.zr.1) = match r.parse::<f64>()
+                {
+                    Ok(n) => (-n, n),
+                    Err(_) =>
+                    {
+                        println!("Invalid z range");
+                        (options.zr.0, options.zr.1)
+                    }
+                }
+            }
+        }
+        "frac_iter" =>
+        {
+            options.frac_iter = match r.parse::<usize>()
+            {
+                Ok(n) => n,
+                Err(_) =>
+                {
+                    println!("Invalid frac_iter");
+                    options.frac_iter
+                }
+            };
+            return true;
+        }
+        "2d" =>
+        {
+            options.samples_2d = match r.parse::<f64>()
+            {
+                Ok(n) => n,
+                Err(_) =>
+                {
+                    println!("Invalid 2d sample size");
+                    options.samples_2d
+                }
+            };
+            return true;
+        }
+        "3d" =>
+        {
+            return if r.contains(',')
+            {
+                options.samples_3d = match (
+                    r.split(',').next().unwrap().parse::<f64>(),
+                    r.split(',').last().unwrap().parse::<f64>(),
+                )
+                {
+                    (Ok(n), Ok(b)) => (n, b),
+                    _ =>
+                    {
+                        println!("Invalid 3d sample size");
+                        options.samples_3d
+                    }
+                };
+                true
+            }
+            else
+            {
+                options.samples_3d = match r.parse::<f64>()
+                {
+                    Ok(n) => (n, n),
+                    Err(_) =>
+                    {
+                        println!("Invalid 3d sample size");
+                        options.samples_3d
+                    }
+                };
+                true
+            }
+        }
+        _ =>
+        {}
+    }
+    false
+}
+pub fn commands(
+    options: &mut Options,
+    watch: &mut Option<Instant>,
+    vars: &mut [[String; 2]],
+    lines: &mut Vec<String>,
+    input: &mut Vec<char>,
+)
+{
+    match input.iter().collect::<String>().as_str()
+    {
+        "color" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.color = !options.color;
+        }
+        "prompt" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.prompt = !options.prompt;
+        }
+        "depth" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.depth = !options.depth;
+        }
+        "deg" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.deg = Degrees;
+        }
+        "rad" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.deg = Radians;
+        }
+        "grad" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.deg = Gradians;
+        }
+        "rt" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.real_time_output = !options.real_time_output;
+        }
+        "tau" => options.tau = true,
+        "pi" => options.tau = false,
+        "small_e" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.small_e = !options.small_e
+        }
+        "sci" | "scientific" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.sci = !options.sci;
+        }
+        "clear" =>
+        {
+            print!("\x1b[H\x1b[J");
+            stdout().flush().unwrap();
+        }
+        "debug" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.debug = !options.debug;
+            *watch = None;
+        }
+        "help" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            help();
+        }
+        "line" | "lines" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.lines = !options.lines;
+        }
+        "polar" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.polar = !options.polar;
+        }
+        "frac" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.frac = !options.frac;
+        }
+        "multi" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.multi = !options.multi;
+        }
+        "tabbed" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.tabbed = !options.tabbed;
+        }
+        "comma" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            options.comma = !options.comma;
+        }
+        "history" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            for l in lines
+            {
+                println!("{}", l);
+            }
+        }
+        "vars" | "variables" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            for v in vars.iter()
+            {
+                if v[0].contains('(')
+                {
+                    println!("{}={}", v[0], v[1]);
+                }
+                else
+                {
+                    match &do_math(
+                        get_func(&input_var(&v[1], vars, &mut Vec::new(), *options), *options)
+                            .unwrap(),
+                        options.deg,
+                        options.prec,
+                    )
+                    .unwrap()
+                    {
+                        Num(n) =>
+                        {
+                            let n = get_output(options, n);
+                            println!("{}={}{}", v[0], n.0, n.1)
+                        }
+                        Vector(m) =>
+                        {
+                            let mut st = String::new();
+                            for i in m
+                            {
+                                let n = get_output(options, i);
+                                st.push_str(&n.0);
+                                st.push_str(&n.1);
+                                st.push(',');
+                            }
+                            println!("{}={{{}}}", v[0], st.trim_end_matches(','))
+                        }
+                        Matrix(m) =>
+                        {
+                            let mut st = String::new();
+                            for i in m
+                            {
+                                st.push('{');
+                                for g in i
+                                {
+                                    let n = get_output(options, g);
+                                    st.push_str(&n.0);
+                                    st.push_str(&n.1);
+                                    st.push(',');
+                                }
+                                st = st.trim_end_matches(',').to_string();
+                                st.push('}');
+                                st.push(',');
+                            }
+                            println!("{}={{{}}}", v[0], st.trim_end_matches(','))
+                        }
+                        _ => continue,
+                    }
+                }
+            }
+        }
+        "lvars" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            for v in vars.iter()
+            {
+                println!("{}={}", v[0], v[1]);
+            }
+        }
+        "version" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+        }
+        "exit" | "quit" | "break" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout().flush().unwrap();
+            std::process::exit(0);
+        }
+        _ =>
+        {
+            let n = (*input).iter().collect::<String>();
+            let mut split = n.splitn(2, ' ');
+            let next = split.next().unwrap();
+            if next == "history"
+            {
+                print!("\x1b[A\x1b[G\x1b[K");
+                stdout().flush().unwrap();
+                let r = split.next().unwrap();
+                for i in lines
+                {
+                    if i.contains(r)
+                    {
+                        println!("{}", i);
+                    }
+                }
+            }
+            // if next == "help"
+            // {
+            //     print!("\x1b[A\x1b[G\x1b[K");
+            //     stdout().flush().unwrap();
+            //     get_help(split.next().unwrap());
+            //     continue;
+            // }
+        }
+    }
+}
 #[derive(Copy, Clone, PartialEq)]
 pub enum AngleType
 {

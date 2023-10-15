@@ -16,18 +16,6 @@ pub fn input_var(
         .chars()
         .collect::<Vec<char>>();
     let mut output = String::new();
-    let (
-        mut not_pushed,
-        mut start,
-        mut c,
-        mut k,
-        mut j,
-        mut v,
-        mut temp,
-        mut split,
-        mut value,
-        mut o,
-    );
     let mut commas: Vec<usize>;
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
@@ -84,8 +72,8 @@ pub fn input_var(
     let mut bracket = 0;
     'main: while i < chars.len()
     {
-        c = chars[i];
-        not_pushed = true;
+        let c = chars[i];
+        let mut not_pushed = true;
         if !c.is_alphabetic()
         {
             if c == '('
@@ -146,7 +134,7 @@ pub fn input_var(
                             && chars[i - 1].is_numeric()
                             && (chars[i + 1].is_numeric() || chars[i + 1] == '-')))
                 {
-                    j = i;
+                    let j = i;
                     if var[0].contains('(')
                         && input.contains('(')
                         && i + vl - 1 <= chars.len()
@@ -157,7 +145,7 @@ pub fn input_var(
                             .next()
                             == var[0].split('(').next()
                     {
-                        o = i;
+                        let o = i;
                         count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
                         {
@@ -188,7 +176,7 @@ pub fn input_var(
                         }
                         else if push
                         {
-                            k = 0;
+                            let mut k = 0;
                             for (f, c) in chars[j + 2..].iter().enumerate()
                             {
                                 if *c == ')'
@@ -206,12 +194,12 @@ pub fn input_var(
                             {
                                 continue;
                             }
-                            v = var[0].chars().collect::<Vec<char>>();
+                            let v = var[0].chars().collect::<Vec<char>>();
                             if input.contains(',') && var[0].contains(',') && chars.len() > 4
                             {
                                 not_pushed = false;
                                 output.push('(');
-                                temp = &chars
+                                let mut temp = &chars
                                     [j + var[0].chars().position(|c| c == '(').unwrap() + 1..i + 1];
                                 if temp.ends_with(&[')'])
                                 {
@@ -236,15 +224,15 @@ pub fn input_var(
                                 }
                                 if commas.len() == var[0].matches(',').count()
                                 {
-                                    start = 0;
-                                    split = Vec::new();
+                                    let mut start = 0;
+                                    let mut split = Vec::new();
                                     for end in commas
                                     {
                                         split.push(&temp[start..end]);
                                         start = end + 1;
                                     }
                                     split.push(&temp[start..]);
-                                    value = var[1].clone();
+                                    let mut value = var[1].clone();
                                     for i in 0..split.len()
                                     {
                                         value = value.replace(
@@ -262,7 +250,7 @@ pub fn input_var(
                             {
                                 not_pushed = false;
                                 output.push('(');
-                                temp =
+                                let mut temp =
                                     &chars[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
                                 if temp.ends_with(&[')'])
                                 {

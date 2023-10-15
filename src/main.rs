@@ -113,7 +113,7 @@ fn main()
     }
     let mut vars: Vec<[String; 2]> = if options.allow_vars
     {
-        get_vars(options.prec)
+        get_vars(options)
     }
     else
     {
@@ -222,7 +222,6 @@ fn main()
                     &input_var(
                         &input.iter().map(convert).collect::<String>(),
                         &vars,
-                        None,
                         &mut Vec::new(),
                         options,
                     )
@@ -246,7 +245,6 @@ fn main()
             if !(can_graph(&input_var(
                 &input.iter().collect::<String>(),
                 &vars,
-                None,
                 &mut Vec::new(),
                 options,
             )))
@@ -312,7 +310,6 @@ fn main()
                         if !(can_graph(&input_var(
                             &input.iter().collect::<String>(),
                             &vars,
-                            None,
                             &mut Vec::new(),
                             options,
                         )))
@@ -842,7 +839,12 @@ fn main()
                 }
                 "tau" => options.tau = true,
                 "pi" => options.tau = false,
-                "small_e" => options.small_e = !options.small_e,
+                "small_e" =>
+                {
+                    print!("\x1b[A\x1b[G\x1b[K");
+                    stdout().flush().unwrap();
+                    options.small_e = !options.small_e
+                }
                 "sci" | "scientific" =>
                 {
                     print!("\x1b[A\x1b[G\x1b[K");
@@ -928,7 +930,7 @@ fn main()
                         {
                             match &do_math(
                                 get_func(
-                                    &input_var(&v[1], &vars, Some(&v[0]), &mut Vec::new(), options),
+                                    &input_var(&v[1], &vars, &mut Vec::new(), options),
                                     options,
                                 )
                                 .unwrap(),
@@ -1074,14 +1076,12 @@ fn main()
                 "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
                 _ =>
                 {
-                    for i in match get_func(
-                        &input_var(&l, &vars, None, &mut Vec::new(), options),
-                        options,
-                    )
-                    {
-                        Ok(n) => n,
-                        Err(_) => continue,
-                    }
+                    for i in
+                        match get_func(&input_var(&l, &vars, &mut Vec::new(), options), options)
+                        {
+                            Ok(n) => n,
+                            Err(_) => continue,
+                        }
                     {
                         match i
                         {
@@ -1258,7 +1258,7 @@ fn main()
                     };
                     if options.allow_vars
                     {
-                        v = get_vars(options.prec);
+                        v = get_vars(options);
                         for i in &old
                         {
                             for (j, var) in vars.iter_mut().enumerate()
@@ -1503,6 +1503,22 @@ fn main()
                 _ =>
                 {}
             }
+            if l.contains('(')
+            {
+                let mut s = l.split('(').next().iter().copied().collect::<String>();
+                s.push('(');
+                let recur_test = r.split(&s);
+                let count = recur_test.clone().count();
+                for (i, s) in recur_test.enumerate()
+                {
+                    if i + 1 != count
+                        && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                    {
+                        println!("recursive functions not supported");
+                        continue 'main;
+                    }
+                }
+            }
             for (i, v) in vars.iter().enumerate()
             {
                 if v[0].split('(').next() == l.split('(').next()
@@ -1537,7 +1553,6 @@ fn main()
             || can_graph(&input_var(
                 &input.iter().collect::<String>(),
                 &vars,
-                None,
                 &mut Vec::new(),
                 options,
             ))
@@ -1558,7 +1573,7 @@ fn main()
                 {
                     continue;
                 }
-                *i = input_var(i, &vars, None, &mut Vec::new(), options)
+                *i = input_var(i, &vars, &mut Vec::new(), options)
                     .replace("zeta", "##ta##")
                     .replace("normalize", "##ma##")
                     .replace('z', "(x+y*i)")

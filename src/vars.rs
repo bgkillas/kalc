@@ -1,9 +1,11 @@
 use crate::{parse::is_func, Options};
-use rug::{float::Constant::Pi, Float};
+use rug::{
+    float::Constant::{Catalan, Euler, Pi},
+    Float,
+};
 pub fn input_var(
     input: &str,
     vars: &[[String; 2]],
-    dont_do: Option<&str>,
     sumrec: &mut Vec<(i32, String)>,
     options: Options,
 ) -> String
@@ -128,201 +130,177 @@ pub fn input_var(
             }
             sumrec.push(sum.clone());
         }
-        for var in vars
+        if i == 0 || !chars[i - 1].is_alphabetic()
         {
-            if sumrec.iter().any(|a| a.1.contains(&var[0]))
+            for var in vars
             {
-                continue;
-            }
-            vl = var[0].chars().collect::<Vec<char>>().len();
-            if var[0] != "e"
-                || (!options.small_e
-                    || !(i != 0
-                        && i + 1 != chars.len()
-                        && chars[i - 1].is_numeric()
-                        && (chars[i + 1].is_numeric() || chars[i + 1] == '-')))
-            {
-                j = i;
-                if var[0].contains('(')
-                    && input.contains('(')
-                    && i + vl - 1 <= chars.len()
-                    && chars[i..i + vl - 1]
-                        .iter()
-                        .collect::<String>()
-                        .split('(')
-                        .next()
-                        == var[0].split('(').next()
+                if sumrec.iter().any(|a| a.1.contains(&var[0]))
                 {
-                    o = i;
-                    count = 0;
-                    for (f, c) in chars[i..].iter().enumerate()
+                    continue;
+                }
+                vl = var[0].chars().collect::<Vec<char>>().len();
+                if var[0] != "e"
+                    || (!options.small_e
+                        || !(i != 0
+                            && i + 1 != chars.len()
+                            && chars[i - 1].is_numeric()
+                            && (chars[i + 1].is_numeric() || chars[i + 1] == '-')))
+                {
+                    j = i;
+                    if var[0].contains('(')
+                        && input.contains('(')
+                        && i + vl - 1 <= chars.len()
+                        && chars[i..i + vl - 1]
+                            .iter()
+                            .collect::<String>()
+                            .split('(')
+                            .next()
+                            == var[0].split('(').next()
                     {
-                        if *c == '('
+                        o = i;
+                        count = 0;
+                        for (f, c) in chars[i..].iter().enumerate()
                         {
-                            count += 1;
-                        }
-                        else if *c == ')'
-                        {
-                            count -= 1;
-                            if count == 0
+                            if *c == '('
                             {
-                                i += f;
-                                break;
+                                count += 1;
+                            }
+                            else if *c == ')'
+                            {
+                                count -= 1;
+                                if count == 0
+                                {
+                                    i += f;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    if i == j
-                    {
-                        i = input.len() - 1
-                    }
-                    if chars[j..i + 1].iter().collect::<String>() == var[0]
-                    {
-                        if let Some(n) = dont_do
+                        if i == j
                         {
-                            if n == var[0]
-                            {
-                                return String::new();
-                            }
+                            i = input.len() - 1
                         }
-                        not_pushed = false;
-                        output.push('(');
-                        output.push_str(&input_var(&var[1], vars, Some(&var[0]), sumrec, options));
-                        output.push(')');
-                    }
-                    else if push
-                    {
-                        k = 0;
-                        for (f, c) in chars[j + 2..].iter().enumerate()
-                        {
-                            if *c == ')'
-                            {
-                                k = f + j + 3;
-                                break;
-                            }
-                            else if f + j + 3 == chars.len()
-                            {
-                                k = f + j + 4;
-                                break;
-                            }
-                        }
-                        if k == 0
-                        {
-                            continue;
-                        }
-                        v = var[0].chars().collect::<Vec<char>>();
-                        if let Some(n) = dont_do
-                        {
-                            if n == var[0]
-                            {
-                                return String::new();
-                            }
-                        }
-                        if input.contains(',') && var[0].contains(',') && chars.len() > 4
+                        if chars[j..i + 1].iter().collect::<String>() == var[0]
                         {
                             not_pushed = false;
                             output.push('(');
-                            temp = &chars
-                                [j + var[0].chars().position(|c| c == '(').unwrap() + 1..i + 1];
-                            if temp.ends_with(&[')'])
+                            output.push_str(&input_var(&var[1], vars, sumrec, options));
+                            output.push(')');
+                        }
+                        else if push
+                        {
+                            k = 0;
+                            for (f, c) in chars[j + 2..].iter().enumerate()
                             {
-                                temp = &temp[..temp.len() - 1];
-                            }
-                            commas = Vec::new();
-                            count = 0;
-                            for (f, c) in temp.iter().enumerate()
-                            {
-                                if c == &'(' || c == &'{' || c == &'['
+                                if *c == ')'
                                 {
-                                    count += 1;
+                                    k = f + j + 3;
+                                    break;
                                 }
-                                else if c == &')' || c == &'}' || c == &']'
+                                else if f + j + 3 == chars.len()
                                 {
-                                    count -= 1;
-                                }
-                                else if c == &',' && count == 0
-                                {
-                                    commas.push(f);
+                                    k = f + j + 4;
+                                    break;
                                 }
                             }
-                            if commas.len() == var[0].matches(',').count()
+                            if k == 0
                             {
-                                start = 0;
-                                split = Vec::new();
-                                for end in commas
+                                continue;
+                            }
+                            v = var[0].chars().collect::<Vec<char>>();
+                            if input.contains(',') && var[0].contains(',') && chars.len() > 4
+                            {
+                                not_pushed = false;
+                                output.push('(');
+                                temp = &chars
+                                    [j + var[0].chars().position(|c| c == '(').unwrap() + 1..i + 1];
+                                if temp.ends_with(&[')'])
                                 {
-                                    split.push(&temp[start..end]);
-                                    start = end + 1;
+                                    temp = &temp[..temp.len() - 1];
                                 }
-                                split.push(&temp[start..]);
-                                value = var[1].clone();
-                                for i in 0..split.len()
+                                commas = Vec::new();
+                                count = 0;
+                                for (f, c) in temp.iter().enumerate()
                                 {
-                                    value = value.replace(
-                                        v[v.len()
-                                            - 2 * (i as i32 - split.len() as i32).unsigned_abs()
-                                                as usize],
-                                        &format!("({})", &split[i].iter().collect::<String>(),),
-                                    );
+                                    if c == &'(' || c == &'{' || c == &'['
+                                    {
+                                        count += 1;
+                                    }
+                                    else if c == &')' || c == &'}' || c == &']'
+                                    {
+                                        count -= 1;
+                                    }
+                                    else if c == &',' && count == 0
+                                    {
+                                        commas.push(f);
+                                    }
                                 }
-                                output.push_str(&input_var(
-                                    &value,
-                                    vars,
-                                    Some(&var[0]),
-                                    sumrec,
-                                    options,
-                                ));
+                                if commas.len() == var[0].matches(',').count()
+                                {
+                                    start = 0;
+                                    split = Vec::new();
+                                    for end in commas
+                                    {
+                                        split.push(&temp[start..end]);
+                                        start = end + 1;
+                                    }
+                                    split.push(&temp[start..]);
+                                    value = var[1].clone();
+                                    for i in 0..split.len()
+                                    {
+                                        value = value.replace(
+                                            v[v.len()
+                                                - 2 * (i as i32 - split.len() as i32).unsigned_abs()
+                                                    as usize],
+                                            &format!("({})", &split[i].iter().collect::<String>(),),
+                                        );
+                                    }
+                                    output.push_str(&input_var(&value, vars, sumrec, options));
+                                    output.push(')');
+                                }
+                            }
+                            else
+                            {
+                                not_pushed = false;
+                                output.push('(');
+                                temp =
+                                    &chars[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
+                                if temp.ends_with(&[')'])
+                                {
+                                    temp = &temp[..temp.len() - 1];
+                                }
+                                output.push_str(
+                                    &input_var(&var[1], vars, sumrec, options).replace(
+                                        v[v.len() - 2],
+                                        &format!(
+                                            "({})",
+                                            &input_var(
+                                                &temp.iter().collect::<String>(),
+                                                vars,
+                                                sumrec,
+                                                options
+                                            ),
+                                        ),
+                                    ),
+                                );
                                 output.push(')');
                             }
                         }
                         else
                         {
-                            not_pushed = false;
-                            output.push('(');
-                            temp = &chars[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
-                            if temp.ends_with(&[')'])
-                            {
-                                temp = &temp[..temp.len() - 1];
-                            }
-                            output.push_str(
-                                &input_var(&var[1], vars, Some(&var[0]), sumrec, options).replace(
-                                    v[v.len() - 2],
-                                    &format!(
-                                        "({})",
-                                        &input_var(
-                                            &temp.iter().collect::<String>(),
-                                            vars,
-                                            Some(&var[0]),
-                                            sumrec,
-                                            options
-                                        ),
-                                    ),
-                                ),
-                            );
-                            output.push(')');
+                            i = o;
                         }
                     }
-                    else
+                    else if i + vl <= chars.len()
+                        && chars[i..i + vl].iter().collect::<String>() == var[0]
+                        && push
+                        && !is_func(&get_word(&chars[i..]))
                     {
-                        i = o;
+                        i += vl;
+                        output.push('(');
+                        output.push_str(&input_var(&var[1], vars, sumrec, options));
+                        output.push(')');
+                        continue 'main;
                     }
-                }
-                else if i + vl <= chars.len()
-                    && chars[i..i + vl].iter().collect::<String>() == var[0]
-                    && push
-                    && !is_func(&get_word(&chars[i..]))
-                {
-                    if let Some(n) = dont_do
-                    {
-                        if n == var[0]
-                        {
-                            return String::new();
-                        }
-                    }
-                    i += vl;
-                    output.push('(');
-                    output.push_str(&input_var(&var[1], vars, Some(&var[0]), sumrec, options));
-                    output.push(')');
-                    continue 'main;
                 }
             }
         }
@@ -359,14 +337,27 @@ pub fn get_word(word: &[char]) -> String
     }
     word[..pos].iter().collect::<String>()
 }
-pub fn get_vars(prec: u32) -> Vec<[String; 2]>
+pub fn get_vars(options: Options) -> Vec<[String; 2]>
 {
-    let pi = Float::with_val(prec, Pi);
+    let pi = Float::with_val(options.prec, Pi);
+    let catalan = Float::with_val(options.prec, Catalan);
+    let euler = Float::with_val(options.prec, Euler);
     let tau: Float = pi.clone() * 2;
-    let phi: Float = (1 + Float::with_val(prec, 5).sqrt()) / 2;
+    let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
     vec![
         ["phi".to_string(), phi.to_string()],
         ["tau".to_string(), tau.to_string()],
+        [
+            "cat".to_string(),
+            if options.small_e
+            {
+                catalan.to_string()
+            }
+            else
+            {
+                catalan.to_string().replace('e', "E")
+            },
+        ],
         ["ec".to_string(), "1.602176634E-19".to_string()],
         ["kB".to_string(), "1.380649E-23".to_string()],
         ["me".to_string(), "9.1093837015E-31".to_string()],
@@ -375,7 +366,10 @@ pub fn get_vars(prec: u32) -> Vec<[String; 2]>
         ["Na".to_string(), "6.02214076E23".to_string()],
         ["pi".to_string(), pi.to_string()],
         ["c".to_string(), "299792458".to_string()],
-        ["e".to_string(), Float::with_val(prec, 1).exp().to_string()],
+        [
+            "e".to_string(),
+            Float::with_val(options.prec, 1).exp().to_string(),
+        ],
         ["G".to_string(), "6.67430E-11".to_string()],
         ["g".to_string(), "9.80665".to_string()],
         ["h".to_string(), "6.62607015E-34".to_string()],
@@ -384,5 +378,16 @@ pub fn get_vars(prec: u32) -> Vec<[String; 2]>
         ["φ".to_string(), phi.to_string()],
         ["π".to_string(), pi.to_string()],
         ["τ".to_string(), tau.to_string()],
+        [
+            "γ".to_string(),
+            if options.small_e
+            {
+                euler.to_string()
+            }
+            else
+            {
+                euler.to_string().replace('e', "E")
+            },
+        ],
     ]
 }

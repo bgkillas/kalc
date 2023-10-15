@@ -151,7 +151,6 @@ pub fn print_concurrent(
     let input = &input_var(
         &unmodified_input.iter().collect::<String>(),
         vars,
-        None,
         &mut Vec::new(),
         options,
     )

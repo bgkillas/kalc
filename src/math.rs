@@ -234,7 +234,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                     "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "vec" | "mat"
                 )
                 {
-                    place.clear();
+                    let mut place = Vec::new();
                     let mut count = 0;
                     for (f, n) in function[i + 2..].iter().enumerate()
                     {
@@ -266,7 +266,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             let start =
                                 do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
                                     .num()?;
-
                             let end =
                                 do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
                                     .num()?;

@@ -4,6 +4,7 @@ pub fn input_var(
     input: &str,
     vars: &[[String; 2]],
     dont_do: Option<&str>,
+    sumrec: &mut Vec<(i32, String)>,
     options: Options,
 ) -> String
 {
@@ -78,7 +79,6 @@ pub fn input_var(
     let mut i = 0;
     let mut word;
     let mut sum = (0, String::new());
-    let mut sumrec = Vec::new();
     let mut bracket = 0;
     'main: while i < chars.len()
     {
@@ -186,7 +186,7 @@ pub fn input_var(
                         }
                         not_pushed = false;
                         output.push('(');
-                        output.push_str(&input_var(&var[1], vars, Some(&var[0]), options));
+                        output.push_str(&input_var(&var[1], vars, Some(&var[0]), sumrec, options));
                         output.push(')');
                     }
                     else if push
@@ -264,7 +264,13 @@ pub fn input_var(
                                         &format!("({})", &split[i].iter().collect::<String>(),),
                                     );
                                 }
-                                output.push_str(&input_var(&value, vars, Some(&var[0]), options));
+                                output.push_str(&input_var(
+                                    &value,
+                                    vars,
+                                    Some(&var[0]),
+                                    sumrec,
+                                    options,
+                                ));
                                 output.push(')');
                             }
                         }
@@ -278,7 +284,7 @@ pub fn input_var(
                                 temp = &temp[..temp.len() - 1];
                             }
                             output.push_str(
-                                &input_var(&var[1], vars, Some(&var[0]), options).replace(
+                                &input_var(&var[1], vars, Some(&var[0]), sumrec, options).replace(
                                     v[v.len() - 2],
                                     &format!(
                                         "({})",
@@ -286,6 +292,7 @@ pub fn input_var(
                                             &temp.iter().collect::<String>(),
                                             vars,
                                             Some(&var[0]),
+                                            sumrec,
                                             options
                                         ),
                                     ),
@@ -313,7 +320,7 @@ pub fn input_var(
                     }
                     i += vl;
                     output.push('(');
-                    output.push_str(&input_var(&var[1], vars, Some(&var[0]), options));
+                    output.push_str(&input_var(&var[1], vars, Some(&var[0]), sumrec, options));
                     output.push(')');
                     continue 'main;
                 }

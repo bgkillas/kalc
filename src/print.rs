@@ -152,6 +152,7 @@ pub fn print_concurrent(
         &unmodified_input.iter().collect::<String>(),
         vars,
         None,
+        &mut Vec::new(),
         options,
     )
     .replace('_', &format!("({})", last.iter().collect::<String>()));

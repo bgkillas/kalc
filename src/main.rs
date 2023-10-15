@@ -223,6 +223,7 @@ fn main()
                         &input.iter().map(convert).collect::<String>(),
                         &vars,
                         None,
+                        &mut Vec::new(),
                         options,
                     )
                     .replace('_', &format!("({})", last.iter().collect::<String>())),
@@ -246,6 +247,7 @@ fn main()
                 &input.iter().collect::<String>(),
                 &vars,
                 None,
+                &mut Vec::new(),
                 options,
             )))
             {
@@ -311,6 +313,7 @@ fn main()
                             &input.iter().collect::<String>(),
                             &vars,
                             None,
+                            &mut Vec::new(),
                             options,
                         )))
                         {
@@ -924,8 +927,11 @@ fn main()
                         else
                         {
                             match &do_math(
-                                get_func(&input_var(&v[1], &vars, Some(&v[0]), options), options)
-                                    .unwrap(),
+                                get_func(
+                                    &input_var(&v[1], &vars, Some(&v[0]), &mut Vec::new(), options),
+                                    options,
+                                )
+                                .unwrap(),
                                 options.deg,
                                 options.prec,
                             )
@@ -1068,7 +1074,10 @@ fn main()
                 "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
                 _ =>
                 {
-                    for i in match get_func(&input_var(&l, &vars, None, options), options)
+                    for i in match get_func(
+                        &input_var(&l, &vars, None, &mut Vec::new(), options),
+                        options,
+                    )
                     {
                         Ok(n) => n,
                         Err(_) => continue,
@@ -1529,6 +1538,7 @@ fn main()
                 &input.iter().collect::<String>(),
                 &vars,
                 None,
+                &mut Vec::new(),
                 options,
             ))
         {
@@ -1548,7 +1558,7 @@ fn main()
                 {
                     continue;
                 }
-                *i = input_var(i, &vars, None, options)
+                *i = input_var(i, &vars, None, &mut Vec::new(), options)
                     .replace("zeta", "##ta##")
                     .replace("normalize", "##ma##")
                     .replace('z', "(x+y*i)")

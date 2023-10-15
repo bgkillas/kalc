@@ -282,8 +282,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     'i' =>
                     {
-                        if i + 1 != chars.len()
-                            && (chars[i + 1] == 'n' || chars[i + 1] == 'm' || chars[i + 1] == 'd')
+                        if i + 1 != chars.len() && matches!(chars[i + 1], 'n' | 'm' | 'd')
                         {
                             word.push(c);
                             find_word = true;

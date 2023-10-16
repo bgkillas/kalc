@@ -113,9 +113,9 @@ Vector operations/functions:
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len
-- max, min
+- max, min, mean, median, mode
 - reverse, link
-- part({vec},col), add
+- part({vec},col), sum, prod
 - convert to polar: pol{vec} outputs (radius, theta, phi)
 - convert to cartesian: car{vec} outputs (x, y, z)
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
@@ -124,10 +124,10 @@ Matrix operations/functions:
 - *, /, +, -, ^, ±/+-, ^^
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
-- part({mat},col,row), flatten, add
+- part({mat},col,row), flatten, sum, prod
 - abs, norm
 - len, wid
-- max, min
+- max, min, mean, mode
 - iden(n) produces n identity matrix
 - rotate(theta) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 

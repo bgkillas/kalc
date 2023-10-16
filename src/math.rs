@@ -11,19 +11,18 @@ use crate::{
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 use std::ops::{Shl, Shr};
-pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &'static str>
+pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
+    -> Result<NumStr, &'static str>
 {
-    if func.len() == 1
+    if function.len() == 1
     {
-        return Ok(func[0].clone());
+        return Ok(function[0].clone());
     }
-    if func.is_empty()
+    if function.is_empty()
     {
         return Err(" ");
     }
-    let mut function = func;
     let mut i = 0;
-    let mut place = Vec::new();
     'outer: while i < function.len() - 1
     {
         if let Str(s) = &function[i]
@@ -163,7 +162,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         )
                         {
                             count = 0;
-                            place.clear();
+                            let mut place = Vec::new();
                             for (f, n) in v.iter().enumerate()
                             {
                                 if let Str(s) = n
@@ -303,6 +302,66 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             return Err("failed to get var for sum/prod");
                         }
                     }
+                    else if place.len() == 1 || place.is_empty()
+                    {
+                        match s.as_str()
+                        {
+                            "sum" | "summation" | "Σ" =>
+                            {
+                                function[i] = match if place.is_empty()
+                                {
+                                    Ok(function[i + 1].clone())
+                                }
+                                else
+                                {
+                                    do_math(function[i + 2..place[0]].to_vec(), deg, prec)
+                                }
+                                {
+                                    Ok(Num(a)) => Num(a.clone()),
+                                    Ok(Vector(a)) =>
+                                    {
+                                        Num(a.iter().fold(Complex::new(prec), |sum, val| sum + val))
+                                    }
+                                    Ok(Matrix(a)) => Num(a
+                                        .iter()
+                                        .flatten()
+                                        .fold(Complex::new(prec), |sum, val| sum + val)),
+                                    _ => return Err("sum err"),
+                                }
+                            }
+                            "product" | "prod" | "Π" =>
+                            {
+                                function[i] = match if place.is_empty()
+                                {
+                                    Ok(function[i + 1].clone())
+                                }
+                                else
+                                {
+                                    do_math(function[i + 2..place[0]].to_vec(), deg, prec)
+                                }
+                                {
+                                    Ok(Num(a)) => Num(a.clone()),
+                                    Ok(Vector(a)) => Num(a
+                                        .iter()
+                                        .fold(Complex::with_val(prec, 1), |sum, val| sum * val)),
+                                    Ok(Matrix(a)) => Num(a
+                                        .iter()
+                                        .flatten()
+                                        .fold(Complex::with_val(prec, 1), |sum, val| sum * val)),
+                                    _ => return Err("sum err"),
+                                }
+                            }
+                            _ => return Err("sum err"),
+                        }
+                        if place.is_empty()
+                        {
+                            function.remove(i + 1);
+                        }
+                        else
+                        {
+                            function.drain(i + 2..place[0]);
+                        }
+                    }
                     else
                     {
                         return Err("not enough args for sum/prod");
@@ -347,18 +406,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             Vector(vec)
                         }
                         "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Complex>>()),
-                        "add" =>
-                        {
-                            let mut num = Complex::new(prec);
-                            for i in a
-                            {
-                                for n in i
-                                {
-                                    num += n
-                                }
-                            }
-                            Num(num)
-                        }
                         "cofactor" | "cofactors" | "cof" =>
                         {
                             if a.len() == a[0].len() && a.len() > 1
@@ -544,20 +591,48 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                         "norm" =>
                         {
                             let mut n = Complex::new(prec);
-                            for i in a
+                            for j in a.iter().flatten()
                             {
-                                for j in i
-                                {
-                                    n += j.abs().pow(2);
-                                }
+                                n += j.clone().abs().pow(2);
                             }
                             Num(n.sqrt())
                         }
-                        "abs" => Matrix(
-                            a.iter()
-                                .map(|a| a.iter().map(|a| a.clone().abs()).collect())
-                                .collect(),
-                        ),
+                        "mean" => Num(a
+                            .iter()
+                            .flatten()
+                            .fold(Complex::new(prec), |sum, val| sum + val)
+                            / (a.len() * a[0].len())),
+                        "mode" =>
+                        {
+                            let mut most = (vec![], 0);
+                            for i in a.iter().flatten()
+                            {
+                                let mut count = 0;
+                                for j in a.iter().flatten()
+                                {
+                                    if i == j
+                                    {
+                                        count += 1;
+                                    }
+                                }
+                                if count > most.1
+                                {
+                                    most = (vec![i.clone()], count);
+                                }
+                                if count == most.1 && !most.0.iter().any(|j| i == j)
+                                {
+                                    most.0.push(i.clone())
+                                }
+                            }
+                            if most.0.len() == 1
+                            {
+                                Num(most.0[0].clone())
+                            }
+                            else
+                            {
+                                Vector(most.0)
+                            }
+                        }
                         _ => do_functions(
                             function[i + 1].clone(),
                             deg,
@@ -573,6 +648,79 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                 {
                     function[i] = match s.as_str()
                     {
+                        "mean" =>
+                        {
+                            Num(a.iter().fold(Complex::new(prec), |sum, val| sum + val) / a.len())
+                        }
+                        "median" =>
+                        {
+                            let mut a = a;
+                            let mut i = 0;
+                            let mut dirty = false;
+                            loop
+                            {
+                                if i + 1 == a.len()
+                                {
+                                    if dirty
+                                    {
+                                        i = 0;
+                                        dirty = false;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                                if a[i].clone().abs().real() > a[i + 1].clone().abs().real()
+                                {
+                                    dirty = true;
+                                    a.swap(i, i + 1)
+                                }
+                                else
+                                {
+                                    i += 1;
+                                }
+                            }
+                            if a.len() % 2 == 0
+                            {
+                                Vector(vec![a[a.len() / 2 - 1].clone(), a[a.len() / 2].clone()])
+                            }
+                            else
+                            {
+                                Num(a[a.len() / 2].clone())
+                            }
+                        }
+                        "mode" =>
+                        {
+                            let mut most = (vec![], 0);
+                            for i in &a
+                            {
+                                let mut count = 0;
+                                for j in &a
+                                {
+                                    if i == j
+                                    {
+                                        count += 1;
+                                    }
+                                }
+                                if count > most.1
+                                {
+                                    most = (vec![i.clone()], count);
+                                }
+                                if count == most.1 && !most.0.iter().any(|j| i == j)
+                                {
+                                    most.0.push(i.clone())
+                                }
+                            }
+                            if most.0.len() == 1
+                            {
+                                Num(most.0[0].clone())
+                            }
+                            else
+                            {
+                                Vector(most.0)
+                            }
+                        }
                         "max" =>
                         {
                             let mut max = a[0].clone();
@@ -597,12 +745,7 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             }
                             Num(min)
                         }
-                        "reverse" =>
-                        {
-                            let mut a = a;
-                            a.reverse();
-                            Vector(a)
-                        }
+                        "reverse" => Vector(a.iter().rev().cloned().collect()),
                         "link" =>
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
@@ -619,7 +762,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             }
                         }
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
-                        "abs" => Vector(a.iter().map(|x| x.clone().abs()).collect()),
                         "norm" =>
                         {
                             let mut n = Complex::new(prec);
@@ -782,15 +924,6 @@ pub fn do_math(func: Vec<NumStr>, deg: AngleType, prec: u32) -> Result<NumStr, &
                             {
                                 return Err("no args");
                             }
-                        }
-                        "add" =>
-                        {
-                            let mut num = Complex::new(prec);
-                            for n in a
-                            {
-                                num += n
-                            }
-                            Num(num)
                         }
                         "part" =>
                         {
@@ -1247,7 +1380,6 @@ fn do_functions(
     s: &str,
 ) -> Result<NumStr, &'static str>
 {
-    let mut vec = Vec::new();
     if function.len() > k + 3 && function[k + 2].str_is(",")
     {
         let b = function[k + 3].clone();
@@ -1280,7 +1412,7 @@ fn do_functions(
                 let mut mat = Vec::new();
                 for i in 0..a.len()
                 {
-                    vec.clear();
+                    let mut vec = Vec::new();
                     for j in 0..a[0].len()
                     {
                         vec.push(functions(
@@ -1297,6 +1429,7 @@ fn do_functions(
             }
             (Num(a), Vector(b)) =>
             {
+                let mut vec = Vec::new();
                 for i in b
                 {
                     vec.push(functions(a.clone(), Some(i), to_deg.clone(), s, deg)?)
@@ -1305,6 +1438,7 @@ fn do_functions(
             }
             (Vector(a), Num(b)) =>
             {
+                let mut vec = Vec::new();
                 for i in a
                 {
                     vec.push(functions(i, Some(b.clone()), to_deg.clone(), s, deg)?)
@@ -1316,7 +1450,7 @@ fn do_functions(
                 let mut mat = Vec::new();
                 for i in b
                 {
-                    vec.clear();
+                    let mut vec = Vec::new();
                     for j in i
                     {
                         vec.push(functions(a.clone(), Some(j), to_deg.clone(), s, deg)?)
@@ -1330,7 +1464,7 @@ fn do_functions(
                 let mut mat = Vec::new();
                 for i in a
                 {
-                    vec.clear();
+                    let mut vec = Vec::new();
                     for j in i
                     {
                         vec.push(functions(j, Some(b.clone()), to_deg.clone(), s, deg)?)
@@ -1344,7 +1478,7 @@ fn do_functions(
                 let mut mat = Vec::new();
                 for i in 0..a.len()
                 {
-                    vec.clear();
+                    let mut vec = Vec::new();
                     for j in 0..a[0].len()
                     {
                         vec.push(functions(
@@ -1364,7 +1498,7 @@ fn do_functions(
                 let mut mat = Vec::new();
                 for i in 0..b.len()
                 {
-                    vec.clear();
+                    let mut vec = Vec::new();
                     for j in 0..b[0].len()
                     {
                         vec.push(functions(
@@ -1391,7 +1525,7 @@ fn do_functions(
                 let mut mat = Vec::new();
                 for i in a
                 {
-                    vec.clear();
+                    let mut vec = Vec::new();
                     for j in i
                     {
                         vec.push(functions(j, None, to_deg.clone(), s, deg)?)
@@ -1402,6 +1536,7 @@ fn do_functions(
             }
             Vector(a) =>
             {
+                let mut vec = Vec::new();
                 for i in a
                 {
                     vec.push(functions(i, None, to_deg.clone(), s, deg)?)

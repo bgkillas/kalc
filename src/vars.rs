@@ -105,18 +105,42 @@ pub fn input_var(
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
         )
         {
-            sum.0 = bracket + 1;
-            let count2 = chars[i + count + 1..]
-                .iter()
-                .position(|x| x == &',')
-                .unwrap_or(0);
-            if count2 != 0
+            let mut place = 0;
+            let mut count2 = 0;
+            for c in &chars[i + count + 1..]
             {
-                sum.1 = chars[i + count + 1..i + count + count2 + 1]
-                    .iter()
-                    .collect::<String>();
+                if c == &',' && count2 == 0
+                {
+                    place += 1;
+                }
+                else if c == &'(' || c == &'{'
+                {
+                    count2 += 1;
+                }
+                else if c == &')' || c == &'}'
+                {
+                    if count2 == 0
+                    {
+                        break;
+                    }
+                    count2 -= 1;
+                }
             }
-            sumrec.push(sum.clone());
+            if place == 3
+            {
+                let count2 = chars[i + count + 1..]
+                    .iter()
+                    .position(|x| x == &',')
+                    .unwrap_or(0);
+                sum.0 = bracket + 1;
+                if count2 != 0
+                {
+                    sum.1 = chars[i + count + 1..i + count + count2 + 1]
+                        .iter()
+                        .collect::<String>();
+                }
+                sumrec.push(sum.clone())
+            }
         }
         if i == 0 || !chars[i - 1].is_alphabetic()
         {

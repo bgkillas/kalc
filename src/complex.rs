@@ -624,7 +624,14 @@ pub fn mvec(
     }
     if mat.is_empty()
     {
-        Ok(Vector(vec))
+        if vec.is_empty()
+        {
+            Err("start>end")
+        }
+        else
+        {
+            Ok(Vector(vec))
+        }
     }
     else
     {

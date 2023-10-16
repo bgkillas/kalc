@@ -786,8 +786,7 @@ fn main()
                 &mut options,
                 &mut vars,
                 &input[..input.len() - 1].iter().collect::<String>(),
-            );
-            continue;
+            )
         }
         else if input
             .iter()
@@ -805,11 +804,7 @@ fn main()
             let s = split.next().unwrap().replace(' ', "");
             let l = s;
             let r = split.next().unwrap();
-            if l.is_empty()
-            {
-                continue;
-            }
-            if set_commands(options, &mut vars, &mut old, &l, r)
+            if l.is_empty() || set_commands(&mut options, &mut vars, &mut old, &l, r)
             {
                 continue;
             }
@@ -857,7 +852,6 @@ fn main()
             {
                 vars.push([l.to_string(), r.to_string()]);
             }
-            continue;
         }
         else if input.iter().collect::<String>() != "history"
             && (input.contains(&'#')
@@ -905,7 +899,6 @@ fn main()
                 options.prec,
                 watch,
             ));
-            continue;
         }
     }
 }

@@ -984,7 +984,7 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str)
     }
 }
 pub fn set_commands(
-    mut options: Options,
+    options: &mut Options,
     vars: &mut [[String; 2]],
     old: &mut Vec<[String; 2]>,
     l: &str,
@@ -1077,7 +1077,7 @@ pub fn set_commands(
             };
             if options.allow_vars
             {
-                let v = get_vars(options);
+                let v = get_vars(*options);
                 for i in old.clone()
                 {
                     for (j, var) in vars.iter_mut().enumerate()

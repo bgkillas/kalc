@@ -829,3 +829,33 @@ pub fn nth_prime(n: u128) -> u128
     }
     num
 }
+pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
+{
+    let mut i = 0;
+    let mut dirty = false;
+    loop
+    {
+        if i + 1 == a.len()
+        {
+            if dirty
+            {
+                i = 0;
+                dirty = false;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if a[i].real() > a[i + 1].real()
+        {
+            dirty = true;
+            a.swap(i, i + 1)
+        }
+        else
+        {
+            i += 1;
+        }
+    }
+    a
+}

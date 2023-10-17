@@ -100,7 +100,7 @@ Other functions:
 - ceil, floor, round, int, frac
 - fact(real), doublefact(real), subfact(natural)
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P (all real only)
+- zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re, im, split(splits real/imag into a 2 part vector)
 - factors, prime
@@ -113,7 +113,7 @@ Vector operations/functions:
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len
-- max, min, mean, median, mode
+- max, min, mean, median, mode, sort
 - reverse, link
 - part({vec},col), sum, prod
 - convert to polar: pol{vec} outputs (radius, theta, phi)
@@ -128,7 +128,7 @@ Matrix operations/functions:
 - abs, norm
 - len, wid
 - max, min, mean, mode
-- iden(n) produces n identity matrix
+- I(n) produces n identity matrix
 - rotate(theta) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 

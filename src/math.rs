@@ -1,6 +1,6 @@
 use crate::{
     complex::{
-        cofactor, determinant, hyperoperation, inverse, minors, mvec, nth_prime, slog, sum,
+        cofactor, determinant, hyperoperation, inverse, minors, mvec, nth_prime, slog, sort, sum,
         to_polar, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
@@ -221,7 +221,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
         if let Str(s) = &function[i].clone()
         {
             if (s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                || matches!(s.as_str(), "C" | "P" | "H")
+                || matches!(s.as_str(), "C" | "P" | "H" | "I")
             {
                 if matches!(
                     s.as_str(),
@@ -648,39 +648,14 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                 {
                     function[i] = match s.as_str()
                     {
+                        "sort" => Vector(sort(a)),
                         "mean" =>
                         {
                             Num(a.iter().fold(Complex::new(prec), |sum, val| sum + val) / a.len())
                         }
                         "median" =>
                         {
-                            let mut a = a;
-                            let mut i = 0;
-                            let mut dirty = false;
-                            loop
-                            {
-                                if i + 1 == a.len()
-                                {
-                                    if dirty
-                                    {
-                                        i = 0;
-                                        dirty = false;
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
-                                }
-                                if a[i].clone().abs().real() > a[i + 1].clone().abs().real()
-                                {
-                                    dirty = true;
-                                    a.swap(i, i + 1)
-                                }
-                                else
-                                {
-                                    i += 1;
-                                }
-                            }
+                            let a = sort(a);
                             if a.len() % 2 == 0
                             {
                                 Vector(vec![a[a.len() / 2 - 1].clone(), a[a.len() / 2].clone()])
@@ -1055,7 +1030,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 Complex::with_val(prec, a.imag()),
                             ])
                         }
-                        "iden" =>
+                        "I" =>
                         {
                             let a = function[i + 1].num()?.real().to_f64() as usize;
                             let mut mat = Vec::with_capacity(a);
@@ -1767,9 +1742,9 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if !a.imag().is_zero() && !b.imag().is_zero()
+                if !a.imag().is_zero() || !b.imag().is_zero()
                 {
-                    return Err("binomial complex not supported");
+                    return Err("pick complex not supported");
                 }
                 let d: Float = a.real().clone() - b.real() + 1;
                 let a: Float = a.real().clone() + 1;
@@ -1784,7 +1759,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if !a.imag().is_zero() && !b.imag().is_zero()
+                if !a.imag().is_zero() || !b.imag().is_zero()
                 {
                     return Err("binomial complex not supported");
                 }

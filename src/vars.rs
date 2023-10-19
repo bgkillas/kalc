@@ -16,7 +16,6 @@ pub fn input_var(
         .chars()
         .collect::<Vec<char>>();
     let mut output = String::new();
-    let mut commas: Vec<usize>;
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
     for c in &chars
@@ -229,7 +228,7 @@ pub fn input_var(
                                 {
                                     temp = &temp[..temp.len() - 1];
                                 }
-                                commas = Vec::new();
+                                let mut commas = Vec::new();
                                 count = 0;
                                 for (f, c) in temp.iter().enumerate()
                                 {

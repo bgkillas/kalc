@@ -1,7 +1,8 @@
 use crate::{
     complex::{
-        cofactor, determinant, hyperoperation, inverse, minors, mvec, nth_prime, slog, sort, sum,
-        to_polar, transpose, NumStr,
+        add, and, cofactor, determinant, eq, ge, gt, hyperoperation, inverse, le, lt, minors, mvec,
+        ne, nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to_polar, transpose,
+        NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::{
@@ -10,7 +11,7 @@ use crate::{
     },
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
-use std::ops::{Shl, Shr};
+
 pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
     -> Result<NumStr, &'static str>
 {
@@ -1103,42 +1104,30 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
         }
         i += 1;
     }
-    if function.len() > 1
+    i = function.len().saturating_sub(2);
+    while i != 0
     {
-        i = function.len() - 2;
-        while i != 0
+        if let Str(s) = &function[i]
         {
-            if let Str(s) = &function[i]
+            match s.as_str()
             {
-                match s.as_str()
+                "^" => function[i] = function[i - 1].pow(&function[i + 1])?,
+                "^^" => function[i] = function[i - 1].func(&function[i + 1], tetration)?,
+                _ =>
                 {
-                    "^" =>
-                    {
-                        function[i] = function[i - 1].pow(&function[i + 1])?;
-                        function.remove(i + 1);
-                        function.remove(i - 1);
-                        i -= 1;
-                    }
-                    "^^" =>
-                    {
-                        function[i] = function[i - 1].tetration(&function[i + 1])?;
-                        function.remove(i + 1);
-                        function.remove(i - 1);
-                        i -= 1;
-                    }
-                    _ =>
-                    {
-                        i -= 1;
-                        continue;
-                    }
+                    i -= 1;
+                    continue;
                 }
             }
-            else
-            {
-                i -= 1;
-                continue;
-            }
+            i -= 1;
         }
+        else
+        {
+            i -= 1;
+            continue;
+        }
+        function.remove(i + 2);
+        function.remove(i);
     }
     i = 1;
     while i < function.len() - 1
@@ -1172,8 +1161,8 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
             match s.as_str()
             {
                 "±" => function[i] = function[i - 1].pm(&function[i + 1])?,
-                "+" => function[i] = function[i - 1].add(&function[i + 1])?,
-                "-" => function[i] = function[i - 1].sub(&function[i + 1])?,
+                "+" => function[i] = function[i - 1].func(&function[i + 1], add)?,
+                "-" => function[i] = function[i - 1].func(&function[i + 1], sub)?,
                 _ =>
                 {
                     i += 1;
@@ -1196,94 +1185,15 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
         {
             match s.as_str()
             {
-                "%" =>
-                {
-                    function[i] = {
-                        let a = function[i - 1].num()?;
-                        let b = function[i + 1].num()?;
-                        if a.imag().is_zero() && b.imag().is_zero()
-                        {
-                            Num(Complex::with_val(prec, a.real() % b.real()))
-                        }
-                        else
-                        {
-                            let c = -a.clone() / b.clone();
-                            Num(a + b * (c.real().clone().ceil() + c.imag().clone().ceil()))
-                        }
-                    }
-                }
-                "<" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (function[i - 1].num()?.abs().real() < function[i + 1].num()?.abs().real())
-                            as i32,
-                    ))
-                }
-                ">" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (function[i - 1].num()?.abs().real() > function[i + 1].num()?.abs().real())
-                            as i32,
-                    ))
-                }
-                ">=" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (function[i - 1].num()?.abs().real() >= function[i + 1].num()?.abs().real())
-                            as i32,
-                    ))
-                }
-                "<=" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (function[i - 1].num()?.abs().real() <= function[i + 1].num()?.abs().real())
-                            as i32,
-                    ))
-                }
-                "==" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (function[i - 1].num()? == function[i + 1].num()?) as i32,
-                    ))
-                }
-                "!=" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (function[i - 1].num()? != function[i + 1].num()?) as i32,
-                    ))
-                }
-                ">>" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        function[i - 1].num()?.shr(
-                            function[i + 1]
-                                .num()?
-                                .real()
-                                .to_u32_saturating()
-                                .unwrap_or(0),
-                        ),
-                    ))
-                }
-                "<<" =>
-                {
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        function[i - 1].num()?.shl(
-                            function[i + 1]
-                                .num()?
-                                .real()
-                                .to_u32_saturating()
-                                .unwrap_or(0),
-                        ),
-                    ))
-                }
+                "%" => function[i] = function[i - 1].func(&function[i + 1], rem)?,
+                "<" => function[i] = function[i - 1].func(&function[i + 1], lt)?,
+                ">" => function[i] = function[i - 1].func(&function[i + 1], gt)?,
+                ">=" => function[i] = function[i - 1].func(&function[i + 1], le)?,
+                "<=" => function[i] = function[i - 1].func(&function[i + 1], ge)?,
+                "==" => function[i] = function[i - 1].func(&function[i + 1], eq)?,
+                "!=" => function[i] = function[i - 1].func(&function[i + 1], ne)?,
+                ">>" => function[i] = function[i - 1].func(&function[i + 1], shr)?,
+                "<<" => function[i] = function[i - 1].func(&function[i + 1], shl)?,
                 _ =>
                 {
                     i += 1;
@@ -1306,29 +1216,8 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
         {
             match s.as_str()
             {
-                "&&" =>
-                {
-                    let a = function[i - 1].num()?;
-                    let b = function[i + 1].num()?;
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (a.imag().is_zero()
-                            && b.imag().is_zero()
-                            && a.real() == &1
-                            && b.real() == &1) as i32,
-                    ))
-                }
-                "||" =>
-                {
-                    let a = function[i - 1].num()?;
-                    let b = function[i + 1].num()?;
-                    function[i] = Num(Complex::with_val(
-                        prec,
-                        (a.imag().is_zero()
-                            && b.imag().is_zero()
-                            && (a.real() == &1 || b.real() == &1)) as i32,
-                    ))
-                }
+                "&&" => function[i] = function[i - 1].func(&function[i + 1], and)?,
+                "||" => function[i] = function[i - 1].func(&function[i + 1], or)?,
                 _ =>
                 {
                     i += 1;

@@ -8,6 +8,7 @@ use rug::{
     ops::Pow,
     Complex, Float,
 };
+use std::ops::{Shl, Shr};
 #[derive(Clone)]
 pub enum NumStr
 {
@@ -160,91 +161,6 @@ impl NumStr
             _ => return Err("plus-minus unsupported"),
         })
     }
-    pub fn add(&self, b: &Self) -> Result<Self, &'static str>
-    {
-        Ok(match (self, b)
-        {
-            (Num(a), Num(b)) => Num(a + b.clone()),
-            (Num(a), Vector(b)) | (Vector(b), Num(a)) =>
-            {
-                Vector(b.iter().map(|b| a + b.clone()).collect())
-            }
-            (Vector(a), Vector(b)) if a.len() == b.len() =>
-            {
-                Vector(a.iter().zip(b.iter()).map(|(a, b)| a + b.clone()).collect())
-            }
-            (Num(a), Matrix(b)) | (Matrix(b), Num(a)) => Matrix(
-                b.iter()
-                    .map(|b| b.iter().map(|b| a + b.clone()).collect())
-                    .collect(),
-            ),
-            (Vector(b), Matrix(a)) | (Matrix(a), Vector(b)) if b.len() == a.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a + b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| {
-                        a.iter()
-                            .zip(b.iter())
-                            .map(|(a, b)| a.clone() + b)
-                            .collect::<Vec<Complex>>()
-                    })
-                    .collect(),
-            ),
-            _ => return Err("add err"),
-        })
-    }
-    pub fn sub(&self, b: &Self) -> Result<Self, &'static str>
-    {
-        Ok(match (self, b)
-        {
-            (Num(a), Num(b)) => Num(a - b.clone()),
-            (Num(a), Vector(b)) => Vector(b.iter().map(|b| a - b.clone()).collect()),
-            (Vector(a), Num(b)) => Vector(a.iter().map(|a| a - b.clone()).collect()),
-            (Vector(a), Vector(b)) if a.len() == b.len() =>
-            {
-                Vector(a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()).collect())
-            }
-            (Num(a), Matrix(b)) => Matrix(
-                b.iter()
-                    .map(|b| b.iter().map(|b| a - b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Num(b)) => Matrix(
-                a.iter()
-                    .map(|a| a.iter().map(|a| a - b.clone()).collect())
-                    .collect(),
-            ),
-            (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a - b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a - b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| {
-                        a.iter()
-                            .zip(b.iter())
-                            .map(|(a, b)| a - b.clone())
-                            .collect::<Vec<Complex>>()
-                    })
-                    .collect(),
-            ),
-            _ => return Err("sub err"),
-        })
-    }
     pub fn pow(&self, b: &Self) -> Result<Self, &'static str>
     {
         Ok(match (self, b)
@@ -339,39 +255,39 @@ impl NumStr
             _ => return Err("pow err"),
         })
     }
-    pub fn tetration(&self, b: &Self) -> Result<Self, &'static str>
+    pub fn func<F>(&self, b: &Self, func: F) -> Result<Self, &'static str>
+    where
+        F: Fn(&Complex, &Complex) -> Complex,
     {
         Ok(match (self, b)
         {
-            (Num(a), Num(b)) => Num(tetration(a, b)),
-            (Num(a), Vector(b)) => Vector(b.iter().map(|b| tetration(a, b)).collect()),
-            (Vector(a), Num(b)) => Vector(a.iter().map(|a| tetration(a, b)).collect()),
+            (Num(a), Num(b)) => Num(func(a, b)),
+            (Num(a), Vector(b)) => Vector(b.iter().map(|b| func(a, b)).collect()),
+            (Vector(a), Num(b)) => Vector(a.iter().map(|a| func(a, b)).collect()),
             (Num(a), Matrix(b)) => Matrix(
                 b.iter()
-                    .map(|b| b.iter().map(|b| tetration(a, b)).collect())
+                    .map(|b| b.iter().map(|b| func(a, b)).collect())
                     .collect(),
             ),
             (Matrix(a), Num(b)) => Matrix(
                 a.iter()
-                    .map(|a| a.iter().map(|a| tetration(a, b)).collect())
+                    .map(|a| a.iter().map(|a| func(a, b)).collect())
                     .collect(),
             ),
-            (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| tetration(a, b))
-                    .collect(),
-            ),
+            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            {
+                Vector(a.iter().zip(b.iter()).map(|(a, b)| func(a, b)).collect())
+            }
             (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| tetration(b, a)).collect())
+                    .map(|(a, b)| a.iter().map(|a| rem(b, a)).collect())
                     .collect(),
             ),
             (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| tetration(a, b)).collect())
+                    .map(|(a, b)| a.iter().map(|a| func(a, b)).collect())
                     .collect(),
             ),
             (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
@@ -380,13 +296,13 @@ impl NumStr
                     .map(|(a, b)| {
                         a.iter()
                             .zip(b.iter())
-                            .map(|(a, b)| tetration(a, b))
+                            .map(|(a, b)| func(a, b))
                             .collect::<Vec<Complex>>()
                     })
                     .collect(),
             ),
 
-            _ => return Err("tetration err"),
+            _ => return Err("operation err"),
         })
     }
     pub fn str_is(&self, s: &str) -> bool
@@ -422,6 +338,69 @@ impl NumStr
         }
     }
 }
+pub fn and(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(
+        a.prec(),
+        (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as i32,
+    )
+}
+pub fn or(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(
+        a.prec(),
+        (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as i32,
+    )
+}
+pub fn sub(a: &Complex, b: &Complex) -> Complex
+{
+    a - b.clone()
+}
+pub fn add(a: &Complex, b: &Complex) -> Complex
+{
+    a + b.clone()
+}
+pub fn shl(a: &Complex, b: &Complex) -> Complex
+{
+    a.clone().shl(b.real().to_u32_saturating().unwrap_or(0))
+}
+pub fn shr(a: &Complex, b: &Complex) -> Complex
+{
+    a.clone().shr(b.real().to_u32_saturating().unwrap_or(0))
+}
+pub fn ne(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(a.prec(), (a != b) as u8)
+}
+pub fn eq(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(a.prec(), (a == b) as u8)
+}
+pub fn ge(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(a.prec(), (a.real() >= b.real()) as u8)
+}
+pub fn gt(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(a.prec(), (a.real() > b.real()) as u8)
+}
+pub fn le(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(a.prec(), (a.real() <= b.real()) as u8)
+}
+pub fn lt(a: &Complex, b: &Complex) -> Complex
+{
+    Complex::with_val(a.prec(), (a.real() < b.real()) as u8)
+}
+pub fn rem(a: &Complex, b: &Complex) -> Complex
+{
+    let c = a / b.clone();
+    let c = Complex::with_val(
+        a.prec(),
+        (c.real().clone().floor(), c.imag().clone().floor()),
+    );
+    a - b * c
+}
 pub fn hyperoperation(n: &Float, a: &Complex, b: &Complex) -> Complex
 {
     if n == &0
@@ -445,7 +424,7 @@ pub fn hyperoperation(n: &Float, a: &Complex, b: &Complex) -> Complex
         hyperoperation(&(n.clone() - 1), a, &hyperoperation(n, a, &(b.clone() - 1)))
     }
 }
-fn tetration(a: &Complex, b: &Complex) -> Complex
+pub fn tetration(a: &Complex, b: &Complex) -> Complex
 {
     if b.real().clone().fract().is_zero()
     {
@@ -671,7 +650,7 @@ pub fn sum(
         math = do_math(func, deg, prec)?;
         if !product
         {
-            value = value.add(&math)?;
+            value = value.func(&math, add)?;
         }
         else
         {

@@ -53,69 +53,27 @@ impl NumStr
                     .map(|(a, b)| a.iter().map(|a| a * b.clone()).collect::<Vec<Complex>>())
                     .collect::<Vec<Vec<Complex>>>(),
             ),
-            (Matrix(a), Matrix(b)) if a.len() == b[0].len() => Matrix(
-                a.iter()
-                    .map(|a| {
-                        transpose(b)
-                            .iter()
-                            .map(|b| {
-                                a.iter()
-                                    .zip(b.iter())
-                                    .map(|(a, b)| a * b.clone())
-                                    .fold(Complex::new(a[0].prec()), |sum, val| sum + val)
-                            })
-                            .collect::<Vec<Complex>>()
-                    })
-                    .collect(),
-            ),
-            _ => return Err("mul err"),
-        })
-    }
-    pub fn div(&self, b: &Self) -> Result<Self, &'static str>
-    {
-        Ok(match (self, b)
-        {
-            (Num(a), Num(b)) => Num(a / b.clone()),
-            (Num(a), Vector(b)) => Vector(b.iter().map(|b| a / b.clone()).collect()),
-            (Vector(a), Num(b)) => Vector(a.iter().map(|a| a / b.clone()).collect()),
-            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            (Matrix(a), Matrix(b))
+                if a.len() == b[0].len() && (0..b.len()).all(|j| b.len() == b[j].len()) =>
             {
-                Vector(a.iter().zip(b.iter()).map(|(a, b)| a / b.clone()).collect())
+                Matrix(
+                    a.iter()
+                        .map(|a| {
+                            transpose(b)
+                                .unwrap()
+                                .iter()
+                                .map(|b| {
+                                    a.iter()
+                                        .zip(b.iter())
+                                        .map(|(a, b)| a * b.clone())
+                                        .fold(Complex::new(a[0].prec()), |sum, val| sum + val)
+                                })
+                                .collect::<Vec<Complex>>()
+                        })
+                        .collect(),
+                )
             }
-            (Num(a), Matrix(b)) => Matrix(
-                b.iter()
-                    .map(|b| b.iter().map(|b| a / b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Num(b)) => Matrix(
-                a.iter()
-                    .map(|a| a.iter().map(|a| a / b.clone()).collect())
-                    .collect(),
-            ),
-            (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a / b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a / b.clone()).collect())
-                    .collect(),
-            ),
-            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| {
-                        a.iter()
-                            .zip(b.iter())
-                            .map(|(a, b)| a / b.clone())
-                            .collect::<Vec<Complex>>()
-                    })
-                    .collect(),
-            ),
-            _ => return Err("div err"),
+            _ => return Err("mul err"),
         })
     }
     pub fn pm(&self, b: &Self) -> Result<Self, &'static str>
@@ -355,6 +313,10 @@ pub fn or(a: &Complex, b: &Complex) -> Complex
 pub fn sub(a: &Complex, b: &Complex) -> Complex
 {
     a - b.clone()
+}
+pub fn div(a: &Complex, b: &Complex) -> Complex
+{
+    a / b.clone()
 }
 pub fn add(a: &Complex, b: &Complex) -> Complex
 {
@@ -673,88 +635,119 @@ pub fn submatrix(a: &[Vec<Complex>], row: usize, col: usize) -> Vec<Vec<Complex>
         })
         .collect()
 }
-pub fn determinant(a: &[Vec<Complex>]) -> Complex
+pub fn determinant(a: &[Vec<Complex>]) -> Result<Complex, &'static str>
 {
-    if a.len() == 1
+    if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        a[0][0].clone()
-    }
-    else if a.len() == 2
-    {
-        a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone()
-    }
-    else if a.len() == 3
-    {
-        a[0][0].clone() * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
-            + a[0][1].clone()
-                * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
-            + a[0][2].clone()
-                * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
-    }
-    else
-    {
-        let mut det = Complex::new(a[0][0].prec());
-        for (i, x) in a[0].iter().enumerate()
-        {
-            let mut sub_matrix = a[1..].to_vec();
-            for row in &mut sub_matrix
+        Ok(
+            if a.len() == 1
             {
-                row.remove(i);
+                a[0][0].clone()
             }
-            det += x * determinant(&sub_matrix) * if i % 2 == 0 { 1.0 } else { -1.0 };
-        }
-        det
-    }
-}
-pub fn transpose(a: &[Vec<Complex>]) -> Vec<Vec<Complex>>
-{
-    let mut b = vec![vec![Complex::new(1); a.len()]; a[0].len()];
-    for (i, l) in a.iter().enumerate()
-    {
-        for (j, n) in l.iter().enumerate()
-        {
-            b[j][i] = n.clone();
-        }
-    }
-    b
-}
-pub fn minors(a: &[Vec<Complex>]) -> Vec<Vec<Complex>>
-{
-    let mut result = vec![vec![Complex::new(1); a[0].len()]; a.len()];
-    for (i, k) in result.iter_mut().enumerate()
-    {
-        for (j, l) in k.iter_mut().enumerate()
-        {
-            *l = determinant(&submatrix(a, i, j));
-        }
-    }
-    result
-}
-pub fn cofactor(a: &[Vec<Complex>]) -> Vec<Vec<Complex>>
-{
-    let mut result = vec![vec![Complex::new(1); a[0].len()]; a.len()];
-    for (i, k) in result.iter_mut().enumerate()
-    {
-        for (j, l) in k.iter_mut().enumerate()
-        {
-            *l = if (i + j) % 2 == 1
+            else if a.len() == 2
             {
-                -determinant(&submatrix(a, i, j))
+                a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone()
+            }
+            else if a.len() == 3
+            {
+                a[0][0].clone()
+                    * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
+                    + a[0][1].clone()
+                        * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
+                    + a[0][2].clone()
+                        * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
             }
             else
             {
-                determinant(&submatrix(a, i, j))
-            };
-        }
+                let mut det = Complex::new(a[0][0].prec());
+                for (i, x) in a[0].iter().enumerate()
+                {
+                    let mut sub_matrix = a[1..].to_vec();
+                    for row in &mut sub_matrix
+                    {
+                        row.remove(i);
+                    }
+                    det += x * determinant(&sub_matrix)? * if i % 2 == 0 { 1.0 } else { -1.0 };
+                }
+                det
+            },
+        )
     }
-    result
+    else
+    {
+        Err("not square")
+    }
+}
+pub fn transpose(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+{
+    if (0..a.len()).all(|j| a.len() == a[j].len())
+    {
+        let mut b = vec![vec![Complex::new(1); a.len()]; a[0].len()];
+        for (i, l) in a.iter().enumerate()
+        {
+            for (j, n) in l.iter().enumerate()
+            {
+                b[j][i] = n.clone();
+            }
+        }
+        Ok(b)
+    }
+    else
+    {
+        Err("not square")
+    }
+}
+pub fn minors(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+{
+    if (0..a.len()).all(|j| a.len() == a[j].len())
+    {
+        let mut result = vec![vec![Complex::new(1); a[0].len()]; a.len()];
+        for (i, k) in result.iter_mut().enumerate()
+        {
+            for (j, l) in k.iter_mut().enumerate()
+            {
+                *l = determinant(&submatrix(a, i, j))?
+            }
+        }
+        Ok(result)
+    }
+    else
+    {
+        Err("not square")
+    }
+}
+pub fn cofactor(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+{
+    if (0..a.len()).all(|j| a.len() == a[j].len())
+    {
+        let mut result = vec![vec![Complex::new(1); a[0].len()]; a.len()];
+        for (i, k) in result.iter_mut().enumerate()
+        {
+            for (j, l) in k.iter_mut().enumerate()
+            {
+                *l = if (i + j) % 2 == 1
+                {
+                    -determinant(&submatrix(a, i, j))?
+                }
+                else
+                {
+                    determinant(&submatrix(a, i, j))?
+                };
+            }
+        }
+        Ok(result)
+    }
+    else
+    {
+        Err("not square")
+    }
 }
 pub fn inverse(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
 {
-    if a.len() == a[0].len() && a.len() > 1
+    if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        Matrix(transpose(&cofactor(a)))
-            .div(&Num(determinant(a)))?
+        Matrix(transpose(&cofactor(a)?)?)
+            .func(&Num(determinant(a)?), div)?
             .mat()
     }
     else

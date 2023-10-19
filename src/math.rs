@@ -1,8 +1,8 @@
 use crate::{
     complex::{
-        add, and, cofactor, determinant, eq, ge, gt, hyperoperation, inverse, le, lt, minors, mvec,
-        ne, nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to_polar, transpose,
-        NumStr,
+        add, and, cofactor, determinant, div, eq, ge, gt, hyperoperation, inverse, le, lt, minors,
+        mvec, ne, nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to_polar,
+        transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::{
@@ -11,7 +11,6 @@ use crate::{
     },
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
-
 pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
     -> Result<NumStr, &'static str>
 {
@@ -407,41 +406,11 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                             Vector(vec)
                         }
                         "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Complex>>()),
-                        "cofactor" | "cofactors" | "cof" =>
-                        {
-                            if a.len() == a[0].len() && a.len() > 1
-                            {
-                                Matrix(cofactor(&a))
-                            }
-                            else
-                            {
-                                return Err("non square matrix");
-                            }
-                        }
-                        "minor" | "minors" =>
-                        {
-                            if a.len() == a[0].len() && a.len() > 1
-                            {
-                                Matrix(minors(&a))
-                            }
-                            else
-                            {
-                                return Err("non square matrix");
-                            }
-                        }
-                        "adjugate" | "adj" =>
-                        {
-                            if a.len() == a[0].len() && a.len() > 1
-                            {
-                                Matrix(transpose(&cofactor(&a)))
-                            }
-                            else
-                            {
-                                return Err("non square matrix");
-                            }
-                        }
+                        "cofactor" | "cofactors" | "cof" => Matrix(cofactor(&a)?),
+                        "minor" | "minors" => Matrix(minors(&a)?),
+                        "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
                         "inverse" | "inv" => Matrix(inverse(&a)?),
-                        "transpose" | "trans" => Matrix(transpose(&a)),
+                        "transpose" | "trans" => Matrix(transpose(&a)?),
                         "len" | "length" => Num(Complex::with_val(prec, a.len())),
                         "wid" | "width" => Num(Complex::with_val(prec, a[0].len())),
                         "tr" | "trace" =>
@@ -457,17 +426,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                             }
                             Num(n)
                         }
-                        "det" | "determinant" =>
-                        {
-                            if a.len() == a[0].len()
-                            {
-                                Num(determinant(&a))
-                            }
-                            else
-                            {
-                                return Err("non square matrix");
-                            }
-                        }
+                        "det" | "determinant" => Num(determinant(&a)?),
                         "part" =>
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
@@ -1137,7 +1096,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
             match s.as_str()
             {
                 "*" => function[i] = function[i - 1].mul(&function[i + 1])?,
-                "/" => function[i] = function[i - 1].div(&function[i + 1])?,
+                "/" => function[i] = function[i - 1].func(&function[i + 1], div)?,
                 _ =>
                 {
                     i += 1;

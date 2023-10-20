@@ -530,6 +530,80 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
         ]
     }
 }
+pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
+{
+    Ok(match (a, b)
+    {
+        (Num(a), Num(b)) =>
+        {
+            let prec = a.prec();
+            let a = a.real().to_f64() as isize;
+            let b = b.real().to_f64() as isize;
+            let vec: Vec<Complex> = if a < b
+            {
+                (a..=b).map(|a| Complex::with_val(prec, a)).collect()
+            }
+            else
+            {
+                (b..=a).rev().map(|a| Complex::with_val(prec, a)).collect()
+            };
+            if vec.is_empty()
+            {
+                return Err("start range greater then end range");
+            }
+            Vector(vec)
+        }
+        (Vector(a), Num(b)) =>
+        {
+            let prec = b.prec();
+            let b = b.real().to_f64() as isize;
+            let mat: Vec<Vec<Complex>> = a
+                .iter()
+                .map(|a| {
+                    let a = a.real().to_f64() as isize;
+                    if a < b
+                    {
+                        (a..=b).map(|a| Complex::with_val(prec, a)).collect()
+                    }
+                    else
+                    {
+                        (b..=a).rev().map(|a| Complex::with_val(prec, a)).collect()
+                    }
+                })
+                .collect();
+            if mat.is_empty() || mat.iter().any(|vec| vec.is_empty())
+            {
+                return Err("start range greater then end range");
+            }
+            Matrix(mat)
+        }
+        (Num(a), Vector(b)) =>
+        {
+            let prec = a.prec();
+            let a = a.real().to_f64() as isize;
+            let mat: Vec<Vec<Complex>> = b
+                .iter()
+                .map(|b| {
+                    let b = b.real().to_f64() as isize;
+                    if a < b
+                    {
+                        (a..=b).map(|a| Complex::with_val(prec, a)).collect()
+                    }
+                    else
+                    {
+                        (b..=a).rev().map(|a| Complex::with_val(prec, a)).collect()
+                    }
+                })
+                .collect();
+            if mat.is_empty() || mat.iter().any(|vec| vec.is_empty())
+            {
+                return Err("start range greater then end range");
+            }
+            Matrix(mat)
+        }
+        _ => return Err(".. err"),
+    })
+}
 pub fn mvec(
     function: Vec<NumStr>,
     var: &str,
@@ -542,25 +616,50 @@ pub fn mvec(
 {
     let mut vec = Vec::new();
     let mut mat = Vec::new();
-    let mut func;
-    for z in start..end + 1
+    if start < end
     {
-        func = function.clone();
-        for k in func.iter_mut()
+        for z in start..=end
         {
-            if k.str_is(var)
+            let mut func = function.clone();
+            for k in func.iter_mut()
             {
-                *k = Num(Complex::with_val(prec, z));
+                if k.str_is(var)
+                {
+                    *k = Num(Complex::with_val(prec, z));
+                }
+            }
+            let math = do_math(func, deg, prec)?;
+            match math
+            {
+                Num(n) => vec.push(n),
+                Vector(v) if mvec => vec.extend(v),
+                Vector(v) => mat.push(v),
+                Matrix(m) if !mvec => mat.extend(m),
+                _ => return Err("cant create 3d matrix"),
             }
         }
-        let math = do_math(func, deg, prec)?;
-        match math
+    }
+    else
+    {
+        for z in (end..=start).rev()
         {
-            Num(n) => vec.push(n),
-            Vector(v) if mvec => vec.extend(v),
-            Vector(v) => mat.push(v),
-            Matrix(m) if !mvec => mat.extend(m),
-            _ => return Err("cant create 3d matrix"),
+            let mut func = function.clone();
+            for k in func.iter_mut()
+            {
+                if k.str_is(var)
+                {
+                    *k = Num(Complex::with_val(prec, z));
+                }
+            }
+            let math = do_math(func, deg, prec)?;
+            match math
+            {
+                Num(n) => vec.push(n),
+                Vector(v) if mvec => vec.extend(v),
+                Vector(v) => mat.push(v),
+                Matrix(m) if !mvec => mat.extend(m),
+                _ => return Err("cant create 3d matrix"),
+            }
         }
     }
     if mat.is_empty()
@@ -589,19 +688,26 @@ pub fn sum(
     prec: u32,
 ) -> Result<NumStr, &'static str>
 {
-    let mut func = function.clone();
-    let mut math;
-    for k in func.iter_mut()
-    {
-        if k.str_is(var)
+    let mut value = Num(
+        if product
         {
-            *k = Num(Complex::with_val(prec, start));
+            Complex::with_val(prec, 1)
         }
-    }
-    let mut value = do_math(func, deg, prec)?;
-    for z in start + 1..=end
+        else
+        {
+            Complex::new(prec)
+        },
+    );
+    for z in if start < end
     {
-        func = function.clone();
+        start..=end
+    }
+    else
+    {
+        end..=start
+    }
+    {
+        let mut func = function.clone();
         for k in func.iter_mut()
         {
             if k.str_is(var)
@@ -609,14 +715,14 @@ pub fn sum(
                 *k = Num(Complex::with_val(prec, z));
             }
         }
-        math = do_math(func, deg, prec)?;
-        if !product
+        let math = do_math(func, deg, prec)?;
+        if product
         {
-            value = value.func(&math, add)?;
+            value = value.mul(&math)?;
         }
         else
         {
-            value = value.mul(&math)?;
+            value = value.func(&math, add)?;
         }
     }
     Ok(value)
@@ -830,54 +936,4 @@ pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
         }
     }
     a
-}
-pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
-{
-    Ok(match (a, b)
-    {
-        (Num(a), Num(b)) =>
-        {
-            let vec: Vec<Complex> = (a.real().to_f64() as isize..=b.real().to_f64() as isize)
-                .map(|a| Complex::with_val(b.prec(), a))
-                .collect();
-            if vec.is_empty()
-            {
-                return Err("start range greater then end range");
-            }
-            Vector(vec)
-        }
-        (Vector(a), Num(b)) =>
-        {
-            let mat: Vec<Vec<Complex>> = a
-                .iter()
-                .map(|a| {
-                    (a.real().to_f64() as isize..=b.real().to_f64() as isize)
-                        .map(|a| Complex::with_val(b.prec(), a))
-                        .collect()
-                })
-                .collect();
-            if mat.is_empty() || mat.iter().any(|vec| vec.is_empty())
-            {
-                return Err("start range greater then end range");
-            }
-            Matrix(mat)
-        }
-        (Num(a), Vector(b)) =>
-        {
-            let mat: Vec<Vec<Complex>> = b
-                .iter()
-                .map(|b| {
-                    (a.real().to_f64() as isize..=b.real().to_f64() as isize)
-                        .map(|a| Complex::with_val(b.prec(), a))
-                        .collect()
-                })
-                .collect();
-            if mat.is_empty() || mat.iter().any(|vec| vec.is_empty())
-            {
-                return Err("start range greater then end range");
-            }
-            Matrix(mat)
-        }
-        _ => return Err(".. err"),
-    })
 }

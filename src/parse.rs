@@ -43,7 +43,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         i += 1;
     }
     i = 0;
-    let (mut c, mut deci);
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
     let mut sum = 0;
@@ -51,7 +50,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut subfact = (false, 0);
     'outer: while i < chars.len()
     {
-        c = chars[i];
+        let c = chars[i];
         if !matches!(
             c,
             '⁰' | '₀'
@@ -125,7 +124,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 word.clear();
             }
             place_multiplier(&mut func, &find_word);
-            deci = false;
+            let mut iter = false;
+            let mut deci = false;
             for c in chars[i..].iter()
             {
                 match c
@@ -138,7 +138,17 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         if deci
                         {
-                            return Err("cant have multiple '.'");
+                            if word.ends_with('.')
+                            {
+                                word.pop();
+                                iter = true;
+                                i += 1;
+                                break;
+                            }
+                            else
+                            {
+                                return Err("cant have multiple '.'");
+                            }
                         }
                         deci = true;
                         word.push(*c);
@@ -164,6 +174,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 options.prec,
                 Complex::parse(word.as_bytes()).unwrap(),
             )));
+            if iter
+            {
+                func.push(Str("..".to_string()));
+            }
             if scientific
             {
                 func.push(Str(")".to_string()));

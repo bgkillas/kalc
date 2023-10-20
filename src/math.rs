@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         add, and, cofactor, determinant, div, eq, ge, gt, hyperoperation, inverse, le, lt, minors,
-        mvec, ne, nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to_polar,
+        mvec, ne, nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to, to_polar,
         transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
@@ -1062,6 +1062,29 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
             }
         }
         i += 1;
+    }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                ".." => function[i] = to(&function[i - 1], &function[i + 1])?,
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
+        {
+            i += 1;
+            continue;
+        }
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     i = function.len().saturating_sub(2);
     while i != 0

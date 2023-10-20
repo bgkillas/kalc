@@ -96,7 +96,7 @@ Trigonometric functions:
 
 Other functions:
 - sqrt, cbrt, square, cube
-- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end) (start and end are rounded to integers)
+- ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
 - fact(real), doublefact(real), subfact(natural)
@@ -106,7 +106,7 @@ Other functions:
 - re, im, split(splits real/imag into a 2 part vector)
 - factors, prime
 - slog(a,b), H(n,a,b)
-- vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)
+- vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
 
 Vector operations/functions:
 - *, /, +, -, ^, ±/+-, ^^

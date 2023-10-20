@@ -831,3 +831,53 @@ pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
     }
     a
 }
+pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
+{
+    Ok(match (a, b)
+    {
+        (Num(a), Num(b)) =>
+        {
+            let vec: Vec<Complex> = (a.real().to_f64() as usize..=b.real().to_f64() as usize)
+                .map(|a| Complex::with_val(b.prec(), a))
+                .collect();
+            if vec.is_empty()
+            {
+                return Err("start range greater then end range");
+            }
+            Vector(vec)
+        }
+        (Vector(a), Num(b)) =>
+        {
+            let mat: Vec<Vec<Complex>> = a
+                .iter()
+                .map(|a| {
+                    (a.real().to_f64() as usize..=b.real().to_f64() as usize)
+                        .map(|a| Complex::with_val(b.prec(), a))
+                        .collect()
+                })
+                .collect();
+            if mat.is_empty() || mat.iter().any(|vec| vec.is_empty())
+            {
+                return Err("start range greater then end range");
+            }
+            Matrix(mat)
+        }
+        (Num(a), Vector(b)) =>
+        {
+            let mat: Vec<Vec<Complex>> = b
+                .iter()
+                .map(|b| {
+                    (a.real().to_f64() as usize..=b.real().to_f64() as usize)
+                        .map(|a| Complex::with_val(b.prec(), a))
+                        .collect()
+                })
+                .collect();
+            if mat.is_empty() || mat.iter().any(|vec| vec.is_empty())
+            {
+                return Err("start range greater then end range");
+            }
+            Matrix(mat)
+        }
+        _ => return Err(".. err"),
+    })
+}

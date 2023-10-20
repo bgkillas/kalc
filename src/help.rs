@@ -63,7 +63,7 @@ Trigonometric functions:\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\
 Other functions:\n\
 - sqrt, cbrt, square, cube\n\
-- ln, log(base,num), root(base,exp), sum(func,var,start,end), prod(func,var,start,end) (start and end are rounded to integers)\n\
+- ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\
 - fact(real), doublefact(real), subfact(natural)\n\
@@ -73,7 +73,7 @@ Other functions:\n\
 - re, im, split(splits real/imag into a 2 part vector)\n\
 - factors, prime\n\
 - slog(a,b), H(n,a,b)\n\
-- vec(func,var,start,end) mat(func,var,start,end) (makes a vector/matrix)\n\n\
+- vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\n\
 Vector operations/functions:\n\
 - *, /, +, -, ^\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\

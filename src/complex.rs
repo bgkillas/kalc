@@ -533,8 +533,8 @@ pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
 pub fn mvec(
     function: Vec<NumStr>,
     var: &str,
-    start: usize,
-    end: usize,
+    start: isize,
+    end: isize,
     mvec: bool,
     deg: AngleType,
     prec: u32,
@@ -582,8 +582,8 @@ pub fn mvec(
 pub fn sum(
     function: Vec<NumStr>,
     var: &str,
-    start: usize,
-    end: usize,
+    start: isize,
+    end: isize,
     product: bool,
     deg: AngleType,
     prec: u32,
@@ -837,7 +837,7 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
     {
         (Num(a), Num(b)) =>
         {
-            let vec: Vec<Complex> = (a.real().to_f64() as usize..=b.real().to_f64() as usize)
+            let vec: Vec<Complex> = (a.real().to_f64() as isize..=b.real().to_f64() as isize)
                 .map(|a| Complex::with_val(b.prec(), a))
                 .collect();
             if vec.is_empty()
@@ -851,7 +851,7 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
             let mat: Vec<Vec<Complex>> = a
                 .iter()
                 .map(|a| {
-                    (a.real().to_f64() as usize..=b.real().to_f64() as usize)
+                    (a.real().to_f64() as isize..=b.real().to_f64() as isize)
                         .map(|a| Complex::with_val(b.prec(), a))
                         .collect()
                 })
@@ -867,7 +867,7 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
             let mat: Vec<Vec<Complex>> = b
                 .iter()
                 .map(|b| {
-                    (a.real().to_f64() as usize..=b.real().to_f64() as usize)
+                    (a.real().to_f64() as isize..=b.real().to_f64() as isize)
                         .map(|a| Complex::with_val(b.prec(), a))
                         .collect()
                 })

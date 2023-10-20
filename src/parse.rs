@@ -440,7 +440,18 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 '²' | '₂' => pow.push('2'),
                 '¹' | '₁' => pow.push('1'),
                 '⁻' => pow.push('-'),
-                '.' => word.push_str("0."),
+                '.' =>
+                {
+                    if i + 1 != chars.len() && chars[i + 1] == '.'
+                    {
+                        i += 1;
+                        func.push(Str("..".to_string()));
+                    }
+                    else
+                    {
+                        word.push_str("0.")
+                    }
+                }
                 '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
                 {
                     func.push(Str("&&".to_string()));

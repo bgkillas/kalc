@@ -272,8 +272,8 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                             {
                                 return Err("fractional start/end");
                             }
-                            let start = start.real().to_f64() as usize;
-                            let end = end.real().to_f64() as usize;
+                            let start = start.real().to_f64() as isize;
+                            let end = end.real().to_f64() as isize;
                             function[i] = match s.as_str()
                             {
                                 "vec" | "mat" => mvec(

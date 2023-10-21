@@ -27,7 +27,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//TODO expand test to include every function
 #[derive(Clone, Copy)]
 pub struct Options
 {

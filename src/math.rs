@@ -1169,9 +1169,9 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
             {
                 "%" => function[i] = function[i - 1].func(&function[i + 1], rem)?,
                 "<" => function[i] = function[i - 1].func(&function[i + 1], lt)?,
+                "<=" => function[i] = function[i - 1].func(&function[i + 1], le)?,
                 ">" => function[i] = function[i - 1].func(&function[i + 1], gt)?,
-                ">=" => function[i] = function[i - 1].func(&function[i + 1], le)?,
-                "<=" => function[i] = function[i - 1].func(&function[i + 1], ge)?,
+                ">=" => function[i] = function[i - 1].func(&function[i + 1], ge)?,
                 "==" => function[i] = function[i - 1].func(&function[i + 1], eq)?,
                 "!=" => function[i] = function[i - 1].func(&function[i + 1], ne)?,
                 ">>" => function[i] = function[i - 1].func(&function[i + 1], shr)?,

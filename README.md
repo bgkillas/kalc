@@ -16,9 +16,10 @@ parsing tries to comply with wolfram alpha
 defaults listed in kalc.config
 
 # issues
-- wont fix: 0's and infinities of trig functions dont show up as 0 or infinity. i cant conceive of a nice way to fix this
-- might fix: matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
-- might fix: loops(sum/prod etc) cant work with x,y,z as vars
+- 0's and infinities of trig functions don't show up as 0 or infinity. i cant conceive of a nice way to fix this
+- matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
+- loops(sum/prod etc) cant work with x,y,z as vars
+- recursive formulas don't work
 # build instructions
 rust>=1.70.0 diffutils gcc m4 make
 ```

@@ -355,50 +355,40 @@ pub fn get_vars(options: Options) -> Vec<[String; 2]>
     let euler = Float::with_val(options.prec, Euler);
     let tau: Float = pi.clone() * 2;
     let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
+    let e = Float::with_val(options.prec, 1).exp();
     vec![
         ["phi".to_string(), phi.to_string()],
         ["tau".to_string(), tau.to_string()],
-        [
-            "cat".to_string(),
-            if options.small_e
-            {
-                catalan.to_string()
-            }
-            else
-            {
-                catalan.to_string().replace('e', "E")
-            },
-        ],
-        ["ec".to_string(), "1.602176634E-19".to_string()],
-        ["kB".to_string(), "1.380649E-23".to_string()],
-        ["me".to_string(), "9.1093837015E-31".to_string()],
-        ["mn".to_string(), "1.67492749804E-27".to_string()],
-        ["mp".to_string(), "1.67262192369E-27".to_string()],
-        ["Na".to_string(), "6.02214076E23".to_string()],
+        ["cat".to_string(), catalan.to_string()],
+        ["ec".to_string(), "1.602176634e-19".to_string()],
+        ["kB".to_string(), "1.380649e-23".to_string()],
+        ["me".to_string(), "9.1093837015e-31".to_string()],
+        ["mn".to_string(), "1.67492749804e-27".to_string()],
+        ["mp".to_string(), "1.67262192369e-27".to_string()],
+        ["Na".to_string(), "6.02214076e23".to_string()],
         ["pi".to_string(), pi.to_string()],
         ["c".to_string(), "299792458".to_string()],
-        [
-            "e".to_string(),
-            Float::with_val(options.prec, 1).exp().to_string(),
-        ],
-        ["G".to_string(), "6.67430E-11".to_string()],
+        ["e".to_string(), e.to_string()],
+        ["G".to_string(), "6.67430e-11".to_string()],
         ["g".to_string(), "9.80665".to_string()],
-        ["h".to_string(), "6.62607015E-34".to_string()],
-        ["k".to_string(), "8.9875517923E9".to_string()],
+        ["h".to_string(), "6.62607015e-34".to_string()],
+        ["k".to_string(), "8.9875517923e9".to_string()],
         ["R".to_string(), "8.31446261815324".to_string()],
         ["φ".to_string(), phi.to_string()],
         ["π".to_string(), pi.to_string()],
         ["τ".to_string(), tau.to_string()],
-        [
-            "γ".to_string(),
-            if options.small_e
-            {
-                euler.to_string()
-            }
-            else
-            {
-                euler.to_string().replace('e', "E")
-            },
-        ],
+        ["γ".to_string(), euler.to_string()],
     ]
+    .iter()
+    .map(|a| {
+        if options.small_e
+        {
+            a.clone()
+        }
+        else
+        {
+            [a[0].clone(), a[1].replace('e', "E")]
+        }
+    })
+    .collect()
 }

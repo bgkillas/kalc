@@ -149,12 +149,14 @@ pub fn print_concurrent(
 ) -> usize
 {
     let input = &input_var(
-        &unmodified_input.iter().collect::<String>(),
+        &unmodified_input
+            .iter()
+            .collect::<String>()
+            .replace('_', &format!("({})", last.iter().collect::<String>())),
         vars,
         &mut Vec::new(),
         options,
-    )
-    .replace('_', &format!("({})", last.iter().collect::<String>()));
+    );
     if can_graph(input)
     {
         print!("\x1b[J");

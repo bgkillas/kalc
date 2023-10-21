@@ -890,7 +890,7 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
     }
     err
 }
-pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str)
+pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: &str)
 {
     match l
     {
@@ -921,7 +921,15 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str)
         "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
         _ =>
         {
-            for i in match get_func(&input_var(l, vars, &mut Vec::new(), *options), *options)
+            for i in match get_func(
+                &input_var(
+                    &l.replace('_', &format!("({})", last)),
+                    vars,
+                    &mut Vec::new(),
+                    *options,
+                ),
+                *options,
+            )
             {
                 Ok(n) => n,
                 Err(_) => return,
@@ -1058,38 +1066,39 @@ pub fn set_commands(
         }
         "prec" | "precision" =>
         {
-            options.prec = if r == "0"
+            if r == "0"
             {
                 println!("Invalid precision");
-                options.prec
             }
             else
             {
                 match r.parse::<u32>()
                 {
-                    Ok(n) => n,
+                    Ok(n) =>
+                    {
+                        options.prec = n;
+                        if options.allow_vars
+                        {
+                            let v = get_vars(*options);
+                            for i in old.clone()
+                            {
+                                for (j, var) in vars.iter_mut().enumerate()
+                                {
+                                    if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
+                                    {
+                                        *var = v[j].clone();
+                                    }
+                                }
+                            }
+                            *old = v;
+                        }
+                    }
                     Err(_) =>
                     {
                         println!("Invalid precision");
-                        options.prec
                     }
                 }
             };
-            if options.allow_vars
-            {
-                let v = get_vars(*options);
-                for i in old.clone()
-                {
-                    for (j, var) in vars.iter_mut().enumerate()
-                    {
-                        if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
-                        {
-                            *var = v[j].clone();
-                        }
-                    }
-                }
-                *old = v;
-            }
             return true;
         }
         "range" =>
@@ -1328,6 +1337,7 @@ pub fn commands(
     options: &mut Options,
     watch: &mut Option<Instant>,
     vars: &mut [[String; 2]],
+    old: &mut Vec<[String; 2]>,
     lines: &mut Vec<String>,
     input: &mut Vec<char>,
 )
@@ -1382,7 +1392,22 @@ pub fn commands(
         {
             print!("\x1b[A\x1b[G\x1b[K");
             stdout().flush().unwrap();
-            options.small_e = !options.small_e
+            options.small_e = !options.small_e;
+            if options.allow_vars
+            {
+                let v = get_vars(*options);
+                for i in old.clone()
+                {
+                    for (j, var) in vars.iter_mut().enumerate()
+                    {
+                        if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
+                        {
+                            *var = v[j].clone();
+                        }
+                    }
+                }
+                *old = v;
+            }
         }
         "sci" | "scientific" =>
         {

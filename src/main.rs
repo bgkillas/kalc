@@ -185,6 +185,7 @@ fn main()
         }
         let mut input = Vec::new();
         let mut frac = 0;
+        let mut graphable = false;
         if !args.is_empty()
         {
             if options.debug
@@ -770,90 +771,105 @@ fn main()
             {
                 continue;
             }
-            commands(&mut options, &mut watch, &mut vars, &mut lines, &mut input);
+            commands(
+                &mut options,
+                &mut watch,
+                &mut vars,
+                &mut old,
+                &mut lines,
+                &mut input,
+            );
             write(
                 &input
                     .iter()
                     .collect::<String>()
-                    .replace('_', &format!("({})", last.iter().collect::<String>())),
+                    .replace("small_e", "smalle")
+                    .replace('_', &format!("({})", last.iter().collect::<String>()))
+                    .replace("smalle", "small_e"),
                 &mut file,
                 &unmod_lines,
             );
-        }
-        if input.ends_with(&['='])
-        {
-            equal_to(
-                &mut options,
-                &mut vars,
-                &input[..input.len() - 1].iter().collect::<String>(),
-            )
-        }
-        else if input
-            .iter()
-            .collect::<String>()
-            .replace("==", "")
-            .replace("!=", "")
-            .replace(">=", "")
-            .replace("<=", "")
-            .contains('=')
-        {
-            print!("\x1b[J");
-            stdout().flush().unwrap();
-            let n = input.iter().collect::<String>();
-            let mut split = n.splitn(2, '=');
-            let s = split.next().unwrap().replace(' ', "");
-            let l = s;
-            let r = split.next().unwrap();
-            if l.is_empty() || set_commands(&mut options, &mut vars, &mut old, &l, r)
+            if input.ends_with(&['='])
             {
-                continue;
+                equal_to(
+                    &mut options,
+                    &mut vars,
+                    &input[..input.len() - 1].iter().collect::<String>(),
+                    &last.iter().collect::<String>(),
+                )
             }
-            if l.contains('(')
+            else if input
+                .iter()
+                .collect::<String>()
+                .replace("==", "")
+                .replace("!=", "")
+                .replace(">=", "")
+                .replace("<=", "")
+                .contains('=')
             {
-                let mut s = l.split('(').next().iter().copied().collect::<String>();
-                s.push('(');
-                let recur_test = r.split(&s);
-                let count = recur_test.clone().count();
-                for (i, s) in recur_test.enumerate()
+                print!("\x1b[J");
+                stdout().flush().unwrap();
+                let n = input.iter().collect::<String>();
+                let mut split = n.splitn(2, '=');
+                let s = split.next().unwrap().replace(' ', "");
+                let l = s;
+                let r = split.next().unwrap();
+                if l.is_empty() || set_commands(&mut options, &mut vars, &mut old, &l, r)
                 {
-                    if i + 1 != count
-                        && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                    continue;
+                }
+                if l.contains('(')
+                {
+                    let mut s = l.split('(').next().iter().copied().collect::<String>();
+                    s.push('(');
+                    let recur_test = r.split(&s);
+                    let count = recur_test.clone().count();
+                    for (i, s) in recur_test.enumerate()
                     {
-                        println!("recursive functions not supported");
+                        if i + 1 != count
+                            && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                        {
+                            println!("recursive functions not supported");
+                            continue 'main;
+                        }
+                    }
+                }
+                for (i, v) in vars.iter().enumerate()
+                {
+                    if v[0].split('(').next() == l.split('(').next()
+                        && v[0].find(',').iter().count() == l.find(',').iter().count()
+                    {
+                        if r == "null"
+                        {
+                            vars.remove(i);
+                        }
+                        else
+                        {
+                            vars[i] = [l.to_string(), r.to_string()];
+                        }
                         continue 'main;
                     }
                 }
-            }
-            for (i, v) in vars.iter().enumerate()
-            {
-                if v[0].split('(').next() == l.split('(').next()
-                    && v[0].find(',').iter().count() == l.find(',').iter().count()
+                for (i, j) in vars.iter().enumerate()
                 {
-                    if r == "null"
+                    if j[0].chars().count() <= l.chars().count()
                     {
-                        vars.remove(i);
+                        vars.insert(i, [l.to_string(), r.to_string()]);
+                        break;
                     }
-                    else
-                    {
-                        vars[i] = [l.to_string(), r.to_string()];
-                    }
-                    continue 'main;
+                }
+                if vars.is_empty()
+                {
+                    vars.push([l.to_string(), r.to_string()]);
                 }
             }
-            for (i, j) in vars.iter().enumerate()
+            else
             {
-                if j[0].chars().count() <= l.chars().count()
-                {
-                    vars.insert(i, [l.to_string(), r.to_string()]);
-                    break;
-                }
-            }
-            if vars.is_empty()
-            {
-                vars.push([l.to_string(), r.to_string()]);
+                graphable = true;
             }
         }
-        else if input.iter().collect::<String>() != "history"
+        if graphable
+            && input.iter().collect::<String>() != "history"
             && (input.contains(&'#')
                 || can_graph(&input_var(
                     &input.iter().collect::<String>(),

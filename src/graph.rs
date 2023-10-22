@@ -53,45 +53,20 @@ pub fn graph(
             let mut z = (Vec::new(), Vec::new());
             for (i, f) in func.iter().enumerate()
             {
-                re.push(match do_math(f.to_vec(), deg, prec).unwrap()
-                {
-                    Vector(n) =>
+                re.push(
+                    match match do_math(f.to_vec(), deg, prec)
                     {
-                        for j in &n
+                        Ok(n) => n,
+                        Err(_) =>
                         {
-                            if !j.real().is_zero()
-                            {
-                                re_cap[i] = unmod[i].to_owned() + ":re";
-                            }
-                            if !j.imag().is_zero()
-                            {
-                                im_cap[i] = unmod[i].to_owned() + ":im";
-                            }
+                            fail(options);
+                            return;
                         }
-                        n
                     }
-                    Matrix(n) =>
                     {
-                        if n[0].len() <= 3 && n[0].len() > 1
+                        Vector(n) =>
                         {
-                            matrix = true;
-                            x.0.push(n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>());
-                            x.1.push(n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>());
-                            y.0.push(n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>());
-                            y.1.push(n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>());
-                            if n[0].len() == 3
-                            {
-                                z.0.push(
-                                    n.iter().map(|x| x[2].real().to_f64()).collect::<Vec<f64>>(),
-                                );
-                                z.1.push(
-                                    n.iter().map(|x| x[2].imag().to_f64()).collect::<Vec<f64>>(),
-                                );
-                            }
-                        }
-                        for k in &n
-                        {
-                            for j in k
+                            for j in &n
                             {
                                 if !j.real().is_zero()
                                 {
@@ -102,40 +77,82 @@ pub fn graph(
                                     im_cap[i] = unmod[i].to_owned() + ":im";
                                 }
                             }
+                            n
                         }
-                        if n[0].len() <= 3 && n[0].len() > 1
+                        Matrix(n) =>
                         {
-                            continue;
+                            if n[0].len() <= 3 && n[0].len() > 1
+                            {
+                                matrix = true;
+                                x.0.push(
+                                    n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>(),
+                                );
+                                x.1.push(
+                                    n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>(),
+                                );
+                                y.0.push(
+                                    n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>(),
+                                );
+                                y.1.push(
+                                    n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>(),
+                                );
+                                if n[0].len() == 3
+                                {
+                                    z.0.push(
+                                        n.iter()
+                                            .map(|x| x[2].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    );
+                                    z.1.push(
+                                        n.iter()
+                                            .map(|x| x[2].imag().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    );
+                                }
+                            }
+                            for k in &n
+                            {
+                                for j in k
+                                {
+                                    if !j.real().is_zero()
+                                    {
+                                        re_cap[i] = unmod[i].to_owned() + ":re";
+                                    }
+                                    if !j.imag().is_zero()
+                                    {
+                                        im_cap[i] = unmod[i].to_owned() + ":im";
+                                    }
+                                }
+                            }
+                            if n[0].len() <= 3 && n[0].len() > 1
+                            {
+                                continue;
+                            }
+                            matrix = false;
+                            n.into_iter().flatten().collect()
                         }
-                        matrix = false;
-                        n.into_iter().flatten().collect()
-                    }
-                    Num(n) =>
-                    {
-                        if !n.real().is_zero()
+                        Num(n) =>
                         {
-                            re_cap[i] = unmod[i].to_owned() + ":re";
+                            if !n.real().is_zero()
+                            {
+                                re_cap[i] = unmod[i].to_owned() + ":re";
+                            }
+                            if !n.imag().is_zero()
+                            {
+                                im_cap[i] = unmod[i].to_owned() + ":im";
+                            }
+                            vec![
+                                Complex::with_val(prec, n.real()),
+                                Complex::with_val(prec, n.imag()),
+                            ]
                         }
-                        if !n.imag().is_zero()
+                        _ =>
                         {
-                            im_cap[i] = unmod[i].to_owned() + ":im";
+                            fail(options);
+                            return;
                         }
-                        vec![
-                            Complex::with_val(prec, n.real()),
-                            Complex::with_val(prec, n.imag()),
-                        ]
-                    }
-                    _ =>
-                    {
-                        print!("No data to plot\n\x1b[G");
-                        if options.prompt
-                        {
-                            print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
-                        }
-                        stdout().flush().unwrap();
-                        return;
-                    }
-                });
+                    },
+                );
             }
             if matrix
             {
@@ -583,12 +600,7 @@ pub fn graph(
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
-                print!("No data to plot\n\x1b[G");
-                if options.prompt
-                {
-                    print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
-                }
-                stdout().flush().unwrap();
+                fail(options);
                 return;
             }
             fg.axes3d()
@@ -723,12 +735,7 @@ pub fn graph(
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
-                print!("No data to plot\n\x1b[G");
-                if options.prompt
-                {
-                    print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
-                }
-                stdout().flush().unwrap();
+                fail(options);
                 return;
             }
             if options.lines
@@ -1152,4 +1159,20 @@ pub fn can_graph(input: &str) -> bool
             .replace(">=", "")
             .replace("<=", "")
             .contains('=')
+}
+fn fail(options: Options)
+{
+    print!("No data to plot\n\x1b[G");
+    if options.prompt
+    {
+        if options.color
+        {
+            print!("\x1b[94m> \x1b[0m")
+        }
+        else
+        {
+            print!("> ")
+        }
+    }
+    stdout().flush().unwrap();
 }

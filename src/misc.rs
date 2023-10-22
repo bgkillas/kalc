@@ -190,7 +190,7 @@ pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
 pub fn clear(input: &[char], start: usize, end: usize, options: Options)
 {
     print!(
-        "\x1b[G\x1b[K{}{}\x1b[0m",
+        "\x1b[G\x1b[K{}{}{}",
         if options.prompt
         {
             if options.color
@@ -210,7 +210,8 @@ pub fn clear(input: &[char], start: usize, end: usize, options: Options)
         {
             ""
         },
-        &input[start..end].iter().collect::<String>()
+        &input[start..end].iter().collect::<String>(),
+        if options.color { "\x1b[0m" } else { "" }
     );
 }
 pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end: usize)

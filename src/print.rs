@@ -1174,13 +1174,21 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             {
                 1
             }
-            else if &input[pos..] == "e0\x1b[93mi"
+            else if &input[pos..] == "e0\x1b[93mi\x1b[0m"
             {
                 2
             }
             else
             {
-                (input.len() - (pos - 1)) - if input.ends_with("\x1b[93mi") { 5 } else { 0 }
+                (input.len() - (pos - 1))
+                    - if input.ends_with("\x1b[93mi\x1b[0m")
+                    {
+                        5
+                    }
+                    else
+                    {
+                        0
+                    }
             })
             - if input.starts_with('-') { 1 } else { 0 }
     }
@@ -1217,10 +1225,31 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             .unwrap()
             .to_string();
         num.insert(1, '.');
-        sign + num.trim_end_matches('0').trim_end_matches('.')
-            + "e"
-            + &(input[pos + 1..].parse::<isize>().unwrap()
-                + if num.len() - 1 > dec { 1 } else { 0 })
-            .to_string()
+        if input.ends_with("i\x1b[0m")
+        {
+            sign + num.trim_end_matches('0').trim_end_matches('.')
+                + "e"
+                + &(input[pos + 1..input.len() - 10].parse::<isize>().unwrap()
+                    + if num.len() - 1 > dec { 1 } else { 0 })
+                .to_string()
+                + "\x1b[93mi\x1b[0m"
+        }
+        else if input.ends_with('i')
+        {
+            sign + num.trim_end_matches('0').trim_end_matches('.')
+                + "e"
+                + &(input[pos + 1..input.len() - 1].parse::<isize>().unwrap()
+                    + if num.len() - 1 > dec { 1 } else { 0 })
+                .to_string()
+                + "i"
+        }
+        else
+        {
+            sign + num.trim_end_matches('0').trim_end_matches('.')
+                + "e"
+                + &(input[pos + 1..].parse::<isize>().unwrap()
+                    + if num.len() - 1 > dec { 1 } else { 0 })
+                .to_string()
+        }
     }
 }

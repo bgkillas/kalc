@@ -10,7 +10,7 @@ use crate::{
 };
 use std::{
     fs::File,
-    io::{stdout, BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Stdout, Write},
     time::Instant,
 };
 pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
@@ -1340,6 +1340,7 @@ pub fn commands(
     old: &mut Vec<[String; 2]>,
     lines: &mut Vec<String>,
     input: &mut Vec<char>,
+    stdout: &mut Stdout,
 )
 {
     match input.iter().collect::<String>().as_str()
@@ -1347,43 +1348,43 @@ pub fn commands(
         "color" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.color = !options.color;
         }
         "prompt" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.prompt = !options.prompt;
         }
         "depth" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.depth = !options.depth;
         }
         "deg" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.deg = Degrees;
         }
         "rad" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.deg = Radians;
         }
         "grad" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.deg = Gradians;
         }
         "rt" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.real_time_output = !options.real_time_output;
         }
         "tau" => options.tau = true,
@@ -1391,7 +1392,7 @@ pub fn commands(
         "small_e" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.small_e = !options.small_e;
             if options.allow_vars
             {
@@ -1412,67 +1413,67 @@ pub fn commands(
         "sci" | "scientific" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.sci = !options.sci;
         }
         "clear" =>
         {
             print!("\x1b[H\x1b[J");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
         }
         "debug" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.debug = !options.debug;
             *watch = None;
         }
         "help" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             help();
         }
         "line" | "lines" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.lines = !options.lines;
         }
         "polar" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.polar = !options.polar;
         }
         "frac" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.frac = !options.frac;
         }
         "multi" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.multi = !options.multi;
         }
         "tabbed" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.tabbed = !options.tabbed;
         }
         "comma" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             options.comma = !options.comma;
         }
         "history" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             for l in lines
             {
                 println!("{}", l);
@@ -1481,7 +1482,7 @@ pub fn commands(
         "vars" | "variables" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             for v in vars.iter()
             {
                 if v[0].contains('(')
@@ -1542,7 +1543,7 @@ pub fn commands(
         "lvars" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             for v in vars.iter()
             {
                 println!("{}={}", v[0], v[1]);
@@ -1551,13 +1552,13 @@ pub fn commands(
         "version" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
         }
         "exit" | "quit" | "break" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             std::process::exit(0);
         }
         _ =>
@@ -1568,7 +1569,7 @@ pub fn commands(
             if next == "history"
             {
                 print!("\x1b[A\x1b[G\x1b[K");
-                stdout().flush().unwrap();
+                stdout.flush().unwrap();
                 let r = split.next().unwrap();
                 for i in lines
                 {
@@ -1581,7 +1582,7 @@ pub fn commands(
             // if next == "help"
             // {
             //     print!("\x1b[A\x1b[G\x1b[K");
-            //     stdout().flush().unwrap();
+            //     stdout.flush().unwrap();
             //     get_help(split.next().unwrap());
             //     continue;
             // }

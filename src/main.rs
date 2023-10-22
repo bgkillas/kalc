@@ -159,6 +159,10 @@ fn main()
             }
         }
     }
+    if !args.is_empty()
+    {
+        options.color = !options.color;
+    }
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
     #[cfg(not(unix))]
@@ -239,7 +243,14 @@ fn main()
             print!("\x1b[G\x1b[K");
             if options.prompt
             {
-                print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
+                if options.color
+                {
+                    print!("\x1b[94m> \x1b[0m");
+                }
+                else
+                {
+                    print!("> ");
+                }
             }
             stdout.flush().unwrap();
             let mut current = Vec::new();
@@ -298,6 +309,7 @@ fn main()
                     }
                     '\x08' =>
                     {
+                        //backspace
                         if placement - start == 0 && start != 0
                         {
                             start -= 1;
@@ -346,8 +358,8 @@ fn main()
                         }
                     }
                     '\x7F' =>
-                    //Delete
                     {
+                        //delete
                         if placement - start == 0 && start != 0
                         {
                             start -= 1;
@@ -524,7 +536,7 @@ fn main()
                     }
                     '\x1D' =>
                     {
-                        // up history
+                        //up history
                         i -= if i > 0 { 1 } else { 0 };
                         input = lines[i].clone().chars().collect::<Vec<char>>();
                         placement = input.len();
@@ -550,7 +562,7 @@ fn main()
                     }
                     '\x1E' =>
                     {
-                        // down history
+                        //down history
                         i += 1;
                         if i >= max
                         {
@@ -584,7 +596,7 @@ fn main()
                     }
                     '\x1B' =>
                     {
-                        // go left
+                        //go left
                         if placement - start == 0 && placement != 0 && start != 0
                         {
                             start -= 1;
@@ -605,7 +617,7 @@ fn main()
                     }
                     '\x1C' =>
                     {
-                        // go right
+                        //go right
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
@@ -773,6 +785,7 @@ fn main()
                 &mut old,
                 &mut lines,
                 &mut input,
+                &mut stdout,
             );
             write(
                 &input

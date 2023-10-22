@@ -8,7 +8,12 @@ use crate::{
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
-use std::{thread, thread::JoinHandle, time::Instant};
+use std::{
+    io::{stdout, Write},
+    thread,
+    thread::JoinHandle,
+    time::Instant,
+};
 pub fn graph(
     input: Vec<String>,
     unmod: Vec<String>,
@@ -120,7 +125,16 @@ pub fn graph(
                             Complex::with_val(prec, n.imag()),
                         ]
                     }
-                    _ => return,
+                    _ =>
+                    {
+                        print!("No data to plot\n\x1b[G");
+                        if options.prompt
+                        {
+                            print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
+                        }
+                        stdout().flush().unwrap();
+                        return;
+                    }
                 });
             }
             if matrix
@@ -569,7 +583,12 @@ pub fn graph(
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
-                println!("No data to plot");
+                print!("No data to plot\n\x1b[G");
+                if options.prompt
+                {
+                    print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
+                }
+                stdout().flush().unwrap();
                 return;
             }
             fg.axes3d()
@@ -704,7 +723,12 @@ pub fn graph(
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
-                println!("No data to plot");
+                print!("No data to plot\n\x1b[G");
+                if options.prompt
+                {
+                    print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
+                }
+                stdout().flush().unwrap();
                 return;
             }
             if options.lines

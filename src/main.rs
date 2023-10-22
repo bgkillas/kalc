@@ -173,6 +173,7 @@ fn main()
     let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
     let mut exit = false;
     let mut cut: Vec<char> = Vec::new();
+    let mut stdout = stdout();
     'main: loop
     {
         if exit
@@ -235,18 +236,12 @@ fn main()
         }
         else
         {
+            print!("\x1b[G\x1b[K");
             if options.prompt
             {
-                print!(
-                    "\x1b[G\x1b[K{}> \x1b[0m",
-                    if options.color { "\x1b[94m" } else { "" }
-                );
+                print!("{}> \x1b[0m", if options.color { "\x1b[94m" } else { "" });
             }
-            else
-            {
-                print!("\x1b[G\x1b[K");
-            }
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             let mut current = Vec::new();
             let mut lines: Vec<String> = BufReader::new(File::open(file_path).unwrap())
                 .lines()
@@ -765,7 +760,7 @@ fn main()
                         }
                     }
                 }
-                stdout().flush().unwrap();
+                stdout.flush().unwrap();
             }
             if input.is_empty()
             {
@@ -808,7 +803,7 @@ fn main()
                 .contains('=')
             {
                 print!("\x1b[J");
-                stdout().flush().unwrap();
+                stdout.flush().unwrap();
                 let n = input.iter().collect::<String>();
                 let mut split = n.splitn(2, '=');
                 let s = split.next().unwrap().replace(' ', "");
@@ -879,7 +874,7 @@ fn main()
                 )))
         {
             print!("\x1b[G\x1b[K");
-            stdout().flush().unwrap();
+            stdout.flush().unwrap();
             let mut inputs: Vec<String> = input
                 .iter()
                 .collect::<String>()

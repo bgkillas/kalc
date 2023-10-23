@@ -124,7 +124,7 @@ i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,\n\
 n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,\n\
 r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,\n\
 w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\n\
-= >±, `=>ⁱ\n\
+==>±, `=>ⁱ _=>∞\n\
 numbers/minus sign convert to superscript acting as exponents"
     );
 }

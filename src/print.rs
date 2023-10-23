@@ -787,7 +787,7 @@ pub fn print_concurrent(
 }
 pub fn get_output(options: &Options, num: &Complex) -> (String, String)
 {
-    let sign = if (num.imag().is_nan() || !num.real().is_nan())
+    let sign = if !(num.imag().is_infinite() && num.real().is_nan())
         && num.imag().is_sign_positive()
         && !num.real().is_zero()
     {
@@ -852,7 +852,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     {
         (
             if (!num.imag().is_zero() && num.real().is_zero())
-                || (num.real().is_nan() && !num.imag().is_nan())
+                || (num.real().is_nan() && num.imag().is_infinite())
             {
                 "".to_string()
             }
@@ -886,7 +886,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                     },
                 ) + if options.color { "\x1b[0m" } else { "" }
             },
-            if num.imag().is_zero() || (num.imag().is_nan() && !num.real().is_nan())
+            if num.imag().is_zero() || (num.imag().is_nan() && num.real().is_infinite())
             {
                 "".to_string()
             }
@@ -950,7 +950,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             options.comma,
         );
         (
-            if (n == "0" && im != "0") || (n == "NaN" && im != "NaN")
+            if (n == "0" && im != "0") || (n == "NaN" && im.ends_with("inf"))
             {
                 "".to_string()
             }
@@ -958,7 +958,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             {
                 n.clone()
             },
-            if im == "0" || (im == "NaN" && n != "NaN")
+            if im == "0" || (im == "NaN" && n.ends_with("inf"))
             {
                 "".to_string()
             }

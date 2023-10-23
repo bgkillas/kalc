@@ -4,9 +4,12 @@ use crate::{
     options::AngleType,
 };
 use rug::{
-    float::{Constant::Pi, Special::Nan},
+    float::{
+        Constant::Pi,
+        Special::{Infinity, Nan},
+    },
     ops::Pow,
-    Complex,
+    Complex, Float,
 };
 use std::ops::{Shl, Shr};
 #[derive(Clone)]
@@ -362,6 +365,17 @@ pub fn rem(a: &Complex, b: &Complex) -> Complex
         (c.real().clone().floor(), c.imag().clone().floor()),
     );
     a - b * c
+}
+pub fn gamma(a: &Float) -> Float
+{
+    if a.is_sign_negative() && a.clone().fract().is_zero()
+    {
+        Float::with_val(a.prec(), Infinity)
+    }
+    else
+    {
+        a.clone().gamma()
+    }
 }
 pub fn tetration(a: &Complex, b: &Complex) -> Complex
 {

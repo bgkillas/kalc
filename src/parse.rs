@@ -730,10 +730,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                                 if i + 1 != chars.len() && chars[i + 1] == '!'
                                                 {
                                                     i += 1;
-                                                    func.insert(
-                                                        func.len() - 1,
-                                                        Str("doublefact".to_string()),
-                                                    );
+                                                    func.insert(j, Str("doublefact".to_string()));
                                                 }
                                                 else
                                                 {
@@ -749,7 +746,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                     if i + 1 != chars.len() && chars[i + 1] == '!'
                                     {
                                         i += 1;
-                                        func.insert(func.len() - 1, Str("doublefact".to_string()));
+                                        func.insert(j, Str("doublefact".to_string()));
                                     }
                                     else
                                     {

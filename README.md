@@ -21,7 +21,7 @@ defaults listed in kalc.config
 - loops(sum/prod etc) cant work with x,y,z as vars
 - recursive formulas don't work
 - inf + inf * i does not give inf+inf*i
-- 1/0 != +-inf
+- 1/0 != +-inf, digamma(-n) != +-inf, gamma(-n) != +-inf (and gamma subsidiarys)
 # build instructions
 rust>=1.73.0 diffutils gcc m4 make
 ```

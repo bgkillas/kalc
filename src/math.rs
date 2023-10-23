@@ -1,6 +1,6 @@
 use crate::{
     complex::{
-        add, and, cofactor, determinant, div, eq, ge, gt, inverse, le, lt, minors, mvec, ne,
+        add, and, cofactor, determinant, div, eq, gamma, ge, gt, inverse, le, lt, minors, mvec, ne,
         nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, transpose,
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -10,7 +10,11 @@ use crate::{
         AngleType::{Degrees, Gradians, Radians},
     },
 };
-use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
+use rug::{
+    float::{Constant::Pi, Special::Infinity},
+    ops::Pow,
+    Complex, Float,
+};
 pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
     -> Result<NumStr, &'static str>
 {
@@ -1588,7 +1592,7 @@ fn functions(
                 }
                 let d: Float = a.real().clone() - b.real() + 1;
                 let a: Float = a.real().clone() + 1;
-                (a.gamma() / d.gamma()).into()
+                (gamma(&a) / gamma(&d)).into()
             }
             else
             {
@@ -1618,7 +1622,7 @@ fn functions(
                     let c: Float = a.real().clone() + 1;
                     let d: Float = b.real().clone() + 1;
                     let e: Float = a.real().clone() - b.real().clone() + 1;
-                    Complex::with_val(prec, c.gamma() / (d.gamma() * e.gamma()))
+                    Complex::with_val(prec, gamma(&c) / (gamma(&d) * gamma(&e)))
                 }
             }
             else
@@ -1630,7 +1634,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real().clone().gamma())
+                Complex::with_val(prec, gamma(a.real()))
             }
             else
             {
@@ -1707,7 +1711,7 @@ fn functions(
                 prec,
                 two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
                     * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
-                    * gam.gamma(),
+                    * gamma(&gam),
             )
         }
         "fact" =>
@@ -1715,7 +1719,7 @@ fn functions(
             if a.imag().is_zero()
             {
                 let b: Float = a.real().clone() + 1;
-                Complex::with_val(prec, b.gamma())
+                Complex::with_val(prec, gamma(&b))
             }
             else
             {
@@ -1731,7 +1735,7 @@ fn functions(
                 return Err("complex/fractional subfactorial not supported");
             }
             let b: Float = a.real().clone() + 1;
-            Complex::with_val(prec, (b.gamma() / Float::with_val(prec.0, 1).exp()).round())
+            Complex::with_val(prec, (gamma(&b) / Float::with_val(prec.0, 1).exp()).round())
         }
         "sinc" => a.clone().sin() / a,
         "conj" | "conjugate" => a.conj(),
@@ -1772,7 +1776,14 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real().clone().digamma())
+                if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
+                {
+                    Complex::with_val(prec, Infinity)
+                }
+                else
+                {
+                    Complex::with_val(prec, a.real().clone().digamma())
+                }
             }
             else
             {

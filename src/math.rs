@@ -1,8 +1,8 @@
 use crate::{
     complex::{
-        add, and, cofactor, determinant, div, eq, ge, gt, hyperoperation, inverse, le, lt, minors,
-        mvec, ne, nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to, to_polar,
-        transpose, NumStr,
+        add, and, cofactor, determinant, div, eq, ge, gt, inverse, le, lt, minors, mvec, ne,
+        nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, transpose,
+        NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::{
@@ -158,7 +158,6 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 | "link"
                                 | "C"
                                 | "P"
-                                | "H"
                         )
                         {
                             count = 0;
@@ -221,7 +220,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
         if let Str(s) = &function[i].clone()
         {
             if (s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                || matches!(s.as_str(), "C" | "P" | "H" | "I")
+                || matches!(s.as_str(), "C" | "P" | "I")
             {
                 if matches!(
                     s.as_str(),
@@ -915,7 +914,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                     if num.real().clone().fract().is_zero()
                                     {
                                         let mut vec = Vec::new();
-                                        let n = num.real().to_f64() as u128;
+                                        let n = num.real().to_f64() as usize;
                                         for i in 1..=n
                                         {
                                             if n % i == 0
@@ -952,36 +951,6 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                 {
                     function[i] = match s.as_str()
                     {
-                        "H" =>
-                        {
-                            if function.len() > i + 5
-                            {
-                                let a = function[i + 1].num()?;
-                                let b = function[i + 3].num()?;
-                                let c = function[i + 5].num()?;
-                                if a.imag().is_zero()
-                                    && b.imag().is_zero()
-                                    && c.imag().is_zero()
-                                    && a.real().clone().fract().is_zero()
-                                    && b.real().clone().fract().is_zero()
-                                    && c.real().clone().fract().is_zero()
-                                    && a.real() > &0
-                                    && b.real() > &0
-                                    && c.real() > &0
-                                {
-                                    function.drain(i + 2..i + 6);
-                                    Num(hyperoperation(a.real(), &b, &c))
-                                }
-                                else
-                                {
-                                    return Err("undefined hyperoperation");
-                                }
-                            }
-                            else
-                            {
-                                return Err("no args");
-                            }
-                        }
                         "split" =>
                         {
                             let a = function[i + 1].num()?;
@@ -1028,7 +997,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 if a.real().clone().fract().is_zero()
                                 {
                                     let mut vec = Vec::new();
-                                    let n = a.real().to_f64() as u128;
+                                    let n = a.real().to_f64() as usize;
                                     for i in 1..=n
                                     {
                                         if n % i == 0
@@ -1488,7 +1457,7 @@ fn functions(
         "asech" | "arcsech" =>
         {
             b = a.clone().recip().acosh();
-            if a.imag().is_zero() && a.real() < &0
+            if a.imag().is_zero() && a.real().is_sign_negative()
             {
                 Complex::with_val(prec, (b.real(), -b.imag()))
             }
@@ -1755,7 +1724,9 @@ fn functions(
         }
         "subfact" =>
         {
-            if !a.imag().is_zero() || a.real() < &0 || !a.real().clone().fract().is_zero()
+            if !a.imag().is_zero()
+                || a.real().is_sign_negative()
+                || !a.real().clone().fract().is_zero()
             {
                 return Err("complex/fractional subfactorial not supported");
             }
@@ -1823,7 +1794,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, nth_prime(a.real().to_f64() as u128))
+                Complex::with_val(prec, nth_prime(a.real().to_f64() as usize))
             }
             else
             {

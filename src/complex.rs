@@ -6,7 +6,7 @@ use crate::{
 use rug::{
     float::{Constant::Pi, Special::Nan},
     ops::Pow,
-    Complex, Float,
+    Complex,
 };
 use std::ops::{Shl, Shr};
 #[derive(Clone)]
@@ -172,7 +172,7 @@ impl NumStr
                         {
                             mat = mat.mul(&Matrix(a.clone()))?;
                         }
-                        if b.real() > &0
+                        if b.real().is_sign_positive()
                         {
                             mat
                         }
@@ -300,14 +300,14 @@ pub fn and(a: &Complex, b: &Complex) -> Complex
 {
     Complex::with_val(
         a.prec(),
-        (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as i32,
+        (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as u8,
     )
 }
 pub fn or(a: &Complex, b: &Complex) -> Complex
 {
     Complex::with_val(
         a.prec(),
-        (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as i32,
+        (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as u8,
     )
 }
 pub fn sub(a: &Complex, b: &Complex) -> Complex
@@ -363,37 +363,14 @@ pub fn rem(a: &Complex, b: &Complex) -> Complex
     );
     a - b * c
 }
-pub fn hyperoperation(n: &Float, a: &Complex, b: &Complex) -> Complex
-{
-    if n == &0
-    {
-        b.clone() + 1
-    }
-    else if n == &1 && b == &0
-    {
-        a.clone()
-    }
-    else if n == &2 && b == &0
-    {
-        Complex::new(a.prec())
-    }
-    else if n >= &3 && b == &0
-    {
-        Complex::with_val(a.prec(), 1)
-    }
-    else
-    {
-        hyperoperation(&(n.clone() - 1), a, &hyperoperation(n, a, &(b.clone() - 1)))
-    }
-}
 pub fn tetration(a: &Complex, b: &Complex) -> Complex
 {
-    if b.real().clone().fract().is_zero()
+    if b.real().clone().fract().is_zero() && b.real().is_sign_positive()
     {
         (0..=b.real().to_f64() as usize)
             .fold(Complex::new(b.prec()), |tetration, _| a.pow(tetration))
     }
-    else if b.real() > &0
+    else if b.real().is_sign_positive()
     {
         a.pow(tetration(a, &(b.clone() - 1)))
     }
@@ -861,7 +838,7 @@ pub fn inverse(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
         Err("not square")
     }
 }
-pub fn is_prime(num: u128) -> bool
+pub fn is_prime(num: usize) -> bool
 {
     if num <= 1
     {
@@ -886,7 +863,7 @@ pub fn is_prime(num: u128) -> bool
     }
     true
 }
-pub fn nth_prime(n: u128) -> u128
+pub fn nth_prime(n: usize) -> usize
 {
     let mut count = 0;
     let mut num = 2;

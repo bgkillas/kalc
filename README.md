@@ -20,8 +20,10 @@ defaults listed in kalc.config
 - matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
 - loops(sum/prod etc) cant work with x,y,z as vars
 - recursive formulas don't work
+- inf + inf * i does not give inf+inf*i
+- 1/0 != +-inf
 # build instructions
-rust>=1.70.0 diffutils gcc m4 make
+rust>=1.73.0 diffutils gcc m4 make
 ```
 git clone https://github.com/bgkillas/kalc
 cd kalc
@@ -106,7 +108,7 @@ Other functions:
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
 - re, im, split(splits real/imag into a 2 part vector)
 - factors, prime
-- slog(a,b), H(n,a,b)
+- slog(a,b)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
 
 Vector operations/functions:

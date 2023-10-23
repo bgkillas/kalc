@@ -72,7 +72,7 @@ Other functions:\n\
 - deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
 - re, im, split(splits real/imag into a 2 part vector)\n\
 - factors, prime\n\
-- slog(a,b), H(n,a,b)\n\
+- slog(a,b)\n\
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\n\
 Vector operations/functions:\n\
 - *, /, +, -, ^\n\

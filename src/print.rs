@@ -195,7 +195,7 @@ pub fn print_concurrent(
         {
             ""
         }
-        .to_owned();
+        .to_string();
         let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
         {
             let fa = fraction(n.real().clone(), options);
@@ -321,10 +321,10 @@ pub fn print_concurrent(
         }
         if len1 + len2 > terlen
         {
-            let num = (len1 as f64 / terlen as f64).ceil() as usize
+            let num = len1.div_ceil(terlen)
                 + if len2 != 0
                 {
-                    ((len2 - 1) as f64 / terlen as f64).ceil() as usize - 1
+                    (len2 - 1).div_ceil(terlen) - 1
                 }
                 else
                 {
@@ -524,7 +524,7 @@ pub fn print_concurrent(
         {
             frac = 0;
         }
-        let num = (len as f64 / terlen as f64).floor() as usize;
+        let num = len / terlen;
         print!(
             "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
             if frac == 1
@@ -687,7 +687,7 @@ pub fn print_concurrent(
         }
         if !options.multi
         {
-            num += (len as f64 / terlen as f64).floor() as usize;
+            num += len / terlen;
             if (frac == 1 && !options.frac)
                 || frac_out
                     .replace("\x1b[0m", "")
@@ -787,7 +787,9 @@ pub fn print_concurrent(
 }
 pub fn get_output(options: &Options, num: &Complex) -> (String, String)
 {
-    let sign = if !num.real().is_zero() && num.imag().is_sign_positive()
+    let sign = if (num.imag().is_nan() || !num.real().is_nan())
+        && num.imag().is_sign_positive()
+        && !num.real().is_zero()
     {
         "+"
     }
@@ -795,7 +797,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     {
         ""
     }
-    .to_owned();
+    .to_string();
     let mut n;
     let dec = if options.decimal_places == 0
     {
@@ -817,16 +819,16 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                 }
                 else
                 {
-                    n.trim_end_matches('0').trim_end_matches('.').to_owned()
+                    n.trim_end_matches('0').trim_end_matches('.').to_string()
                 }
             }
             else if num.imag().is_zero()
             {
-                "0".to_owned()
+                "0".to_string()
             }
             else
             {
-                "".to_owned()
+                "".to_string()
             },
             if !num.imag().is_zero()
             {
@@ -837,7 +839,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                 }
                 else
                 {
-                    n.trim_end_matches('0').trim_end_matches('.').to_owned()
+                    n.trim_end_matches('0').trim_end_matches('.').to_string()
                 } + if options.color { "\x1b[93mi" } else { "i" }
             }
             else
@@ -849,7 +851,12 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     else if options.sci
     {
         (
-            if !num.real().is_zero()
+            if (!num.imag().is_zero() && num.real().is_zero())
+                || (num.real().is_nan() && !num.imag().is_nan())
+            {
+                "".to_string()
+            }
+            else
             {
                 add_commas(
                     &remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec()),
@@ -878,19 +885,15 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                         "E"
                     },
                 ) + if options.color { "\x1b[0m" } else { "" }
-            }
-            else if num.imag().is_zero()
+            },
+            if num.imag().is_zero() || (num.imag().is_nan() && !num.real().is_nan())
             {
-                "0".to_owned()
+                "".to_string()
             }
             else
             {
-                "".to_owned()
-            },
-            if !num.imag().is_zero()
-            {
                 add_commas(
-                    &(sign.as_str().to_owned()
+                    &(sign
                         + &remove_trailing_zeros(
                             &format!(
                                 "{:e}{}",
@@ -932,10 +935,6 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                         "E"
                     },
                 ) + if options.color { "\x1b[0m" } else { "" }
-            }
-            else
-            {
-                "".to_owned()
             },
         )
     }
@@ -951,15 +950,15 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             options.comma,
         );
         (
-            if n == "0" && im != "0"
+            if (n == "0" && im != "0") || (n == "NaN" && im != "NaN")
             {
                 "".to_string()
             }
             else
             {
-                n
+                n.clone()
             },
-            if im == "0"
+            if im == "0" || (im == "NaN" && n != "NaN")
             {
                 "".to_string()
             }
@@ -1103,7 +1102,7 @@ fn add_commas(input: &str, commas: bool) -> String
 {
     if !commas
     {
-        return input.to_owned();
+        return input.to_string();
     }
     let mut split = input.split('.');
     let mut result = String::new();

@@ -219,7 +219,7 @@ pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end
     print!(
         "\x1b[J\x1b[G\x1b[K\n{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
         err,
-        "\x1b[A".repeat((err.len() as f64 / get_terminal_width() as f64).ceil() as usize - 1),
+        "\x1b[A".repeat(err.len().div_ceil(get_terminal_width()) - 1),
         if options.prompt
         {
             if options.color

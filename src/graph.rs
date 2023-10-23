@@ -982,7 +982,7 @@ pub fn get_list_2d(
     let den = range.samples_2d;
     let den_range = (max - min) / den;
     let (mut n, mut num);
-    for i in 0..=den as i32
+    for i in 0..=den as usize
     {
         n = min + i as f64 * den_range;
         num = match do_math(
@@ -1069,7 +1069,7 @@ pub fn get_list_3d(
     let den_y_range = (max_y - min_y) / den.1;
     let (mut n, mut f, mut num);
     let mut modified: Vec<NumStr>;
-    for i in 0..=den.0 as i32
+    for i in 0..=den.0 as usize
     {
         n = min_x + i as f64 * den_x_range;
         modified = func
@@ -1080,7 +1080,7 @@ pub fn get_list_3d(
                 _ => i.clone(),
             })
             .collect();
-        for g in 0..=den.1 as i32
+        for g in 0..=den.1 as usize
         {
             f = min_y + g as f64 * den_y_range;
             num = match do_math(

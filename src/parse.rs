@@ -5,7 +5,7 @@ use crate::{
     },
     Options,
 };
-use rug::{ops::Pow, Complex};
+use rug::{float::Special::Infinity, ops::Pow, Complex};
 use std::collections::HashSet;
 pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static str>
 {
@@ -298,8 +298,17 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         if i + 1 != chars.len() && matches!(chars[i + 1], 'n' | 'm' | 'd')
                         {
-                            word.push(c);
-                            find_word = true;
+                            if chars[i + 1] == 'n' && i + 2 != chars.len() && chars[i + 2] == 'f'
+                            {
+                                i += 2;
+                                place_multiplier(&mut func, &find_word);
+                                func.push(Num(Complex::with_val(options.prec, Infinity)))
+                            }
+                            else
+                            {
+                                word.push(c);
+                                find_word = true;
+                            }
                         }
                         else
                         {
@@ -325,54 +334,57 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             if !word.is_empty()
             {
                 find_word = false;
-                if i + 4 < chars.len()
-                    && chars[i] == '^'
-                    && chars[i + 1] == '('
-                    && chars[i + 2] == '-'
-                    && chars[i + 3] == '1'
-                    && chars[i + 4] == ')'
+                if is_func(&word)
                 {
-                    place_multiplier(&mut func, &find_word);
-                    word.insert(0, 'a');
-                    func.push(Str(word.clone()));
-                    word.clear();
-                    i += 5;
-                    continue;
-                }
-                if i + 2 < chars.len()
-                    && chars[i] == '^'
-                    && chars[i + 1] == '-'
-                    && chars[i + 2] == '1'
-                {
-                    place_multiplier(&mut func, &find_word);
-                    word.insert(0, 'a');
-                    func.push(Str(word.clone()));
-                    word.clear();
-                    i += 3;
-                    continue;
-                }
-                if i + 1 < chars.len()
-                    && chars[i] == '^'
-                    && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
-                {
-                    place_multiplier(&mut func, &find_word);
-                    func.push(Str(word.clone()));
-                    word.clear();
-                    let pos = chars
-                        .iter()
-                        .skip(i + 1)
-                        .position(|&c| c == '(' || c == ')' || c == ',');
-                    if pos.is_none()
+                    if i + 4 < chars.len()
+                        && chars[i] == '^'
+                        && chars[i + 1] == '('
+                        && chars[i + 2] == '-'
+                        && chars[i + 3] == '1'
+                        && chars[i + 4] == ')'
                     {
+                        place_multiplier(&mut func, &find_word);
+                        word.insert(0, 'a');
+                        func.push(Str(word.clone()));
+                        word.clear();
+                        i += 5;
                         continue;
                     }
-                    exp = chars[i + 1..i + 1 + pos.unwrap()].iter().collect();
-                    if exp == "-"
+                    if i + 2 < chars.len()
+                        && chars[i] == '^'
+                        && chars[i + 1] == '-'
+                        && chars[i + 2] == '1'
                     {
-                        exp = "-1".to_string();
+                        place_multiplier(&mut func, &find_word);
+                        word.insert(0, 'a');
+                        func.push(Str(word.clone()));
+                        word.clear();
+                        i += 3;
+                        continue;
                     }
-                    i += pos.unwrap() + 1;
-                    continue;
+                    if i + 1 < chars.len()
+                        && chars[i] == '^'
+                        && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
+                    {
+                        place_multiplier(&mut func, &find_word);
+                        func.push(Str(word.clone()));
+                        word.clear();
+                        let pos = chars
+                            .iter()
+                            .skip(i + 1)
+                            .position(|&c| c == '(' || c == ')' || c == ',');
+                        if pos.is_none()
+                        {
+                            continue;
+                        }
+                        exp = chars[i + 1..i + 1 + pos.unwrap()].iter().collect();
+                        if exp == "-"
+                        {
+                            exp = "-1".to_string();
+                        }
+                        i += pos.unwrap() + 1;
+                        continue;
+                    }
                 }
                 if is_func(&word) || sum != 0
                 {
@@ -596,7 +608,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if i != 0 && i + 1 != chars.len() => func.push(Str(if chars[i + 1] == '^'
+                '^' if !func.is_empty() && i + 1 != chars.len() => func.push(Str(if chars[i + 1]
+                    == '^'
                 {
                     i += 1;
                     "^^"
@@ -677,7 +690,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         if let Num(a) = func.clone().last().unwrap()
                         {
-                            if a.real() < &0
+                            if a.real().is_sign_negative()
                             {
                                 func.pop();
                                 func.push(Num(Complex::with_val(
@@ -1014,7 +1027,6 @@ pub fn is_func(word: &str) -> bool
         "I",
         "P",
         "C",
-        "H",
         "split",
         "slog",
         "doublefact",

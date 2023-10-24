@@ -4,7 +4,7 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     math::do_math,
-    AngleType, Options,
+    Options,
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
@@ -19,8 +19,6 @@ pub fn graph(
     unmod: Vec<String>,
     func: Vec<Vec<NumStr>>,
     options: Options,
-    deg: AngleType,
-    prec: u32,
     watch: Option<Instant>,
 ) -> JoinHandle<()>
 {
@@ -54,7 +52,7 @@ pub fn graph(
             for (i, f) in func.iter().enumerate()
             {
                 re.push(
-                    match match do_math(f.to_vec(), deg, prec)
+                    match match do_math(f.to_vec(), options)
                     {
                         Ok(n) => n,
                         Err(_) =>
@@ -142,8 +140,8 @@ pub fn graph(
                                 im_cap[i] = unmod[i].to_owned() + ":im";
                             }
                             vec![
-                                Complex::with_val(prec, n.real()),
-                                Complex::with_val(prec, n.imag()),
+                                Complex::with_val(options.prec, n.real()),
+                                Complex::with_val(options.prec, n.imag()),
                             ]
                         }
                         _ =>
@@ -330,7 +328,7 @@ pub fn graph(
             }
             else if re[0].len() == 2
             {
-                let z = vec![Complex::new(prec); 2];
+                let z = vec![Complex::new(options.prec); 2];
                 for _ in 0..6 - func.len()
                 {
                     re.push(z.clone());
@@ -403,7 +401,7 @@ pub fn graph(
             }
             else if re[0].len() == 3
             {
-                let z = vec![Complex::new(prec); 3];
+                let z = vec![Complex::new(options.prec); 3];
                 for _ in 0..6 - func.len()
                 {
                     re.push(z.clone());
@@ -493,7 +491,7 @@ pub fn graph(
             }
             else
             {
-                let z = vec![Complex::new(prec); re[0].len()];
+                let z = vec![Complex::new(options.prec); re[0].len()];
                 for _ in 0..6 - func.len()
                 {
                     re.push(z.clone());
@@ -572,7 +570,7 @@ pub fn graph(
             let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
-                (re2, im2) = get_list_3d(f, options, deg, prec);
+                (re2, im2) = get_list_3d(f, options);
                 if re2
                     .iter()
                     .map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0)
@@ -705,7 +703,7 @@ pub fn graph(
             let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
-                (re2, im2) = get_list_2d(f, options, deg, prec);
+                (re2, im2) = get_list_2d(f, options);
                 if !options.depth
                     && re2
                         .iter()
@@ -961,12 +959,7 @@ pub fn graph(
         fg.show().unwrap();
     })
 }
-pub fn get_list_2d(
-    func: &[NumStr],
-    range: Options,
-    deg: AngleType,
-    prec: u32,
-) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
+pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)
 {
     if let Num(n) = &func[0]
     {
@@ -977,24 +970,19 @@ pub fn get_list_2d(
     }
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let min = range.xr.0;
-    let max = range.xr.1;
-    let den = range.samples_2d;
-    let den_range = (max - min) / den;
-    let (mut n, mut num);
-    for i in 0..=den as usize
+    let den_range = (options.xr.1 - options.xr.0) / options.samples_2d as f64;
+    for i in 0..=options.samples_2d
     {
-        n = min + i as f64 * den_range;
-        num = match do_math(
+        let n = options.xr.0 + i as f64 * den_range;
+        let num = match do_math(
             func.iter()
                 .map(|i| match i
                 {
-                    Str(s) if s == "x" => Num(Complex::with_val(prec, n)),
+                    Str(s) if s == "x" => Num(Complex::with_val(options.prec, n)),
                     _ => i.clone(),
                 })
                 .collect(),
-            deg,
-            prec,
+            options,
         )
         {
             Ok(Num(n)) => n,
@@ -1044,12 +1032,7 @@ pub fn get_list_2d(
     }
     (re, im)
 }
-pub fn get_list_3d(
-    func: &[NumStr],
-    range: Options,
-    deg: AngleType,
-    prec: u32,
-) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
+pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
     if let Num(n) = &func[0]
     {
@@ -1060,40 +1043,33 @@ pub fn get_list_3d(
     }
     let mut re = Vec::new();
     let mut im = Vec::new();
-    let den = range.samples_3d;
-    let min_x = range.xr.0;
-    let max_x = range.xr.1;
-    let den_x_range = (max_x - min_x) / den.0;
-    let min_y = range.yr.0;
-    let max_y = range.yr.1;
-    let den_y_range = (max_y - min_y) / den.1;
-    let (mut n, mut f, mut num);
+    let den_x_range = (options.xr.1 - options.xr.0) / options.samples_3d.0 as f64;
+    let den_y_range = (options.yr.1 - options.yr.0) / options.samples_3d.1 as f64;
     let mut modified: Vec<NumStr>;
-    for i in 0..=den.0 as usize
+    for i in 0..=options.samples_3d.0
     {
-        n = min_x + i as f64 * den_x_range;
+        let n = options.xr.0 + i as f64 * den_x_range;
         modified = func
             .iter()
             .map(|i| match i
             {
-                Str(s) if s == "x" => Num(Complex::with_val(prec, n)),
+                Str(s) if s == "x" => Num(Complex::with_val(options.prec, n)),
                 _ => i.clone(),
             })
             .collect();
-        for g in 0..=den.1 as usize
+        for g in 0..=options.samples_3d.1
         {
-            f = min_y + g as f64 * den_y_range;
-            num = match do_math(
+            let f = options.yr.0 + g as f64 * den_y_range;
+            let num = match do_math(
                 modified
                     .iter()
                     .map(|j| match j
                     {
-                        Str(s) if s == "y" => Num(Complex::with_val(prec, f)),
+                        Str(s) if s == "y" => Num(Complex::with_val(options.prec, f)),
                         _ => j.clone(),
                     })
                     .collect(),
-                deg,
-                prec,
+                options,
             )
             {
                 Ok(Num(n)) => n,

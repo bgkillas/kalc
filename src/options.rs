@@ -13,18 +13,16 @@ use std::{
     io::{BufRead, BufReader, Stdout, Write},
     time::Instant,
 };
-pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
+pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> Result<(), &'static str>
 {
-    let mut err = false;
     args.remove(0);
-    let (mut split, mut l);
     let mut i = 0;
     while i < args.len()
     {
         if args[i].starts_with("--") && (args[i].contains('=') || args[i].contains(','))
         {
-            l = args[i].clone();
-            split = l.split(|c| c == '=' || c == ',');
+            let l = args[i].clone();
+            let mut split = l.split(|c| c == '=' || c == ',');
             args[i] = split.next().unwrap().to_string();
             args.insert(i + 1, split.next().unwrap().to_string());
             if split.clone().count() > 0
@@ -55,27 +53,8 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                 {
                     options.prec = match args[i + 1].parse::<u32>()
                     {
-                        Ok(x) =>
-                        {
-                            if x == 0
-                            {
-                                println!("Invalid precision");
-                                err = true;
-                                args.remove(i);
-                                continue;
-                            }
-                            else
-                            {
-                                x
-                            }
-                        }
-                        Err(_) =>
-                        {
-                            println!("Invalid precision");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
+                        Ok(x) if x != 0 => x,
+                        _ => return Err("invalid prec"),
                     };
                     args.remove(i);
                 }
@@ -94,17 +73,8 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                     }
                     else
                     {
-                        options.decimal_places = match args[i + 1].parse::<usize>()
-                        {
-                            Ok(x) => x,
-                            Err(_) =>
-                            {
-                                println!("Invalid decimal");
-                                err = true;
-                                args.remove(i);
-                                continue;
-                            }
-                        };
+                        options.decimal_places =
+                            args[i + 1].parse::<usize>().expect("invalid deci");
                     }
                     args.remove(i);
                 }
@@ -113,17 +83,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 1
                 {
-                    options.frac_iter = match args[i + 1].parse::<usize>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid frac iter");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    options.frac_iter = args[i + 1].parse::<usize>().expect("invalid frac_iter");
                     args.remove(i);
                 }
             }
@@ -131,17 +91,7 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 1
                 {
-                    options.samples_2d = match args[i + 1].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid 2d sample size");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    options.samples_2d = args[i + 1].parse::<usize>().expect("invalid 2d");
                     args.remove(i);
                 }
             }
@@ -149,28 +99,8 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 2
                 {
-                    options.samples_3d.0 = match args[i + 1].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid 3d sample size");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
-                    options.samples_3d.1 = match args[i + 2].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid 3d sample size");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    options.samples_3d.0 = args[i + 1].parse::<usize>().expect("invalid 3d");
+                    options.samples_3d.1 = args[i + 2].parse::<usize>().expect("invalid 3d");
                     args.remove(i);
                     args.remove(i);
                 }
@@ -179,28 +109,8 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 2
                 {
-                    options.yr.0 = match args[i + 1].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid y range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
-                    options.yr.1 = match args[i + 2].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid y range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    options.yr.0 = args[i + 1].parse::<f64>().expect("invalid yr");
+                    options.yr.1 = args[i + 2].parse::<f64>().expect("invalid yr");
                     args.remove(i);
                     args.remove(i);
                 }
@@ -209,24 +119,13 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 1
                 {
-                    (
-                        options.xr.0,
-                        options.xr.1,
-                        options.yr.0,
-                        options.yr.1,
-                        options.zr.0,
-                        options.zr.1,
-                    ) = match args[i + 1].parse::<f64>()
-                    {
-                        Ok(n) => (-n, n, -n, n, -n, n),
-                        Err(_) =>
-                        {
-                            println!("Invalid range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    let n = args[i + 1].parse::<f64>().expect("invalid range");
+                    options.xr.0 = -n;
+                    options.xr.1 = n;
+                    options.yr.0 = -n;
+                    options.yr.1 = n;
+                    options.zr.0 = -n;
+                    options.zr.1 = n;
                     args.remove(i);
                 }
             }
@@ -234,28 +133,8 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 2
                 {
-                    options.xr.0 = match args[i + 1].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid x range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
-                    options.xr.1 = match args[i + 2].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid x range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    options.xr.0 = args[i + 1].parse::<f64>().expect("invalid xr");
+                    options.xr.1 = args[i + 2].parse::<f64>().expect("invalid xr");
                     args.remove(i);
                     args.remove(i);
                 }
@@ -264,28 +143,8 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
             {
                 if args.len() > 2
                 {
-                    options.zr.0 = match args[i + 1].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid z range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
-                    options.zr.1 = match args[i + 2].parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid z range");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
-                    };
+                    options.zr.0 = args[i + 1].parse::<f64>().expect("invalid zr");
+                    options.zr.1 = args[i + 2].parse::<f64>().expect("invalid zr");
                     args.remove(i);
                     args.remove(i);
                 }
@@ -296,71 +155,39 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                 {
                     options.base = match args[i + 1].parse::<usize>()
                     {
-                        Ok(x) =>
-                        {
-                            if !(2..=36).contains(&x)
-                            {
-                                println!("Invalid base");
-                                err = true;
-                                args.remove(i);
-                                continue;
-                            }
-                            else
-                            {
-                                x
-                            }
-                        }
-                        Err(_) =>
-                        {
-                            println!("Invalid base");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
+                        Ok(x) if (2..=36).contains(&x) => x,
+                        _ => return Err("invalid base"),
                     };
                     args.remove(i);
                 }
             }
             "--comma" => options.comma = !options.comma,
             "--sci" | "--scientific" => options.sci = !options.sci,
+            "--vars" => options.allow_vars = !options.allow_vars,
             "--point" =>
             {
                 options.point_style = match args[i + 1].chars().next()
                 {
-                    Some(x) =>
+                    Some(x)
+                        if matches!(
+                            x,
+                            '.' | '+'
+                                | 'x'
+                                | '*'
+                                | 's'
+                                | 'S'
+                                | 'o'
+                                | 'O'
+                                | 't'
+                                | 'T'
+                                | 'd'
+                                | 'D'
+                                | 'R'
+                        ) =>
                     {
-                        if x == '.'
-                            || x == '+'
-                            || x == 'x'
-                            || x == '*'
-                            || x == 's'
-                            || x == 'S'
-                            || x == 'o'
-                            || x == 'O'
-                            || x == 't'
-                            || x == 'T'
-                            || x == 'd'
-                            || x == 'D'
-                            || x == 'x'
-                            || x == 'R'
-                        {
-                            x
-                        }
-                        else
-                        {
-                            println!("Invalid point char");
-                            err = true;
-                            args.remove(i);
-                            continue;
-                        }
+                        x
                     }
-                    None =>
-                    {
-                        println!("Invalid point char");
-                        err = true;
-                        args.remove(i);
-                        continue;
-                    }
+                    _ => return Err("invalid point"),
                 };
                 args.remove(i);
             }
@@ -374,7 +201,6 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
                 println!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
             }
-            "--vars" => options.allow_vars = !options.allow_vars,
             "--default" | "--def" =>
             {
                 *options = Options::default();
@@ -387,11 +213,10 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> bool
         }
         args.remove(i);
     }
-    err
+    Ok(())
 }
-pub fn file_opts(options: &mut Options, file_path: &String) -> bool
+pub fn file_opts(options: &mut Options, file_path: &String) -> Result<(), &'static str>
 {
-    let mut err = false;
     if File::open(file_path).is_ok()
     {
         let file = File::open(file_path).unwrap();
@@ -408,193 +233,73 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
             {
                 "frac_iter" =>
                 {
-                    options.frac_iter = match split.next().unwrap().parse::<usize>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid frac iter");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.frac_iter = split
+                        .next()
+                        .unwrap()
+                        .parse::<usize>()
+                        .expect("invalid frac_iter")
                 }
                 "2d" =>
                 {
-                    options.samples_2d = match split.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid 2d sample size");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.samples_2d = split.next().unwrap().parse::<usize>().expect("invalid 2d")
                 }
                 "3d" =>
                 {
                     let mut den = split.next().unwrap().split(',');
                     if den.clone().count() != 2
                     {
-                        println!("Invalid x range");
-                        err = true;
-                        continue;
+                        return Err("invalid 3d");
                     }
-                    options.samples_3d.0 = match den.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid 3d sample size");
-                            err = true;
-                            continue;
-                        }
-                    };
-                    options.samples_3d.1 = match den.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid 3d sample size");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.samples_3d.0 =
+                        den.next().unwrap().parse::<usize>().expect("invalid 3d");
+                    options.samples_3d.1 = den.next().unwrap().parse::<usize>().expect("invalid 3d")
                 }
                 "range" =>
                 {
-                    (
-                        options.xr.0,
-                        options.xr.1,
-                        options.yr.0,
-                        options.yr.1,
-                        options.zr.0,
-                        options.zr.1,
-                    ) = match split.next().unwrap().parse::<f64>()
-                    {
-                        Ok(n) => (-n, n, -n, n, -n, n),
-                        Err(_) =>
-                        {
-                            println!("Invalid range");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    let n = split.next().unwrap().parse::<f64>().expect("invalid range");
+                    options.xr.0 = -n;
+                    options.xr.1 = n;
+                    options.yr.0 = -n;
+                    options.yr.1 = n;
+                    options.zr.0 = -n;
+                    options.zr.1 = n;
                 }
                 "xr" =>
                 {
                     let mut xr = split.next().unwrap().split(',');
                     if xr.clone().count() != 2
                     {
-                        println!("Invalid x range");
-                        err = true;
-                        continue;
+                        return Err("invalid x range");
                     }
-                    options.xr.0 = match xr.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid x range");
-                            err = true;
-                            continue;
-                        }
-                    };
-                    options.xr.1 = match xr.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid x range");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.xr.0 = xr.next().unwrap().parse::<f64>().expect("invalid xr");
+                    options.xr.1 = xr.next().unwrap().parse::<f64>().expect("invalid xr")
                 }
                 "yr" =>
                 {
                     let mut yr = split.next().unwrap().split(',');
                     if yr.clone().count() != 2
                     {
-                        println!("Invalid y range");
-                        err = true;
-                        continue;
+                        return Err("invalid y range");
                     }
-                    options.yr.0 = match yr.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid y range");
-                            err = true;
-                            continue;
-                        }
-                    };
-                    options.yr.1 = match yr.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid y range");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.yr.0 = yr.next().unwrap().parse::<f64>().expect("invalid yr");
+                    options.yr.1 = yr.next().unwrap().parse::<f64>().expect("invalid yr")
                 }
                 "zr" =>
                 {
                     let mut zr = split.next().unwrap().split(',');
                     if zr.clone().count() != 2
                     {
-                        println!("Invalid z range");
-                        err = true;
-                        continue;
+                        return Err("invalid z range");
                     }
-                    options.zr.0 = match zr.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid z range");
-                            err = true;
-                            continue;
-                        }
-                    };
-                    options.zr.1 = match zr.next().unwrap().parse::<f64>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid z range");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.zr.0 = zr.next().unwrap().parse::<f64>().expect("invalid zr");
+                    options.zr.1 = zr.next().unwrap().parse::<f64>().expect("invalid zr")
                 }
                 "prec" | "precision" =>
                 {
                     options.prec = match split.next().unwrap().parse::<u32>()
                     {
-                        Ok(x) =>
-                        {
-                            if x == 0
-                            {
-                                println!("Invalid precision");
-                                err = true;
-                                continue;
-                            }
-                            else
-                            {
-                                x
-                            }
-                        }
-                        Err(_) =>
-                        {
-                            println!("Invalid precision");
-                            err = true;
-                            continue;
-                        }
+                        Ok(x) if x != 0 => x,
+                        _ => return Err("invalid prec"),
                     };
                 }
                 "decimal" | "deci" | "decimals" =>
@@ -610,285 +315,146 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> bool
                     }
                     else
                     {
-                        options.decimal_places = match r.parse::<usize>()
-                        {
-                            Ok(x) => x,
-                            Err(_) =>
-                            {
-                                println!("Invalid decimal places");
-                                err = true;
-                                continue;
-                            }
-                        };
+                        options.decimal_places = r.parse::<usize>().expect("invalid deci")
                     }
                 }
                 "multi" =>
                 {
-                    options.multi = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid multi bool");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.multi = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid multi")
                 }
                 "depth" =>
                 {
-                    options.depth = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid depth bool");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.depth = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid depth")
                 }
                 "small_e" =>
                 {
-                    options.small_e = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid small_e bool");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.small_e = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid small_e")
                 }
                 "tabbed" =>
                 {
-                    options.tabbed = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid tabbed bool");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.tabbed = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid tabbed")
                 }
                 "rt" =>
                 {
-                    options.real_time_output = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid real time bool");
-                            err = true;
-                            continue;
-                        }
-                    };
+                    options.real_time_output =
+                        split.next().unwrap().parse::<bool>().expect("invalid rt")
                 }
                 "line" | "lines" =>
                 {
-                    options.lines = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid line bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.lines = split.next().unwrap().parse::<bool>().expect("invalid line")
                 }
                 "polar" =>
                 {
-                    options.polar = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid polar bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.polar = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid polar")
                 }
                 "frac" =>
                 {
-                    options.polar = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid frac bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.polar = split.next().unwrap().parse::<bool>().expect("invalid frac")
                 }
                 "prompt" =>
                 {
-                    options.prompt = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid prompt bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.prompt = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid prompt")
                 }
                 "comma" =>
                 {
-                    options.comma = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid comma bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.comma = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid comma")
                 }
                 "color" =>
                 {
-                    options.color = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid color bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.color = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid color")
                 }
                 "point" =>
                 {
                     options.point_style = match split.next().unwrap().chars().next()
                     {
-                        Some(x) =>
+                        Some(x)
+                            if matches!(
+                                x,
+                                '.' | '+'
+                                    | 'x'
+                                    | '*'
+                                    | 's'
+                                    | 'S'
+                                    | 'o'
+                                    | 'O'
+                                    | 't'
+                                    | 'T'
+                                    | 'd'
+                                    | 'D'
+                                    | 'R'
+                            ) =>
                         {
-                            if x == '.'
-                                || x == '+'
-                                || x == 'x'
-                                || x == '*'
-                                || x == 's'
-                                || x == 'S'
-                                || x == 'o'
-                                || x == 'O'
-                                || x == 't'
-                                || x == 'T'
-                                || x == 'd'
-                                || x == 'D'
-                                || x == 'x'
-                                || x == 'R'
-                            {
-                                x
-                            }
-                            else
-                            {
-                                println!("Invalid point char");
-                                err = true;
-                                continue;
-                            }
+                            x
                         }
-                        None =>
-                        {
-                            println!("Invalid point char");
-                            err = true;
-                            continue;
-                        }
+                        _ => return Err("invalid point"),
                     }
                 }
                 "sci" | "scientific" =>
                 {
-                    options.sci = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid scientific bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.sci = split.next().unwrap().parse::<bool>().expect("invalid sci")
                 }
                 "base" =>
                 {
                     options.base = match split.next().unwrap().parse::<usize>()
                     {
-                        Ok(x) =>
-                        {
-                            if !(2..=36).contains(&x)
-                            {
-                                println!("Invalid base");
-                                err = true;
-                                continue;
-                            }
-                            else
-                            {
-                                x
-                            }
-                        }
-                        Err(_) =>
-                        {
-                            println!("Invalid base");
-                            err = true;
-                            continue;
-                        }
-                    };
+                        Ok(n) if (2..=36).contains(&n) => n,
+                        _ => return Err("base out of range"),
+                    }
                 }
                 "debug" =>
                 {
-                    options.debug = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid debug bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.debug = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid debug")
                 }
                 "deg" => options.deg = Radians,
                 "rad" => options.deg = Degrees,
                 "grad" => options.deg = Gradians,
-                "tau" =>
-                {
-                    options.tau = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid tau bool");
-                            err = true;
-                            continue;
-                        }
-                    }
-                }
+                "tau" => options.tau = split.next().unwrap().parse::<bool>().expect("invalid tau"),
                 "vars" =>
                 {
-                    options.allow_vars = match split.next().unwrap().parse::<bool>()
-                    {
-                        Ok(x) => x,
-                        Err(_) =>
-                        {
-                            println!("Invalid vars bool");
-                            err = true;
-                            continue;
-                        }
-                    }
+                    options.allow_vars = split.next().unwrap().parse::<bool>().expect("invalid var")
                 }
                 _ =>
                 {}
             }
         }
     }
-    err
+    Ok(())
 }
 pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: &str)
 {
@@ -927,7 +493,12 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
                     vars,
                     &mut Vec::new(),
                     *options,
-                ),
+                )
+                .replace("zeta", "##ta##")
+                .replace("normalize", "##ma##")
+                .replace('z', "(x+y*i)")
+                .replace("##ta##", "zeta")
+                .replace("##ma##", "normalize"),
                 *options,
             )
             {
@@ -999,6 +570,7 @@ pub fn set_commands(
     r: &str,
 ) -> bool
 {
+    //TODO make nicer like above, maybe make things compute
     match l
     {
         "point" =>
@@ -1285,7 +857,7 @@ pub fn set_commands(
         }
         "2d" =>
         {
-            options.samples_2d = match r.parse::<f64>()
+            options.samples_2d = match r.parse::<usize>()
             {
                 Ok(n) => n,
                 Err(_) =>
@@ -1301,8 +873,8 @@ pub fn set_commands(
             return if r.contains(',')
             {
                 options.samples_3d = match (
-                    r.split(',').next().unwrap().parse::<f64>(),
-                    r.split(',').last().unwrap().parse::<f64>(),
+                    r.split(',').next().unwrap().parse::<usize>(),
+                    r.split(',').last().unwrap().parse::<usize>(),
                 )
                 {
                     (Ok(n), Ok(b)) => (n, b),
@@ -1316,7 +888,7 @@ pub fn set_commands(
             }
             else
             {
-                options.samples_3d = match r.parse::<f64>()
+                options.samples_3d = match r.parse::<usize>()
                 {
                     Ok(n) => (n, n),
                     Err(_) =>
@@ -1494,8 +1066,7 @@ pub fn commands(
                     match &do_math(
                         get_func(&input_var(&v[1], vars, &mut Vec::new(), *options), *options)
                             .unwrap(),
-                        options.deg,
-                        options.prec,
+                        *options,
                     )
                     .unwrap()
                     {

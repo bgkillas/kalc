@@ -1,7 +1,7 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     math::do_math,
-    options::AngleType,
+    Options,
 };
 use rug::{
     float::{
@@ -601,8 +601,7 @@ pub fn mvec(
     start: isize,
     end: isize,
     mvec: bool,
-    deg: AngleType,
-    prec: u32,
+    options: Options,
 ) -> Result<NumStr, &'static str>
 {
     let mut vec = Vec::new();
@@ -616,10 +615,10 @@ pub fn mvec(
             {
                 if k.str_is(var)
                 {
-                    *k = Num(Complex::with_val(prec, z));
+                    *k = Num(Complex::with_val(options.prec, z));
                 }
             }
-            let math = do_math(func, deg, prec)?;
+            let math = do_math(func, options)?;
             match math
             {
                 Num(n) => vec.push(n),
@@ -639,10 +638,10 @@ pub fn mvec(
             {
                 if k.str_is(var)
                 {
-                    *k = Num(Complex::with_val(prec, z));
+                    *k = Num(Complex::with_val(options.prec, z));
                 }
             }
-            let math = do_math(func, deg, prec)?;
+            let math = do_math(func, options)?;
             match math
             {
                 Num(n) => vec.push(n),
@@ -675,18 +674,17 @@ pub fn sum(
     start: isize,
     end: isize,
     product: bool,
-    deg: AngleType,
-    prec: u32,
+    options: Options,
 ) -> Result<NumStr, &'static str>
 {
     let mut value = Num(
         if product
         {
-            Complex::with_val(prec, 1)
+            Complex::with_val(options.prec, 1)
         }
         else
         {
-            Complex::new(prec)
+            Complex::new(options.prec)
         },
     );
     for z in if start < end
@@ -703,10 +701,10 @@ pub fn sum(
         {
             if k.str_is(var)
             {
-                *k = Num(Complex::with_val(prec, z));
+                *k = Num(Complex::with_val(options.prec, z));
             }
         }
-        let math = do_math(func, deg, prec)?;
+        let math = do_math(func, options)?;
         if product
         {
             value = value.mul(&math)?;

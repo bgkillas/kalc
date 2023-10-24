@@ -21,7 +21,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     {
         return;
     }
-    let num = match do_math(func, options.deg, options.prec)
+    let num = match do_math(func, options)
     {
         Ok(num) => num,
         Err(_) => return,
@@ -173,8 +173,7 @@ pub fn print_concurrent(
                 return 0;
             }
         },
-        options.deg,
-        options.prec,
+        options,
     )
     {
         Ok(n) => n,

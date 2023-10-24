@@ -5,18 +5,15 @@ use crate::{
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
-    options::{
-        AngleType,
-        AngleType::{Degrees, Gradians, Radians},
-    },
+    options::AngleType::{Degrees, Gradians, Radians},
+    Options,
 };
 use rug::{
     float::{Constant::Pi, Special::Infinity},
     ops::Pow,
     Complex, Float,
 };
-pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
-    -> Result<NumStr, &'static str>
+pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'static str>
 {
     if function.len() == 1
     {
@@ -69,7 +66,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         {
                             "," if count == 0 =>
                             {
-                                let z = do_math(v[single..f].to_vec(), deg, prec)?;
+                                let z = do_math(v[single..f].to_vec(), options)?;
                                 match z
                                 {
                                     Num(n) => vec.push(n),
@@ -87,7 +84,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                 }
                 if single != v.len()
                 {
-                    let z = do_math(v[single..].to_vec(), deg, prec)?;
+                    let z = do_math(v[single..].to_vec(), options)?;
                     match z
                     {
                         Num(n) => vec.push(n),
@@ -183,14 +180,12 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                             if !place.is_empty()
                             {
                                 function.drain(i..j);
-                                function.insert(i, do_math(v[..place[0]].to_vec(), deg, prec)?);
+                                function.insert(i, do_math(v[..place[0]].to_vec(), options)?);
                                 for (k, l) in place.iter().enumerate()
                                 {
                                     function.insert(i + k + 1, Str(",".to_string()));
-                                    function.insert(
-                                        i + k + 2,
-                                        do_math(v[l + 1..].to_vec(), deg, prec)?,
-                                    );
+                                    function
+                                        .insert(i + k + 2, do_math(v[l + 1..].to_vec(), options)?);
                                     i += 1;
                                 }
                                 continue 'outer;
@@ -206,18 +201,18 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         }
                     }
                 }
-                function[i] = do_math(v, deg, prec)?;
+                function[i] = do_math(v, options)?;
                 function.drain(i + 1..j);
             }
         }
         i += 1;
     }
     i = 0;
-    let to_deg = match deg
+    let to_deg = match options.deg
     {
-        Degrees => Complex::with_val(prec, 180) / Complex::with_val(prec, Pi),
-        Radians => Complex::with_val(prec, 1),
-        Gradians => Complex::with_val(prec, 200) / Complex::with_val(prec, Pi),
+        Degrees => Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi),
+        Radians => Complex::with_val(options.prec, 1),
+        Gradians => Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi),
     };
     while i < function.len() - 1
     {
@@ -261,11 +256,10 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         if let Str(var) = &function[place[0] - 1]
                         {
                             let start =
-                                do_math(function[place[1] + 1..place[2]].to_vec(), deg, prec)?
+                                do_math(function[place[1] + 1..place[2]].to_vec(), options)?
                                     .num()?;
-                            let end =
-                                do_math(function[place[2] + 1..place[3]].to_vec(), deg, prec)?
-                                    .num()?;
+                            let end = do_math(function[place[2] + 1..place[3]].to_vec(), options)?
+                                .num()?;
                             if !start.imag().is_zero() || !end.imag().is_zero()
                             {
                                 return Err("imag start/end");
@@ -285,8 +279,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                     start,
                                     end,
                                     s == "vec",
-                                    deg,
-                                    prec,
+                                    options,
                                 )?,
                                 _ => sum(
                                     function[place[0] + 1..place[1]].to_vec(),
@@ -294,8 +287,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                     start,
                                     end,
                                     !(s == "sum" || s == "summation" || s == "Σ"),
-                                    deg,
-                                    prec,
+                                    options,
                                 )?,
                             };
                             function.drain(i + 1..=place[3]);
@@ -317,42 +309,43 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 }
                                 else
                                 {
-                                    do_math(function[i + 2..place[0]].to_vec(), deg, prec)
-                                }
-                                {
-                                    Ok(Num(a)) => Num(a.clone()),
-                                    Ok(Vector(a)) =>
-                                    {
-                                        Num(a.iter().fold(Complex::new(prec), |sum, val| sum + val))
-                                    }
-                                    Ok(Matrix(a)) => Num(a
-                                        .iter()
-                                        .flatten()
-                                        .fold(Complex::new(prec), |sum, val| sum + val)),
-                                    _ => return Err("sum err"),
-                                }
-                            }
-                            "product" | "prod" | "Π" =>
-                            {
-                                function[i] = match if place.is_empty()
-                                {
-                                    Ok(function[i + 1].clone())
-                                }
-                                else
-                                {
-                                    do_math(function[i + 2..place[0]].to_vec(), deg, prec)
+                                    do_math(function[i + 2..place[0]].to_vec(), options)
                                 }
                                 {
                                     Ok(Num(a)) => Num(a.clone()),
                                     Ok(Vector(a)) => Num(a
                                         .iter()
-                                        .fold(Complex::with_val(prec, 1), |sum, val| sum * val)),
+                                        .fold(Complex::new(options.prec), |sum, val| sum + val)),
                                     Ok(Matrix(a)) => Num(a
                                         .iter()
                                         .flatten()
-                                        .fold(Complex::with_val(prec, 1), |sum, val| sum * val)),
+                                        .fold(Complex::new(options.prec), |sum, val| sum + val)),
                                     _ => return Err("sum err"),
                                 }
+                            }
+                            "product" | "prod" | "Π" =>
+                            {
+                                function[i] =
+                                    match if place.is_empty()
+                                    {
+                                        Ok(function[i + 1].clone())
+                                    }
+                                    else
+                                    {
+                                        do_math(function[i + 2..place[0]].to_vec(), options)
+                                    }
+                                    {
+                                        Ok(Num(a)) => Num(a.clone()),
+                                        Ok(Vector(a)) => Num(a.iter().fold(
+                                            Complex::with_val(options.prec, 1),
+                                            |sum, val| sum * val,
+                                        )),
+                                        Ok(Matrix(a)) => Num(a.iter().flatten().fold(
+                                            Complex::with_val(options.prec, 1),
+                                            |sum, val| sum * val,
+                                        )),
+                                        _ => return Err("sum err"),
+                                    }
                             }
                             _ => return Err("sum err"),
                         }
@@ -414,11 +407,11 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
                         "inverse" | "inv" => Matrix(inverse(&a)?),
                         "transpose" | "trans" => Matrix(transpose(&a)?),
-                        "len" | "length" => Num(Complex::with_val(prec, a.len())),
-                        "wid" | "width" => Num(Complex::with_val(prec, a[0].len())),
+                        "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
+                        "wid" | "width" => Num(Complex::with_val(options.prec, a[0].len())),
                         "tr" | "trace" =>
                         {
-                            let mut n = Complex::new(prec);
+                            let mut n = Complex::new(options.prec);
                             for (i, j) in a.iter().enumerate()
                             {
                                 if j.len() == i
@@ -553,7 +546,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         }
                         "norm" =>
                         {
-                            let mut n = Complex::new(prec);
+                            let mut n = Complex::new(options.prec);
                             for j in a.iter().flatten()
                             {
                                 n += j.clone().abs().pow(2);
@@ -563,7 +556,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         "mean" => Num(a
                             .iter()
                             .flatten()
-                            .fold(Complex::new(prec), |sum, val| sum + val)
+                            .fold(Complex::new(options.prec), |sum, val| sum + val)
                             / (a.len() * a[0].len())),
                         "mode" =>
                         {
@@ -598,7 +591,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         }
                         _ => do_functions(
                             function[i + 1].clone(),
-                            deg,
+                            options,
                             &mut function,
                             i,
                             &to_deg,
@@ -612,10 +605,10 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                     function[i] = match s.as_str()
                     {
                         "sort" => Vector(sort(a)),
-                        "mean" =>
-                        {
-                            Num(a.iter().fold(Complex::new(prec), |sum, val| sum + val) / a.len())
-                        }
+                        "mean" => Num(a
+                            .iter()
+                            .fold(Complex::new(options.prec), |sum, val| sum + val)
+                            / a.len()),
                         "median" =>
                         {
                             let a = sort(a);
@@ -699,10 +692,10 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 return Err("no args");
                             }
                         }
-                        "len" | "length" => Num(Complex::with_val(prec, a.len())),
+                        "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
                         "norm" =>
                         {
-                            let mut n = Complex::new(prec);
+                            let mut n = Complex::new(options.prec);
                             for i in a
                             {
                                 n += i.abs().pow(2);
@@ -711,7 +704,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         }
                         "normalize" =>
                         {
-                            let mut n = Complex::new(prec);
+                            let mut n = Complex::new(options.prec);
                             for i in a.clone()
                             {
                                 n += i.pow(2);
@@ -820,12 +813,12 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 let b = function[i + 3].clone();
                                 if b.vec()?.len() == a.len()
                                 {
-                                    let mut dot = Complex::new(prec);
+                                    let mut dot = Complex::new(options.prec);
                                     for i in a.iter().zip(b.vec()?.iter()).map(|(a, b)| a * b)
                                     {
                                         dot += i;
                                     }
-                                    let mut norm = Complex::new(prec);
+                                    let mut norm = Complex::new(options.prec);
                                     for i in b.vec()?
                                     {
                                         norm += i.abs().pow(2);
@@ -847,7 +840,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         {
                             if function.len() > i + 3 && function[i + 2].str_is(",")
                             {
-                                let mut n = Complex::new(prec);
+                                let mut n = Complex::new(options.prec);
                                 for i in a
                                     .iter()
                                     .zip(function[i + 3].vec()?.iter())
@@ -923,7 +916,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                         {
                                             if n % i == 0
                                             {
-                                                vec.push(Complex::with_val(prec, i));
+                                                vec.push(Complex::with_val(options.prec, i));
                                             }
                                         }
                                         mat.push(vec);
@@ -942,7 +935,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         }
                         _ => do_functions(
                             function[i + 1].clone(),
-                            deg,
+                            options,
                             &mut function,
                             i,
                             &to_deg,
@@ -959,8 +952,8 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         {
                             let a = function[i + 1].num()?;
                             Vector(vec![
-                                Complex::with_val(prec, a.real()),
-                                Complex::with_val(prec, a.imag()),
+                                Complex::with_val(options.prec, a.real()),
+                                Complex::with_val(options.prec, a.imag()),
                             ])
                         }
                         "I" =>
@@ -974,11 +967,11 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                 {
                                     if i == j
                                     {
-                                        vec.push(Complex::with_val(prec, 1));
+                                        vec.push(Complex::with_val(options.prec, 1));
                                     }
                                     else
                                     {
-                                        vec.push(Complex::new(prec));
+                                        vec.push(Complex::new(options.prec));
                                     }
                                 }
                                 mat.push(vec);
@@ -1006,7 +999,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                                     {
                                         if n % i == 0
                                         {
-                                            vec.push(Complex::with_val(prec, i));
+                                            vec.push(Complex::with_val(options.prec, i));
                                         }
                                     }
                                     Vector(vec)
@@ -1023,7 +1016,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
                         }
                         _ => do_functions(
                             function[i + 1].clone(),
-                            deg,
+                            options,
                             &mut function,
                             i,
                             &to_deg,
@@ -1192,7 +1185,7 @@ pub fn do_math(mut function: Vec<NumStr>, deg: AngleType, prec: u32)
 }
 fn do_functions(
     a: NumStr,
-    deg: AngleType,
+    options: Options,
     function: &mut Vec<NumStr>,
     k: usize,
     to_deg: &Complex,
@@ -1205,7 +1198,7 @@ fn do_functions(
         function.drain(k + 2..k + 4);
         match (a, b)
         {
-            (Num(a), Num(b)) => Ok(Num(functions(a, Some(b), to_deg.clone(), s, deg)?)),
+            (Num(a), Num(b)) => Ok(Num(functions(a, Some(b), to_deg.clone(), s, options)?)),
             (Vector(a), Vector(b)) =>
             {
                 let mut mat = Vec::new();
@@ -1219,7 +1212,7 @@ fn do_functions(
                             Some(b.clone()),
                             to_deg.clone(),
                             s,
-                            deg,
+                            options,
                         )?)
                     }
                     mat.push(vec);
@@ -1239,7 +1232,7 @@ fn do_functions(
                             Some(b[i][j].clone()),
                             to_deg.clone(),
                             s,
-                            deg,
+                            options,
                         )?)
                     }
                     mat.push(vec.clone());
@@ -1251,7 +1244,7 @@ fn do_functions(
                 let mut vec = Vec::new();
                 for i in b
                 {
-                    vec.push(functions(a.clone(), Some(i), to_deg.clone(), s, deg)?)
+                    vec.push(functions(a.clone(), Some(i), to_deg.clone(), s, options)?)
                 }
                 Ok(Vector(vec))
             }
@@ -1260,7 +1253,7 @@ fn do_functions(
                 let mut vec = Vec::new();
                 for i in a
                 {
-                    vec.push(functions(i, Some(b.clone()), to_deg.clone(), s, deg)?)
+                    vec.push(functions(i, Some(b.clone()), to_deg.clone(), s, options)?)
                 }
                 Ok(Vector(vec))
             }
@@ -1272,7 +1265,7 @@ fn do_functions(
                     let mut vec = Vec::new();
                     for j in i
                     {
-                        vec.push(functions(a.clone(), Some(j), to_deg.clone(), s, deg)?)
+                        vec.push(functions(a.clone(), Some(j), to_deg.clone(), s, options)?)
                     }
                     mat.push(vec.clone());
                 }
@@ -1286,7 +1279,7 @@ fn do_functions(
                     let mut vec = Vec::new();
                     for j in i
                     {
-                        vec.push(functions(j, Some(b.clone()), to_deg.clone(), s, deg)?)
+                        vec.push(functions(j, Some(b.clone()), to_deg.clone(), s, options)?)
                     }
                     mat.push(vec.clone());
                 }
@@ -1305,7 +1298,7 @@ fn do_functions(
                             Some(b[i].clone()),
                             to_deg.clone(),
                             s,
-                            deg,
+                            options,
                         )?)
                     }
                     mat.push(vec.clone());
@@ -1325,7 +1318,7 @@ fn do_functions(
                             Some(b[i][j].clone()),
                             to_deg.clone(),
                             s,
-                            deg,
+                            options,
                         )?)
                     }
                     mat.push(vec.clone());
@@ -1347,7 +1340,7 @@ fn do_functions(
                     let mut vec = Vec::new();
                     for j in i
                     {
-                        vec.push(functions(j, None, to_deg.clone(), s, deg)?)
+                        vec.push(functions(j, None, to_deg.clone(), s, options)?)
                     }
                     mat.push(vec.clone());
                 }
@@ -1358,11 +1351,11 @@ fn do_functions(
                 let mut vec = Vec::new();
                 for i in a
                 {
-                    vec.push(functions(i, None, to_deg.clone(), s, deg)?)
+                    vec.push(functions(i, None, to_deg.clone(), s, options)?)
                 }
                 Ok(Vector(vec))
             }
-            Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, deg)?)),
+            Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, options)?)),
             _ => Err("unreachable6"),
         }
     }
@@ -1372,11 +1365,10 @@ fn functions(
     c: Option<Complex>,
     to_deg: Complex,
     s: &str,
-    deg: AngleType,
+    options: Options,
 ) -> Result<Complex, &'static str>
 {
     let b;
-    let prec = to_deg.prec();
     Ok(match s
     {
         "sin" => (a / to_deg.clone()).sin(),
@@ -1390,7 +1382,7 @@ fn functions(
             b = a.clone().asin() * to_deg.clone();
             if a.imag().is_zero() && a.real() >= &1
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1402,7 +1394,7 @@ fn functions(
             b = a.clone().recip().asin() * to_deg.clone();
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1414,7 +1406,7 @@ fn functions(
             b = a.clone().acos() * to_deg.clone();
             if a.imag().is_zero() && a.real() >= &1
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1426,7 +1418,7 @@ fn functions(
             b = a.clone().recip().acos() * to_deg.clone();
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1437,7 +1429,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                let i = Complex::with_val(prec, (0, 1));
+                let i = Complex::with_val(options.prec, (0, 1));
                 ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs())
                     .ln()
                     * -i
@@ -1463,7 +1455,7 @@ fn functions(
             b = a.clone().recip().acosh();
             if a.imag().is_zero() && a.real().is_sign_negative()
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1475,7 +1467,7 @@ fn functions(
             b = a.clone().atanh();
             if a.imag().is_zero() && a.real() >= &1
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1487,7 +1479,7 @@ fn functions(
             b = a.clone().recip().atanh();
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, (b.real(), -b.imag()))
+                Complex::with_val(options.prec, (b.real(), -b.imag()))
             }
             else
             {
@@ -1497,29 +1489,38 @@ fn functions(
         "cis" =>
         {
             (a.clone() / to_deg.clone()).cos()
-                + (a / to_deg.clone()).sin() * Complex::with_val(prec, (0.0, 1.0))
+                + (a / to_deg.clone()).sin() * Complex::with_val(options.prec, (0.0, 1.0))
         }
         "ln" | "aexp" =>
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real()).ln()
+                Complex::with_val(options.prec, a.real()).ln()
             }
             else
             {
                 a.ln()
             }
         }
-        "ceil" => Complex::with_val(prec, (a.real().clone().ceil(), a.imag().clone().ceil())),
-        "floor" => Complex::with_val(prec, (a.real().clone().floor(), a.imag().clone().floor())),
-        "round" => Complex::with_val(prec, (a.real().clone().round(), a.imag().clone().round())),
+        "ceil" => Complex::with_val(
+            options.prec,
+            (a.real().clone().ceil(), a.imag().clone().ceil()),
+        ),
+        "floor" => Complex::with_val(
+            options.prec,
+            (a.real().clone().floor(), a.imag().clone().floor()),
+        ),
+        "round" => Complex::with_val(
+            options.prec,
+            (a.real().clone().round(), a.imag().clone().round()),
+        ),
         "recip" => a.recip(),
         "exp" | "aln" => a.exp(),
         "log" =>
         {
             let a = if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real()).ln()
+                Complex::with_val(options.prec, a.real()).ln()
             }
             else
             {
@@ -1529,7 +1530,7 @@ fn functions(
             {
                 let b = if b.imag().is_zero()
                 {
-                    Complex::with_val(prec, b.real()).ln()
+                    Complex::with_val(options.prec, b.real()).ln()
                 }
                 else
                 {
@@ -1570,7 +1571,7 @@ fn functions(
                     && a.imag().is_zero()
                 {
                     true => Complex::with_val(
-                        prec,
+                        options.prec,
                         a.real() / a.real().clone().abs()
                             * a.real().clone().abs().pow(b.real().clone().recip()),
                     ),
@@ -1610,7 +1611,7 @@ fn functions(
                 else if a.real().clone().fract().is_zero() && b.real().clone().fract().is_zero()
                 {
                     Complex::with_val(
-                        prec,
+                        options.prec,
                         a.real()
                             .to_integer()
                             .unwrap()
@@ -1622,7 +1623,7 @@ fn functions(
                     let c: Float = a.real().clone() + 1;
                     let d: Float = b.real().clone() + 1;
                     let e: Float = a.real().clone() - b.real().clone() + 1;
-                    Complex::with_val(prec, gamma(&c) / (gamma(&d) * gamma(&e)))
+                    Complex::with_val(options.prec, gamma(&c) / (gamma(&d) * gamma(&e)))
                 }
             }
             else
@@ -1634,7 +1635,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, gamma(a.real()))
+                Complex::with_val(options.prec, gamma(a.real()))
             }
             else
             {
@@ -1643,27 +1644,39 @@ fn functions(
         }
         "sqrt" | "asquare" => a.sqrt(),
         "abs" | "norm" => a.abs(),
-        "deg" | "degree" => match deg
+        "deg" | "degree" => match options.deg
         {
-            Radians => a * Complex::with_val(prec, 180) / Complex::with_val(prec, Pi),
+            Radians =>
+            {
+                a * Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi)
+            }
             Gradians => a * 180.0 / 200.0,
             Degrees => a,
         },
-        "rad" | "radian" => match deg
+        "rad" | "radian" => match options.deg
         {
             Radians => a,
-            Gradians => a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 200),
-            Degrees => a * Complex::with_val(prec, Pi) / Complex::with_val(prec, 180),
+            Gradians =>
+            {
+                a * Complex::with_val(options.prec, Pi) / Complex::with_val(options.prec, 200)
+            }
+            Degrees =>
+            {
+                a * Complex::with_val(options.prec, Pi) / Complex::with_val(options.prec, 180)
+            }
         },
-        "grad" | "gradian" => match deg
+        "grad" | "gradian" => match options.deg
         {
-            Radians => a * Complex::with_val(prec, 200) / Complex::with_val(prec, Pi),
+            Radians =>
+            {
+                a * Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi)
+            }
             Gradians => a,
             Degrees => a * 200.0 / 180.0,
         },
-        "re" | "real" => Complex::with_val(prec, a.real()),
-        "im" | "imag" => Complex::with_val(prec, a.imag()),
-        "sgn" | "sign" => Complex::with_val(prec, a.clone() / a.abs()),
+        "re" | "real" => Complex::with_val(options.prec, a.real()),
+        "im" | "imag" => Complex::with_val(options.prec, a.imag()),
+        "sgn" | "sign" => Complex::with_val(options.prec, a.clone() / a.abs()),
         "arg" => a.arg(),
         "cbrt" | "acube" =>
         {
@@ -1671,12 +1684,12 @@ fn functions(
             {
                 if a.real().is_zero()
                 {
-                    Complex::new(prec)
+                    Complex::new(options.prec)
                 }
                 else
                 {
                     Complex::with_val(
-                        prec,
+                        options.prec,
                         a.real() / a.real().clone().abs()
                             * a.real().clone().abs().pow(3f64.recip()),
                     )
@@ -1687,14 +1700,14 @@ fn functions(
                 a.pow(3f64.recip())
             }
         }
-        "frac" | "fract" =>
-        {
-            Complex::with_val(prec, (a.real().clone().fract(), a.imag().clone().fract()))
-        }
-        "int" | "trunc" =>
-        {
-            Complex::with_val(prec, (a.real().clone().trunc(), a.imag().clone().trunc()))
-        }
+        "frac" | "fract" => Complex::with_val(
+            options.prec,
+            (a.real().clone().fract(), a.imag().clone().fract()),
+        ),
+        "int" | "trunc" => Complex::with_val(
+            options.prec,
+            (a.real().clone().trunc(), a.imag().clone().trunc()),
+        ),
         "square" | "asqrt" => a.pow(2),
         "cube" | "acbrt" => a.pow(3),
         "doublefact" =>
@@ -1704,11 +1717,11 @@ fn functions(
                 return Err("complex factorial not supported");
             }
             let a = a.real().clone();
-            let two = Complex::with_val(prec, 2);
-            let pi = Complex::with_val(prec, Pi);
+            let two = Complex::with_val(options.prec, 2);
+            let pi = Complex::with_val(options.prec, Pi);
             let gam: Float = a.clone() / 2 + 1;
             Complex::with_val(
-                prec,
+                options.prec,
                 two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
                     * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
                     * gamma(&gam),
@@ -1719,7 +1732,7 @@ fn functions(
             if a.imag().is_zero()
             {
                 let b: Float = a.real().clone() + 1;
-                Complex::with_val(prec, gamma(&b))
+                Complex::with_val(options.prec, gamma(&b))
             }
             else
             {
@@ -1735,7 +1748,10 @@ fn functions(
                 return Err("complex/fractional subfactorial not supported");
             }
             let b: Float = a.real().clone() + 1;
-            Complex::with_val(prec, (gamma(&b) / Float::with_val(prec.0, 1).exp()).round())
+            Complex::with_val(
+                options.prec,
+                (gamma(&b) / Float::with_val(options.prec, 1).exp()).round(),
+            )
         }
         "sinc" => a.clone().sin() / a,
         "conj" | "conjugate" => a.conj(),
@@ -1743,7 +1759,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real().clone().erf())
+                Complex::with_val(options.prec, a.real().clone().erf())
             }
             else
             {
@@ -1754,7 +1770,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real().clone().erfc())
+                Complex::with_val(options.prec, a.real().clone().erfc())
             }
             else
             {
@@ -1765,7 +1781,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real().clone().ai())
+                Complex::with_val(options.prec, a.real().clone().ai())
             }
             else
             {
@@ -1778,11 +1794,11 @@ fn functions(
             {
                 if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
                 {
-                    Complex::with_val(prec, Infinity)
+                    Complex::with_val(options.prec, Infinity)
                 }
                 else
                 {
-                    Complex::with_val(prec, a.real().clone().digamma())
+                    Complex::with_val(options.prec, a.real().clone().digamma())
                 }
             }
             else
@@ -1794,7 +1810,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, a.real().clone().zeta())
+                Complex::with_val(options.prec, a.real().clone().zeta())
             }
             else
             {
@@ -1805,7 +1821,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(prec, nth_prime(a.real().to_f64() as usize))
+                Complex::with_val(options.prec, nth_prime(a.real().to_f64() as usize))
             }
             else
             {

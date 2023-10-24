@@ -73,7 +73,7 @@ pub fn fraction(value: Float, options: Options) -> String
         {
             let mut recip = number.clone().recip();
             let fract = recip.clone().fract();
-            if fract < 1e-6
+            if fract < 1e-36
             {
                 let mut last = Float::with_val(options.prec, 1);
                 for j in (0..nums.len()).rev()

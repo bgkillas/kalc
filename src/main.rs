@@ -46,8 +46,8 @@ pub struct Options
     xr: (f64, f64),
     yr: (f64, f64),
     zr: (f64, f64),
-    samples_2d: f64,
-    samples_3d: (f64, f64),
+    samples_2d: usize,
+    samples_3d: (usize, usize),
     point_style: char,
     lines: bool,
     multi: bool,
@@ -78,8 +78,8 @@ impl Default for Options
             xr: (-10.0, 10.0),
             yr: (-10.0, 10.0),
             zr: (-10.0, 10.0),
-            samples_2d: 20000.0,
-            samples_3d: (300.0, 300.0),
+            samples_2d: 20000,
+            samples_3d: (300, 300),
             point_style: '.',
             lines: false,
             multi: false,
@@ -104,7 +104,7 @@ fn main()
         var("USERNAME").unwrap()
     );
     let mut args = args().collect::<Vec<String>>();
-    if file_opts(&mut options, file_path) || arg_opts(&mut options, &mut args)
+    if file_opts(&mut options, file_path).is_err() || arg_opts(&mut options, &mut args).is_err()
     {
         std::process::exit(1);
     }
@@ -237,6 +237,7 @@ fn main()
             {
                 exit = true;
             }
+            graphable = true;
         }
         else
         {
@@ -792,8 +793,10 @@ fn main()
                     .iter()
                     .collect::<String>()
                     .replace("small_e", "smalle")
+                    .replace("frac_iter", "fraciter")
                     .replace('_', &format!("({})", last.iter().collect::<String>()))
-                    .replace("smalle", "small_e"),
+                    .replace("smalle", "small_e")
+                    .replace("fraciter", "frac_iter"),
                 &mut file,
                 &unmod_lines,
             );
@@ -914,15 +917,7 @@ fn main()
                     _ => continue 'main,
                 });
             }
-            handles.push(graph(
-                inputs,
-                unmod,
-                funcs,
-                options,
-                options.deg,
-                options.prec,
-                watch,
-            ));
+            handles.push(graph(inputs, unmod, funcs, options, watch));
         }
     }
 }

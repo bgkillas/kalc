@@ -786,9 +786,7 @@ pub fn print_concurrent(
 }
 pub fn get_output(options: &Options, num: &Complex) -> (String, String)
 {
-    let sign = if !(num.imag().is_infinite() && num.real().is_nan())
-        && num.imag().is_sign_positive()
-        && !num.real().is_zero()
+    let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
     {
         "+"
     }
@@ -797,7 +795,6 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
         ""
     }
     .to_string();
-    let mut n;
     let dec = if options.decimal_places == 0
     {
         1
@@ -811,7 +808,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
         (
             if !num.real().is_zero()
             {
-                n = num.real().to_string_radix(options.base as i32, None);
+                let n = num.real().to_string_radix(options.base as i32, None);
                 if n.contains('e')
                 {
                     n
@@ -831,7 +828,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             },
             if !num.imag().is_zero()
             {
-                n = num.imag().to_string_radix(options.base as i32, None);
+                let n = num.imag().to_string_radix(options.base as i32, None);
                 sign + &if n.contains('e')
                 {
                     n
@@ -850,8 +847,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     else if options.sci
     {
         (
-            if (!num.imag().is_zero() && num.real().is_zero())
-                || (num.real().is_nan() && num.imag().is_infinite())
+            if num.real().is_zero() && !num.imag().is_zero()
             {
                 "".to_string()
             }
@@ -885,7 +881,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                     },
                 ) + if options.color { "\x1b[0m" } else { "" }
             },
-            if num.imag().is_zero() || (num.imag().is_nan() && num.real().is_infinite())
+            if num.imag().is_zero()
             {
                 "".to_string()
             }
@@ -939,31 +935,28 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     }
     else
     {
-        n = add_commas(
-            &to_string(num.real(), options.decimal_places, false),
-            options.comma,
-        );
-        let sign = if n == "0" { "".to_string() } else { sign };
-        let im = add_commas(
-            &to_string(num.imag(), options.decimal_places, true),
-            options.comma,
-        );
         (
-            if (n == "0" && im != "0") || (n == "NaN" && im.ends_with("inf"))
+            if num.real().is_zero() && !num.imag().is_zero()
             {
                 "".to_string()
             }
             else
             {
-                n.clone()
+                add_commas(
+                    &to_string(num.real(), options.decimal_places, false),
+                    options.comma,
+                )
             },
-            if im == "0" || (im == "NaN" && n.ends_with("inf"))
+            if num.imag().is_zero()
             {
                 "".to_string()
             }
             else
             {
-                sign + &im + if options.color { "\x1b[93mi" } else { "i" }
+                sign + &add_commas(
+                    &to_string(num.imag(), options.decimal_places, true),
+                    options.comma,
+                ) + if options.color { "\x1b[93mi" } else { "i" }
             },
         )
     }
@@ -1159,10 +1152,11 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
         Some(n) => n,
         None =>
         {
-            return input
+            let s = input
                 .trim_end_matches('0')
                 .trim_end_matches('.')
-                .to_string()
+                .to_string();
+            return if s.is_empty() { "0".to_string() } else { s };
         }
     };
     let dec = if dec == usize::MAX - 1

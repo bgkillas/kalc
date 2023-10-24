@@ -24,9 +24,32 @@ impl NumStr
 {
     pub fn mul(&self, b: &Self) -> Result<Self, &'static str>
     {
+        fn m(a: &Complex, b: &Complex) -> Complex
+        {
+            if a.real().is_infinite() || b.real().is_infinite()
+            {
+                if (a.real().is_infinite() && b.is_zero())
+                    || (b.real().is_infinite() && a.is_zero())
+                {
+                    Complex::with_val(a.prec(), Nan)
+                }
+                else
+                {
+                    match (a.real().is_sign_positive(), b.real().is_sign_positive())
+                    {
+                        (true, true) | (false, false) => Complex::with_val(a.prec(), Infinity),
+                        (false, true) | (true, false) => -Complex::with_val(a.prec(), Infinity),
+                    }
+                }
+            }
+            else
+            {
+                a * b.clone()
+            }
+        }
         Ok(match (self, b)
         {
-            (Num(a), Num(b)) => Num(a * b.clone()),
+            (Num(a), Num(b)) => Num(m(a, b)),
             (Num(b), Vector(a)) | (Vector(a), Num(b)) =>
             {
                 Vector(a.iter().map(|a| a * b.clone()).collect())
@@ -319,7 +342,25 @@ pub fn sub(a: &Complex, b: &Complex) -> Complex
 }
 pub fn div(a: &Complex, b: &Complex) -> Complex
 {
-    a / b.clone()
+    if b.is_zero() || a.real().is_infinite()
+    {
+        if b.real().is_infinite()
+        {
+            Complex::with_val(a.prec(), Nan)
+        }
+        else if a.real().is_sign_positive()
+        {
+            Complex::with_val(a.prec(), Infinity)
+        }
+        else
+        {
+            -Complex::with_val(a.prec(), Infinity)
+        }
+    }
+    else
+    {
+        a / b.clone()
+    }
 }
 pub fn add(a: &Complex, b: &Complex) -> Complex
 {

@@ -570,7 +570,7 @@ pub fn set_commands(
     r: &str,
 ) -> bool
 {
-    //TODO make nicer like above, maybe make things compute
+    //TODO make nicer like above, maybe make things compute, '0' in sci shows up as nothing P(
     match l
     {
         "point" =>

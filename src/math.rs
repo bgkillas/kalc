@@ -1536,7 +1536,18 @@ fn functions(
                 {
                     b.ln()
                 };
-                b / a
+                if a.is_zero()
+                {
+                    Complex::with_val(options.prec, Infinity)
+                }
+                else if b.real().is_infinite()
+                {
+                    -Complex::with_val(options.prec, Infinity)
+                }
+                else
+                {
+                    b / a
+                }
             }
             else
             {

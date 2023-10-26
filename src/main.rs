@@ -834,22 +834,28 @@ fn main()
                 {
                     continue;
                 }
-                if l.contains('(')
+                let s = if l.contains('(')
                 {
                     let mut s = l.split('(').next().iter().copied().collect::<String>();
                     s.push('(');
-                    let recur_test = r.split(&s);
-                    let count = recur_test.clone().count();
-                    for (i, s) in recur_test.enumerate()
+                    s
+                }
+                else
+                {
+                    l.clone()
+                };
+                let recur_test = r.split(&s);
+                let count = recur_test.clone().count();
+                for (i, s) in recur_test.enumerate()
+                {
+                    if i + 1 != count
+                        && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
                     {
-                        if i + 1 != count
-                            && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
-                        {
-                            println!("recursive functions not supported");
-                            continue 'main;
-                        }
+                        println!("recursive functions not supported");
+                        continue 'main;
                     }
                 }
+
                 for (i, v) in vars.iter().enumerate()
                 {
                     if v[0].split('(').next() == l.split('(').next()

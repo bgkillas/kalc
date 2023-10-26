@@ -567,34 +567,19 @@ pub fn graph(
         {
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
-            let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
-                (re2, im2) = get_list_3d(f, options);
-                if re2
-                    .iter()
-                    .map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0)
-                    .all(|i| i)
-                {
-                    re2.clear();
-                }
-                else
+                let (re2, im2) = get_list_3d(f, options);
+                if !re2.is_empty()
                 {
                     re_cap[i] = unmod[i].to_owned() + ":re";
                 }
-                if im2
-                    .iter()
-                    .map(|i| ((i[2] * 1e15).round() / 1e15) == 0.0)
-                    .all(|i| i)
-                {
-                    im2.clear();
-                }
-                else
+                if !im2.is_empty()
                 {
                     im_cap[i] = unmod[i].to_owned() + ":im";
                 }
-                re[i].extend(re2);
-                im[i].extend(im2);
+                re[i] = re2;
+                im[i] = im2;
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
@@ -700,36 +685,19 @@ pub fn graph(
         {
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
-            let (mut re2, mut im2);
             for (i, f) in func.iter().enumerate()
             {
-                (re2, im2) = get_list_2d(f, options);
-                if !options.depth
-                    && re2
-                        .iter()
-                        .map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0)
-                        .all(|i| i)
-                {
-                    re2.clear();
-                }
-                else
+                let (re2, im2) = get_list_2d(f, options);
+                if !re2.is_empty()
                 {
                     re_cap[i] = unmod[i].to_owned() + ":re";
                 }
-                if !options.depth
-                    && im2
-                        .iter()
-                        .map(|i| ((i[1] * 1e15).round() / 1e15) == 0.0)
-                        .all(|i| i)
-                {
-                    im2.clear();
-                }
-                else
+                if !im2.is_empty()
                 {
                     im_cap[i] = unmod[i].to_owned() + ":im";
                 }
-                re[i].extend(re2);
-                im[i].extend(im2);
+                re[i] = re2;
+                im[i] = im2;
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
@@ -971,6 +939,7 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f6
     let mut re = Vec::new();
     let mut im = Vec::new();
     let den_range = (options.xr.1 - options.xr.0) / options.samples_2d as f64;
+    let mut zero = (false, false);
     for i in 0..=options.samples_2d
     {
         let n = options.xr.0 + i as f64 * den_range;
@@ -1023,14 +992,25 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f6
         };
         if num.real().is_finite()
         {
+            if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+            {
+                zero.0 = true
+            }
             re.push([n, num.real().to_f64()]);
         }
         if num.imag().is_finite()
         {
+            if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+            {
+                zero.1 = true
+            }
             im.push([n, num.imag().to_f64()]);
         }
     }
-    (re, im)
+    (
+        if zero.0 { re } else { Vec::new() },
+        if zero.1 { im } else { Vec::new() },
+    )
 }
 pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f64; 3]>)
 {
@@ -1046,6 +1026,7 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f6
     let den_x_range = (options.xr.1 - options.xr.0) / options.samples_3d.0 as f64;
     let den_y_range = (options.yr.1 - options.yr.0) / options.samples_3d.1 as f64;
     let mut modified: Vec<NumStr>;
+    let mut zero = (false, false);
     for i in 0..=options.samples_3d.0
     {
         let n = options.xr.0 + i as f64 * den_x_range;
@@ -1110,15 +1091,26 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f6
             };
             if num.real().is_finite()
             {
+                if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                {
+                    zero.0 = true
+                }
                 re.push([n, f, num.real().to_f64()]);
             }
             if num.imag().is_finite()
             {
+                if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                {
+                    zero.1 = true
+                }
                 im.push([n, f, num.imag().to_f64()]);
             }
         }
     }
-    (re, im)
+    (
+        if zero.0 { re } else { Vec::new() },
+        if zero.1 { im } else { Vec::new() },
+    )
 }
 pub fn can_graph(input: &str) -> bool
 {

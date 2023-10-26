@@ -63,10 +63,7 @@ pub fn input_var(
         input.push(top);
     }
     let chars = input.chars().collect::<Vec<char>>();
-    let mut count;
-    let mut vl;
     let mut i = 0;
-    let mut word;
     let mut sum = (0, String::new());
     let mut bracket = 0;
     'main: while i < chars.len()
@@ -93,11 +90,15 @@ pub fn input_var(
             i += 1;
             continue;
         }
-        count = chars[i..]
+        let count = chars[i..]
             .iter()
             .position(|x| !x.is_alphabetic())
-            .unwrap_or(0);
-        word = chars[i..i + count].iter().collect::<String>();
+            .unwrap_or(chars.len() - i);
+        let mut word = chars[i..i + count].iter().collect::<String>();
+        if (word.ends_with('x') && word != "max") || word.ends_with('y')
+        {
+            word.pop();
+        }
         if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
@@ -162,7 +163,7 @@ pub fn input_var(
         {
             for var in vars
             {
-                vl = var[0].chars().collect::<Vec<char>>().len();
+                let vl = var[0].chars().collect::<Vec<char>>().len();
                 if var[0] != "e"
                     || (!options.small_e
                         || !(i != 0
@@ -181,7 +182,7 @@ pub fn input_var(
                             .next()
                             == var[0].split('(').next()
                     {
-                        count = 0;
+                        let mut count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
                         {
                             if *c == '('

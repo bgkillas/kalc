@@ -957,7 +957,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 let b = function[i + 3].num()?;
                                 let c = function[i + 5].num()?;
                                 let p: Complex = b.clone().pow(2);
-                                let p: Complex = p - 4 * a.clone() * c;
+                                let p: Complex = p - (4 * c * a.clone());
                                 let p = p.sqrt();
                                 let a: Complex = 2 * a;
                                 //(-b+-sqrt(b^2-4ac))/2a

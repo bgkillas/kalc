@@ -28,11 +28,10 @@ use std::{
     time::Instant,
 };
 //TODO make set_commands() nicer like above, maybe make set_commands() compute
-//TODO sum(k,k2,0,5) computes ignoring the 2
-//TODO sum(k,k*fsd,2,4) parses as written
 //TODO implement gcd and lcm use vectors as a variable input
-//TODO consider making +/- colored, and commas colored, consider rainbow brackets... somehow
-//TODO consider settings for color
+//TODO making +/- colored, and commas colored, consider rainbow brackets
+//TODO settings for color
+//TODO tab completion
 #[derive(Clone, Copy)]
 pub struct Options
 {

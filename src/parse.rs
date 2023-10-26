@@ -1,12 +1,11 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Str, Vector},
+        NumStr::{Num, Str},
     },
     Options,
 };
 use rug::{float::Special::Infinity, ops::Pow, Complex};
-use std::collections::HashSet;
 pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static str>
 {
     if input.is_empty()
@@ -45,7 +44,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     i = 0;
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
-    let mut sum = 0;
     let mut pwr = (false, 0);
     let mut subfact = (false, 0);
     'outer: while i < chars.len()
@@ -109,18 +107,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     continue;
                 }
                 find_word = false;
-                if is_func(&word) || sum != 0
-                {
-                    place_multiplier(&mut func, &find_word);
-                    func.push(Str(word.clone()));
-                    if matches!(
-                        word.as_str(),
-                        "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
-                    ) && sum == 0
-                    {
-                        sum = count + 1;
-                    }
-                }
+                place_multiplier(&mut func, &find_word);
+                func.push(Str(word.clone()));
                 word.clear();
             }
             place_multiplier(&mut func, &find_word);
@@ -254,25 +242,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         if !word.is_empty()
                         {
                             find_word = false;
-                            if is_func(&word) || sum != 0
-                            {
-                                place_multiplier(&mut func, &find_word);
-                                func.push(Str(word.clone()));
-                                if matches!(
-                                    word.as_str(),
-                                    "sum"
-                                        | "summation"
-                                        | "prod"
-                                        | "production"
-                                        | "vec"
-                                        | "mat"
-                                        | "Σ"
-                                        | "Π"
-                                ) && sum == 0
-                                {
-                                    sum = count + 1;
-                                }
-                            }
+                            place_multiplier(&mut func, &find_word);
+                            func.push(Str(word.clone()));
                             word.clear();
                         }
                         place_multiplier(&mut func, &find_word);
@@ -334,71 +305,58 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             if !word.is_empty()
             {
                 find_word = false;
-                if is_func(&word)
+                if i + 4 < chars.len()
+                    && chars[i] == '^'
+                    && chars[i + 1] == '('
+                    && chars[i + 2] == '-'
+                    && chars[i + 3] == '1'
+                    && chars[i + 4] == ')'
                 {
-                    if i + 4 < chars.len()
-                        && chars[i] == '^'
-                        && chars[i + 1] == '('
-                        && chars[i + 2] == '-'
-                        && chars[i + 3] == '1'
-                        && chars[i + 4] == ')'
-                    {
-                        place_multiplier(&mut func, &find_word);
-                        word.insert(0, 'a');
-                        func.push(Str(word.clone()));
-                        word.clear();
-                        i += 5;
-                        continue;
-                    }
-                    if i + 2 < chars.len()
-                        && chars[i] == '^'
-                        && chars[i + 1] == '-'
-                        && chars[i + 2] == '1'
-                    {
-                        place_multiplier(&mut func, &find_word);
-                        word.insert(0, 'a');
-                        func.push(Str(word.clone()));
-                        word.clear();
-                        i += 3;
-                        continue;
-                    }
-                    if i + 1 < chars.len()
-                        && chars[i] == '^'
-                        && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
-                    {
-                        place_multiplier(&mut func, &find_word);
-                        func.push(Str(word.clone()));
-                        word.clear();
-                        let pos = chars
-                            .iter()
-                            .skip(i + 1)
-                            .position(|&c| c == '(' || c == ')' || c == ',');
-                        if pos.is_none()
-                        {
-                            continue;
-                        }
-                        exp = chars[i + 1..i + 1 + pos.unwrap()].iter().collect();
-                        if exp == "-"
-                        {
-                            exp = "-1".to_string();
-                        }
-                        i += pos.unwrap() + 1;
-                        continue;
-                    }
+                    place_multiplier(&mut func, &find_word);
+                    word.insert(0, 'a');
+                    func.push(Str(word.clone()));
+                    word.clear();
+                    i += 5;
+                    continue;
                 }
-                if is_func(&word) || sum != 0
+                if i + 2 < chars.len()
+                    && chars[i] == '^'
+                    && chars[i + 1] == '-'
+                    && chars[i + 2] == '1'
+                {
+                    place_multiplier(&mut func, &find_word);
+                    word.insert(0, 'a');
+                    func.push(Str(word.clone()));
+                    word.clear();
+                    i += 3;
+                    continue;
+                }
+                if i + 1 < chars.len()
+                    && chars[i] == '^'
+                    && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
                 {
                     place_multiplier(&mut func, &find_word);
                     func.push(Str(word.clone()));
-                    if matches!(
-                        word.as_str(),
-                        "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
-                    ) && sum == 0
-                    {
-                        sum = count + 1;
-                    }
                     word.clear();
+                    let pos = chars
+                        .iter()
+                        .skip(i + 1)
+                        .position(|&c| c == '(' || c == ')' || c == ',');
+                    if pos.is_none()
+                    {
+                        continue;
+                    }
+                    exp = chars[i + 1..i + 1 + pos.unwrap()].iter().collect();
+                    if exp == "-"
+                    {
+                        exp = "-1".to_string();
+                    }
+                    i += pos.unwrap() + 1;
+                    continue;
                 }
+                place_multiplier(&mut func, &find_word);
+                func.push(Str(word.clone()));
+                word.clear();
             }
             if !exp.is_empty() && c != '(' && c != ')'
             {
@@ -646,10 +604,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str(")".to_string()));
                         func.push(Str(")".to_string()))
                     }
-                    if sum == count
-                    {
-                        sum = 0;
-                    }
                     count -= 1;
                     func.push(Str(")".to_string()))
                 }
@@ -865,7 +819,7 @@ fn place_multiplier(func: &mut Vec<NumStr>, find_word: &bool)
 {
     if let Some(Str(s)) = func.last()
     {
-        if !find_word && (s == ")" || s == "x" || s == "y" || s == "]" || s == "}")
+        if !find_word && matches!(s.as_str(), ")" | "x" | "y" | "]" | "}")
         {
             func.push(Str('*'.to_string()))
         }
@@ -874,166 +828,4 @@ fn place_multiplier(func: &mut Vec<NumStr>, find_word: &bool)
     {
         func.push(Str('*'.to_string()))
     }
-    else if let Vector(_) = func.last().unwrap_or(&Str("".to_string()))
-    {
-        func.push(Str('*'.to_string()))
-    }
-}
-pub fn is_func(word: &str) -> bool
-{
-    let functions: HashSet<_> = [
-        "sum",
-        "product",
-        "prod",
-        "summation",
-        "cofactor",
-        "cofactors",
-        "cof",
-        "minor",
-        "minors",
-        "adjugate",
-        "adj",
-        "inv",
-        "inverse",
-        "transpose",
-        "trans",
-        "len",
-        "length",
-        "wid",
-        "width",
-        "tr",
-        "trace",
-        "det",
-        "determinant",
-        "part",
-        "norm",
-        "abs",
-        "normalize",
-        "car",
-        "cartesian",
-        "polar",
-        "pol",
-        "angle",
-        "cross",
-        "proj",
-        "project",
-        "dot",
-        "rotate",
-        "sin",
-        "csc",
-        "cos",
-        "sec",
-        "tan",
-        "cot",
-        "asin",
-        "arcsin",
-        "acsc",
-        "arccsc",
-        "acos",
-        "arccos",
-        "asec",
-        "arcsec",
-        "atan",
-        "arctan",
-        "atan2",
-        "acot",
-        "arccot",
-        "sinh",
-        "csch",
-        "cosh",
-        "sech",
-        "tanh",
-        "coth",
-        "asinh",
-        "arcsinh",
-        "acsch",
-        "arccsch",
-        "acosh",
-        "arccosh",
-        "asech",
-        "arcsech",
-        "atanh",
-        "arctanh",
-        "acoth",
-        "arccoth",
-        "cis",
-        "ln",
-        "aexp",
-        "ceil",
-        "floor",
-        "round",
-        "recip",
-        "exp",
-        "aln",
-        "log",
-        "root",
-        "bi",
-        "binomial",
-        "gamma",
-        "max",
-        "min",
-        "sqrt",
-        "asquare",
-        "abs",
-        "norm",
-        "deg",
-        "degree",
-        "rad",
-        "radian",
-        "gradian",
-        "re",
-        "real",
-        "im",
-        "imag",
-        "sgn",
-        "sign",
-        "arg",
-        "cbrt",
-        "acube",
-        "frac",
-        "fract",
-        "int",
-        "trunc",
-        "square",
-        "asqrt",
-        "cube",
-        "acbrt",
-        "fact",
-        "subfact",
-        "sinc",
-        "conj",
-        "conjugate",
-        "erf",
-        "erfc",
-        "ai",
-        "digamma",
-        "zeta",
-        "sort",
-        "Γ",
-        "ζ",
-        "Σ",
-        "Π",
-        "factor",
-        "factors",
-        "vec",
-        "mat",
-        "prime",
-        "add",
-        "reverse",
-        "link",
-        "flatten",
-        "I",
-        "P",
-        "C",
-        "split",
-        "slog",
-        "doublefact",
-        "mean",
-        "median",
-        "mode",
-    ]
-    .iter()
-    .cloned()
-    .collect();
-    functions.contains(word)
 }

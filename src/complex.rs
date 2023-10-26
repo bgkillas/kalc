@@ -474,9 +474,8 @@ pub fn slog(a: &Complex, b: &Complex) -> Complex
             - 1
     }
 }
-pub fn to_polar(a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
+pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
 {
-    let mut a = a;
     if a.len() == 1
     {
         a.push(Complex::new(a[0].prec()));

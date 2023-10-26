@@ -1,8 +1,9 @@
-use crate::{parse::is_func, Options};
+use crate::Options;
 use rug::{
     float::Constant::{Catalan, Euler, Pi},
     Float,
 };
+use std::collections::HashSet;
 pub fn input_var(
     input: &str,
     vars: &[[String; 2]],
@@ -64,7 +65,6 @@ pub fn input_var(
     let chars = input.chars().collect::<Vec<char>>();
     let mut count;
     let mut vl;
-    let mut push = true;
     let mut i = 0;
     let mut word;
     let mut sum = (0, String::new());
@@ -90,7 +90,6 @@ pub fn input_var(
                 bracket -= 1;
             }
             output.push(c);
-            push = true;
             i += 1;
             continue;
         }
@@ -141,14 +140,28 @@ pub fn input_var(
                 sumrec.push(sum.clone())
             }
         }
-        if i == 0 || !chars[i - 1].is_alphabetic()
+        if is_func(&word)
+        {
+            i += word.len();
+            output.push_str(&word)
+        }
+        else if sumrec.iter().any(|a| a.1 == word)
+        {
+            if matches!(chars[i - 1], '0'..='9' | ')' | '}' | ']' | 'x' | 'y')
+            {
+                output.push('*')
+            }
+            i += word.len();
+            output.push_str(&word);
+            if matches!(chars[i], '0'..='9' | ')' | '}' | ']' | 'x' | 'y')
+            {
+                output.push('*')
+            }
+        }
+        else
         {
             for var in vars
             {
-                if sumrec.iter().any(|a| a.1.contains(&var[0]))
-                {
-                    continue;
-                }
                 vl = var[0].chars().collect::<Vec<char>>().len();
                 if var[0] != "e"
                     || (!options.small_e
@@ -168,7 +181,6 @@ pub fn input_var(
                             .next()
                             == var[0].split('(').next()
                     {
-                        let o = i;
                         count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
                         {
@@ -197,7 +209,7 @@ pub fn input_var(
                             output.push_str(&input_var(&var[1], vars, sumrec, options));
                             output.push(')');
                         }
-                        else if push
+                        else
                         {
                             let mut k = 0;
                             for (f, c) in chars[j + 2..].iter().enumerate()
@@ -296,15 +308,9 @@ pub fn input_var(
                                 output.push(')');
                             }
                         }
-                        else
-                        {
-                            i = o;
-                        }
                     }
                     else if i + vl <= chars.len()
                         && chars[i..i + vl].iter().collect::<String>() == var[0]
-                        && push
-                        && !is_func(&get_word(&chars[i..]))
                     {
                         i += vl;
                         output.push('(');
@@ -314,16 +320,15 @@ pub fn input_var(
                     }
                 }
             }
-        }
-        if (c != ' ' || (i == 0 || chars[i - 1] != ' ')) && not_pushed
-        {
-            if c.is_alphabetic()
+            if (c != ' ' || (i == 0 || chars[i - 1] != ' '))
+                && not_pushed
+                && !(c.is_alphabetic()
+                    && (c != 'i' || (chars.len() == i && matches!(chars[i + 1], 'n' | 'm'))))
             {
-                push = false;
+                output.push(c);
             }
-            output.push(c);
+            i += 1;
         }
-        i += 1;
     }
     if output.is_empty()
     {
@@ -334,19 +339,165 @@ pub fn input_var(
         output
     }
 }
-pub fn get_word(word: &[char]) -> String
+fn is_func(word: &str) -> bool
 {
-    let mut pos = 0;
-    for (i, c) in word.iter().enumerate()
-    {
-        if !c.is_alphabetic()
-            || (*c == 'x' && (i + 1 == word.len() || !word[i + 1].is_alphabetic()))
-        {
-            pos = i;
-            break;
-        }
-    }
-    word[..pos].iter().collect::<String>()
+    let functions: HashSet<_> = [
+        "i",
+        "inf",
+        "sum",
+        "product",
+        "prod",
+        "summation",
+        "cofactor",
+        "cofactors",
+        "cof",
+        "minor",
+        "minors",
+        "adjugate",
+        "adj",
+        "inv",
+        "inverse",
+        "transpose",
+        "trans",
+        "len",
+        "length",
+        "wid",
+        "width",
+        "tr",
+        "trace",
+        "det",
+        "determinant",
+        "part",
+        "norm",
+        "abs",
+        "normalize",
+        "car",
+        "cartesian",
+        "polar",
+        "pol",
+        "angle",
+        "cross",
+        "proj",
+        "project",
+        "dot",
+        "rotate",
+        "sin",
+        "csc",
+        "cos",
+        "sec",
+        "tan",
+        "cot",
+        "asin",
+        "arcsin",
+        "acsc",
+        "arccsc",
+        "acos",
+        "arccos",
+        "asec",
+        "arcsec",
+        "atan",
+        "arctan",
+        "atan2",
+        "acot",
+        "arccot",
+        "sinh",
+        "csch",
+        "cosh",
+        "sech",
+        "tanh",
+        "coth",
+        "asinh",
+        "arcsinh",
+        "acsch",
+        "arccsch",
+        "acosh",
+        "arccosh",
+        "asech",
+        "arcsech",
+        "atanh",
+        "arctanh",
+        "acoth",
+        "arccoth",
+        "cis",
+        "ln",
+        "aexp",
+        "ceil",
+        "floor",
+        "round",
+        "recip",
+        "exp",
+        "aln",
+        "log",
+        "root",
+        "bi",
+        "binomial",
+        "gamma",
+        "max",
+        "min",
+        "sqrt",
+        "asquare",
+        "abs",
+        "norm",
+        "deg",
+        "degree",
+        "rad",
+        "radian",
+        "gradian",
+        "re",
+        "real",
+        "im",
+        "imag",
+        "sgn",
+        "sign",
+        "arg",
+        "cbrt",
+        "acube",
+        "frac",
+        "fract",
+        "int",
+        "trunc",
+        "square",
+        "asqrt",
+        "cube",
+        "acbrt",
+        "fact",
+        "subfact",
+        "sinc",
+        "conj",
+        "conjugate",
+        "erf",
+        "erfc",
+        "ai",
+        "digamma",
+        "zeta",
+        "sort",
+        "Γ",
+        "ζ",
+        "Σ",
+        "Π",
+        "factor",
+        "factors",
+        "vec",
+        "mat",
+        "prime",
+        "add",
+        "reverse",
+        "link",
+        "flatten",
+        "I",
+        "P",
+        "C",
+        "split",
+        "slog",
+        "doublefact",
+        "mean",
+        "median",
+        "mode",
+    ]
+    .iter()
+    .cloned()
+    .collect();
+    functions.contains(word)
 }
 pub fn get_vars(options: Options) -> Vec<[String; 2]>
 {

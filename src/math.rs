@@ -1356,7 +1356,7 @@ fn do_functions(
                 Ok(Vector(vec))
             }
             Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, options)?)),
-            _ => Err("unreachable6"),
+            _ => Err("unreachable1"),
         }
     }
 }
@@ -1429,9 +1429,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                let pow: Complex = a.clone().pow(2) + b.clone().pow(2);
-                let i = Complex::with_val(options.prec, (0, 1));
-                ((a.clone() + (b.clone() * i.clone())) / pow.sqrt()).ln() * -i * to_deg
+                (a + (b * Complex::with_val(options.prec, (0, 1)))).arg() * to_deg
             }
             else
             {
@@ -1839,7 +1837,7 @@ fn functions(
         }
         _ =>
         {
-            return Err("unreachable7");
+            return Err("wrong input type");
         }
     })
 }

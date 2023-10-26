@@ -322,8 +322,7 @@ pub fn input_var(
             }
             if (c != ' ' || (i == 0 || chars[i - 1] != ' '))
                 && not_pushed
-                && !(c.is_alphabetic()
-                    && (c != 'i' || (chars.len() == i && matches!(chars[i + 1], 'n' | 'm'))))
+                && !(c.is_alphabetic() && c != 'x' && c != 'y' && c != 'i')
             {
                 output.push(c);
             }
@@ -493,6 +492,7 @@ fn is_func(word: &str) -> bool
         "mean",
         "median",
         "mode",
+        "quad",
     ]
     .iter()
     .cloned()

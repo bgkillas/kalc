@@ -98,15 +98,15 @@ Trigonometric functions:
 - csch, sech, coth, acsch, asech, acoth
 
 Other functions:
-- sqrt, cbrt, square, cube
+- sqrt, cbrt, square, cube, quad(a,b,c)(quadratic formula)
 - ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
 - fact(real), doublefact(real), subfact(natural)
 - sinc, cis, exp
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)
-- deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)
-- re, im, split(splits real/imag into a 2 part vector)
+- deg, rad, grad (all real only)
+- re, im, split(x+yi={x,y})
 - factors, prime
 - slog(a,b)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)

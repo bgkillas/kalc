@@ -62,15 +62,15 @@ Trigonometric functions:\n\
 - sinh, cosh, tanh, asinh, acosh, atanh\n\
 - csch, sech, coth, acsch, asech, acoth\n\n\
 Other functions:\n\
-- sqrt, cbrt, square, cube\n\
+- sqrt, cbrt, square, cube, quad(a,b,c)(quadratic formula)\n\
 - ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\n\
 - abs, sgn, arg\n\
 - ceil, floor, round, int, frac\n\
 - fact(real), doublefact(real), subfact(natural)\n\
 - sinc, cis, exp\n\
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)\n\
-- deg(to_degrees), rad(to_radians), grad(to_gradians) (all real only)\n\
-- re, im, split(splits real/imag into a 2 part vector)\n\
+- deg, rad, grad (all real only)\n\
+- re, im, split(x+yi={{x,y}})\n\
 - factors, prime\n\
 - slog(a,b)\n\
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\n\

@@ -27,7 +27,7 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//TODO make set_commands() nicer like above, maybe make set_commands() compute
+//TODO make set_commands() compute
 //TODO implement gcd and lcm use vectors as a variable input
 //TODO making +/- colored, and commas colored, consider rainbow brackets
 //TODO settings for color

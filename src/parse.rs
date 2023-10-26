@@ -92,7 +92,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 match Complex::parse(pow.as_bytes())
                 {
                     Ok(n) => n,
-                    Err(_) => return Err("exponent error"),
+                    _ => return Err("exponent error"),
                 },
             ) * Complex::with_val(options.prec, (0, 1))
                 .pow(Complex::with_val(options.prec, i))));
@@ -408,7 +408,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     match Complex::parse(exp.as_bytes())
                     {
                         Ok(n) => n,
-                        Err(_) => return Err("exponent error"),
+                        _ => return Err("exponent error"),
                     },
                 )));
                 exp = String::new();
@@ -819,7 +819,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             match Complex::parse(pow.as_bytes())
             {
                 Ok(n) => n,
-                Err(_) => return Err("exponent error"),
+                _ => return Err("exponent error"),
             },
         ) * Complex::with_val(options.prec, (0, 1))
             .pow(Complex::with_val(options.prec, i))));
@@ -832,7 +832,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             match Complex::parse(exp.as_bytes())
             {
                 Ok(n) => n,
-                Err(_) => return Err("exponent error"),
+                _ => return Err("exponent error"),
             },
         )));
     }

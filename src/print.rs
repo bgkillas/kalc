@@ -24,7 +24,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     let num = match do_math(func, options)
     {
         Ok(num) => num,
-        Err(_) => return,
+        _ => return,
     };
     if let Num(n) = num
     {
@@ -786,15 +786,6 @@ pub fn print_concurrent(
 }
 pub fn get_output(options: &Options, num: &Complex) -> (String, String)
 {
-    let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
-    {
-        "+"
-    }
-    else
-    {
-        ""
-    }
-    .to_string();
     let dec = if options.decimal_places == 0
     {
         1
@@ -805,6 +796,15 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     };
     if options.base != 10
     {
+        let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
+        {
+            "+"
+        }
+        else
+        {
+            ""
+        }
+        .to_string();
         (
             if !num.real().is_zero()
             {
@@ -846,6 +846,15 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     }
     else if options.sci
     {
+        let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
+        {
+            "+"
+        }
+        else
+        {
+            ""
+        }
+        .to_string();
         (
             if num.real().is_zero() && !num.imag().is_zero()
             {
@@ -935,28 +944,39 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
     }
     else
     {
+        let re = add_commas(
+            &to_string(num.real(), options.decimal_places, false),
+            options.comma,
+        );
+        let im = &add_commas(
+            &to_string(num.imag(), options.decimal_places, true),
+            options.comma,
+        );
+        let sign = if num.imag().is_sign_positive() && re != "0"
+        {
+            "+"
+        }
+        else
+        {
+            ""
+        }
+        .to_string();
         (
-            if num.real().is_zero() && !num.imag().is_zero()
+            if re == "0" && im != "0"
             {
                 "".to_string()
             }
             else
             {
-                add_commas(
-                    &to_string(num.real(), options.decimal_places, false),
-                    options.comma,
-                )
+                re
             },
-            if num.imag().is_zero()
+            if im == "0"
             {
                 "".to_string()
             }
             else
             {
-                sign + &add_commas(
-                    &to_string(num.imag(), options.decimal_places, true),
-                    options.comma,
-                ) + if options.color { "\x1b[93mi" } else { "i" }
+                sign + im + if options.color { "\x1b[93mi" } else { "i" }
             },
         )
     }

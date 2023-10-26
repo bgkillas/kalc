@@ -503,7 +503,7 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
             )
             {
                 Ok(n) => n,
-                Err(_) => return,
+                _ => return,
             }
             {
                 match i
@@ -570,129 +570,75 @@ pub fn set_commands(
     r: &str,
 ) -> bool
 {
-    //TODO make nicer like above, maybe make things compute, '0' in sci shows up as nothing P(
     match l
     {
         "point" =>
         {
+            let r = r.chars().next().unwrap();
             if matches!(
                 r,
-                "." | "+" | "x" | "*" | "s" | "S" | "o" | "O" | "t" | "T" | "d" | "D" | "r" | "R"
+                '.' | '+' | 'x' | '*' | 's' | 'S' | 'o' | 'O' | 't' | 'T' | 'd' | 'D' | 'r' | 'R'
             )
             {
-                options.point_style = r.chars().next().unwrap();
+                options.point_style = r;
             }
             else
             {
                 println!("Invalid point type");
             }
-            return true;
         }
         "base" =>
         {
-            options.base = match r.parse::<usize>()
+            match r.parse::<usize>()
             {
-                Ok(n) =>
-                {
-                    if !(2..=36).contains(&n)
-                    {
-                        println!("Invalid base");
-                        options.base
-                    }
-                    else
-                    {
-                        n
-                    }
-                }
-                Err(_) =>
-                {
-                    println!("Invalid base");
-                    options.base
-                }
+                Ok(n) if (2..=36).contains(&n) => options.base = n,
+                _ => println!("Invalid base"),
             };
-            return true;
         }
         "decimal" | "deci" | "decimals" =>
         {
-            if r == "-1"
+            match r.parse::<isize>()
             {
-                options.decimal_places = usize::MAX - 1;
-            }
-            else if r == "-2"
-            {
-                options.decimal_places = usize::MAX;
-            }
-            else
-            {
-                options.decimal_places = match r.parse::<usize>()
-                {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid decimal");
-                        options.decimal_places
-                    }
-                };
-            }
-            return true;
+                Ok(n) if n == -1 => options.decimal_places = usize::MAX - 1,
+                Ok(n) if n == -2 => options.decimal_places = usize::MAX,
+                Ok(n) if n >= 0 => options.decimal_places = n as usize,
+                _ => println!("Invalid decimal"),
+            };
         }
-        "prec" | "precision" =>
+        "prec" | "precision" => match r.parse::<u32>()
         {
-            if r == "0"
+            Ok(n) if n != 0 =>
             {
-                println!("Invalid precision");
-            }
-            else
-            {
-                match r.parse::<u32>()
+                options.prec = n;
+                if options.allow_vars
                 {
-                    Ok(n) =>
+                    let v = get_vars(*options);
+                    for i in old.clone()
                     {
-                        options.prec = n;
-                        if options.allow_vars
+                        for (j, var) in vars.iter_mut().enumerate()
                         {
-                            let v = get_vars(*options);
-                            for i in old.clone()
+                            if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
                             {
-                                for (j, var) in vars.iter_mut().enumerate()
-                                {
-                                    if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
-                                    {
-                                        *var = v[j].clone();
-                                    }
-                                }
+                                *var = v[j].clone();
                             }
-                            *old = v;
                         }
                     }
-                    Err(_) =>
-                    {
-                        println!("Invalid precision");
-                    }
+                    *old = v;
                 }
-            };
-            return true;
-        }
+            }
+            _ => println!("Invalid precision"),
+        },
         "range" =>
         {
             if r.contains(',')
             {
-                (
-                    options.xr.0,
-                    options.xr.1,
-                    options.yr.0,
-                    options.yr.1,
-                    options.zr.0,
-                    options.zr.1,
-                ) = match (
+                match (
                     r.split(',').next().unwrap().parse::<f64>(),
                     r.split(',').last().unwrap().parse::<f64>(),
                 )
                 {
-                    (Ok(min), Ok(max)) => (min, max, min, max, min, max),
-                    _ =>
+                    (Ok(min), Ok(max)) =>
                     {
-                        println!("Invalid range");
                         (
                             options.xr.0,
                             options.xr.1,
@@ -700,25 +646,17 @@ pub fn set_commands(
                             options.yr.1,
                             options.zr.0,
                             options.zr.1,
-                        )
+                        ) = (min, max, min, max, min, max)
                     }
+                    _ => println!("Invalid range"),
                 }
             }
             else
             {
-                (
-                    options.xr.0,
-                    options.xr.1,
-                    options.yr.0,
-                    options.yr.1,
-                    options.zr.0,
-                    options.zr.1,
-                ) = match r.parse::<f64>()
+                match r.parse::<f64>()
                 {
-                    Ok(n) => (-n, n, -n, n, -n, n),
-                    Err(_) =>
+                    Ok(n) =>
                     {
-                        println!("Invalid range");
                         (
                             options.xr.0,
                             options.xr.1,
@@ -726,8 +664,9 @@ pub fn set_commands(
                             options.yr.1,
                             options.zr.0,
                             options.zr.1,
-                        )
+                        ) = (-n, n, -n, n, -n, n)
                     }
+                    _ => println!("Invalid range"),
                 }
             }
         }
@@ -735,36 +674,23 @@ pub fn set_commands(
         {
             if r.contains(',')
             {
-                options.xr.0 = match r.split(',').next().unwrap().parse::<f64>()
+                match r.split(',').next().unwrap().parse::<f64>()
                 {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid x range");
-                        options.xr.0
-                    }
+                    Ok(n) => options.xr.0 = n,
+                    _ => println!("Invalid x range"),
                 };
-                options.xr.1 = match r.split(',').last().unwrap().parse::<f64>()
+                match r.split(',').last().unwrap().parse::<f64>()
                 {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid x range");
-                        options.xr.1
-                    }
+                    Ok(n) => options.xr.1 = n,
+                    _ => println!("Invalid x range"),
                 };
-                return true;
             }
             else
             {
-                (options.xr.0, options.xr.1) = match r.parse::<f64>()
+                match r.parse::<f64>()
                 {
-                    Ok(n) => (-n, n),
-                    Err(_) =>
-                    {
-                        println!("Invalid x range");
-                        (options.xr.0, options.xr.1)
-                    }
+                    Ok(n) => (options.xr.0, options.xr.1) = (-n, n),
+                    _ => println!("Invalid x range"),
                 }
             }
         }
@@ -772,36 +698,23 @@ pub fn set_commands(
         {
             if r.contains(',')
             {
-                options.yr.0 = match r.split(',').next().unwrap().parse::<f64>()
+                match r.split(',').next().unwrap().parse::<f64>()
                 {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid y range");
-                        options.yr.0
-                    }
+                    Ok(n) => options.yr.0 = n,
+                    _ => println!("Invalid y range"),
                 };
-                options.yr.1 = match r.split(',').last().unwrap().parse::<f64>()
+                match r.split(',').last().unwrap().parse::<f64>()
                 {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid y range");
-                        options.yr.1
-                    }
+                    Ok(n) => options.yr.1 = n,
+                    _ => println!("Invalid y range"),
                 };
-                return true;
             }
             else
             {
-                (options.yr.0, options.yr.1) = match r.parse::<f64>()
+                match r.parse::<f64>()
                 {
-                    Ok(n) => (-n, n),
-                    Err(_) =>
-                    {
-                        println!("Invalid y range");
-                        (options.yr.0, options.yr.1)
-                    }
+                    Ok(n) => (options.yr.0, options.yr.1) = (-n, n),
+                    _ => println!("Invalid y range"),
                 }
             }
         }
@@ -809,101 +722,67 @@ pub fn set_commands(
         {
             if r.contains(',')
             {
-                options.zr.0 = match r.split(',').next().unwrap().parse::<f64>()
+                match r.split(',').next().unwrap().parse::<f64>()
                 {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid z range");
-                        options.zr.0
-                    }
+                    Ok(n) => options.zr.0 = n,
+                    _ => println!("Invalid z range"),
                 };
-                options.zr.1 = match r.split(',').last().unwrap().parse::<f64>()
+                match r.split(',').last().unwrap().parse::<f64>()
                 {
-                    Ok(n) => n,
-                    Err(_) =>
-                    {
-                        println!("Invalid z range");
-                        options.zr.1
-                    }
+                    Ok(n) => options.zr.1 = n,
+                    _ => println!("Invalid z range"),
                 };
-                return true;
             }
             else
             {
-                (options.zr.0, options.zr.1) = match r.parse::<f64>()
+                match r.parse::<f64>()
                 {
-                    Ok(n) => (-n, n),
-                    Err(_) =>
-                    {
-                        println!("Invalid z range");
-                        (options.zr.0, options.zr.1)
-                    }
+                    Ok(n) => (options.zr.0, options.zr.1) = (-n, n),
+                    _ => println!("Invalid z range"),
                 }
             }
         }
         "frac_iter" =>
         {
-            options.frac_iter = match r.parse::<usize>()
+            match r.parse::<usize>()
             {
-                Ok(n) => n,
-                Err(_) =>
-                {
-                    println!("Invalid frac_iter");
-                    options.frac_iter
-                }
+                Ok(n) => options.frac_iter = n,
+                _ => println!("Invalid frac_iter"),
             };
-            return true;
         }
         "2d" =>
         {
-            options.samples_2d = match r.parse::<usize>()
+            match r.parse::<usize>()
             {
-                Ok(n) => n,
-                Err(_) =>
-                {
-                    println!("Invalid 2d sample size");
-                    options.samples_2d
-                }
+                Ok(n) => options.samples_2d = n,
+                _ => println!("Invalid 2d sample size"),
             };
-            return true;
         }
         "3d" =>
         {
-            return if r.contains(',')
+            if r.contains(',')
             {
-                options.samples_3d = match (
+                match (
                     r.split(',').next().unwrap().parse::<usize>(),
                     r.split(',').last().unwrap().parse::<usize>(),
                 )
                 {
-                    (Ok(n), Ok(b)) => (n, b),
-                    _ =>
-                    {
-                        println!("Invalid 3d sample size");
-                        options.samples_3d
-                    }
+                    (Ok(n), Ok(b)) => options.samples_3d = (n, b),
+                    _ => println!("Invalid 3d sample size"),
                 };
-                true
             }
             else
             {
-                options.samples_3d = match r.parse::<usize>()
+                match r.parse::<usize>()
                 {
-                    Ok(n) => (n, n),
-                    Err(_) =>
-                    {
-                        println!("Invalid 3d sample size");
-                        options.samples_3d
-                    }
+                    Ok(n) => options.samples_3d = (n, n),
+                    _ => println!("Invalid 3d sample size"),
                 };
-                true
             }
         }
-        _ =>
-        {}
+        _ => return false,
     }
-    false
+    true
 }
 pub fn commands(
     options: &mut Options,

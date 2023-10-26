@@ -138,7 +138,7 @@ pub fn read_single_char() -> char
         match match read()
         {
             Ok(c) => c,
-            Err(_) => return '\0',
+            _ => return '\0',
         }
         {
             Event::Key(KeyEvent {

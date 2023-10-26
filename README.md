@@ -17,10 +17,10 @@ defaults listed in kalc.config
 
 # issues
 - 0's and infinities of trig functions don't show up as 0 or infinity. i cant conceive of a nice way to fix this
-- matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5. i have no formal learning in matrixes i might try once i learn more
+- matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
 - loops(sum/prod etc) cant work with x,y,z as vars
 - recursive formulas don't work
-- inf + inf * i does not give inf+inf*i, infinitys generally dont well with complex numbers, ie inf/i != -inf*i
+- inf + inf * i does not give inf+inf*i, infinitys generally dont well with complex numbers, like inf/i != -inf*i
 - 1/0 != +-inf, digamma(-n) != +-inf, gamma(-n) != +-inf (and gamma subsidiarys)
 # build instructions
 rust>=1.73.0 diffutils gcc m4 make

@@ -1430,8 +1430,9 @@ fn functions(
             if let Some(b) = c
             {
                 let i = Complex::with_val(options.prec, (0, 1));
-                ((a.clone() + b.clone() * i.clone()) / (a.clone() + b.clone() * i.clone()).abs())
-                    .ln()
+                ((a.clone() + (b.clone() * i.clone()))
+                    / (a.clone() + (b.clone() * i.clone())).abs())
+                .ln()
                     * -i
                     * to_deg.clone()
             }

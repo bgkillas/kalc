@@ -55,7 +55,7 @@ pub fn graph(
                     match match do_math(f.to_vec(), options)
                     {
                         Ok(n) => n,
-                        Err(_) =>
+                        _ =>
                         {
                             fail(options);
                             return;

@@ -1371,15 +1371,15 @@ fn functions(
     let b;
     Ok(match s
     {
-        "sin" => (a / to_deg.clone()).sin(),
-        "csc" => (a / to_deg.clone()).sin().recip(),
-        "cos" => (a / to_deg.clone()).cos(),
-        "sec" => (a / to_deg.clone()).cos().recip(),
-        "tan" => (a / to_deg.clone()).tan(),
-        "cot" => (a / to_deg.clone()).tan().recip(),
+        "sin" => (a / to_deg).sin(),
+        "csc" => (a / to_deg).sin().recip(),
+        "cos" => (a / to_deg).cos(),
+        "sec" => (a / to_deg).cos().recip(),
+        "tan" => (a / to_deg).tan(),
+        "cot" => (a / to_deg).tan().recip(),
         "asin" | "arcsin" =>
         {
-            b = a.clone().asin() * to_deg.clone();
+            b = a.clone().asin() * to_deg;
             if a.imag().is_zero() && a.real() >= &1
             {
                 Complex::with_val(options.prec, (b.real(), -b.imag()))
@@ -1391,7 +1391,7 @@ fn functions(
         }
         "acsc" | "arccsc" =>
         {
-            b = a.clone().recip().asin() * to_deg.clone();
+            b = a.clone().recip().asin() * to_deg;
             if a.imag().is_zero()
             {
                 Complex::with_val(options.prec, (b.real(), -b.imag()))
@@ -1403,7 +1403,7 @@ fn functions(
         }
         "acos" | "arccos" =>
         {
-            b = a.clone().acos() * to_deg.clone();
+            b = a.clone().acos() * to_deg;
             if a.imag().is_zero() && a.real() >= &1
             {
                 Complex::with_val(options.prec, (b.real(), -b.imag()))
@@ -1415,7 +1415,7 @@ fn functions(
         }
         "asec" | "arcsec" =>
         {
-            b = a.clone().recip().acos() * to_deg.clone();
+            b = a.clone().recip().acos() * to_deg;
             if a.imag().is_zero()
             {
                 Complex::with_val(options.prec, (b.real(), -b.imag()))
@@ -1429,19 +1429,16 @@ fn functions(
         {
             if let Some(b) = c
             {
+                let pow: Complex = a.clone().pow(2) + b.clone().pow(2);
                 let i = Complex::with_val(options.prec, (0, 1));
-                ((a.clone() + (b.clone() * i.clone()))
-                    / (a.clone() + (b.clone() * i.clone())).abs())
-                .ln()
-                    * -i
-                    * to_deg.clone()
+                ((a.clone() + (b.clone() * i.clone())) / pow.sqrt()).ln() * -i * to_deg
             }
             else
             {
-                a.atan() * to_deg.clone()
+                a.atan() * to_deg
             }
         }
-        "acot" | "arccot" => a.recip().atan() * to_deg.clone(),
+        "acot" | "arccot" => a.recip().atan() * to_deg,
         "sinh" => a.sinh(),
         "csch" => a.sinh().recip(),
         "cosh" => a.cosh(),
@@ -1490,7 +1487,7 @@ fn functions(
         "cis" =>
         {
             (a.clone() / to_deg.clone()).cos()
-                + (a / to_deg.clone()).sin() * Complex::with_val(options.prec, (0.0, 1.0))
+                + (a / to_deg).sin() * Complex::with_val(options.prec, (0.0, 1.0))
         }
         "ln" | "aexp" =>
         {

@@ -6,14 +6,18 @@ use crate::{
     parse::get_func,
     print::get_output,
     vars::{get_vars, input_var},
-    Options,
+    Colors, Options,
 };
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
     time::Instant,
 };
-pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> Result<(), &'static str>
+pub fn arg_opts(
+    options: &mut Options,
+    colors: &mut Colors,
+    args: &mut Vec<String>,
+) -> Result<(), &'static str>
 {
     args.remove(0);
     let mut i = 0;
@@ -84,6 +88,42 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> Result<(), &'s
                 if args.len() > 1
                 {
                     options.frac_iter = args[i + 1].parse::<usize>().expect("invalid frac_iter");
+                    args.remove(i);
+                }
+            }
+            "--coltext" =>
+            {
+                if args.len() > 1
+                {
+                    colors.text =
+                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    args.remove(i);
+                }
+            }
+            "--colprompt" =>
+            {
+                if args.len() > 1
+                {
+                    colors.prompt =
+                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    args.remove(i);
+                }
+            }
+            "--colimag" =>
+            {
+                if args.len() > 1
+                {
+                    colors.imag =
+                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    args.remove(i);
+                }
+            }
+            "--colsci" =>
+            {
+                if args.len() > 1
+                {
+                    colors.sci =
+                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
                     args.remove(i);
                 }
             }
@@ -215,7 +255,11 @@ pub fn arg_opts(options: &mut Options, args: &mut Vec<String>) -> Result<(), &'s
     }
     Ok(())
 }
-pub fn file_opts(options: &mut Options, file_path: &String) -> Result<(), &'static str>
+pub fn file_opts(
+    options: &mut Options,
+    colors: &mut Colors,
+    file_path: &String,
+) -> Result<(), &'static str>
 {
     if File::open(file_path).is_ok()
     {
@@ -238,6 +282,42 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> Result<(), &'stat
                         .unwrap()
                         .parse::<usize>()
                         .expect("invalid frac_iter")
+                }
+                "coltext" =>
+                {
+                    colors.text = "\x1b[".to_owned()
+                        + &split
+                            .next()
+                            .unwrap()
+                            .parse::<String>()
+                            .expect("invalid col")
+                }
+                "colprompt" =>
+                {
+                    colors.prompt = "\x1b[".to_owned()
+                        + &split
+                            .next()
+                            .unwrap()
+                            .parse::<String>()
+                            .expect("invalid col")
+                }
+                "colimag" =>
+                {
+                    colors.imag = "\x1b[".to_owned()
+                        + &split
+                            .next()
+                            .unwrap()
+                            .parse::<String>()
+                            .expect("invalid col")
+                }
+                "colsci" =>
+                {
+                    colors.sci = "\x1b[".to_owned()
+                        + &split
+                            .next()
+                            .unwrap()
+                            .parse::<String>()
+                            .expect("invalid col")
                 }
                 "2d" =>
                 {
@@ -456,10 +536,21 @@ pub fn file_opts(options: &mut Options, file_path: &String) -> Result<(), &'stat
     }
     Ok(())
 }
-pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: &str)
+pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str, last: &str)
 {
     match l
     {
+        "colors" => println!(
+            "{}text={} {}prompt={} {}imag={} {}sci={}\x1b[0m",
+            colors.text,
+            &colors.text[2..],
+            colors.prompt,
+            &colors.prompt[2..],
+            colors.imag,
+            &colors.imag[2..],
+            colors.sci,
+            &colors.sci[2..],
+        ),
         "color" => println!("{}", options.color),
         "prompt" => println!("{}", options.prompt),
         "rt" => println!("{}", options.real_time_output),
@@ -492,14 +583,14 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
                     &l.replace('_', &format!("({})", last)),
                     vars,
                     &mut Vec::new(),
-                    *options,
+                    options,
                 )
                 .replace("zeta", "##ta##")
                 .replace("normalize", "##ma##")
                 .replace('z', "(x+y*i)")
                 .replace("##ta##", "zeta")
                 .replace("##ma##", "normalize"),
-                *options,
+                options,
             )
             {
                 Ok(n) => n,
@@ -510,7 +601,7 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
                 {
                     Num(n) =>
                     {
-                        let n = get_output(options, &n);
+                        let n = get_output(options, colors, &n);
                         print!(
                             "{}{}{}",
                             n.0,
@@ -524,7 +615,7 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
                         let mut num;
                         for i in n
                         {
-                            num = get_output(options, &i);
+                            num = get_output(options, colors, &i);
                             str.push_str(&format!(
                                 "{}{}{},",
                                 num.0,
@@ -543,7 +634,7 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
                         {
                             for j in i
                             {
-                                num = get_output(options, &j);
+                                num = get_output(options, colors, &j);
                                 str.push_str(&format!(
                                     "{}{}{},",
                                     num.0,
@@ -564,6 +655,7 @@ pub fn equal_to(options: &mut Options, vars: &mut [[String; 2]], l: &str, last: 
 }
 pub fn set_commands(
     options: &mut Options,
+    colors: &mut Colors,
     vars: &mut [[String; 2]],
     old: &mut Vec<[String; 2]>,
     l: &str,
@@ -572,6 +664,38 @@ pub fn set_commands(
 {
     match l
     {
+        "coltext" =>
+        {
+            match r.parse::<String>()
+            {
+                Ok(n) => colors.text = "\x1b[".to_owned() + &n,
+                _ => println!("Invalid col"),
+            };
+        }
+        "colprompt" =>
+        {
+            match r.parse::<String>()
+            {
+                Ok(n) => colors.prompt = "\x1b[".to_owned() + &n,
+                _ => println!("Invalid col"),
+            };
+        }
+        "colimag" =>
+        {
+            match r.parse::<String>()
+            {
+                Ok(n) => colors.imag = "\x1b[".to_owned() + &n,
+                _ => println!("Invalid col"),
+            };
+        }
+        "colsci" =>
+        {
+            match r.parse::<String>()
+            {
+                Ok(n) => colors.sci = "\x1b[".to_owned() + &n,
+                _ => println!("Invalid col"),
+            };
+        }
         "point" =>
         {
             let r = r.chars().next().unwrap();
@@ -784,13 +908,15 @@ pub fn set_commands(
     }
     true
 }
+#[allow(clippy::too_many_arguments)]
 pub fn commands(
     options: &mut Options,
+    colors: &Colors,
     watch: &mut Option<Instant>,
     vars: &mut [[String; 2]],
     old: &mut Vec<[String; 2]>,
-    lines: &mut Vec<String>,
-    input: &mut Vec<char>,
+    lines: &[String],
+    input: &[char],
     stdout: &mut Stdout,
 )
 {
@@ -951,7 +1077,7 @@ pub fn commands(
                     {
                         Num(n) =>
                         {
-                            let n = get_output(options, n);
+                            let n = get_output(*options, colors, n);
                             println!("{}={}{}", v[0], n.0, n.1)
                         }
                         Vector(m) =>
@@ -959,7 +1085,7 @@ pub fn commands(
                             let mut st = String::new();
                             for i in m
                             {
-                                let n = get_output(options, i);
+                                let n = get_output(*options, colors, i);
                                 st.push_str(&n.0);
                                 st.push_str(&n.1);
                                 st.push(',');
@@ -974,7 +1100,7 @@ pub fn commands(
                                 st.push('{');
                                 for g in i
                                 {
-                                    let n = get_output(options, g);
+                                    let n = get_output(*options, colors, g);
                                     st.push_str(&n.0);
                                     st.push_str(&n.1);
                                     st.push(',');
@@ -1029,13 +1155,6 @@ pub fn commands(
                     }
                 }
             }
-            // if next == "help"
-            // {
-            //     print!("\x1b[A\x1b[G\x1b[K");
-            //     stdout.flush().unwrap();
-            //     get_help(split.next().unwrap());
-            //     continue;
-            // }
         }
     }
 }

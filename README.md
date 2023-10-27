@@ -67,6 +67,7 @@ FLAGS: --help (this message)
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number
 
 - flags can be executed in runtime just without the dashes
+- Type "colors=" to see color settings
 - Type "exit" to exit the program
 - Type "clear" to clear the screen
 - Type "history [arg]" to see the history, arg indexes it if specified

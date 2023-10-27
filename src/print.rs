@@ -7,15 +7,15 @@ use crate::{
     get_terminal_width,
     graph::can_graph,
     math::do_math,
-    misc::{clear, handle_err},
+    misc::{clear, handle_err, prompt},
     parse::get_func,
     vars::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Options,
+    Colors, Options,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
-pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
+pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options, colors: &Colors)
 {
     if can_graph(input)
     {
@@ -28,7 +28,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
     };
     if let Num(n) = num
     {
-        let a = get_output(&options, &n);
+        let a = get_output(options, colors, &n);
         print!(
             "{}{}{}",
             a.0,
@@ -60,7 +60,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
         let mut out;
         for (k, i) in v.iter().enumerate()
         {
-            out = get_output(&options, i);
+            out = get_output(options, colors, i);
             output += out.0.as_str();
             output += out.1.as_str();
             if options.color
@@ -97,7 +97,7 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options)
             }
             for (k, i) in j.iter().enumerate()
             {
-                out = get_output(&options, i);
+                out = get_output(options, colors, i);
                 output += out.0.as_str();
                 output += out.1.as_str();
                 if options.color
@@ -144,6 +144,7 @@ pub fn print_concurrent(
     last: &[char],
     vars: &[[String; 2]],
     options: Options,
+    colors: &Colors,
     start: usize,
     end: usize,
 ) -> usize
@@ -159,8 +160,7 @@ pub fn print_concurrent(
     );
     if can_graph(input)
     {
-        print!("\x1b[J");
-        clear(unmodified_input, start, end, options);
+        clear(unmodified_input, start, end, options, colors);
         return 0;
     }
     let num = match do_math(
@@ -169,7 +169,7 @@ pub fn print_concurrent(
             Ok(f) => f,
             Err(s) =>
             {
-                handle_err(s, unmodified_input, options, start, end);
+                handle_err(s, unmodified_input, options, colors, start, end);
                 return 0;
             }
         },
@@ -179,7 +179,7 @@ pub fn print_concurrent(
         Ok(n) => n,
         Err(s) =>
         {
-            handle_err(s, unmodified_input, options, start, end);
+            handle_err(s, unmodified_input, options, colors, start, end);
             return 0;
         }
     };
@@ -220,13 +220,13 @@ pub fn print_concurrent(
                         else
                         {
                             sign + fb.as_str()
-                                + if options.color
+                                + &if options.color
                                 {
-                                    "\x1b[93mi\x1b[0m"
+                                    format!("{}i\x1b[0m", colors.imag)
                                 }
                                 else
                                 {
-                                    "i"
+                                    "i".to_string()
                                 }
                         },
                     )
@@ -249,7 +249,8 @@ pub fn print_concurrent(
                         }
                         else
                         {
-                            get_output(&options, &n).1 + if options.color { "\x1b[0m" } else { "" }
+                            get_output(options, colors, &n).1
+                                + if options.color { "\x1b[0m" } else { "" }
                         },
                     )
                 }
@@ -263,7 +264,7 @@ pub fn print_concurrent(
                         }
                         else
                         {
-                            get_output(&options, &n).0
+                            get_output(options, colors, &n).0
                         },
                         if n.imag().is_zero()
                         {
@@ -272,13 +273,13 @@ pub fn print_concurrent(
                         else
                         {
                             sign + fb.as_str()
-                                + if options.color
+                                + &if options.color
                                 {
-                                    "\x1b[93mi\x1b[0m"
+                                    format!("{}i\x1b[0m", colors.imag)
                                 }
                                 else
                                 {
-                                    "i"
+                                    "i".to_string()
                                 }
                         },
                     )
@@ -290,19 +291,19 @@ pub fn print_concurrent(
         {
             ("".to_string(), "".to_string())
         };
-        let output = get_output(&options, &n);
+        let output = get_output(options, colors, &n);
         let terlen = get_terminal_width();
         let len1 = output
             .0
             .replace("\x1b[0m", "")
-            .replace("\x1b[93m", "")
-            .replace("\x1b[92m", "")
+            .replace(&colors.imag, "")
+            .replace(&colors.sci, "")
             .len();
         let len2 = output
             .1
             .replace("\x1b[0m", "")
-            .replace("\x1b[93m", "")
-            .replace("\x1b[92m", "")
+            .replace(&colors.imag, "")
+            .replace(&colors.sci, "")
             .len();
         if (frac == 1 && !options.frac)
             || (frac_a.len() + frac_b.len()
@@ -344,25 +345,7 @@ pub fn print_concurrent(
                 if len1 != 0 && len2 != 0 { "\n" } else { "" },
                 &output.1.replace('+', ""),
                 "\x1b[A".repeat(num + frac - if len1 == 0 || len2 == 0 { 1 } else { 0 }),
-                if options.prompt
-                {
-                    if options.color
-                    {
-                        "\x1b[94m> \x1b[96m"
-                    }
-                    else
-                    {
-                        "> "
-                    }
-                }
-                else if options.color
-                {
-                    "\x1b[96m"
-                }
-                else
-                {
-                    ""
-                },
+                prompt(options, colors),
                 &unmodified_input[start..end].iter().collect::<String>(),
                 if options.color { "\x1b[0m" } else { "" },
             );
@@ -383,25 +366,7 @@ pub fn print_concurrent(
                 output.0,
                 output.1,
                 if frac == 1 { "\x1b[A" } else { "" },
-                if options.prompt
-                {
-                    if options.color
-                    {
-                        "\x1b[94m> \x1b[96m"
-                    }
-                    else
-                    {
-                        "> "
-                    }
-                }
-                else if options.color
-                {
-                    "\x1b[96m"
-                }
-                else
-                {
-                    ""
-                },
+                prompt(options, colors),
                 &unmodified_input[start..end].iter().collect::<String>(),
                 if options.color { "\x1b[0m" } else { "" }
             );
@@ -433,7 +398,7 @@ pub fn print_concurrent(
         let mut frac_temp;
         for (k, i) in v.iter().enumerate()
         {
-            out = get_output(&options, i);
+            out = get_output(options, colors, i);
             if options.frac || options.frac_iter == 0
             {
                 frac_temp = fraction(i.real().clone(), options);
@@ -465,16 +430,16 @@ pub fn print_concurrent(
                         {
                             if options.color
                             {
-                                "\x1b[93mi\x1b[0m"
+                                format!("{}i", colors.imag)
                             }
                             else
                             {
-                                "i"
+                                "i".to_string()
                             }
                         }
                         else
                         {
-                            ""
+                            "".to_string()
                         })
                     )
                 }
@@ -504,8 +469,8 @@ pub fn print_concurrent(
         let terlen = get_terminal_width();
         let len = output
             .replace("\x1b[0m", "")
-            .replace("\x1b[93m", "")
-            .replace("\x1b[92m", "")
+            .replace(&colors.imag, "")
+            .replace(&colors.sci, "")
             .len()
             - 1;
         if frac_out != output
@@ -515,8 +480,8 @@ pub fn print_concurrent(
         if (frac == 1 && !options.frac)
             || frac_out
                 .replace("\x1b[0m", "")
-                .replace("\x1b[93m", "")
-                .replace("\x1b[92m", "")
+                .replace(&colors.imag, "")
+                .replace(&colors.sci, "")
                 .len()
                 > terlen
             || len > terlen
@@ -537,25 +502,7 @@ pub fn print_concurrent(
             output,
             "\x1b[A".repeat(num),
             if frac == 1 { "\x1b[A" } else { "" },
-            if options.prompt
-            {
-                if options.color
-                {
-                    "\x1b[94m> \x1b[96m"
-                }
-                else
-                {
-                    "> "
-                }
-            }
-            else if options.color
-            {
-                "\x1b[96m"
-            }
-            else
-            {
-                ""
-            },
+            prompt(options, colors),
             &unmodified_input[start..end].iter().collect::<String>(),
             if options.color { "\x1b[0m" } else { "" }
         );
@@ -577,7 +524,7 @@ pub fn print_concurrent(
             }
             for (k, i) in j.iter().enumerate()
             {
-                out = get_output(&options, i);
+                out = get_output(options, colors, i);
                 if options.frac || options.frac_iter == 0
                 {
                     frac_temp = fraction(i.real().clone(), options);
@@ -609,16 +556,16 @@ pub fn print_concurrent(
                             {
                                 if options.color
                                 {
-                                    "\x1b[93mi\x1b[0m"
+                                    format!("{}i", colors.imag)
                                 }
                                 else
                                 {
-                                    "i"
+                                    "i".to_string()
                                 }
                             }
                             else
                             {
-                                ""
+                                "".to_string()
                             })
                         )
                     }
@@ -676,8 +623,8 @@ pub fn print_concurrent(
         let terlen = get_terminal_width();
         let len = output
             .replace("\x1b[0m", "")
-            .replace("\x1b[93m", "")
-            .replace("\x1b[92m", "")
+            .replace(&colors.imag, "")
+            .replace(&colors.sci, "")
             .len()
             - 1;
         if frac_out != output
@@ -690,8 +637,8 @@ pub fn print_concurrent(
             if (frac == 1 && !options.frac)
                 || frac_out
                     .replace("\x1b[0m", "")
-                    .replace("\x1b[93m", "")
-                    .replace("\x1b[92m", "")
+                    .replace(&colors.imag, "")
+                    .replace(&colors.sci, "")
                     .len()
                     > terlen
                 || len > terlen
@@ -704,8 +651,8 @@ pub fn print_concurrent(
             let mut len = 0;
             for i in frac_out
                 .replace("\x1b[0m", "")
-                .replace("\x1b[93m", "")
-                .replace("\x1b[92m", "")
+                .replace(&colors.imag, "")
+                .replace(&colors.sci, "")
                 .chars()
             {
                 len += 1;
@@ -722,8 +669,8 @@ pub fn print_concurrent(
             len = 0;
             for i in output
                 .replace("\x1b[0m", "")
-                .replace("\x1b[93m", "")
-                .replace("\x1b[92m", "")
+                .replace(&colors.imag, "")
+                .replace(&colors.sci, "")
                 .chars()
             {
                 len += 1;
@@ -754,25 +701,7 @@ pub fn print_concurrent(
             output,
             "\x1b[A".repeat(num),
             if frac == 1 { "\x1b[A" } else { "" },
-            if options.prompt
-            {
-                if options.color
-                {
-                    "\x1b[94m> \x1b[96m"
-                }
-                else
-                {
-                    "> "
-                }
-            }
-            else if options.color
-            {
-                "\x1b[96m"
-            }
-            else
-            {
-                ""
-            },
+            prompt(options, colors),
             &unmodified_input[start..end].iter().collect::<String>(),
             if options.color { "\x1b[0m" } else { "" }
         );
@@ -780,11 +709,11 @@ pub fn print_concurrent(
     }
     else
     {
-        handle_err("str err", unmodified_input, options, start, end);
+        handle_err("str err", unmodified_input, options, colors, start, end);
     }
     frac
 }
-pub fn get_output(options: &Options, num: &Complex) -> (String, String)
+pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, String)
 {
     let dec = if options.decimal_places == 0
     {
@@ -836,7 +765,14 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                 else
                 {
                     n.trim_end_matches('0').trim_end_matches('.').to_string()
-                } + if options.color { "\x1b[93mi" } else { "i" }
+                } + &if options.color
+                {
+                    format!("{}i", colors.imag)
+                }
+                else
+                {
+                    "i".to_string()
+                }
             }
             else
             {
@@ -869,24 +805,24 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                 .replace("e0", "")
                 .replace(
                     'e',
-                    if options.small_e
+                    &if options.small_e
                     {
                         if options.color
                         {
-                            "\x1b[92me"
+                            format!("{}e", colors.sci)
                         }
                         else
                         {
-                            "e"
+                            "e".to_string()
                         }
                     }
                     else if options.color
                     {
-                        "\x1b[92mE"
+                        format!("{}E", colors.sci)
                     }
                     else
                     {
-                        "E"
+                        "E".to_string()
                     },
                 ) + if options.color { "\x1b[0m" } else { "" }
             },
@@ -899,18 +835,7 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                 add_commas(
                     &(sign
                         + &remove_trailing_zeros(
-                            &format!(
-                                "{:e}{}",
-                                num.imag(),
-                                if options.color
-                                {
-                                    "\x1b[93mi\x1b[0m"
-                                }
-                                else
-                                {
-                                    "i"
-                                }
-                            ),
+                            &format!("{:e}", num.imag(),),
                             dec,
                             num.real().prec(),
                         )),
@@ -919,26 +844,33 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
                 .replace("e0", "")
                 .replace(
                     'e',
-                    if options.small_e
+                    &if options.small_e
                     {
                         if options.color
                         {
-                            "\x1b[92me"
+                            format!("{}e", colors.sci)
                         }
                         else
                         {
-                            "e"
+                            "e".to_string()
                         }
                     }
                     else if options.color
                     {
-                        "\x1b[92mE"
+                        format!("{}E", colors.sci)
                     }
                     else
                     {
-                        "E"
+                        "E".to_string()
                     },
-                ) + if options.color { "\x1b[0m" } else { "" }
+                ) + &if options.color
+                {
+                    format!("{}i", colors.imag)
+                }
+                else
+                {
+                    "i".to_string()
+                }
             },
         )
     }
@@ -976,7 +908,15 @@ pub fn get_output(options: &Options, num: &Complex) -> (String, String)
             }
             else
             {
-                sign + im + if options.color { "\x1b[93mi" } else { "i" }
+                sign + im
+                    + &if options.color
+                    {
+                        format!("{}i", colors.imag)
+                    }
+                    else
+                    {
+                        "i".to_string()
+                    }
             },
         )
     }
@@ -1184,23 +1124,11 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
         get_terminal_width()
             - (if &input[pos..] == "e0"
             {
-                1
-            }
-            else if &input[pos..] == "e0\x1b[93mi\x1b[0m"
-            {
                 2
             }
             else
             {
-                (input.len() - (pos - 1))
-                    - if input.ends_with("\x1b[93mi\x1b[0m")
-                    {
-                        5
-                    }
-                    else
-                    {
-                        0
-                    }
+                input.len() - pos + 2
             })
             - if input.starts_with('-') { 1 } else { 0 }
     }
@@ -1237,31 +1165,10 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             .unwrap()
             .to_string();
         num.insert(1, '.');
-        if input.ends_with("i\x1b[0m")
-        {
-            sign + num.trim_end_matches('0').trim_end_matches('.')
-                + "e"
-                + &(input[pos + 1..input.len() - 10].parse::<isize>().unwrap()
-                    + if num.len() - 1 > dec { 1 } else { 0 })
-                .to_string()
-                + "\x1b[93mi\x1b[0m"
-        }
-        else if input.ends_with('i')
-        {
-            sign + num.trim_end_matches('0').trim_end_matches('.')
-                + "e"
-                + &(input[pos + 1..input.len() - 1].parse::<isize>().unwrap()
-                    + if num.len() - 1 > dec { 1 } else { 0 })
-                .to_string()
-                + "i"
-        }
-        else
-        {
-            sign + num.trim_end_matches('0').trim_end_matches('.')
-                + "e"
-                + &(input[pos + 1..].parse::<isize>().unwrap()
-                    + if num.len() - 1 > dec { 1 } else { 0 })
-                .to_string()
-        }
+        sign + num.trim_end_matches('0').trim_end_matches('.')
+            + "e"
+            + &(input[pos + 1..].parse::<isize>().unwrap()
+                + if num.len() - 1 > dec { 1 } else { 0 })
+            .to_string()
     }
 }

@@ -1,4 +1,4 @@
-use crate::Options;
+use crate::{Colors, Options};
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal,
@@ -120,7 +120,7 @@ pub fn convert(c: &char) -> char
 {
     let valid_chars = [
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
-        '{', '}', '√', '∛', '⁻', 'ⁱ', '`', '±', '∞',
+        '{', '}', '√', '∛', '⁻', 'ⁱ', '`', '±', '∞', ';',
     ];
     match c
     {
@@ -188,59 +188,52 @@ pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
         file.write_all(b"\n").unwrap();
     }
 }
-pub fn clear(input: &[char], start: usize, end: usize, options: Options)
+pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
 {
     print!(
-        "\x1b[G\x1b[K{}{}{}",
-        if options.prompt
-        {
-            if options.color
-            {
-                "\x1b[94m> \x1b[96m"
-            }
-            else
-            {
-                "> "
-            }
-        }
-        else if options.color
-        {
-            "\x1b[96m"
-        }
-        else
-        {
-            ""
-        },
+        "\x1b[G\x1b[J{}{}{}",
+        prompt(options, colors),
         &input[start..end].iter().collect::<String>(),
         if options.color { "\x1b[0m" } else { "" }
     );
 }
-pub fn handle_err(err: &str, input: &[char], options: Options, start: usize, end: usize)
+pub fn handle_err(
+    err: &str,
+    input: &[char],
+    options: Options,
+    colors: &Colors,
+    start: usize,
+    end: usize,
+)
 {
     print!(
-        "\x1b[J\x1b[G\x1b[K\n{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
+        "\x1b[J\n{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
         err,
         "\x1b[A".repeat(err.len().div_ceil(get_terminal_width()) - 1),
-        if options.prompt
-        {
-            if options.color
-            {
-                "\x1b[94m> \x1b[96m"
-            }
-            else
-            {
-                "> "
-            }
-        }
-        else if options.color
-        {
-            "\x1b[96m"
-        }
-        else
-        {
-            ""
-        },
+        prompt(options, colors),
         &input[start..end].iter().collect::<String>(),
         if options.color { "\x1b[0m" } else { "" },
     );
+}
+pub fn prompt(options: Options, colors: &Colors) -> String
+{
+    if options.prompt
+    {
+        if options.color
+        {
+            format!("{}> {}", colors.prompt, colors.text)
+        }
+        else
+        {
+            "> ".to_string()
+        }
+    }
+    else if options.color
+    {
+        colors.text.to_string()
+    }
+    else
+    {
+        "".to_string()
+    }
 }

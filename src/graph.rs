@@ -4,7 +4,8 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     math::do_math,
-    Options,
+    misc::prompt,
+    Colors, Options,
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
@@ -20,6 +21,7 @@ pub fn graph(
     func: Vec<Vec<NumStr>>,
     options: Options,
     watch: Option<Instant>,
+    colors: Colors,
 ) -> JoinHandle<()>
 {
     thread::spawn(move || {
@@ -57,7 +59,7 @@ pub fn graph(
                         Ok(n) => n,
                         _ =>
                         {
-                            fail(options);
+                            fail(options, &colors);
                             return;
                         }
                     }
@@ -146,7 +148,7 @@ pub fn graph(
                         }
                         _ =>
                         {
-                            fail(options);
+                            fail(options, &colors);
                             return;
                         }
                     },
@@ -583,7 +585,7 @@ pub fn graph(
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
-                fail(options);
+                fail(options, &colors);
                 return;
             }
             fg.axes3d()
@@ -701,7 +703,7 @@ pub fn graph(
             }
             if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
             {
-                fail(options);
+                fail(options, &colors);
                 return;
             }
             if options.lines
@@ -1128,19 +1130,8 @@ pub fn can_graph(input: &str) -> bool
             .replace("<=", "")
             .contains('=')
 }
-fn fail(options: Options)
+fn fail(options: Options, colors: &Colors)
 {
-    print!("No data to plot\n\x1b[G");
-    if options.prompt
-    {
-        if options.color
-        {
-            print!("\x1b[94m> \x1b[0m")
-        }
-        else
-        {
-            print!("> ")
-        }
-    }
+    print!("No data to plot\n\x1b[G{}\x1b[0m", prompt(options, colors));
     stdout().flush().unwrap();
 }

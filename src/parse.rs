@@ -803,16 +803,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     {
         return Err("no function");
     }
-    // for i in &func
-    // {
-    //     match i
-    //     {
-    //         Str(s) => println!("{}", s),
-    //         Num(n) => println!("{}", n),
-    //         Vector(v) => println!("{:?}", v),
-    //         Matrix(m) => println!("{:?}", m),
-    //     }
-    // }
     Ok(func)
 }
 fn place_multiplier(func: &mut Vec<NumStr>, find_word: &bool)

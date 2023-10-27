@@ -12,7 +12,7 @@ mod tests;
 mod vars;
 use crate::{
     graph::{can_graph, graph},
-    misc::{clear, convert, get_terminal_width, read_single_char, write},
+    misc::{clear, convert, get_terminal_width, prompt, read_single_char, write},
     options::{
         arg_opts, commands, equal_to, file_opts, set_commands, AngleType, AngleType::Radians,
     },
@@ -30,8 +30,26 @@ use std::{
 //TODO make set_commands() compute
 //TODO implement gcd and lcm use vectors as a variable input
 //TODO making +/- colored, and commas colored, consider rainbow brackets
-//TODO settings for color
-//TODO tab completion
+#[derive(Clone)]
+pub struct Colors
+{
+    text: String,
+    prompt: String,
+    imag: String,
+    sci: String,
+}
+impl Default for Colors
+{
+    fn default() -> Self
+    {
+        Colors {
+            text: "\x1b[96m".to_string(),
+            prompt: "\x1b[94m".to_string(),
+            imag: "\x1b[93m".to_string(),
+            sci: "\x1b[92m".to_string(),
+        }
+    }
+}
 #[derive(Clone, Copy)]
 pub struct Options
 {
@@ -98,6 +116,7 @@ impl Default for Options
 }
 fn main()
 {
+    let mut colors = Colors::default();
     let mut options = Options::default();
     let mut watch = None;
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
@@ -109,7 +128,8 @@ fn main()
         var("USERNAME").unwrap()
     );
     let mut args = args().collect::<Vec<String>>();
-    if file_opts(&mut options, file_path).is_err() || arg_opts(&mut options, &mut args).is_err()
+    if file_opts(&mut options, &mut colors, file_path).is_err()
+        || arg_opts(&mut options, &mut colors, &mut args).is_err()
     {
         std::process::exit(1);
     }
@@ -224,6 +244,7 @@ fn main()
                     }
                 },
                 options,
+                &colors,
             );
             if let Some(time) = watch
             {
@@ -246,18 +267,7 @@ fn main()
         }
         else
         {
-            print!("\x1b[G\x1b[K");
-            if options.prompt
-            {
-                if options.color
-                {
-                    print!("\x1b[94m> \x1b[0m");
-                }
-                else
-                {
-                    print!("> ");
-                }
-            }
+            print!("\x1b[G\x1b[K{}\x1b[0m", prompt(options, &colors));
             stdout.flush().unwrap();
             let mut current = Vec::new();
             let mut lines: Vec<String> = BufReader::new(File::open(file_path).unwrap())
@@ -296,7 +306,9 @@ fn main()
                         }
                         if !options.real_time_output && !input.is_empty()
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         if !(can_graph(&input_var(
                             &input.iter().collect::<String>(),
@@ -340,11 +352,11 @@ fn main()
                         }
                         frac = if options.real_time_output
                         {
-                            print_concurrent(&input, &last, &vars, options, start, end)
+                            print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                             0
                         };
                         if let Some(time) = watch
@@ -389,11 +401,11 @@ fn main()
                         }
                         frac = if options.real_time_output
                         {
-                            print_concurrent(&input, &last, &vars, options, start, end)
+                            print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                             0
                         };
                         if let Some(time) = watch
@@ -429,11 +441,13 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                     }
                     '\x18' =>
@@ -444,11 +458,13 @@ fn main()
                         placement = 0;
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -459,11 +475,13 @@ fn main()
                         end = input.len();
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -476,11 +494,13 @@ fn main()
                         input.extend(cut);
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -493,11 +513,13 @@ fn main()
                             input.insert(placement + 1, char);
                             if options.real_time_output
                             {
-                                frac = print_concurrent(&input, &last, &vars, options, start, end);
+                                frac = print_concurrent(
+                                    &input, &last, &vars, options, &colors, start, end,
+                                );
                             }
                             else
                             {
-                                clear(&input, start, end, options);
+                                clear(&input, start, end, options, &colors);
                             }
                             print!("{}", "\x08".repeat(end - start - (placement - start)));
                         }
@@ -505,14 +527,15 @@ fn main()
                     '\x15' =>
                     {
                         //ctrl+l
-                        print!("\x1b[H\x1b[J");
                         if options.real_time_output && !input.is_empty()
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -532,11 +555,13 @@ fn main()
                         };
                         if options.real_time_output && !input.is_empty()
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -559,11 +584,13 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                     }
                     '\x1E' =>
@@ -593,11 +620,13 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                     }
                     '\x1B' =>
@@ -612,7 +641,7 @@ fn main()
                             {
                                 end = input.len()
                             }
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                             print!("{}", "\x08".repeat(end - start - (placement - start)))
                         }
                         else if placement != 0
@@ -634,7 +663,7 @@ fn main()
                             start += 1;
                             placement += 1;
                             end += 1;
-                            clear(&input, start, end, options);
+                            clear(&input, start, end, options, &colors);
                         }
                         else if placement != input.len()
                         {
@@ -668,7 +697,7 @@ fn main()
                             {
                                 end -= start - placement;
                                 start = start - (start - placement);
-                                clear(&input, start, end, options);
+                                clear(&input, start, end, options, &colors);
                                 print!(
                                     "{}",
                                     "\x08".repeat(
@@ -713,7 +742,7 @@ fn main()
                             {
                                 start += placement - end;
                                 end = end + (placement - end);
-                                clear(&input, start, end, options);
+                                clear(&input, start, end, options, &colors);
                             }
                             else if placement == s
                             {
@@ -755,11 +784,13 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            frac = print_concurrent(&input, &last, &vars, options, start, end);
+                            frac = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end,
+                            );
                         }
                         else
                         {
-                            clear(&input, start, end, options)
+                            clear(&input, start, end, options, &colors)
                         }
                         if let Some(time) = watch
                         {
@@ -786,11 +817,12 @@ fn main()
             }
             commands(
                 &mut options,
+                &colors,
                 &mut watch,
                 &mut vars,
                 &mut old,
-                &mut lines,
-                &mut input,
+                &lines,
+                &input,
                 &mut stdout,
             );
             write(
@@ -808,8 +840,9 @@ fn main()
             if input.ends_with(&['='])
             {
                 equal_to(
-                    &mut options,
-                    &mut vars,
+                    options,
+                    &colors,
+                    &vars,
                     &input[..input.len() - 1].iter().collect::<String>(),
                     &last.iter().collect::<String>(),
                 )
@@ -823,14 +856,13 @@ fn main()
                 .replace("<=", "")
                 .contains('=')
             {
-                print!("\x1b[J");
-                stdout.flush().unwrap();
                 let n = input.iter().collect::<String>();
                 let mut split = n.splitn(2, '=');
                 let s = split.next().unwrap().replace(' ', "");
                 let l = s;
                 let r = split.next().unwrap();
-                if l.is_empty() || set_commands(&mut options, &mut vars, &mut old, &l, r)
+                if l.is_empty()
+                    || set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
                 {
                     continue;
                 }
@@ -928,7 +960,7 @@ fn main()
                     _ => continue 'main,
                 });
             }
-            handles.push(graph(inputs, unmod, funcs, options, watch));
+            handles.push(graph(inputs, unmod, funcs, options, watch, colors.clone()));
         }
     }
 }

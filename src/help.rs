@@ -34,6 +34,7 @@ FLAGS: --help (this message)\n\
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\n\
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\n\n\
 - flags can be executed in runtime just without the dashes\n\
+- Type \"colors=\" to see color settings\n\
 - Type \"exit\" to exit the program\n\
 - Type \"clear\" to clear the screen\n\
 - Type \"help [arg]\" to get this message, get help on function if specified\n\
@@ -128,7 +129,3 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\n\
 numbers/minus sign convert to superscript acting as exponents"
     );
 }
-// pub fn get_help(s: &str)
-// {
-//     println!("{}", s);
-// }

@@ -960,7 +960,6 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 let p: Complex = p - (4 * c * a.clone());
                                 let p = p.sqrt();
                                 let a: Complex = 2 * a;
-                                //(-b+-sqrt(b^2-4ac))/2a
                                 Vector(vec![(p.clone() - b.clone()) / a.clone(), (-p - b) / a])
                             }
                             else

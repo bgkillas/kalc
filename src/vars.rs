@@ -92,7 +92,7 @@ pub fn input_var(
             .position(|x| !x.is_alphabetic())
             .unwrap_or(chars.len() - i);
         let mut word = chars[i..i + count].iter().collect::<String>();
-        if (word.ends_with('x') && word != "max") || word.ends_with('y')
+        if (word.ends_with('x') && word != "max") || word.ends_with('y') || word.ends_with('z')
         {
             word.pop();
         }
@@ -145,13 +145,13 @@ pub fn input_var(
         }
         else if sumrec.iter().any(|a| a.1 == word)
         {
-            if matches!(chars[i - 1], '0'..='9' | ')' | '}' | ']' | 'x' | 'y')
+            if matches!(chars[i - 1], '0'..='9' | ')' | '}' | ']' | 'x' | 'y' | 'z')
             {
                 output.push('*')
             }
             i += word.len();
             output.push_str(&word);
-            if matches!(chars[i], '0'..='9' | ')' | '}' | ']' | 'x' | 'y')
+            if matches!(chars[i], '0'..='9' | ')' | '}' | ']' | 'x' | 'y' | 'z')
             {
                 output.push('*')
             }
@@ -323,6 +323,10 @@ pub fn input_var(
                 && !(c.is_alphabetic() && c != 'x' && c != 'y' && c != 'i')
             {
                 output.push(c);
+            }
+            else if c == 'z'
+            {
+                output.push_str("(x+y*i)")
             }
             i += 1;
         }

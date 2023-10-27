@@ -972,12 +972,7 @@ fn main()
                 {
                     continue;
                 }
-                *i = input_var(i, &vars, &mut Vec::new(), options)
-                    .replace("zeta", "##ta##")
-                    .replace("normalize", "##ma##")
-                    .replace('z', "(x+y*i)")
-                    .replace("##ta##", "zeta")
-                    .replace("##ma##", "normalize");
+                *i = input_var(i, &vars, &mut Vec::new(), options);
                 funcs.push(match get_func(i, options)
                 {
                     Ok(f) => f,

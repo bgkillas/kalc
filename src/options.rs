@@ -584,12 +584,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                     vars,
                     &mut Vec::new(),
                     options,
-                )
-                .replace("zeta", "##ta##")
-                .replace("normalize", "##ma##")
-                .replace('z', "(x+y*i)")
-                .replace("##ta##", "zeta")
-                .replace("##ma##", "normalize"),
+                ),
                 options,
             )
             {

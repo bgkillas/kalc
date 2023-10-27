@@ -945,32 +945,58 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f6
     for i in 0..=options.samples_2d
     {
         let n = options.xr.0 + i as f64 * den_range;
-        let num = match do_math(
+        let num = Num(Complex::with_val(options.prec, n));
+        match do_math(
             func.iter()
                 .map(|i| match i
                 {
-                    Str(s) if s == "x" => Num(Complex::with_val(options.prec, n)),
+                    Str(s) if s == "x" => num.clone(),
                     _ => i.clone(),
                 })
                 .collect(),
             options,
         )
         {
-            Ok(Num(n)) => n,
+            Ok(Num(num)) =>
+            {
+                if num.real().is_finite()
+                {
+                    if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                    {
+                        zero.0 = true
+                    }
+                    re.push([n, num.real().to_f64()]);
+                }
+                if num.imag().is_finite()
+                {
+                    if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                    {
+                        zero.1 = true
+                    }
+                    im.push([n, num.imag().to_f64()]);
+                }
+            }
             Ok(Vector(v)) =>
             {
                 for num in v
                 {
                     if num.real().is_finite()
                     {
+                        if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.0 = true
+                        }
                         re.push([n, num.real().to_f64()]);
                     }
                     if num.imag().is_finite()
                     {
+                        if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.1 = true
+                        }
                         im.push([n, num.imag().to_f64()]);
                     }
                 }
-                continue;
             }
             Ok(Matrix(m)) =>
             {
@@ -980,33 +1006,25 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f6
                     {
                         if num.real().is_finite()
                         {
+                            if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                            {
+                                zero.0 = true
+                            }
                             re.push([n, num.real().to_f64()]);
                         }
                         if num.imag().is_finite()
                         {
+                            if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                            {
+                                zero.1 = true
+                            }
                             im.push([n, num.imag().to_f64()]);
                         }
                     }
                 }
-                continue;
             }
-            _ => continue,
-        };
-        if num.real().is_finite()
-        {
-            if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
-            {
-                zero.0 = true
-            }
-            re.push([n, num.real().to_f64()]);
-        }
-        if num.imag().is_finite()
-        {
-            if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
-            {
-                zero.1 = true
-            }
-            im.push([n, num.imag().to_f64()]);
+            _ =>
+            {}
         }
     }
     (
@@ -1032,40 +1050,68 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f6
     for i in 0..=options.samples_3d.0
     {
         let n = options.xr.0 + i as f64 * den_x_range;
+        let num = Num(Complex::with_val(options.prec, n));
         modified = func
             .iter()
             .map(|i| match i
             {
-                Str(s) if s == "x" => Num(Complex::with_val(options.prec, n)),
+                Str(s) if s == "x" => num.clone(),
                 _ => i.clone(),
             })
             .collect();
         for g in 0..=options.samples_3d.1
         {
             let f = options.yr.0 + g as f64 * den_y_range;
-            let num = match do_math(
+            let num = Num(Complex::with_val(options.prec, f));
+            match do_math(
                 modified
                     .iter()
                     .map(|j| match j
                     {
-                        Str(s) if s == "y" => Num(Complex::with_val(options.prec, f)),
+                        Str(s) if s == "y" => num.clone(),
                         _ => j.clone(),
                     })
                     .collect(),
                 options,
             )
             {
-                Ok(Num(n)) => n,
+                Ok(Num(num)) =>
+                {
+                    if num.real().is_finite()
+                    {
+                        if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.0 = true
+                        }
+                        re.push([n, f, num.real().to_f64()]);
+                    }
+                    if num.imag().is_finite()
+                    {
+                        if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.1 = true
+                        }
+                        im.push([n, f, num.imag().to_f64()]);
+                    }
+                }
                 Ok(Vector(v)) =>
                 {
                     for num in v
                     {
                         if num.real().is_finite()
                         {
+                            if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                            {
+                                zero.0 = true
+                            }
                             re.push([n, f, num.real().to_f64()]);
                         }
                         if num.imag().is_finite()
                         {
+                            if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                            {
+                                zero.1 = true
+                            }
                             im.push([n, f, num.imag().to_f64()]);
                         }
                     }
@@ -1079,33 +1125,25 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f6
                         {
                             if num.real().is_finite()
                             {
+                                if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                                {
+                                    zero.0 = true
+                                }
                                 re.push([n, f, num.real().to_f64()]);
                             }
                             if num.imag().is_finite()
                             {
+                                if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                                {
+                                    zero.1 = true
+                                }
                                 im.push([n, f, num.imag().to_f64()]);
                             }
                         }
                     }
-                    continue;
                 }
-                _ => continue,
-            };
-            if num.real().is_finite()
-            {
-                if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
-                {
-                    zero.0 = true
-                }
-                re.push([n, f, num.real().to_f64()]);
-            }
-            if num.imag().is_finite()
-            {
-                if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
-                {
-                    zero.1 = true
-                }
-                im.push([n, f, num.imag().to_f64()]);
+                _ =>
+                {}
             }
         }
     }
@@ -1119,10 +1157,6 @@ pub fn can_graph(input: &str) -> bool
     input.contains('#')
         || input.replace("exp", "").replace("max", "").contains('x')
         || input.contains('y')
-        || input
-            .replace("zeta", "")
-            .replace("normalize", "")
-            .contains('z')
         || input
             .replace("==", "")
             .replace("!=", "")

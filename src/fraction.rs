@@ -25,7 +25,7 @@ pub fn fraction(value: Float, options: Options) -> String
     ];
     let sign: String = if value < 0.0
     {
-        "-".to_string()
+        '-'.to_string()
     }
     else
     {

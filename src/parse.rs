@@ -78,12 +78,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             pow = pow.replace('i', "");
             if pow.is_empty()
             {
-                pow = "1".to_string();
+                pow = '1'.to_string();
             }
             if !func.is_empty()
                 && (func.last().unwrap().num().is_ok() || func.last().unwrap().str_is(")"))
             {
-                func.push(Str("^".to_string()));
+                func.push(Str('^'.to_string()));
             }
             func.push(Num(Complex::with_val(
                 options.prec,

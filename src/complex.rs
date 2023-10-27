@@ -482,7 +482,7 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
     }
     if a.len() != 2 && a.len() != 3
     {
-        vec![]
+        Vec::new()
     }
     else if a.len() == 2
     {

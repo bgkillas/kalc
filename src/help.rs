@@ -115,8 +115,6 @@ Constants:\n\
 - e: euler's number, 2.7182818284~\n\
 - pi/π: pi, 3.1415926535~\n\
 - tau/τ: tau, 6.2831853071~\n\
-- cat: catalans constant, 0.915965594177~\n\
-- γ: eulers constant, 0.577215664902~\n\n\
 Digraph:\n\
 hit escape then a letter\n\
 a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,\n\

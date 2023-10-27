@@ -18,7 +18,7 @@ use crate::{
     },
     parse::get_func,
     print::{print_answer, print_concurrent},
-    vars::{get_vars, input_var},
+    vars::{get_cli_vars, get_vars, input_var},
 };
 use std::{
     env::{args, var},
@@ -135,7 +135,14 @@ fn main()
     }
     let mut vars: Vec<[String; 2]> = if options.allow_vars
     {
-        get_vars(options)
+        if args.is_empty()
+        {
+            get_vars(options)
+        }
+        else
+        {
+            get_cli_vars(options, &args)
+        }
     }
     else
     {
@@ -184,10 +191,6 @@ fn main()
             }
         }
     }
-    if !args.is_empty()
-    {
-        options.color = !options.color;
-    }
     #[cfg(unix)]
     let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
     #[cfg(not(unix))]
@@ -195,11 +198,32 @@ fn main()
         "C:\\Users\\{}\\AppData\\Roaming\\kalc.history",
         var("USERNAME").unwrap()
     );
-    if File::open(file_path).is_err()
+    let mut file = if args.is_empty()
     {
-        File::create(file_path).unwrap();
+        if File::open(file_path).is_err()
+        {
+            File::create(file_path).unwrap();
+        }
+        Some(OpenOptions::new().append(true).open(file_path).unwrap())
     }
-    let mut file = OpenOptions::new().append(true).open(file_path).unwrap();
+    else
+    {
+        options.color = !options.color;
+        None
+    };
+    let mut unmod_lines = if args.is_empty()
+    {
+        Some(
+            BufReader::new(File::open(file_path).unwrap())
+                .lines()
+                .map(|l| l.unwrap())
+                .collect::<Vec<String>>(),
+        )
+    }
+    else
+    {
+        None
+    };
     let mut exit = false;
     let mut cut: Vec<char> = Vec::new();
     let mut stdout = stdout();
@@ -267,14 +291,14 @@ fn main()
         }
         else
         {
-            print!("\x1b[G\x1b[K{}\x1b[0m", prompt(options, &colors));
+            print!(
+                "\x1b[G\x1b[K{}{}",
+                prompt(options, &colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
             stdout.flush().unwrap();
             let mut current = Vec::new();
-            let mut lines: Vec<String> = BufReader::new(File::open(file_path).unwrap())
-                .lines()
-                .map(|l| l.unwrap())
-                .collect();
-            let unmod_lines = lines.clone();
+            let mut lines = unmod_lines.clone().unwrap();
             let mut i = lines.len();
             let max = i;
             let mut placement = 0;
@@ -834,8 +858,8 @@ fn main()
                     .replace('_', &format!("({})", last.iter().collect::<String>()))
                     .replace("smalle", "small_e")
                     .replace("fraciter", "frac_iter"),
-                &mut file,
-                &unmod_lines,
+                file.as_mut().unwrap(),
+                unmod_lines.as_mut().unwrap(),
             );
             if input.ends_with(&['='])
             {

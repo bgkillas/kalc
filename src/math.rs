@@ -184,7 +184,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 function.insert(i, do_math(v[..place[0]].to_vec(), options)?);
                                 for (k, l) in place.iter().enumerate()
                                 {
-                                    function.insert(i + k + 1, Str(",".to_string()));
+                                    function.insert(i + k + 1, Str(','.to_string()));
                                     function
                                         .insert(i + k + 2, do_math(v[l + 1..].to_vec(), options)?);
                                     i += 1;
@@ -561,7 +561,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                             / (a.len() * a[0].len())),
                         "mode" =>
                         {
-                            let mut most = (vec![], 0);
+                            let mut most = (Vec::new(), 0);
                             for i in a.iter().flatten()
                             {
                                 let mut count = 0;
@@ -624,7 +624,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         }
                         "mode" =>
                         {
-                            let mut most = (vec![], 0);
+                            let mut most = (Vec::new(), 0);
                             for i in &a
                             {
                                 let mut count = 0;

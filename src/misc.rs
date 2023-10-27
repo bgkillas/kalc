@@ -180,10 +180,11 @@ pub fn read_single_char() -> char
     }
     result
 }
-pub fn write(input: &str, file: &mut File, lines: &Vec<String>)
+pub fn write(input: &str, file: &mut File, lines: &mut Vec<String>)
 {
-    if lines.is_empty() || lines[lines.len() - 1] != *input
+    if !lines.is_empty() && lines.last().unwrap() != input
     {
+        lines.push(input.to_string());
         file.write_all(input.as_bytes()).unwrap();
         file.write_all(b"\n").unwrap();
     }

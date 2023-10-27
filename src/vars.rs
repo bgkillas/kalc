@@ -1,8 +1,5 @@
 use crate::Options;
-use rug::{
-    float::Constant::{Catalan, Euler, Pi},
-    Float,
-};
+use rug::{float::Constant::Pi, Float};
 use std::collections::HashSet;
 pub fn input_var(
     input: &str,
@@ -500,18 +497,84 @@ fn is_func(word: &str) -> bool
     .collect();
     functions.contains(word)
 }
+pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<[String; 2]>
+{
+    let mut vars = vec![
+        ["ec".to_string(), "1.602176634e-19".to_string()],
+        ["kB".to_string(), "1.380649e-23".to_string()],
+        ["me".to_string(), "9.1093837015e-31".to_string()],
+        ["mn".to_string(), "1.67492749804e-27".to_string()],
+        ["mp".to_string(), "1.67262192369e-27".to_string()],
+        ["Na".to_string(), "6.02214076e23".to_string()],
+        ["c".to_string(), "299792458".to_string()],
+        ["G".to_string(), "6.67430e-11".to_string()],
+        ["g".to_string(), "9.80665".to_string()],
+        ["h".to_string(), "6.62607015e-34".to_string()],
+        ["k".to_string(), "8.9875517923e9".to_string()],
+        ["R".to_string(), "8.31446261815324".to_string()],
+    ];
+    for i in args
+    {
+        if i.contains("phi")
+        {
+            let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
+            vars.push(["phi".to_string(), phi.to_string()])
+        }
+        if i.contains("tau")
+        {
+            let pi = Float::with_val(options.prec, Pi);
+            let tau: Float = pi.clone() * 2;
+            vars.push(["tau".to_string(), tau.to_string()])
+        }
+        if i.contains("pi")
+        {
+            let pi = Float::with_val(options.prec, Pi);
+            vars.push(["pi".to_string(), pi.to_string()])
+        }
+        if i.contains('φ')
+        {
+            let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
+            vars.push(["φ".to_string(), phi.to_string()])
+        }
+        if i.contains('π')
+        {
+            let pi = Float::with_val(options.prec, Pi);
+            vars.push(['π'.to_string(), pi.to_string()])
+        }
+        if i.contains('τ')
+        {
+            let pi = Float::with_val(options.prec, Pi);
+            let tau: Float = pi.clone() * 2;
+            vars.push(['τ'.to_string(), tau.to_string()])
+        }
+        if i.contains('e')
+        {
+            let e = Float::with_val(options.prec, 1).exp();
+            vars.push(["e".to_string(), e.to_string()])
+        }
+    }
+    vars.iter()
+        .map(|a| {
+            if options.small_e
+            {
+                a.clone()
+            }
+            else
+            {
+                [a[0].clone(), a[1].replace('e', "E")]
+            }
+        })
+        .collect()
+}
 pub fn get_vars(options: Options) -> Vec<[String; 2]>
 {
     let pi = Float::with_val(options.prec, Pi);
-    let catalan = Float::with_val(options.prec, Catalan);
-    let euler = Float::with_val(options.prec, Euler);
     let tau: Float = pi.clone() * 2;
     let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
     let e = Float::with_val(options.prec, 1).exp();
     vec![
         ["phi".to_string(), phi.to_string()],
         ["tau".to_string(), tau.to_string()],
-        ["cat".to_string(), catalan.to_string()],
         ["ec".to_string(), "1.602176634e-19".to_string()],
         ["kB".to_string(), "1.380649e-23".to_string()],
         ["me".to_string(), "9.1093837015e-31".to_string()],
@@ -529,7 +592,6 @@ pub fn get_vars(options: Options) -> Vec<[String; 2]>
         ["φ".to_string(), phi.to_string()],
         ["π".to_string(), pi.to_string()],
         ["τ".to_string(), tau.to_string()],
-        ["γ".to_string(), euler.to_string()],
     ]
     .iter()
     .map(|a| {

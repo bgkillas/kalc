@@ -67,13 +67,20 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options, colors: &C
             {
                 output += "\x1b[0m";
             }
-            if k == v.len() - 1
+            output += if k == v.len() - 1
             {
-                output += if options.polar { "]" } else { "}" };
+                if options.polar
+                {
+                    "]"
+                }
+                else
+                {
+                    "}"
+                }
             }
             else
             {
-                output += ",";
+                ","
             }
         }
         print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });

@@ -154,8 +154,6 @@ Constants:
 - e: euler's number, 2.7182818284~
 - pi/π: pi, 3.1415926535~
 - tau/τ: tau, 6.2831853071~
-- cat: catalans constant, 0.915965594177~
-- γ: eulers constant, 0.577215664902~
 
 Digraph:
 hit escape then a letter

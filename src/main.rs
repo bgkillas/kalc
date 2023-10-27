@@ -29,7 +29,7 @@ use std::{
 };
 //TODO make set_commands() compute
 //TODO implement gcd and lcm use vectors as a variable input
-//TODO making +/- colored, and commas colored, consider rainbow brackets
+//TODO rainbow brackets
 #[derive(Clone)]
 pub struct Colors
 {
@@ -655,7 +655,7 @@ fn main()
                     }
                     '\x1B' =>
                     {
-                        //go left
+                        //left
                         if placement - start == 0 && placement != 0 && start != 0
                         {
                             start -= 1;
@@ -676,7 +676,7 @@ fn main()
                     }
                     '\x1C' =>
                     {
-                        //go right
+                        //right
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
@@ -687,7 +687,7 @@ fn main()
                             start += 1;
                             placement += 1;
                             end += 1;
-                            clear(&input, start, end, options, &colors);
+                            clear(&input, start, end, options, &colors)
                         }
                         else if placement != input.len()
                         {
@@ -722,12 +722,7 @@ fn main()
                                 end -= start - placement;
                                 start = start - (start - placement);
                                 clear(&input, start, end, options, &colors);
-                                print!(
-                                    "{}",
-                                    "\x08".repeat(
-                                        get_terminal_width() - if options.prompt { 3 } else { 1 }
-                                    )
-                                );
+                                print!("{}", "\x08".repeat(end - start - (placement - start)));
                             }
                             else if placement == s
                             {
@@ -766,7 +761,7 @@ fn main()
                             {
                                 start += placement - end;
                                 end = end + (placement - end);
-                                clear(&input, start, end, options, &colors);
+                                clear(&input, start, end, options, &colors)
                             }
                             else if placement == s
                             {

@@ -180,6 +180,37 @@ pub fn read_single_char() -> char
     }
     result
 }
+pub fn no_col(input: &str, color: bool) -> String
+{
+    if color
+    {
+        let mut skip = false;
+        let mut output = String::new();
+        for c in input.chars()
+        {
+            if skip
+            {
+                if c == 'm'
+                {
+                    skip = false
+                }
+            }
+            else if c == '\x1b'
+            {
+                skip = true
+            }
+            else
+            {
+                output.push(c)
+            }
+        }
+        output
+    }
+    else
+    {
+        input.to_string()
+    }
+}
 pub fn write(input: &str, file: &mut File, lines: &mut Vec<String>)
 {
     if !lines.is_empty() && lines.last().unwrap() != input
@@ -192,7 +223,7 @@ pub fn write(input: &str, file: &mut File, lines: &mut Vec<String>)
 pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
 {
     print!(
-        "\x1b[G\x1b[J{}{}{}",
+        "\x1b[G\x1b[K{}{}{}",
         prompt(options, colors),
         &input[start..end].iter().collect::<String>(),
         if options.color { "\x1b[0m" } else { "" }

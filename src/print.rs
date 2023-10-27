@@ -7,7 +7,7 @@ use crate::{
     get_terminal_width,
     graph::can_graph,
     math::do_math,
-    misc::{clear, handle_err, prompt},
+    misc::{clear, handle_err, no_col, prompt},
     parse::get_func,
     vars::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -300,18 +300,8 @@ pub fn print_concurrent(
         };
         let output = get_output(options, colors, &n);
         let terlen = get_terminal_width();
-        let len1 = output
-            .0
-            .replace("\x1b[0m", "")
-            .replace(&colors.imag, "")
-            .replace(&colors.sci, "")
-            .len();
-        let len2 = output
-            .1
-            .replace("\x1b[0m", "")
-            .replace(&colors.imag, "")
-            .replace(&colors.sci, "")
-            .len();
+        let len1 = no_col(&output.0, options.color).len();
+        let len2 = no_col(&output.1, options.color).len();
         if (frac == 1 && !options.frac)
             || (frac_a.len() + frac_b.len()
                 - if options.color && !frac_b.is_empty()
@@ -474,28 +464,18 @@ pub fn print_concurrent(
             }
         }
         let terlen = get_terminal_width();
-        let len = output
-            .replace("\x1b[0m", "")
-            .replace(&colors.imag, "")
-            .replace(&colors.sci, "")
-            .len()
-            - 1;
+        let length = no_col(&output, options.color).len() - 1;
         if frac_out != output
         {
             frac = 1;
         }
         if (frac == 1 && !options.frac)
-            || frac_out
-                .replace("\x1b[0m", "")
-                .replace(&colors.imag, "")
-                .replace(&colors.sci, "")
-                .len()
-                > terlen
-            || len > terlen
+            || no_col(&frac_out, options.color).len() > terlen
+            || length > terlen
         {
             frac = 0;
         }
-        let num = len / terlen;
+        let num = length / terlen;
         print!(
             "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
             if frac == 1
@@ -628,27 +608,17 @@ pub fn print_concurrent(
             frac_out += "}";
         }
         let terlen = get_terminal_width();
-        let len = output
-            .replace("\x1b[0m", "")
-            .replace(&colors.imag, "")
-            .replace(&colors.sci, "")
-            .len()
-            - 1;
+        let length = no_col(&output, options.color).len() - 1;
         if frac_out != output
         {
             frac = 1;
         }
         if !options.multi
         {
-            num += len / terlen;
+            num += length / terlen;
             if (frac == 1 && !options.frac)
-                || frac_out
-                    .replace("\x1b[0m", "")
-                    .replace(&colors.imag, "")
-                    .replace(&colors.sci, "")
-                    .len()
-                    > terlen
-                || len > terlen
+                || no_col(&frac_out, options.color).len() > terlen
+                || length > terlen
             {
                 frac = 0;
             }
@@ -656,11 +626,7 @@ pub fn print_concurrent(
         else
         {
             let mut len = 0;
-            for i in frac_out
-                .replace("\x1b[0m", "")
-                .replace(&colors.imag, "")
-                .replace(&colors.sci, "")
-                .chars()
+            for i in no_col(&frac_out, options.color).chars()
             {
                 len += 1;
                 if i == '\n'
@@ -674,11 +640,7 @@ pub fn print_concurrent(
                 }
             }
             len = 0;
-            for i in output
-                .replace("\x1b[0m", "")
-                .replace(&colors.imag, "")
-                .replace(&colors.sci, "")
-                .chars()
+            for i in no_col(&output, options.color).chars()
             {
                 len += 1;
                 if i == '\n'
@@ -805,10 +767,18 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             }
             else
             {
-                add_commas(
-                    &remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec()),
-                    options.comma,
-                )
+                if options.comma
+                {
+                    add_commas(&remove_trailing_zeros(
+                        &format!("{:e}", num.real()),
+                        dec,
+                        num.real().prec(),
+                    ))
+                }
+                else
+                {
+                    remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec())
+                }
                 .replace("e0", "")
                 .replace(
                     'e',
@@ -839,15 +809,25 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             }
             else
             {
-                add_commas(
-                    &(sign
-                        + &remove_trailing_zeros(
-                            &format!("{:e}", num.imag(),),
-                            dec,
-                            num.real().prec(),
-                        )),
-                    options.comma,
-                )
+                if options.comma
+                {
+                    add_commas(
+                        &(sign
+                            + &remove_trailing_zeros(
+                                &format!("{:e}", num.imag(),),
+                                dec,
+                                num.real().prec(),
+                            )),
+                    )
+                }
+                else
+                {
+                    sign + &remove_trailing_zeros(
+                        &format!("{:e}", num.imag(),),
+                        dec,
+                        num.real().prec(),
+                    )
+                }
                 .replace("e0", "")
                 .replace(
                     'e',
@@ -883,14 +863,22 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
     }
     else
     {
-        let re = add_commas(
-            &to_string(num.real(), options.decimal_places, false),
-            options.comma,
-        );
-        let im = &add_commas(
-            &to_string(num.imag(), options.decimal_places, true),
-            options.comma,
-        );
+        let re = if options.comma
+        {
+            add_commas(&to_string(num.real(), options.decimal_places, false))
+        }
+        else
+        {
+            to_string(num.real(), options.decimal_places, false)
+        };
+        let im = if options.comma
+        {
+            add_commas(&to_string(num.imag(), options.decimal_places, true))
+        }
+        else
+        {
+            to_string(num.imag(), options.decimal_places, true)
+        };
         let sign = if num.imag().is_sign_positive() && re != "0"
         {
             "+"
@@ -915,7 +903,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             }
             else
             {
-                sign + im
+                sign + &im
                     + &if options.color
                     {
                         format!("{}i", colors.imag)
@@ -1057,12 +1045,8 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
         .to_string()
     }
 }
-fn add_commas(input: &str, commas: bool) -> String
+fn add_commas(input: &str) -> String
 {
-    if !commas
-    {
-        return input.to_string();
-    }
     let mut split = input.split('.');
     let mut result = String::new();
     let mut count = 0;

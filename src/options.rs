@@ -2,7 +2,7 @@ use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     help::help,
     math::do_math,
-    misc::to_output,
+    misc::{prompt, to_output},
     options::AngleType::{Degrees, Gradians, Radians},
     parse::get_func,
     print::get_output,
@@ -1168,7 +1168,7 @@ pub fn commands(
         }
         "clear" =>
         {
-            print!("\x1b[H\x1b[J");
+            print!("\x1b[H\x1b[J{}", prompt(*options, colors));
             stdout.flush().unwrap();
         }
         "debug" =>

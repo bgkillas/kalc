@@ -176,7 +176,7 @@ pub fn read_single_char() -> char
     if result == '\x14'
     {
         print!("\x1b[G\x1b[J");
-        std::process::exit(130);
+        std::process::exit(0);
     }
     result
 }

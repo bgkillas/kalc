@@ -422,11 +422,16 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         word.push_str("0.")
                     }
                 }
-                '&' if i != 0 && i + 1 < chars.len() && chars[i + 1] == '&' =>
+                '&' if i != 0
+                    && i + 1 < chars.len()
+                    && chars[i + 1] == '&'
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     func.push(Str("&&".to_string()));
                 }
-                '*' if i != 0 && i + 1 != chars.len() =>
+                '*' if i != 0
+                    && i + 1 != chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if i + 1 != chars.len() && chars[i + 1] == '*'
                     {
@@ -438,7 +443,9 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('*'.to_string()));
                     }
                 }
-                '=' if i != 0 && i + 1 < chars.len() =>
+                '=' if i != 0
+                    && i + 1 < chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if chars[i + 1] == '='
                     {
@@ -469,7 +476,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 {
                     func.push(Str("}".to_string()));
                 }
-                '±' if i + 1 != chars.len() =>
+                '±' if i + 1 != chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if func.is_empty()
                         || matches!(func.last().unwrap(),Str(s) if (s==","||s=="{"||s=="("))
@@ -478,14 +485,20 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     func.push(Str("±".to_string()))
                 }
-                '/' if i != 0 && i + 1 != chars.len() => func.push(Str('/'.to_string())),
+                '/' if i != 0
+                    && i + 1 != chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                {
+                    func.push(Str('/'.to_string()))
+                }
                 '+' if i != 0
                     && i + 1 != chars.len()
                     && (chars[i - 1].is_alphanumeric()
                         || (!func.is_empty() && func.last().unwrap().str_is(")"))
                         || chars[i - 1] == '}'
                         || chars[i - 1] == ']')
-                    && chars[i - 1] != if options.small_e { 'e' } else { 'E' } =>
+                    && chars[i - 1] != if options.small_e { 'e' } else { 'E' }
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if chars[i + 1] == '-'
                     {
@@ -502,7 +515,9 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('+'.to_string()))
                     }
                 }
-                '+' if i + 1 < chars.len() && chars[i + 1] == '-' =>
+                '+' if i + 1 < chars.len()
+                    && chars[i + 1] == '-'
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if func.is_empty()
                         || matches!(func.last().unwrap(),Str(s) if (s==","||s=="{"||s=="("))
@@ -512,7 +527,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     i += 1;
                     func.push(Str('±'.to_string()))
                 }
-                '<' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
+                '<' if i != 0
+                    && i + 1 < chars.len()
+                    && chars[i + 1] != '='
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if chars[i + 1] == '<'
                     {
@@ -524,7 +542,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('<'.to_string()));
                     }
                 }
-                '>' if i != 0 && i + 1 < chars.len() && chars[i + 1] != '=' =>
+                '>' if i != 0
+                    && i + 1 < chars.len()
+                    && chars[i + 1] != '='
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if chars[i + 1] == '>'
                     {
@@ -536,7 +557,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('>'.to_string()));
                     }
                 }
-                '-' =>
+                '-' if i + 1 < chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if i != 0 && chars[i - 1] == '^'
                     {
@@ -566,17 +587,21 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str('-'.to_string()));
                     }
                 }
-                '^' if !func.is_empty() && i + 1 != chars.len() => func.push(Str(if chars[i + 1]
-                    == '^'
+                '^' if !func.is_empty()
+                    && i + 1 != chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    i += 1;
-                    "^^"
+                    func.push(Str(if chars[i + 1] == '^'
+                    {
+                        i += 1;
+                        "^^"
+                    }
+                    else
+                    {
+                        "^"
+                    }
+                    .to_string()))
                 }
-                else
-                {
-                    "^"
-                }
-                .to_string())),
                 '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
                 {
                     count += 1;
@@ -747,7 +772,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                 }
                 ',' if i != 0 && i + 1 != chars.len() => func.push(Str(','.to_string())),
-                '%' if i != 0 && i + 1 != chars.len() => func.push(Str('%'.to_string())),
+                '%' if i != 0
+                    && i + 1 != chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                {
+                    func.push(Str('%'.to_string()))
+                }
                 '∞' => func.push(Num(Complex::with_val(options.prec, Infinity))),
                 _ =>
                 {}

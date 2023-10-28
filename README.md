@@ -22,7 +22,7 @@ config defaults listed in kalc.config
 - inf + inf * i does not give inf+inf*i, infinitys generally dont well with complex numbers, like inf/i != -inf*i
 - 1/0 != +-inf, digamma(-n) != +-inf, gamma(-n) != +-inf (and gamma subsidiarys)
 # build instructions
-windows may work but I do not know how to build for it, best to just use wsl
+windows is not properly supported due to dependencys being weird, just use wsl
 
 rust>=1.73.0 diffutils gcc m4 make
 ```

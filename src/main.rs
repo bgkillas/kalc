@@ -128,18 +128,20 @@ fn main()
     let mut options = Options::default();
     let mut watch = None;
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
-    #[cfg(unix)]
-    let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
-    #[cfg(not(unix))]
-    let file_path = &format!(
-        "C:\\Users\\{}\\AppData\\Roaming\\kalc.config",
-        var("USERNAME").unwrap()
-    );
     let mut args = args().collect::<Vec<String>>();
-    if file_opts(&mut options, &mut colors, file_path).is_err()
-        || arg_opts(&mut options, &mut colors, &mut args).is_err()
     {
-        std::process::exit(1);
+        #[cfg(unix)]
+        let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
+        #[cfg(not(unix))]
+        let file_path = &format!(
+            "C:\\Users\\{}\\AppData\\Roaming\\kalc.config",
+            var("USERNAME").unwrap()
+        );
+        if file_opts(&mut options, &mut colors, file_path).is_err()
+            || arg_opts(&mut options, &mut colors, &mut args).is_err()
+        {
+            std::process::exit(1);
+        }
     }
     let mut vars: Vec<[String; 2]> = if options.allow_vars
     {
@@ -157,33 +159,35 @@ fn main()
         Vec::new()
     };
     let mut old = vars.clone();
-    #[cfg(unix)]
-    let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
-    #[cfg(not(unix))]
-    let file_path = &format!(
-        "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
-        var("USERNAME").unwrap()
-    );
-    if File::open(file_path).is_ok() && options.allow_vars
     {
-        let lines = BufReader::new(File::open(file_path).unwrap())
-            .lines()
-            .map(|l| l.unwrap())
-            .collect::<Vec<String>>();
-        let mut split;
-        for i in lines
+        #[cfg(unix)]
+        let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
+        #[cfg(not(unix))]
+        let file_path = &format!(
+            "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
+            var("USERNAME").unwrap()
+        );
+        if File::open(file_path).is_ok() && options.allow_vars
         {
-            split = i.splitn(2, '=');
-            if split.clone().count() == 2
+            let lines = BufReader::new(File::open(file_path).unwrap())
+                .lines()
+                .map(|l| l.unwrap())
+                .collect::<Vec<String>>();
+            let mut split;
+            for i in lines
             {
-                let l = split.next().unwrap().to_string();
-                let r = split.next().unwrap().to_string();
-                for (i, j) in vars.clone().iter().enumerate()
+                split = i.splitn(2, '=');
+                if split.clone().count() == 2
                 {
-                    if j[0].chars().count() <= l.chars().count()
+                    let l = split.next().unwrap().to_string();
+                    let r = split.next().unwrap().to_string();
+                    for (i, j) in vars.clone().iter().enumerate()
                     {
-                        vars.insert(i, [l, r]);
-                        break;
+                        if j[0].chars().count() <= l.chars().count()
+                        {
+                            vars.insert(i, [l, r]);
+                            break;
+                        }
                     }
                 }
             }
@@ -199,54 +203,45 @@ fn main()
             }
         }
     }
-    #[cfg(unix)]
-    let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
-    #[cfg(not(unix))]
-    let file_path = &format!(
-        "C:\\Users\\{}\\AppData\\Roaming\\kalc.history",
-        var("USERNAME").unwrap()
-    );
-    let mut file = if args.is_empty()
+    let mut stdout = stdout();
+    let (mut file, mut unmod_lines) = if args.is_empty()
     {
+        print!(
+            "\x1b[G\x1b[K{}{}",
+            prompt(options, &colors),
+            if options.color { "\x1b[0m" } else { "" }
+        );
+        stdout.flush().unwrap();
+        #[cfg(unix)]
+        let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
+        #[cfg(not(unix))]
+        let file_path = &format!(
+            "C:\\Users\\{}\\AppData\\Roaming\\kalc.history",
+            var("USERNAME").unwrap()
+        );
         if File::open(file_path).is_err()
         {
             File::create(file_path).unwrap();
         }
-        Some(OpenOptions::new().append(true).open(file_path).unwrap())
-    }
-    else
-    {
-        options.color = !options.color;
-        None
-    };
-    let mut unmod_lines = if args.is_empty()
-    {
-        Some(
-            BufReader::new(File::open(file_path).unwrap())
-                .lines()
-                .map(|l| l.unwrap())
-                .collect::<Vec<String>>(),
+        (
+            Some(OpenOptions::new().append(true).open(file_path).unwrap()),
+            Some(
+                BufReader::new(File::open(file_path).unwrap())
+                    .lines()
+                    .map(|l| l.unwrap())
+                    .collect::<Vec<String>>(),
+            ),
         )
     }
     else
     {
-        None
+        options.color = !options.color;
+        (None, None)
     };
-    let mut exit = false;
     let mut cut: Vec<char> = Vec::new();
-    let mut stdout = stdout();
     'main: loop
     {
-        if exit
-        {
-            for handle in handles
-            {
-                handle.join().unwrap();
-            }
-            break;
-        }
         let mut input = Vec::new();
-        let mut frac = 0;
         let mut graphable = false;
         if !args.is_empty()
         {
@@ -291,24 +286,22 @@ fn main()
             {
                 println!();
             }
-            if args.is_empty()
-            {
-                exit = true;
-            }
             graphable = true;
         }
         else
         {
-            print!(
-                "\x1b[G\x1b[K{}{}",
-                prompt(options, &colors),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            stdout.flush().unwrap();
+            if file.is_none()
+            {
+                for handle in handles
+                {
+                    handle.join().unwrap();
+                }
+                break;
+            }
+            let mut frac = 0;
             let mut current = Vec::new();
             let mut lines = unmod_lines.clone().unwrap();
             let mut i = lines.len();
-            let max = i;
             let mut placement = 0;
             let last = if i == 0
             {
@@ -374,7 +367,7 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if i == max
+                        if i == lines.len()
                         {
                             current = input.clone();
                         }
@@ -423,7 +416,7 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if i == max
+                        if i == lines.len()
                         {
                             current = input.clone();
                         }
@@ -629,10 +622,10 @@ fn main()
                     {
                         //down history
                         i += 1;
-                        if i >= max
+                        if i >= lines.len()
                         {
+                            i = lines.len();
                             input = current.clone();
-                            i = max;
                         }
                         else
                         {
@@ -801,7 +794,7 @@ fn main()
                         {
                             end -= 1;
                         }
-                        if i == max
+                        if i == lines.len()
                         {
                             current = input.clone();
                         }
@@ -840,6 +833,11 @@ fn main()
             }
             if input.is_empty()
             {
+                print!(
+                    "\x1b[G\x1b[K{}{}",
+                    prompt(options, &colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
                 continue;
             }
             commands(
@@ -852,6 +850,12 @@ fn main()
                 &input,
                 &mut stdout,
             );
+            print!(
+                "\x1b[G\x1b[K{}{}",
+                prompt(options, &colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            stdout.flush().unwrap();
             write(
                 &input
                     .iter()
@@ -925,7 +929,6 @@ fn main()
                         continue 'main;
                     }
                 }
-
                 for (i, v) in vars.iter().enumerate()
                 {
                     if v[0].split('(').next() == l.split('(').next()
@@ -970,8 +973,6 @@ fn main()
                     options,
                 )))
         {
-            print!("\x1b[G\x1b[K");
-            stdout.flush().unwrap();
             let mut inputs: Vec<String> = input
                 .iter()
                 .collect::<String>()

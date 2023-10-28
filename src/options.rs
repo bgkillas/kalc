@@ -91,7 +91,7 @@ pub fn arg_opts(
                     args.remove(i);
                 }
             }
-            "--coltext" =>
+            "--textc" =>
             {
                 if args.len() > 1
                 {
@@ -100,7 +100,7 @@ pub fn arg_opts(
                     args.remove(i);
                 }
             }
-            "--colprompt" =>
+            "--promptc" =>
             {
                 if args.len() > 1
                 {
@@ -109,7 +109,7 @@ pub fn arg_opts(
                     args.remove(i);
                 }
             }
-            "--colimag" =>
+            "--imagc" =>
             {
                 if args.len() > 1
                 {
@@ -118,13 +118,27 @@ pub fn arg_opts(
                     args.remove(i);
                 }
             }
-            "--colsci" =>
+            "--scic" =>
             {
                 if args.len() > 1
                 {
                     colors.sci =
                         "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
                     args.remove(i);
+                }
+            }
+            "--bracketc" =>
+            {
+                if args.len() > 1
+                {
+                    args.remove(i);
+                    colors.brackets.clear();
+                    while i < args.len() && args[i].contains('m')
+                    {
+                        colors.brackets.push("\x1b[".to_owned() + &args[i]);
+                        args.remove(i);
+                    }
+                    continue;
                 }
             }
             "--2d" =>
@@ -283,7 +297,7 @@ pub fn file_opts(
                         .parse::<usize>()
                         .expect("invalid frac_iter")
                 }
-                "coltext" =>
+                "textc" =>
                 {
                     colors.text = "\x1b[".to_owned()
                         + &split
@@ -292,7 +306,7 @@ pub fn file_opts(
                             .parse::<String>()
                             .expect("invalid col")
                 }
-                "colprompt" =>
+                "promptc" =>
                 {
                     colors.prompt = "\x1b[".to_owned()
                         + &split
@@ -301,7 +315,7 @@ pub fn file_opts(
                             .parse::<String>()
                             .expect("invalid col")
                 }
-                "colimag" =>
+                "imagc" =>
                 {
                     colors.imag = "\x1b[".to_owned()
                         + &split
@@ -310,7 +324,7 @@ pub fn file_opts(
                             .parse::<String>()
                             .expect("invalid col")
                 }
-                "colsci" =>
+                "scic" =>
                 {
                     colors.sci = "\x1b[".to_owned()
                         + &split
@@ -318,6 +332,14 @@ pub fn file_opts(
                             .unwrap()
                             .parse::<String>()
                             .expect("invalid col")
+                }
+                "bracketc" =>
+                {
+                    colors.brackets.clear();
+                    for i in split.next().unwrap().split(',')
+                    {
+                        colors.brackets.push("\x1b[".to_owned() + i)
+                    }
                 }
                 "2d" =>
                 {
@@ -541,7 +563,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
     match l
     {
         "colors" => println!(
-            "{}text={} {}prompt={} {}imag={} {}sci={}\x1b[0m",
+            "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={}\x1b[0m",
             colors.text,
             &colors.text[2..],
             colors.prompt,
@@ -550,6 +572,10 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
             &colors.imag[2..],
             colors.sci,
             &colors.sci[2..],
+            colors
+                .brackets
+                .iter()
+                .fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..]))
         ),
         "color" => println!("{}", options.color),
         "prompt" => println!("{}", options.prompt),
@@ -659,7 +685,7 @@ pub fn set_commands(
 {
     match l
     {
-        "coltext" =>
+        "textc" =>
         {
             match r.parse::<String>()
             {
@@ -667,7 +693,7 @@ pub fn set_commands(
                 _ => println!("Invalid col"),
             };
         }
-        "colprompt" =>
+        "promptc" =>
         {
             match r.parse::<String>()
             {
@@ -675,7 +701,7 @@ pub fn set_commands(
                 _ => println!("Invalid col"),
             };
         }
-        "colimag" =>
+        "imagc" =>
         {
             match r.parse::<String>()
             {
@@ -683,11 +709,26 @@ pub fn set_commands(
                 _ => println!("Invalid col"),
             };
         }
-        "colsci" =>
+        "scic" =>
         {
             match r.parse::<String>()
             {
                 Ok(n) => colors.sci = "\x1b[".to_owned() + &n,
+                _ => println!("Invalid col"),
+            };
+        }
+        "bracketc" =>
+        {
+            match r.parse::<String>()
+            {
+                Ok(n) =>
+                {
+                    colors.brackets.clear();
+                    for i in n.split(',')
+                    {
+                        colors.brackets.push("\x1b[".to_owned() + i)
+                    }
+                }
                 _ => println!("Invalid col"),
             };
         }

@@ -30,7 +30,6 @@ use std::{
     time::Instant,
 };
 //TODO implement gcd and lcm use vectors as a variable input
-//TODO rainbow brackets
 #[derive(Clone)]
 pub struct Colors
 {
@@ -38,6 +37,7 @@ pub struct Colors
     prompt: String,
     imag: String,
     sci: String,
+    brackets: Vec<String>,
 }
 impl Default for Colors
 {
@@ -48,6 +48,12 @@ impl Default for Colors
             prompt: "\x1b[94m".to_string(),
             imag: "\x1b[93m".to_string(),
             sci: "\x1b[92m".to_string(),
+            brackets: vec![
+                "\x1b[91m".to_string(),
+                "\x1b[92m".to_string(),
+                "\x1b[93m".to_string(),
+                "\x1b[95m".to_string(),
+            ],
         }
     }
 }

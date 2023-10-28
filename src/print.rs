@@ -7,7 +7,7 @@ use crate::{
     get_terminal_width,
     graph::can_graph,
     math::do_math,
-    misc::{clear, handle_err, no_col, prompt},
+    misc::{clear, handle_err, no_col, prompt, to_output},
     parse::get_func,
     vars::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -343,7 +343,7 @@ pub fn print_concurrent(
                 &output.1.replace('+', ""),
                 "\x1b[A".repeat(num + frac - if len1 == 0 || len2 == 0 { 1 } else { 0 }),
                 prompt(options, colors),
-                &unmodified_input[start..end].iter().collect::<String>(),
+                to_output(&unmodified_input[start..end], options.color, colors),
                 if options.color { "\x1b[0m" } else { "" },
             );
             frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
@@ -364,7 +364,7 @@ pub fn print_concurrent(
                 output.1,
                 if frac == 1 { "\x1b[A" } else { "" },
                 prompt(options, colors),
-                &unmodified_input[start..end].iter().collect::<String>(),
+                to_output(&unmodified_input[start..end], options.color, colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
         }
@@ -490,7 +490,7 @@ pub fn print_concurrent(
             "\x1b[A".repeat(num),
             if frac == 1 { "\x1b[A" } else { "" },
             prompt(options, colors),
-            &unmodified_input[start..end].iter().collect::<String>(),
+            to_output(&unmodified_input[start..end], options.color, colors),
             if options.color { "\x1b[0m" } else { "" }
         );
         frac += num;
@@ -671,7 +671,7 @@ pub fn print_concurrent(
             "\x1b[A".repeat(num),
             if frac == 1 { "\x1b[A" } else { "" },
             prompt(options, colors),
-            &unmodified_input[start..end].iter().collect::<String>(),
+            to_output(&unmodified_input[start..end], options.color, colors),
             if options.color { "\x1b[0m" } else { "" }
         );
         frac += num;

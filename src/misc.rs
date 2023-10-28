@@ -234,9 +234,77 @@ pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors:
     print!(
         "\x1b[G\x1b[J{}{}{}",
         prompt(options, colors),
-        &input[start..end].iter().collect::<String>(),
+        to_output(&input[start..end], options.color, colors),
         if options.color { "\x1b[0m" } else { "" }
     );
+}
+pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
+{
+    if color
+    {
+        let mut count: isize = 0;
+        let mut output = String::new();
+        let mut abs = false;
+        for c in input
+        {
+            match c
+            {
+                '|' =>
+                {
+                    if abs
+                    {
+                        count -= 1;
+                        output.push_str(&format!(
+                            "{}|{}",
+                            colors.brackets[count as usize % colors.brackets.len()],
+                            colors.text
+                        ))
+                    }
+                    else
+                    {
+                        output.push_str(&format!(
+                            "{}|{}",
+                            colors.brackets[count as usize % colors.brackets.len()],
+                            colors.text
+                        ));
+                        count += 1
+                    }
+                    abs = !abs
+                }
+                '(' =>
+                {
+                    output.push_str(&format!(
+                        "{}({}",
+                        colors.brackets[count as usize % colors.brackets.len()],
+                        colors.text
+                    ));
+                    count += 1
+                }
+                ')' =>
+                {
+                    if count != 0
+                    {
+                        count -= 1
+                    }
+                    output.push_str(&format!(
+                        "{}){}",
+                        colors.brackets[count as usize % colors.brackets.len()],
+                        colors.text
+                    ));
+                    if count == 0
+                    {
+                        count -= 1
+                    }
+                }
+                _ => output.push(*c),
+            }
+        }
+        output
+    }
+    else
+    {
+        input.iter().collect::<String>()
+    }
 }
 pub fn handle_err(
     err: &str,
@@ -252,7 +320,7 @@ pub fn handle_err(
         err,
         "\x1b[A".repeat(err.len().div_ceil(get_terminal_width()) - 1),
         prompt(options, colors),
-        &input[start..end].iter().collect::<String>(),
+        to_output(&input[start..end], options.color, colors),
         if options.color { "\x1b[0m" } else { "" },
     );
 }

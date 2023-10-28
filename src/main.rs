@@ -43,7 +43,7 @@ impl Default for Colors
     fn default() -> Self
     {
         Colors {
-            text: "\x1b[96m".to_string(),
+            text: "\x1b[0m".to_string(),
             prompt: "\x1b[94m".to_string(),
             imag: "\x1b[93m".to_string(),
             sci: "\x1b[92m".to_string(),
@@ -51,7 +51,9 @@ impl Default for Colors
                 "\x1b[91m".to_string(),
                 "\x1b[92m".to_string(),
                 "\x1b[93m".to_string(),
+                "\x1b[94m".to_string(),
                 "\x1b[95m".to_string(),
+                "\x1b[96m".to_string(),
             ],
         }
     }
@@ -111,7 +113,7 @@ impl Default for Options
             samples_3d: (300, 300),
             point_style: '.',
             lines: false,
-            multi: false,
+            multi: true,
             tabbed: false,
             allow_vars: true,
             small_e: false,

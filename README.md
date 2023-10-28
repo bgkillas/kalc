@@ -13,8 +13,7 @@ you can set permanent variables and functions in the file ```~/.config/kalc.vars
 
 parsing tries to comply with wolfram alpha
 
-defaults listed in kalc.config
-
+config defaults listed in kalc.config
 # issues
 - 0's and infinities of trig functions don't show up as 0 or infinity. i cant conceive of a nice way to fix this
 - matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
@@ -32,7 +31,6 @@ cd kalc
 cargo build --release
 ./target/release/kalc
 ```
-
 # usage
 ```
 Usage: kalc [FLAGS] function_1 function_2 function_3...

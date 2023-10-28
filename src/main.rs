@@ -29,7 +29,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//TODO implement gcd and lcm use vectors as a variable input
 #[derive(Clone)]
 pub struct Colors
 {

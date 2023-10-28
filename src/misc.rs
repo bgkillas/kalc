@@ -282,19 +282,12 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                 }
                 ')' =>
                 {
-                    if count != 0
-                    {
-                        count -= 1
-                    }
+                    count -= 1;
                     output.push_str(&format!(
                         "{}){}",
                         colors.brackets[count as usize % colors.brackets.len()],
                         colors.text
-                    ));
-                    if count == 0
-                    {
-                        count -= 1
-                    }
+                    ))
                 }
                 _ => output.push(*c),
             }

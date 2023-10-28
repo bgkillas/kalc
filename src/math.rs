@@ -186,8 +186,22 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 for (k, l) in place.iter().enumerate()
                                 {
                                     function.insert(i + k + 1, Str(','.to_string()));
-                                    function
-                                        .insert(i + k + 2, do_math(v[l + 1..].to_vec(), options)?);
+                                    function.insert(
+                                        i + k + 2,
+                                        do_math(
+                                            v[l + 1
+                                                ..if k + 1 != place.len()
+                                                {
+                                                    place[k + 1]
+                                                }
+                                                else
+                                                {
+                                                    v.len()
+                                                }]
+                                                .to_vec(),
+                                            options,
+                                        )?,
+                                    );
                                     i += 1;
                                 }
                                 continue 'outer;
@@ -1229,7 +1243,14 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
         function.remove(i + 1);
         function.remove(i - 1);
     }
-    Ok(function[0].clone())
+    if function.len() == 1
+    {
+        Ok(function[0].clone())
+    }
+    else
+    {
+        Err("failed to compute")
+    }
 }
 fn do_functions(
     a: NumStr,

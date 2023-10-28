@@ -88,7 +88,7 @@ FLAGS: --help (this message)
 - Type "rnd" to generate a random number
 
 Operators:
-- +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-, ^^
+- +, -, *, /, ^, ^^, %, <, >, <=, >=, |, ±/+-
 - !x (subfact), x! (fact), x!! (doublefact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
@@ -113,8 +113,7 @@ Other functions:
 - slog(a,b)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
 
-Vector operations/functions:
-- *, /, +, -, ^, ±/+-, ^^
+Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
 - angle({vec1},{vec2})
 - norm, normalize
@@ -122,12 +121,11 @@ Vector operations/functions:
 - max, min, mean, median, mode, sort
 - reverse, link
 - part({vec},col), sum, prod
-- convert to polar: pol{vec} outputs (radius, theta, phi)
-- convert to cartesian: car{vec} outputs (x, y, z)
+- pol{vec} outputs (radius, theta, phi)
+- car{vec} outputs (x, y, z)
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
-Matrix operations/functions:
-- *, /, +, -, ^, ±/+-, ^^
+Matrix functions:
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row), flatten, sum, prod

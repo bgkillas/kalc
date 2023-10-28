@@ -180,7 +180,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             {
                 func.push(Str(')'.to_string()));
                 func.push(Str(')'.to_string()));
-                pwr.0 = false;
+                subfact.0 = false;
             }
             word.clear();
             continue;

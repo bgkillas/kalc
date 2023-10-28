@@ -447,6 +447,7 @@ fn is_func(word: &str) -> bool
         "degree",
         "rad",
         "radian",
+        "grad",
         "gradian",
         "re",
         "real",

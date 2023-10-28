@@ -63,6 +63,7 @@ pub fn input_var(
     let mut i = 0;
     let mut sum = (0, String::new());
     let mut bracket = 0;
+    let functions = functions();
     'main: while i < chars.len()
     {
         let c = chars[i];
@@ -141,7 +142,7 @@ pub fn input_var(
                 }
             }
         }
-        if is_func(&word)
+        if functions.contains(word.as_str())
         {
             i += word.len();
             output.push_str(&word)
@@ -343,9 +344,9 @@ pub fn input_var(
         output
     }
 }
-fn is_func(word: &str) -> bool
+fn functions() -> HashSet<&'static str>
 {
-    let functions: HashSet<_> = [
+    [
         "i",
         "rnd",
         "inf",
@@ -503,8 +504,7 @@ fn is_func(word: &str) -> bool
     ]
     .iter()
     .cloned()
-    .collect();
-    functions.contains(word)
+    .collect::<HashSet<&str>>()
 }
 pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<[String; 2]>
 {

@@ -126,8 +126,6 @@ fn main()
 {
     let mut colors = Colors::default();
     let mut options = Options::default();
-    let mut watch = None;
-    let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut args = args().collect::<Vec<String>>();
     {
         #[cfg(unix)]
@@ -238,6 +236,8 @@ fn main()
         options.color = !options.color;
         (None, None)
     };
+    let mut watch = None;
+    let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
     'main: loop
     {
@@ -838,6 +838,7 @@ fn main()
                     prompt(options, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
+                stdout.flush().unwrap();
                 continue;
             }
             commands(

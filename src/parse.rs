@@ -799,6 +799,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     {
         func.push(Num(n1));
     }
+    if word == "rnd"
+    {
+        func.push(Str("rnd".to_string()))
+    }
     if func.is_empty()
     {
         return Err("no function");
@@ -809,7 +813,7 @@ fn place_multiplier(func: &mut Vec<NumStr>, find_word: &bool)
 {
     if let Some(Str(s)) = func.last()
     {
-        if !find_word && matches!(s.as_str(), ")" | "x" | "y" | "]" | "}")
+        if !find_word && matches!(s.as_str(), ")" | "x" | "y" | "]" | "}" | "rnd")
         {
             func.push(Str('*'.to_string()))
         }

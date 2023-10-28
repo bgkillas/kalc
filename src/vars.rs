@@ -347,6 +347,7 @@ fn is_func(word: &str) -> bool
 {
     let functions: HashSet<_> = [
         "i",
+        "rnd",
         "inf",
         "sum",
         "product",

@@ -8,6 +8,7 @@ use crate::{
     options::AngleType::{Degrees, Gradians, Radians},
     Options,
 };
+use libc::rand;
 use rug::{
     float::{Constant::Pi, Special::Infinity},
     ops::Pow,
@@ -15,7 +16,7 @@ use rug::{
 };
 pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'static str>
 {
-    if function.len() == 1
+    if function.len() == 1 && !function[0].str_is("rnd")
     {
         return Ok(function[0].clone());
     }
@@ -219,8 +220,9 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
     {
         if let Str(s) = &function[i].clone()
         {
-            if (s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                || matches!(s.as_str(), "C" | "P" | "I")
+            if s != "rnd"
+                && ((s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
+                    || matches!(s.as_str(), "C" | "P" | "I"))
             {
                 if matches!(
                     s.as_str(),
@@ -956,6 +958,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 let a = function[i + 1].num()?;
                                 let b = function[i + 3].num()?;
                                 let c = function[i + 5].num()?;
+                                function.drain(i + 2..i + 6);
                                 let p: Complex = b.clone().pow(2);
                                 let p: Complex = p - (4 * c * a.clone());
                                 let p = p.sqrt();
@@ -1047,6 +1050,32 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
             }
         }
         i += 1;
+    }
+    i = 0;
+    while i < function.len()
+    {
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "rnd" =>
+                {
+                    function[i] = Num(Complex::with_val(options.prec, unsafe {
+                        rand() as f64 / libc::RAND_MAX as f64
+                    }))
+                }
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
+        {
+            i += 1;
+            continue;
+        }
     }
     i = 1;
     while i < function.len() - 1

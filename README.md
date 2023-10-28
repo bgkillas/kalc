@@ -15,7 +15,7 @@ parsing tries to comply with wolfram alpha
 
 config defaults listed in kalc.config
 # issues
-- 0's and infinities of trig functions don't show up as 0 or infinity. i cant conceive of a nice way to fix this
+- 0's and infinities of trig functions don't show up as 0 or infinity.
 - matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
 - loops(sum/prod etc) cant work with x,y,z as vars
 - recursive formulas don't work

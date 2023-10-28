@@ -225,7 +225,7 @@ pub fn clearln(input: &[char], start: usize, end: usize, options: Options, color
     print!(
         "\x1b[G\x1b[K{}{}{}",
         prompt(options, colors),
-        &input[start..end].iter().collect::<String>(),
+        to_output(&input[start..end], options.color, colors),
         if options.color { "\x1b[0m" } else { "" }
     );
 }

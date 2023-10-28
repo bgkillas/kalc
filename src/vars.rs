@@ -99,7 +99,7 @@ pub fn input_var(
         if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
-        )
+        ) && chars.len() > i + count + 1
         {
             let mut place = 0;
             let mut count2 = 0;
@@ -135,7 +135,10 @@ pub fn input_var(
                         .iter()
                         .collect::<String>();
                 }
-                sumrec.push(sum.clone())
+                if !sum.1.is_empty()
+                {
+                    sumrec.push(sum.clone())
+                }
             }
         }
         if is_func(&word)

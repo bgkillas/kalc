@@ -2,6 +2,7 @@ use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     help::help,
     math::do_math,
+    misc::to_output,
     options::AngleType::{Degrees, Gradians, Radians},
     parse::get_func,
     print::get_output,
@@ -604,6 +605,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
         "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
         _ =>
         {
+            let mut out = String::new();
             for i in match get_func(
                 &input_var(
                     &l.replace('_', &format!("({})", last)),
@@ -623,12 +625,12 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                     Num(n) =>
                     {
                         let n = get_output(options, colors, &n);
-                        print!(
+                        out.push_str(&format!(
                             "{}{}{}",
                             n.0,
                             n.1,
                             if options.color { "\x1b[0m" } else { "" }
-                        )
+                        ))
                     }
                     Vector(n) =>
                     {
@@ -645,7 +647,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                             ));
                         }
                         str.pop();
-                        print!("{{{}}}", str)
+                        out.push_str(&format!("{{{}}}", str))
                     }
                     Matrix(n) =>
                     {
@@ -665,12 +667,15 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                             }
                         }
                         str.pop();
-                        print!("{{{}}}", str)
+                        out.push_str(&format!("{{{}}}", str))
                     }
-                    Str(n) => print!("{}", n),
+                    Str(n) => out.push_str(&n),
                 }
             }
-            println!();
+            println!(
+                "{}",
+                to_output(&out.chars().collect::<Vec<char>>(), options.color, &colors)
+            );
         }
     }
 }

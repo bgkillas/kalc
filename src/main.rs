@@ -12,7 +12,9 @@ mod tests;
 mod vars;
 use crate::{
     graph::{can_graph, graph},
-    misc::{clear, convert, get_terminal_width, prompt, read_single_char, write},
+    misc::{
+        clear, clearln, convert, get_terminal_width, handle_err, prompt, read_single_char, write,
+    },
     options::{
         arg_opts, commands, equal_to, file_opts, set_commands, AngleType, AngleType::Radians,
     },
@@ -27,7 +29,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//TODO make set_commands() compute
 //TODO implement gcd and lcm use vectors as a variable input
 //TODO rainbow brackets
 #[derive(Clone)]
@@ -665,7 +666,7 @@ fn main()
                             {
                                 end = input.len()
                             }
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                             print!("{}", "\x08".repeat(end - start - (placement - start)))
                         }
                         else if placement != 0
@@ -687,7 +688,7 @@ fn main()
                             start += 1;
                             placement += 1;
                             end += 1;
-                            clear(&input, start, end, options, &colors)
+                            clearln(&input, start, end, options, &colors)
                         }
                         else if placement != input.len()
                         {
@@ -721,7 +722,7 @@ fn main()
                             {
                                 end -= start - placement;
                                 start = start - (start - placement);
-                                clear(&input, start, end, options, &colors);
+                                clearln(&input, start, end, options, &colors);
                                 print!("{}", "\x08".repeat(end - start - (placement - start)));
                             }
                             else if placement == s
@@ -761,7 +762,7 @@ fn main()
                             {
                                 start += placement - end;
                                 end = end + (placement - end);
-                                clear(&input, start, end, options, &colors)
+                                clearln(&input, start, end, options, &colors)
                             }
                             else if placement == s
                             {
@@ -881,7 +882,18 @@ fn main()
                 let l = s;
                 let r = split.next().unwrap();
                 if l.is_empty()
-                    || set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
+                    || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
+                    {
+                        Err(s) =>
+                        {
+                            if !s.is_empty()
+                            {
+                                handle_err(s, &input, options, &colors, start, end)
+                            }
+                            true
+                        }
+                        _ => false,
+                    }
                 {
                     continue;
                 }

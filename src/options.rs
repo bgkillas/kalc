@@ -655,7 +655,7 @@ pub fn set_commands(
     old: &mut Vec<[String; 2]>,
     l: &str,
     r: &str,
-) -> bool
+) -> Result<(), &'static str>
 {
     match l
     {
@@ -716,17 +716,29 @@ pub fn set_commands(
         }
         "decimal" | "deci" | "decimals" =>
         {
-            match r.parse::<isize>()
+            match do_math(
+                get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                *options,
+            )?
+            .num()?
+            .real()
+            .to_f64() as isize
             {
-                Ok(n) if n == -1 => options.decimal_places = usize::MAX - 1,
-                Ok(n) if n == -2 => options.decimal_places = usize::MAX,
-                Ok(n) if n >= 0 => options.decimal_places = n as usize,
+                n if n == -1 => options.decimal_places = usize::MAX - 1,
+                n if n == -2 => options.decimal_places = usize::MAX,
+                n if n >= 0 => options.decimal_places = n as usize,
                 _ => println!("Invalid decimal"),
             };
         }
-        "prec" | "precision" => match r.parse::<u32>()
+        "prec" | "precision" => match do_math(
+            get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+            *options,
+        )?
+        .num()?
+        .real()
+        .to_f64() as u32
         {
-            Ok(n) if n != 0 =>
+            n if n != 0 =>
             {
                 options.prec = n;
                 if options.allow_vars
@@ -751,114 +763,205 @@ pub fn set_commands(
         {
             if r.contains(',')
             {
-                match (
-                    r.split(',').next().unwrap().parse::<f64>(),
-                    r.split(',').last().unwrap().parse::<f64>(),
-                )
-                {
-                    (Ok(min), Ok(max)) =>
-                    {
-                        (
-                            options.xr.0,
-                            options.xr.1,
-                            options.yr.0,
-                            options.yr.1,
-                            options.zr.0,
-                            options.zr.1,
-                        ) = (min, max, min, max, min, max)
-                    }
-                    _ => println!("Invalid range"),
-                }
+                let (min, max) = (
+                    do_math(
+                        get_func(
+                            &input_var(
+                                r.split(',').next().unwrap(),
+                                vars,
+                                &mut Vec::new(),
+                                *options,
+                            ),
+                            *options,
+                        )?,
+                        *options,
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64(),
+                    do_math(
+                        get_func(
+                            &input_var(
+                                r.split(',').last().unwrap(),
+                                vars,
+                                &mut Vec::new(),
+                                *options,
+                            ),
+                            *options,
+                        )?,
+                        *options,
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64(),
+                );
+                (
+                    options.xr.0,
+                    options.xr.1,
+                    options.yr.0,
+                    options.yr.1,
+                    options.zr.0,
+                    options.zr.1,
+                ) = (min, max, min, max, min, max)
             }
             else
             {
-                match r.parse::<f64>()
-                {
-                    Ok(n) =>
-                    {
-                        (
-                            options.xr.0,
-                            options.xr.1,
-                            options.yr.0,
-                            options.yr.1,
-                            options.zr.0,
-                            options.zr.1,
-                        ) = (-n, n, -n, n, -n, n)
-                    }
-                    _ => println!("Invalid range"),
-                }
+                let n = do_math(
+                    get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                (
+                    options.xr.0,
+                    options.xr.1,
+                    options.yr.0,
+                    options.yr.1,
+                    options.zr.0,
+                    options.zr.1,
+                ) = (-n, n, -n, n, -n, n)
             }
         }
         "xr" =>
         {
             if r.contains(',')
             {
-                match r.split(',').next().unwrap().parse::<f64>()
-                {
-                    Ok(n) => options.xr.0 = n,
-                    _ => println!("Invalid x range"),
-                };
-                match r.split(',').last().unwrap().parse::<f64>()
-                {
-                    Ok(n) => options.xr.1 = n,
-                    _ => println!("Invalid x range"),
-                };
+                options.xr.0 = do_math(
+                    get_func(
+                        &input_var(
+                            r.split(',').next().unwrap(),
+                            vars,
+                            &mut Vec::new(),
+                            *options,
+                        ),
+                        *options,
+                    )?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.xr.1 = do_math(
+                    get_func(
+                        &input_var(
+                            r.split(',').last().unwrap(),
+                            vars,
+                            &mut Vec::new(),
+                            *options,
+                        ),
+                        *options,
+                    )?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
             }
             else
             {
-                match r.parse::<f64>()
-                {
-                    Ok(n) => (options.xr.0, options.xr.1) = (-n, n),
-                    _ => println!("Invalid x range"),
-                }
+                let n = do_math(
+                    get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.xr = (-n, n)
             }
         }
         "yr" =>
         {
             if r.contains(',')
             {
-                match r.split(',').next().unwrap().parse::<f64>()
-                {
-                    Ok(n) => options.yr.0 = n,
-                    _ => println!("Invalid y range"),
-                };
-                match r.split(',').last().unwrap().parse::<f64>()
-                {
-                    Ok(n) => options.yr.1 = n,
-                    _ => println!("Invalid y range"),
-                };
+                options.yr.0 = do_math(
+                    get_func(
+                        &input_var(
+                            r.split(',').next().unwrap(),
+                            vars,
+                            &mut Vec::new(),
+                            *options,
+                        ),
+                        *options,
+                    )?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.yr.1 = do_math(
+                    get_func(
+                        &input_var(
+                            r.split(',').last().unwrap(),
+                            vars,
+                            &mut Vec::new(),
+                            *options,
+                        ),
+                        *options,
+                    )?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
             }
             else
             {
-                match r.parse::<f64>()
-                {
-                    Ok(n) => (options.yr.0, options.yr.1) = (-n, n),
-                    _ => println!("Invalid y range"),
-                }
+                let n = do_math(
+                    get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.yr = (-n, n)
             }
         }
         "zr" =>
         {
             if r.contains(',')
             {
-                match r.split(',').next().unwrap().parse::<f64>()
-                {
-                    Ok(n) => options.zr.0 = n,
-                    _ => println!("Invalid z range"),
-                };
-                match r.split(',').last().unwrap().parse::<f64>()
-                {
-                    Ok(n) => options.zr.1 = n,
-                    _ => println!("Invalid z range"),
-                };
+                options.zr.0 = do_math(
+                    get_func(
+                        &input_var(
+                            r.split(',').next().unwrap(),
+                            vars,
+                            &mut Vec::new(),
+                            *options,
+                        ),
+                        *options,
+                    )?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.zr.1 = do_math(
+                    get_func(
+                        &input_var(
+                            r.split(',').last().unwrap(),
+                            vars,
+                            &mut Vec::new(),
+                            *options,
+                        ),
+                        *options,
+                    )?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
             }
             else
             {
-                match r.parse::<f64>()
-                {
-                    Ok(n) => (options.zr.0, options.zr.1) = (-n, n),
-                    _ => println!("Invalid z range"),
-                }
+                let n = do_math(
+                    get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.zr = (-n, n)
             }
         }
         "frac_iter" =>
@@ -871,37 +974,66 @@ pub fn set_commands(
         }
         "2d" =>
         {
-            match r.parse::<usize>()
-            {
-                Ok(n) => options.samples_2d = n,
-                _ => println!("Invalid 2d sample size"),
-            };
+            options.samples_2d = do_math(
+                get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                *options,
+            )?
+            .num()?
+            .real()
+            .to_f64() as usize
         }
         "3d" =>
         {
             if r.contains(',')
             {
-                match (
-                    r.split(',').next().unwrap().parse::<usize>(),
-                    r.split(',').last().unwrap().parse::<usize>(),
-                )
-                {
-                    (Ok(n), Ok(b)) => options.samples_3d = (n, b),
-                    _ => println!("Invalid 3d sample size"),
-                };
+                options.samples_3d = (
+                    do_math(
+                        get_func(
+                            &input_var(
+                                r.split(',').next().unwrap(),
+                                vars,
+                                &mut Vec::new(),
+                                *options,
+                            ),
+                            *options,
+                        )?,
+                        *options,
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64() as usize,
+                    do_math(
+                        get_func(
+                            &input_var(
+                                r.split(',').last().unwrap(),
+                                vars,
+                                &mut Vec::new(),
+                                *options,
+                            ),
+                            *options,
+                        )?,
+                        *options,
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64() as usize,
+                );
             }
             else
             {
-                match r.parse::<usize>()
-                {
-                    Ok(n) => options.samples_3d = (n, n),
-                    _ => println!("Invalid 3d sample size"),
-                };
+                let n = do_math(
+                    get_func(&input_var(r, vars, &mut Vec::new(), *options), *options)?,
+                    *options,
+                )?
+                .num()?
+                .real()
+                .to_f64();
+                options.xr = (n, n)
             }
         }
-        _ => return false,
+        _ => return Ok(()),
     }
-    true
+    Err("")
 }
 #[allow(clippy::too_many_arguments)]
 pub fn commands(

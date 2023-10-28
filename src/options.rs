@@ -673,8 +673,8 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                 }
             }
             println!(
-                "{}",
-                to_output(&out.chars().collect::<Vec<char>>(), options.color, &colors)
+                "\x1b[J{}",
+                to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
             );
         }
     }
@@ -1306,7 +1306,7 @@ pub fn commands(
         }
         "exit" | "quit" | "break" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[A\x1b[G\x1b[J");
             stdout.flush().unwrap();
             std::process::exit(0);
         }

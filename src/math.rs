@@ -372,7 +372,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         }
                         else
                         {
-                            function.drain(i + 2..place[0]);
+                            function.drain(i + 1..=place[0]);
                         }
                     }
                     else

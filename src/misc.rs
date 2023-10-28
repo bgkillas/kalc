@@ -175,7 +175,7 @@ pub fn read_single_char() -> char
     terminal::disable_raw_mode().unwrap();
     if result == '\x14'
     {
-        println!();
+        print!("\x1b[G\x1b[J");
         std::process::exit(130);
     }
     result

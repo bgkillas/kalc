@@ -286,10 +286,21 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         {
                             place_multiplier(&mut func, &find_word);
                             func.push(Num(Complex::with_val(options.prec, (0, 1))));
+                            if pwr.0 && pwr.1 == 0
+                            {
+                                func.push(Str(')'.to_string()));
+                                pwr.0 = false;
+                            }
                             if scientific
                             {
                                 func.push(Str(")".to_string()));
                                 scientific = false;
+                            }
+                            if subfact.0 && subfact.1 == 0
+                            {
+                                subfact.0 = false;
+                                func.push(Str(")".to_string()));
+                                func.push(Str(")".to_string()))
                             }
                         }
                     }

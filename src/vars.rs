@@ -4,6 +4,7 @@ use std::collections::HashSet;
 pub fn input_var(
     input: &str,
     vars: &[[String; 2]],
+    dont_do: Option<String>,
     sumrec: &mut Vec<(i32, String)>,
     options: Options,
 ) -> String
@@ -208,7 +209,7 @@ pub fn input_var(
                         {
                             not_pushed = false;
                             output.push('(');
-                            output.push_str(&input_var(&var[1], vars, sumrec, options));
+                            output.push_str(&input_var(&var[1], vars, None, sumrec, options));
                             output.push(')');
                         }
                         else
@@ -279,7 +280,8 @@ pub fn input_var(
                                             &format!("({})", &split[i].iter().collect::<String>(),),
                                         );
                                     }
-                                    output.push_str(&input_var(&value, vars, sumrec, options));
+                                    output
+                                        .push_str(&input_var(&value, vars, None, sumrec, options));
                                     output.push(')');
                                 }
                             }
@@ -294,13 +296,14 @@ pub fn input_var(
                                     temp = &temp[..temp.len() - 1];
                                 }
                                 output.push_str(
-                                    &input_var(&var[1], vars, sumrec, options).replace(
+                                    &input_var(&var[1], vars, None, sumrec, options).replace(
                                         v[v.len() - 2],
                                         &format!(
                                             "({})",
                                             &input_var(
                                                 &temp.iter().collect::<String>(),
                                                 vars,
+                                                None,
                                                 sumrec,
                                                 options
                                             ),
@@ -314,17 +317,37 @@ pub fn input_var(
                     else if i + vl <= chars.len()
                         && chars[i..i + vl].iter().collect::<String>() == var[0]
                     {
+                        if let Some(ref n) = dont_do
+                        {
+                            if &var[0] == n
+                            {
+                                return "".to_string();
+                            }
+                        }
                         i += vl;
                         output.push('(');
-                        output.push_str(&input_var(&var[1], vars, sumrec, options));
+                        output.push_str(&input_var(
+                            &var[1],
+                            vars,
+                            Some(var[0].clone()),
+                            sumrec,
+                            options,
+                        ));
                         output.push(')');
                         continue 'main;
                     }
                 }
             }
-            if (c != ' ' || (i == 0 || chars[i - 1] != ' '))
+            if (i == 0 || chars[i - 1] != ' ' || c != ' ')
+                && (if options.small_e
+                {
+                    matches!(c, 'x' | 'y' | 'i' | 'e')
+                }
+                else
+                {
+                    matches!(c, 'x' | 'y' | 'i' | 'E')
+                } || !c.is_alphabetic())
                 && not_pushed
-                && !(c.is_alphabetic() && c != 'x' && c != 'y' && c != 'i')
             {
                 output.push(c);
             }

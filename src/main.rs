@@ -256,6 +256,7 @@ fn main()
                     &input_var(
                         &input.iter().map(convert).collect::<String>(),
                         &vars,
+                        None,
                         &mut Vec::new(),
                         options,
                     ),
@@ -279,6 +280,7 @@ fn main()
             if !(can_graph(&input_var(
                 &input.iter().collect::<String>(),
                 &vars,
+                None,
                 &mut Vec::new(),
                 options,
             )))
@@ -337,6 +339,7 @@ fn main()
                         if !(can_graph(&input_var(
                             &input.iter().collect::<String>(),
                             &vars,
+                            None,
                             &mut Vec::new(),
                             options,
                         )))
@@ -908,25 +911,19 @@ fn main()
                 {
                     continue;
                 }
-                let s = if l.contains('(')
+                if l.contains('(')
                 {
-                    let mut s = l.split('(').next().iter().copied().collect::<String>();
-                    s.push('(');
-                    s
-                }
-                else
-                {
-                    l.clone()
-                };
-                let recur_test = r.split(&s);
-                let count = recur_test.clone().count();
-                for (i, s) in recur_test.enumerate()
-                {
-                    if i + 1 != count
-                        && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                    let s = l.split('(').next().iter().copied().collect::<String>() + "(";
+                    let recur_test = r.split(&s);
+                    let count = recur_test.clone().count();
+                    for (i, s) in recur_test.enumerate()
                     {
-                        println!("recursive functions not supported");
-                        continue 'main;
+                        if i + 1 != count
+                            && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                        {
+                            println!("recursive functions not supported");
+                            continue 'main;
+                        }
                     }
                 }
                 for (i, v) in vars.iter().enumerate()
@@ -969,6 +966,7 @@ fn main()
                 || can_graph(&input_var(
                     &input.iter().collect::<String>(),
                     &vars,
+                    None,
                     &mut Vec::new(),
                     options,
                 )))
@@ -987,7 +985,7 @@ fn main()
                 {
                     continue;
                 }
-                *i = input_var(i, &vars, &mut Vec::new(), options);
+                *i = input_var(i, &vars, None, &mut Vec::new(), options);
                 funcs.push(match get_func(i, options)
                 {
                     Ok(f) => f,

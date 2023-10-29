@@ -162,6 +162,7 @@ pub fn print_concurrent(
             .collect::<String>()
             .replace('_', &format!("({})", last.iter().collect::<String>())),
         vars,
+        None,
         &mut Vec::new(),
         options,
     );

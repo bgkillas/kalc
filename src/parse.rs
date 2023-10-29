@@ -739,18 +739,21 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                                     {
                                         if let Str(s) = &func[j - 1]
                                         {
-                                            if s != "subfact" && s != "("
+                                            if s.chars().next().unwrap().is_alphabetic()
                                             {
-                                                func.insert(j, Str("(".to_string()));
+                                                func.insert(j - 1, Str("(".to_string()));
                                                 if i + 1 != chars.len() && chars[i + 1] == '!'
                                                 {
                                                     i += 1;
+                                                    func.insert(j, Str("(".to_string()));
                                                     func.insert(j, Str("doublefact".to_string()));
                                                 }
                                                 else
                                                 {
+                                                    func.insert(j, Str("(".to_string()));
                                                     func.insert(j, Str("fact".to_string()));
                                                 }
+                                                func.push(Str(")".to_string()));
                                                 func.push(Str(")".to_string()));
                                                 i += 1;
                                                 continue 'outer;

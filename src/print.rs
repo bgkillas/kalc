@@ -8,6 +8,7 @@ use crate::{
     graph::can_graph,
     math::do_math,
     misc::{clear, handle_err, no_col, prompt, to_output},
+    options::equal_to,
     parse::get_func,
     vars::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -166,6 +167,41 @@ pub fn print_concurrent(
         &mut Vec::new(),
         options,
     );
+    {
+        let input = unmodified_input.iter().collect::<String>();
+        if input
+            .replace("==", "")
+            .replace("!=", "")
+            .replace(">=", "")
+            .replace("<=", "")
+            .contains('=')
+            || input.ends_with('=')
+        {
+            return if input.ends_with('=')
+            {
+                print!("\n\x1b[G\x1b[K");
+                equal_to(
+                    options,
+                    colors,
+                    vars,
+                    &input[..input.len() - 1],
+                    &last.iter().collect::<String>(),
+                );
+                print!(
+                    "\x1b[A\x1b[G\x1b[K{}{}{}",
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                1
+            }
+            else
+            {
+                clear(unmodified_input, start, end, options, colors);
+                0
+            };
+        }
+    }
     if can_graph(input)
     {
         clear(unmodified_input, start, end, options, colors);

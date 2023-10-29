@@ -11,7 +11,7 @@ use crate::{
 };
 use std::{
     fs::File,
-    io::{stdout, BufRead, BufReader, Stdout, Write},
+    io::{BufRead, BufReader, Stdout, Write},
     time::Instant,
 };
 pub fn arg_opts(
@@ -563,7 +563,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
 {
     match l
     {
-        "colors" => println!(
+        "colors" => print!(
             "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={}\x1b[0m",
             colors.text,
             &colors.text[2..],
@@ -578,31 +578,31 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                 .iter()
                 .fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..]))
         ),
-        "color" => println!("{}", options.color),
-        "prompt" => println!("{}", options.prompt),
-        "rt" => println!("{}", options.real_time_output),
-        "sci" | "scientific" => println!("{}", options.sci),
-        "debug" => println!("{}", options.debug),
-        "line" => println!("{}", options.lines),
-        "polar" => println!("{}", options.polar),
-        "frac" => println!("{}", options.frac),
-        "multi" => println!("{}", options.multi),
-        "tabbed" => println!("{}", options.tabbed),
-        "comma" => println!("{}", options.comma),
-        "point" => println!("{}", options.point_style),
-        "base" => println!("{}", options.base),
-        "decimal" | "deci" | "decimals" => println!("{}", options.decimal_places),
-        "prec" | "precision" => println!("{}", options.prec),
-        "xr" => println!("{},{}", options.xr.0, options.xr.1),
-        "yr" => println!("{},{}", options.yr.0, options.yr.1),
-        "zr" => println!("{},{}", options.zr.0, options.zr.1),
-        "range" => println!(
+        "color" => print!("{}", options.color),
+        "prompt" => print!("{}", options.prompt),
+        "rt" => print!("{}", options.real_time_output),
+        "sci" | "scientific" => print!("{}", options.sci),
+        "debug" => print!("{}", options.debug),
+        "line" => print!("{}", options.lines),
+        "polar" => print!("{}", options.polar),
+        "frac" => print!("{}", options.frac),
+        "multi" => print!("{}", options.multi),
+        "tabbed" => print!("{}", options.tabbed),
+        "comma" => print!("{}", options.comma),
+        "point" => print!("{}", options.point_style),
+        "base" => print!("{}", options.base),
+        "decimal" | "deci" | "decimals" => print!("{}", options.decimal_places),
+        "prec" | "precision" => print!("{}", options.prec),
+        "xr" => print!("{},{}", options.xr.0, options.xr.1),
+        "yr" => print!("{},{}", options.yr.0, options.yr.1),
+        "zr" => print!("{},{}", options.zr.0, options.zr.1),
+        "range" => print!(
             "x:{},{} y:{},{} z:{},{}",
             options.xr.0, options.xr.1, options.yr.0, options.yr.1, options.zr.0, options.zr.1
         ),
-        "frac_iter" => println!("{}", options.frac_iter),
-        "2d" => println!("{}", options.samples_2d),
-        "3d" => println!("{} {}", options.samples_3d.0, options.samples_3d.1),
+        "frac_iter" => print!("{}", options.frac_iter),
+        "2d" => print!("{}", options.samples_2d),
+        "3d" => print!("{} {}", options.samples_3d.0, options.samples_3d.1),
         _ =>
         {
             let mut out = String::new();
@@ -674,11 +674,9 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                 }
             }
             print!(
-                "\x1b[G\x1b[J{}\n{}",
+                "{}",
                 to_output(&out.chars().collect::<Vec<char>>(), options.color, colors),
-                prompt(options, colors)
             );
-            stdout().flush().unwrap()
         }
     }
 }

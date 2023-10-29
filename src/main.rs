@@ -15,9 +15,7 @@ use crate::{
     misc::{
         clear, clearln, convert, get_terminal_width, handle_err, prompt, read_single_char, write,
     },
-    options::{
-        arg_opts, commands, equal_to, file_opts, set_commands, AngleType, AngleType::Radians,
-    },
+    options::{arg_opts, commands, file_opts, set_commands, AngleType, AngleType::Radians},
     parse::get_func,
     print::{print_answer, print_concurrent},
     vars::{get_cli_vars, get_vars, input_var},
@@ -135,9 +133,14 @@ fn main()
             "C:\\Users\\{}\\AppData\\Roaming\\kalc.config",
             var("USERNAME").unwrap()
         );
-        if file_opts(&mut options, &mut colors, file_path).is_err()
-            || arg_opts(&mut options, &mut colors, &mut args).is_err()
+        if let Err(s) = file_opts(&mut options, &mut colors, file_path)
         {
+            println!("{}", s);
+            std::process::exit(1);
+        }
+        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args)
+        {
+            println!("{}", s);
             std::process::exit(1);
         }
     }
@@ -871,93 +874,86 @@ fn main()
                 file.as_mut().unwrap(),
                 unmod_lines.as_mut().unwrap(),
             );
-            if input.ends_with(&['='])
+            if !input.ends_with(&['='])
             {
-                equal_to(
-                    options,
-                    &colors,
-                    &vars,
-                    &input[..input.len() - 1].iter().collect::<String>(),
-                    &last.iter().collect::<String>(),
-                )
-            }
-            else if input
-                .iter()
-                .collect::<String>()
-                .replace("==", "")
-                .replace("!=", "")
-                .replace(">=", "")
-                .replace("<=", "")
-                .contains('=')
-            {
-                let n = input.iter().collect::<String>();
-                let mut split = n.splitn(2, '=');
-                let s = split.next().unwrap().replace(' ', "");
-                let l = s;
-                let r = split.next().unwrap();
-                if l.is_empty()
-                    || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
-                    {
-                        Err(s) =>
+                if input
+                    .iter()
+                    .collect::<String>()
+                    .replace("==", "")
+                    .replace("!=", "")
+                    .replace(">=", "")
+                    .replace("<=", "")
+                    .contains('=')
+                {
+                    let n = input.iter().collect::<String>();
+                    let mut split = n.splitn(2, '=');
+                    let s = split.next().unwrap().replace(' ', "");
+                    let l = s;
+                    let r = split.next().unwrap();
+                    if l.is_empty()
+                        || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
                         {
-                            if !s.is_empty()
+                            Err(s) =>
                             {
-                                handle_err(s, &input, options, &colors, start, end)
+                                if !s.is_empty()
+                                {
+                                    handle_err(s, &input, options, &colors, start, end)
+                                }
+                                true
                             }
-                            true
+                            _ => false,
                         }
-                        _ => false,
-                    }
-                {
-                    continue;
-                }
-                if l.contains('(')
-                {
-                    let s = l.split('(').next().iter().copied().collect::<String>() + "(";
-                    let recur_test = r.split(&s);
-                    let count = recur_test.clone().count();
-                    for (i, s) in recur_test.enumerate()
                     {
-                        if i + 1 != count
-                            && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                        continue;
+                    }
+                    if l.contains('(')
+                    {
+                        let s = l.split('(').next().iter().copied().collect::<String>() + "(";
+                        let recur_test = r.split(&s);
+                        let count = recur_test.clone().count();
+                        for (i, s) in recur_test.enumerate()
                         {
-                            println!("recursive functions not supported");
+                            if i + 1 != count
+                                && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                            {
+                                println!("recursive functions not supported");
+                                continue 'main;
+                            }
+                        }
+                    }
+                    for (i, v) in vars.iter().enumerate()
+                    {
+                        if v[0].split('(').next() == l.split('(').next()
+                            && v[0].find(',').iter().count() == l.find(',').iter().count()
+                        {
+                            if r == "null"
+                            {
+                                vars.remove(i);
+                            }
+                            else
+                            {
+                                vars[i] = [l.to_string(), r.to_string()];
+                            }
                             continue 'main;
                         }
                     }
-                }
-                for (i, v) in vars.iter().enumerate()
-                {
-                    if v[0].split('(').next() == l.split('(').next()
-                        && v[0].find(',').iter().count() == l.find(',').iter().count()
+                    for (i, j) in vars.iter().enumerate()
                     {
-                        if r == "null"
+                        if j[0].chars().count() <= l.chars().count()
                         {
-                            vars.remove(i);
+                            vars.insert(i, [l.to_string(), r.to_string()]);
+                            break;
                         }
-                        else
-                        {
-                            vars[i] = [l.to_string(), r.to_string()];
-                        }
-                        continue 'main;
+                    }
+                    if vars.is_empty()
+                    {
+                        vars.push([l.to_string(), r.to_string()]);
                     }
                 }
-                for (i, j) in vars.iter().enumerate()
+                else
                 {
-                    if j[0].chars().count() <= l.chars().count()
-                    {
-                        vars.insert(i, [l.to_string(), r.to_string()]);
-                        break;
-                    }
+                    graphable = true;
                 }
-                if vars.is_empty()
-                {
-                    vars.push([l.to_string(), r.to_string()]);
-                }
-            }
-            else
-            {
-                graphable = true;
             }
         }
         if graphable

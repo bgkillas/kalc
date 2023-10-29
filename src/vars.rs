@@ -68,7 +68,6 @@ pub fn input_var(
     'main: while i < chars.len()
     {
         let c = chars[i];
-        let mut not_pushed = true;
         if !c.is_alphabetic()
         {
             if c == '('
@@ -144,6 +143,16 @@ pub fn input_var(
             }
         }
         if functions.contains(word.as_str())
+            && !vars.iter().any(|a| {
+                if a[0].contains('(')
+                {
+                    a[0][..a[0].find('(').unwrap()] == word
+                }
+                else
+                {
+                    a[0] == word
+                }
+            })
         {
             i += word.len();
             output.push_str(&word)
@@ -207,10 +216,11 @@ pub fn input_var(
                         }
                         if chars[j..i + 1].iter().collect::<String>() == var[0]
                         {
-                            not_pushed = false;
                             output.push('(');
                             output.push_str(&input_var(&var[1], vars, None, sumrec, options));
                             output.push(')');
+                            i += 1;
+                            continue 'main;
                         }
                         else
                         {
@@ -235,7 +245,6 @@ pub fn input_var(
                             let v = var[0].chars().collect::<Vec<char>>();
                             if input.contains(',') && var[0].contains(',') && chars.len() > 4
                             {
-                                not_pushed = false;
                                 output.push('(');
                                 let mut temp = &chars
                                     [j + var[0].chars().position(|c| c == '(').unwrap() + 1..i + 1];
@@ -283,14 +292,17 @@ pub fn input_var(
                                     output
                                         .push_str(&input_var(&value, vars, None, sumrec, options));
                                     output.push(')');
+                                    i += 1;
+                                    continue 'main;
                                 }
                             }
                             else
                             {
-                                not_pushed = false;
                                 output.push('(');
-                                let mut temp =
-                                    &chars[j + var[0].split('(').next().unwrap().len() + 1..i + 1];
+                                let mut temp = &chars[j
+                                    + var[0].split('(').next().unwrap().chars().count()
+                                    + 1
+                                    ..i + 1];
                                 if temp.ends_with(&[')'])
                                 {
                                     temp = &temp[..temp.len() - 1];
@@ -311,6 +323,8 @@ pub fn input_var(
                                     ),
                                 );
                                 output.push(')');
+                                i += 1;
+                                continue 'main;
                             }
                         }
                     }
@@ -341,13 +355,12 @@ pub fn input_var(
             if (i == 0 || chars[i - 1] != ' ' || c != ' ')
                 && (if options.small_e
                 {
-                    matches!(c, 'x' | 'y' | 'i' | 'e')
+                    matches!(c, 'x' | 'y' | 'i')
                 }
                 else
                 {
                     matches!(c, 'x' | 'y' | 'i' | 'E')
                 } || !c.is_alphabetic())
-                && not_pushed
             {
                 output.push(c);
             }

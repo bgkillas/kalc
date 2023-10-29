@@ -147,20 +147,47 @@ impl NumStr
     }
     pub fn pow(&self, b: &Self) -> Result<Self, &'static str>
     {
+        fn p(a: &Complex, b: &Complex) -> Complex
+        {
+            if a.real().is_infinite()
+            {
+                if b.real().is_sign_negative()
+                {
+                    Complex::with_val(a.prec(), Infinity)
+                }
+                else
+                {
+                    Complex::new(a.prec())
+                }
+            }
+            else if b.real().is_infinite()
+            {
+                match (
+                    b.real().is_sign_positive(),
+                    a.real().clone().trunc().is_zero(),
+                )
+                {
+                    (true, true) | (false, false) => Complex::new(a.prec()),
+                    (false, true) | (true, false) => Complex::with_val(a.prec(), Infinity),
+                }
+            }
+            else
+            {
+                a.pow(b.clone())
+            }
+        }
         Ok(match (self, b)
         {
-            (Num(a), Num(b)) => Num(a.pow(b.clone())),
-            (Num(a), Vector(b)) => Vector(b.iter().map(|b| a.pow(b.clone())).collect()),
-            (Vector(a), Num(b)) => Vector(a.iter().map(|a| a.pow(b.clone())).collect()),
-            (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.pow(b.clone()))
-                    .collect(),
-            ),
+            (Num(a), Num(b)) => Num(p(a, b)),
+            (Num(a), Vector(b)) => Vector(b.iter().map(|b| p(a, b)).collect()),
+            (Vector(a), Num(b)) => Vector(a.iter().map(|a| p(a, b)).collect()),
+            (Vector(a), Vector(b)) if a.len() == b.len() =>
+            {
+                Vector(a.iter().zip(b.iter()).map(|(a, b)| p(a, b)).collect())
+            }
             (Num(a), Matrix(b)) => Matrix(
                 b.iter()
-                    .map(|b| b.iter().map(|b| a.pow(b.clone())).collect())
+                    .map(|b| b.iter().map(|b| p(a, b)).collect())
                     .collect(),
             ),
             (Matrix(a), Num(b)) if a.len() == a[0].len() =>
@@ -216,13 +243,13 @@ impl NumStr
             (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| b.pow(a.clone())).collect())
+                    .map(|(a, b)| a.iter().map(|a| p(b, a)).collect())
                     .collect(),
             ),
             (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a.pow(b.clone())).collect())
+                    .map(|(a, b)| a.iter().map(|a| p(a, b)).collect())
                     .collect(),
             ),
             (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
@@ -231,7 +258,7 @@ impl NumStr
                     .map(|(a, b)| {
                         a.iter()
                             .zip(b.iter())
-                            .map(|(a, b)| a.pow(b.clone()))
+                            .map(|(a, b)| p(a, b))
                             .collect::<Vec<Complex>>()
                     })
                     .collect(),

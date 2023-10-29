@@ -88,7 +88,7 @@ FLAGS: --help (this message)
 - Type "rnd" to generate a random number
 
 Operators:
-- +, -, *, /, ^, ^^, %, <, >, <=, >=, |, ±/+-
+- +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-
 - !x (subfact), x! (fact), x!! (doublefact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)

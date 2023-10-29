@@ -323,7 +323,7 @@ pub fn prompt(options: Options, colors: &Colors) -> String
     {
         if options.color
         {
-            format!("{}> {}", colors.prompt, colors.text)
+            format!("{}>{} ", colors.prompt, colors.text)
         }
         else
         {

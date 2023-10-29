@@ -141,6 +141,16 @@ fn main()
             std::process::exit(1);
         }
     }
+    if !stdin().is_terminal()
+    {
+        for line in stdin().lock().lines()
+        {
+            if !line.as_ref().unwrap().is_empty()
+            {
+                args.push(line.unwrap());
+            }
+        }
+    }
     let mut vars: Vec<[String; 2]> = if options.allow_vars
     {
         if args.is_empty()
@@ -188,16 +198,6 @@ fn main()
                         }
                     }
                 }
-            }
-        }
-    }
-    if !stdin().is_terminal()
-    {
-        for line in stdin().lock().lines()
-        {
-            if !line.as_ref().unwrap().is_empty()
-            {
-                args.push(line.unwrap());
             }
         }
     }
@@ -249,8 +249,7 @@ fn main()
             {
                 watch = Some(Instant::now());
             }
-            input = args.first().unwrap().chars().collect();
-            args.remove(0);
+            input = args.remove(0).chars().collect();
             print_answer(
                 &input.iter().collect::<String>(),
                 match get_func(

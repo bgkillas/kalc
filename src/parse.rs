@@ -147,7 +147,8 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             }
             if neg
             {
-                if chars.len() > i && chars[i] == '^'
+                if chars.len() > i + 1
+                    && (chars[i] == '^' || (chars[i] == '/' && chars[i + 1] == '/'))
                 {
                     func.push(Num(n1.clone()));
                     func.push(Str('*'.to_string()));
@@ -429,20 +430,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 {
                     func.push(Str("&&".to_string()));
                 }
-                '*' if i != 0
-                    && i + 1 != chars.len()
-                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
-                {
-                    if i + 1 != chars.len() && chars[i + 1] == '*'
-                    {
-                        func.push(Str("^".to_string()));
-                        i += 1;
-                    }
-                    else
-                    {
-                        func.push(Str('*'.to_string()));
-                    }
-                }
                 '=' if i != 0
                     && i + 1 < chars.len()
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
@@ -485,11 +472,33 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     func.push(Str("±".to_string()))
                 }
+                '*' if i != 0
+                    && i + 1 != chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                {
+                    if chars[i + 1] == '*'
+                    {
+                        func.push(Str("^".to_string()));
+                        i += 1;
+                    }
+                    else
+                    {
+                        func.push(Str('*'.to_string()));
+                    }
+                }
                 '/' if i != 0
                     && i + 1 != chars.len()
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    func.push(Str('/'.to_string()))
+                    if chars[i + 1] == '/'
+                    {
+                        func.push(Str("//".to_string()));
+                        i += 1;
+                    }
+                    else
+                    {
+                        func.push(Str('/'.to_string()));
+                    }
                 }
                 '+' if i != 0
                     && i + 1 != chars.len()

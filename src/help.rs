@@ -53,7 +53,7 @@ FLAGS: --help (this message)\n\
 - Type \"number#\" to graph a complex number\n\
 - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\n\
 Operators:\n\
-- +, -, *, /, ^, %, <, >, <=, >=, |, ±/+-\n\
+- +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-\n\
 - !x (subfact), x! (fact), x!! (doublefact)\n\
 - && (and), || (or), == (equals), != (not equals)\n\
 - >> (right shift), << (left shift)\n\n\

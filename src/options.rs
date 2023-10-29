@@ -11,7 +11,7 @@ use crate::{
 };
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Stdout, Write},
+    io::{stdout, BufRead, BufReader, Stdout, Write},
     time::Instant,
 };
 pub fn arg_opts(
@@ -672,10 +672,12 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                     Str(n) => out.push_str(&n),
                 }
             }
-            println!(
-                "\x1b[J{}",
-                to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
+            print!(
+                "\x1b[G\x1b[J{}\n{}",
+                to_output(&out.chars().collect::<Vec<char>>(), options.color, colors),
+                prompt(options, colors)
             );
+            stdout().flush().unwrap()
         }
     }
 }

@@ -1,8 +1,8 @@
 use crate::{
     complex::{
-        add, and, cofactor, determinant, div, eq, gamma, ge, gt, inverse, le, lt, minors, mvec, ne,
-        nth_prime, or, rem, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, transpose,
-        NumStr,
+        add, and, cofactor, determinant, div, eq, gamma, ge, gt, identity, inverse, le, lt, minors,
+        mvec, ne, nth_prime, or, rem, root, shl, shr, slog, sort, sub, sum, tetration, to,
+        to_polar, trace, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     options::AngleType::{Degrees, Gradians, Radians},
@@ -426,19 +426,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         "transpose" | "trans" => Matrix(transpose(&a)?),
                         "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
                         "wid" | "width" => Num(Complex::with_val(options.prec, a[0].len())),
-                        "tr" | "trace" =>
-                        {
-                            let mut n = Complex::new(options.prec);
-                            for (i, j) in a.iter().enumerate()
-                            {
-                                if j.len() == i
-                                {
-                                    break;
-                                }
-                                n += j[i].clone();
-                            }
-                            Num(n)
-                        }
+                        "tr" | "trace" => Num(trace(&a)),
                         "det" | "determinant" => Num(determinant(&a)?),
                         "part" =>
                         {
@@ -992,28 +980,10 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 Complex::with_val(options.prec, a.imag()),
                             ])
                         }
-                        "I" =>
-                        {
-                            let a = function[i + 1].num()?.real().to_f64() as usize;
-                            let mut mat = Vec::with_capacity(a);
-                            for i in 0..a
-                            {
-                                let mut vec = Vec::with_capacity(a);
-                                for j in 0..a
-                                {
-                                    if i == j
-                                    {
-                                        vec.push(Complex::with_val(options.prec, 1));
-                                    }
-                                    else
-                                    {
-                                        vec.push(Complex::new(options.prec));
-                                    }
-                                }
-                                mat.push(vec);
-                            }
-                            Matrix(mat)
-                        }
+                        "I" => Matrix(identity(
+                            function[i + 1].num()?.real().to_f64() as usize,
+                            options.prec,
+                        )),
                         "rotate" =>
                         {
                             let a = function[i + 1].num()? / to_deg.clone();
@@ -1123,6 +1093,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
             {
                 "^" => function[i] = function[i - 1].pow(&function[i + 1])?,
                 "^^" => function[i] = function[i - 1].func(&function[i + 1], tetration)?,
+                "//" => function[i] = function[i - 1].func(&function[i + 1], root)?,
                 _ =>
                 {
                     i -= 1;
@@ -1641,8 +1612,9 @@ fn functions(
         {
             if let Some(b) = c
             {
+                let c: Float = b.real().clone() / 2;
                 match b.imag().is_zero()
-                    && (b.real().to_f64() / 2.0).fract() != 0.0
+                    && !c.fract().is_zero()
                     && b.real().clone().fract().is_zero()
                     && a.imag().is_zero()
                 {

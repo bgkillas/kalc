@@ -362,6 +362,22 @@ pub fn div(a: &Complex, b: &Complex) -> Complex
         a / b.clone()
     }
 }
+pub fn root(a: &Complex, b: &Complex) -> Complex
+{
+    let c: Float = b.real().clone() / 2;
+    match b.imag().is_zero()
+        && !c.fract().is_zero()
+        && b.real().clone().fract().is_zero()
+        && a.imag().is_zero()
+    {
+        true => Complex::with_val(
+            a.prec(),
+            a.real() / a.real().clone().abs()
+                * a.real().clone().abs().pow(b.real().clone().recip()),
+        ),
+        false => a.pow(b.clone().recip()),
+    }
+}
 pub fn add(a: &Complex, b: &Complex) -> Complex
 {
     a + b.clone()
@@ -770,20 +786,49 @@ pub fn submatrix(a: &[Vec<Complex>], row: usize, col: usize) -> Vec<Vec<Complex>
         })
         .collect()
 }
+pub fn trace(a: &[Vec<Complex>]) -> Complex
+{
+    let mut n = Complex::new(a[0][0].prec());
+    for (i, j) in a.iter().enumerate()
+    {
+        if j.len() == i
+        {
+            break;
+        }
+        n += j[i].clone();
+    }
+    n
+}
+pub fn identity(a: usize, prec: u32) -> Vec<Vec<Complex>>
+{
+    let mut mat = Vec::with_capacity(a);
+    for i in 0..a
+    {
+        let mut vec = Vec::with_capacity(a);
+        for j in 0..a
+        {
+            if i == j
+            {
+                vec.push(Complex::with_val(prec, 1));
+            }
+            else
+            {
+                vec.push(Complex::new(prec));
+            }
+        }
+        mat.push(vec);
+    }
+    mat
+}
 pub fn determinant(a: &[Vec<Complex>]) -> Result<Complex, &'static str>
 {
     if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        Ok(
-            if a.len() == 1
-            {
-                a[0][0].clone()
-            }
-            else if a.len() == 2
-            {
-                a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone()
-            }
-            else if a.len() == 3
+        Ok(match a.len()
+        {
+            1 => a[0][0].clone(),
+            2 => a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone(),
+            3 =>
             {
                 a[0][0].clone()
                     * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
@@ -792,7 +837,7 @@ pub fn determinant(a: &[Vec<Complex>]) -> Result<Complex, &'static str>
                     + a[0][2].clone()
                         * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
             }
-            else
+            _ =>
             {
                 let mut det = Complex::new(a[0][0].prec());
                 for (i, x) in a[0].iter().enumerate()
@@ -805,8 +850,8 @@ pub fn determinant(a: &[Vec<Complex>]) -> Result<Complex, &'static str>
                     det += x * determinant(&sub_matrix)? * if i % 2 == 0 { 1.0 } else { -1.0 };
                 }
                 det
-            },
-        )
+            }
+        })
     }
     else
     {

@@ -185,13 +185,15 @@ pub fn input_var(
                     let j = i;
                     if var[0].contains('(')
                         && input.contains('(')
-                        && i + vl - 1 <= chars.len()
-                        && chars[i..i + vl - 1]
-                            .iter()
-                            .collect::<String>()
-                            .split('(')
-                            .next()
-                            == var[0].split('(').next()
+                        && match chars[i..].iter().position(|c| c == &'(')
+                        {
+                            Some(n) =>
+                            {
+                                chars[i..n].iter().collect::<String>()
+                                    == var[0].split('(').next().unwrap()
+                            }
+                            _ => false,
+                        }
                     {
                         let mut count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
@@ -289,26 +291,41 @@ pub fn input_var(
                                     }
                                     split.push(&temp[start..]);
                                     let mut vars = vars.to_vec();
-                                    for k in 0..split.len()
+                                    let mut func_vars: Vec<String> = Vec::new();
+                                    start = 0;
+                                    for (f, c) in v.iter().enumerate()
                                     {
-                                        //TODO make a string not char
-                                        let l = v[v.len()
-                                            - (2 * (k as i32 - split.len() as i32).unsigned_abs()
-                                                as usize)]
-                                            .to_string();
+                                        if c == &'(' || c == &'{' || c == &'['
+                                        {
+                                            if count == 0
+                                            {
+                                                start = f + 1;
+                                            }
+                                            count += 1;
+                                        }
+                                        else if c == &')' || c == &'}' || c == &']'
+                                        {
+                                            count -= 1;
+                                            if count == 0
+                                            {
+                                                func_vars.push(v[start..f].iter().collect());
+                                            }
+                                        }
+                                        else if c == &',' && count == 1
+                                        {
+                                            func_vars.push(v[start..f].iter().collect());
+                                            start = f + 1;
+                                        }
+                                    }
+                                    for (var, func_var) in split.iter().zip(func_vars)
+                                    {
                                         for (i, j) in vars.iter().enumerate()
                                         {
-                                            if j[0].chars().count() <= l.len()
+                                            if j[0].chars().count() <= func_var.len()
                                             {
                                                 vars.insert(
                                                     i,
-                                                    [
-                                                        l,
-                                                        format!(
-                                                            "({})",
-                                                            split[k].iter().collect::<String>()
-                                                        ),
-                                                    ],
+                                                    [func_var, var.iter().collect::<String>()],
                                                 );
                                                 break;
                                             }
@@ -341,10 +358,7 @@ pub fn input_var(
                                 {
                                     if j[0].chars().count() <= l.len()
                                     {
-                                        vars.insert(
-                                            i,
-                                            [l, format!("({})", temp.iter().collect::<String>())],
-                                        );
+                                        vars.insert(i, [l, temp.iter().collect::<String>()]);
                                         break;
                                     }
                                 }

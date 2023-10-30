@@ -179,21 +179,23 @@ pub fn print_concurrent(
         {
             return if input.ends_with('=')
             {
-                print!("\n\x1b[G\x1b[J");
-                equal_to(
+                let out = equal_to(
                     options,
                     colors,
                     vars,
                     &input[..input.len() - 1],
                     &last.iter().collect::<String>(),
                 );
+                let wrap = no_col(&out, options.color).len() / get_terminal_width() + 1;
                 print!(
-                    "\x1b[A\x1b[G\x1b[K{}{}{}",
+                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    out,
+                    "\x1b[A".repeat(wrap),
                     prompt(options, colors),
                     to_output(&unmodified_input[start..end], options.color, colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                1
+                wrap
             }
             else
             {

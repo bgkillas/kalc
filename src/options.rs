@@ -559,11 +559,17 @@ pub fn file_opts(
     }
     Ok(())
 }
-pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str, last: &str)
+pub fn equal_to(
+    options: Options,
+    colors: &Colors,
+    vars: &[[String; 2]],
+    l: &str,
+    last: &str,
+) -> String
 {
     match l
     {
-        "colors" => print!(
+        "colors" => format!(
             "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={}\x1b[0m",
             colors.text,
             &colors.text[2..],
@@ -578,31 +584,31 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                 .iter()
                 .fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..]))
         ),
-        "color" => print!("{}", options.color),
-        "prompt" => print!("{}", options.prompt),
-        "rt" => print!("{}", options.real_time_output),
-        "sci" | "scientific" => print!("{}", options.sci),
-        "debug" => print!("{}", options.debug),
-        "line" => print!("{}", options.lines),
-        "polar" => print!("{}", options.polar),
-        "frac" => print!("{}", options.frac),
-        "multi" => print!("{}", options.multi),
-        "tabbed" => print!("{}", options.tabbed),
-        "comma" => print!("{}", options.comma),
-        "point" => print!("{}", options.point_style),
-        "base" => print!("{}", options.base),
-        "decimal" | "deci" | "decimals" => print!("{}", options.decimal_places),
-        "prec" | "precision" => print!("{}", options.prec),
-        "xr" => print!("{},{}", options.xr.0, options.xr.1),
-        "yr" => print!("{},{}", options.yr.0, options.yr.1),
-        "zr" => print!("{},{}", options.zr.0, options.zr.1),
-        "range" => print!(
+        "color" => format!("{}", options.color),
+        "prompt" => format!("{}", options.prompt),
+        "rt" => format!("{}", options.real_time_output),
+        "sci" | "scientific" => format!("{}", options.sci),
+        "debug" => format!("{}", options.debug),
+        "line" => format!("{}", options.lines),
+        "polar" => format!("{}", options.polar),
+        "frac" => format!("{}", options.frac),
+        "multi" => format!("{}", options.multi),
+        "tabbed" => format!("{}", options.tabbed),
+        "comma" => format!("{}", options.comma),
+        "point" => format!("{}", options.point_style),
+        "base" => format!("{}", options.base),
+        "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
+        "prec" | "precision" => format!("{}", options.prec),
+        "xr" => format!("{},{}", options.xr.0, options.xr.1),
+        "yr" => format!("{},{}", options.yr.0, options.yr.1),
+        "zr" => format!("{},{}", options.zr.0, options.zr.1),
+        "range" => format!(
             "x:{},{} y:{},{} z:{},{}",
             options.xr.0, options.xr.1, options.yr.0, options.yr.1, options.zr.0, options.zr.1
         ),
-        "frac_iter" => print!("{}", options.frac_iter),
-        "2d" => print!("{}", options.samples_2d),
-        "3d" => print!("{} {}", options.samples_3d.0, options.samples_3d.1),
+        "frac_iter" => format!("{}", options.frac_iter),
+        "2d" => format!("{}", options.samples_2d),
+        "3d" => format!("{} {}", options.samples_3d.0, options.samples_3d.1),
         _ =>
         {
             let mut out = String::new();
@@ -618,7 +624,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
             )
             {
                 Ok(n) => n,
-                _ => return,
+                _ => return "".to_string(),
             }
             {
                 match i
@@ -673,10 +679,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[[String; 2]], l: &str
                     Str(n) => out.push_str(&n),
                 }
             }
-            print!(
-                "{}",
-                to_output(&out.chars().collect::<Vec<char>>(), options.color, colors),
-            );
+            to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
         }
     }
 }

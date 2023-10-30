@@ -1724,7 +1724,17 @@ fn functions(
         },
         "re" | "real" => Complex::with_val(options.prec, a.real()),
         "im" | "imag" => Complex::with_val(options.prec, a.imag()),
-        "sgn" | "sign" => Complex::with_val(options.prec, a.clone() / a.abs()),
+        "sgn" | "sign" =>
+        {
+            if a.is_zero()
+            {
+                Complex::new(options.prec)
+            }
+            else
+            {
+                Complex::with_val(options.prec, a.clone() / a.abs())
+            }
+        }
         "arg" => a.arg(),
         "cbrt" | "acube" =>
         {

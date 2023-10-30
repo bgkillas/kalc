@@ -225,12 +225,21 @@ pub fn input_var(
                         else
                         {
                             let mut k = 0;
+                            count = 0;
                             for (f, c) in chars[j + 2..].iter().enumerate()
                             {
-                                if *c == ')'
+                                if *c == ')' && count == 0
                                 {
                                     k = f + j + 3;
                                     break;
+                                }
+                                else if *c == '('
+                                {
+                                    count += 1;
+                                }
+                                else if *c == ')'
+                                {
+                                    count -= 1;
                                 }
                                 else if f + j + 3 == chars.len()
                                 {
@@ -279,18 +288,35 @@ pub fn input_var(
                                         start = end + 1;
                                     }
                                     split.push(&temp[start..]);
-                                    let mut value = var[1].clone();
-                                    for i in 0..split.len()
+                                    let mut vars = vars.to_vec();
+                                    for k in 0..split.len()
                                     {
-                                        value = value.replace(
-                                            v[v.len()
-                                                - 2 * (i as i32 - split.len() as i32).unsigned_abs()
-                                                    as usize],
-                                            &format!("({})", &split[i].iter().collect::<String>(),),
-                                        );
+                                        //TODO make a string not char
+                                        let l = v[v.len()
+                                            - (2 * (k as i32 - split.len() as i32).unsigned_abs()
+                                                as usize)]
+                                            .to_string();
+                                        for (i, j) in vars.iter().enumerate()
+                                        {
+                                            if j[0].chars().count() <= l.len()
+                                            {
+                                                vars.insert(
+                                                    i,
+                                                    [
+                                                        l,
+                                                        format!(
+                                                            "({})",
+                                                            split[k].iter().collect::<String>()
+                                                        ),
+                                                    ],
+                                                );
+                                                break;
+                                            }
+                                        }
                                     }
-                                    output
-                                        .push_str(&input_var(&value, vars, None, sumrec, options));
+                                    output.push_str(&input_var(
+                                        &var[1], &vars, None, sumrec, options,
+                                    ));
                                     output.push(')');
                                     i += 1;
                                     continue 'main;
@@ -307,21 +333,22 @@ pub fn input_var(
                                 {
                                     temp = &temp[..temp.len() - 1];
                                 }
-                                output.push_str(
-                                    &input_var(&var[1], vars, None, sumrec, options).replace(
-                                        v[v.len() - 2],
-                                        &format!(
-                                            "({})",
-                                            &input_var(
-                                                &temp.iter().collect::<String>(),
-                                                vars,
-                                                None,
-                                                sumrec,
-                                                options
-                                            ),
-                                        ),
-                                    ),
-                                );
+                                let l = v[var[0].find('(').unwrap() + 1..v.len() - 1]
+                                    .iter()
+                                    .collect::<String>();
+                                let mut vars = vars.to_vec();
+                                for (i, j) in vars.iter().enumerate()
+                                {
+                                    if j[0].chars().count() <= l.len()
+                                    {
+                                        vars.insert(
+                                            i,
+                                            [l, format!("({})", temp.iter().collect::<String>())],
+                                        );
+                                        break;
+                                    }
+                                }
+                                output.push_str(&input_var(&var[1], &vars, None, sumrec, options));
                                 output.push(')');
                                 i += 1;
                                 continue 'main;

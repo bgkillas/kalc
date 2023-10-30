@@ -179,7 +179,7 @@ pub fn print_concurrent(
         {
             return if input.ends_with('=')
             {
-                print!("\n\x1b[G\x1b[K");
+                print!("\n\x1b[G\x1b[J");
                 equal_to(
                     options,
                     colors,

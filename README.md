@@ -21,6 +21,7 @@ config defaults listed in kalc.config
 - recursive formulas don't work
 - inf + inf * i does not give inf+inf*i, infinitys generally dont well with complex numbers, like inf/i != -inf*i
 - 1/0 != +-inf, digamma(-n) != +-inf, gamma(-n) != +-inf (and gamma subsidiarys)
+- |2|x|| does not format as norm(2*norm(x)) it formats as norm(2)*x||, |ln|x|| works
 # build instructions
 windows is not properly supported due to dependencys being weird, just use wsl
 

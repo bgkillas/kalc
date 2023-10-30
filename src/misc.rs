@@ -244,21 +244,33 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
     {
         let mut count: isize = 0;
         let mut output = String::new();
-        let mut abs = false;
-        for c in input
+        let mut abs = Vec::new();
+        let mut i = 0;
+        while i < input.len()
         {
-            match c
+            match input[i]
             {
                 '|' =>
                 {
-                    if abs
+                    if !abs.is_empty()
+                        && abs[0] == count
+                        && matches!(
+                            input[i - 1],
+                            ')' | '|' | 'x' | 'y' | ']' | '}' | 'i' | '0'..='9'
+                        )
                     {
                         count -= 1;
+                        abs.remove(0);
                         output.push_str(&format!(
                             "{}|{}",
                             colors.brackets[count as usize % colors.brackets.len()],
                             colors.text
                         ))
+                    }
+                    else if i + 1 != input.len() && input[i + 1] == '|'
+                    {
+                        i += 1;
+                        output.push_str("||")
                     }
                     else
                     {
@@ -267,9 +279,9 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                             colors.brackets[count as usize % colors.brackets.len()],
                             colors.text
                         ));
-                        count += 1
+                        count += 1;
+                        abs.insert(0, count);
                     }
-                    abs = !abs
                 }
                 '(' =>
                 {
@@ -289,8 +301,9 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                         colors.text
                     ))
                 }
-                _ => output.push(*c),
+                _ => output.push(input[i]),
             }
+            i += 1;
         }
         output
     }

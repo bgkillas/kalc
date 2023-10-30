@@ -17,7 +17,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut func: Vec<NumStr> = Vec::new();
     let mut word = String::new();
     let mut find_word = false;
-    let mut abs = true;
+    let mut abs = Vec::new();
     let mut neg = false;
     let mut i = 1;
     let mut scientific = false;
@@ -692,25 +692,30 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 }
                 '|' =>
                 {
-                    if i + 1 != chars.len() && chars[i + 1] == '|' && abs
+                    if !abs.is_empty()
+                        && abs[0] == count
+                        && matches!(
+                            chars[i - 1],
+                            ')' | '|' | 'x' | 'y' | ']' | '}' | 'i' | '0'..='9'
+                        )
+                    {
+                        func.push(Str(")".to_string()));
+                        func.push(Str(")".to_string()));
+                        abs.remove(0);
+                    }
+                    else if i + 1 != chars.len() && chars[i + 1] == '|'
                     {
                         func.push(Str("||".to_string()));
                         i += 2;
                         continue;
                     }
-                    else if abs
+                    else
                     {
                         place_multiplier(&mut func, &find_word);
                         func.push(Str("(".to_string()));
                         func.push(Str("norm".to_string()));
                         func.push(Str("(".to_string()));
-                        abs = false;
-                    }
-                    else
-                    {
-                        func.push(Str(")".to_string()));
-                        func.push(Str(")".to_string()));
-                        abs = true;
+                        abs.insert(0, count);
                     }
                 }
                 '!' =>
@@ -881,7 +886,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             },
         )));
     }
-    if !abs
+    for _ in abs
     {
         func.push(Str(")".to_string()));
         func.push(Str(")".to_string()));

@@ -256,7 +256,7 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                         && abs[0] == count
                         && matches!(
                             input[i - 1],
-                            ')' | '|' | 'x' | 'y' | ']' | '}' | 'i' | '0'..='9'
+                            ')' | '|' | 'x' | 'z' | 'y' | ']' | '}' | 'i' | '0'..='9'
                         )
                     {
                         count -= 1;

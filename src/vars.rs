@@ -189,7 +189,7 @@ pub fn input_var(
                         {
                             Some(n) =>
                             {
-                                chars[i..n].iter().collect::<String>()
+                                chars[i..i + n].iter().collect::<String>()
                                     == var[0].split('(').next().unwrap()
                             }
                             _ => false,
@@ -396,7 +396,7 @@ pub fn input_var(
             if (i == 0 || chars[i - 1] != ' ' || c != ' ')
                 && (if options.small_e
                 {
-                    matches!(c, 'x' | 'y' | 'i')
+                    matches!(c, 'x' | 'y' | 'i' | 'e')
                 }
                 else
                 {

@@ -696,7 +696,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         && abs[0] == count
                         && matches!(
                             chars[i - 1],
-                            ')' | '|' | 'x' | 'y' | ']' | '}' | 'i' | '0'..='9'
+                            ')' | '|' | 'x' | 'z' | 'y' | ']' | '}' | 'i' | '0'..='9'
                         )
                     {
                         func.push(Str(")".to_string()));

@@ -421,7 +421,7 @@ pub fn input_var(
         output
     }
 }
-fn functions() -> HashSet<&'static str>
+pub fn functions() -> HashSet<&'static str>
 {
     [
         "i",

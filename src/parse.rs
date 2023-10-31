@@ -3,6 +3,7 @@ use crate::{
         NumStr,
         NumStr::{Num, Str},
     },
+    vars::functions,
     Options,
 };
 use rug::{float::Special::Infinity, ops::Pow, Complex};
@@ -692,12 +693,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 }
                 '|' =>
                 {
-                    if !abs.is_empty()
-                        && abs[0] == count
-                        && matches!(
-                            chars[i - 1],
-                            ')' | '|' | 'x' | 'z' | 'y' | ']' | '}' | 'i' | '0'..='9'
-                        )
+                    if !abs.is_empty() && abs[0] == count && can_abs(&func)
                     {
                         func.push(Str(")".to_string()));
                         func.push(Str(")".to_string()));
@@ -904,6 +900,14 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         return Err("no function");
     }
     Ok(func)
+}
+fn can_abs(func: &[NumStr]) -> bool
+{
+    if let Some(Str(s)) = func.last()
+    {
+        return !functions().contains(s.as_str());
+    }
+    true
 }
 fn place_multiplier(func: &mut Vec<NumStr>, find_word: &bool)
 {

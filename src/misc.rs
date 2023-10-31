@@ -1,4 +1,4 @@
-use crate::{Colors, Options};
+use crate::{vars::functions, Colors, Options};
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyModifiers},
     terminal,
@@ -254,10 +254,12 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                 {
                     if !abs.is_empty()
                         && abs[0] == count
-                        && matches!(
-                            input[i - 1],
-                            ')' | '|' | 'x' | 'z' | 'y' | ']' | '}' | 'i' | '0'..='9'
-                        )
+                        && match input[..i].iter().rev().position(|c| !c.is_alphabetic())
+                        {
+                            Some(n) => !functions()
+                                .contains(input[i - n..i].iter().collect::<String>().as_str()),
+                            _ => true,
+                        }
                     {
                         count -= 1;
                         abs.remove(0);

@@ -80,7 +80,7 @@ Vector operations/functions:\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\
 - angle({{vec1}},{{vec2}})\n\
 - norm, normalize\n\
-- abs, len\n\
+- abs, len, any, all\n\
 - max, min, mean, median, mode, sort\n\
 - reverse, link\n\
 - part({{vec}},col), sum, prod\n\

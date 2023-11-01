@@ -1,8 +1,5 @@
 use crate::{vars::functions, Colors, Options};
-use crossterm::{
-    event::{read, Event, KeyCode, KeyEvent, KeyModifiers},
-    terminal,
-};
+use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
 use std::{fs::File, io::Write};
@@ -133,17 +130,17 @@ pub fn convert(c: &char) -> char
 }
 pub fn read_single_char() -> char
 {
-    terminal::enable_raw_mode().unwrap();
-    let result =
-        match match read()
+    match match read()
+    {
+        Ok(c) => c,
+        _ => return '\0',
+    }
+    {
+        Event::Key(KeyEvent {
+            code, modifiers, ..
+        }) =>
         {
-            Ok(c) => c,
-            _ => return '\0',
-        }
-        {
-            Event::Key(KeyEvent {
-                code, modifiers, ..
-            }) => match (code, modifiers)
+            match (code, modifiers)
             {
                 (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
                 (KeyCode::Home, KeyModifiers::NONE)
@@ -169,16 +166,10 @@ pub fn read_single_char() -> char
                 (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
                 (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
                 _ => '\0',
-            },
-            _ => '\0',
-        };
-    terminal::disable_raw_mode().unwrap();
-    if result == '\x14'
-    {
-        print!("\x1b[G\x1b[J");
-        std::process::exit(0);
+            }
+        }
+        _ => '\0',
     }
-    result
 }
 pub fn no_col(input: &str, color: bool) -> String
 {
@@ -324,7 +315,7 @@ pub fn handle_err(
 )
 {
     print!(
-        "\x1b[J\n{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
+        "\x1b[J\n\x1b[G{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
         err,
         "\x1b[A".repeat(err.len().div_ceil(get_terminal_width()) - 1),
         prompt(options, colors),

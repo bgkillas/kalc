@@ -631,8 +631,8 @@ pub fn print_concurrent(
                 if options.multi
                 {
                     num += 1;
-                    output += "\n";
-                    frac_out += "\n";
+                    output += "\n\x1b[G";
+                    frac_out += "\n\x1b[G";
                 }
                 else
                 {

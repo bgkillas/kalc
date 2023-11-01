@@ -1156,7 +1156,7 @@ pub fn can_graph(input: &str) -> bool
 {
     input.contains('#')
         || input.replace("exp", "").replace("max", "").contains('x')
-        || input.contains('y')
+        || input.replace("any", "").contains('y')
         || input
             .replace("==", "")
             .replace("!=", "")

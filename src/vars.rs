@@ -93,7 +93,9 @@ pub fn input_var(
             .position(|x| !x.is_alphabetic())
             .unwrap_or(chars.len() - i);
         let mut word = chars[i..i + count].iter().collect::<String>();
-        if (word.ends_with('x') && word != "max") || word.ends_with('y') || word.ends_with('z')
+        if (word.ends_with('x') && word != "max")
+            || (word.ends_with('y') && word != "any")
+            || word.ends_with('z')
         {
             word.pop();
         }
@@ -159,15 +161,30 @@ pub fn input_var(
         }
         else if sumrec.iter().any(|a| a.1 == word)
         {
-            if matches!(chars[i - 1], '0'..='9' | ')' | '}' | ']' | 'x' | 'y' | 'z')
-            {
-                output.push('*')
-            }
             i += word.len();
             output.push_str(&word);
-            if matches!(chars[i], '0'..='9' | ')' | '}' | ']' | 'x' | 'y' | 'z')
+            if i != chars.len()
             {
-                output.push('*')
+                let non_space = i + chars[i..]
+                    .iter()
+                    .position(|c| !c.is_whitespace())
+                    .unwrap_or(0);
+                let next_word = chars[non_space
+                    ..non_space
+                        + chars[non_space..]
+                            .iter()
+                            .position(|c| !c.is_alphabetic())
+                            .unwrap_or(0)]
+                    .iter()
+                    .collect::<String>();
+                if matches!(
+                    chars[non_space],
+                    '0'..='9' | '(' | '{' | '[' | 'x' | 'y' | 'z'
+                ) || functions.contains(next_word.as_str())
+                    || sumrec.iter().any(|a| a.1 == next_word)
+                {
+                    output.push('*')
+                }
             }
         }
         else
@@ -228,7 +245,7 @@ pub fn input_var(
                         {
                             let mut k = 0;
                             count = 0;
-                            for (f, c) in chars[j + 2..].iter().enumerate()
+                            for (f, c) in chars[i..].iter().enumerate()
                             {
                                 if *c == ')' && count == 0
                                 {
@@ -254,7 +271,13 @@ pub fn input_var(
                                 continue;
                             }
                             let v = var[0].chars().collect::<Vec<char>>();
-                            if input.contains(',') && var[0].contains(',') && chars.len() > 4
+                            if chars[j..i + 1].iter().filter(|c| c == &&',').count()
+                                != var[0].matches(',').count()
+                            {
+                                i = j;
+                                continue;
+                            }
+                            if var[0].contains(',') && chars.len() > 4
                             {
                                 output.push('(');
                                 let mut temp = &chars
@@ -280,64 +303,59 @@ pub fn input_var(
                                         commas.push(f);
                                     }
                                 }
-                                if commas.len() == var[0].matches(',').count()
+                                let mut start = 0;
+                                let mut split = Vec::new();
+                                for end in commas
                                 {
-                                    let mut start = 0;
-                                    let mut split = Vec::new();
-                                    for end in commas
+                                    split.push(&temp[start..end]);
+                                    start = end + 1;
+                                }
+                                split.push(&temp[start..]);
+                                let mut vars = vars.to_vec();
+                                let mut func_vars: Vec<String> = Vec::new();
+                                start = 0;
+                                for (f, c) in v.iter().enumerate()
+                                {
+                                    if c == &'(' || c == &'{' || c == &'['
                                     {
-                                        split.push(&temp[start..end]);
-                                        start = end + 1;
-                                    }
-                                    split.push(&temp[start..]);
-                                    let mut vars = vars.to_vec();
-                                    let mut func_vars: Vec<String> = Vec::new();
-                                    start = 0;
-                                    for (f, c) in v.iter().enumerate()
-                                    {
-                                        if c == &'(' || c == &'{' || c == &'['
+                                        if count == 0
                                         {
-                                            if count == 0
-                                            {
-                                                start = f + 1;
-                                            }
-                                            count += 1;
-                                        }
-                                        else if c == &')' || c == &'}' || c == &']'
-                                        {
-                                            count -= 1;
-                                            if count == 0
-                                            {
-                                                func_vars.push(v[start..f].iter().collect());
-                                            }
-                                        }
-                                        else if c == &',' && count == 1
-                                        {
-                                            func_vars.push(v[start..f].iter().collect());
                                             start = f + 1;
                                         }
+                                        count += 1;
                                     }
-                                    for (var, func_var) in split.iter().zip(func_vars)
+                                    else if c == &')' || c == &'}' || c == &']'
                                     {
-                                        for (i, j) in vars.iter().enumerate()
+                                        count -= 1;
+                                        if count == 0
                                         {
-                                            if j[0].chars().count() <= func_var.len()
-                                            {
-                                                vars.insert(
-                                                    i,
-                                                    [func_var, var.iter().collect::<String>()],
-                                                );
-                                                break;
-                                            }
+                                            func_vars.push(v[start..f].iter().collect());
                                         }
                                     }
-                                    output.push_str(&input_var(
-                                        &var[1], &vars, None, sumrec, options,
-                                    ));
-                                    output.push(')');
-                                    i += 1;
-                                    continue 'main;
+                                    else if c == &',' && count == 1
+                                    {
+                                        func_vars.push(v[start..f].iter().collect());
+                                        start = f + 1;
+                                    }
                                 }
+                                for (var, func_var) in split.iter().zip(func_vars)
+                                {
+                                    for (i, j) in vars.iter().enumerate()
+                                    {
+                                        if j[0].chars().count() <= func_var.len()
+                                        {
+                                            vars.insert(
+                                                i,
+                                                [func_var, var.iter().collect::<String>()],
+                                            );
+                                            break;
+                                        }
+                                    }
+                                }
+                                output.push_str(&input_var(&var[1], &vars, None, sumrec, options));
+                                output.push(')');
+                                i += 1;
+                                continue 'main;
                             }
                             else
                             {
@@ -562,6 +580,8 @@ pub fn functions() -> HashSet<&'static str>
         "factor",
         "factors",
         "vec",
+        "all",
+        "any",
         "mat",
         "prime",
         "add",

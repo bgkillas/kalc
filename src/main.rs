@@ -20,6 +20,7 @@ use crate::{
     print::{print_answer, print_concurrent},
     vars::{get_cli_vars, get_vars, input_var},
 };
+use crossterm::terminal;
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -207,6 +208,7 @@ fn main()
     let mut stdout = stdout();
     let (mut file, mut unmod_lines) = if args.is_empty()
     {
+        terminal::enable_raw_mode().unwrap();
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
@@ -326,7 +328,7 @@ fn main()
                 }
                 match c
                 {
-                    '\n' =>
+                    '\n' | '\x14' =>
                     {
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
@@ -352,6 +354,16 @@ fn main()
                         if !input.is_empty()
                         {
                             println!("{}", "\n".repeat(frac));
+                        }
+                        if c == '\x14'
+                        {
+                            if input.is_empty()
+                            {
+                                print!("\x1b[A")
+                            }
+                            print!("\x1b[G\x1b[J");
+                            terminal::disable_raw_mode().unwrap();
+                            std::process::exit(0);
                         }
                         break;
                     }
@@ -924,7 +936,8 @@ fn main()
                     for (i, v) in vars.iter().enumerate()
                     {
                         if v[0].split('(').next() == l.split('(').next()
-                            && v[0].find(',').iter().count() == l.find(',').iter().count()
+                            && v[0].chars().filter(|c| c == &',').count()
+                                == l.chars().filter(|c| c == &',').count()
                         {
                             if r == "null"
                             {

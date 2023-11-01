@@ -118,7 +118,7 @@ Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
 - angle({vec1},{vec2})
 - norm, normalize
-- abs, len
+- abs, len, any, all
 - max, min, mean, median, mode, sort
 - reverse, link
 - part({vec},col), sum, prod

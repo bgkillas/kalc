@@ -245,6 +245,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     }
                     'x' | 'y' =>
                     {
+                        if c == 'y' && word == "an"
+                        {
+                            word.push('y');
+                            i += 1;
+                            continue;
+                        }
                         if !word.is_empty()
                         {
                             find_word = false;

@@ -594,6 +594,42 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 Vector(most.0)
                             }
                         }
+                        "median" =>
+                        {
+                            let a = sort(a.iter().flatten().cloned().collect::<Vec<Complex>>());
+                            if a.len() % 2 == 0
+                            {
+                                Vector(vec![a[a.len() / 2 - 1].clone(), a[a.len() / 2].clone()])
+                            }
+                            else
+                            {
+                                Num(a[a.len() / 2].clone())
+                            }
+                        }
+                        "all" =>
+                        {
+                            let mut res = true;
+                            for a in a.iter().flatten()
+                            {
+                                if !(a.imag().is_zero() && a.real() == &1)
+                                {
+                                    res = false
+                                }
+                            }
+                            Num(Complex::with_val(options.prec, res as u8))
+                        }
+                        "any" =>
+                        {
+                            let mut res = false;
+                            for a in a.iter().flatten()
+                            {
+                                if a.imag().is_zero() && a.real() == &1
+                                {
+                                    res = true
+                                }
+                            }
+                            Num(Complex::with_val(options.prec, res as u8))
+                        }
                         _ => do_functions(
                             function[i + 1].clone(),
                             options,
@@ -609,6 +645,30 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                 {
                     function[i] = match s.as_str()
                     {
+                        "all" =>
+                        {
+                            let mut res = true;
+                            for a in a
+                            {
+                                if !(a.imag().is_zero() && a.real() == &1)
+                                {
+                                    res = false
+                                }
+                            }
+                            Num(Complex::with_val(options.prec, res as u8))
+                        }
+                        "any" =>
+                        {
+                            let mut res = false;
+                            for a in a
+                            {
+                                if a.imag().is_zero() && a.real() == &1
+                                {
+                                    res = true
+                                }
+                            }
+                            Num(Complex::with_val(options.prec, res as u8))
+                        }
                         "sort" => Vector(sort(a)),
                         "mean" => Num(a
                             .iter()

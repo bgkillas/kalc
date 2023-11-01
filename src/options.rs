@@ -9,6 +9,7 @@ use crate::{
     vars::{get_vars, input_var},
     Colors, Options,
 };
+use crossterm::terminal;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
@@ -1349,6 +1350,7 @@ pub fn commands(
         {
             print!("\x1b[A\x1b[G\x1b[J");
             stdout.flush().unwrap();
+            terminal::disable_raw_mode().unwrap();
             std::process::exit(0);
         }
         _ =>

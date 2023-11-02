@@ -442,7 +442,6 @@ pub fn input_var(
 pub fn functions() -> HashSet<&'static str>
 {
     [
-        "i",
         "rnd",
         "inf",
         "sum",

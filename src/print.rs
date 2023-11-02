@@ -7,7 +7,7 @@ use crate::{
     get_terminal_width,
     graph::can_graph,
     math::do_math,
-    misc::{clear, handle_err, no_col, prompt, to_output},
+    misc::{clear, get_terminal_height, handle_err, no_col, prompt, to_output},
     options::equal_to,
     parse::get_func,
     vars::input_var,
@@ -355,7 +355,17 @@ pub fn print_concurrent(
         {
             frac = 0;
         }
-        if len1 + len2 > terlen
+        if len1 + len2 > terlen * (get_terminal_height() - 1)
+        {
+            print!(
+                "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" },
+            );
+            frac = 0;
+        }
+        else if len1 + len2 > terlen
         {
             let num = len1.div_ceil(terlen)
                 + if len2 != 0
@@ -503,7 +513,7 @@ pub fn print_concurrent(
             }
         }
         let terlen = get_terminal_width();
-        let length = no_col(&output, options.color).len() - 1;
+        let length = no_col(&output, options.color).len();
         if frac_out != output
         {
             frac = 1;
@@ -514,25 +524,38 @@ pub fn print_concurrent(
         {
             frac = 0;
         }
-        let num = length / terlen;
-        print!(
-            "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
-            if frac == 1
-            {
-                format!("\n\x1b[G\x1b[K{}", frac_out)
-            }
-            else
-            {
-                "".to_string()
-            },
-            output,
-            "\x1b[A".repeat(num),
-            if frac == 1 { "\x1b[A" } else { "" },
-            prompt(options, colors),
-            to_output(&unmodified_input[start..end], options.color, colors),
-            if options.color { "\x1b[0m" } else { "" }
-        );
-        frac += num;
+        if length > terlen * (get_terminal_height() - 1)
+        {
+            print!(
+                "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" },
+            );
+            frac = 0;
+        }
+        else
+        {
+            let num = length / terlen;
+            print!(
+                "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
+                if frac == 1
+                {
+                    format!("\n\x1b[G\x1b[K{}", frac_out)
+                }
+                else
+                {
+                    "".to_string()
+                },
+                output,
+                "\x1b[A".repeat(num),
+                if frac == 1 { "\x1b[A" } else { "" },
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            frac += num;
+        }
     }
     else if let Matrix(v) = num
     {
@@ -694,26 +717,39 @@ pub fn print_concurrent(
             }
             frac_out += "\n";
         }
-        print!(
-            "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
-            if frac == 1
-            {
-                num *= 2;
-                num += 1;
-                format!("\n\x1b[G\x1b[K{}", frac_out)
-            }
-            else
-            {
-                "".to_string()
-            },
-            output,
-            "\x1b[A".repeat(num),
-            if frac == 1 { "\x1b[A" } else { "" },
-            prompt(options, colors),
-            to_output(&unmodified_input[start..end], options.color, colors),
-            if options.color { "\x1b[0m" } else { "" }
-        );
-        frac += num;
+        if length > terlen * (get_terminal_height() - 1)
+        {
+            print!(
+                "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" },
+            );
+            frac = 0;
+        }
+        else
+        {
+            print!(
+                "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
+                if frac == 1
+                {
+                    num *= 2;
+                    num += 1;
+                    format!("\n\x1b[G\x1b[K{}", frac_out)
+                }
+                else
+                {
+                    "".to_string()
+                },
+                output,
+                "\x1b[A".repeat(num),
+                if frac == 1 { "\x1b[A" } else { "" },
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            frac += num;
+        }
     }
     else
     {

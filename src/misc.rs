@@ -20,12 +20,39 @@ pub fn get_terminal_width() -> usize
         }
     }
 }
+#[cfg(unix)]
+pub fn get_terminal_height() -> usize
+{
+    unsafe {
+        let mut size: winsize = std::mem::zeroed();
+        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0
+        {
+            size.ws_row as usize
+        }
+        else
+        {
+            80
+        }
+    }
+}
 #[cfg(not(unix))]
 pub fn get_terminal_width() -> usize
 {
     if let Some((width, _)) = dimensions()
     {
         width
+    }
+    else
+    {
+        80
+    }
+}
+#[cfg(not(unix))]
+pub fn get_terminal_height() -> usize
+{
+    if let Some((_, height)) = dimensions()
+    {
+        height
     }
     else
     {

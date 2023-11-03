@@ -157,16 +157,6 @@ pub fn print_concurrent(
     end: usize,
 ) -> usize
 {
-    let input = &input_var(
-        &unmodified_input
-            .iter()
-            .collect::<String>()
-            .replace('_', &format!("({})", last.iter().collect::<String>())),
-        vars,
-        None,
-        &mut Vec::new(),
-        options,
-    );
     {
         let input = unmodified_input.iter().collect::<String>();
         if input
@@ -186,7 +176,7 @@ pub fn print_concurrent(
                     &input[..input.len() - 1],
                     &last.iter().collect::<String>(),
                 );
-                let wrap = no_col(&out, options.color).len() / get_terminal_width() + 1;
+                let wrap = (no_col(&out, options.color).len() - 1) / get_terminal_width() + 1;
                 print!(
                     "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
@@ -204,6 +194,16 @@ pub fn print_concurrent(
             };
         }
     }
+    let input = &input_var(
+        &unmodified_input
+            .iter()
+            .collect::<String>()
+            .replace('_', &format!("({})", last.iter().collect::<String>())),
+        vars,
+        None,
+        &mut Vec::new(),
+        options,
+    );
     if can_graph(input)
     {
         clear(unmodified_input, start, end, options, colors);

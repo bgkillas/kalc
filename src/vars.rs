@@ -159,7 +159,17 @@ pub fn input_var(
             i += word.len();
             output.push_str(&word)
         }
-        else if sumrec.iter().any(|a| a.1 == word)
+        else if sumrec.iter().any(|a| {
+            if word.starts_with(&a.1)
+            {
+                word = a.1.clone();
+                true
+            }
+            else
+            {
+                false
+            }
+        })
         {
             i += word.len();
             output.push_str(&word);
@@ -182,6 +192,7 @@ pub fn input_var(
                     '0'..='9' | '(' | '{' | '[' | 'x' | 'y' | 'z'
                 ) || functions.contains(next_word.as_str())
                     || sumrec.iter().any(|a| a.1 == next_word)
+                    || vars.iter().any(|a| next_word.starts_with(&a[0]))
                 {
                     output.push('*')
                 }

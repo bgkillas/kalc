@@ -5,11 +5,11 @@
 
 requires gnuplot for graphing, a modern terminal like windows terminal on windows
 
-history file is stored in ```~/.config/kalc.history``` or ```C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.history```
+history file is stored in ```~/.config/kalc.history```
 
-config file is stored in ```~/.config/kalc.config``` or ```C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.config```
+config file is stored in ```~/.config/kalc.config```
 
-you can set permanent variables and functions in the file ```~/.config/kalc.vars``` or ```C:\\Users\\%USERNAME%\\AppData\\Roaming\\kalc.vars```
+you can set permanent variables and functions in the file ```~/.config/kalc.vars```
 
 parsing tries to comply with wolfram alpha
 

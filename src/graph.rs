@@ -25,6 +25,10 @@ pub fn graph(
 ) -> JoinHandle<()>
 {
     thread::spawn(move || {
+        if input.iter().all(|i| i.is_empty())
+        {
+            return;
+        }
         let mut fg = Figure::new();
         fg.set_enhanced_text(false);
         let re1col = "#ff5555";
@@ -1166,6 +1170,9 @@ pub fn can_graph(input: &str) -> bool
 }
 fn fail(options: Options, colors: &Colors)
 {
-    print!("No data to plot\n\x1b[G{}\x1b[0m", prompt(options, colors));
+    print!(
+        "\x1b[G\x1b[KNo data to plot\n\x1b[G{}",
+        prompt(options, colors)
+    );
     stdout().flush().unwrap();
 }

@@ -159,23 +159,17 @@ pub fn print_concurrent(
 {
     {
         let input = unmodified_input.iter().collect::<String>();
-        if input
-            .replace("==", "")
-            .replace("!=", "")
-            .replace(">=", "")
-            .replace("<=", "")
-            .contains('=')
-            || input.ends_with('=')
+        if input.ends_with('=')
         {
-            return if input.ends_with('=')
+            let out = equal_to(
+                options,
+                colors,
+                vars,
+                &input[..input.len() - 1],
+                &last.iter().collect::<String>(),
+            );
+            return if !out.is_empty()
             {
-                let out = equal_to(
-                    options,
-                    colors,
-                    vars,
-                    &input[..input.len() - 1],
-                    &last.iter().collect::<String>(),
-                );
                 let wrap = (no_col(&out, options.color).len() - 1) / get_terminal_width() + 1;
                 print!(
                     "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
@@ -193,6 +187,16 @@ pub fn print_concurrent(
                 0
             };
         }
+        else if input
+            .replace("==", "")
+            .replace("!=", "")
+            .replace(">=", "")
+            .replace("<=", "")
+            .contains('=')
+        {
+            clear(unmodified_input, start, end, options, colors);
+            return 0;
+        }
     }
     let input = &input_var(
         &unmodified_input
@@ -206,8 +210,68 @@ pub fn print_concurrent(
     );
     if can_graph(input)
     {
-        clear(unmodified_input, start, end, options, colors);
-        return 0;
+        return if input.contains('#')
+        {
+            let mut out = String::new();
+            for input in unmodified_input.iter().collect::<String>().split('#')
+            {
+                if !input.is_empty()
+                {
+                    out += &equal_to(
+                        options,
+                        colors,
+                        vars,
+                        input,
+                        &last.iter().collect::<String>(),
+                    );
+                    out += "\n"
+                }
+            }
+            out.pop();
+            let wrap = no_col(&out, options.color)
+                .split('\n')
+                .map(|i| {
+                    if i.is_empty()
+                    {
+                        1
+                    }
+                    else
+                    {
+                        (i.len() - 1) / get_terminal_width() + 1
+                    }
+                })
+                .sum();
+            print!(
+                "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                out.replace('\n', "\n\x1b[G"),
+                "\x1b[A".repeat(wrap),
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            wrap
+        }
+        else
+        {
+            let input = unmodified_input.iter().collect::<String>();
+            let out = equal_to(
+                options,
+                colors,
+                vars,
+                &input,
+                &last.iter().collect::<String>(),
+            );
+            let wrap = (no_col(&out, options.color).len() - 1) / get_terminal_width() + 1;
+            print!(
+                "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                out,
+                "\x1b[A".repeat(wrap),
+                prompt(options, colors),
+                to_output(&unmodified_input[start..end], options.color, colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            wrap
+        };
     }
     let num = match do_math(
         match get_func(input, options)

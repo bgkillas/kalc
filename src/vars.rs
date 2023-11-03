@@ -140,7 +140,21 @@ pub fn input_var(
                 }
                 if !sum.1.is_empty()
                 {
-                    sumrec.push(sum.clone())
+                    if sumrec.is_empty()
+                    {
+                        sumrec.push(sum.clone())
+                    }
+                    else
+                    {
+                        for (i, j) in sumrec.iter().enumerate()
+                        {
+                            if j.1.chars().count() <= sum.1.len()
+                            {
+                                sumrec.insert(i, sum.clone());
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }

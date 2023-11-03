@@ -107,40 +107,34 @@ impl NumStr
         Ok(match (self, b)
         {
             (Num(a), Num(b)) => Vector(vec![a + b.clone(), a - b.clone()]),
-            (Num(a), Vector(b)) => Matrix(vec![
-                b.iter().map(|b| a + b.clone()).collect(),
-                b.iter().map(|b| a - b.clone()).collect(),
-            ]),
-            (Vector(b), Num(a)) => Matrix(vec![
-                b.iter().map(|b| b + a.clone()).collect(),
-                b.iter().map(|b| b - a.clone()).collect(),
-            ]),
-            (Vector(a), Vector(b)) if a.len() == b.len() => Matrix(vec![
-                a.iter().zip(b.iter()).map(|(a, b)| a + b.clone()).collect(),
-                a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()).collect(),
-            ]),
-            (Matrix(a), Num(b)) | (Num(b), Matrix(a)) => Matrix(
-                if a.len() == a[0].len()
-                {
-                    a.iter()
-                        .map(|a| {
-                            a.iter()
-                                .map(|a| a + b.clone())
-                                .chain(a.iter().map(|a| a - b.clone()))
-                                .collect::<Vec<Complex>>()
-                        })
-                        .collect::<Vec<Vec<Complex>>>()
-                }
-                else
-                {
-                    a.iter()
-                        .map(|a| a.iter().map(|a| a + b.clone()).collect::<Vec<Complex>>())
-                        .chain(
-                            a.iter()
-                                .map(|a| a.iter().map(|a| a - b.clone()).collect::<Vec<Complex>>()),
-                        )
-                        .collect::<Vec<Vec<Complex>>>()
-                },
+            (Num(a), Vector(b)) => Vector(
+                b.iter()
+                    .map(|b| a + b.clone())
+                    .chain(b.iter().map(|b| a - b.clone()))
+                    .collect(),
+            ),
+            (Vector(b), Num(a)) => Vector(
+                b.iter()
+                    .map(|b| b + a.clone())
+                    .chain(b.iter().map(|b| b - a.clone()))
+                    .collect(),
+            ),
+            (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
+                a.iter()
+                    .zip(b.iter())
+                    .map(|(a, b)| a + b.clone())
+                    .chain(a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()))
+                    .collect(),
+            ),
+            (Matrix(a), Num(b)) | (Num(b), Matrix(a)) => Vector(
+                a.iter()
+                    .flat_map(|a| {
+                        a.iter()
+                            .map(|a| a + b.clone())
+                            .chain(a.iter().map(|a| a - b.clone()))
+                            .collect::<Vec<Complex>>()
+                    })
+                    .collect::<Vec<Complex>>(),
             ),
             _ => return Err("plus-minus unsupported"),
         })

@@ -48,7 +48,7 @@ pub fn graph(
         let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
-        if !input[0].contains('x')
+        if !input.iter().all(|i| i.contains('x'))
         {
             let mut re = Vec::new();
             let mut matrix = false;
@@ -332,7 +332,7 @@ pub fn graph(
                         );
                 }
             }
-            else if re[0].len() == 2
+            else if re.iter().all(|re| re.len() == 2)
             {
                 let z = vec![Complex::new(options.prec); 2];
                 for _ in 0..6 - func.len()
@@ -405,7 +405,7 @@ pub fn graph(
                         &[Caption(&im_cap[5]), Color(im6col)],
                     );
             }
-            else if re[0].len() == 3
+            else if re.iter().all(|re| re.len() == 3)
             {
                 let z = vec![Complex::new(options.prec); 3];
                 for _ in 0..6 - func.len()
@@ -497,16 +497,73 @@ pub fn graph(
             }
             else
             {
-                let z = vec![Complex::new(options.prec); re[0].len()];
                 for _ in 0..6 - func.len()
                 {
-                    re.push(z.clone());
+                    re.push(Vec::new());
                 }
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
-                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_y_range(
+                        Fix(
+                            if Options::default().yr == options.yr
+                            {
+                                re.iter()
+                                    .map(|x| {
+                                        x.iter()
+                                            .map(|x| x.real().to_f64() as isize)
+                                            .min()
+                                            .unwrap_or(isize::MAX)
+                                    })
+                                    .min()
+                                    .unwrap() as f64
+                            }
+                            else
+                            {
+                                options.yr.0
+                            },
+                        ),
+                        Fix(
+                            if Options::default().yr == options.yr
+                            {
+                                re.iter()
+                                    .map(|x| {
+                                        x.iter()
+                                            .map(|x| x.real().to_f64() as isize)
+                                            .max()
+                                            .unwrap_or(isize::MIN)
+                                    })
+                                    .max()
+                                    .unwrap() as f64
+                            }
+                            else
+                            {
+                                options.yr.1
+                            },
+                        ),
+                    )
+                    .set_x_range(
+                        Fix(
+                            if Options::default().xr == options.xr
+                            {
+                                0.0
+                            }
+                            else
+                            {
+                                options.xr.0
+                            },
+                        ),
+                        Fix(
+                            if Options::default().xr == options.xr
+                            {
+                                (re.iter().map(|re| re.len()).max().unwrap() - 1) as f64
+                            }
+                            else
+                            {
+                                options.xr.1
+                            },
+                        ),
+                    )
                     .lines(
                         0..re[0].len(),
                         re[0].iter().map(|x| x.real().to_f64()),
@@ -538,38 +595,80 @@ pub fn graph(
                         &[Caption(&re_cap[5]), Color(re6col)],
                     )
                     .lines(
-                        0..re[0].len(),
+                        if !im_cap[0].is_empty()
+                        {
+                            0..re[0].len()
+                        }
+                        else
+                        {
+                            0..0
+                        },
                         re[0].iter().map(|x| x.imag().to_f64()),
                         &[Caption(&im_cap[0]), Color(im1col)],
                     )
                     .lines(
-                        0..re[1].len(),
+                        if !im_cap[1].is_empty()
+                        {
+                            0..re[1].len()
+                        }
+                        else
+                        {
+                            0..0
+                        },
                         re[1].iter().map(|x| x.imag().to_f64()),
                         &[Caption(&im_cap[1]), Color(im2col)],
                     )
                     .lines(
-                        0..re[2].len(),
+                        if !im_cap[2].is_empty()
+                        {
+                            0..re[2].len()
+                        }
+                        else
+                        {
+                            0..0
+                        },
                         re[2].iter().map(|x| x.imag().to_f64()),
                         &[Caption(&im_cap[2]), Color(im3col)],
                     )
                     .lines(
-                        0..re[3].len(),
+                        if !im_cap[3].is_empty()
+                        {
+                            0..re[3].len()
+                        }
+                        else
+                        {
+                            0..0
+                        },
                         re[3].iter().map(|x| x.imag().to_f64()),
                         &[Caption(&im_cap[3]), Color(im4col)],
                     )
                     .lines(
-                        0..re[4].len(),
+                        if !im_cap[4].is_empty()
+                        {
+                            0..re[4].len()
+                        }
+                        else
+                        {
+                            0..0
+                        },
                         re[4].iter().map(|x| x.imag().to_f64()),
                         &[Caption(&im_cap[4]), Color(im5col)],
                     )
                     .lines(
-                        0..re[5].len(),
+                        if !im_cap[5].is_empty()
+                        {
+                            0..re[5].len()
+                        }
+                        else
+                        {
+                            0..0
+                        },
                         re[5].iter().map(|x| x.imag().to_f64()),
                         &[Caption(&im_cap[5]), Color(im6col)],
                     );
             }
         }
-        else if input[0].contains('y')
+        else if input.iter().any(|i| i.contains('y'))
         {
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
@@ -928,7 +1027,12 @@ pub fn graph(
         }
         if let Some(time) = watch
         {
-            println!("{}ms", time.elapsed().as_millis());
+            print!(
+                "\x1b[G\x1b[K{}ms\n\x1b[G{}",
+                time.elapsed().as_millis(),
+                prompt(options, &colors)
+            );
+            stdout().flush().unwrap();
         }
         fg.show().unwrap();
     })

@@ -213,18 +213,32 @@ pub fn print_concurrent(
         return if input.contains('#')
         {
             let mut out = String::new();
-            for input in unmodified_input.iter().collect::<String>().split('#')
             {
-                if !input.is_empty()
+                let split = unmodified_input.iter().collect::<String>();
+                let split = split.split('#');
+                if split.clone().count() > 6
                 {
-                    out += &equal_to(
-                        options,
-                        colors,
-                        vars,
-                        input,
-                        &last.iter().collect::<String>(),
+                    print!(
+                        "\n\x1b[G\x1b[Jtoo many graphs\x1b[A\x1b[G\x1b[K{}{}{}",
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" }
                     );
-                    out += "\n"
+                    return 1;
+                }
+                for input in split
+                {
+                    if !input.is_empty()
+                    {
+                        out += &equal_to(
+                            options,
+                            colors,
+                            vars,
+                            input,
+                            &last.iter().collect::<String>(),
+                        );
+                        out += "\n"
+                    }
                 }
             }
             out.pop();

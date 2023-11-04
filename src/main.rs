@@ -988,20 +988,23 @@ fn main()
                 .collect();
             let unmod = inputs.clone();
             let mut funcs = Vec::new();
-            for i in inputs.iter_mut()
+            if inputs.len() < 7
             {
-                if i.is_empty()
+                for i in inputs.iter_mut()
                 {
-                    continue;
+                    if i.is_empty()
+                    {
+                        continue;
+                    }
+                    *i = input_var(i, &vars, None, &mut Vec::new(), options);
+                    funcs.push(match get_func(i, options)
+                    {
+                        Ok(f) => f,
+                        _ => continue 'main,
+                    });
                 }
-                *i = input_var(i, &vars, None, &mut Vec::new(), options);
-                funcs.push(match get_func(i, options)
-                {
-                    Ok(f) => f,
-                    _ => continue 'main,
-                });
+                handles.push(graph(inputs, unmod, funcs, options, watch, colors.clone()));
             }
-            handles.push(graph(inputs, unmod, funcs, options, watch, colors.clone()));
         }
     }
 }

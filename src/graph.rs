@@ -501,69 +501,75 @@ pub fn graph(
                 {
                     re.push(Vec::new());
                 }
+                let yr = if Options::default().yr == options.yr
+                {
+                    (
+                        re.iter().fold(f64::MAX, |max, x| {
+                            let x = x.iter().fold(f64::MAX, |max, x| {
+                                let x = x.real().to_f64();
+                                if max > x
+                                {
+                                    x
+                                }
+                                else
+                                {
+                                    max
+                                }
+                            });
+                            if max > x
+                            {
+                                x
+                            }
+                            else
+                            {
+                                max
+                            }
+                        }),
+                        re.iter().fold(f64::MIN, |max, x| {
+                            let x = x.iter().fold(f64::MIN, |max, x| {
+                                let x = x.real().to_f64();
+                                if max < x
+                                {
+                                    x
+                                }
+                                else
+                                {
+                                    max
+                                }
+                            });
+                            if max < x
+                            {
+                                x
+                            }
+                            else
+                            {
+                                max
+                            }
+                        }),
+                    )
+                }
+                else
+                {
+                    options.yr
+                };
+                let xr = if Options::default().xr == options.xr
+                {
+                    (
+                        0.0,
+                        (re.iter().map(|re| re.len()).max().unwrap() - 1) as f64,
+                    )
+                }
+                else
+                {
+                    options.xr
+                };
+                let xticks = Some((Fix((xr.1 - xr.0) / 20.0), 1));
+                let yticks = Some((Fix((yr.1 - yr.0) / 20.0), 1));
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(
-                        Fix(
-                            if Options::default().yr == options.yr
-                            {
-                                re.iter()
-                                    .map(|x| {
-                                        x.iter()
-                                            .map(|x| x.real().to_f64() as isize)
-                                            .min()
-                                            .unwrap_or(isize::MAX)
-                                    })
-                                    .min()
-                                    .unwrap() as f64
-                            }
-                            else
-                            {
-                                options.yr.0
-                            },
-                        ),
-                        Fix(
-                            if Options::default().yr == options.yr
-                            {
-                                re.iter()
-                                    .map(|x| {
-                                        x.iter()
-                                            .map(|x| x.real().to_f64() as isize)
-                                            .max()
-                                            .unwrap_or(isize::MIN)
-                                    })
-                                    .max()
-                                    .unwrap() as f64
-                            }
-                            else
-                            {
-                                options.yr.1
-                            },
-                        ),
-                    )
-                    .set_x_range(
-                        Fix(
-                            if Options::default().xr == options.xr
-                            {
-                                0.0
-                            }
-                            else
-                            {
-                                options.xr.0
-                            },
-                        ),
-                        Fix(
-                            if Options::default().xr == options.xr
-                            {
-                                (re.iter().map(|re| re.len()).max().unwrap() - 1) as f64
-                            }
-                            else
-                            {
-                                options.xr.1
-                            },
-                        ),
-                    )
+                    .set_y_range(Fix(yr.0), Fix(yr.1))
+                    .set_x_range(Fix(xr.0), Fix(xr.1))
                     .lines(
                         0..re[0].len(),
                         re[0].iter().map(|x| x.real().to_f64()),

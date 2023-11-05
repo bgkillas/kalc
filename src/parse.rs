@@ -981,7 +981,9 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         {
             func.pop();
         }
-        else if func.len() > 1 && func[func.len() - 2].str_is("norm")
+        else if func.len() > 1
+            && func[func.len() - 2].str_is("norm")
+            && func[func.len() - 1].str_is(")")
         {
             func.pop();
             func.pop();

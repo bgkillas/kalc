@@ -4,11 +4,24 @@ use std::collections::HashSet;
 pub fn input_var(
     input: &str,
     vars: &[[String; 2]],
+    extra_vars: &[[String; 2]],
     dont_do: Option<String>,
     sumrec: &mut Vec<(i32, String)>,
     options: Options,
 ) -> String
 {
+    let mut va = vars.to_vec();
+    for k in extra_vars
+    {
+        for (i, j) in vars.iter().enumerate()
+        {
+            if j[0].chars().count() <= k[0].len()
+            {
+                va.insert(i, k.clone());
+                break;
+            }
+        }
+    }
     let chars = input
         .replace('[', "(car{")
         .replace(']', "})")
@@ -214,7 +227,7 @@ pub fn input_var(
         }
         else
         {
-            for var in vars
+            for var in &va
             {
                 let vl = var[0].chars().collect::<Vec<char>>().len();
                 if var[0] != "e"
@@ -261,7 +274,14 @@ pub fn input_var(
                         if chars[j..i + 1].iter().collect::<String>() == var[0]
                         {
                             output.push('(');
-                            output.push_str(&input_var(&var[1], vars, None, sumrec, options));
+                            output.push_str(&input_var(
+                                &var[1],
+                                vars,
+                                &Vec::new(),
+                                None,
+                                sumrec,
+                                options,
+                            ));
                             output.push(')');
                             i += 1;
                             continue 'main;
@@ -336,7 +356,7 @@ pub fn input_var(
                                     start = end + 1;
                                 }
                                 split.push(&temp[start..]);
-                                let mut vars = vars.to_vec();
+                                let mut va = Vec::new();
                                 let mut func_vars: Vec<String> = Vec::new();
                                 start = 0;
                                 for (f, c) in v.iter().enumerate()
@@ -365,19 +385,11 @@ pub fn input_var(
                                 }
                                 for (var, func_var) in split.iter().zip(func_vars)
                                 {
-                                    for (i, j) in vars.iter().enumerate()
-                                    {
-                                        if j[0].chars().count() <= func_var.len()
-                                        {
-                                            vars.insert(
-                                                i,
-                                                [func_var, var.iter().collect::<String>()],
-                                            );
-                                            break;
-                                        }
-                                    }
+                                    va.push([func_var, var.iter().collect::<String>()]);
                                 }
-                                output.push_str(&input_var(&var[1], &vars, None, sumrec, options));
+                                output.push_str(&input_var(
+                                    &var[1], vars, &va, None, sumrec, options,
+                                ));
                                 output.push(')');
                                 i += 1;
                                 continue 'main;
@@ -396,16 +408,14 @@ pub fn input_var(
                                 let l = v[var[0].find('(').unwrap() + 1..v.len() - 1]
                                     .iter()
                                     .collect::<String>();
-                                let mut vars = vars.to_vec();
-                                for (i, j) in vars.iter().enumerate()
-                                {
-                                    if j[0].chars().count() <= l.len()
-                                    {
-                                        vars.insert(i, [l, temp.iter().collect::<String>()]);
-                                        break;
-                                    }
-                                }
-                                output.push_str(&input_var(&var[1], &vars, None, sumrec, options));
+                                output.push_str(&input_var(
+                                    &var[1],
+                                    vars,
+                                    &[[l, temp.iter().collect::<String>()]],
+                                    None,
+                                    sumrec,
+                                    options,
+                                ));
                                 output.push(')');
                                 i += 1;
                                 continue 'main;
@@ -427,6 +437,7 @@ pub fn input_var(
                         output.push_str(&input_var(
                             &var[1],
                             vars,
+                            &Vec::new(),
                             Some(var[0].clone()),
                             sumrec,
                             options,
@@ -455,14 +466,7 @@ pub fn input_var(
             i += 1;
         }
     }
-    if output.is_empty()
-    {
-        input.to_string()
-    }
-    else
-    {
-        output
-    }
+    output
 }
 pub fn functions() -> HashSet<&'static str>
 {

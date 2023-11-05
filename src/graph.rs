@@ -1038,9 +1038,12 @@ pub fn graph(
                 time.elapsed().as_millis(),
                 prompt(options, &colors)
             );
-            stdout().flush().unwrap();
         }
-        fg.show().unwrap();
+        if fg.show().is_err()
+        {
+            print!("\x1b[G\x1b[Kno gnuplot\n\x1b[G{}", prompt(options, &colors));
+        }
+        stdout().flush().unwrap();
     })
 }
 pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f64; 2]>)

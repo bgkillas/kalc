@@ -23,11 +23,15 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     let mut i = 1;
     let mut scientific = false;
     let mut chars = input.chars().collect::<Vec<char>>();
-    while i < chars.len() - 1
+    while i < chars.len()
     {
         if chars[i].is_whitespace()
         {
-            if chars[i - 1].is_numeric() && chars[i + 1].is_numeric()
+            if chars.len() - 1 == i
+            {
+                chars.remove(i);
+            }
+            else if chars[i - 1].is_numeric() && chars[i + 1].is_numeric()
             {
                 chars[i] = '*'
             }
@@ -233,7 +237,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Num(Complex::with_val(options.prec, 10)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
-                                || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '['))
+                                || matches!(chars[i + 1], '-' | '+' | '(' | '{'))
                         {
                             func.push(Str('^'.to_string()));
                         }
@@ -530,7 +534,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 {
                     if chars[i + 1] == '*'
                     {
-                        func.push(Str("^".to_string()));
+                        if chars.len() > i + 2
+                        {
+                            func.push(Str("^".to_string()));
+                        }
                         i += 1;
                     }
                     else
@@ -653,18 +660,20 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     && i + 1 != chars.len()
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    func.push(Str(if chars[i + 1] == '^'
+                    if chars[i + 1] == '^'
                     {
+                        if chars.len() > i + 2
+                        {
+                            func.push(Str("^^".to_string()))
+                        }
                         i += 1;
-                        "^^"
                     }
                     else
                     {
-                        "^"
+                        func.push(Str("^".to_string()))
                     }
-                    .to_string()))
                 }
-                '(' if i + 1 != chars.len() && chars[i + 1] != ')' =>
+                '(' if i + 1 != chars.len() =>
                 {
                     count += 1;
                     if pwr.0
@@ -678,7 +687,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     place_multiplier(&mut func, &find_word);
                     func.push(Str("(".to_string()))
                 }
-                ')' if i != 0 && chars[i - 1] != '(' =>
+                ')' if i != 0 =>
                 {
                     if pwr.1 == count
                     {
@@ -839,7 +848,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         subfact.0 = true;
                     }
                 }
-                ',' if i != 0 && i + 1 != chars.len() => func.push(Str(','.to_string())),
+                ',' if i != 0 && i + 1 != chars.len() && chars[i + 1] != ')' =>
+                {
+                    func.push(Str(','.to_string()))
+                }
                 '%' if i != 0
                     && i + 1 != chars.len()
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
@@ -888,11 +900,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             },
         )));
     }
-    for _ in abs
-    {
-        func.push(Str(")".to_string()));
-        func.push(Str(")".to_string()));
-    }
     if neg
     {
         func.push(Num(n1));
@@ -900,6 +907,90 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     if word == "rnd"
     {
         func.push(Str("rnd".to_string()))
+    }
+    for _ in abs
+    {
+        func.push(Str(")".to_string()));
+        func.push(Str(")".to_string()));
+    }
+    count = 0;
+    i = 0;
+    let mut brackets: Vec<(usize, usize)> = Vec::new();
+    while i < func.len()
+    {
+        if let Str(s) = &func[i]
+        {
+            match s.as_str()
+            {
+                "(" =>
+                {
+                    if func.len() > i + 2 && func[i + 2].str_is(")")
+                    {
+                        func.remove(i + 2);
+                        func.remove(i);
+                        i = i.saturating_sub(1);
+                        count -= 1;
+                        continue;
+                    }
+                    else if func.len() > i + 1 && func[i + 1].str_is(")")
+                    {
+                        func.remove(i + 1);
+                        func.remove(i);
+                        i = i.saturating_sub(1);
+                        count -= 1;
+                        continue;
+                    }
+                    brackets.push((i, count as usize));
+                    count += 1
+                }
+                ")" =>
+                {
+                    count -= 1;
+                    if let Some(k) = brackets.last()
+                    {
+                        if k.0 == 0
+                        {
+                            if i == func.len() - 1
+                            {
+                                func.pop();
+                                func.remove(0);
+                            }
+                        }
+                        else if i != func.len() - 1
+                            && func[k.0 - 1].str_is("(")
+                            && func[i + 1].str_is(")")
+                        {
+                            func.remove(i + 1);
+                            func.remove(k.0 - 1);
+                            i = k.0.saturating_sub(2);
+                            brackets.pop();
+                            continue;
+                        }
+                        brackets.pop();
+                    }
+                }
+                _ =>
+                {}
+            }
+        }
+        i += 1;
+    }
+    while let Some(Str(c)) = func.last()
+    {
+        if !matches!(c.as_str(), "rnd" | ")" | "}" | "x" | "y")
+        {
+            func.pop();
+        }
+        else if func.len() > 1 && func[func.len() - 2].str_is("norm")
+        {
+            func.pop();
+            func.pop();
+            func.pop();
+        }
+        else
+        {
+            break;
+        }
     }
     if func.is_empty()
     {

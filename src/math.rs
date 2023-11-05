@@ -1274,6 +1274,14 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
         function.remove(i + 1);
         function.remove(i - 1);
     }
+    if let Str(_) = &function[0]
+    {
+        function.remove(0);
+    }
+    if let Some(Str(_)) = &function.last()
+    {
+        function.pop();
+    }
     if function.len() == 1
     {
         Ok(function[0].clone())
@@ -1469,7 +1477,7 @@ fn functions(
 ) -> Result<Complex, &'static str>
 {
     let b;
-    Ok(match s
+    let n = match s
     {
         "sin" => (a / to_deg).sin(),
         "csc" => (a / to_deg).sin().recip(),
@@ -1587,17 +1595,7 @@ fn functions(
             (a.clone() / to_deg.clone()).cos()
                 + (a / to_deg).sin() * Complex::with_val(options.prec, (0.0, 1.0))
         }
-        "ln" | "aexp" =>
-        {
-            if a.imag().is_zero()
-            {
-                Complex::with_val(options.prec, a.real()).ln()
-            }
-            else
-            {
-                a.ln()
-            }
-        }
+        "ln" | "aexp" => a.ln(),
         "ceil" => Complex::with_val(
             options.prec,
             (a.real().clone().ceil(), a.imag().clone().ceil()),
@@ -1614,24 +1612,10 @@ fn functions(
         "exp" | "aln" => a.exp(),
         "log" =>
         {
-            let a = if a.imag().is_zero()
-            {
-                Complex::with_val(options.prec, a.real()).ln()
-            }
-            else
-            {
-                a.ln()
-            };
+            let a = a.ln();
             if let Some(b) = c
             {
-                let b = if b.imag().is_zero()
-                {
-                    Complex::with_val(options.prec, b.real()).ln()
-                }
-                else
-                {
-                    b.ln()
-                };
+                let b = b.ln();
                 if a.is_zero()
                 {
                     Complex::with_val(options.prec, Infinity)
@@ -1809,13 +1793,16 @@ fn functions(
                     Complex::with_val(
                         options.prec,
                         a.real() / a.real().clone().abs()
-                            * a.real().clone().abs().pow(3f64.recip()),
+                            * a.real()
+                                .clone()
+                                .abs()
+                                .pow(Float::with_val(a.prec().0, 3).recip()),
                     )
                 }
             }
             else
             {
-                a.pow(3f64.recip())
+                a.clone().pow(Float::with_val(a.prec().0, 3).recip())
             }
         }
         "frac" | "fract" => Complex::with_val(
@@ -1950,5 +1937,13 @@ fn functions(
         {
             return Err("wrong input type");
         }
-    })
+    };
+    if n.imag().is_zero()
+    {
+        Ok(Complex::with_val(n.prec(), n.real()))
+    }
+    else
+    {
+        Ok(n)
+    }
 }

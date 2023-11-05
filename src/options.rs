@@ -617,6 +617,7 @@ pub fn equal_to(
                 &input_var(
                     &l.replace('_', &format!("({})", last)),
                     vars,
+                    &Vec::new(),
                     None,
                     &mut Vec::new(),
                     options,
@@ -769,7 +770,7 @@ pub fn set_commands(
         {
             match do_math(
                 get_func(
-                    &input_var(r, vars, None, &mut Vec::new(), *options),
+                    &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                     *options,
                 )?,
                 *options,
@@ -786,7 +787,7 @@ pub fn set_commands(
         }
         "prec" | "precision" => match do_math(
             get_func(
-                &input_var(r, vars, None, &mut Vec::new(), *options),
+                &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                 *options,
             )?,
             *options,
@@ -826,6 +827,7 @@ pub fn set_commands(
                             &input_var(
                                 r.split(',').next().unwrap(),
                                 vars,
+                                &Vec::new(),
                                 None,
                                 &mut Vec::new(),
                                 *options,
@@ -842,6 +844,7 @@ pub fn set_commands(
                             &input_var(
                                 r.split(',').last().unwrap(),
                                 vars,
+                                &Vec::new(),
                                 None,
                                 &mut Vec::new(),
                                 *options,
@@ -867,7 +870,7 @@ pub fn set_commands(
             {
                 let n = do_math(
                     get_func(
-                        &input_var(r, vars, None, &mut Vec::new(), *options),
+                        &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                         *options,
                     )?,
                     *options,
@@ -894,6 +897,7 @@ pub fn set_commands(
                         &input_var(
                             r.split(',').next().unwrap(),
                             vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             *options,
@@ -910,6 +914,7 @@ pub fn set_commands(
                         &input_var(
                             r.split(',').last().unwrap(),
                             vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             *options,
@@ -926,7 +931,7 @@ pub fn set_commands(
             {
                 let n = do_math(
                     get_func(
-                        &input_var(r, vars, None, &mut Vec::new(), *options),
+                        &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                         *options,
                     )?,
                     *options,
@@ -946,6 +951,7 @@ pub fn set_commands(
                         &input_var(
                             r.split(',').next().unwrap(),
                             vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             *options,
@@ -962,6 +968,7 @@ pub fn set_commands(
                         &input_var(
                             r.split(',').last().unwrap(),
                             vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             *options,
@@ -978,7 +985,7 @@ pub fn set_commands(
             {
                 let n = do_math(
                     get_func(
-                        &input_var(r, vars, None, &mut Vec::new(), *options),
+                        &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                         *options,
                     )?,
                     *options,
@@ -998,6 +1005,7 @@ pub fn set_commands(
                         &input_var(
                             r.split(',').next().unwrap(),
                             vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             *options,
@@ -1014,6 +1022,7 @@ pub fn set_commands(
                         &input_var(
                             r.split(',').last().unwrap(),
                             vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             *options,
@@ -1030,7 +1039,7 @@ pub fn set_commands(
             {
                 let n = do_math(
                     get_func(
-                        &input_var(r, vars, None, &mut Vec::new(), *options),
+                        &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                         *options,
                     )?,
                     *options,
@@ -1053,7 +1062,7 @@ pub fn set_commands(
         {
             options.samples_2d = do_math(
                 get_func(
-                    &input_var(r, vars, None, &mut Vec::new(), *options),
+                    &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                     *options,
                 )?,
                 *options,
@@ -1072,6 +1081,7 @@ pub fn set_commands(
                             &input_var(
                                 r.split(',').next().unwrap(),
                                 vars,
+                                &Vec::new(),
                                 None,
                                 &mut Vec::new(),
                                 *options,
@@ -1088,6 +1098,7 @@ pub fn set_commands(
                             &input_var(
                                 r.split(',').last().unwrap(),
                                 vars,
+                                &Vec::new(),
                                 None,
                                 &mut Vec::new(),
                                 *options,
@@ -1105,7 +1116,7 @@ pub fn set_commands(
             {
                 let n = do_math(
                     get_func(
-                        &input_var(r, vars, None, &mut Vec::new(), *options),
+                        &input_var(r, vars, &Vec::new(), None, &mut Vec::new(), *options),
                         *options,
                     )?,
                     *options,
@@ -1282,7 +1293,7 @@ pub fn commands(
                 {
                     match &do_math(
                         get_func(
-                            &input_var(&v[1], vars, None, &mut Vec::new(), *options),
+                            &input_var(&v[1], vars, &Vec::new(), None, &mut Vec::new(), *options),
                             *options,
                         )
                         .unwrap(),

@@ -261,6 +261,7 @@ fn main()
                     &input_var(
                         &input.iter().map(convert).collect::<String>(),
                         &vars,
+                        &Vec::new(),
                         None,
                         &mut Vec::new(),
                         options,
@@ -271,8 +272,8 @@ fn main()
                     Ok(f) => f,
                     Err(s) =>
                     {
-                        println!("{}", s);
-                        return;
+                        println!("{}: {}", input.iter().collect::<String>(), s);
+                        continue;
                     }
                 },
                 options,
@@ -285,6 +286,7 @@ fn main()
             if !(can_graph(&input_var(
                 &input.iter().collect::<String>(),
                 &vars,
+                &Vec::new(),
                 None,
                 &mut Vec::new(),
                 options,
@@ -344,6 +346,7 @@ fn main()
                         if !(can_graph(&input_var(
                             &input.iter().collect::<String>(),
                             &vars,
+                            &Vec::new(),
                             None,
                             &mut Vec::new(),
                             options,
@@ -975,6 +978,7 @@ fn main()
                 || can_graph(&input_var(
                     &input.iter().collect::<String>(),
                     &vars,
+                    &Vec::new(),
                     None,
                     &mut Vec::new(),
                     options,
@@ -996,7 +1000,7 @@ fn main()
                     {
                         continue;
                     }
-                    *i = input_var(i, &vars, None, &mut Vec::new(), options);
+                    *i = input_var(i, &vars, &Vec::new(), None, &mut Vec::new(), options);
                     funcs.push(match get_func(i, options)
                     {
                         Ok(f) => f,

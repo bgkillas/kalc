@@ -204,6 +204,7 @@ pub fn print_concurrent(
             .collect::<String>()
             .replace('_', &format!("({})", last.iter().collect::<String>())),
         vars,
+        &Vec::new(),
         None,
         &mut Vec::new(),
         options,
@@ -466,7 +467,14 @@ pub fn print_concurrent(
                     "".to_string()
                 },
                 output.0,
-                if len1 != 0 && len2 != 0 { "\n" } else { "" },
+                if len1 != 0 && len2 != 0
+                {
+                    "\n\x1b[G"
+                }
+                else
+                {
+                    ""
+                },
                 &output.1.replace('+', ""),
                 "\x1b[A".repeat(num + frac - if len1 == 0 || len2 == 0 { 1 } else { 0 }),
                 prompt(options, colors),
@@ -1301,18 +1309,29 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             input[0..pos].to_string()
         };
         num.remove(1);
-        num.insert(dec, '.');
-        num = Float::parse(num)
-            .unwrap()
-            .complete(prec)
-            .to_integer()
-            .unwrap()
-            .to_string();
-        num.insert(1, '.');
-        sign + num.trim_end_matches('0').trim_end_matches('.')
-            + "e"
-            + &(input[pos + 1..].parse::<isize>().unwrap()
-                + if num.len() - 1 > dec { 1 } else { 0 })
-            .to_string()
+        if dec >= num.len()
+        {
+            input[..pos]
+                .trim_end_matches('0')
+                .trim_end_matches('.')
+                .to_string()
+                + &input[pos..]
+        }
+        else
+        {
+            num.insert(dec, '.');
+            num = Float::parse(num)
+                .unwrap()
+                .complete(prec)
+                .to_integer()
+                .unwrap()
+                .to_string();
+            num.insert(1, '.');
+            sign + num.trim_end_matches('0').trim_end_matches('.')
+                + "e"
+                + &(input[pos + 1..].parse::<isize>().unwrap()
+                    + if num.len() - 1 > dec { 1 } else { 0 })
+                .to_string()
+        }
     }
 }

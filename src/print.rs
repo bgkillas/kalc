@@ -622,7 +622,7 @@ pub fn print_concurrent(
         }
         else
         {
-            let num = length / terlen;
+            let num = (length - 1) / terlen;
             print!(
                 "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
                 if frac == 1
@@ -763,7 +763,7 @@ pub fn print_concurrent(
         }
         if !options.multi
         {
-            num += length / terlen;
+            num += (length - 1) / terlen;
             if (frac == 1 && !options.frac)
                 || no_col(&frac_out, options.color).len() > terlen
                 || length > terlen

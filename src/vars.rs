@@ -89,11 +89,12 @@ pub fn input_var(
             }
             else if c == ')'
             {
-                if sum.0 == bracket
+                for (i, sum) in sumrec.clone().iter().enumerate()
                 {
-                    sum.0 = 0;
-                    sum.1 = String::new();
-                    sumrec.pop();
+                    if sum.0 == bracket
+                    {
+                        sumrec.remove(i);
+                    }
                 }
                 bracket -= 1;
             }

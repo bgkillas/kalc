@@ -139,7 +139,7 @@ pub fn input_var(
                     count2 -= 1;
                 }
             }
-            if place == 3
+            if place > 0
             {
                 let count2 = chars[i + count + 1..]
                     .iter()

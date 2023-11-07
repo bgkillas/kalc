@@ -94,6 +94,7 @@ pub fn input_var(
                     if sum.0 == bracket
                     {
                         sumrec.remove(i);
+                        break;
                     }
                 }
                 bracket -= 1;

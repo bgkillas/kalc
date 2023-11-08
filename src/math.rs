@@ -1104,9 +1104,8 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
             {
                 "rnd" =>
                 {
-                    function[i] = Num(Complex::with_val(options.prec, unsafe {
-                        rand() as f64 / libc::RAND_MAX as f64
-                    }))
+                    function[i] = Num(Complex::with_val(options.prec, unsafe { rand() })
+                        / Complex::with_val(options.prec, libc::RAND_MAX))
                 }
                 _ =>
                 {

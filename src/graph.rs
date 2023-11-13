@@ -697,100 +697,158 @@ pub fn graph(
                 fail(options, &colors);
                 return;
             }
-            fg.axes3d()
-                .set_x_ticks(xticks, &[], &[])
-                .set_y_ticks(yticks, &[], &[])
-                .set_z_ticks(zticks, &[], &[])
-                .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
-                .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
-                .set_z_label("z", &[])
-                .set_y_label("y", &[])
-                .set_x_label("x", &[])
-                .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(re1col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(im1col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(re2col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[1]), Color(im2col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(re3col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[2]), Color(im3col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(re4col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(im4col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(re5col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(im5col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(re6col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(im6col)])
-                .points(
-                    re[0].iter().map(|i| i[0]),
-                    re[0].iter().map(|i| i[1]),
-                    re[0].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(re1col)],
-                )
-                .points(
-                    im[0].iter().map(|i| i[0]),
-                    im[0].iter().map(|i| i[1]),
-                    im[0].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(im1col)],
-                )
-                .points(
-                    re[1].iter().map(|i| i[0]),
-                    re[1].iter().map(|i| i[1]),
-                    re[1].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(re2col)],
-                )
-                .points(
-                    im[1].iter().map(|i| i[0]),
-                    im[1].iter().map(|i| i[1]),
-                    im[1].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(im2col)],
-                )
-                .points(
-                    re[2].iter().map(|i| i[0]),
-                    re[2].iter().map(|i| i[1]),
-                    re[2].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(re3col)],
-                )
-                .points(
-                    im[2].iter().map(|i| i[0]),
-                    im[2].iter().map(|i| i[1]),
-                    im[2].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(im3col)],
-                )
-                .points(
-                    re[3].iter().map(|i| i[0]),
-                    re[3].iter().map(|i| i[1]),
-                    re[3].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(re4col)],
-                )
-                .points(
-                    im[3].iter().map(|i| i[0]),
-                    im[3].iter().map(|i| i[1]),
-                    im[3].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(im4col)],
-                )
-                .points(
-                    re[4].iter().map(|i| i[0]),
-                    re[4].iter().map(|i| i[1]),
-                    re[4].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(re5col)],
-                )
-                .points(
-                    im[4].iter().map(|i| i[0]),
-                    im[4].iter().map(|i| i[1]),
-                    im[4].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(im5col)],
-                )
-                .points(
-                    re[5].iter().map(|i| i[0]),
-                    re[5].iter().map(|i| i[1]),
-                    re[5].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(re6col)],
-                )
-                .points(
-                    im[5].iter().map(|i| i[0]),
-                    im[5].iter().map(|i| i[1]),
-                    im[5].iter().map(|i| i[2]),
-                    &[PointSymbol(options.point_style), Color(im6col)],
-                );
+            if options.depth
+            {
+                fg.axes3d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_z_ticks(zticks, &[], &[])
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                    .set_z_label("z", &[])
+                    .set_y_label("y", &[])
+                    .set_x_label("x", &[])
+                    .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(re6col)])
+                    .points(
+                        re[0].iter().map(|x| x[0]),
+                        re[0].iter().map(|x| x[2]),
+                        im[0].iter().map(|x| x[2]),
+                        &[PointSymbol(options.point_style), Color(re1col)],
+                    )
+                    .points(
+                        re[1].iter().map(|x| x[0]),
+                        re[1].iter().map(|x| x[2]),
+                        im[1].iter().map(|x| x[2]),
+                        &[PointSymbol(options.point_style), Color(re2col)],
+                    )
+                    .points(
+                        re[2].iter().map(|x| x[0]),
+                        re[2].iter().map(|x| x[2]),
+                        im[2].iter().map(|x| x[2]),
+                        &[PointSymbol(options.point_style), Color(re3col)],
+                    )
+                    .points(
+                        re[3].iter().map(|x| x[0]),
+                        re[3].iter().map(|x| x[2]),
+                        im[3].iter().map(|x| x[2]),
+                        &[PointSymbol(options.point_style), Color(re4col)],
+                    )
+                    .points(
+                        re[4].iter().map(|x| x[0]),
+                        re[4].iter().map(|x| x[2]),
+                        im[4].iter().map(|x| x[2]),
+                        &[PointSymbol(options.point_style), Color(re5col)],
+                    )
+                    .points(
+                        re[5].iter().map(|x| x[0]),
+                        re[5].iter().map(|x| x[2]),
+                        im[5].iter().map(|x| x[2]),
+                        &[PointSymbol(options.point_style), Color(re6col)],
+                    );
+            }
+            else
+            {
+                fg.axes3d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_z_ticks(zticks, &[], &[])
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                    .set_z_label("z", &[])
+                    .set_y_label("y", &[])
+                    .set_x_label("x", &[])
+                    .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(re1col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(im1col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(re2col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[1]), Color(im2col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(re3col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[2]), Color(im3col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(re4col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(im4col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(re5col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(im5col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(re6col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(im6col)])
+                    .points(
+                        re[0].iter().map(|i| i[0]),
+                        re[0].iter().map(|i| i[1]),
+                        re[0].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(re1col)],
+                    )
+                    .points(
+                        im[0].iter().map(|i| i[0]),
+                        im[0].iter().map(|i| i[1]),
+                        im[0].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(im1col)],
+                    )
+                    .points(
+                        re[1].iter().map(|i| i[0]),
+                        re[1].iter().map(|i| i[1]),
+                        re[1].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(re2col)],
+                    )
+                    .points(
+                        im[1].iter().map(|i| i[0]),
+                        im[1].iter().map(|i| i[1]),
+                        im[1].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(im2col)],
+                    )
+                    .points(
+                        re[2].iter().map(|i| i[0]),
+                        re[2].iter().map(|i| i[1]),
+                        re[2].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(re3col)],
+                    )
+                    .points(
+                        im[2].iter().map(|i| i[0]),
+                        im[2].iter().map(|i| i[1]),
+                        im[2].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(im3col)],
+                    )
+                    .points(
+                        re[3].iter().map(|i| i[0]),
+                        re[3].iter().map(|i| i[1]),
+                        re[3].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(re4col)],
+                    )
+                    .points(
+                        im[3].iter().map(|i| i[0]),
+                        im[3].iter().map(|i| i[1]),
+                        im[3].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(im4col)],
+                    )
+                    .points(
+                        re[4].iter().map(|i| i[0]),
+                        re[4].iter().map(|i| i[1]),
+                        re[4].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(re5col)],
+                    )
+                    .points(
+                        im[4].iter().map(|i| i[0]),
+                        im[4].iter().map(|i| i[1]),
+                        im[4].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(im5col)],
+                    )
+                    .points(
+                        re[5].iter().map(|i| i[0]),
+                        re[5].iter().map(|i| i[1]),
+                        re[5].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(re6col)],
+                    )
+                    .points(
+                        im[5].iter().map(|i| i[0]),
+                        im[5].iter().map(|i| i[1]),
+                        im[5].iter().map(|i| i[2]),
+                        &[PointSymbol(options.point_style), Color(im6col)],
+                    );
+            }
         }
         else
         {

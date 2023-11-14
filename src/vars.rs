@@ -6,7 +6,8 @@ pub fn input_var(
     vars: &[[String; 2]],
     extra_vars: &[[String; 2]],
     dont_do: Option<String>,
-    sumrec: &mut Vec<(i32, String)>,
+    sumrec: &mut Vec<(isize, String)>,
+    bracket: &mut isize,
     options: Options,
 ) -> String
 {
@@ -76,7 +77,6 @@ pub fn input_var(
     let chars = input.chars().collect::<Vec<char>>();
     let mut i = 0;
     let mut sum = (0, String::new());
-    let mut bracket = 0;
     let functions = functions();
     'main: while i < chars.len()
     {
@@ -85,19 +85,19 @@ pub fn input_var(
         {
             if c == '('
             {
-                bracket += 1;
+                *bracket += 1;
             }
             else if c == ')'
             {
                 for (i, sum) in sumrec.clone().iter().enumerate()
                 {
-                    if sum.0 == bracket
+                    if &sum.0 == bracket
                     {
                         sumrec.remove(i);
                         break;
                     }
                 }
-                bracket -= 1;
+                *bracket -= 1;
             }
             output.push(c);
             i += 1;
@@ -146,7 +146,7 @@ pub fn input_var(
                     .iter()
                     .position(|x| x == &',')
                     .unwrap_or(0);
-                sum.0 = bracket + 1;
+                sum.0 = *bracket + 1;
                 if count2 != 0
                 {
                     sum.1 = chars[i + count + 1..i + count + count2 + 1]
@@ -282,6 +282,7 @@ pub fn input_var(
                                 &Vec::new(),
                                 None,
                                 sumrec,
+                                bracket,
                                 options,
                             ));
                             output.push(')');
@@ -390,7 +391,7 @@ pub fn input_var(
                                     va.push([func_var, var.iter().collect::<String>()]);
                                 }
                                 output.push_str(&input_var(
-                                    &var[1], vars, &va, None, sumrec, options,
+                                    &var[1], vars, &va, None, sumrec, bracket, options,
                                 ));
                                 output.push(')');
                                 i += 1;
@@ -416,6 +417,7 @@ pub fn input_var(
                                     &[[l, temp.iter().collect::<String>()]],
                                     None,
                                     sumrec,
+                                    bracket,
                                     options,
                                 ));
                                 output.push(')');
@@ -442,6 +444,7 @@ pub fn input_var(
                             &Vec::new(),
                             Some(var[0].clone()),
                             sumrec,
+                            bracket,
                             options,
                         ));
                         output.push(')');

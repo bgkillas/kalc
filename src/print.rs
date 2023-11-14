@@ -207,6 +207,7 @@ pub fn print_concurrent(
         &Vec::new(),
         None,
         &mut Vec::new(),
+        &mut 0,
         options,
     );
     if can_graph(input)

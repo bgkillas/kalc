@@ -264,6 +264,7 @@ fn main()
                         &Vec::new(),
                         None,
                         &mut Vec::new(),
+                        &mut 0,
                         options,
                     ),
                     options,
@@ -289,6 +290,7 @@ fn main()
                 &Vec::new(),
                 None,
                 &mut Vec::new(),
+                &mut 0,
                 options,
             )))
             {
@@ -349,6 +351,7 @@ fn main()
                             &Vec::new(),
                             None,
                             &mut Vec::new(),
+                            &mut 0,
                             options,
                         )))
                         {
@@ -981,6 +984,7 @@ fn main()
                     &Vec::new(),
                     None,
                     &mut Vec::new(),
+                    &mut 0,
                     options,
                 )))
         {
@@ -1000,7 +1004,15 @@ fn main()
                     {
                         continue;
                     }
-                    *i = input_var(i, &vars, &Vec::new(), None, &mut Vec::new(), options);
+                    *i = input_var(
+                        i,
+                        &vars,
+                        &Vec::new(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
+                        options,
+                    );
                     funcs.push(match get_func(i, options)
                     {
                         Ok(f) => f,

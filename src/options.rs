@@ -1198,8 +1198,8 @@ pub fn set_commands(
                 )?
                 .num()?
                 .real()
-                .to_f64();
-                options.xr = (n, n)
+                .to_f64() as usize;
+                options.samples_3d = (n, n)
             }
         }
         _ => return Ok(()),

@@ -804,7 +804,7 @@ pub fn print_concurrent(
             }
             frac_out += "\n";
         }
-        if length > terlen * (get_terminal_height() - 1)
+        if length > terlen * (get_terminal_height() - 1) || num > (get_terminal_height() - 2)
         {
             print!(
                 "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",

@@ -19,7 +19,7 @@ pub fn graph(
     input: Vec<String>,
     unmod: Vec<String>,
     func: Vec<Vec<NumStr>>,
-    options: Options,
+    mut options: Options,
     watch: Option<Instant>,
     colors: Colors,
 ) -> JoinHandle<()>
@@ -162,6 +162,66 @@ pub fn graph(
             {
                 if !z.0.is_empty()
                 {
+                    if Options::default().yr == options.yr
+                    {
+                        options.yr = (
+                            y.0.iter().zip(y.1.clone()).fold(f64::MAX, |min, x| {
+                                min.min(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                )
+                            }),
+                            y.0.iter().zip(y.1.clone()).fold(f64::MIN, |max, x| {
+                                max.max(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                )
+                            }),
+                        )
+                    }
+                    if Options::default().xr == options.xr
+                    {
+                        options.xr = (
+                            x.0.iter().zip(x.1.clone()).fold(f64::MAX, |min, x| {
+                                min.min(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                )
+                            }),
+                            x.0.iter().zip(x.1.clone()).fold(f64::MIN, |max, x| {
+                                max.max(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                )
+                            }),
+                        )
+                    }
+                    if Options::default().zr == options.zr
+                    {
+                        options.zr = (
+                            z.0.iter().zip(z.1.clone()).fold(f64::MAX, |min, z| {
+                                min.min(
+                                    z.0.iter()
+                                        .zip(z.1)
+                                        .fold(f64::MAX, |min, z| min.min(*z.0).min(z.1)),
+                                )
+                            }),
+                            z.0.iter().zip(z.1.clone()).fold(f64::MIN, |max, z| {
+                                max.max(
+                                    z.0.iter()
+                                        .zip(z.1)
+                                        .fold(f64::MIN, |max, z| max.max(*z.0).max(z.1)),
+                                )
+                            }),
+                        )
+                    }
+                    let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+                    let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
+                    let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
                     let n = vec![0.0; 3];
                     for _ in 0..6 - func.len()
                     {
@@ -182,81 +242,165 @@ pub fn graph(
                         .set_z_label("z", &[])
                         .set_y_label("y", &[])
                         .set_x_label("x", &[])
-                        .lines(
+                        .lines_points(
                             x.0[0].clone(),
                             y.0[0].clone(),
                             z.0[0].clone(),
-                            &[Caption(&re_cap[0]), Color(re1col)],
+                            &[
+                                Caption(&re_cap[0]),
+                                Color(re1col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[1].clone(),
                             y.0[1].clone(),
                             z.0[1].clone(),
-                            &[Caption(&re_cap[1]), Color(re2col)],
+                            &[
+                                Caption(&re_cap[1]),
+                                Color(re2col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[2].clone(),
                             y.0[2].clone(),
                             z.0[2].clone(),
                             &[Caption(&re_cap[2]), Color(re3col)],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[3].clone(),
                             y.0[3].clone(),
                             z.0[3].clone(),
-                            &[Caption(&re_cap[3]), Color(re4col)],
+                            &[
+                                Caption(&re_cap[3]),
+                                Color(re4col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[4].clone(),
                             y.0[4].clone(),
                             z.0[4].clone(),
-                            &[Caption(&re_cap[4]), Color(re5col)],
+                            &[
+                                Caption(&re_cap[4]),
+                                Color(re5col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[5].clone(),
                             y.0[5].clone(),
                             z.0[5].clone(),
-                            &[Caption(&re_cap[5]), Color(re6col)],
+                            &[
+                                Caption(&re_cap[5]),
+                                Color(re6col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[0].clone(),
                             y.1[0].clone(),
                             z.1[0].clone(),
-                            &[Caption(&im_cap[0]), Color(im1col)],
+                            &[
+                                Caption(&im_cap[0]),
+                                Color(im1col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[1].clone(),
                             y.1[1].clone(),
                             z.1[1].clone(),
-                            &[Caption(&im_cap[1]), Color(im2col)],
+                            &[
+                                Caption(&im_cap[1]),
+                                Color(im2col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[2].clone(),
                             y.1[2].clone(),
                             z.1[2].clone(),
-                            &[Caption(&im_cap[2]), Color(im3col)],
+                            &[
+                                Caption(&im_cap[2]),
+                                Color(im3col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[3].clone(),
                             y.1[3].clone(),
                             z.1[3].clone(),
-                            &[Caption(&im_cap[3]), Color(im4col)],
+                            &[
+                                Caption(&im_cap[3]),
+                                Color(im4col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[4].clone(),
                             y.1[4].clone(),
                             z.1[4].clone(),
-                            &[Caption(&im_cap[4]), Color(im5col)],
+                            &[
+                                Caption(&im_cap[4]),
+                                Color(im5col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[5].clone(),
                             y.1[5].clone(),
                             z.1[5].clone(),
-                            &[Caption(&im_cap[5]), Color(im6col)],
+                            &[
+                                Caption(&im_cap[5]),
+                                Color(im6col),
+                                PointSymbol(options.point_style),
+                            ],
                         );
                 }
                 else
                 {
+                    if Options::default().yr == options.yr
+                    {
+                        options.yr = (
+                            y.0.iter().zip(y.1.clone()).fold(f64::MAX, |min, x| {
+                                min.min(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                )
+                            }),
+                            y.0.iter().zip(y.1.clone()).fold(f64::MIN, |max, x| {
+                                max.max(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                )
+                            }),
+                        )
+                    }
+                    if Options::default().xr == options.xr
+                    {
+                        options.xr = (
+                            x.0.iter().zip(x.1.clone()).fold(f64::MAX, |min, x| {
+                                min.min(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                )
+                            }),
+                            x.0.iter().zip(x.1.clone()).fold(f64::MIN, |max, x| {
+                                max.max(
+                                    x.0.iter()
+                                        .zip(x.1)
+                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                )
+                            }),
+                        )
+                    }
+                    let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+                    let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
                     let z = vec![0.0; 2];
                     for _ in 0..6 - func.len()
                     {
@@ -270,65 +414,113 @@ pub fn graph(
                         .set_y_ticks(yticks, &[], &[])
                         .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                         .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                        .lines(
+                        .lines_points(
                             x.0[0].clone(),
                             y.0[0].clone(),
-                            &[Caption(&re_cap[0]), Color(re1col)],
+                            &[
+                                Caption(&re_cap[0]),
+                                Color(re1col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[1].clone(),
                             y.0[1].clone(),
-                            &[Caption(&re_cap[1]), Color(re2col)],
+                            &[
+                                Caption(&re_cap[1]),
+                                Color(re2col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[2].clone(),
                             y.0[2].clone(),
-                            &[Caption(&re_cap[2]), Color(re3col)],
+                            &[
+                                Caption(&re_cap[2]),
+                                Color(re3col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[3].clone(),
                             y.0[3].clone(),
-                            &[Caption(&re_cap[3]), Color(re4col)],
+                            &[
+                                Caption(&re_cap[3]),
+                                Color(re4col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[4].clone(),
                             y.0[4].clone(),
-                            &[Caption(&re_cap[4]), Color(re5col)],
+                            &[
+                                Caption(&re_cap[4]),
+                                Color(re5col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.0[5].clone(),
                             y.0[5].clone(),
-                            &[Caption(&re_cap[5]), Color(re6col)],
+                            &[
+                                Caption(&re_cap[5]),
+                                Color(re6col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[0].clone(),
                             y.1[0].clone(),
-                            &[Caption(&im_cap[0]), Color(im1col)],
+                            &[
+                                Caption(&im_cap[0]),
+                                Color(im1col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[1].clone(),
                             y.1[1].clone(),
-                            &[Caption(&im_cap[1]), Color(im2col)],
+                            &[
+                                Caption(&im_cap[1]),
+                                Color(im2col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[2].clone(),
                             y.1[2].clone(),
-                            &[Caption(&im_cap[2]), Color(im3col)],
+                            &[
+                                Caption(&im_cap[2]),
+                                Color(im3col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[3].clone(),
                             y.1[3].clone(),
-                            &[Caption(&im_cap[3]), Color(im4col)],
+                            &[
+                                Caption(&im_cap[3]),
+                                Color(im4col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[4].clone(),
                             y.1[4].clone(),
-                            &[Caption(&im_cap[4]), Color(im5col)],
+                            &[
+                                Caption(&im_cap[4]),
+                                Color(im5col),
+                                PointSymbol(options.point_style),
+                            ],
                         )
-                        .lines(
+                        .lines_points(
                             x.1[5].clone(),
                             y.1[5].clone(),
-                            &[Caption(&im_cap[5]), Color(im6col)],
+                            &[
+                                Caption(&im_cap[5]),
+                                Color(im6col),
+                                PointSymbol(options.point_style),
+                            ],
                         );
                 }
             }
@@ -344,65 +536,113 @@ pub fn graph(
                     .set_y_ticks(yticks, &[], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                    .lines(
+                    .lines_points(
                         [0.0, re[0][0].real().to_f64()],
                         [0.0, re[0][1].real().to_f64()],
-                        &[Caption(&re_cap[0]), Color(re1col)],
+                        &[
+                            Caption(&re_cap[0]),
+                            Color(re1col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[1][0].real().to_f64()],
                         [0.0, re[1][1].real().to_f64()],
-                        &[Caption(&re_cap[1]), Color(re2col)],
+                        &[
+                            Caption(&re_cap[1]),
+                            Color(re2col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[2][0].real().to_f64()],
                         [0.0, re[2][1].real().to_f64()],
-                        &[Caption(&re_cap[2]), Color(re3col)],
+                        &[
+                            Caption(&re_cap[2]),
+                            Color(re3col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[3][0].real().to_f64()],
                         [0.0, re[3][1].real().to_f64()],
-                        &[Caption(&re_cap[3]), Color(re4col)],
+                        &[
+                            Caption(&re_cap[3]),
+                            Color(re4col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[4][0].real().to_f64()],
                         [0.0, re[4][1].real().to_f64()],
-                        &[Caption(&re_cap[4]), Color(re5col)],
+                        &[
+                            Caption(&re_cap[4]),
+                            Color(re5col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[5][0].real().to_f64()],
                         [0.0, re[5][1].real().to_f64()],
-                        &[Caption(&re_cap[5]), Color(re6col)],
+                        &[
+                            Caption(&re_cap[5]),
+                            Color(re6col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[0][0].imag().to_f64()],
                         [0.0, re[0][1].imag().to_f64()],
-                        &[Caption(&im_cap[0]), Color(im1col)],
+                        &[
+                            Caption(&im_cap[0]),
+                            Color(im1col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[1][0].imag().to_f64()],
                         [0.0, re[1][1].imag().to_f64()],
-                        &[Caption(&im_cap[1]), Color(im2col)],
+                        &[
+                            Caption(&im_cap[1]),
+                            Color(im2col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[2][0].imag().to_f64()],
                         [0.0, re[2][1].imag().to_f64()],
-                        &[Caption(&im_cap[2]), Color(im3col)],
+                        &[
+                            Caption(&im_cap[2]),
+                            Color(im3col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[3][0].imag().to_f64()],
                         [0.0, re[3][1].imag().to_f64()],
-                        &[Caption(&im_cap[3]), Color(im4col)],
+                        &[
+                            Caption(&im_cap[3]),
+                            Color(im4col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[4][0].imag().to_f64()],
                         [0.0, re[4][1].imag().to_f64()],
-                        &[Caption(&im_cap[4]), Color(im5col)],
+                        &[
+                            Caption(&im_cap[4]),
+                            Color(im5col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[5][0].imag().to_f64()],
                         [0.0, re[5][1].imag().to_f64()],
-                        &[Caption(&im_cap[5]), Color(im6col)],
+                        &[
+                            Caption(&im_cap[5]),
+                            Color(im6col),
+                            PointSymbol(options.point_style),
+                        ],
                     );
             }
             else if re.iter().all(|re| re.len() == 3)
@@ -422,77 +662,125 @@ pub fn graph(
                     .set_z_label("z", &[])
                     .set_y_label("y", &[])
                     .set_x_label("x", &[])
-                    .lines(
+                    .lines_points(
                         [0.0, re[0][0].real().to_f64()],
                         [0.0, re[0][1].real().to_f64()],
                         [0.0, re[0][2].real().to_f64()],
-                        &[Caption(&re_cap[0]), Color(re1col)],
+                        &[
+                            Caption(&re_cap[0]),
+                            Color(re1col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[1][0].real().to_f64()],
                         [0.0, re[1][1].real().to_f64()],
                         [0.0, re[1][2].real().to_f64()],
-                        &[Caption(&re_cap[1]), Color(re2col)],
+                        &[
+                            Caption(&re_cap[1]),
+                            Color(re2col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[2][0].real().to_f64()],
                         [0.0, re[2][1].real().to_f64()],
                         [0.0, re[2][2].real().to_f64()],
-                        &[Caption(&re_cap[2]), Color(re3col)],
+                        &[
+                            Caption(&re_cap[2]),
+                            Color(re3col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[3][0].real().to_f64()],
                         [0.0, re[3][1].real().to_f64()],
                         [0.0, re[3][2].real().to_f64()],
-                        &[Caption(&re_cap[3]), Color(re4col)],
+                        &[
+                            Caption(&re_cap[3]),
+                            Color(re4col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[4][0].real().to_f64()],
                         [0.0, re[4][1].real().to_f64()],
                         [0.0, re[4][2].real().to_f64()],
-                        &[Caption(&re_cap[4]), Color(re5col)],
+                        &[
+                            Caption(&re_cap[4]),
+                            Color(re5col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[5][0].real().to_f64()],
                         [0.0, re[5][1].real().to_f64()],
                         [0.0, re[5][2].real().to_f64()],
-                        &[Caption(&re_cap[5]), Color(re6col)],
+                        &[
+                            Caption(&re_cap[5]),
+                            Color(re6col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[0][0].imag().to_f64()],
                         [0.0, re[0][1].imag().to_f64()],
                         [0.0, re[0][2].imag().to_f64()],
-                        &[Caption(&im_cap[0]), Color(im1col)],
+                        &[
+                            Caption(&im_cap[0]),
+                            Color(im1col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[1][0].imag().to_f64()],
                         [0.0, re[1][1].imag().to_f64()],
                         [0.0, re[1][2].imag().to_f64()],
-                        &[Caption(&im_cap[1]), Color(im2col)],
+                        &[
+                            Caption(&im_cap[1]),
+                            Color(im2col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[2][0].imag().to_f64()],
                         [0.0, re[2][1].imag().to_f64()],
                         [0.0, re[2][2].imag().to_f64()],
-                        &[Caption(&im_cap[2]), Color(im3col)],
+                        &[
+                            Caption(&im_cap[2]),
+                            Color(im3col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[3][0].imag().to_f64()],
                         [0.0, re[3][1].imag().to_f64()],
                         [0.0, re[3][2].imag().to_f64()],
-                        &[Caption(&im_cap[3]), Color(im4col)],
+                        &[
+                            Caption(&im_cap[3]),
+                            Color(im4col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[4][0].imag().to_f64()],
                         [0.0, re[4][1].imag().to_f64()],
                         [0.0, re[4][2].imag().to_f64()],
-                        &[Caption(&im_cap[4]), Color(im5col)],
+                        &[
+                            Caption(&im_cap[4]),
+                            Color(im5col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         [0.0, re[5][0].imag().to_f64()],
                         [0.0, re[5][1].imag().to_f64()],
                         [0.0, re[5][2].imag().to_f64()],
-                        &[Caption(&im_cap[5]), Color(im6col)],
+                        &[
+                            Caption(&im_cap[5]),
+                            Color(im6col),
+                            PointSymbol(options.point_style),
+                        ],
                     );
             }
             else
@@ -501,106 +789,90 @@ pub fn graph(
                 {
                     re.push(Vec::new());
                 }
-                let yr = if Options::default().yr == options.yr
+                if Options::default().yr == options.yr
                 {
-                    (
-                        re.iter().fold(f64::MAX, |max, x| {
-                            let x = x.iter().fold(f64::MAX, |max, x| {
-                                let x = x.real().to_f64();
-                                if max > x
-                                {
-                                    x
-                                }
-                                else
-                                {
-                                    max
-                                }
-                            });
-                            if max > x
-                            {
-                                x
-                            }
-                            else
-                            {
-                                max
-                            }
+                    options.yr = (
+                        re.iter().fold(f64::MAX, |min, x| {
+                            min.min(x.iter().fold(f64::MAX, |min, x| {
+                                min.min(x.real().to_f64()).min(x.imag().to_f64())
+                            }))
                         }),
                         re.iter().fold(f64::MIN, |max, x| {
-                            let x = x.iter().fold(f64::MIN, |max, x| {
-                                let x = x.real().to_f64();
-                                if max < x
-                                {
-                                    x
-                                }
-                                else
-                                {
-                                    max
-                                }
-                            });
-                            if max < x
-                            {
-                                x
-                            }
-                            else
-                            {
-                                max
-                            }
+                            max.max(x.iter().fold(f64::MIN, |max, x| {
+                                max.max(x.real().to_f64()).max(x.imag().to_f64())
+                            }))
                         }),
                     )
                 }
-                else
+                if Options::default().xr == options.xr
                 {
-                    options.yr
-                };
-                let xr = if Options::default().xr == options.xr
-                {
-                    (
+                    options.xr = (
                         0.0,
                         (re.iter().map(|re| re.len()).max().unwrap() - 1) as f64,
                     )
                 }
-                else
-                {
-                    options.xr
-                };
-                let xticks = Some((Fix((xr.1 - xr.0) / 20.0), 1));
-                let yticks = Some((Fix((yr.1 - yr.0) / 20.0), 1));
+                let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+                let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
                     .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(yr.0), Fix(yr.1))
-                    .set_x_range(Fix(xr.0), Fix(xr.1))
-                    .lines(
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .lines_points(
                         0..re[0].len(),
                         re[0].iter().map(|x| x.real().to_f64()),
-                        &[Caption(&re_cap[0]), Color(re1col)],
+                        &[
+                            Caption(&re_cap[0]),
+                            Color(re1col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         0..re[1].len(),
                         re[1].iter().map(|x| x.real().to_f64()),
-                        &[Caption(&re_cap[1]), Color(re2col)],
+                        &[
+                            Caption(&re_cap[1]),
+                            Color(re2col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         0..re[2].len(),
                         re[2].iter().map(|x| x.real().to_f64()),
-                        &[Caption(&re_cap[2]), Color(re3col)],
+                        &[
+                            Caption(&re_cap[2]),
+                            Color(re3col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         0..re[3].len(),
                         re[3].iter().map(|x| x.real().to_f64()),
-                        &[Caption(&re_cap[3]), Color(re4col)],
+                        &[
+                            Caption(&re_cap[3]),
+                            Color(re4col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         0..re[4].len(),
                         re[4].iter().map(|x| x.real().to_f64()),
-                        &[Caption(&re_cap[4]), Color(re5col)],
+                        &[
+                            Caption(&re_cap[4]),
+                            Color(re5col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         0..re[5].len(),
                         re[5].iter().map(|x| x.real().to_f64()),
-                        &[Caption(&re_cap[5]), Color(re6col)],
+                        &[
+                            Caption(&re_cap[5]),
+                            Color(re6col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         if !im_cap[0].is_empty()
                         {
                             0..re[0].len()
@@ -610,9 +882,13 @@ pub fn graph(
                             0..0
                         },
                         re[0].iter().map(|x| x.imag().to_f64()),
-                        &[Caption(&im_cap[0]), Color(im1col)],
+                        &[
+                            Caption(&im_cap[0]),
+                            Color(im1col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         if !im_cap[1].is_empty()
                         {
                             0..re[1].len()
@@ -622,9 +898,13 @@ pub fn graph(
                             0..0
                         },
                         re[1].iter().map(|x| x.imag().to_f64()),
-                        &[Caption(&im_cap[1]), Color(im2col)],
+                        &[
+                            Caption(&im_cap[1]),
+                            Color(im2col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         if !im_cap[2].is_empty()
                         {
                             0..re[2].len()
@@ -634,9 +914,13 @@ pub fn graph(
                             0..0
                         },
                         re[2].iter().map(|x| x.imag().to_f64()),
-                        &[Caption(&im_cap[2]), Color(im3col)],
+                        &[
+                            Caption(&im_cap[2]),
+                            Color(im3col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         if !im_cap[3].is_empty()
                         {
                             0..re[3].len()
@@ -646,9 +930,13 @@ pub fn graph(
                             0..0
                         },
                         re[3].iter().map(|x| x.imag().to_f64()),
-                        &[Caption(&im_cap[3]), Color(im4col)],
+                        &[
+                            Caption(&im_cap[3]),
+                            Color(im4col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         if !im_cap[4].is_empty()
                         {
                             0..re[4].len()
@@ -658,9 +946,13 @@ pub fn graph(
                             0..0
                         },
                         re[4].iter().map(|x| x.imag().to_f64()),
-                        &[Caption(&im_cap[4]), Color(im5col)],
+                        &[
+                            Caption(&im_cap[4]),
+                            Color(im5col),
+                            PointSymbol(options.point_style),
+                        ],
                     )
-                    .lines(
+                    .lines_points(
                         if !im_cap[5].is_empty()
                         {
                             0..re[5].len()
@@ -670,7 +962,11 @@ pub fn graph(
                             0..0
                         },
                         re[5].iter().map(|x| x.imag().to_f64()),
-                        &[Caption(&im_cap[5]), Color(im6col)],
+                        &[
+                            Caption(&im_cap[5]),
+                            Color(im6col),
+                            PointSymbol(options.point_style),
+                        ],
                     );
             }
         }

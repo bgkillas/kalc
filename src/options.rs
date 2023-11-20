@@ -702,7 +702,7 @@ pub fn set_commands(
             match r.parse::<String>()
             {
                 Ok(n) => colors.text = "\x1b[".to_owned() + &n,
-                _ => println!("Invalid col"),
+                _ => return Err("Invalid col"),
             };
         }
         "promptc" =>
@@ -710,7 +710,7 @@ pub fn set_commands(
             match r.parse::<String>()
             {
                 Ok(n) => colors.prompt = "\x1b[".to_owned() + &n,
-                _ => println!("Invalid col"),
+                _ => return Err("Invalid col"),
             };
         }
         "imagc" =>
@@ -718,7 +718,7 @@ pub fn set_commands(
             match r.parse::<String>()
             {
                 Ok(n) => colors.imag = "\x1b[".to_owned() + &n,
-                _ => println!("Invalid col"),
+                _ => return Err("Invalid col"),
             };
         }
         "scic" =>
@@ -726,7 +726,7 @@ pub fn set_commands(
             match r.parse::<String>()
             {
                 Ok(n) => colors.sci = "\x1b[".to_owned() + &n,
-                _ => println!("Invalid col"),
+                _ => return Err("Invalid col"),
             };
         }
         "bracketc" =>
@@ -741,7 +741,7 @@ pub fn set_commands(
                         colors.brackets.push("\x1b[".to_owned() + i)
                     }
                 }
-                _ => println!("Invalid col"),
+                _ => return Err("Invalid col"),
             };
         }
         "point" =>
@@ -756,7 +756,7 @@ pub fn set_commands(
             }
             else
             {
-                println!("Invalid point type");
+                return Err("Invalid point type");
             }
         }
         "base" =>
@@ -764,7 +764,7 @@ pub fn set_commands(
             match r.parse::<usize>()
             {
                 Ok(n) if (2..=36).contains(&n) => options.base = n,
-                _ => println!("Invalid base"),
+                _ => return Err("Invalid base"),
             };
         }
         "decimal" | "deci" | "decimals" =>
@@ -791,7 +791,7 @@ pub fn set_commands(
                 n if n == -1 => options.decimal_places = usize::MAX - 1,
                 n if n == -2 => options.decimal_places = usize::MAX,
                 n if n >= 0 => options.decimal_places = n as usize,
-                _ => println!("Invalid decimal"),
+                _ => return Err("Invalid decimal"),
             };
         }
         "prec" | "precision" => match do_math(
@@ -832,7 +832,7 @@ pub fn set_commands(
                     *old = v;
                 }
             }
-            _ => println!("Invalid precision"),
+            _ => return Err("Invalid precision"),
         },
         "range" =>
         {
@@ -1112,7 +1112,7 @@ pub fn set_commands(
             match r.parse::<usize>()
             {
                 Ok(n) => options.frac_iter = n,
-                _ => println!("Invalid frac_iter"),
+                _ => return Err("Invalid frac_iter"),
             };
         }
         "2d" =>

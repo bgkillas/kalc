@@ -12,9 +12,7 @@ mod tests;
 mod vars;
 use crate::{
     graph::{can_graph, graph},
-    misc::{
-        clear, clearln, convert, get_terminal_width, handle_err, prompt, read_single_char, write,
-    },
+    misc::{clear, clearln, convert, get_terminal_width, prompt, read_single_char, write},
     options::{arg_opts, commands, file_opts, set_commands, AngleType, AngleType::Radians},
     parse::get_func,
     print::{print_answer, print_concurrent},
@@ -915,7 +913,25 @@ fn main()
                             {
                                 if !s.is_empty()
                                 {
-                                    handle_err(s, &input, options, &colors, start, end)
+                                    if s == " "
+                                    {
+                                        print!(
+                                            "\x1b[G\x1b[Kempty input\n\x1b[G\x1b[K{}{}",
+                                            prompt(options, &colors),
+                                            if options.color { "\x1b[0m" } else { "" },
+                                        );
+                                        stdout.flush().unwrap()
+                                    }
+                                    else
+                                    {
+                                        print!(
+                                            "\x1b[G\x1b[K{}\n\x1b[G\x1b[K{}{}",
+                                            s,
+                                            prompt(options, &colors),
+                                            if options.color { "\x1b[0m" } else { "" },
+                                        );
+                                        stdout.flush().unwrap()
+                                    }
                                 }
                                 true
                             }

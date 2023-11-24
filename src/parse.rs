@@ -924,15 +924,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
             {
                 "(" =>
                 {
-                    if func.len() > i + 2 && func[i + 2].str_is(")")
-                    {
-                        func.remove(i + 2);
-                        func.remove(i);
-                        i = i.saturating_sub(1);
-                        count -= 1;
-                        continue;
-                    }
-                    else if func.len() > i + 1 && func[i + 1].str_is(")")
+                    if func.len() > i + 1 && func[i + 1].str_is(")")
                     {
                         func.remove(i + 1);
                         func.remove(i);
@@ -948,23 +940,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     count -= 1;
                     if let Some(k) = brackets.last()
                     {
-                        if k.0 == 0
+                        if k.0 == 0 && i == func.len() - 1
                         {
-                            if i == func.len() - 1
-                            {
-                                func.pop();
-                                func.remove(0);
-                            }
-                        }
-                        else if i != func.len() - 1
-                            && func[k.0 - 1].str_is("(")
-                            && func[i + 1].str_is(")")
-                        {
-                            func.remove(i + 1);
-                            func.remove(k.0 - 1);
-                            i = k.0.saturating_sub(2);
-                            brackets.pop();
-                            continue;
+                            func.pop();
+                            func.remove(0);
                         }
                         brackets.pop();
                     }

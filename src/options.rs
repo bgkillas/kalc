@@ -1361,7 +1361,7 @@ pub fn commands(
             {
                 if v[0].contains('(')
                 {
-                    println!("{}={}", v[0], v[1]);
+                    print!("{}={}\n\x1b[G", v[0], v[1]);
                 }
                 else
                 {

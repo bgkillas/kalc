@@ -185,7 +185,7 @@ pub fn input_var(
                 }
             })
         {
-            i += word.len();
+            i += word.chars().count();
             output.push_str(&word)
         }
         else if sumrec.iter().any(|a| {
@@ -200,7 +200,7 @@ pub fn input_var(
             }
         })
         {
-            i += word.len();
+            i += word.chars().count();
             output.push_str(&word);
             if i != chars.len()
             {

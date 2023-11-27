@@ -1432,7 +1432,7 @@ fn do_functions(
                 }
                 Ok(Matrix(mat))
             }
-            _ => Err("unhreachable"),
+            _ => Err("str err2"),
         }
     }
     else
@@ -1463,7 +1463,7 @@ fn do_functions(
                 Ok(Vector(vec))
             }
             Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, options)?)),
-            _ => Err("unreachable1"),
+            _ => Err("str err1"),
         }
     }
 }

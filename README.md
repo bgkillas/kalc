@@ -15,12 +15,10 @@ parsing tries to comply with wolfram alpha
 
 config defaults listed in kalc.config
 # issues
-- 0's and infinities of trig functions don't show up as 0 or infinity.
+- 0's and infinities of trig functions don't show up as 0 or infinity in scientific mode.
 - matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
 - loops(sum/prod etc) cant work with x,y,z as vars
 - recursive formulas don't work
-- inf + inf * i does not give inf+inf*i, infinitys generally dont well with complex numbers, like inf/i != -inf*i
-- 1/0 != +-inf, digamma(-n) != +-inf, gamma(-n) != +-inf (and gamma subsidiarys)
 - |2|x|| does not format as norm(2*norm(x)) it formats as norm(2)*x||, |ln|x|| works
 # build instructions
 windows is not properly supported due to dependencys being weird, just use wsl

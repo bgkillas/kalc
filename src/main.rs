@@ -992,7 +992,7 @@ fn main()
             }
         }
         if graphable
-            && input.iter().collect::<String>() != "history"
+            && !input.iter().collect::<String>().starts_with("history")
             && (input.contains(&'#')
                 || can_graph(&input_var(
                     &input.iter().collect::<String>(),

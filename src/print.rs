@@ -1165,14 +1165,24 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
             zeros.pop();
         }
     }
-    if zeros.is_empty() && d.to_string().trim_end_matches('0') == "1" && r.starts_with('9')
+    if d.to_string().trim_end_matches('0') == "1"
+        && r.trim_start_matches('0')
+            .trim_start_matches('.')
+            .starts_with('9')
     {
-        let t: Float = Float::with_val(
-            num.prec(),
-            Float::parse(if l.is_empty() { "0" } else { &l }).unwrap(),
-        ) + 1;
-        l = t.to_integer().unwrap().to_string();
-        d = Integer::new();
+        if zeros.is_empty()
+        {
+            let t: Float = Float::with_val(
+                num.prec(),
+                Float::parse(if l.is_empty() { "0" } else { &l }).unwrap(),
+            ) + 1;
+            l = t.to_integer().unwrap().to_string();
+            d = Integer::new();
+        }
+        else
+        {
+            zeros.pop();
+        }
     }
     if d.to_string() == "0" && (l.is_empty() || l == "0")
     {

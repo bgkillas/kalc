@@ -5,7 +5,7 @@ use crate::{
         to_polar, trace, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
-    options::AngleType::{Degrees, Gradians, Radians},
+    AngleType::{Degrees, Gradians, Radians},
     Options,
 };
 use libc::rand;

@@ -522,7 +522,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 '±' if i + 1 != chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if func.is_empty()
-                        || matches!(func.last().unwrap(),Str(s) if (s==","||s=="{"||s=="("))
+                        || matches!(func.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
                     {
                         func.push(Num(Complex::new(options.prec)))
                     }
@@ -571,7 +571,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     if chars[i + 1] == '-'
                     {
                         if func.is_empty()
-                            || matches!(func.last().unwrap(),Str(s) if (s==","||s=="{"||s=="("))
+                            || matches!(func.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
                         {
                             func.push(Num(Complex::new(options.prec)))
                         }
@@ -588,7 +588,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if func.is_empty()
-                        || matches!(func.last().unwrap(),Str(s) if (s==","||s=="{"||s=="("))
+                        || matches!(func.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
                     {
                         func.push(Num(Complex::new(options.prec)))
                     }

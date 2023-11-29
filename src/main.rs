@@ -13,10 +13,11 @@ mod vars;
 use crate::{
     graph::{can_graph, graph},
     misc::{clear, clearln, convert, get_terminal_width, prompt, read_single_char, write},
-    options::{arg_opts, commands, file_opts, set_commands, AngleType, AngleType::Radians},
+    options::{arg_opts, commands, file_opts, set_commands},
     parse::get_func,
     print::{print_answer, print_concurrent},
     vars::{get_cli_vars, get_vars, input_var},
+    AngleType::Radians,
 };
 use crossterm::terminal;
 use std::{
@@ -34,6 +35,18 @@ pub struct Colors
     imag: String,
     sci: String,
     brackets: Vec<String>,
+    re1col: String,
+    re2col: String,
+    re3col: String,
+    re4col: String,
+    re5col: String,
+    re6col: String,
+    im1col: String,
+    im2col: String,
+    im3col: String,
+    im4col: String,
+    im5col: String,
+    im6col: String,
 }
 impl Default for Colors
 {
@@ -52,8 +65,27 @@ impl Default for Colors
                 "\x1b[95m".to_string(),
                 "\x1b[96m".to_string(),
             ],
+            re1col: "#ff5555".to_string(),
+            re2col: "#5555ff".to_string(),
+            re3col: "#ff55ff".to_string(),
+            re4col: "#55ff55".to_string(),
+            re5col: "#55ffff".to_string(),
+            re6col: "#ffff55".to_string(),
+            im1col: "#aa0000".to_string(),
+            im2col: "#0000aa".to_string(),
+            im3col: "#aa00aa".to_string(),
+            im4col: "#00aa00".to_string(),
+            im5col: "#00aaaa".to_string(),
+            im6col: "#aaaa00".to_string(),
         }
     }
+}
+#[derive(Copy, Clone, PartialEq)]
+pub enum AngleType
+{
+    Radians,
+    Degrees,
+    Gradians,
 }
 #[derive(Clone, Copy)]
 pub struct Options
@@ -282,7 +314,7 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            if !(can_graph(&input_var(
+            if !can_graph(&input_var(
                 &input.iter().collect::<String>(),
                 &vars,
                 &Vec::new(),
@@ -290,7 +322,7 @@ fn main()
                 &mut Vec::new(),
                 &mut 0,
                 options,
-            )))
+            ))
             {
                 println!();
             }
@@ -343,7 +375,7 @@ fn main()
                                 &input, &last, &vars, options, &colors, start, end,
                             );
                         }
-                        if !(can_graph(&input_var(
+                        if !can_graph(&input_var(
                             &input.iter().collect::<String>(),
                             &vars,
                             &Vec::new(),
@@ -351,7 +383,7 @@ fn main()
                             &mut Vec::new(),
                             &mut 0,
                             options,
-                        )))
+                        ))
                         {
                             println!();
                         }

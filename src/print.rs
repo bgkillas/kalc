@@ -548,18 +548,16 @@ pub fn print_concurrent(
                 {
                     format!(
                         "{}{}{}",
-                        (if !i.real().is_zero()
-                            && !i.imag().is_zero()
-                            && i.imag().is_sign_positive()
+                        if !i.real().is_zero() && !i.imag().is_zero() && i.imag().is_sign_positive()
                         {
                             "+"
                         }
                         else
                         {
                             ""
-                        }),
+                        },
                         frac_temp,
-                        (if !i.imag().is_zero()
+                        if !i.imag().is_zero()
                         {
                             if options.color
                             {
@@ -573,7 +571,7 @@ pub fn print_concurrent(
                         else
                         {
                             "".to_string()
-                        })
+                        }
                     )
                 }
                 else
@@ -677,7 +675,7 @@ pub fn print_concurrent(
                     {
                         format!(
                             "{}{}{}",
-                            (if !i.real().is_zero()
+                            if !i.real().is_zero()
                                 && !i.imag().is_zero()
                                 && i.imag().is_sign_positive()
                             {
@@ -686,9 +684,9 @@ pub fn print_concurrent(
                             else
                             {
                                 ""
-                            }),
+                            },
                             frac_temp,
-                            (if !i.imag().is_zero()
+                            if !i.imag().is_zero()
                             {
                                 if options.color
                                 {
@@ -702,7 +700,7 @@ pub fn print_concurrent(
                             else
                             {
                                 "".to_string()
-                            })
+                            }
                         )
                     }
                     else

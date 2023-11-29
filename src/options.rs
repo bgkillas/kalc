@@ -3,10 +3,10 @@ use crate::{
     help::help,
     math::do_math,
     misc::{prompt, to_output},
-    options::AngleType::{Degrees, Gradians, Radians},
     parse::get_func,
     print::get_output,
     vars::{get_vars, input_var},
+    AngleType::{Degrees, Gradians, Radians},
     Colors, Options,
 };
 use crossterm::terminal;
@@ -299,6 +299,102 @@ pub fn file_opts(
                         .parse::<usize>()
                         .expect("invalid frac_iter")
                 }
+                "re1col" =>
+                {
+                    colors.re1col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "im1col" =>
+                {
+                    colors.im1col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "re2col" =>
+                {
+                    colors.re2col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "im2col" =>
+                {
+                    colors.im2col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "re3col" =>
+                {
+                    colors.re3col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "im3col" =>
+                {
+                    colors.im3col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "re4col" =>
+                {
+                    colors.re4col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "im4col" =>
+                {
+                    colors.im4col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "re5col" =>
+                {
+                    colors.re5col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "im5col" =>
+                {
+                    colors.im5col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "re6col" =>
+                {
+                    colors.re6col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
+                "im6col" =>
+                {
+                    colors.im6col = split
+                        .next()
+                        .unwrap()
+                        .parse::<String>()
+                        .expect("invalid col")
+                }
                 "textc" =>
                 {
                     colors.text = "\x1b[".to_owned()
@@ -570,8 +666,12 @@ pub fn equal_to(
 {
     match l
     {
+
+
         "colors" => format!(
-            "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={}\x1b[0m",
+            "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[38;2;{};{};{}mre1col={} \x1b[38;2;{};{};{}mim1col={} \x1b[38;2;{};{};{}mre2col={} \
+             \x1b[38;2;{};{};{}mim2col={} \x1b[38;2;{};{};{}mre3col={} \x1b[38;2;{};{};{}mim3col={} \x1b[38;2;{};{};{}mre4col={} \x1b[38;2;{};{};{}mim4col={} \x1b[38;2;{};{};{}mre5col={} \
+              \x1b[38;2;{};{};{}mim5col={} \x1b[38;2;{};{};{}mre6col={} \x1b[38;2;{};{};{}mim6col={}\x1b[0m",
             colors.text,
             &colors.text[2..],
             colors.prompt,
@@ -583,7 +683,55 @@ pub fn equal_to(
             colors
                 .brackets
                 .iter()
-                .fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..]))
+                .fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..])).trim_end_matches(','),
+            u8::from_str_radix(&colors.re1col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.re1col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.re1col[5..7],16).unwrap(),
+            colors.re1col,
+            u8::from_str_radix(&colors.im1col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.im1col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.im1col[5..7],16).unwrap(),
+            colors.im1col,
+            u8::from_str_radix(&colors.re2col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.re2col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.re2col[5..7],16).unwrap(),
+            colors.re2col,
+            u8::from_str_radix(&colors.im2col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.im2col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.im2col[5..7],16).unwrap(),
+            colors.im2col,
+            u8::from_str_radix(&colors.re3col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.re3col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.re3col[5..7],16).unwrap(),
+            colors.re3col,
+            u8::from_str_radix(&colors.im3col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.im3col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.im3col[5..7],16).unwrap(),
+            colors.im3col,
+            u8::from_str_radix(&colors.re4col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.re4col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.re4col[5..7],16).unwrap(),
+            colors.re4col,
+            u8::from_str_radix(&colors.im4col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.im4col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.im4col[5..7],16).unwrap(),
+            colors.im4col,
+            u8::from_str_radix(&colors.re5col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.re5col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.re5col[5..7],16).unwrap(),
+            colors.re5col,
+            u8::from_str_radix(&colors.im5col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.im5col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.im5col[5..7],16).unwrap(),
+            colors.im5col,
+            u8::from_str_radix(&colors.re6col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.re6col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.re6col[5..7],16).unwrap(),
+            colors.re6col,
+            u8::from_str_radix(&colors.im6col[1..3],16).unwrap(),
+            u8::from_str_radix(&colors.im6col[3..5],16).unwrap(),
+            u8::from_str_radix(&colors.im6col[5..7],16).unwrap(),
+            colors.im6col,
         ),
         "color" => format!("{}", options.color),
         "prompt" => format!("{}", options.prompt),
@@ -697,6 +845,18 @@ pub fn set_commands(
 {
     match l
     {
+        "re1col" => colors.re1col = r.to_string(),
+        "im1col" => colors.im1col = r.to_string(),
+        "re2col" => colors.re2col = r.to_string(),
+        "im2col" => colors.im2col = r.to_string(),
+        "re3col" => colors.re3col = r.to_string(),
+        "im3col" => colors.im3col = r.to_string(),
+        "re4col" => colors.re4col = r.to_string(),
+        "im4col" => colors.im4col = r.to_string(),
+        "re5col" => colors.re5col = r.to_string(),
+        "im5col" => colors.im5col = r.to_string(),
+        "re6col" => colors.re6col = r.to_string(),
+        "im6col" => colors.im6col = r.to_string(),
         "textc" =>
         {
             match r.parse::<String>()
@@ -1467,11 +1627,4 @@ pub fn commands(
             }
         }
     }
-}
-#[derive(Copy, Clone, PartialEq)]
-pub enum AngleType
-{
-    Radians,
-    Degrees,
-    Gradians,
 }

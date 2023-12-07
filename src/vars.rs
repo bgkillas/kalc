@@ -279,17 +279,17 @@ pub fn input_var(
                         {
                             count = 0;
                             let mut ccount = 0;
-                            for c in &chars[j..]
+                            for c in &chars[j..i]
                             {
                                 if *c == ',' && count == 1
                                 {
                                     ccount += 1;
                                 }
-                                else if *c == '('
+                                else if *c == '(' || c == &'{' || c == &'['
                                 {
                                     count += 1;
                                 }
-                                else if *c == ')'
+                                else if *c == ')' || c == &'}' || c == &']'
                                 {
                                     count -= 1;
                                 }

@@ -222,13 +222,16 @@ fn main()
                 if split.clone().count() == 2
                 {
                     let l = split.next().unwrap().to_string();
-                    let r = split.next().unwrap().to_string();
-                    for (i, j) in vars.clone().iter().enumerate()
+                    if !l.starts_with('#')
                     {
-                        if j[0].chars().count() <= l.chars().count()
+                        let r = split.next().unwrap().to_string();
+                        for (i, j) in vars.clone().iter().enumerate()
                         {
-                            vars.insert(i, [l, r]);
-                            break;
+                            if j[0].chars().count() <= l.chars().count()
+                            {
+                                vars.insert(i, [l, r]);
+                                break;
+                            }
                         }
                     }
                 }
@@ -290,8 +293,7 @@ fn main()
                 match get_func(
                     &input_var(
                         &input.iter().map(convert).collect::<String>(),
-                        &vars,
-                        &Vec::new(),
+                        vars.clone(),
                         None,
                         &mut Vec::new(),
                         &mut 0,
@@ -316,8 +318,7 @@ fn main()
             }
             if !can_graph(&input_var(
                 &input.iter().collect::<String>(),
-                &vars,
-                &Vec::new(),
+                vars.clone(),
                 None,
                 &mut Vec::new(),
                 &mut 0,
@@ -372,13 +373,18 @@ fn main()
                         if !options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
+                                &input,
+                                &last,
+                                &vars.clone(),
+                                options,
+                                &colors,
+                                start,
+                                end,
                             );
                         }
                         if !can_graph(&input_var(
                             &input.iter().collect::<String>(),
-                            &vars,
-                            &Vec::new(),
+                            vars.clone(),
                             None,
                             &mut Vec::new(),
                             &mut 0,
@@ -1028,8 +1034,7 @@ fn main()
             && (input.contains(&'#')
                 || can_graph(&input_var(
                     &input.iter().collect::<String>(),
-                    &vars,
-                    &Vec::new(),
+                    vars.clone(),
                     None,
                     &mut Vec::new(),
                     &mut 0,
@@ -1052,15 +1057,7 @@ fn main()
                     {
                         continue;
                     }
-                    *i = input_var(
-                        i,
-                        &vars,
-                        &Vec::new(),
-                        None,
-                        &mut Vec::new(),
-                        &mut 0,
-                        options,
-                    );
+                    *i = input_var(i, vars.clone(), None, &mut Vec::new(), &mut 0, options);
                     funcs.push(match get_func(i, options)
                     {
                         Ok(f) => f,

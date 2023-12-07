@@ -150,7 +150,7 @@ pub fn convert(c: &char) -> char
     {
         c if c.is_alphanumeric() || valid_chars.contains(c) => *c,
         '∗' | '∙' | '·' | '⋅' | '*' | '×' => '*',
-        '∕' | '⁄' | '/' => '/',
+        '∕' | '⁄' | '/' | '÷' => '/',
         '−' | '-' => '-',
         _ => '\0',
     }

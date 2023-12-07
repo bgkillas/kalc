@@ -203,8 +203,7 @@ pub fn print_concurrent(
             .iter()
             .collect::<String>()
             .replace('_', &format!("({})", last.iter().collect::<String>())),
-        vars,
-        &Vec::new(),
+        vars.to_vec(),
         None,
         &mut Vec::new(),
         &mut 0,

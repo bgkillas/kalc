@@ -36,75 +36,272 @@ pub fn graph(
         let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
-        if !input.iter().any(|i| i.contains('x'))
+        if !input
+            .iter()
+            .any(|i| i.replace("exp", "").replace("max", "").contains('x'))
         {
-            let mut re = Vec::new();
-            let mut matrix = false;
-            let mut x = (Vec::new(), Vec::new());
-            let mut y = (Vec::new(), Vec::new());
-            let mut z = (Vec::new(), Vec::new());
-            for (i, f) in func.iter().enumerate()
+            if input.iter().any(|i| i.replace("any", "").contains('y'))
             {
-                re.push(
-                    match match do_math(f.to_vec(), options)
+                let mut re = vec![Vec::new(); 6];
+                let mut im = vec![Vec::new(); 6];
+                for (i, f) in func.iter().enumerate()
+                {
+                    let (re2, im2) = get_list_2d(f, options);
+                    if !re2.is_empty()
                     {
-                        Ok(n) => n,
-                        _ =>
-                        {
-                            fail(options, &colors);
-                            return;
-                        }
+                        re_cap[i] = unmod[i].to_owned() + ":re";
                     }
+                    if !im2.is_empty()
                     {
-                        Vector(n) =>
+                        im_cap[i] = unmod[i].to_owned() + ":im";
+                    }
+                    re[i] = re2;
+                    im[i] = im2;
+                }
+                if re.iter().all(|x| x.is_empty()) && im.iter().all(|x| x.is_empty())
+                {
+                    fail(options, &colors);
+                    return;
+                }
+                if options.lines
+                {
+                    fg.axes2d()
+                        .set_x_ticks(xticks, &[], &[])
+                        .set_y_ticks(yticks, &[], &[])
+                        .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                        .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                        .lines([0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
+                        .lines([0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
+                        .lines([0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
+                        .lines([0], [0], &[Caption(&im_cap[1]), Color(&colors.im2col)])
+                        .lines([0], [0], &[Caption(&re_cap[2]), Color(&colors.re3col)])
+                        .lines([0], [0], &[Caption(&im_cap[2]), Color(&colors.im3col)])
+                        .lines([0], [0], &[Caption(&re_cap[3]), Color(&colors.re4col)])
+                        .lines([0], [0], &[Caption(&im_cap[3]), Color(&colors.im4col)])
+                        .lines([0], [0], &[Caption(&re_cap[4]), Color(&colors.re5col)])
+                        .lines([0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
+                        .lines([0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
+                        .lines([0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
+                        .lines(
+                            re[0].iter().map(|x| x[1]),
+                            re[0].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                        )
+                        .lines(
+                            im[0].iter().map(|x| x[1]),
+                            im[0].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im1col)],
+                        )
+                        .lines(
+                            re[1].iter().map(|x| x[1]),
+                            re[1].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re2col)],
+                        )
+                        .lines(
+                            im[1].iter().map(|x| x[1]),
+                            im[1].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im2col)],
+                        )
+                        .lines(
+                            re[2].iter().map(|x| x[1]),
+                            re[2].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re3col)],
+                        )
+                        .lines(
+                            im[2].iter().map(|x| x[1]),
+                            im[2].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im3col)],
+                        )
+                        .lines(
+                            re[3].iter().map(|x| x[1]),
+                            re[3].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re4col)],
+                        )
+                        .lines(
+                            im[3].iter().map(|x| x[1]),
+                            im[3].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im4col)],
+                        )
+                        .lines(
+                            re[4].iter().map(|x| x[1]),
+                            re[4].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re5col)],
+                        )
+                        .lines(
+                            im[4].iter().map(|x| x[1]),
+                            im[4].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im5col)],
+                        )
+                        .lines(
+                            re[5].iter().map(|x| x[1]),
+                            re[5].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re6col)],
+                        )
+                        .lines(
+                            im[5].iter().map(|x| x[1]),
+                            im[5].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im6col)],
+                        );
+                }
+                else if options.depth
+                {
+                    fg.axes3d()
+                        .set_x_ticks(xticks, &[], &[])
+                        .set_y_ticks(yticks, &[], &[])
+                        .set_z_ticks(zticks, &[], &[])
+                        .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                        .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                        .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                        .set_z_label("z", &[])
+                        .set_y_label("y", &[])
+                        .set_x_label("x", &[])
+                        .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
+                        .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
+                        .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(&colors.re3col)])
+                        .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(&colors.re4col)])
+                        .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(&colors.re5col)])
+                        .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
+                        .points(
+                            re[0].iter().map(|x| x[1]),
+                            re[0].iter().map(|x| x[0]),
+                            im[0].iter().map(|x| x[1]),
+                            &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                        )
+                        .points(
+                            re[1].iter().map(|x| x[1]),
+                            re[1].iter().map(|x| x[0]),
+                            im[1].iter().map(|x| x[1]),
+                            &[PointSymbol(options.point_style), Color(&colors.re2col)],
+                        )
+                        .points(
+                            re[2].iter().map(|x| x[1]),
+                            re[2].iter().map(|x| x[0]),
+                            im[2].iter().map(|x| x[1]),
+                            &[PointSymbol(options.point_style), Color(&colors.re3col)],
+                        )
+                        .points(
+                            re[3].iter().map(|x| x[1]),
+                            re[3].iter().map(|x| x[0]),
+                            im[3].iter().map(|x| x[1]),
+                            &[PointSymbol(options.point_style), Color(&colors.re4col)],
+                        )
+                        .points(
+                            re[4].iter().map(|x| x[1]),
+                            re[4].iter().map(|x| x[0]),
+                            im[4].iter().map(|x| x[1]),
+                            &[PointSymbol(options.point_style), Color(&colors.re5col)],
+                        )
+                        .points(
+                            re[5].iter().map(|x| x[1]),
+                            re[5].iter().map(|x| x[0]),
+                            im[5].iter().map(|x| x[1]),
+                            &[PointSymbol(options.point_style), Color(&colors.re6col)],
+                        );
+                }
+                else
+                {
+                    fg.axes2d()
+                        .set_x_ticks(xticks, &[], &[])
+                        .set_y_ticks(yticks, &[], &[])
+                        .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                        .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                        .lines([0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
+                        .lines([0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
+                        .lines([0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
+                        .lines([0], [0], &[Caption(&im_cap[1]), Color(&colors.im2col)])
+                        .lines([0], [0], &[Caption(&re_cap[2]), Color(&colors.re3col)])
+                        .lines([0], [0], &[Caption(&im_cap[2]), Color(&colors.im3col)])
+                        .lines([0], [0], &[Caption(&re_cap[3]), Color(&colors.re4col)])
+                        .lines([0], [0], &[Caption(&im_cap[3]), Color(&colors.im4col)])
+                        .lines([0], [0], &[Caption(&re_cap[4]), Color(&colors.re5col)])
+                        .lines([0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
+                        .lines([0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
+                        .lines([0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
+                        .points(
+                            re[0].iter().map(|x| x[1]),
+                            re[0].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                        )
+                        .points(
+                            im[0].iter().map(|x| x[1]),
+                            im[0].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im1col)],
+                        )
+                        .points(
+                            re[1].iter().map(|x| x[1]),
+                            re[1].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re2col)],
+                        )
+                        .points(
+                            im[1].iter().map(|x| x[1]),
+                            im[1].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im2col)],
+                        )
+                        .points(
+                            re[2].iter().map(|x| x[1]),
+                            re[2].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re3col)],
+                        )
+                        .points(
+                            im[2].iter().map(|x| x[1]),
+                            im[2].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im3col)],
+                        )
+                        .points(
+                            re[3].iter().map(|x| x[1]),
+                            re[3].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re4col)],
+                        )
+                        .points(
+                            im[3].iter().map(|x| x[1]),
+                            im[3].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im4col)],
+                        )
+                        .points(
+                            re[4].iter().map(|x| x[1]),
+                            re[4].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re5col)],
+                        )
+                        .points(
+                            im[4].iter().map(|x| x[1]),
+                            im[4].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im5col)],
+                        )
+                        .points(
+                            re[5].iter().map(|x| x[1]),
+                            re[5].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.re6col)],
+                        )
+                        .points(
+                            im[5].iter().map(|x| x[1]),
+                            im[5].iter().map(|x| x[0]),
+                            &[PointSymbol(options.point_style), Color(&colors.im6col)],
+                        );
+                }
+            }
+            else
+            {
+                let mut re = Vec::new();
+                let mut matrix = false;
+                let mut x = (Vec::new(), Vec::new());
+                let mut y = (Vec::new(), Vec::new());
+                let mut z = (Vec::new(), Vec::new());
+                for (i, f) in func.iter().enumerate()
+                {
+                    re.push(
+                        match match do_math(f.to_vec(), options)
                         {
-                            for j in &n
+                            Ok(n) => n,
+                            _ =>
                             {
-                                if !j.real().is_zero()
-                                {
-                                    re_cap[i] = unmod[i].to_owned() + ":re";
-                                }
-                                if !j.imag().is_zero()
-                                {
-                                    im_cap[i] = unmod[i].to_owned() + ":im";
-                                }
+                                fail(options, &colors);
+                                return;
                             }
-                            n
                         }
-                        Matrix(n) =>
                         {
-                            if n[0].len() <= 3 && n[0].len() > 1
+                            Vector(n) =>
                             {
-                                matrix = true;
-                                x.0.push(
-                                    n.iter().map(|x| x[0].real().to_f64()).collect::<Vec<f64>>(),
-                                );
-                                x.1.push(
-                                    n.iter().map(|x| x[0].imag().to_f64()).collect::<Vec<f64>>(),
-                                );
-                                y.0.push(
-                                    n.iter().map(|x| x[1].real().to_f64()).collect::<Vec<f64>>(),
-                                );
-                                y.1.push(
-                                    n.iter().map(|x| x[1].imag().to_f64()).collect::<Vec<f64>>(),
-                                );
-                                if n[0].len() == 3
-                                {
-                                    z.0.push(
-                                        n.iter()
-                                            .map(|x| x[2].real().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                    );
-                                    z.1.push(
-                                        n.iter()
-                                            .map(|x| x[2].imag().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                    );
-                                }
-                            }
-                            for k in &n
-                            {
-                                for j in k
+                                for j in &n
                                 {
                                     if !j.real().is_zero()
                                     {
@@ -115,110 +312,588 @@ pub fn graph(
                                         im_cap[i] = unmod[i].to_owned() + ":im";
                                     }
                                 }
+                                n
                             }
-                            if n[0].len() <= 3 && n[0].len() > 1
+                            Matrix(n) =>
                             {
-                                continue;
+                                if n[0].len() <= 3 && n[0].len() > 1
+                                {
+                                    matrix = true;
+                                    x.0.push(
+                                        n.iter()
+                                            .map(|x| x[0].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    );
+                                    x.1.push(
+                                        n.iter()
+                                            .map(|x| x[0].imag().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    );
+                                    y.0.push(
+                                        n.iter()
+                                            .map(|x| x[1].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    );
+                                    y.1.push(
+                                        n.iter()
+                                            .map(|x| x[1].imag().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    );
+                                    if n[0].len() == 3
+                                    {
+                                        z.0.push(
+                                            n.iter()
+                                                .map(|x| x[2].real().to_f64())
+                                                .collect::<Vec<f64>>(),
+                                        );
+                                        z.1.push(
+                                            n.iter()
+                                                .map(|x| x[2].imag().to_f64())
+                                                .collect::<Vec<f64>>(),
+                                        );
+                                    }
+                                }
+                                for k in &n
+                                {
+                                    for j in k
+                                    {
+                                        if !j.real().is_zero()
+                                        {
+                                            re_cap[i] = unmod[i].to_owned() + ":re";
+                                        }
+                                        if !j.imag().is_zero()
+                                        {
+                                            im_cap[i] = unmod[i].to_owned() + ":im";
+                                        }
+                                    }
+                                }
+                                if n[0].len() <= 3 && n[0].len() > 1
+                                {
+                                    continue;
+                                }
+                                matrix = false;
+                                n.into_iter().flatten().collect()
                             }
-                            matrix = false;
-                            n.into_iter().flatten().collect()
-                        }
-                        Num(n) =>
-                        {
-                            if !n.real().is_zero()
+                            Num(n) =>
                             {
-                                re_cap[i] = unmod[i].to_owned() + ":re";
+                                if !n.real().is_zero()
+                                {
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
+                                }
+                                if !n.imag().is_zero()
+                                {
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
+                                }
+                                vec![
+                                    Complex::with_val(options.prec, n.real()),
+                                    Complex::with_val(options.prec, n.imag()),
+                                ]
                             }
-                            if !n.imag().is_zero()
+                            _ =>
                             {
-                                im_cap[i] = unmod[i].to_owned() + ":im";
+                                fail(options, &colors);
+                                return;
                             }
-                            vec![
-                                Complex::with_val(options.prec, n.real()),
-                                Complex::with_val(options.prec, n.imag()),
-                            ]
-                        }
-                        _ =>
-                        {
-                            fail(options, &colors);
-                            return;
-                        }
-                    },
-                );
-            }
-            if matrix
-            {
-                if !z.0.is_empty()
+                        },
+                    );
+                }
+                if matrix
                 {
-                    if Options::default().yr == options.yr
+                    if !z.0.is_empty()
                     {
-                        options.yr = (
-                            y.0.iter().zip(y.1.clone()).fold(f64::MAX, |min, x| {
-                                min.min(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
-                                )
-                            }),
-                            y.0.iter().zip(y.1.clone()).fold(f64::MIN, |max, x| {
-                                max.max(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
-                                )
-                            }),
-                        )
+                        if Options::default().yr == options.yr
+                        {
+                            options.yr = (
+                                y.0.iter().zip(y.1.clone()).fold(f64::MAX, |min, x| {
+                                    min.min(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                    )
+                                }),
+                                y.0.iter().zip(y.1.clone()).fold(f64::MIN, |max, x| {
+                                    max.max(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                    )
+                                }),
+                            )
+                        }
+                        if Options::default().xr == options.xr
+                        {
+                            options.xr = (
+                                x.0.iter().zip(x.1.clone()).fold(f64::MAX, |min, x| {
+                                    min.min(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                    )
+                                }),
+                                x.0.iter().zip(x.1.clone()).fold(f64::MIN, |max, x| {
+                                    max.max(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                    )
+                                }),
+                            )
+                        }
+                        if Options::default().zr == options.zr
+                        {
+                            options.zr = (
+                                z.0.iter().zip(z.1.clone()).fold(f64::MAX, |min, z| {
+                                    min.min(
+                                        z.0.iter()
+                                            .zip(z.1)
+                                            .fold(f64::MAX, |min, z| min.min(*z.0).min(z.1)),
+                                    )
+                                }),
+                                z.0.iter().zip(z.1.clone()).fold(f64::MIN, |max, z| {
+                                    max.max(
+                                        z.0.iter()
+                                            .zip(z.1)
+                                            .fold(f64::MIN, |max, z| max.max(*z.0).max(z.1)),
+                                    )
+                                }),
+                            )
+                        }
+                        let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+                        let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
+                        let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
+                        let n = vec![0.0; 3];
+                        for _ in 0..6 - func.len()
+                        {
+                            x.0.push(n.clone());
+                            y.0.push(n.clone());
+                            z.0.push(n.clone());
+                            x.1.push(n.clone());
+                            y.1.push(n.clone());
+                            z.1.push(n.clone());
+                        }
+                        fg.axes3d()
+                            .set_x_ticks(xticks, &[], &[])
+                            .set_y_ticks(yticks, &[], &[])
+                            .set_z_ticks(zticks, &[], &[])
+                            .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                            .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                            .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                            .set_z_label("z", &[])
+                            .set_y_label("y", &[])
+                            .set_x_label("x", &[])
+                            .lines_points(
+                                x.0[0].clone(),
+                                y.0[0].clone(),
+                                z.0[0].clone(),
+                                &[
+                                    Caption(&re_cap[0]),
+                                    Color(&colors.re1col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[1].clone(),
+                                y.0[1].clone(),
+                                z.0[1].clone(),
+                                &[
+                                    Caption(&re_cap[1]),
+                                    Color(&colors.re2col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[2].clone(),
+                                y.0[2].clone(),
+                                z.0[2].clone(),
+                                &[
+                                    Caption(&re_cap[2]),
+                                    Color(&colors.re3col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[3].clone(),
+                                y.0[3].clone(),
+                                z.0[3].clone(),
+                                &[
+                                    Caption(&re_cap[3]),
+                                    Color(&colors.re4col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[4].clone(),
+                                y.0[4].clone(),
+                                z.0[4].clone(),
+                                &[
+                                    Caption(&re_cap[4]),
+                                    Color(&colors.re5col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[5].clone(),
+                                y.0[5].clone(),
+                                z.0[5].clone(),
+                                &[
+                                    Caption(&re_cap[5]),
+                                    Color(&colors.re6col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[0].clone(),
+                                y.1[0].clone(),
+                                z.1[0].clone(),
+                                &[
+                                    Caption(&im_cap[0]),
+                                    Color(&colors.im1col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[1].clone(),
+                                y.1[1].clone(),
+                                z.1[1].clone(),
+                                &[
+                                    Caption(&im_cap[1]),
+                                    Color(&colors.im2col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[2].clone(),
+                                y.1[2].clone(),
+                                z.1[2].clone(),
+                                &[
+                                    Caption(&im_cap[2]),
+                                    Color(&colors.im3col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[3].clone(),
+                                y.1[3].clone(),
+                                z.1[3].clone(),
+                                &[
+                                    Caption(&im_cap[3]),
+                                    Color(&colors.im4col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[4].clone(),
+                                y.1[4].clone(),
+                                z.1[4].clone(),
+                                &[
+                                    Caption(&im_cap[4]),
+                                    Color(&colors.im5col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[5].clone(),
+                                y.1[5].clone(),
+                                z.1[5].clone(),
+                                &[
+                                    Caption(&im_cap[5]),
+                                    Color(&colors.im6col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            );
                     }
-                    if Options::default().xr == options.xr
+                    else
                     {
-                        options.xr = (
-                            x.0.iter().zip(x.1.clone()).fold(f64::MAX, |min, x| {
-                                min.min(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
-                                )
-                            }),
-                            x.0.iter().zip(x.1.clone()).fold(f64::MIN, |max, x| {
-                                max.max(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
-                                )
-                            }),
-                        )
+                        if Options::default().yr == options.yr
+                        {
+                            options.yr = (
+                                y.0.iter().zip(y.1.clone()).fold(f64::MAX, |min, x| {
+                                    min.min(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                    )
+                                }),
+                                y.0.iter().zip(y.1.clone()).fold(f64::MIN, |max, x| {
+                                    max.max(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                    )
+                                }),
+                            )
+                        }
+                        if Options::default().xr == options.xr
+                        {
+                            options.xr = (
+                                x.0.iter().zip(x.1.clone()).fold(f64::MAX, |min, x| {
+                                    min.min(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
+                                    )
+                                }),
+                                x.0.iter().zip(x.1.clone()).fold(f64::MIN, |max, x| {
+                                    max.max(
+                                        x.0.iter()
+                                            .zip(x.1)
+                                            .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
+                                    )
+                                }),
+                            )
+                        }
+                        let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+                        let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
+                        let z = vec![0.0; 2];
+                        for _ in 0..6 - func.len()
+                        {
+                            x.0.push(z.clone());
+                            y.0.push(z.clone());
+                            x.1.push(z.clone());
+                            y.1.push(z.clone());
+                        }
+                        fg.axes2d()
+                            .set_x_ticks(xticks, &[], &[])
+                            .set_y_ticks(yticks, &[], &[])
+                            .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                            .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                            .lines_points(
+                                x.0[0].clone(),
+                                y.0[0].clone(),
+                                &[
+                                    Caption(&re_cap[0]),
+                                    Color(&colors.re1col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[1].clone(),
+                                y.0[1].clone(),
+                                &[
+                                    Caption(&re_cap[1]),
+                                    Color(&colors.re2col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[2].clone(),
+                                y.0[2].clone(),
+                                &[
+                                    Caption(&re_cap[2]),
+                                    Color(&colors.re3col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[3].clone(),
+                                y.0[3].clone(),
+                                &[
+                                    Caption(&re_cap[3]),
+                                    Color(&colors.re4col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[4].clone(),
+                                y.0[4].clone(),
+                                &[
+                                    Caption(&re_cap[4]),
+                                    Color(&colors.re5col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.0[5].clone(),
+                                y.0[5].clone(),
+                                &[
+                                    Caption(&re_cap[5]),
+                                    Color(&colors.re6col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[0].clone(),
+                                y.1[0].clone(),
+                                &[
+                                    Caption(&im_cap[0]),
+                                    Color(&colors.im1col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[1].clone(),
+                                y.1[1].clone(),
+                                &[
+                                    Caption(&im_cap[1]),
+                                    Color(&colors.im2col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[2].clone(),
+                                y.1[2].clone(),
+                                &[
+                                    Caption(&im_cap[2]),
+                                    Color(&colors.im3col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[3].clone(),
+                                y.1[3].clone(),
+                                &[
+                                    Caption(&im_cap[3]),
+                                    Color(&colors.im4col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[4].clone(),
+                                y.1[4].clone(),
+                                &[
+                                    Caption(&im_cap[4]),
+                                    Color(&colors.im5col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            )
+                            .lines_points(
+                                x.1[5].clone(),
+                                y.1[5].clone(),
+                                &[
+                                    Caption(&im_cap[5]),
+                                    Color(&colors.im6col),
+                                    PointSymbol(options.point_style),
+                                ],
+                            );
                     }
-                    if Options::default().zr == options.zr
-                    {
-                        options.zr = (
-                            z.0.iter().zip(z.1.clone()).fold(f64::MAX, |min, z| {
-                                min.min(
-                                    z.0.iter()
-                                        .zip(z.1)
-                                        .fold(f64::MAX, |min, z| min.min(*z.0).min(z.1)),
-                                )
-                            }),
-                            z.0.iter().zip(z.1.clone()).fold(f64::MIN, |max, z| {
-                                max.max(
-                                    z.0.iter()
-                                        .zip(z.1)
-                                        .fold(f64::MIN, |max, z| max.max(*z.0).max(z.1)),
-                                )
-                            }),
-                        )
-                    }
-                    let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
-                    let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
-                    let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
-                    let n = vec![0.0; 3];
+                }
+                else if re.iter().all(|re| re.len() == 2)
+                {
+                    let z = vec![Complex::new(options.prec); 2];
                     for _ in 0..6 - func.len()
                     {
-                        x.0.push(n.clone());
-                        y.0.push(n.clone());
-                        z.0.push(n.clone());
-                        x.1.push(n.clone());
-                        y.1.push(n.clone());
-                        z.1.push(n.clone());
+                        re.push(z.clone());
+                    }
+                    fg.axes2d()
+                        .set_x_ticks(xticks, &[], &[])
+                        .set_y_ticks(yticks, &[], &[])
+                        .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                        .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                        .lines_points(
+                            [0.0, re[0][0].real().to_f64()],
+                            [0.0, re[0][1].real().to_f64()],
+                            &[
+                                Caption(&re_cap[0]),
+                                Color(&colors.re1col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[1][0].real().to_f64()],
+                            [0.0, re[1][1].real().to_f64()],
+                            &[
+                                Caption(&re_cap[1]),
+                                Color(&colors.re2col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[2][0].real().to_f64()],
+                            [0.0, re[2][1].real().to_f64()],
+                            &[
+                                Caption(&re_cap[2]),
+                                Color(&colors.re3col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[3][0].real().to_f64()],
+                            [0.0, re[3][1].real().to_f64()],
+                            &[
+                                Caption(&re_cap[3]),
+                                Color(&colors.re4col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[4][0].real().to_f64()],
+                            [0.0, re[4][1].real().to_f64()],
+                            &[
+                                Caption(&re_cap[4]),
+                                Color(&colors.re5col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[5][0].real().to_f64()],
+                            [0.0, re[5][1].real().to_f64()],
+                            &[
+                                Caption(&re_cap[5]),
+                                Color(&colors.re6col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[0][0].imag().to_f64()],
+                            [0.0, re[0][1].imag().to_f64()],
+                            &[
+                                Caption(&im_cap[0]),
+                                Color(&colors.im1col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[1][0].imag().to_f64()],
+                            [0.0, re[1][1].imag().to_f64()],
+                            &[
+                                Caption(&im_cap[1]),
+                                Color(&colors.im2col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[2][0].imag().to_f64()],
+                            [0.0, re[2][1].imag().to_f64()],
+                            &[
+                                Caption(&im_cap[2]),
+                                Color(&colors.im3col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[3][0].imag().to_f64()],
+                            [0.0, re[3][1].imag().to_f64()],
+                            &[
+                                Caption(&im_cap[3]),
+                                Color(&colors.im4col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[4][0].imag().to_f64()],
+                            [0.0, re[4][1].imag().to_f64()],
+                            &[
+                                Caption(&im_cap[4]),
+                                Color(&colors.im5col),
+                                PointSymbol(options.point_style),
+                            ],
+                        )
+                        .lines_points(
+                            [0.0, re[5][0].imag().to_f64()],
+                            [0.0, re[5][1].imag().to_f64()],
+                            &[
+                                Caption(&im_cap[5]),
+                                Color(&colors.im6col),
+                                PointSymbol(options.point_style),
+                            ],
+                        );
+                }
+                else if re.iter().all(|re| re.len() == 3)
+                {
+                    let z = vec![Complex::new(options.prec); 3];
+                    for _ in 0..6 - func.len()
+                    {
+                        re.push(z.clone());
                     }
                     fg.axes3d()
                         .set_x_ticks(xticks, &[], &[])
@@ -231,9 +906,9 @@ pub fn graph(
                         .set_y_label("y", &[])
                         .set_x_label("x", &[])
                         .lines_points(
-                            x.0[0].clone(),
-                            y.0[0].clone(),
-                            z.0[0].clone(),
+                            [0.0, re[0][0].real().to_f64()],
+                            [0.0, re[0][1].real().to_f64()],
+                            [0.0, re[0][2].real().to_f64()],
                             &[
                                 Caption(&re_cap[0]),
                                 Color(&colors.re1col),
@@ -241,9 +916,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[1].clone(),
-                            y.0[1].clone(),
-                            z.0[1].clone(),
+                            [0.0, re[1][0].real().to_f64()],
+                            [0.0, re[1][1].real().to_f64()],
+                            [0.0, re[1][2].real().to_f64()],
                             &[
                                 Caption(&re_cap[1]),
                                 Color(&colors.re2col),
@@ -251,9 +926,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[2].clone(),
-                            y.0[2].clone(),
-                            z.0[2].clone(),
+                            [0.0, re[2][0].real().to_f64()],
+                            [0.0, re[2][1].real().to_f64()],
+                            [0.0, re[2][2].real().to_f64()],
                             &[
                                 Caption(&re_cap[2]),
                                 Color(&colors.re3col),
@@ -261,9 +936,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[3].clone(),
-                            y.0[3].clone(),
-                            z.0[3].clone(),
+                            [0.0, re[3][0].real().to_f64()],
+                            [0.0, re[3][1].real().to_f64()],
+                            [0.0, re[3][2].real().to_f64()],
                             &[
                                 Caption(&re_cap[3]),
                                 Color(&colors.re4col),
@@ -271,9 +946,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[4].clone(),
-                            y.0[4].clone(),
-                            z.0[4].clone(),
+                            [0.0, re[4][0].real().to_f64()],
+                            [0.0, re[4][1].real().to_f64()],
+                            [0.0, re[4][2].real().to_f64()],
                             &[
                                 Caption(&re_cap[4]),
                                 Color(&colors.re5col),
@@ -281,9 +956,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[5].clone(),
-                            y.0[5].clone(),
-                            z.0[5].clone(),
+                            [0.0, re[5][0].real().to_f64()],
+                            [0.0, re[5][1].real().to_f64()],
+                            [0.0, re[5][2].real().to_f64()],
                             &[
                                 Caption(&re_cap[5]),
                                 Color(&colors.re6col),
@@ -291,9 +966,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[0].clone(),
-                            y.1[0].clone(),
-                            z.1[0].clone(),
+                            [0.0, re[0][0].imag().to_f64()],
+                            [0.0, re[0][1].imag().to_f64()],
+                            [0.0, re[0][2].imag().to_f64()],
                             &[
                                 Caption(&im_cap[0]),
                                 Color(&colors.im1col),
@@ -301,9 +976,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[1].clone(),
-                            y.1[1].clone(),
-                            z.1[1].clone(),
+                            [0.0, re[1][0].imag().to_f64()],
+                            [0.0, re[1][1].imag().to_f64()],
+                            [0.0, re[1][2].imag().to_f64()],
                             &[
                                 Caption(&im_cap[1]),
                                 Color(&colors.im2col),
@@ -311,9 +986,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[2].clone(),
-                            y.1[2].clone(),
-                            z.1[2].clone(),
+                            [0.0, re[2][0].imag().to_f64()],
+                            [0.0, re[2][1].imag().to_f64()],
+                            [0.0, re[2][2].imag().to_f64()],
                             &[
                                 Caption(&im_cap[2]),
                                 Color(&colors.im3col),
@@ -321,9 +996,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[3].clone(),
-                            y.1[3].clone(),
-                            z.1[3].clone(),
+                            [0.0, re[3][0].imag().to_f64()],
+                            [0.0, re[3][1].imag().to_f64()],
+                            [0.0, re[3][2].imag().to_f64()],
                             &[
                                 Caption(&im_cap[3]),
                                 Color(&colors.im4col),
@@ -331,9 +1006,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[4].clone(),
-                            y.1[4].clone(),
-                            z.1[4].clone(),
+                            [0.0, re[4][0].imag().to_f64()],
+                            [0.0, re[4][1].imag().to_f64()],
+                            [0.0, re[4][2].imag().to_f64()],
                             &[
                                 Caption(&im_cap[4]),
                                 Color(&colors.im5col),
@@ -341,9 +1016,9 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[5].clone(),
-                            y.1[5].clone(),
-                            z.1[5].clone(),
+                            [0.0, re[5][0].imag().to_f64()],
+                            [0.0, re[5][1].imag().to_f64()],
+                            [0.0, re[5][2].imag().to_f64()],
                             &[
                                 Caption(&im_cap[5]),
                                 Color(&colors.im6col),
@@ -353,62 +1028,42 @@ pub fn graph(
                 }
                 else
                 {
+                    for _ in 0..6 - func.len()
+                    {
+                        re.push(Vec::new());
+                    }
                     if Options::default().yr == options.yr
                     {
                         options.yr = (
-                            y.0.iter().zip(y.1.clone()).fold(f64::MAX, |min, x| {
-                                min.min(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
-                                )
+                            re.iter().fold(f64::MAX, |min, x| {
+                                min.min(x.iter().fold(f64::MAX, |min, x| {
+                                    min.min(x.real().to_f64()).min(x.imag().to_f64())
+                                }))
                             }),
-                            y.0.iter().zip(y.1.clone()).fold(f64::MIN, |max, x| {
-                                max.max(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
-                                )
+                            re.iter().fold(f64::MIN, |max, x| {
+                                max.max(x.iter().fold(f64::MIN, |max, x| {
+                                    max.max(x.real().to_f64()).max(x.imag().to_f64())
+                                }))
                             }),
                         )
                     }
                     if Options::default().xr == options.xr
                     {
                         options.xr = (
-                            x.0.iter().zip(x.1.clone()).fold(f64::MAX, |min, x| {
-                                min.min(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MAX, |min, x| min.min(*x.0).min(x.1)),
-                                )
-                            }),
-                            x.0.iter().zip(x.1.clone()).fold(f64::MIN, |max, x| {
-                                max.max(
-                                    x.0.iter()
-                                        .zip(x.1)
-                                        .fold(f64::MIN, |max, x| max.max(*x.0).max(x.1)),
-                                )
-                            }),
+                            0.0,
+                            (re.iter().map(|re| re.len()).max().unwrap() - 1) as f64,
                         )
                     }
                     let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
                     let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
-                    let z = vec![0.0; 2];
-                    for _ in 0..6 - func.len()
-                    {
-                        x.0.push(z.clone());
-                        y.0.push(z.clone());
-                        x.1.push(z.clone());
-                        y.1.push(z.clone());
-                    }
                     fg.axes2d()
                         .set_x_ticks(xticks, &[], &[])
                         .set_y_ticks(yticks, &[], &[])
                         .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                         .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                         .lines_points(
-                            x.0[0].clone(),
-                            y.0[0].clone(),
+                            0..re[0].len(),
+                            re[0].iter().map(|x| x.real().to_f64()),
                             &[
                                 Caption(&re_cap[0]),
                                 Color(&colors.re1col),
@@ -416,8 +1071,8 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[1].clone(),
-                            y.0[1].clone(),
+                            0..re[1].len(),
+                            re[1].iter().map(|x| x.real().to_f64()),
                             &[
                                 Caption(&re_cap[1]),
                                 Color(&colors.re2col),
@@ -425,8 +1080,8 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[2].clone(),
-                            y.0[2].clone(),
+                            0..re[2].len(),
+                            re[2].iter().map(|x| x.real().to_f64()),
                             &[
                                 Caption(&re_cap[2]),
                                 Color(&colors.re3col),
@@ -434,8 +1089,8 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[3].clone(),
-                            y.0[3].clone(),
+                            0..re[3].len(),
+                            re[3].iter().map(|x| x.real().to_f64()),
                             &[
                                 Caption(&re_cap[3]),
                                 Color(&colors.re4col),
@@ -443,8 +1098,8 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[4].clone(),
-                            y.0[4].clone(),
+                            0..re[4].len(),
+                            re[4].iter().map(|x| x.real().to_f64()),
                             &[
                                 Caption(&re_cap[4]),
                                 Color(&colors.re5col),
@@ -452,8 +1107,8 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.0[5].clone(),
-                            y.0[5].clone(),
+                            0..re[5].len(),
+                            re[5].iter().map(|x| x.real().to_f64()),
                             &[
                                 Caption(&re_cap[5]),
                                 Color(&colors.re6col),
@@ -461,8 +1116,15 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[0].clone(),
-                            y.1[0].clone(),
+                            if !im_cap[0].is_empty()
+                            {
+                                0..re[0].len()
+                            }
+                            else
+                            {
+                                0..0
+                            },
+                            re[0].iter().map(|x| x.imag().to_f64()),
                             &[
                                 Caption(&im_cap[0]),
                                 Color(&colors.im1col),
@@ -470,8 +1132,15 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[1].clone(),
-                            y.1[1].clone(),
+                            if !im_cap[1].is_empty()
+                            {
+                                0..re[1].len()
+                            }
+                            else
+                            {
+                                0..0
+                            },
+                            re[1].iter().map(|x| x.imag().to_f64()),
                             &[
                                 Caption(&im_cap[1]),
                                 Color(&colors.im2col),
@@ -479,8 +1148,15 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[2].clone(),
-                            y.1[2].clone(),
+                            if !im_cap[2].is_empty()
+                            {
+                                0..re[2].len()
+                            }
+                            else
+                            {
+                                0..0
+                            },
+                            re[2].iter().map(|x| x.imag().to_f64()),
                             &[
                                 Caption(&im_cap[2]),
                                 Color(&colors.im3col),
@@ -488,8 +1164,15 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[3].clone(),
-                            y.1[3].clone(),
+                            if !im_cap[3].is_empty()
+                            {
+                                0..re[3].len()
+                            }
+                            else
+                            {
+                                0..0
+                            },
+                            re[3].iter().map(|x| x.imag().to_f64()),
                             &[
                                 Caption(&im_cap[3]),
                                 Color(&colors.im4col),
@@ -497,8 +1180,15 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[4].clone(),
-                            y.1[4].clone(),
+                            if !im_cap[4].is_empty()
+                            {
+                                0..re[4].len()
+                            }
+                            else
+                            {
+                                0..0
+                            },
+                            re[4].iter().map(|x| x.imag().to_f64()),
                             &[
                                 Caption(&im_cap[4]),
                                 Color(&colors.im5col),
@@ -506,8 +1196,15 @@ pub fn graph(
                             ],
                         )
                         .lines_points(
-                            x.1[5].clone(),
-                            y.1[5].clone(),
+                            if !im_cap[5].is_empty()
+                            {
+                                0..re[5].len()
+                            }
+                            else
+                            {
+                                0..0
+                            },
+                            re[5].iter().map(|x| x.imag().to_f64()),
                             &[
                                 Caption(&im_cap[5]),
                                 Color(&colors.im6col),
@@ -516,453 +1213,8 @@ pub fn graph(
                         );
                 }
             }
-            else if re.iter().all(|re| re.len() == 2)
-            {
-                let z = vec![Complex::new(options.prec); 2];
-                for _ in 0..6 - func.len()
-                {
-                    re.push(z.clone());
-                }
-                fg.axes2d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
-                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                    .lines_points(
-                        [0.0, re[0][0].real().to_f64()],
-                        [0.0, re[0][1].real().to_f64()],
-                        &[
-                            Caption(&re_cap[0]),
-                            Color(&colors.re1col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[1][0].real().to_f64()],
-                        [0.0, re[1][1].real().to_f64()],
-                        &[
-                            Caption(&re_cap[1]),
-                            Color(&colors.re2col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[2][0].real().to_f64()],
-                        [0.0, re[2][1].real().to_f64()],
-                        &[
-                            Caption(&re_cap[2]),
-                            Color(&colors.re3col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[3][0].real().to_f64()],
-                        [0.0, re[3][1].real().to_f64()],
-                        &[
-                            Caption(&re_cap[3]),
-                            Color(&colors.re4col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[4][0].real().to_f64()],
-                        [0.0, re[4][1].real().to_f64()],
-                        &[
-                            Caption(&re_cap[4]),
-                            Color(&colors.re5col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[5][0].real().to_f64()],
-                        [0.0, re[5][1].real().to_f64()],
-                        &[
-                            Caption(&re_cap[5]),
-                            Color(&colors.re6col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[0][0].imag().to_f64()],
-                        [0.0, re[0][1].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[0]),
-                            Color(&colors.im1col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[1][0].imag().to_f64()],
-                        [0.0, re[1][1].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[1]),
-                            Color(&colors.im2col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[2][0].imag().to_f64()],
-                        [0.0, re[2][1].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[2]),
-                            Color(&colors.im3col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[3][0].imag().to_f64()],
-                        [0.0, re[3][1].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[3]),
-                            Color(&colors.im4col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[4][0].imag().to_f64()],
-                        [0.0, re[4][1].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[4]),
-                            Color(&colors.im5col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[5][0].imag().to_f64()],
-                        [0.0, re[5][1].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[5]),
-                            Color(&colors.im6col),
-                            PointSymbol(options.point_style),
-                        ],
-                    );
-            }
-            else if re.iter().all(|re| re.len() == 3)
-            {
-                let z = vec![Complex::new(options.prec); 3];
-                for _ in 0..6 - func.len()
-                {
-                    re.push(z.clone());
-                }
-                fg.axes3d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
-                    .set_z_ticks(zticks, &[], &[])
-                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
-                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
-                    .set_z_label("z", &[])
-                    .set_y_label("y", &[])
-                    .set_x_label("x", &[])
-                    .lines_points(
-                        [0.0, re[0][0].real().to_f64()],
-                        [0.0, re[0][1].real().to_f64()],
-                        [0.0, re[0][2].real().to_f64()],
-                        &[
-                            Caption(&re_cap[0]),
-                            Color(&colors.re1col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[1][0].real().to_f64()],
-                        [0.0, re[1][1].real().to_f64()],
-                        [0.0, re[1][2].real().to_f64()],
-                        &[
-                            Caption(&re_cap[1]),
-                            Color(&colors.re2col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[2][0].real().to_f64()],
-                        [0.0, re[2][1].real().to_f64()],
-                        [0.0, re[2][2].real().to_f64()],
-                        &[
-                            Caption(&re_cap[2]),
-                            Color(&colors.re3col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[3][0].real().to_f64()],
-                        [0.0, re[3][1].real().to_f64()],
-                        [0.0, re[3][2].real().to_f64()],
-                        &[
-                            Caption(&re_cap[3]),
-                            Color(&colors.re4col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[4][0].real().to_f64()],
-                        [0.0, re[4][1].real().to_f64()],
-                        [0.0, re[4][2].real().to_f64()],
-                        &[
-                            Caption(&re_cap[4]),
-                            Color(&colors.re5col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[5][0].real().to_f64()],
-                        [0.0, re[5][1].real().to_f64()],
-                        [0.0, re[5][2].real().to_f64()],
-                        &[
-                            Caption(&re_cap[5]),
-                            Color(&colors.re6col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[0][0].imag().to_f64()],
-                        [0.0, re[0][1].imag().to_f64()],
-                        [0.0, re[0][2].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[0]),
-                            Color(&colors.im1col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[1][0].imag().to_f64()],
-                        [0.0, re[1][1].imag().to_f64()],
-                        [0.0, re[1][2].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[1]),
-                            Color(&colors.im2col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[2][0].imag().to_f64()],
-                        [0.0, re[2][1].imag().to_f64()],
-                        [0.0, re[2][2].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[2]),
-                            Color(&colors.im3col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[3][0].imag().to_f64()],
-                        [0.0, re[3][1].imag().to_f64()],
-                        [0.0, re[3][2].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[3]),
-                            Color(&colors.im4col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[4][0].imag().to_f64()],
-                        [0.0, re[4][1].imag().to_f64()],
-                        [0.0, re[4][2].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[4]),
-                            Color(&colors.im5col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        [0.0, re[5][0].imag().to_f64()],
-                        [0.0, re[5][1].imag().to_f64()],
-                        [0.0, re[5][2].imag().to_f64()],
-                        &[
-                            Caption(&im_cap[5]),
-                            Color(&colors.im6col),
-                            PointSymbol(options.point_style),
-                        ],
-                    );
-            }
-            else
-            {
-                for _ in 0..6 - func.len()
-                {
-                    re.push(Vec::new());
-                }
-                if Options::default().yr == options.yr
-                {
-                    options.yr = (
-                        re.iter().fold(f64::MAX, |min, x| {
-                            min.min(x.iter().fold(f64::MAX, |min, x| {
-                                min.min(x.real().to_f64()).min(x.imag().to_f64())
-                            }))
-                        }),
-                        re.iter().fold(f64::MIN, |max, x| {
-                            max.max(x.iter().fold(f64::MIN, |max, x| {
-                                max.max(x.real().to_f64()).max(x.imag().to_f64())
-                            }))
-                        }),
-                    )
-                }
-                if Options::default().xr == options.xr
-                {
-                    options.xr = (
-                        0.0,
-                        (re.iter().map(|re| re.len()).max().unwrap() - 1) as f64,
-                    )
-                }
-                let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
-                let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
-                fg.axes2d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
-                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
-                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                    .lines_points(
-                        0..re[0].len(),
-                        re[0].iter().map(|x| x.real().to_f64()),
-                        &[
-                            Caption(&re_cap[0]),
-                            Color(&colors.re1col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        0..re[1].len(),
-                        re[1].iter().map(|x| x.real().to_f64()),
-                        &[
-                            Caption(&re_cap[1]),
-                            Color(&colors.re2col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        0..re[2].len(),
-                        re[2].iter().map(|x| x.real().to_f64()),
-                        &[
-                            Caption(&re_cap[2]),
-                            Color(&colors.re3col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        0..re[3].len(),
-                        re[3].iter().map(|x| x.real().to_f64()),
-                        &[
-                            Caption(&re_cap[3]),
-                            Color(&colors.re4col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        0..re[4].len(),
-                        re[4].iter().map(|x| x.real().to_f64()),
-                        &[
-                            Caption(&re_cap[4]),
-                            Color(&colors.re5col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        0..re[5].len(),
-                        re[5].iter().map(|x| x.real().to_f64()),
-                        &[
-                            Caption(&re_cap[5]),
-                            Color(&colors.re6col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        if !im_cap[0].is_empty()
-                        {
-                            0..re[0].len()
-                        }
-                        else
-                        {
-                            0..0
-                        },
-                        re[0].iter().map(|x| x.imag().to_f64()),
-                        &[
-                            Caption(&im_cap[0]),
-                            Color(&colors.im1col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        if !im_cap[1].is_empty()
-                        {
-                            0..re[1].len()
-                        }
-                        else
-                        {
-                            0..0
-                        },
-                        re[1].iter().map(|x| x.imag().to_f64()),
-                        &[
-                            Caption(&im_cap[1]),
-                            Color(&colors.im2col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        if !im_cap[2].is_empty()
-                        {
-                            0..re[2].len()
-                        }
-                        else
-                        {
-                            0..0
-                        },
-                        re[2].iter().map(|x| x.imag().to_f64()),
-                        &[
-                            Caption(&im_cap[2]),
-                            Color(&colors.im3col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        if !im_cap[3].is_empty()
-                        {
-                            0..re[3].len()
-                        }
-                        else
-                        {
-                            0..0
-                        },
-                        re[3].iter().map(|x| x.imag().to_f64()),
-                        &[
-                            Caption(&im_cap[3]),
-                            Color(&colors.im4col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        if !im_cap[4].is_empty()
-                        {
-                            0..re[4].len()
-                        }
-                        else
-                        {
-                            0..0
-                        },
-                        re[4].iter().map(|x| x.imag().to_f64()),
-                        &[
-                            Caption(&im_cap[4]),
-                            Color(&colors.im5col),
-                            PointSymbol(options.point_style),
-                        ],
-                    )
-                    .lines_points(
-                        if !im_cap[5].is_empty()
-                        {
-                            0..re[5].len()
-                        }
-                        else
-                        {
-                            0..0
-                        },
-                        re[5].iter().map(|x| x.imag().to_f64()),
-                        &[
-                            Caption(&im_cap[5]),
-                            Color(&colors.im6col),
-                            PointSymbol(options.point_style),
-                        ],
-                    );
-            }
         }
-        else if input.iter().any(|i| i.contains('y'))
+        else if input.iter().any(|i| i.replace("any", "").contains('y'))
         {
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];
@@ -1455,7 +1707,7 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> (Vec<[f64; 2]>, Vec<[f6
             func.iter()
                 .map(|i| match i
                 {
-                    Str(s) if s == "x" => num.clone(),
+                    Str(s) if s == "x" || s == "y" => num.clone(),
                     _ => i.clone(),
                 })
                 .collect(),
@@ -1661,6 +1913,7 @@ pub fn can_graph(input: &str) -> bool
 {
     input.contains('#')
         || input.replace("exp", "").replace("max", "").contains('x')
+        || input.replace("any", "").contains('y')
         || input
             .replace("==", "")
             .replace("!=", "")

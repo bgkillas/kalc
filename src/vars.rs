@@ -3,26 +3,13 @@ use rug::{float::Constant::Pi, Float};
 use std::collections::HashSet;
 pub fn input_var(
     input: &str,
-    vars: &[[String; 2]],
-    extra_vars: &[[String; 2]],
+    mut vars: Vec<[String; 2]>,
     dont_do: Option<String>,
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,
     options: Options,
 ) -> String
 {
-    let mut va = vars.to_vec();
-    for k in extra_vars
-    {
-        for (i, j) in vars.iter().enumerate()
-        {
-            if j[0].chars().count() <= k[0].len()
-            {
-                va.insert(i, k.clone());
-                break;
-            }
-        }
-    }
     let chars = input
         .replace('[', "(car{")
         .replace(']', "})")
@@ -174,7 +161,7 @@ pub fn input_var(
             }
         }
         if functions.contains(word.as_str())
-            && !vars.iter().any(|a| {
+            && !vars.clone().iter().any(|a| {
                 if a[0].contains('(')
                 {
                     a[0][..a[0].find('(').unwrap()] == word
@@ -229,7 +216,7 @@ pub fn input_var(
         }
         else
         {
-            for var in &va
+            for var in vars.clone()
             {
                 let vl = var[0].chars().collect::<Vec<char>>().len();
                 if var[0] != "e"
@@ -278,8 +265,7 @@ pub fn input_var(
                             output.push('(');
                             output.push_str(&input_var(
                                 &var[1],
-                                vars,
-                                &Vec::new(),
+                                vars.clone(),
                                 None,
                                 sumrec,
                                 bracket,
@@ -291,14 +277,13 @@ pub fn input_var(
                         }
                         else
                         {
-                            let mut k = 0;
                             count = 0;
-                            for (f, c) in chars[i..].iter().enumerate()
+                            let mut ccount = 0;
+                            for c in &chars[j..]
                             {
-                                if *c == ')' && count == 0
+                                if *c == ',' && count == 1
                                 {
-                                    k = f + j + 3;
-                                    break;
+                                    ccount += 1;
                                 }
                                 else if *c == '('
                                 {
@@ -308,19 +293,9 @@ pub fn input_var(
                                 {
                                     count -= 1;
                                 }
-                                else if f + j + 3 == chars.len()
-                                {
-                                    k = f + j + 4;
-                                    break;
-                                }
-                            }
-                            if k == 0
-                            {
-                                continue;
                             }
                             let v = var[0].chars().collect::<Vec<char>>();
-                            if chars[j..i + 1].iter().filter(|c| c == &&',').count()
-                                != var[0].matches(',').count()
+                            if ccount != var[0].matches(',').count()
                             {
                                 i = j;
                                 continue;
@@ -359,7 +334,6 @@ pub fn input_var(
                                     start = end + 1;
                                 }
                                 split.push(&temp[start..]);
-                                let mut va = Vec::new();
                                 let mut func_vars: Vec<String> = Vec::new();
                                 start = 0;
                                 for (f, c) in v.iter().enumerate()
@@ -386,15 +360,37 @@ pub fn input_var(
                                         start = f + 1;
                                     }
                                 }
+                                let mut removes = Vec::new();
                                 for (var, func_var) in split.iter().zip(func_vars)
                                 {
-                                    va.push([func_var, var.iter().collect::<String>()]);
+                                    for (i, j) in vars.iter().enumerate()
+                                    {
+                                        if j[0].chars().count() <= func_var.len()
+                                        {
+                                            removes.push(i);
+                                            vars.insert(
+                                                i,
+                                                [func_var, var.iter().collect::<String>()],
+                                            );
+                                            break;
+                                        }
+                                    }
                                 }
                                 output.push_str(&input_var(
-                                    &var[1], vars, &va, None, sumrec, bracket, options,
+                                    &var[1],
+                                    vars.clone(),
+                                    None,
+                                    sumrec,
+                                    bracket,
+                                    options,
                                 ));
                                 output.push(')');
                                 i += 1;
+                                removes.sort();
+                                for i in removes.iter().rev()
+                                {
+                                    vars.remove(*i);
+                                }
                                 continue 'main;
                             }
                             else
@@ -411,10 +407,19 @@ pub fn input_var(
                                 let l = v[var[0].find('(').unwrap() + 1..v.len() - 1]
                                     .iter()
                                     .collect::<String>();
+                                let mut remove = 0;
+                                for (i, j) in vars.iter().enumerate()
+                                {
+                                    if j[0].chars().count() <= l.len()
+                                    {
+                                        remove = i;
+                                        vars.insert(i, [l, temp.iter().collect::<String>()]);
+                                        break;
+                                    }
+                                }
                                 output.push_str(&input_var(
                                     &var[1],
-                                    vars,
-                                    &[[l, temp.iter().collect::<String>()]],
+                                    vars.clone(),
                                     None,
                                     sumrec,
                                     bracket,
@@ -422,6 +427,7 @@ pub fn input_var(
                                 ));
                                 output.push(')');
                                 i += 1;
+                                vars.remove(remove);
                                 continue 'main;
                             }
                         }
@@ -438,15 +444,21 @@ pub fn input_var(
                         }
                         i += vl;
                         output.push('(');
-                        output.push_str(&input_var(
-                            &var[1],
-                            vars,
-                            &Vec::new(),
-                            Some(var[0].clone()),
-                            sumrec,
-                            bracket,
-                            options,
-                        ));
+                        if var[0] == var[1]
+                        {
+                            output.push_str(&var[0]);
+                        }
+                        else
+                        {
+                            output.push_str(&input_var(
+                                &var[1],
+                                vars.clone(),
+                                Some(var[0].clone()),
+                                sumrec,
+                                bracket,
+                                options,
+                            ));
+                        }
                         output.push(')');
                         continue 'main;
                     }

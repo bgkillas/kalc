@@ -208,6 +208,7 @@ pub fn print_concurrent(
         &mut Vec::new(),
         &mut 0,
         options,
+        0,
     );
     if can_graph(input)
     {

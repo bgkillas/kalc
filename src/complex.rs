@@ -369,11 +369,7 @@ pub fn div(a: &Complex, b: &Complex) -> Complex
 {
     if b.is_zero() || a.real().is_infinite()
     {
-        if a.is_zero()
-        {
-            Complex::with_val(a.prec(), Nan)
-        }
-        else if b.real().is_infinite()
+        if a.is_zero() || b.real().is_infinite()
         {
             Complex::with_val(a.prec(), Nan)
         }

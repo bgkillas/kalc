@@ -8,6 +8,7 @@ pub fn input_var(
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,
     options: Options,
+    depth: usize,
 ) -> String
 {
     let chars = input
@@ -68,7 +69,7 @@ pub fn input_var(
     'main: while i < chars.len()
     {
         let c = chars[i];
-        if !c.is_alphabetic()
+        if !c.is_alphabetic() && c != '@'
         {
             if c == '('
             {
@@ -90,11 +91,25 @@ pub fn input_var(
             i += 1;
             continue;
         }
-        let count = chars[i..]
-            .iter()
-            .position(|x| !x.is_alphabetic())
-            .unwrap_or(chars.len() - i);
-        let mut word = chars[i..i + count].iter().collect::<String>();
+        let mut depthcheck = false;
+        let mut word = String::new();
+        let mut count = 0;
+        for c in chars[i..].iter()
+        {
+            if c == &'@'
+            {
+                depthcheck = !depthcheck;
+            }
+            else if c.is_alphabetic()
+            {
+                word.push(*c);
+            }
+            else if !depthcheck
+            {
+                break;
+            }
+            count += 1;
+        }
         if (word.ends_with('x') && word != "max")
             || (word.ends_with('y') && word != "any")
             || word.ends_with('z')
@@ -270,6 +285,7 @@ pub fn input_var(
                                 sumrec,
                                 bracket,
                                 options,
+                                depth + 1,
                             ));
                             output.push(')');
                             i += 1;
@@ -361,16 +377,24 @@ pub fn input_var(
                                     }
                                 }
                                 let mut removes = Vec::new();
-                                for (var, func_var) in split.iter().zip(func_vars)
+                                let mut var = var;
+                                for (varf, func_var) in split.iter().zip(func_vars)
                                 {
                                     for (i, j) in vars.iter().enumerate()
                                     {
                                         if j[0].chars().count() <= func_var.len()
                                         {
                                             removes.push(i);
+                                            var[1] = var[1].replace(
+                                                &func_var,
+                                                &format!("@{}{}@", func_var, depth),
+                                            );
                                             vars.insert(
                                                 i,
-                                                [func_var, var.iter().collect::<String>()],
+                                                [
+                                                    format!("@{}{}@", func_var, depth),
+                                                    varf.iter().collect::<String>(),
+                                                ],
                                             );
                                             break;
                                         }
@@ -383,6 +407,7 @@ pub fn input_var(
                                     sumrec,
                                     bracket,
                                     options,
+                                    depth + 1,
                                 ));
                                 output.push(')');
                                 i += 1;
@@ -408,12 +433,20 @@ pub fn input_var(
                                     .iter()
                                     .collect::<String>();
                                 let mut remove = 0;
+                                let mut var = var;
                                 for (i, j) in vars.iter().enumerate()
                                 {
                                     if j[0].chars().count() <= l.len()
                                     {
                                         remove = i;
-                                        vars.insert(i, [l, temp.iter().collect::<String>()]);
+                                        var[1] = var[1].replace(&l, &format!("@{}{}@", l, depth));
+                                        vars.insert(
+                                            i,
+                                            [
+                                                format!("@{}{}@", l, depth),
+                                                temp.iter().collect::<String>(),
+                                            ],
+                                        );
                                         break;
                                     }
                                 }
@@ -424,6 +457,7 @@ pub fn input_var(
                                     sumrec,
                                     bracket,
                                     options,
+                                    depth + 1,
                                 ));
                                 output.push(')');
                                 i += 1;
@@ -444,21 +478,15 @@ pub fn input_var(
                         }
                         i += vl;
                         output.push('(');
-                        if var[0] == var[1]
-                        {
-                            output.push_str(&var[0]);
-                        }
-                        else
-                        {
-                            output.push_str(&input_var(
-                                &var[1],
-                                vars.clone(),
-                                Some(var[0].clone()),
-                                sumrec,
-                                bracket,
-                                options,
-                            ));
-                        }
+                        output.push_str(&input_var(
+                            &var[1],
+                            vars.clone(),
+                            Some(var[0].clone()),
+                            sumrec,
+                            bracket,
+                            options,
+                            depth + 1,
+                        ));
                         output.push(')');
                         continue 'main;
                     }

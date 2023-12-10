@@ -298,6 +298,7 @@ fn main()
                         &mut Vec::new(),
                         &mut 0,
                         options,
+                        0,
                     ),
                     options,
                 )
@@ -323,6 +324,7 @@ fn main()
                 &mut Vec::new(),
                 &mut 0,
                 options,
+                0,
             ))
             {
                 println!();
@@ -389,6 +391,7 @@ fn main()
                             &mut Vec::new(),
                             &mut 0,
                             options,
+                            0,
                         ))
                         {
                             println!();
@@ -1039,6 +1042,7 @@ fn main()
                     &mut Vec::new(),
                     &mut 0,
                     options,
+                    0,
                 )))
         {
             let mut inputs: Vec<String> = input
@@ -1057,7 +1061,7 @@ fn main()
                     {
                         continue;
                     }
-                    *i = input_var(i, vars.clone(), None, &mut Vec::new(), &mut 0, options);
+                    *i = input_var(i, vars.clone(), None, &mut Vec::new(), &mut 0, options, 0);
                     funcs.push(match get_func(i, options)
                     {
                         Ok(f) => f,

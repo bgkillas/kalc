@@ -16,6 +16,7 @@ fn test_math()
         &mut Vec::new(),
         &mut 0,
         Options::default(),
+        0,
     );
     let output = get_func(&input, Options::default()).unwrap();
     let expected = vec![

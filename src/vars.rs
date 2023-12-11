@@ -144,16 +144,18 @@ pub fn input_var(
             }
             if place > 0
             {
-                let count2 = chars[i + count + 1..]
-                    .iter()
-                    .position(|x| x == &',')
-                    .unwrap_or(0);
                 sum.0 = *bracket + 1;
-                if count2 != 0
+                sum.1 = String::new();
+                for c in chars[i + count + 1..].iter()
                 {
-                    sum.1 = chars[i + count + 1..i + count + count2 + 1]
-                        .iter()
-                        .collect::<String>();
+                    if c.is_alphabetic()
+                    {
+                        sum.1.push(*c);
+                    }
+                    else if c == &','
+                    {
+                        break;
+                    }
                 }
                 if !sum.1.is_empty()
                 {

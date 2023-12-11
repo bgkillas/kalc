@@ -187,7 +187,7 @@ pub fn input_var(
                 }
             })
         {
-            i += word.chars().count();
+            i += count;
             output.push_str(&word)
         }
         else if sumrec.iter().any(|a| {
@@ -202,7 +202,7 @@ pub fn input_var(
             }
         })
         {
-            i += word.chars().count();
+            i += count;
             output.push_str(&word);
             if i != chars.len()
             {
@@ -243,7 +243,6 @@ pub fn input_var(
                 {
                     let j = i;
                     if var[0].contains('(')
-                        && input.contains('(')
                         && match chars[i..].iter().position(|c| c == &'(')
                         {
                             Some(n) =>

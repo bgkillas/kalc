@@ -999,6 +999,7 @@ fn main()
                     for (i, v) in vars.iter().enumerate()
                     {
                         if v[0].split('(').next() == l.split('(').next()
+                            && v[0].contains('(') == l.contains('(')
                             && v[0].chars().filter(|c| c == &',').count()
                                 == l.chars().filter(|c| c == &',').count()
                         {

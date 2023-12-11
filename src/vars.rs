@@ -93,7 +93,7 @@ pub fn input_var(
         }
         let mut depthcheck = false;
         let mut word = String::new();
-        let mut count = 0;
+        let mut countv = 0;
         for c in chars[i..].iter()
         {
             if c == &'@'
@@ -108,8 +108,9 @@ pub fn input_var(
             {
                 break;
             }
-            count += 1;
+            countv += 1;
         }
+        let wordv = word.clone();
         if (word.ends_with('x') && word != "max")
             || (word.ends_with('y') && word != "any")
             || word.ends_with('z')
@@ -119,11 +120,11 @@ pub fn input_var(
         if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
-        ) && chars.len() > i + count + 1
+        ) && chars.len() > i + countv + 1
         {
             let mut place = 0;
             let mut count2 = 0;
-            for c in &chars[i + count + 1..]
+            for c in &chars[i + countv + 1..]
             {
                 if c == &',' && count2 == 0
                 {
@@ -146,7 +147,7 @@ pub fn input_var(
             {
                 sum.0 = *bracket + 1;
                 sum.1 = String::new();
-                for c in chars[i + count + 1..].iter()
+                for c in chars[i + countv + 1..].iter()
                 {
                     if c.is_alphabetic()
                     {
@@ -189,7 +190,7 @@ pub fn input_var(
                 }
             })
         {
-            i += count;
+            i += countv;
             output.push_str(&word)
         }
         else if sumrec.iter().any(|a| {
@@ -204,7 +205,7 @@ pub fn input_var(
             }
         })
         {
-            i += count;
+            i += countv;
             output.push_str(&word);
             if i != chars.len()
             {
@@ -245,15 +246,9 @@ pub fn input_var(
                 {
                     let j = i;
                     if var[0].contains('(')
-                        && match chars[i..].iter().position(|c| c == &'(')
-                        {
-                            Some(n) =>
-                            {
-                                chars[i..i + n].iter().collect::<String>()
-                                    == var[0].split('(').next().unwrap()
-                            }
-                            _ => false,
-                        }
+                        && wordv == var[0].split('(').next().unwrap()
+                        && i + countv < chars.len()
+                        && chars[i + countv] == '('
                     {
                         let mut count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
@@ -274,9 +269,10 @@ pub fn input_var(
                         }
                         if i == j
                         {
-                            i = input.len() - 1
+                            i = chars.len() - 1
                         }
-                        if chars[j..i + 1].iter().collect::<String>() == var[0]
+                        if wordv.clone() + &chars[j + countv..i + 1].iter().collect::<String>()
+                            == var[0]
                         {
                             output.push('(');
                             output.push_str(&input_var(
@@ -320,8 +316,7 @@ pub fn input_var(
                             if var[0].contains(',') && chars.len() > 4
                             {
                                 output.push('(');
-                                let mut temp = &chars
-                                    [j + var[0].chars().position(|c| c == '(').unwrap() + 1..i + 1];
+                                let mut temp = &chars[j + countv + 1..i + 1];
                                 if temp.ends_with(&[')'])
                                 {
                                     temp = &temp[..temp.len() - 1];
@@ -422,10 +417,7 @@ pub fn input_var(
                             else
                             {
                                 output.push('(');
-                                let mut temp = &chars[j
-                                    + var[0].split('(').next().unwrap().chars().count()
-                                    + 1
-                                    ..i + 1];
+                                let mut temp = &chars[j + countv + 1..i + 1];
                                 if temp.ends_with(&[')'])
                                 {
                                     temp = &temp[..temp.len() - 1];
@@ -468,7 +460,9 @@ pub fn input_var(
                         }
                     }
                     else if i + vl <= chars.len()
-                        && chars[i..i + vl].iter().collect::<String>() == var[0]
+                        && (chars[i..i + vl].iter().collect::<String>() == var[0]
+                            || (wordv != chars[i..i + vl].iter().collect::<String>()
+                                && wordv == var[0]))
                     {
                         if let Some(ref n) = dont_do
                         {
@@ -477,7 +471,7 @@ pub fn input_var(
                                 return "".to_string();
                             }
                         }
-                        i += vl;
+                        i += countv;
                         output.push('(');
                         output.push_str(&input_var(
                             &var[1],

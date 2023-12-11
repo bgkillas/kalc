@@ -27,11 +27,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-/*
-y(x)=x^2
-j(x,y)=x^y(y)
-j(2,2)
-*/
 #[derive(Clone)]
 pub struct Colors
 {

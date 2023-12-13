@@ -98,7 +98,11 @@ pub fn input_var(
         {
             if c == &'@'
             {
-                depthcheck = !depthcheck;
+                if depthcheck
+                {
+                    break;
+                }
+                depthcheck = true;
             }
             else if c.is_alphabetic()
             {
@@ -111,10 +115,12 @@ pub fn input_var(
             countv += 1;
         }
         let wordv = word.clone();
+        let mut countj = countv;
         if (word.ends_with('x') && word != "max")
             || (word.ends_with('y') && word != "any")
             || word.ends_with('z')
         {
+            countv -= 1;
             word.pop();
         }
         if matches!(
@@ -194,8 +200,9 @@ pub fn input_var(
             output.push_str(&word)
         }
         else if sumrec.iter().any(|a| {
-            if word.starts_with(&a.1)
+            if wordv.starts_with(&a.1)
             {
+                countj -= wordv.len() - a.1.len();
                 word = a.1.clone();
                 true
             }
@@ -205,7 +212,7 @@ pub fn input_var(
             }
         })
         {
-            i += countv;
+            i += countj;
             output.push_str(&word);
             if i != chars.len()
             {
@@ -223,7 +230,7 @@ pub fn input_var(
                     .collect::<String>();
                 if matches!(
                     chars[non_space],
-                    '0'..='9' | '(' | '{' | '[' | 'x' | 'y' | 'z'
+                    '0'..='9' | '(' | '{' | '[' | 'x' | 'y' | 'z' | '@'
                 ) || functions.contains(next_word.as_str())
                     || sumrec.iter().any(|a| a.1 == next_word)
                     || vars.iter().any(|a| next_word.starts_with(&a[0]))
@@ -271,7 +278,7 @@ pub fn input_var(
                         {
                             i = chars.len() - 1
                         }
-                        if wordv.clone() + &chars[j + countv..i + 1].iter().collect::<String>()
+                        if wordv.clone() + &chars[j + countj..i + 1].iter().collect::<String>()
                             == var[0]
                         {
                             output.push('(');
@@ -316,7 +323,7 @@ pub fn input_var(
                             if var[0].contains(',') && chars.len() > 4
                             {
                                 output.push('(');
-                                let mut temp = &chars[j + countv + 1..i + 1];
+                                let mut temp = &chars[j + countj + 1..i + 1];
                                 if temp.ends_with(&[')'])
                                 {
                                     temp = &temp[..temp.len() - 1];
@@ -417,7 +424,7 @@ pub fn input_var(
                             else
                             {
                                 output.push('(');
-                                let mut temp = &chars[j + countv + 1..i + 1];
+                                let mut temp = &chars[j + countj + 1..i + 1];
                                 if temp.ends_with(&[')'])
                                 {
                                     temp = &temp[..temp.len() - 1];
@@ -471,7 +478,7 @@ pub fn input_var(
                                 return "".to_string();
                             }
                         }
-                        i += countv;
+                        i += countj;
                         output.push('(');
                         output.push_str(&input_var(
                             &var[1],

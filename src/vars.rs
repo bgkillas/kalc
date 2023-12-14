@@ -98,13 +98,9 @@ pub fn input_var(
         {
             if c == &'@'
             {
-                if depthcheck
-                {
-                    break;
-                }
-                depthcheck = true;
+                depthcheck = !depthcheck;
             }
-            else if c.is_alphabetic()
+            else if c.is_alphabetic() || c == &'\'' || c == &'`'
             {
                 word.push(*c);
             }
@@ -478,7 +474,14 @@ pub fn input_var(
                                 return "".to_string();
                             }
                         }
-                        i += if c == '@' { countj + 1 } else { vl };
+                        i += if c == '@'
+                        {
+                            chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 1
+                        }
+                        else
+                        {
+                            vl
+                        };
                         output.push('(');
                         output.push_str(&input_var(
                             &var[1],

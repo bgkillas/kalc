@@ -76,7 +76,6 @@ Other functions:\n\x1b[G\
 - slog(a,b)\n\x1b[G\
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\n\x1b[G\
 Vector operations/functions:\n\x1b[G\
-- *, /, +, -, ^\n\x1b[G\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
 - angle({{vec1}},{{vec2}})\n\x1b[G\
 - norm, normalize\n\x1b[G\
@@ -88,7 +87,7 @@ Vector operations/functions:\n\x1b[G\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\n\x1b[G\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\n\x1b[G\n\x1b[G\
 Matrix operations/functions:\n\x1b[G\
-- *, /, +, -, ^\n\x1b[G\
+- eigenvalues\n\x1b[G\
 - trace/tr, determinant/det, inverse/inv\n\x1b[G\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\n\x1b[G\
 - part({{mat}},col,row), flatten, sum, prod\n\x1b[G\

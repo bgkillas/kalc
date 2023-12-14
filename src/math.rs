@@ -1,8 +1,8 @@
 use crate::{
     complex::{
-        add, and, cofactor, cubic, determinant, div, eq, gamma, ge, gt, identity, inverse, le, lt,
-        minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog, sort, sub, sum,
-        tetration, to, to_polar, trace, transpose, NumStr,
+        add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
+        inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog,
+        sort, sub, sum, tetration, to, to_polar, trace, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -632,6 +632,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                             }
                             Num(Complex::with_val(options.prec, res as u8))
                         }
+                        "eigenvalues" => Vector(eigenvalues(&a)?),
                         _ => do_functions(
                             function[i + 1].clone(),
                             options,

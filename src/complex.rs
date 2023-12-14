@@ -1036,6 +1036,41 @@ pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
     }
     a
 }
+pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
+{
+    if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
+    {
+        match a.len()
+        {
+            1 => Ok(a[0].clone()),
+            2 => Ok(quadratic(
+                Complex::with_val(a[0][0].prec(), 1),
+                -a[0][0].clone() - a[1][1].clone(),
+                a[0][0].clone() * a[1][1].clone() - a[0][1].clone() * a[1][0].clone(),
+            )),
+            3 => Ok(cubic(
+                Complex::with_val(a[0][0].prec(), -1),
+                a[2][2].clone() + a[1][1].clone() + a[0][0].clone(),
+                -a[0][0].clone() * a[1][1].clone() - a[0][0].clone() * a[2][2].clone()
+                    + a[0][1].clone() * a[1][0].clone()
+                    + a[0][2].clone() * a[2][0].clone()
+                    - a[1][1].clone() * a[2][2].clone()
+                    + a[1][2].clone() * a[2][1].clone(),
+                a[0][0].clone() * a[1][1].clone() * a[2][2].clone()
+                    - a[0][0].clone() * a[1][2].clone() * a[2][1].clone()
+                    - a[0][1].clone() * a[1][0].clone() * a[2][2].clone()
+                    + a[0][1].clone() * a[1][2].clone() * a[2][0].clone()
+                    + a[0][2].clone() * a[1][0].clone() * a[2][1].clone()
+                    - a[0][2].clone() * a[1][1].clone() * a[2][0].clone(),
+            )),
+            _ => Err("unsupported"),
+        }
+    }
+    else
+    {
+        Err("not square")
+    }
+}
 pub fn quadratic(a: Complex, b: Complex, c: Complex) -> Vec<Complex>
 {
     if a.is_zero()

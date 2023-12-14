@@ -657,6 +657,7 @@ pub fn functions() -> HashSet<&'static str>
         "vec",
         "all",
         "any",
+        "eigenvalues",
         "mat",
         "prime",
         "add",

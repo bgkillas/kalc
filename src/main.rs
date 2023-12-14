@@ -27,6 +27,7 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
+//support fractional exponents for matrixes upto 3x3
 #[derive(Clone)]
 pub struct Colors
 {

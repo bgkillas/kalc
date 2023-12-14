@@ -1,8 +1,8 @@
 use crate::{
     complex::{
-        add, and, cofactor, determinant, div, eq, gamma, ge, gt, identity, inverse, le, lt, minors,
-        mvec, ne, nth_prime, or, rem, root, shl, shr, slog, sort, sub, sum, tetration, to,
-        to_polar, trace, transpose, NumStr,
+        add, and, cofactor, cubic, determinant, div, eq, gamma, ge, gt, identity, inverse, le, lt,
+        minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog, sort, sub, sum,
+        tetration, to, to_polar, trace, transpose, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -161,6 +161,8 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 | "C"
                                 | "P"
                                 | "quad"
+                                | "quadratic"
+                                | "cubic"
                         )
                         {
                             count = 0;
@@ -1013,7 +1015,23 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                 {
                     function[i] = match s.as_str()
                     {
-                        "quad" =>
+                        "cubic" =>
+                        {
+                            if i + 7 < function.len()
+                            {
+                                let a = function[i + 1].num()?;
+                                let b = function[i + 3].num()?;
+                                let c = function[i + 5].num()?;
+                                let d = function[i + 7].num()?;
+                                function.drain(i + 2..i + 8);
+                                Vector(cubic(a, b, c, d))
+                            }
+                            else
+                            {
+                                return Err("not enough args");
+                            }
+                        }
+                        "quad" | "quadratic" =>
                         {
                             if i + 5 < function.len()
                             {
@@ -1021,11 +1039,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 let b = function[i + 3].num()?;
                                 let c = function[i + 5].num()?;
                                 function.drain(i + 2..i + 6);
-                                let p: Complex = b.clone().pow(2);
-                                let p: Complex = p - (4 * c * a.clone());
-                                let p = p.sqrt();
-                                let a: Complex = 2 * a;
-                                Vector(vec![(p.clone() - b.clone()) / a.clone(), (-p - b) / a])
+                                Vector(quadratic(a, b, c))
                             }
                             else
                             {

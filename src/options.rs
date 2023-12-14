@@ -1456,7 +1456,11 @@ pub fn commands(
             {
                 if v[0].contains('(')
                 {
-                    print!("{}={}\n\x1b[G", v[0], v[1]);
+                    print!(
+                        "{}={}\n\x1b[G",
+                        v[0],
+                        to_output(&v[1].chars().collect::<Vec<char>>(), options.color, colors)
+                    );
                 }
                 else
                 {
@@ -1525,7 +1529,18 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                print!("{}={}\n\x1b[G", v[0], v[1]);
+                if v[0].contains('(')
+                {
+                    print!(
+                        "{}={}\n\x1b[G",
+                        v[0],
+                        to_output(&v[1].chars().collect::<Vec<char>>(), options.color, colors)
+                    );
+                }
+                else
+                {
+                    print!("{}={}\n\x1b[G", v[0], v[1]);
+                }
             }
             stdout.flush().unwrap();
         }

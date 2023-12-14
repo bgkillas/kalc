@@ -14,7 +14,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         return Ok(Vec::new());
     }
     let mut count: i32 = 0;
-    let mut exp = String::new();
     let mut func: Vec<NumStr> = Vec::new();
     let mut word = String::new();
     let mut find_word = false;
@@ -49,6 +48,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
     i = 0;
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
+    let mut exp = (String::new(), 0);
     let mut pwr = (false, 0, 0);
     let mut subfact = (false, 0);
     'outer: while i < chars.len()
@@ -403,10 +403,10 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     {
                         continue;
                     }
-                    exp = chars[i + 1..i + 1 + pos.unwrap()].iter().collect();
-                    if exp == "-"
+                    exp = (chars[i + 1..i + 1 + pos.unwrap()].iter().collect(), count);
+                    if exp.0 == "-"
                     {
-                        exp = "-1".to_string();
+                        exp.0 = "-1".to_string();
                     }
                     i += pos.unwrap() + 1;
                     continue;
@@ -414,19 +414,6 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                 place_multiplier(&mut func, &find_word);
                 func.push(Str(word.clone()));
                 word.clear();
-            }
-            if !exp.is_empty() && c != '(' && c != ')'
-            {
-                func.push(Str("^".to_string()));
-                func.push(Num(Complex::with_val(
-                    options.prec,
-                    match Complex::parse(exp.as_bytes())
-                    {
-                        Ok(n) => n,
-                        _ => return Err("exponent error"),
-                    },
-                )));
-                exp = String::new();
             }
             match c
             {
@@ -563,8 +550,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                     && i + 1 != chars.len()
                     && (chars[i - 1].is_alphanumeric()
                         || (!func.is_empty() && func.last().unwrap().str_is(")"))
-                        || chars[i - 1] == '}'
-                        || chars[i - 1] == ']')
+                        || matches!(chars[i - 1], '}' | ']' | ')'))
                     && chars[i - 1] != if options.small_e { 'e' } else { 'E' }
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
@@ -638,8 +624,7 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         || !(chars[i - 1] != if options.small_e { 'e' } else { 'E' }
                             && (chars[i - 1].is_alphanumeric()
                                 || (!func.is_empty() && func.last().unwrap().str_is(")"))
-                                || chars[i - 1] == '}'
-                                || chars[i - 1] == ']'))
+                                || matches!(chars[i - 1], '}' | ']' | ')')))
                     {
                         if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
                         {
@@ -704,7 +689,20 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
                         func.push(Str(")".to_string()))
                     }
                     count -= 1;
-                    func.push(Str(")".to_string()))
+                    func.push(Str(")".to_string()));
+                    if !exp.0.is_empty() && exp.1 == count
+                    {
+                        func.push(Str("^".to_string()));
+                        func.push(Num(Complex::with_val(
+                            options.prec,
+                            match Complex::parse(exp.0.as_bytes())
+                            {
+                                Ok(n) => n,
+                                _ => return Err("exponent error"),
+                            },
+                        )));
+                        exp = (String::new(), 0);
+                    }
                 }
                 '|' =>
                 {
@@ -888,12 +886,12 @@ pub fn get_func(input: &str, options: Options) -> Result<Vec<NumStr>, &'static s
         ) * Complex::with_val(options.prec, (0, 1))
             .pow(Complex::with_val(options.prec, i))));
     }
-    if !exp.is_empty()
+    if !exp.0.is_empty()
     {
         func.push(Str("^".to_string()));
         func.push(Num(Complex::with_val(
             options.prec,
-            match Complex::parse(exp.as_bytes())
+            match Complex::parse(exp.0.as_bytes())
             {
                 Ok(n) => n,
                 _ => return Err("exponent error"),

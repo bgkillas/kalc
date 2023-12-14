@@ -1036,3 +1036,66 @@ pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
     }
     a
 }
+pub fn quadratic(a: Complex, b: Complex, c: Complex) -> Vec<Complex>
+{
+    if a.is_zero()
+    {
+        return vec![-c / b];
+    }
+    let p: Complex = b.clone().pow(2);
+    let p: Complex = p - (4 * c * a.clone());
+    let p = p.sqrt();
+    let a: Complex = 2 * a;
+    vec![(p.clone() - b.clone()) / a.clone(), (-p - b) / a]
+}
+pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex) -> Vec<Complex>
+{
+    if a.is_zero()
+    {
+        return quadratic(b, c, d);
+    }
+    let prec = a.prec();
+    let threerecip = Float::with_val(prec.0, 3).recip();
+    if b.is_zero() && c.is_zero()
+    {
+        return if d.is_zero()
+        {
+            vec![Complex::new(prec), Complex::new(prec), Complex::new(prec)]
+        }
+        else
+        {
+            let reuse = (d / a).pow(threerecip.clone());
+            vec![
+                -reuse.clone(),
+                reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone()),
+                -reuse * Complex::with_val(prec, -1).pow(2 * threerecip),
+            ]
+        };
+    }
+    let b = b / a.clone();
+    let c = c / a.clone();
+    let d = d / a.clone();
+    let threesqrt = Float::with_val(prec.0, 3).sqrt();
+    let cbrtwo = Float::with_val(prec.0, 2).pow(threerecip.clone());
+    let mut reuse: Complex = (4 * b.clone().pow(3) * d.clone())
+        - (b.clone().pow(2) * c.clone().pow(2))
+        - (18 * b.clone() * c.clone() * d.clone())
+        + (4 * c.clone().pow(3))
+        + (27 * d.clone().pow(2));
+    reuse = (-2 * b.clone().pow(3))
+        + (3 * threesqrt.clone() * reuse.clone().sqrt())
+        + (9 * b.clone() * c.clone())
+        - (27 * d.clone());
+    reuse = reuse.pow(threerecip.clone());
+    let left: Complex = reuse.clone() / cbrtwo.clone();
+    let right: Complex = cbrtwo * (3 * c.clone() - b.clone().pow(2)) / reuse.clone();
+    //(-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)/(3 2^(1/3)) - (2^(1/3) (3 c - b^2))/(3 (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
+    //-((1 - i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 + i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
+    //-((1 + i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 - i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
+    let omega: Complex = (1 + (Complex::with_val(prec, (0, 1)) * threesqrt.clone())) / 2;
+    vec![
+        (left.clone() - right.clone() - b.clone()) / 3,
+        ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone()) / 3,
+        ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
+    ]
+}

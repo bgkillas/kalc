@@ -254,8 +254,8 @@ pub fn input_var(
                     let j = i;
                     if var[0].contains('(')
                         && wordv == var[0].split('(').next().unwrap()
-                        && i + countv < chars.len()
-                        && chars[i + countv] == '('
+                        && i + countj < chars.len()
+                        && chars[i + countj] == '('
                     {
                         let mut count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
@@ -478,7 +478,7 @@ pub fn input_var(
                                 return "".to_string();
                             }
                         }
-                        i += countj;
+                        i += if c == '@' { countj + 1 } else { vl };
                         output.push('(');
                         output.push_str(&input_var(
                             &var[1],
@@ -673,6 +673,8 @@ pub fn functions() -> HashSet<&'static str>
         "median",
         "mode",
         "quad",
+        "quadratic",
+        "cubic",
     ]
     .iter()
     .cloned()

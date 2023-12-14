@@ -63,7 +63,7 @@ Trigonometric functions:\n\x1b[G\
 - sinh, cosh, tanh, asinh, acosh, atanh\n\x1b[G\
 - csch, sech, coth, acsch, asech, acoth\n\x1b[G\n\x1b[G\
 Other functions:\n\x1b[G\
-- sqrt, cbrt, square, cube, quad(a,b,c)(quadratic formula)\n\x1b[G\
+- sqrt, cbrt, square, cube, quadratic(a,b,c) cubic(a,b,c,d)\n\x1b[G\
 - ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\n\x1b[G\
 - abs, sgn, arg\n\x1b[G\
 - ceil, floor, round, int, frac\n\x1b[G\

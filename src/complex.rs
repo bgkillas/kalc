@@ -145,7 +145,11 @@ impl NumStr
         {
             if a.real().is_infinite()
             {
-                if b.real().is_sign_negative()
+                if b.is_zero()
+                {
+                    Complex::with_val(a.prec(), Nan)
+                }
+                else if b.real().is_sign_negative()
                 {
                     Complex::with_val(a.prec(), Infinity)
                 }
@@ -156,16 +160,20 @@ impl NumStr
             }
             else if b.real().is_infinite()
             {
-                match (
-                    b.real().is_sign_positive(),
-                    a.real().clone().trunc().is_zero(),
-                )
+                if a.clone().abs() == 1
                 {
-                    (true, true) | (false, false) => Complex::new(a.prec()),
-                    (false, true) | (true, false) => Complex::with_val(a.prec(), Infinity),
+                    Complex::with_val(a.prec(), Nan)
+                }
+                else if b.real().is_sign_positive() == a.real().clone().trunc().is_zero()
+                {
+                    Complex::new(a.prec())
+                }
+                else
+                {
+                    Complex::with_val(a.prec(), Infinity)
                 }
             }
-            else if a.is_zero() && b.is_zero()
+            else if a.is_zero() && b.real().is_zero()
             {
                 Complex::with_val(a.prec(), Nan)
             }

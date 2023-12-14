@@ -1909,11 +1909,11 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> (Vec<[f64; 3]>, Vec<[f6
         if zero.1 { im } else { Vec::new() },
     )
 }
-pub fn can_graph(input: &str) -> bool
+pub fn can_graph(input: &str, graph: bool) -> bool
 {
     input.contains('#')
-        || input.replace("exp", "").replace("max", "").contains('x')
-        || input.replace("any", "").contains('y')
+        || graph && input.replace("exp", "").replace("max", "").contains('x')
+        || graph && input.replace("any", "").contains('y')
         || input
             .replace("==", "")
             .replace("!=", "")

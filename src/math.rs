@@ -10,7 +10,10 @@ use crate::{
 };
 use libc::rand;
 use rug::{
-    float::{Constant::Pi, Special::Infinity},
+    float::{
+        Constant::Pi,
+        Special::{Infinity, Nan},
+    },
     ops::Pow,
     Complex, Float,
 };
@@ -1671,17 +1674,24 @@ fn functions(
             if let Some(b) = c
             {
                 let c: Float = b.real().clone() / 2;
-                match b.imag().is_zero()
+                if b.is_zero() && !a.is_zero()
+                {
+                    Complex::with_val(a.prec(), Nan)
+                }
+                else if b.imag().is_zero()
                     && !c.fract().is_zero()
                     && b.real().clone().fract().is_zero()
                     && a.imag().is_zero()
                 {
-                    true => Complex::with_val(
+                    Complex::with_val(
                         options.prec,
                         a.real() / a.real().clone().abs()
                             * a.real().clone().abs().pow(b.real().clone().recip()),
-                    ),
-                    false => a.pow(b.recip()),
+                    )
+                }
+                else
+                {
+                    a.pow(b.recip())
                 }
             }
             else

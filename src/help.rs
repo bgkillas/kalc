@@ -19,6 +19,7 @@ FLAGS: --help (this message)\n\x1b[G\
 --prompt toggles the prompt\n\x1b[G\
 --color toggles color\n\x1b[G\
 --comma toggles comma seperation\n\x1b[G\
+--graph toggles graphing\n\x1b[G\
 --vars toggles default variables\n\x1b[G\
 --line toggles line graphing\n\x1b[G\
 --rt toggles real time printing\n\x1b[G\

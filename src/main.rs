@@ -27,6 +27,7 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
+//make parse and vars same function
 #[derive(Clone)]
 pub struct Colors
 {
@@ -116,6 +117,7 @@ pub struct Options
     small_e: bool,
     debug: bool,
     depth: bool,
+    graph: bool,
 }
 impl Default for Options
 {
@@ -148,6 +150,7 @@ impl Default for Options
             small_e: false,
             debug: false,
             depth: false,
+            graph: true,
         }
     }
 }
@@ -317,15 +320,18 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            if !can_graph(&input_var(
-                &input.iter().collect::<String>(),
-                vars.clone(),
-                None,
-                &mut Vec::new(),
-                &mut 0,
-                options,
-                0,
-            ))
+            if !can_graph(
+                &input_var(
+                    &input.iter().collect::<String>(),
+                    vars.clone(),
+                    None,
+                    &mut Vec::new(),
+                    &mut 0,
+                    options,
+                    0,
+                ),
+                options.graph,
+            )
             {
                 println!();
             }
@@ -384,15 +390,18 @@ fn main()
                                 end,
                             );
                         }
-                        if !can_graph(&input_var(
-                            &input.iter().collect::<String>(),
-                            vars.clone(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            options,
-                            0,
-                        ))
+                        if !can_graph(
+                            &input_var(
+                                &input.iter().collect::<String>(),
+                                vars.clone(),
+                                None,
+                                &mut Vec::new(),
+                                &mut 0,
+                                options,
+                                0,
+                            ),
+                            options.graph,
+                        )
                         {
                             println!();
                         }
@@ -1036,15 +1045,18 @@ fn main()
         if graphable
             && !input.iter().collect::<String>().starts_with("history")
             && (input.contains(&'#')
-                || can_graph(&input_var(
-                    &input.iter().collect::<String>(),
-                    vars.clone(),
-                    None,
-                    &mut Vec::new(),
-                    &mut 0,
-                    options,
-                    0,
-                )))
+                || can_graph(
+                    &input_var(
+                        &input.iter().collect::<String>(),
+                        vars.clone(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
+                        options,
+                        0,
+                    ),
+                    options.graph,
+                ))
         {
             let mut inputs: Vec<String> = input
                 .iter()

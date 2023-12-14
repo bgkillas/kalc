@@ -218,6 +218,7 @@ pub fn arg_opts(
                 }
             }
             "--comma" => options.comma = !options.comma,
+            "--graph" => options.graph = !options.graph,
             "--sci" | "--scientific" => options.sci = !options.sci,
             "--vars" => options.allow_vars = !options.allow_vars,
             "--point" =>
@@ -587,6 +588,14 @@ pub fn file_opts(
                         .parse::<bool>()
                         .expect("invalid comma")
                 }
+                "graph" =>
+                {
+                    options.graph = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid graph")
+                }
                 "color" =>
                 {
                     options.color = split
@@ -744,6 +753,7 @@ pub fn equal_to(
         "multi" => format!("{}", options.multi),
         "tabbed" => format!("{}", options.tabbed),
         "comma" => format!("{}", options.comma),
+        "graph" => format!("{}", options.graph),
         "point" => format!("{}", options.point_style),
         "base" => format!("{}", options.base),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
@@ -1439,6 +1449,12 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             options.comma = !options.comma;
+        }
+        "graph" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout.flush().unwrap();
+            options.graph = !options.graph;
         }
         "history" =>
         {

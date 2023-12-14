@@ -50,6 +50,7 @@ FLAGS: --help (this message)
 --prompt toggles the prompt
 --color toggles color
 --comma toggles comma seperation
+--graph toggles graphing
 --vars toggles default variables
 --line toggles line graphing
 --rt toggles real time printing

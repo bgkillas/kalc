@@ -480,7 +480,7 @@ pub fn input_var(
                     else if i + vl <= chars.len()
                         && (chars[i..i + vl].iter().collect::<String>() == var[0]
                             || (wordv != chars[i..i + vl].iter().collect::<String>()
-                                && wordv == var[0]))
+                                && wordv.starts_with(&var[0])))
                     {
                         if let Some(ref n) = dont_do
                         {
@@ -489,9 +489,44 @@ pub fn input_var(
                                 return "".to_string();
                             }
                         }
-                        i += if c == '@'
+                        i += if chars[i..i + vl].contains(&'@') && !var[0].contains('@')
                         {
-                            chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 2
+                            let mut count = 0;
+                            let mut countw = 0;
+                            let mut depth = false;
+                            let mut word = String::new();
+                            let vc = var[0].chars().collect::<Vec<char>>();
+                            for c in chars[i..].iter()
+                            {
+                                if word == var[0]
+                                {
+                                    if depth
+                                    {
+                                        count += chars[i + count..]
+                                            .iter()
+                                            .position(|a| a == &'@')
+                                            .unwrap()
+                                            + 1;
+                                    }
+                                    break;
+                                }
+                                if c == &'@'
+                                {
+                                    depth = !depth;
+                                }
+                                else if c == &vc[countw]
+                                {
+                                    word.push(*c);
+                                    countw += 1;
+                                }
+                                else if !depth
+                                {
+                                    i += 1;
+                                    continue 'main;
+                                }
+                                count += 1;
+                            }
+                            count
                         }
                         else
                         {

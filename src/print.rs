@@ -18,7 +18,7 @@ use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
 pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options, colors: &Colors)
 {
-    if can_graph(input)
+    if can_graph(input, options.graph)
     {
         return;
     }
@@ -210,7 +210,7 @@ pub fn print_concurrent(
         options,
         0,
     );
-    if can_graph(input)
+    if can_graph(input, options.graph)
     {
         return if input.contains('#')
         {

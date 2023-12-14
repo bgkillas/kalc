@@ -77,6 +77,10 @@ pub fn input_var(
             }
             else if c == ')'
             {
+                *bracket -= 1;
+            }
+            else if c == ','
+            {
                 for (i, sum) in sumrec.clone().iter().enumerate()
                 {
                     if &sum.0 == bracket
@@ -85,7 +89,6 @@ pub fn input_var(
                         break;
                     }
                 }
-                *bracket -= 1;
             }
             output.push(c);
             i += 1;
@@ -111,7 +114,7 @@ pub fn input_var(
             countv += 1;
         }
         let wordv = word.clone();
-        let mut countj = countv;
+        let countj = countv;
         if (word.ends_with('x') && word != "max")
             || (word.ends_with('y') && word != "any")
             || word.ends_with('z')
@@ -149,8 +152,10 @@ pub fn input_var(
             {
                 sum.0 = *bracket + 1;
                 sum.1 = String::new();
+                let mut count = 0;
                 for c in chars[i + countv + 1..].iter()
                 {
+                    count += 1;
                     if c.is_alphabetic()
                     {
                         sum.1.push(*c);
@@ -177,6 +182,10 @@ pub fn input_var(
                             }
                         }
                     }
+                    output.push_str(&(word.clone() + "(" + &sum.1 + ","));
+                    *bracket += 1;
+                    i += count + countv + 1;
+                    continue;
                 }
             }
         }
@@ -198,7 +207,6 @@ pub fn input_var(
         else if sumrec.iter().any(|a| {
             if wordv.starts_with(&a.1)
             {
-                countj -= wordv.len() - a.1.len();
                 word = a.1.clone();
                 true
             }
@@ -208,7 +216,14 @@ pub fn input_var(
             }
         })
         {
-            i += countj;
+            i += if c == '@'
+            {
+                chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 2
+            }
+            else
+            {
+                word.len()
+            };
             output.push_str(&word);
             if i != chars.len()
             {
@@ -476,7 +491,7 @@ pub fn input_var(
                         }
                         i += if c == '@'
                         {
-                            chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 1
+                            chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 2
                         }
                         else
                         {

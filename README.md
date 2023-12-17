@@ -17,7 +17,6 @@ config defaults listed in kalc.config
 # issues
 - 0's and infinities of trig functions don't show up as exactly 0(shows as something like 10^-155) or infinity(shows as something like 10^155).
 - matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
-- loops(sum/prod etc) cant work with x/y/i as vars
 - recursive formulas don't work
 - |2|x|| does not format as norm(2*norm(x)) it formats as norm(2)*x||, |ln|x|| works
 # build instructions

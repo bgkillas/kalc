@@ -1,4 +1,4 @@
-use crate::{vars::functions, Colors, Options};
+use crate::{functions::functions, Colors, Options};
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};

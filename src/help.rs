@@ -38,7 +38,7 @@ FLAGS: --help (this message)\n\x1b[G\
 - Type \"colors=\" to see color settings\n\x1b[G\
 - Type \"exit\" to exit the program\n\x1b[G\
 - Type \"clear\" to clear the screen\n\x1b[G\
-- Type \"help [arg]\" to get this message, get help on function if specified\n\x1b[G\
+- Type \"history [arg]\" to see the history, arg indexes it if specified\n\x1b[G\
 - Type \"vars\" to list all variables\n\x1b[G\
 - Type \"lvars\" to list all variables without equating them\n\x1b[G\
 - Type \"_\" to use the previous answer\n\x1b[G\

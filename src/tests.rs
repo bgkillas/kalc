@@ -1,15 +1,15 @@
 use crate::{
     complex::NumStr::{Num, Str},
+    load_vars::get_vars,
     math::do_math,
-    parse::get_func,
-    vars::{get_vars, input_var},
+    parse::input_var,
     Options,
 };
 use rug::{float::Constant::Pi, Complex};
 #[test]
 fn test_math()
 {
-    let input = input_var(
+    let output = input_var(
         "pi+tau*e/2i^(sqrt(2))/3*3-log(2-2i,-3+i)+sqrt(2)^(sqrt(2))",
         get_vars(Options::default()),
         None,
@@ -17,8 +17,10 @@ fn test_math()
         &mut 0,
         Options::default(),
         0,
-    );
-    let output = get_func(&input, Options::default()).unwrap();
+        false,
+        &mut (false, 0, 0),
+    )
+    .unwrap();
     let expected = vec![
         Num(Complex::with_val(512, Pi)),
         Str("+".to_string()),
@@ -66,7 +68,10 @@ fn test_math()
         Str(")".to_string()),
         Str(")".to_string()),
     ];
-    let out = do_math(output, Options::default()).unwrap().num().unwrap();
+    let out = do_math(output.0, Options::default())
+        .unwrap()
+        .num()
+        .unwrap();
     let answer = do_math(expected, Options::default())
         .unwrap()
         .num()

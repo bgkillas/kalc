@@ -1,7 +1,9 @@
 mod complex;
 mod fraction;
+mod functions;
 mod graph;
 mod help;
+mod load_vars;
 mod math;
 mod misc;
 mod options;
@@ -9,17 +11,22 @@ mod parse;
 mod print;
 #[cfg(test)]
 mod tests;
-mod vars;
 use crate::{
-    graph::{can_graph, graph},
+    complex::{
+        NumStr,
+        NumStr::{Num, Str},
+    },
+    graph::graph,
+    load_vars::{get_cli_vars, get_vars},
+    math::do_math,
     misc::{clear, clearln, convert, get_terminal_width, prompt, read_single_char, write},
     options::{arg_opts, commands, file_opts, set_commands},
-    parse::get_func,
+    parse::input_var,
     print::{print_answer, print_concurrent},
-    vars::{get_cli_vars, get_vars, input_var},
     AngleType::Radians,
 };
 use crossterm::terminal;
+use rug::Complex;
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -27,7 +34,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//make parse and vars same function
 #[derive(Clone)]
 pub struct Colors
 {
@@ -188,7 +194,7 @@ fn main()
             }
         }
     }
-    let mut vars: Vec<[String; 2]> = if options.allow_vars
+    let mut vars: Vec<(String, String, NumStr)> = if options.allow_vars
     {
         if args.is_empty()
         {
@@ -212,30 +218,149 @@ fn main()
             "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
             var("USERNAME").unwrap()
         );
-        if File::open(file_path).is_ok() && options.allow_vars
+        if options.allow_vars && File::open(file_path).is_ok()
         {
             let lines = BufReader::new(File::open(file_path).unwrap())
                 .lines()
                 .map(|l| l.unwrap())
                 .collect::<Vec<String>>();
             let mut split;
-            for i in lines
+            let args = args.concat();
+            'upper: for i in lines
             {
                 split = i.splitn(2, '=');
                 if split.clone().count() == 2
                 {
                     let l = split.next().unwrap().to_string();
+                    if !args.is_empty()
+                        && !args.contains(
+                            if l.contains('(')
+                            {
+                                l.split('(').next().unwrap()
+                            }
+                            else
+                            {
+                                &l
+                            },
+                        )
+                    {
+                        continue;
+                    }
                     if !l.starts_with('#')
                     {
                         let r = split.next().unwrap().to_string();
                         for (i, j) in vars.clone().iter().enumerate()
                         {
-                            if j[0].chars().count() <= l.chars().count()
+                            if j.0.chars().count() <= l.chars().count()
                             {
-                                vars.insert(i, [l, r]);
-                                break;
+                                vars.insert(
+                                    i,
+                                    (
+                                        l.clone(),
+                                        r.clone(),
+                                        if l.contains('(')
+                                        {
+                                            Str(String::new())
+                                        }
+                                        else
+                                        {
+                                            do_math(
+                                                input_var(
+                                                    &r,
+                                                    vars.clone(),
+                                                    None,
+                                                    &mut Vec::new(),
+                                                    &mut 0,
+                                                    options,
+                                                    0,
+                                                    false,
+                                                    &mut (false, 0, 0),
+                                                )
+                                                .unwrap()
+                                                .0,
+                                                options,
+                                            )
+                                            .unwrap_or(Num(Complex::new(options.prec)))
+                                        },
+                                    ),
+                                );
+                                let mut redef = vec![l];
+                                let mut k = 0;
+                                while k < redef.len()
+                                {
+                                    for (j, v) in vars.clone().iter().enumerate()
+                                    {
+                                        if v.1.contains(
+                                            &redef[k][0..=redef[k]
+                                                .chars()
+                                                .position(|a| a == '(')
+                                                .unwrap_or(redef[k].len() - 1)],
+                                        )
+                                        {
+                                            redef.push(v.0.clone());
+                                            vars[j] = (
+                                                v.0.clone(),
+                                                v.1.clone(),
+                                                if v.0.contains('(')
+                                                {
+                                                    Str(String::new())
+                                                }
+                                                else
+                                                {
+                                                    do_math(
+                                                        input_var(
+                                                            &v.1,
+                                                            vars.clone(),
+                                                            None,
+                                                            &mut Vec::new(),
+                                                            &mut 0,
+                                                            options,
+                                                            0,
+                                                            false,
+                                                            &mut (false, 0, 0),
+                                                        )
+                                                        .unwrap()
+                                                        .0,
+                                                        options,
+                                                    )
+                                                    .unwrap_or(Num(Complex::new(options.prec)))
+                                                },
+                                            );
+                                        }
+                                    }
+                                    k += 1;
+                                }
+                                continue 'upper;
                             }
                         }
+                        vars.push((
+                            l.clone(),
+                            r.clone(),
+                            if l.contains('(')
+                            {
+                                Str(String::new())
+                            }
+                            else
+                            {
+                                do_math(
+                                    input_var(
+                                        &r,
+                                        vars.clone(),
+                                        None,
+                                        &mut Vec::new(),
+                                        &mut 0,
+                                        options,
+                                        0,
+                                        false,
+                                        &mut (false, 0, 0),
+                                    )
+                                    .unwrap()
+                                    .0,
+                                    options,
+                                )
+                                .unwrap_or(Num(Complex::new(options.prec)))
+                            },
+                        ))
                     }
                 }
             }
@@ -283,7 +408,7 @@ fn main()
     'main: loop
     {
         let mut input = Vec::new();
-        let mut graphable = false;
+        let mut graphable;
         if !args.is_empty()
         {
             if options.debug
@@ -291,51 +416,46 @@ fn main()
                 watch = Some(Instant::now());
             }
             input = args.remove(0).chars().collect();
-            print_answer(
-                &input.iter().collect::<String>(),
-                match get_func(
-                    &input_var(
-                        &input.iter().map(convert).collect::<String>(),
-                        vars.clone(),
-                        None,
-                        &mut Vec::new(),
-                        &mut 0,
-                        options,
-                        0,
-                    ),
-                    options,
-                )
-                {
-                    Ok(f) => f,
-                    Err(s) =>
-                    {
-                        println!("{}: {}", input.iter().collect::<String>(), s);
-                        continue;
-                    }
-                },
+            let output;
+            (output, graphable) = match input_var(
+                &input.iter().map(convert).collect::<String>(),
+                vars.clone(),
+                None,
+                &mut Vec::new(),
+                &mut 0,
                 options,
-                &colors,
-            );
+                0,
+                false,
+                &mut (false, 0, 0),
+            )
+            {
+                Ok(f) => f,
+                Err(s) =>
+                {
+                    println!("{}: {}", input.iter().collect::<String>(), s);
+                    continue;
+                }
+            };
+            let noprint = !input
+                .iter()
+                .collect::<String>()
+                .replace("==", "")
+                .replace("!=", "")
+                .replace(">=", "")
+                .replace("<=", "")
+                .contains('=');
+            if !graphable && noprint
+            {
+                print_answer(output, options, &colors);
+            }
             if let Some(time) = watch
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            if !can_graph(
-                &input_var(
-                    &input.iter().collect::<String>(),
-                    vars.clone(),
-                    None,
-                    &mut Vec::new(),
-                    &mut 0,
-                    options,
-                    0,
-                ),
-                options.graph,
-            )
+            if !graphable && noprint
             {
                 println!();
             }
-            graphable = true;
         }
         else
         {
@@ -378,11 +498,25 @@ fn main()
                         {
                             end = input.len()
                         }
+                        let func;
+                        (func, graphable) = input_var(
+                            &input.iter().collect::<String>(),
+                            vars.clone(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
+                            options,
+                            0,
+                            false,
+                            &mut (false, 0, 0),
+                        )
+                        .unwrap_or_else(|_| (vec![], false));
                         if !options.real_time_output && !input.is_empty()
                         {
-                            frac = print_concurrent(
+                            (frac, graphable) = print_concurrent(
                                 &input,
                                 &last,
+                                Some((func, graphable)),
                                 &vars.clone(),
                                 options,
                                 &colors,
@@ -390,34 +524,31 @@ fn main()
                                 end,
                             );
                         }
-                        if !can_graph(
-                            &input_var(
-                                &input.iter().collect::<String>(),
-                                vars.clone(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                options,
-                                0,
-                            ),
-                            options.graph,
-                        )
-                        {
-                            println!();
-                        }
                         if !input.is_empty()
                         {
                             println!("{}", "\n".repeat(frac));
                         }
                         if c == '\x14'
                         {
-                            if input.is_empty()
+                            if !input.is_empty() && !graphable && !input.ends_with(&['='])
                             {
-                                print!("\x1b[A")
+                                println!();
                             }
                             print!("\x1b[G\x1b[J");
                             terminal::disable_raw_mode().unwrap();
                             std::process::exit(0);
+                        }
+                        if !graphable
+                            && !input
+                                .iter()
+                                .collect::<String>()
+                                .replace("==", "")
+                                .replace("!=", "")
+                                .replace("<=", "")
+                                .replace(">=", "")
+                                .contains('=')
+                        {
+                            println!();
                         }
                         break;
                     }
@@ -448,7 +579,10 @@ fn main()
                         }
                         frac = if options.real_time_output
                         {
-                            print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            print_concurrent(
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0
                         }
                         else
                         {
@@ -497,7 +631,10 @@ fn main()
                         }
                         frac = if options.real_time_output
                         {
-                            print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            print_concurrent(
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0
                         }
                         else
                         {
@@ -538,8 +675,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -555,8 +693,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -572,8 +711,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -591,8 +731,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -610,8 +751,9 @@ fn main()
                             if options.real_time_output
                             {
                                 frac = print_concurrent(
-                                    &input, &last, &vars, options, &colors, start, end,
-                                );
+                                    &input, &last, None, &vars, options, &colors, start, end,
+                                )
+                                .0;
                             }
                             else
                             {
@@ -626,8 +768,9 @@ fn main()
                         if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -652,8 +795,9 @@ fn main()
                         if options.real_time_output && !input.is_empty()
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -681,8 +825,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -717,8 +862,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -876,8 +1022,9 @@ fn main()
                         if options.real_time_output
                         {
                             frac = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end,
-                            );
+                                &input, &last, None, &vars, options, &colors, start, end,
+                            )
+                            .0;
                         }
                         else
                         {
@@ -940,125 +1087,281 @@ fn main()
                 file.as_mut().unwrap(),
                 unmod_lines.as_mut().unwrap(),
             );
-            if !input.ends_with(&['='])
-            {
-                if input
-                    .iter()
-                    .collect::<String>()
-                    .replace("==", "")
-                    .replace("!=", "")
-                    .replace(">=", "")
-                    .replace("<=", "")
-                    .contains('=')
+        }
+        if !input.ends_with(&['='])
+            && input
+                .iter()
+                .collect::<String>()
+                .replace("==", "")
+                .replace("!=", "")
+                .replace(">=", "")
+                .replace("<=", "")
+                .contains('=')
+        {
+            let n = input.iter().collect::<String>();
+            let mut split = n.splitn(2, '=');
+            let s = split.next().unwrap().replace(' ', "");
+            let l = s;
+            let r = split.next().unwrap();
+            if l.is_empty()
+                || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
                 {
-                    let n = input.iter().collect::<String>();
-                    let mut split = n.splitn(2, '=');
-                    let s = split.next().unwrap().replace(' ', "");
-                    let l = s;
-                    let r = split.next().unwrap();
-                    if l.is_empty()
-                        || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
-                        {
-                            Err(s) =>
-                            {
-                                if !s.is_empty()
-                                {
-                                    if s == " "
-                                    {
-                                        print!(
-                                            "\x1b[G\x1b[Kempty input\n\x1b[G\x1b[K{}{}",
-                                            prompt(options, &colors),
-                                            if options.color { "\x1b[0m" } else { "" },
-                                        );
-                                        stdout.flush().unwrap()
-                                    }
-                                    else
-                                    {
-                                        print!(
-                                            "\x1b[G\x1b[K{}\n\x1b[G\x1b[K{}{}",
-                                            s,
-                                            prompt(options, &colors),
-                                            if options.color { "\x1b[0m" } else { "" },
-                                        );
-                                        stdout.flush().unwrap()
-                                    }
-                                }
-                                true
-                            }
-                            _ => false,
-                        }
+                    Err(s) =>
                     {
-                        continue;
-                    }
-                    if l.contains('(')
-                    {
-                        let s = l.split('(').next().iter().copied().collect::<String>() + "(";
-                        let recur_test = r.split(&s);
-                        let count = recur_test.clone().count();
-                        for (i, s) in recur_test.enumerate()
+                        if !s.is_empty()
                         {
-                            if i + 1 != count
-                                && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                            if s == " "
                             {
-                                println!("recursive functions not supported");
-                                continue 'main;
-                            }
-                        }
-                    }
-                    for (i, v) in vars.iter().enumerate()
-                    {
-                        if v[0].split('(').next() == l.split('(').next()
-                            && v[0].contains('(') == l.contains('(')
-                            && v[0].chars().filter(|c| c == &',').count()
-                                == l.chars().filter(|c| c == &',').count()
-                        {
-                            if r == "null"
-                            {
-                                vars.remove(i);
+                                print!(
+                                    "\x1b[G\x1b[Kempty input\n\x1b[G\x1b[K{}{}",
+                                    prompt(options, &colors),
+                                    if options.color { "\x1b[0m" } else { "" },
+                                );
+                                stdout.flush().unwrap()
                             }
                             else
                             {
-                                vars[i] = [l.to_string(), r.to_string()];
+                                print!(
+                                    "\x1b[G\x1b[K{}\n\x1b[G\x1b[K{}{}",
+                                    s,
+                                    prompt(options, &colors),
+                                    if options.color { "\x1b[0m" } else { "" },
+                                );
+                                stdout.flush().unwrap()
                             }
-                            continue 'main;
                         }
+                        true
                     }
-                    for (i, j) in vars.iter().enumerate()
-                    {
-                        if j[0].chars().count() <= l.chars().count()
-                        {
-                            vars.insert(i, [l.to_string(), r.to_string()]);
-                            break;
-                        }
-                    }
-                    if vars.is_empty()
-                    {
-                        vars.push([l.to_string(), r.to_string()]);
-                    }
+                    _ => false,
                 }
-                else
+            {
+                continue;
+            }
+            if l.contains('(')
+            {
+                let s = l.split('(').next().iter().copied().collect::<String>() + "(";
+                let recur_test = r.split(&s);
+                let count = recur_test.clone().count();
+                for (i, s) in recur_test.enumerate()
                 {
-                    graphable = true;
+                    if i + 1 != count
+                        && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                    {
+                        println!("recursive functions not supported");
+                        continue 'main;
+                    }
                 }
             }
+            for (i, v) in vars.iter().enumerate()
+            {
+                if v.0.split('(').next() == l.split('(').next()
+                    && v.0.contains('(') == l.contains('(')
+                    && v.0.chars().filter(|c| c == &',').count()
+                        == l.chars().filter(|c| c == &',').count()
+                {
+                    if r == "null"
+                    {
+                        vars.remove(i);
+                    }
+                    else
+                    {
+                        vars[i] = (
+                            l.to_string(),
+                            r.to_string(),
+                            if l.contains('(')
+                            {
+                                Str(String::new())
+                            }
+                            else
+                            {
+                                do_math(
+                                    input_var(
+                                        r,
+                                        vars.clone(),
+                                        None,
+                                        &mut Vec::new(),
+                                        &mut 0,
+                                        options,
+                                        0,
+                                        false,
+                                        &mut (false, 0, 0),
+                                    )
+                                    .unwrap()
+                                    .0,
+                                    options,
+                                )
+                                .unwrap_or(Num(Complex::new(options.prec)))
+                            },
+                        );
+                        let mut redef = vec![l];
+                        let mut k = 0;
+                        while k < redef.len()
+                        {
+                            for (j, v) in vars.clone().iter().enumerate()
+                            {
+                                if v.1.contains(
+                                    &redef[k][0..=redef[k]
+                                        .chars()
+                                        .position(|a| a == '(')
+                                        .unwrap_or(redef[k].len() - 1)],
+                                )
+                                {
+                                    redef.push(v.0.clone());
+                                    vars[j] = (
+                                        v.0.clone(),
+                                        v.1.clone(),
+                                        if v.0.contains('(')
+                                        {
+                                            Str(String::new())
+                                        }
+                                        else
+                                        {
+                                            do_math(
+                                                input_var(
+                                                    &v.1,
+                                                    vars.clone(),
+                                                    None,
+                                                    &mut Vec::new(),
+                                                    &mut 0,
+                                                    options,
+                                                    0,
+                                                    false,
+                                                    &mut (false, 0, 0),
+                                                )
+                                                .unwrap()
+                                                .0,
+                                                options,
+                                            )
+                                            .unwrap_or(Num(Complex::new(options.prec)))
+                                        },
+                                    );
+                                }
+                            }
+                            k += 1;
+                        }
+                    }
+                    continue 'main;
+                }
+            }
+            for (i, j) in vars.iter().enumerate()
+            {
+                if j.0.chars().count() <= l.chars().count()
+                {
+                    vars.insert(
+                        i,
+                        (
+                            l.to_string(),
+                            r.to_string(),
+                            if l.contains('(')
+                            {
+                                Str(String::new())
+                            }
+                            else
+                            {
+                                do_math(
+                                    input_var(
+                                        r,
+                                        vars.clone(),
+                                        None,
+                                        &mut Vec::new(),
+                                        &mut 0,
+                                        options,
+                                        0,
+                                        false,
+                                        &mut (false, 0, 0),
+                                    )
+                                    .unwrap()
+                                    .0,
+                                    options,
+                                )
+                                .unwrap_or(Num(Complex::new(options.prec)))
+                            },
+                        ),
+                    );
+                    let mut redef = vec![l];
+                    let mut k = 0;
+                    while k < redef.len()
+                    {
+                        for (j, v) in vars.clone().iter().enumerate()
+                        {
+                            if v.1.contains(
+                                &redef[k][0..=redef[k]
+                                    .chars()
+                                    .position(|a| a == '(')
+                                    .unwrap_or(redef[k].len() - 1)],
+                            )
+                            {
+                                redef.push(v.0.clone());
+                                vars[j] = (
+                                    v.0.clone(),
+                                    v.1.clone(),
+                                    if v.0.contains('(')
+                                    {
+                                        Str(String::new())
+                                    }
+                                    else
+                                    {
+                                        do_math(
+                                            input_var(
+                                                &v.1,
+                                                vars.clone(),
+                                                None,
+                                                &mut Vec::new(),
+                                                &mut 0,
+                                                options,
+                                                0,
+                                                false,
+                                                &mut (false, 0, 0),
+                                            )
+                                            .unwrap()
+                                            .0,
+                                            options,
+                                        )
+                                        .unwrap_or(Num(Complex::new(options.prec)))
+                                    },
+                                );
+                            }
+                        }
+                        k += 1;
+                    }
+                    continue 'main;
+                }
+            }
+            if vars.is_empty()
+            {
+                vars.push((
+                    l.to_string(),
+                    r.to_string(),
+                    if l.contains('(')
+                    {
+                        Str(String::new())
+                    }
+                    else
+                    {
+                        do_math(
+                            input_var(
+                                r,
+                                vars.clone(),
+                                None,
+                                &mut Vec::new(),
+                                &mut 0,
+                                options,
+                                0,
+                                false,
+                                &mut (false, 0, 0),
+                            )
+                            .unwrap()
+                            .0,
+                            options,
+                        )
+                        .unwrap_or(Num(Complex::new(options.prec)))
+                    },
+                ));
+            }
         }
-        if graphable
-            && !input.iter().collect::<String>().starts_with("history")
-            && (input.contains(&'#')
-                || can_graph(
-                    &input_var(
-                        &input.iter().collect::<String>(),
-                        vars.clone(),
-                        None,
-                        &mut Vec::new(),
-                        &mut 0,
-                        options,
-                        0,
-                    ),
-                    options.graph,
-                ))
+        if options.graph && graphable
         {
-            let mut inputs: Vec<String> = input
+            let inputs: Vec<String> = input
                 .iter()
                 .collect::<String>()
                 .split('#')
@@ -1068,18 +1371,29 @@ fn main()
             let mut funcs = Vec::new();
             if inputs.len() < 7
             {
-                for i in inputs.iter_mut()
+                for i in &inputs
                 {
                     if i.is_empty()
                     {
                         continue;
                     }
-                    *i = input_var(i, vars.clone(), None, &mut Vec::new(), &mut 0, options, 0);
-                    funcs.push(match get_func(i, options)
-                    {
-                        Ok(f) => f,
-                        _ => continue 'main,
-                    });
+                    funcs.push(
+                        match input_var(
+                            i,
+                            vars.clone(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
+                            options,
+                            0,
+                            false,
+                            &mut (false, 0, 0),
+                        )
+                        {
+                            Ok(f) => f.0,
+                            _ => continue 'main,
+                        },
+                    );
                 }
                 handles.push(graph(inputs, unmod, funcs, options, watch, colors.clone()));
             }

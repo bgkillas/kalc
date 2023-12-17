@@ -5,23 +5,17 @@ use crate::{
     },
     fraction::fraction,
     get_terminal_width,
-    graph::can_graph,
     math::do_math,
     misc::{clear, get_terminal_height, handle_err, no_col, prompt, to_output},
     options::equal_to,
-    parse::get_func,
-    vars::input_var,
+    parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Colors, Options,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
-pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options, colors: &Colors)
+pub fn print_answer(func: Vec<NumStr>, options: Options, colors: &Colors)
 {
-    if can_graph(input, options.graph)
-    {
-        return;
-    }
     let num = match do_math(func, options)
     {
         Ok(num) => num,
@@ -147,15 +141,17 @@ pub fn print_answer(input: &str, func: Vec<NumStr>, options: Options, colors: &C
         print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
     }
 }
+#[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
-    vars: &[[String; 2]],
+    func: Option<(Vec<NumStr>, bool)>,
+    vars: &[(String, String, NumStr)],
     options: Options,
     colors: &Colors,
     start: usize,
     end: usize,
-) -> usize
+) -> (usize, bool)
 {
     {
         let input = unmodified_input.iter().collect::<String>();
@@ -179,12 +175,12 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                wrap
+                (wrap, false)
             }
             else
             {
                 clear(unmodified_input, start, end, options, colors);
-                0
+                (0, false)
             };
         }
         else if input
@@ -195,24 +191,41 @@ pub fn print_concurrent(
             .contains('=')
         {
             clear(unmodified_input, start, end, options, colors);
-            return 0;
+            return (0, false);
         }
     }
-    let input = &input_var(
-        &unmodified_input
-            .iter()
-            .collect::<String>()
-            .replace('_', &format!("({})", last.iter().collect::<String>())),
-        vars.to_vec(),
-        None,
-        &mut Vec::new(),
-        &mut 0,
-        options,
-        0,
-    );
-    if can_graph(input, options.graph)
+    let input = if let Some(s) = func
     {
-        return if input.contains('#')
+        s
+    }
+    else
+    {
+        match input_var(
+            &unmodified_input
+                .iter()
+                .collect::<String>()
+                .replace('_', &format!("({})", last.iter().collect::<String>())),
+            vars.to_vec(),
+            None,
+            &mut Vec::new(),
+            &mut 0,
+            options,
+            0,
+            false,
+            &mut (false, 0, 0),
+        )
+        {
+            Ok(f) => f,
+            Err(s) =>
+            {
+                handle_err(s, unmodified_input, options, colors, start, end);
+                return (0, false);
+            }
+        }
+    };
+    if input.1
+    {
+        return if unmodified_input.contains(&'#')
         {
             let mut out = String::new();
             {
@@ -226,7 +239,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    return 1;
+                    return (1, true);
                 }
                 for input in split
                 {
@@ -265,7 +278,7 @@ pub fn print_concurrent(
                 to_output(&unmodified_input[start..end], options.color, colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
-            wrap
+            (wrap, true)
         }
         else
         {
@@ -286,27 +299,16 @@ pub fn print_concurrent(
                 to_output(&unmodified_input[start..end], options.color, colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
-            wrap
+            (wrap, true)
         };
     }
-    let num = match do_math(
-        match get_func(input, options)
-        {
-            Ok(f) => f,
-            Err(s) =>
-            {
-                handle_err(s, unmodified_input, options, colors, start, end);
-                return 0;
-            }
-        },
-        options,
-    )
+    let num = match do_math(input.0, options)
     {
         Ok(n) => n,
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, colors, start, end);
-            return 0;
+            return (0, false);
         }
     };
     let mut frac = 0;
@@ -840,7 +842,7 @@ pub fn print_concurrent(
     {
         handle_err("str err", unmodified_input, options, colors, start, end);
     }
-    frac
+    (frac, false)
 }
 pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, String)
 {

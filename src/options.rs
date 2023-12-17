@@ -1,11 +1,14 @@
 use crate::{
-    complex::NumStr::{Matrix, Num, Str, Vector},
+    complex::{
+        NumStr,
+        NumStr::{Matrix, Num, Str, Vector},
+    },
     help::help,
+    load_vars::get_vars,
     math::do_math,
     misc::{prompt, to_output},
-    parse::get_func,
+    parse::input_var,
     print::get_output,
-    vars::{get_vars, input_var},
     AngleType::{Degrees, Gradians, Radians},
     Colors, Options,
 };
@@ -60,7 +63,29 @@ pub fn arg_opts(
                     options.prec = match args[i + 1].parse::<u32>()
                     {
                         Ok(x) if x != 0 => x,
-                        _ => return Err("invalid prec"),
+                        _ =>
+                        {
+                            let a = match input_var(
+                                &args[i + 1],
+                                Vec::new(),
+                                None,
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                0,
+                                false,
+                                &mut (false, 0, 0),
+                            )
+                            {
+                                Ok(n) => n.0,
+                                _ => return Err("invalid prec"),
+                            };
+                            match do_math(a, *options)
+                            {
+                                Ok(Num(n)) => n.real().to_f64() as u32,
+                                _ => return Err("invalid prec"),
+                            }
+                        }
                     };
                     args.remove(i);
                 }
@@ -79,8 +104,33 @@ pub fn arg_opts(
                     }
                     else
                     {
-                        options.decimal_places =
-                            args[i + 1].parse::<usize>().expect("invalid deci");
+                        options.decimal_places = match args[i + 1].parse::<usize>()
+                        {
+                            Ok(x) if x != 0 => x,
+                            _ =>
+                            {
+                                let a = match input_var(
+                                    &args[i + 1],
+                                    Vec::new(),
+                                    None,
+                                    &mut Vec::new(),
+                                    &mut 0,
+                                    *options,
+                                    0,
+                                    false,
+                                    &mut (false, 0, 0),
+                                )
+                                {
+                                    Ok(n) => n.0,
+                                    _ => return Err("invalid deci"),
+                                };
+                                match do_math(a, *options)
+                                {
+                                    Ok(Num(n)) => n.real().to_f64() as usize,
+                                    _ => return Err("invalid deci"),
+                                }
+                            }
+                        };
                     }
                     args.remove(i);
                 }
@@ -97,8 +147,7 @@ pub fn arg_opts(
             {
                 if args.len() > 1
                 {
-                    colors.text =
-                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    colors.text = "\x1b[".to_owned() + &args[i + 1];
                     args.remove(i);
                 }
             }
@@ -106,8 +155,7 @@ pub fn arg_opts(
             {
                 if args.len() > 1
                 {
-                    colors.prompt =
-                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    colors.prompt = "\x1b[".to_owned() + &args[i + 1];
                     args.remove(i);
                 }
             }
@@ -115,8 +163,7 @@ pub fn arg_opts(
             {
                 if args.len() > 1
                 {
-                    colors.imag =
-                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    colors.imag = "\x1b[".to_owned() + &args[i + 1];
                     args.remove(i);
                 }
             }
@@ -124,8 +171,7 @@ pub fn arg_opts(
             {
                 if args.len() > 1
                 {
-                    colors.sci =
-                        "\x1b[".to_owned() + &args[i + 1].parse::<String>().expect("invalid col");
+                    colors.sci = "\x1b[".to_owned() + &args[i + 1];
                     args.remove(i);
                 }
             }
@@ -668,7 +714,7 @@ pub fn file_opts(
 pub fn equal_to(
     options: Options,
     colors: &Colors,
-    vars: &[[String; 2]],
+    vars: &[(String, String, NumStr)],
     l: &str,
     last: &str,
 ) -> String
@@ -771,19 +817,18 @@ pub fn equal_to(
         _ =>
         {
             let mut out = String::new();
-            for i in match get_func(
-                &input_var(
+            for i in match
+                input_var(
                     &l.replace('_', &format!("({})", last)),
                     vars.to_vec(),
                     None,
                     &mut Vec::new(),
                     &mut 0,
-                    options,0
-                ),
-                options,
-            )
+                    options, 0, false,
+                    &mut (false,0,0)
+                )
             {
-                Ok(n) => n,
+                Ok(n) => n.0,
                 _ => return "".to_string(),
             }
             {
@@ -846,8 +891,8 @@ pub fn equal_to(
 pub fn set_commands(
     options: &mut Options,
     colors: &mut Colors,
-    vars: &mut [[String; 2]],
-    old: &mut Vec<[String; 2]>,
+    vars: &mut [(String, String, NumStr)],
+    old: &mut Vec<(String, String, NumStr)>,
     l: &str,
     r: &str,
 ) -> Result<(), &'static str>
@@ -939,10 +984,18 @@ pub fn set_commands(
         "decimal" | "deci" | "decimals" =>
         {
             match do_math(
-                get_func(
-                    &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                input_var(
+                    r,
+                    vars.to_vec(),
+                    None,
+                    &mut Vec::new(),
+                    &mut 0,
                     *options,
-                )?,
+                    0,
+                    false,
+                    &mut (false, 0, 0),
+                )?
+                .0,
                 *options,
             )?
             .num()?
@@ -956,10 +1009,18 @@ pub fn set_commands(
             };
         }
         "prec" | "precision" => match do_math(
-            get_func(
-                &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+            input_var(
+                r,
+                vars.to_vec(),
+                None,
+                &mut Vec::new(),
+                &mut 0,
                 *options,
-            )?,
+                0,
+                false,
+                &mut (false, 0, 0),
+            )?
+            .0,
             *options,
         )?
         .num()?
@@ -969,16 +1030,16 @@ pub fn set_commands(
             n if n != 0 =>
             {
                 options.prec = n;
-                if options.allow_vars
+                if !vars.is_empty()
                 {
                     let v = get_vars(*options);
-                    for i in old.clone()
+                    for i in old.clone().iter().zip(&v)
                     {
-                        for (j, var) in vars.iter_mut().enumerate()
+                        for var in vars.iter_mut()
                         {
-                            if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
+                            if i.0 .1 == var.1 && i.0 .0 == var.0
                             {
-                                *var = v[j].clone();
+                                *var = i.1.clone();
                             }
                         }
                     }
@@ -993,36 +1054,36 @@ pub fn set_commands(
             {
                 let (min, max) = (
                     do_math(
-                        get_func(
-                            &input_var(
-                                r.split(',').next().unwrap(),
-                                vars.to_vec(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                *options,
-                                0,
-                            ),
+                        input_var(
+                            r.split(',').next().unwrap(),
+                            vars.to_vec(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
                             *options,
-                        )?,
+                            0,
+                            false,
+                            &mut (false, 0, 0),
+                        )?
+                        .0,
                         *options,
                     )?
                     .num()?
                     .real()
                     .to_f64(),
                     do_math(
-                        get_func(
-                            &input_var(
-                                r.split(',').last().unwrap(),
-                                vars.to_vec(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                *options,
-                                0,
-                            ),
+                        input_var(
+                            r.split(',').last().unwrap(),
+                            vars.to_vec(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
                             *options,
-                        )?,
+                            0,
+                            false,
+                            &mut (false, 0, 0),
+                        )?
+                        .0,
                         *options,
                     )?
                     .num()?
@@ -1041,10 +1102,18 @@ pub fn set_commands(
             else
             {
                 let n = do_math(
-                    get_func(
-                        &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                    input_var(
+                        r,
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1065,36 +1134,36 @@ pub fn set_commands(
             if r.contains(',')
             {
                 options.xr.0 = do_math(
-                    get_func(
-                        &input_var(
-                            r.split(',').next().unwrap(),
-                            vars.to_vec(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            *options,
-                            0,
-                        ),
+                    input_var(
+                        r.split(',').next().unwrap(),
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
                 .real()
                 .to_f64();
                 options.xr.1 = do_math(
-                    get_func(
-                        &input_var(
-                            r.split(',').last().unwrap(),
-                            vars.to_vec(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            *options,
-                            0,
-                        ),
+                    input_var(
+                        r.split(',').last().unwrap(),
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1104,10 +1173,18 @@ pub fn set_commands(
             else
             {
                 let n = do_math(
-                    get_func(
-                        &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                    input_var(
+                        r,
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1121,36 +1198,36 @@ pub fn set_commands(
             if r.contains(',')
             {
                 options.yr.0 = do_math(
-                    get_func(
-                        &input_var(
-                            r.split(',').next().unwrap(),
-                            vars.to_vec(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            *options,
-                            0,
-                        ),
+                    input_var(
+                        r.split(',').next().unwrap(),
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
                 .real()
                 .to_f64();
                 options.yr.1 = do_math(
-                    get_func(
-                        &input_var(
-                            r.split(',').last().unwrap(),
-                            vars.to_vec(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            *options,
-                            0,
-                        ),
+                    input_var(
+                        r.split(',').last().unwrap(),
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1160,10 +1237,18 @@ pub fn set_commands(
             else
             {
                 let n = do_math(
-                    get_func(
-                        &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                    input_var(
+                        r,
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1177,36 +1262,36 @@ pub fn set_commands(
             if r.contains(',')
             {
                 options.zr.0 = do_math(
-                    get_func(
-                        &input_var(
-                            r.split(',').next().unwrap(),
-                            vars.to_vec(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            *options,
-                            0,
-                        ),
+                    input_var(
+                        r.split(',').next().unwrap(),
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
                 .real()
                 .to_f64();
                 options.zr.1 = do_math(
-                    get_func(
-                        &input_var(
-                            r.split(',').last().unwrap(),
-                            vars.to_vec(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            *options,
-                            0,
-                        ),
+                    input_var(
+                        r.split(',').last().unwrap(),
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1216,10 +1301,18 @@ pub fn set_commands(
             else
             {
                 let n = do_math(
-                    get_func(
-                        &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                    input_var(
+                        r,
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1239,10 +1332,18 @@ pub fn set_commands(
         "2d" =>
         {
             options.samples_2d = do_math(
-                get_func(
-                    &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                input_var(
+                    r,
+                    vars.to_vec(),
+                    None,
+                    &mut Vec::new(),
+                    &mut 0,
                     *options,
-                )?,
+                    0,
+                    false,
+                    &mut (false, 0, 0),
+                )?
+                .0,
                 *options,
             )?
             .num()?
@@ -1255,36 +1356,36 @@ pub fn set_commands(
             {
                 options.samples_3d = (
                     do_math(
-                        get_func(
-                            &input_var(
-                                r.split(',').next().unwrap(),
-                                vars.to_vec(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                *options,
-                                0,
-                            ),
+                        input_var(
+                            r.split(',').next().unwrap(),
+                            vars.to_vec(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
                             *options,
-                        )?,
+                            0,
+                            false,
+                            &mut (false, 0, 0),
+                        )?
+                        .0,
                         *options,
                     )?
                     .num()?
                     .real()
                     .to_f64() as usize,
                     do_math(
-                        get_func(
-                            &input_var(
-                                r.split(',').last().unwrap(),
-                                vars.to_vec(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                *options,
-                                0,
-                            ),
+                        input_var(
+                            r.split(',').last().unwrap(),
+                            vars.to_vec(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
                             *options,
-                        )?,
+                            0,
+                            false,
+                            &mut (false, 0, 0),
+                        )?
+                        .0,
                         *options,
                     )?
                     .num()?
@@ -1295,10 +1396,18 @@ pub fn set_commands(
             else
             {
                 let n = do_math(
-                    get_func(
-                        &input_var(r, vars.to_vec(), None, &mut Vec::new(), &mut 0, *options, 0),
+                    input_var(
+                        r,
+                        vars.to_vec(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
                         *options,
-                    )?,
+                        0,
+                        false,
+                        &mut (false, 0, 0),
+                    )?
+                    .0,
                     *options,
                 )?
                 .num()?
@@ -1316,8 +1425,8 @@ pub fn commands(
     options: &mut Options,
     colors: &Colors,
     watch: &mut Option<Instant>,
-    vars: &mut [[String; 2]],
-    old: &mut Vec<[String; 2]>,
+    vars: &mut [(String, String, NumStr)],
+    old: &mut Vec<(String, String, NumStr)>,
     lines: &[String],
     input: &[char],
     stdout: &mut Stdout,
@@ -1374,16 +1483,16 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             options.small_e = !options.small_e;
-            if options.allow_vars
+            if !vars.is_empty()
             {
                 let v = get_vars(*options);
-                for i in old.clone()
+                for i in old.clone().iter().zip(&v)
                 {
-                    for (j, var) in vars.iter_mut().enumerate()
+                    for var in vars.iter_mut()
                     {
-                        if v.len() > j && i[0] == v[j][0] && i[1] == var[1]
+                        if i.0 .1 == var.1 && i.0 .0 == var.0
                         {
-                            *var = v[j].clone();
+                            *var = i.1.clone();
                         }
                     }
                 }
@@ -1470,38 +1579,22 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                if v[0].contains('(')
+                if v.0.contains('(')
                 {
                     print!(
                         "{}={}\n\x1b[G",
-                        v[0],
-                        to_output(&v[1].chars().collect::<Vec<char>>(), options.color, colors)
+                        v.0,
+                        to_output(&v.1.chars().collect::<Vec<char>>(), options.color, colors)
                     );
                 }
                 else
                 {
-                    match &do_math(
-                        get_func(
-                            &input_var(
-                                &v[1],
-                                vars.to_vec(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                *options,
-                                0,
-                            ),
-                            *options,
-                        )
-                        .unwrap(),
-                        *options,
-                    )
-                    .unwrap()
+                    match &v.2
                     {
                         Num(n) =>
                         {
                             let n = get_output(*options, colors, n);
-                            print!("{}={}{}\n\x1b[G", v[0], n.0, n.1)
+                            print!("{}={}{}\n\x1b[G", v.0, n.0, n.1)
                         }
                         Vector(m) =>
                         {
@@ -1513,7 +1606,7 @@ pub fn commands(
                                 st.push_str(&n.1);
                                 st.push(',');
                             }
-                            print!("{}={{{}}}\n\x1b[G", v[0], st.trim_end_matches(','))
+                            print!("{}={{{}}}\n\x1b[G", v.0, st.trim_end_matches(','))
                         }
                         Matrix(m) =>
                         {
@@ -1532,7 +1625,7 @@ pub fn commands(
                                 st.push('}');
                                 st.push(',');
                             }
-                            print!("{}={{{}}}\n\x1b[G", v[0], st.trim_end_matches(','))
+                            print!("{}={{{}}}\n\x1b[G", v.0, st.trim_end_matches(','))
                         }
                         _ => continue,
                     }
@@ -1545,17 +1638,17 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                if v[0].contains('(')
+                if v.0.contains('(')
                 {
                     print!(
                         "{}={}\n\x1b[G",
-                        v[0],
-                        to_output(&v[1].chars().collect::<Vec<char>>(), options.color, colors)
+                        v.0,
+                        to_output(&v.1.chars().collect::<Vec<char>>(), options.color, colors)
                     );
                 }
                 else
                 {
-                    print!("{}={}\n\x1b[G", v[0], v[1]);
+                    print!("{}={}\n\x1b[G", v.0, v.1);
                 }
             }
             stdout.flush().unwrap();

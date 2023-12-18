@@ -199,18 +199,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
         let e = Float::with_val(options.prec, 1).exp();
         vars.push(("e".to_string(), "e".to_string(), Num(e.into())))
     }
-    vars.iter()
-        .map(|a| {
-            if options.small_e
-            {
-                a.clone()
-            }
-            else
-            {
-                (a.0.clone(), a.1.replace('e', "E"), a.2.clone())
-            }
-        })
-        .collect()
+    vars
 }
 pub fn get_vars(options: Options) -> Vec<(String, String, NumStr)>
 {
@@ -319,16 +308,4 @@ pub fn get_vars(options: Options) -> Vec<(String, String, NumStr)>
         ("π".to_string(), "pi".to_string(), Num(pi.into())),
         ("τ".to_string(), "tau".to_string(), Num(tau.into())),
     ]
-    .iter()
-    .map(|a| {
-        if options.small_e
-        {
-            a.clone()
-        }
-        else
-        {
-            (a.0.clone(), a.1.replace('e', "E"), a.2.clone())
-        }
-    })
-    .collect()
 }

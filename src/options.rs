@@ -1426,7 +1426,6 @@ pub fn commands(
     colors: &Colors,
     watch: &mut Option<Instant>,
     vars: &mut [(String, String, NumStr)],
-    old: &mut Vec<(String, String, NumStr)>,
     lines: &[String],
     input: &[char],
     stdout: &mut Stdout,
@@ -1483,21 +1482,6 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             options.small_e = !options.small_e;
-            if !vars.is_empty()
-            {
-                let v = get_vars(*options);
-                for i in old.clone().iter().zip(&v)
-                {
-                    for var in vars.iter_mut()
-                    {
-                        if i.0 .1 == var.1 && i.0 .0 == var.0
-                        {
-                            *var = i.1.clone();
-                        }
-                    }
-                }
-                *old = v;
-            }
         }
         "sci" | "scientific" =>
         {

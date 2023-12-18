@@ -1064,7 +1064,6 @@ fn main()
                 &colors,
                 &mut watch,
                 &mut vars,
-                &mut old,
                 &lines,
                 &input,
                 &mut stdout,

@@ -35,7 +35,7 @@ pub fn input_var(
     let mut pow = String::new();
     let mut exp = (String::new(), 0);
     let mut subfact = (false, 0);
-    let chars = input
+    let mut chars = input
         .replace('[', "(car{")
         .replace(']', "})")
         .chars()
@@ -43,6 +43,30 @@ pub fn input_var(
     let mut output: Vec<NumStr> = Vec::new();
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
+    let mut i = 0;
+    while i < chars.len()
+    {
+        if chars[i].is_whitespace()
+        {
+            if chars.len() - 1 == i
+            {
+                chars.remove(i);
+            }
+            else if chars[i - 1].is_alphanumeric() && chars[i + 1].is_alphanumeric()
+            {
+                chars[i] = '*'
+            }
+            else if chars[i - 1] == '+' && chars[i + 1] == '-'
+            {
+                chars.drain(i - 1..=i);
+            }
+            else
+            {
+                chars.remove(i);
+            }
+        }
+        i += 1;
+    }
     for c in &chars
     {
         match c
@@ -73,21 +97,12 @@ pub fn input_var(
             {}
         }
     }
-    let mut input = String::new();
-    while let Some(top) = stack_start.pop()
+    chars.extend(stack_end);
+    for i in stack_start
     {
-        input.push(top);
+        chars.insert(0, i);
     }
-    for i in &chars
-    {
-        input.push(*i)
-    }
-    while let Some(top) = stack_end.pop()
-    {
-        input.push(top);
-    }
-    let chars = input.chars().collect::<Vec<char>>();
-    let mut i = 0;
+    i = 0;
     let mut sum = (0, String::new());
     let functions = functions();
     'main: while i < chars.len()
@@ -823,6 +838,7 @@ pub fn input_var(
                             }
                         }
                     }
+                    place_multiplier(&mut output, sumrec);
                     output.push(Str(word.clone()));
                     output.push(Str("(".to_string()));
                     output.push(Str(sum.1));

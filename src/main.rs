@@ -34,6 +34,12 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
+//changing prec updates custom vars
+//print long answers on enter
+//add optimzation, see if last var output is the same as current
+//lambert w function
+//have var.1 be Vec<NumStr>
+//f(x,t)=((1-tcot(t))^2+t^2)/(x+tcsc(t)e^(-tcot(t)))
 #[derive(Clone)]
 pub struct Colors
 {

@@ -36,11 +36,9 @@ pub fn graph(
         let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
-        if !input
-            .iter()
-            .any(|i| i.replace("exp", "").replace("max", "").contains('x'))
+        if !func.iter().flatten().any(|i| i.str_is("x"))
         {
-            if input.iter().any(|i| i.replace("any", "").contains('y'))
+            if func.iter().flatten().any(|i| i.str_is("y"))
             {
                 let mut re = vec![Vec::new(); 6];
                 let mut im = vec![Vec::new(); 6];
@@ -1214,7 +1212,7 @@ pub fn graph(
                 }
             }
         }
-        else if input.iter().any(|i| i.replace("any", "").contains('y'))
+        else if func.iter().flatten().any(|i| i.str_is("y"))
         {
             let mut re = vec![Vec::new(); 6];
             let mut im = vec![Vec::new(); 6];

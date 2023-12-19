@@ -13,6 +13,7 @@ use crate::{
     Colors, Options,
 };
 use crossterm::terminal;
+use rug::Complex;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
@@ -1033,15 +1034,62 @@ pub fn set_commands(
                 if !vars.is_empty()
                 {
                     let v = get_vars(*options);
+                    let mut redef = Vec::new();
                     for i in old.clone().iter().zip(&v)
                     {
                         for var in vars.iter_mut()
                         {
                             if i.0 .1 == var.1 && i.0 .0 == var.0
                             {
+                                redef.push(var.0.clone());
                                 *var = i.1.clone();
                             }
                         }
+                    }
+                    let mut k = 0;
+                    while k < redef.len()
+                    {
+                        for j in 0..vars.len()
+                        {
+                            if vars[j].1.contains(
+                                &redef[k][0..=redef[k]
+                                    .chars()
+                                    .position(|a| a == '(')
+                                    .unwrap_or(redef[k].len() - 1)],
+                            )
+                            {
+                                redef.push(vars[j].0.clone());
+                                vars[j] = (
+                                    vars[j].0.clone(),
+                                    vars[j].1.clone(),
+                                    if vars[j].0.contains('(')
+                                    {
+                                        Str(String::new())
+                                    }
+                                    else
+                                    {
+                                        do_math(
+                                            input_var(
+                                                &vars[j].1,
+                                                vars.to_vec(),
+                                                None,
+                                                &mut Vec::new(),
+                                                &mut 0,
+                                                *options,
+                                                0,
+                                                false,
+                                                &mut (false, 0, 0),
+                                            )
+                                            .unwrap()
+                                            .0,
+                                            *options,
+                                        )
+                                        .unwrap_or(Num(Complex::new(options.prec)))
+                                    },
+                                );
+                            }
+                        }
+                        k += 1;
                     }
                     *old = v;
                 }

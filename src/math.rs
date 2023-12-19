@@ -972,6 +972,13 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 return Err("no args");
                             }
                         }
+                        "split" => Matrix(
+                            a.iter()
+                                .map(|a| {
+                                    vec![(*a.real()).clone().into(), (*a.imag()).clone().into()]
+                                })
+                                .collect::<Vec<Vec<Complex>>>(),
+                        ),
                         "factors" | "factor" =>
                         {
                             let mut mat = Vec::new();
@@ -1053,10 +1060,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         "split" =>
                         {
                             let a = function[i + 1].num()?;
-                            Vector(vec![
-                                Complex::with_val(options.prec, a.real()),
-                                Complex::with_val(options.prec, a.imag()),
-                            ])
+                            Vector(vec![(*a.real()).clone().into(), (*a.imag()).clone().into()])
                         }
                         "I" => Matrix(identity(
                             function[i + 1].num()?.real().to_f64() as usize,
@@ -1879,7 +1883,7 @@ fn functions(
             let b: Float = a.real().clone() + 1;
             Complex::with_val(
                 options.prec,
-                (gamma(&b) / Float::with_val(options.prec, 1).exp()).round(),
+                (gamma(&b) / Float::with_val(options.prec.0, 1).exp()).round(),
             )
         }
         "sinc" => a.clone().sin() / a,

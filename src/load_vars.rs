@@ -18,7 +18,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "1.602176634e-19".to_string(),
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains("kB")
@@ -28,7 +28,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "1.380649e-23".to_string(),
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains("me")
@@ -38,7 +38,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "9.1093837015e-31".to_string(),
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains("mn")
@@ -48,7 +48,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "1.67492749804e-27".to_string(),
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains("mp")
@@ -58,7 +58,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "1.67262192369e-27".to_string(),
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains("Na")
@@ -68,7 +68,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "6.02214076e23".to_string(),
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains('c')
@@ -76,9 +76,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
         vars.push((
             "c".to_string(),
             "299792458".to_string(),
-            Num(Complex::parse("299792458")
-                .unwrap()
-                .complete((options.prec, options.prec))),
+            Num(Complex::parse("299792458").unwrap().complete(options.prec)),
         ));
     }
     if args.contains('G')
@@ -88,7 +86,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "6.67430e-11".to_string(),
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains('g')
@@ -96,9 +94,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
         vars.push((
             "g".to_string(),
             "9.80665".to_string(),
-            Num(Complex::parse("9.80665")
-                .unwrap()
-                .complete((options.prec, options.prec))),
+            Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
         ));
     }
     if args.contains('h')
@@ -108,7 +104,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "6.62607015e-34".to_string(),
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains('k')
@@ -118,7 +114,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "8.9875517923e9".to_string(),
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     if args.contains('R')
@@ -128,7 +124,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
             "8.31446261815324".to_string(),
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ));
     }
     {
@@ -136,7 +132,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
         let phi2 = args.contains('φ');
         if phi1 || phi2
         {
-            let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
+            let phi: Float = (1 + Float::with_val(options.prec.0, 5).sqrt()) / 2;
             if phi1
             {
                 vars.insert(
@@ -161,7 +157,7 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
         let tau2 = args.contains('τ');
         if pi1 || pi2 || tau1 || tau2
         {
-            let pi = Float::with_val(options.prec, Pi);
+            let pi = Float::with_val(options.prec.0, Pi);
             if pi1
             {
                 vars.insert(
@@ -196,17 +192,17 @@ pub fn get_cli_vars(options: Options, args: &[String]) -> Vec<(String, String, N
     }
     if args.contains('e')
     {
-        let e = Float::with_val(options.prec, 1).exp();
+        let e = Float::with_val(options.prec.0, 1).exp();
         vars.push(("e".to_string(), "e".to_string(), Num(e.into())))
     }
     vars
 }
 pub fn get_vars(options: Options) -> Vec<(String, String, NumStr)>
 {
-    let pi = Float::with_val(options.prec, Pi);
+    let pi = Float::with_val(options.prec.0, Pi);
     let tau: Float = pi.clone() * 2;
-    let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
-    let e = Float::with_val(options.prec, 1).exp();
+    let phi: Float = (1 + Float::with_val(options.prec.0, 5).sqrt()) / 2;
+    let e = Float::with_val(options.prec.0, 1).exp();
     vec![
         (
             "phi".to_string(),
@@ -223,50 +219,48 @@ pub fn get_vars(options: Options) -> Vec<(String, String, NumStr)>
             "1.602176634e-19".to_string(),
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "kB".to_string(),
             "1.380649e-23".to_string(),
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "me".to_string(),
             "9.1093837015e-31".to_string(),
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "mn".to_string(),
             "1.67492749804e-27".to_string(),
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "mp".to_string(),
             "1.67262192369e-27".to_string(),
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "Na".to_string(),
             "6.02214076e23".to_string(),
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         ("pi".to_string(), "pi".to_string(), Num(pi.clone().into())),
         (
             "c".to_string(),
             "299792458".to_string(),
-            Num(Complex::parse("299792458")
-                .unwrap()
-                .complete((options.prec, options.prec))),
+            Num(Complex::parse("299792458").unwrap().complete(options.prec)),
         ),
         ("e".to_string(), "e".to_string(), Num(e.into())),
         (
@@ -274,35 +268,33 @@ pub fn get_vars(options: Options) -> Vec<(String, String, NumStr)>
             "6.67430e-11".to_string(),
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "g".to_string(),
             "9.80665".to_string(),
-            Num(Complex::parse("9.80665")
-                .unwrap()
-                .complete((options.prec, options.prec))),
+            Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
         ),
         (
             "h".to_string(),
             "6.62607015e-34".to_string(),
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "k".to_string(),
             "8.9875517923e9".to_string(),
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         (
             "R".to_string(),
             "8.31446261815324".to_string(),
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
-                .complete((options.prec, options.prec))),
+                .complete(options.prec)),
         ),
         ("φ".to_string(), "phi".to_string(), Num(phi.into())),
         ("π".to_string(), "pi".to_string(), Num(pi.into())),

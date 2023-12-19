@@ -214,7 +214,7 @@ pub fn input_var(
             }
             output.push(Num(Complex::parse(num.clone())
                 .unwrap()
-                .complete((options.prec, options.prec))));
+                .complete(options.prec)));
             if scientific
             {
                 output.push(Str(")".to_string()));
@@ -291,10 +291,6 @@ pub fn input_var(
                                 chars[i + 1..i + 1 + pos.unwrap()].iter().collect(),
                                 *bracket,
                             );
-                            if exp.0 == "-"
-                            {
-                                exp.0 = "-1".to_string();
-                            }
                             i += pos.unwrap() + 1;
                             continue;
                         }
@@ -862,7 +858,7 @@ pub fn input_var(
             && i + countv < chars.len()
             && matches!(
                 chars[i + countv],
-                'x' | 'y' | 'z' | '(' | '|' | '[' | '{' | '0'..='9'
+                'x' | 'y' | 'z' | '(' | '|' | '[' | '{' | '0'..='9' | '^'
             ))
             || matches!(word.as_str(), "rnd" | "inf"))
         {
@@ -1133,7 +1129,7 @@ pub fn input_var(
                                                         varf.iter().collect::<String>(),
                                                     )
                                                     .unwrap_or(Complex::parse("NaN").unwrap())
-                                                    .complete((options.prec, options.prec))),
+                                                    .complete(options.prec)),
                                                 ),
                                             );
                                             break;
@@ -1224,7 +1220,7 @@ pub fn input_var(
                                                     temp.iter().collect::<String>(),
                                                 )
                                                 .unwrap_or(Complex::parse("NaN").unwrap())
-                                                .complete((options.prec, options.prec))),
+                                                .complete(options.prec)),
                                             ),
                                         );
                                         break;

@@ -63,7 +63,7 @@ pub fn arg_opts(
                 {
                     options.prec = match args[i + 1].parse::<u32>()
                     {
-                        Ok(x) if x != 0 => x,
+                        Ok(x) if x != 0 => (x, x),
                         _ =>
                         {
                             let a = match input_var(
@@ -83,7 +83,7 @@ pub fn arg_opts(
                             };
                             match do_math(a, *options)
                             {
-                                Ok(Num(n)) => n.real().to_f64() as u32,
+                                Ok(Num(n)) => (n.real().to_f64() as u32, n.real().to_f64() as u32),
                                 _ => return Err("invalid prec"),
                             }
                         }
@@ -546,7 +546,7 @@ pub fn file_opts(
                 {
                     options.prec = match split.next().unwrap().parse::<u32>()
                     {
-                        Ok(x) if x != 0 => x,
+                        Ok(x) if x != 0 => (x, x),
                         _ => return Err("invalid prec"),
                     };
                 }
@@ -804,7 +804,7 @@ pub fn equal_to(
         "point" => format!("{}", options.point_style),
         "base" => format!("{}", options.base),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
-        "prec" | "precision" => format!("{}", options.prec),
+        "prec" | "precision" => format!("{}", options.prec.0),
         "xr" => format!("{},{}", options.xr.0, options.xr.1),
         "yr" => format!("{},{}", options.yr.0, options.yr.1),
         "zr" => format!("{},{}", options.zr.0, options.zr.1),
@@ -1030,7 +1030,7 @@ pub fn set_commands(
         {
             n if n != 0 =>
             {
-                options.prec = n;
+                options.prec = (n, n);
                 if !vars.is_empty()
                 {
                     let v = get_vars(*options);

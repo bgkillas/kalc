@@ -40,6 +40,8 @@ use std::{
 //lambert w function
 //have var.1 be Vec<NumStr>
 //f(x,t)=((1-tcot(t))^2+t^2)/(x+tcsc(t)e^(-tcot(t)))
+//a=x
+//get rid of '=' check and put it in load_vars and have an extra output or something
 #[derive(Clone)]
 pub struct Colors
 {
@@ -114,7 +116,7 @@ pub struct Options
     color: bool,
     prompt: bool,
     comma: bool,
-    prec: u32,
+    prec: (u32, u32),
     frac_iter: usize,
     xr: (f64, f64),
     yr: (f64, f64),
@@ -147,7 +149,7 @@ impl Default for Options
             color: true,
             prompt: true,
             comma: false,
-            prec: 512,
+            prec: (512, 512),
             frac_iter: 50,
             xr: (-10.0, 10.0),
             yr: (-10.0, 10.0),
@@ -522,7 +524,7 @@ fn main()
                             (frac, graphable) = print_concurrent(
                                 &input,
                                 &last,
-                                Some((func, graphable)),
+                                Some((func.clone(), graphable)),
                                 &vars.clone(),
                                 options,
                                 &colors,
@@ -530,7 +532,7 @@ fn main()
                                 end,
                             );
                         }
-                        if !input.is_empty()
+                        if !func.is_empty()
                         {
                             println!("{}", "\n".repeat(frac));
                         }

@@ -934,12 +934,12 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     add_commas(&remove_trailing_zeros(
                         &format!("{:e}", num.real()),
                         dec,
-                        num.real().prec(),
+                        options.prec,
                     ))
                 }
                 else
                 {
-                    remove_trailing_zeros(&format!("{:e}", num.real()), dec, num.real().prec())
+                    remove_trailing_zeros(&format!("{:e}", num.real()), dec, options.prec)
                 }
                 .replace("e0", "")
                 .replace(
@@ -978,17 +978,13 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                             + &remove_trailing_zeros(
                                 &format!("{:e}", num.imag(),),
                                 dec,
-                                num.real().prec(),
+                                options.prec,
                             )),
                     )
                 }
                 else
                 {
-                    sign + &remove_trailing_zeros(
-                        &format!("{:e}", num.imag(),),
-                        dec,
-                        num.real().prec(),
-                    )
+                    sign + &remove_trailing_zeros(&format!("{:e}", num.imag(),), dec, options.prec)
                 }
                 .replace("e0", "")
                 .replace(
@@ -1268,7 +1264,7 @@ fn add_commas(input: &str) -> String
     }
     result.chars().rev().collect::<String>()
 }
-fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
+fn remove_trailing_zeros(input: &str, dec: usize, prec: (u32, u32)) -> String
 {
     let pos = match input.find('e')
     {
@@ -1333,7 +1329,7 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             num.insert(dec, '.');
             num = Float::parse(num)
                 .unwrap()
-                .complete(prec)
+                .complete(prec.0)
                 .to_integer()
                 .unwrap()
                 .to_string();

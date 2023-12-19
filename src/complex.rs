@@ -832,7 +832,7 @@ pub fn trace(a: &[Vec<Complex>]) -> Complex
     }
     n
 }
-pub fn identity(a: usize, prec: u32) -> Vec<Vec<Complex>>
+pub fn identity(a: usize, prec: (u32, u32)) -> Vec<Vec<Complex>>
 {
     let mut mat = Vec::with_capacity(a);
     for i in 0..a

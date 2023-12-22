@@ -38,8 +38,6 @@ use std::{
 //print long answers on enter
 //add optimzation, see if last var output is the same as current
 //lambert w function
-//have var.1 be Vec<NumStr>
-//f(x,t)=((1-tcot(t))^2+t^2)/(x+tcsc(t)e^(-tcot(t)))
 //get rid of '=' check and put it in load_vars and have an extra output or something
 //shift+enter no graph?
 //make == work more consistently
@@ -264,11 +262,22 @@ fn main()
                         {
                             if j.0.chars().count() <= l.chars().count()
                             {
+                                let mut func_vars: Vec<(isize, String)> = Vec::new();
+                                if l.contains('(')
+                                {
+                                    let mut l = l.clone();
+                                    l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                    l.pop();
+                                    for i in l.split(',')
+                                    {
+                                        func_vars.push((-1, i.to_string()));
+                                    }
+                                }
                                 let parsed = input_var(
                                     &r,
                                     vars.clone(),
                                     None,
-                                    &mut vec![(-1, "a".to_string()), (-1, "b".to_string())],
+                                    &mut func_vars,
                                     &mut 0,
                                     options,
                                     false,
@@ -342,7 +351,6 @@ fn main()
                         )
                         .unwrap()
                         .0;
-                        //TODO vars included in the function are not fixed
                         vars.push((
                             l.clone(),
                             parsed.clone(),
@@ -1156,11 +1164,22 @@ fn main()
                     }
                     else
                     {
+                        let mut func_vars: Vec<(isize, String)> = Vec::new();
+                        if l.contains('(')
+                        {
+                            let mut l = l.clone();
+                            l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                            l.pop();
+                            for i in l.split(',')
+                            {
+                                func_vars.push((-1, i.to_string()));
+                            }
+                        }
                         let parsed = input_var(
                             r,
                             vars.clone(),
                             None,
-                            &mut Vec::new(),
+                            &mut func_vars,
                             &mut 0,
                             options,
                             false,
@@ -1223,12 +1242,22 @@ fn main()
             {
                 if j.0.chars().count() <= l.chars().count()
                 {
-                    //TODO use sumrec to get around unwrap crash with function input like a/b?
+                    let mut func_vars: Vec<(isize, String)> = Vec::new();
+                    if l.contains('(')
+                    {
+                        let mut l = l.clone();
+                        l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                        l.pop();
+                        for i in l.split(',')
+                        {
+                            func_vars.push((-1, i.to_string()));
+                        }
+                    }
                     let parsed = input_var(
                         r,
                         vars.clone(),
                         None,
-                        &mut Vec::new(),
+                        &mut func_vars,
                         &mut 0,
                         options,
                         false,

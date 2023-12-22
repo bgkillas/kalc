@@ -40,8 +40,11 @@ use std::{
 //lambert w function
 //have var.1 be Vec<NumStr>
 //f(x,t)=((1-tcot(t))^2+t^2)/(x+tcsc(t)e^(-tcot(t)))
-//a=x
 //get rid of '=' check and put it in load_vars and have an extra output or something
+//shift+enter no graph?
+//make == work more consistently
+//standard deviance and stuff
+//add function to convert frequency data to list
 #[derive(Clone)]
 pub struct Colors
 {
@@ -202,7 +205,7 @@ fn main()
             }
         }
     }
-    let mut vars: Vec<(String, String, NumStr)> = if options.allow_vars
+    let mut vars: Vec<(String, Vec<NumStr>, NumStr)> = if options.allow_vars
     {
         if args.is_empty()
         {
@@ -261,34 +264,31 @@ fn main()
                         {
                             if j.0.chars().count() <= l.chars().count()
                             {
+                                let parsed = input_var(
+                                    &r,
+                                    vars.clone(),
+                                    None,
+                                    &mut vec![(-1, "a".to_string()), (-1, "b".to_string())],
+                                    &mut 0,
+                                    options,
+                                    false,
+                                    &mut (false, 0, 0),
+                                )
+                                .unwrap()
+                                .0;
                                 vars.insert(
                                     i,
                                     (
                                         l.clone(),
-                                        r.clone(),
+                                        parsed.clone(),
                                         if l.contains('(')
                                         {
                                             Str(String::new())
                                         }
                                         else
                                         {
-                                            do_math(
-                                                input_var(
-                                                    &r,
-                                                    vars.clone(),
-                                                    None,
-                                                    &mut Vec::new(),
-                                                    &mut 0,
-                                                    options,
-                                                    0,
-                                                    false,
-                                                    &mut (false, 0, 0),
-                                                )
-                                                .unwrap()
-                                                .0,
-                                                options,
-                                            )
-                                            .unwrap_or(Num(Complex::new(options.prec)))
+                                            do_math(parsed, options)
+                                                .unwrap_or(Num(Complex::new(options.prec)))
                                         },
                                     ),
                                 );
@@ -298,41 +298,30 @@ fn main()
                                 {
                                     for (j, v) in vars.clone().iter().enumerate()
                                     {
-                                        if v.1.contains(
-                                            &redef[k][0..=redef[k]
-                                                .chars()
-                                                .position(|a| a == '(')
-                                                .unwrap_or(redef[k].len() - 1)],
-                                        )
+                                        if redef[k] != v.0
+                                            && !v.0.contains('(')
+                                            && v.1.iter().any(|s| {
+                                                if let Str(s) = s
+                                                {
+                                                    s.starts_with(
+                                                        &redef[k][0..redef[k]
+                                                            .chars()
+                                                            .position(|a| a == '(')
+                                                            .unwrap_or(redef[k].len())],
+                                                    )
+                                                }
+                                                else
+                                                {
+                                                    false
+                                                }
+                                            })
                                         {
                                             redef.push(v.0.clone());
                                             vars[j] = (
                                                 v.0.clone(),
                                                 v.1.clone(),
-                                                if v.0.contains('(')
-                                                {
-                                                    Str(String::new())
-                                                }
-                                                else
-                                                {
-                                                    do_math(
-                                                        input_var(
-                                                            &v.1,
-                                                            vars.clone(),
-                                                            None,
-                                                            &mut Vec::new(),
-                                                            &mut 0,
-                                                            options,
-                                                            0,
-                                                            false,
-                                                            &mut (false, 0, 0),
-                                                        )
-                                                        .unwrap()
-                                                        .0,
-                                                        options,
-                                                    )
-                                                    .unwrap_or(Num(Complex::new(options.prec)))
-                                                },
+                                                do_math(v.1.clone(), options)
+                                                    .unwrap_or(Num(Complex::new(options.prec))),
                                             );
                                         }
                                     }
@@ -341,32 +330,29 @@ fn main()
                                 continue 'upper;
                             }
                         }
+                        let parsed = input_var(
+                            &r,
+                            vars.clone(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
+                            options,
+                            false,
+                            &mut (false, 0, 0),
+                        )
+                        .unwrap()
+                        .0;
+                        //TODO vars included in the function are not fixed
                         vars.push((
                             l.clone(),
-                            r.clone(),
+                            parsed.clone(),
                             if l.contains('(')
                             {
                                 Str(String::new())
                             }
                             else
                             {
-                                do_math(
-                                    input_var(
-                                        &r,
-                                        vars.clone(),
-                                        None,
-                                        &mut Vec::new(),
-                                        &mut 0,
-                                        options,
-                                        0,
-                                        false,
-                                        &mut (false, 0, 0),
-                                    )
-                                    .unwrap()
-                                    .0,
-                                    options,
-                                )
-                                .unwrap_or(Num(Complex::new(options.prec)))
+                                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                             },
                         ))
                     }
@@ -432,7 +418,6 @@ fn main()
                 &mut Vec::new(),
                 &mut 0,
                 options,
-                0,
                 false,
                 &mut (false, 0, 0),
             )
@@ -514,7 +499,6 @@ fn main()
                             &mut Vec::new(),
                             &mut 0,
                             options,
-                            0,
                             false,
                             &mut (false, 0, 0),
                         )
@@ -1172,32 +1156,28 @@ fn main()
                     }
                     else
                     {
+                        let parsed = input_var(
+                            r,
+                            vars.clone(),
+                            None,
+                            &mut Vec::new(),
+                            &mut 0,
+                            options,
+                            false,
+                            &mut (false, 0, 0),
+                        )
+                        .unwrap()
+                        .0;
                         vars[i] = (
                             l.to_string(),
-                            r.to_string(),
+                            parsed.clone(),
                             if l.contains('(')
                             {
                                 Str(String::new())
                             }
                             else
                             {
-                                do_math(
-                                    input_var(
-                                        r,
-                                        vars.clone(),
-                                        None,
-                                        &mut Vec::new(),
-                                        &mut 0,
-                                        options,
-                                        0,
-                                        false,
-                                        &mut (false, 0, 0),
-                                    )
-                                    .unwrap()
-                                    .0,
-                                    options,
-                                )
-                                .unwrap_or(Num(Complex::new(options.prec)))
+                                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                             },
                         );
                         let mut redef = vec![l];
@@ -1206,41 +1186,30 @@ fn main()
                         {
                             for (j, v) in vars.clone().iter().enumerate()
                             {
-                                if v.1.contains(
-                                    &redef[k][0..=redef[k]
-                                        .chars()
-                                        .position(|a| a == '(')
-                                        .unwrap_or(redef[k].len() - 1)],
-                                )
+                                if redef[k] != v.0
+                                    && !v.0.contains('(')
+                                    && v.1.iter().any(|s| {
+                                        if let Str(s) = s
+                                        {
+                                            s.starts_with(
+                                                &redef[k][0..redef[k]
+                                                    .chars()
+                                                    .position(|a| a == '(')
+                                                    .unwrap_or(redef[k].len())],
+                                            )
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    })
                                 {
                                     redef.push(v.0.clone());
                                     vars[j] = (
                                         v.0.clone(),
                                         v.1.clone(),
-                                        if v.0.contains('(')
-                                        {
-                                            Str(String::new())
-                                        }
-                                        else
-                                        {
-                                            do_math(
-                                                input_var(
-                                                    &v.1,
-                                                    vars.clone(),
-                                                    None,
-                                                    &mut Vec::new(),
-                                                    &mut 0,
-                                                    options,
-                                                    0,
-                                                    false,
-                                                    &mut (false, 0, 0),
-                                                )
-                                                .unwrap()
-                                                .0,
-                                                options,
-                                            )
-                                            .unwrap_or(Num(Complex::new(options.prec)))
-                                        },
+                                        do_math(v.1.clone(), options)
+                                            .unwrap_or(Num(Complex::new(options.prec))),
                                     );
                                 }
                             }
@@ -1254,36 +1223,30 @@ fn main()
             {
                 if j.0.chars().count() <= l.chars().count()
                 {
-                    vars.insert(
-                        i,
-                        (
-                            l.to_string(),
-                            r.to_string(),
-                            if l.contains('(')
-                            {
-                                Str(String::new())
-                            }
-                            else
-                            {
-                                do_math(
-                                    input_var(
-                                        r,
-                                        vars.clone(),
-                                        None,
-                                        &mut Vec::new(),
-                                        &mut 0,
-                                        options,
-                                        0,
-                                        false,
-                                        &mut (false, 0, 0),
-                                    )
-                                    .unwrap()
-                                    .0,
-                                    options,
-                                )
-                                .unwrap_or(Num(Complex::new(options.prec)))
-                            },
-                        ),
+                    //TODO use sumrec to get around unwrap crash with function input like a/b?
+                    let parsed = input_var(
+                        r,
+                        vars.clone(),
+                        None,
+                        &mut Vec::new(),
+                        &mut 0,
+                        options,
+                        false,
+                        &mut (false, 0, 0),
+                    )
+                    .unwrap()
+                    .0;
+                    vars[i] = (
+                        l.to_string(),
+                        parsed.clone(),
+                        if l.contains('(')
+                        {
+                            Str(String::new())
+                        }
+                        else
+                        {
+                            do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
+                        },
                     );
                     let mut redef = vec![l];
                     let mut k = 0;
@@ -1291,41 +1254,30 @@ fn main()
                     {
                         for (j, v) in vars.clone().iter().enumerate()
                         {
-                            if v.1.contains(
-                                &redef[k][0..=redef[k]
-                                    .chars()
-                                    .position(|a| a == '(')
-                                    .unwrap_or(redef[k].len() - 1)],
-                            )
+                            if redef[k] != v.0
+                                && !v.0.contains('(')
+                                && v.1.iter().any(|s| {
+                                    if let Str(s) = s
+                                    {
+                                        s.starts_with(
+                                            &redef[k][0..redef[k]
+                                                .chars()
+                                                .position(|a| a == '(')
+                                                .unwrap_or(redef[k].len())],
+                                        )
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
+                                })
                             {
                                 redef.push(v.0.clone());
                                 vars[j] = (
                                     v.0.clone(),
                                     v.1.clone(),
-                                    if v.0.contains('(')
-                                    {
-                                        Str(String::new())
-                                    }
-                                    else
-                                    {
-                                        do_math(
-                                            input_var(
-                                                &v.1,
-                                                vars.clone(),
-                                                None,
-                                                &mut Vec::new(),
-                                                &mut 0,
-                                                options,
-                                                0,
-                                                false,
-                                                &mut (false, 0, 0),
-                                            )
-                                            .unwrap()
-                                            .0,
-                                            options,
-                                        )
-                                        .unwrap_or(Num(Complex::new(options.prec)))
-                                    },
+                                    do_math(v.1.clone(), options)
+                                        .unwrap_or(Num(Complex::new(options.prec))),
                                 );
                             }
                         }
@@ -1336,32 +1288,28 @@ fn main()
             }
             if vars.is_empty()
             {
+                let parsed = input_var(
+                    r,
+                    vars.clone(),
+                    None,
+                    &mut Vec::new(),
+                    &mut 0,
+                    options,
+                    false,
+                    &mut (false, 0, 0),
+                )
+                .unwrap()
+                .0;
                 vars.push((
                     l.to_string(),
-                    r.to_string(),
+                    parsed.clone(),
                     if l.contains('(')
                     {
                         Str(String::new())
                     }
                     else
                     {
-                        do_math(
-                            input_var(
-                                r,
-                                vars.clone(),
-                                None,
-                                &mut Vec::new(),
-                                &mut 0,
-                                options,
-                                0,
-                                false,
-                                &mut (false, 0, 0),
-                            )
-                            .unwrap()
-                            .0,
-                            options,
-                        )
-                        .unwrap_or(Num(Complex::new(options.prec)))
+                        do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                     },
                 ));
             }
@@ -1392,7 +1340,6 @@ fn main()
                             &mut Vec::new(),
                             &mut 0,
                             options,
-                            0,
                             false,
                             &mut (false, 0, 0),
                         )

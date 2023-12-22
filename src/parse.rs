@@ -14,12 +14,11 @@ use rug::{
 #[allow(clippy::too_many_arguments)]
 pub fn input_var(
     input: &str,
-    mut vars: Vec<(String, String, NumStr)>,
+    vars: Vec<(String, Vec<NumStr>, NumStr)>,
     dont_do: Option<String>,
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,
     options: Options,
-    depth: usize,
     mut graph: bool,
     pwr: &mut (bool, isize, isize),
 ) -> Result<(Vec<NumStr>, bool), &'static str>
@@ -961,8 +960,30 @@ pub fn input_var(
                         {
                             i = chars.len() - 1
                         }
-                        if wordv.clone() + &chars[j + countj..i + 1].iter().collect::<String>()
-                            == var.0
+                        count = 0;
+                        let mut ccount = 0;
+                        for c in &chars[j..i]
+                        {
+                            if *c == ',' && count == 1
+                            {
+                                ccount += 1;
+                            }
+                            else if *c == '(' || c == &'{' || c == &'['
+                            {
+                                count += 1;
+                            }
+                            else if *c == ')' || c == &'}' || c == &']'
+                            {
+                                count -= 1;
+                            }
+                        }
+                        let v = var.0.chars().collect::<Vec<char>>();
+                        if ccount != var.0.matches(',').count()
+                        {
+                            i = j;
+                            continue;
+                        }
+                        if var.0.contains(',') && chars.len() > 4
                         {
                             place_multiplier(&mut output, sumrec);
                             if neg
@@ -972,19 +993,107 @@ pub fn input_var(
                                 neg = false;
                             }
                             output.push(Str('('.to_string()));
-                            let parsed;
-                            (parsed, graph) = input_var(
-                                &var.1,
-                                vars.clone(),
-                                None,
-                                sumrec,
-                                bracket,
-                                options,
-                                depth + 1,
-                                graph,
-                                pwr,
-                            )?;
-                            output.extend(parsed);
+                            let mut temp = &chars[j + countj + 1..i + 1];
+                            if temp.ends_with(&[')'])
+                            {
+                                temp = &temp[..temp.len() - 1];
+                            }
+                            let mut commas = Vec::new();
+                            count = 0;
+                            for (f, c) in temp.iter().enumerate()
+                            {
+                                if c == &'(' || c == &'{' || c == &'['
+                                {
+                                    count += 1;
+                                }
+                                else if c == &')' || c == &'}' || c == &']'
+                                {
+                                    count -= 1;
+                                }
+                                else if c == &',' && count == 0
+                                {
+                                    commas.push(f);
+                                }
+                            }
+                            let mut start = 0;
+                            let mut split = Vec::new();
+                            for end in commas
+                            {
+                                split.push(&temp[start..end]);
+                                start = end + 1;
+                            }
+                            split.push(&temp[start..]);
+                            let mut func_vars: Vec<String> = Vec::new();
+                            start = 0;
+                            for (f, c) in v.iter().enumerate()
+                            {
+                                if c == &'(' || c == &'{' || c == &'['
+                                {
+                                    if count == 0
+                                    {
+                                        start = f + 1;
+                                    }
+                                    count += 1;
+                                }
+                                else if c == &')' || c == &'}' || c == &']'
+                                {
+                                    count -= 1;
+                                    if count == 0
+                                    {
+                                        func_vars.push(v[start..f].iter().collect());
+                                    }
+                                }
+                                else if c == &',' && count == 1
+                                {
+                                    func_vars.push(v[start..f].iter().collect());
+                                    start = f + 1;
+                                }
+                            }
+                            let mut var = var;
+                            for (varf, func_var) in split.iter().zip(func_vars)
+                            {
+                                let mut k = 0;
+                                while k < var.1.len()
+                                {
+                                    if var.1[k].str_is(&func_var)
+                                    {
+                                        var.1.remove(k);
+                                        if let Ok(n) =
+                                            Complex::parse(varf.iter().collect::<String>())
+                                        {
+                                            var.1.insert(k, Num(n.complete(options.prec)))
+                                        }
+                                        else
+                                        {
+                                            let mut parsed;
+                                            (parsed, graph) = input_var(
+                                                &varf.iter().collect::<String>(),
+                                                vars.clone(),
+                                                None,
+                                                sumrec,
+                                                bracket,
+                                                options,
+                                                graph,
+                                                pwr,
+                                            )?;
+                                            let j = k;
+                                            if parsed.len() > 1
+                                            {
+                                                parsed.insert(0, Str('('.to_string()));
+                                                parsed.push(Str(')'.to_string()));
+                                                k += parsed.len() - 2;
+                                            }
+                                            else
+                                            {
+                                                k += parsed.len();
+                                            }
+                                            var.1.splice(j..j, parsed);
+                                        }
+                                    }
+                                    k += 1;
+                                }
+                            }
+                            output.extend(var.1);
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
@@ -1018,259 +1127,93 @@ pub fn input_var(
                         }
                         else
                         {
-                            count = 0;
-                            let mut ccount = 0;
-                            for c in &chars[j..i]
+                            place_multiplier(&mut output, sumrec);
+                            if neg
                             {
-                                if *c == ',' && count == 1
-                                {
-                                    ccount += 1;
-                                }
-                                else if *c == '(' || c == &'{' || c == &'['
-                                {
-                                    count += 1;
-                                }
-                                else if *c == ')' || c == &'}' || c == &']'
-                                {
-                                    count -= 1;
-                                }
+                                output.push(Num(n1.clone()));
+                                output.push(Str('*'.to_string()));
+                                neg = false;
                             }
-                            let v = var.0.chars().collect::<Vec<char>>();
-                            if ccount != var.0.matches(',').count()
+                            output.push(Str('('.to_string()));
+                            let mut temp = &chars[j + countj + 1..i + 1];
+                            if temp.ends_with(&[')'])
                             {
-                                i = j;
-                                continue;
+                                temp = &temp[..temp.len() - 1];
                             }
-                            if var.0.contains(',') && chars.len() > 4
+                            let l = v[var.0.find('(').unwrap() + 1..v.len() - 1]
+                                .iter()
+                                .collect::<String>();
+                            let mut var = var;
+                            let mut k = 0;
+                            while k < var.1.len()
                             {
-                                place_multiplier(&mut output, sumrec);
-                                if neg
+                                if var.1[k].str_is(&l)
                                 {
-                                    output.push(Num(n1.clone()));
-                                    output.push(Str('*'.to_string()));
-                                    neg = false;
-                                }
-                                output.push(Str('('.to_string()));
-                                let mut temp = &chars[j + countj + 1..i + 1];
-                                if temp.ends_with(&[')'])
-                                {
-                                    temp = &temp[..temp.len() - 1];
-                                }
-                                let mut commas = Vec::new();
-                                count = 0;
-                                for (f, c) in temp.iter().enumerate()
-                                {
-                                    if c == &'(' || c == &'{' || c == &'['
+                                    var.1.remove(k);
+                                    if let Ok(n) = Complex::parse(temp.iter().collect::<String>())
                                     {
-                                        count += 1;
+                                        var.1.insert(k, Num(n.complete(options.prec)))
                                     }
-                                    else if c == &')' || c == &'}' || c == &']'
+                                    else
                                     {
-                                        count -= 1;
-                                    }
-                                    else if c == &',' && count == 0
-                                    {
-                                        commas.push(f);
-                                    }
-                                }
-                                let mut start = 0;
-                                let mut split = Vec::new();
-                                for end in commas
-                                {
-                                    split.push(&temp[start..end]);
-                                    start = end + 1;
-                                }
-                                split.push(&temp[start..]);
-                                let mut func_vars: Vec<String> = Vec::new();
-                                start = 0;
-                                for (f, c) in v.iter().enumerate()
-                                {
-                                    if c == &'(' || c == &'{' || c == &'['
-                                    {
-                                        if count == 0
+                                        let mut parsed;
+                                        (parsed, graph) = input_var(
+                                            &temp.iter().collect::<String>(),
+                                            vars.clone(),
+                                            None,
+                                            sumrec,
+                                            bracket,
+                                            options,
+                                            graph,
+                                            pwr,
+                                        )?;
+                                        let j = k;
+                                        if parsed.len() > 1
                                         {
-                                            start = f + 1;
+                                            parsed.insert(0, Str('('.to_string()));
+                                            parsed.push(Str(')'.to_string()));
+                                            k += parsed.len() - 2;
                                         }
-                                        count += 1;
-                                    }
-                                    else if c == &')' || c == &'}' || c == &']'
-                                    {
-                                        count -= 1;
-                                        if count == 0
+                                        else
                                         {
-                                            func_vars.push(v[start..f].iter().collect());
+                                            k += parsed.len();
                                         }
-                                    }
-                                    else if c == &',' && count == 1
-                                    {
-                                        func_vars.push(v[start..f].iter().collect());
-                                        start = f + 1;
+                                        var.1.splice(j..j, parsed);
                                     }
                                 }
-                                let mut removes = Vec::new();
-                                let mut var = var;
-                                for (varf, func_var) in split.iter().zip(func_vars)
+                                k += 1;
+                            }
+                            output.extend(var.1);
+                            if pwr.1 == *bracket + 1
+                            {
+                                for _ in 0..pwr.2
                                 {
-                                    for (i, j) in vars.iter().enumerate()
-                                    {
-                                        if j.0.chars().count() <= func_var.len()
-                                        {
-                                            removes.push(i);
-                                            var.1 = var.1.replace(
-                                                &func_var,
-                                                &format!("@{}{}@", func_var, depth),
-                                            );
-                                            vars.insert(
-                                                i,
-                                                (
-                                                    format!("@{}{}@", func_var, depth),
-                                                    varf.iter().collect::<String>(),
-                                                    Num(Complex::parse(
-                                                        varf.iter().collect::<String>(),
-                                                    )
-                                                    .unwrap_or(Complex::parse("NaN").unwrap())
-                                                    .complete(options.prec)),
-                                                ),
-                                            );
-                                            break;
-                                        }
-                                    }
+                                    output.push(Str(')'.to_string()))
                                 }
-                                let parsed;
-                                (parsed, graph) = input_var(
-                                    &var.1,
-                                    vars.clone(),
-                                    None,
-                                    sumrec,
-                                    bracket,
-                                    options,
-                                    depth + 1,
-                                    graph,
-                                    pwr,
-                                )?;
-                                output.extend(parsed);
-                                if pwr.1 == *bracket + 1
-                                {
-                                    for _ in 0..pwr.2
-                                    {
-                                        output.push(Str(')'.to_string()))
-                                    }
-                                    *pwr = (false, 0, 0);
-                                }
-                                if subfact.1 == *bracket + 1
-                                {
-                                    subfact = (false, 0);
-                                    output.push(Str(")".to_string()));
-                                    output.push(Str(")".to_string()))
-                                }
+                                *pwr = (false, 0, 0);
+                            }
+                            if subfact.1 == *bracket + 1
+                            {
+                                subfact = (false, 0);
                                 output.push(Str(")".to_string()));
-                                if !exp.0.is_empty() && exp.1 == *bracket
-                                {
-                                    output.push(Str("^".to_string()));
-                                    output.push(Num(Complex::with_val(
-                                        options.prec,
-                                        match Complex::parse(exp.0.as_bytes())
-                                        {
-                                            Ok(n) => n,
-                                            _ => return Err("exponent error"),
-                                        },
-                                    )));
-                                    exp = (String::new(), 0);
-                                }
-                                i += 1;
-                                removes.sort();
-                                for i in removes.iter().rev()
-                                {
-                                    vars.remove(*i);
-                                }
-                                continue 'main;
+                                output.push(Str(")".to_string()))
                             }
-                            else
+                            output.push(Str(")".to_string()));
+                            if !exp.0.is_empty() && exp.1 == *bracket
                             {
-                                place_multiplier(&mut output, sumrec);
-                                if neg
-                                {
-                                    output.push(Num(n1.clone()));
-                                    output.push(Str('*'.to_string()));
-                                    neg = false;
-                                }
-                                output.push(Str('('.to_string()));
-                                let mut temp = &chars[j + countj + 1..i + 1];
-                                if temp.ends_with(&[')'])
-                                {
-                                    temp = &temp[..temp.len() - 1];
-                                }
-                                let l = v[var.0.find('(').unwrap() + 1..v.len() - 1]
-                                    .iter()
-                                    .collect::<String>();
-                                let mut remove = 0;
-                                let mut var = var;
-                                for (i, j) in vars.iter().enumerate()
-                                {
-                                    if j.0.chars().count() <= l.len()
+                                output.push(Str("^".to_string()));
+                                output.push(Num(Complex::with_val(
+                                    options.prec,
+                                    match Complex::parse(exp.0.as_bytes())
                                     {
-                                        remove = i;
-                                        var.1 = var.1.replace(&l, &format!("@{}{}@", l, depth));
-                                        vars.insert(
-                                            i,
-                                            (
-                                                format!("@{}{}@", l, depth),
-                                                temp.iter().collect::<String>(),
-                                                Num(Complex::parse(
-                                                    temp.iter().collect::<String>(),
-                                                )
-                                                .unwrap_or(Complex::parse("NaN").unwrap())
-                                                .complete(options.prec)),
-                                            ),
-                                        );
-                                        break;
-                                    }
-                                }
-                                let parsed;
-                                (parsed, graph) = input_var(
-                                    &var.1,
-                                    vars.clone(),
-                                    None,
-                                    sumrec,
-                                    bracket,
-                                    options,
-                                    depth + 1,
-                                    graph,
-                                    pwr,
-                                )?;
-                                output.extend(parsed);
-                                if pwr.1 == *bracket + 1
-                                {
-                                    for _ in 0..pwr.2
-                                    {
-                                        output.push(Str(')'.to_string()))
-                                    }
-                                    *pwr = (false, 0, 0);
-                                }
-                                if subfact.1 == *bracket + 1
-                                {
-                                    subfact = (false, 0);
-                                    output.push(Str(")".to_string()));
-                                    output.push(Str(")".to_string()))
-                                }
-                                output.push(Str(")".to_string()));
-                                if !exp.0.is_empty() && exp.1 == *bracket
-                                {
-                                    output.push(Str("^".to_string()));
-                                    output.push(Num(Complex::with_val(
-                                        options.prec,
-                                        match Complex::parse(exp.0.as_bytes())
-                                        {
-                                            Ok(n) => n,
-                                            _ => return Err("exponent error"),
-                                        },
-                                    )));
-                                    exp = (String::new(), 0);
-                                }
-                                i += 1;
-                                vars.remove(remove);
-                                continue 'main;
+                                        Ok(n) => n,
+                                        _ => return Err("exponent error"),
+                                    },
+                                )));
+                                exp = (String::new(), 0);
                             }
+                            i += 1;
+                            continue 'main;
                         }
                     }
                     else if i + vl <= chars.len()
@@ -1334,55 +1277,6 @@ pub fn input_var(
                             output.push(Num(n1.clone()));
                             output.push(Str('*'.to_string()));
                             neg = false;
-                        }
-                        if let Num(n) = &var.2
-                        {
-                            if n.real().is_nan()
-                            {
-                                let parsed;
-                                (parsed, graph) = input_var(
-                                    &var.1,
-                                    vars.clone(),
-                                    None,
-                                    sumrec,
-                                    bracket,
-                                    options,
-                                    depth + 1,
-                                    graph,
-                                    pwr,
-                                )?;
-                                output.push(Str('('.to_string()));
-                                output.extend(parsed);
-                                if pwr.1 == *bracket + 1
-                                {
-                                    for _ in 0..pwr.2
-                                    {
-                                        output.push(Str(')'.to_string()))
-                                    }
-                                    *pwr = (false, 0, 0);
-                                }
-                                if subfact.1 == *bracket + 1
-                                {
-                                    subfact = (false, 0);
-                                    output.push(Str(")".to_string()));
-                                    output.push(Str(")".to_string()))
-                                }
-                                output.push(Str(")".to_string()));
-                                if !exp.0.is_empty() && exp.1 == *bracket
-                                {
-                                    output.push(Str("^".to_string()));
-                                    output.push(Num(Complex::with_val(
-                                        options.prec,
-                                        match Complex::parse(exp.0.as_bytes())
-                                        {
-                                            Ok(n) => n,
-                                            _ => return Err("exponent error"),
-                                        },
-                                    )));
-                                    exp = (String::new(), 0);
-                                }
-                                continue 'main;
-                            }
                         }
                         output.push(var.2);
                         if scientific
@@ -1637,7 +1531,7 @@ pub fn input_var(
     }
     while let Some(Str(c)) = output.last()
     {
-        if !matches!(c.as_str(), "rnd" | ")" | "}" | "x" | "y")
+        if !matches!(c.as_str(), "rnd" | ")" | "}" | "x" | "y") && !sumrec.iter().any(|s| &s.1 == c)
         {
             output.pop();
         }

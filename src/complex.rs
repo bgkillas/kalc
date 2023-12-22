@@ -12,7 +12,7 @@ use rug::{
     Complex, Float,
 };
 use std::ops::{Shl, Shr};
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum NumStr
 {
     Num(Complex),

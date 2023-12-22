@@ -14,139 +14,12 @@ use crate::{
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
-pub fn print_answer(func: Vec<NumStr>, options: Options, colors: &Colors)
-{
-    let num = match do_math(func, options)
-    {
-        Ok(num) => num,
-        _ => return,
-    };
-    if let Num(n) = num
-    {
-        let a = get_output(options, colors, &n);
-        print!(
-            "{}{}{}",
-            a.0,
-            a.1,
-            if options.color { "\x1b[0m" } else { "" }
-        );
-    }
-    else if let Vector(mut v) = num
-    {
-        if options.polar
-        {
-            v = to_polar(
-                v,
-                match options.deg
-                {
-                    Degrees =>
-                    {
-                        Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi)
-                    }
-                    Radians => Complex::with_val(options.prec, 1),
-                    Gradians =>
-                    {
-                        Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi)
-                    }
-                },
-            );
-        }
-        let mut output = if options.polar { "[" } else { "{" }.to_string();
-        let mut out;
-        for (k, i) in v.iter().enumerate()
-        {
-            out = get_output(options, colors, i);
-            output += out.0.as_str();
-            output += out.1.as_str();
-            if options.color
-            {
-                output += "\x1b[0m";
-            }
-            output += if k == v.len() - 1
-            {
-                if options.polar
-                {
-                    "]"
-                }
-                else
-                {
-                    "}"
-                }
-            }
-            else
-            {
-                ","
-            }
-        }
-        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
-    }
-    else if let Matrix(v) = num
-    {
-        let mut output = if options.multi
-        {
-            String::new()
-        }
-        else
-        {
-            "{".to_string()
-        };
-        let mut out;
-        for (l, j) in v.iter().enumerate()
-        {
-            if !options.multi
-            {
-                output += "{";
-            }
-            for (k, i) in j.iter().enumerate()
-            {
-                out = get_output(options, colors, i);
-                output += out.0.as_str();
-                output += out.1.as_str();
-                if options.color
-                {
-                    output += "\x1b[0m";
-                }
-                if k == j.len() - 1
-                {
-                    if !options.multi
-                    {
-                        output += "}";
-                    }
-                }
-                else if options.tabbed
-                {
-                    output += "\t";
-                }
-                else
-                {
-                    output += ",";
-                }
-            }
-            if l != v.len() - 1
-            {
-                if options.multi
-                {
-                    output += "\n";
-                }
-                else
-                {
-                    output += ",";
-                }
-            }
-        }
-        if !options.multi
-        {
-            output += "}";
-        }
-        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
-    }
-}
 #[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
     func: Option<(Vec<NumStr>, bool)>,
-    vars: &[(String, String, NumStr)],
+    vars: &[(String, Vec<NumStr>, NumStr)],
     options: Options,
     colors: &Colors,
     start: usize,
@@ -210,7 +83,6 @@ pub fn print_concurrent(
             &mut Vec::new(),
             &mut 0,
             options,
-            0,
             false,
             &mut (false, 0, 0),
         )
@@ -843,6 +715,133 @@ pub fn print_concurrent(
         handle_err("str err", unmodified_input, options, colors, start, end);
     }
     (frac, false)
+}
+pub fn print_answer(func: Vec<NumStr>, options: Options, colors: &Colors)
+{
+    let num = match do_math(func, options)
+    {
+        Ok(num) => num,
+        _ => return,
+    };
+    if let Num(n) = num
+    {
+        let a = get_output(options, colors, &n);
+        print!(
+            "{}{}{}",
+            a.0,
+            a.1,
+            if options.color { "\x1b[0m" } else { "" }
+        );
+    }
+    else if let Vector(mut v) = num
+    {
+        if options.polar
+        {
+            v = to_polar(
+                v,
+                match options.deg
+                {
+                    Degrees =>
+                    {
+                        Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi)
+                    }
+                    Radians => Complex::with_val(options.prec, 1),
+                    Gradians =>
+                    {
+                        Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi)
+                    }
+                },
+            );
+        }
+        let mut output = if options.polar { "[" } else { "{" }.to_string();
+        let mut out;
+        for (k, i) in v.iter().enumerate()
+        {
+            out = get_output(options, colors, i);
+            output += out.0.as_str();
+            output += out.1.as_str();
+            if options.color
+            {
+                output += "\x1b[0m";
+            }
+            output += if k == v.len() - 1
+            {
+                if options.polar
+                {
+                    "]"
+                }
+                else
+                {
+                    "}"
+                }
+            }
+            else
+            {
+                ","
+            }
+        }
+        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+    }
+    else if let Matrix(v) = num
+    {
+        let mut output = if options.multi
+        {
+            String::new()
+        }
+        else
+        {
+            "{".to_string()
+        };
+        let mut out;
+        for (l, j) in v.iter().enumerate()
+        {
+            if !options.multi
+            {
+                output += "{";
+            }
+            for (k, i) in j.iter().enumerate()
+            {
+                out = get_output(options, colors, i);
+                output += out.0.as_str();
+                output += out.1.as_str();
+                if options.color
+                {
+                    output += "\x1b[0m";
+                }
+                if k == j.len() - 1
+                {
+                    if !options.multi
+                    {
+                        output += "}";
+                    }
+                }
+                else if options.tabbed
+                {
+                    output += "\t";
+                }
+                else
+                {
+                    output += ",";
+                }
+            }
+            if l != v.len() - 1
+            {
+                if options.multi
+                {
+                    output += "\n";
+                }
+                else
+                {
+                    output += ",";
+                }
+            }
+        }
+        if !options.multi
+        {
+            output += "}";
+        }
+        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+    }
 }
 pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, String)
 {

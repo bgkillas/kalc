@@ -13,7 +13,6 @@ use crate::{
     Colors, Options,
 };
 use crossterm::terminal;
-use rug::Complex;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
@@ -73,7 +72,6 @@ pub fn arg_opts(
                                 &mut Vec::new(),
                                 &mut 0,
                                 *options,
-                                0,
                                 false,
                                 &mut (false, 0, 0),
                             )
@@ -117,7 +115,6 @@ pub fn arg_opts(
                                     &mut Vec::new(),
                                     &mut 0,
                                     *options,
-                                    0,
                                     false,
                                     &mut (false, 0, 0),
                                 )
@@ -715,15 +712,13 @@ pub fn file_opts(
 pub fn equal_to(
     options: Options,
     colors: &Colors,
-    vars: &[(String, String, NumStr)],
+    vars: &[(String, Vec<NumStr>, NumStr)],
     l: &str,
     last: &str,
 ) -> String
 {
     match l
     {
-
-
         "colors" => format!(
             "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[38;2;{};{};{}mre1col={} \x1b[38;2;{};{};{}mim1col={} \x1b[38;2;{};{};{}mre2col={} \
              \x1b[38;2;{};{};{}mim2col={} \x1b[38;2;{};{};{}mre3col={} \x1b[38;2;{};{};{}mim3col={} \x1b[38;2;{};{};{}mre4col={} \x1b[38;2;{};{};{}mim4col={} \x1b[38;2;{};{};{}mre5col={} \
@@ -817,83 +812,86 @@ pub fn equal_to(
         "3d" => format!("{} {}", options.samples_3d.0, options.samples_3d.1),
         _ =>
         {
-            let mut out = String::new();
-            for i in match
-                input_var(
-                    &l.replace('_', &format!("({})", last)),
-                    vars.to_vec(),
-                    None,
-                    &mut Vec::new(),
-                    &mut 0,
-                    options, 0, false,
-                    &mut (false,0,0)
-                )
+            let input=input_var(
+                &l.replace('_', &format!("({})", last)),
+                vars.to_vec(),
+                None,
+                &mut Vec::new(),
+                &mut 0,
+                options, false,
+                &mut (false,0,0)
+            );
+            if let Ok(f)=input
             {
-                Ok(n) => n.0,
-                _ => return "".to_string(),
+            parsed_to_string(&f.0
+                                  ,&options, colors)
+        }else{"".to_string()}}
+    }
+}
+fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> String
+{
+    let mut out = String::new();
+    for i in input
+    {
+        match i
+        {
+            Num(n) =>
+            {
+                let n = get_output(*options, colors, n);
+                out.push_str(&format!(
+                    "{}{}{}",
+                    n.0,
+                    n.1,
+                    if options.color { "\x1b[0m" } else { "" }
+                ))
             }
+            Vector(n) =>
             {
-                match i
+                let mut str = String::new();
+                let mut num;
+                for i in n
                 {
-                    Num(n) =>
-                    {
-                        let n = get_output(options, colors, &n);
-                        out.push_str(&format!(
-                            "{}{}{}",
-                            n.0,
-                            n.1,
-                            if options.color { "\x1b[0m" } else { "" }
-                        ))
-                    }
-                    Vector(n) =>
-                    {
-                        let mut str = String::new();
-                        let mut num;
-                        for i in n
-                        {
-                            num = get_output(options, colors, &i);
-                            str.push_str(&format!(
-                                "{}{}{},",
-                                num.0,
-                                num.1,
-                                if options.color { "\x1b[0m" } else { "" }
-                            ));
-                        }
-                        str.pop();
-                        out.push_str(&format!("{{{}}}", str))
-                    }
-                    Matrix(n) =>
-                    {
-                        let mut str = String::new();
-                        let mut num;
-                        for i in n
-                        {
-                            for j in i
-                            {
-                                num = get_output(options, colors, &j);
-                                str.push_str(&format!(
-                                    "{}{}{},",
-                                    num.0,
-                                    num.1,
-                                    if options.color { "\x1b[0m" } else { "" }
-                                ));
-                            }
-                        }
-                        str.pop();
-                        out.push_str(&format!("{{{}}}", str))
-                    }
-                    Str(n) => out.push_str(&n),
+                    num = get_output(*options, colors, i);
+                    str.push_str(&format!(
+                        "{}{}{},",
+                        num.0,
+                        num.1,
+                        if options.color { "\x1b[0m" } else { "" }
+                    ));
                 }
+                str.pop();
+                out.push_str(&format!("{{{}}}", str))
             }
-            to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
+            Matrix(n) =>
+            {
+                let mut str = String::new();
+                let mut num;
+                for i in n
+                {
+                    for j in i
+                    {
+                        num = get_output(*options, colors, j);
+                        str.push_str(&format!(
+                            "{}{}{},",
+                            num.0,
+                            num.1,
+                            if options.color { "\x1b[0m" } else { "" }
+                        ));
+                    }
+                }
+                str.pop();
+                out.push_str(&format!("{{{}}}", str))
+            }
+            Str(n) => out.push_str(n),
         }
     }
+    to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
 }
 pub fn set_commands(
     options: &mut Options,
     colors: &mut Colors,
-    vars: &mut [(String, String, NumStr)],
-    old: &mut Vec<(String, String, NumStr)>,
+    vars: &mut [(String, Vec<NumStr>, NumStr)],
+    old: &mut Vec<(String, Vec<NumStr>, NumStr)>,
     l: &str,
     r: &str,
 ) -> Result<(), &'static str>
@@ -992,7 +990,6 @@ pub fn set_commands(
                     &mut Vec::new(),
                     &mut 0,
                     *options,
-                    0,
                     false,
                     &mut (false, 0, 0),
                 )?
@@ -1017,7 +1014,6 @@ pub fn set_commands(
                 &mut Vec::new(),
                 &mut 0,
                 *options,
-                0,
                 false,
                 &mut (false, 0, 0),
             )?
@@ -1034,63 +1030,17 @@ pub fn set_commands(
                 if !vars.is_empty()
                 {
                     let v = get_vars(*options);
-                    let mut redef = Vec::new();
                     for i in old.clone().iter().zip(&v)
                     {
                         for var in vars.iter_mut()
                         {
-                            if i.0 .1 == var.1 && i.0 .0 == var.0
+                            if i.0 .2 == var.2 && i.0 .0 == var.0
                             {
-                                redef.push(var.0.clone());
                                 *var = i.1.clone();
                             }
                         }
                     }
-                    let mut k = 0;
-                    while k < redef.len()
-                    {
-                        for j in 0..vars.len()
-                        {
-                            if vars[j].1.contains(
-                                &redef[k][0..=redef[k]
-                                    .chars()
-                                    .position(|a| a == '(')
-                                    .unwrap_or(redef[k].len() - 1)],
-                            )
-                            {
-                                redef.push(vars[j].0.clone());
-                                vars[j] = (
-                                    vars[j].0.clone(),
-                                    vars[j].1.clone(),
-                                    if vars[j].0.contains('(')
-                                    {
-                                        Str(String::new())
-                                    }
-                                    else
-                                    {
-                                        do_math(
-                                            input_var(
-                                                &vars[j].1,
-                                                vars.to_vec(),
-                                                None,
-                                                &mut Vec::new(),
-                                                &mut 0,
-                                                *options,
-                                                0,
-                                                false,
-                                                &mut (false, 0, 0),
-                                            )
-                                            .unwrap()
-                                            .0,
-                                            *options,
-                                        )
-                                        .unwrap_or(Num(Complex::new(options.prec)))
-                                    },
-                                );
-                            }
-                        }
-                        k += 1;
-                    }
+                    //TODO update prec better
                     *old = v;
                 }
             }
@@ -1109,7 +1059,6 @@ pub fn set_commands(
                             &mut Vec::new(),
                             &mut 0,
                             *options,
-                            0,
                             false,
                             &mut (false, 0, 0),
                         )?
@@ -1127,7 +1076,6 @@ pub fn set_commands(
                             &mut Vec::new(),
                             &mut 0,
                             *options,
-                            0,
                             false,
                             &mut (false, 0, 0),
                         )?
@@ -1157,7 +1105,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1181,6 +1128,7 @@ pub fn set_commands(
         {
             if r.contains(',')
             {
+                //TODO fix for functions with ','
                 options.xr.0 = do_math(
                     input_var(
                         r.split(',').next().unwrap(),
@@ -1189,7 +1137,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1207,7 +1154,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1228,7 +1174,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1253,7 +1198,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1271,7 +1215,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1292,7 +1235,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1317,7 +1259,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1335,7 +1276,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1356,7 +1296,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1387,7 +1326,6 @@ pub fn set_commands(
                     &mut Vec::new(),
                     &mut 0,
                     *options,
-                    0,
                     false,
                     &mut (false, 0, 0),
                 )?
@@ -1411,7 +1349,6 @@ pub fn set_commands(
                             &mut Vec::new(),
                             &mut 0,
                             *options,
-                            0,
                             false,
                             &mut (false, 0, 0),
                         )?
@@ -1429,7 +1366,6 @@ pub fn set_commands(
                             &mut Vec::new(),
                             &mut 0,
                             *options,
-                            0,
                             false,
                             &mut (false, 0, 0),
                         )?
@@ -1451,7 +1387,6 @@ pub fn set_commands(
                         &mut Vec::new(),
                         &mut 0,
                         *options,
-                        0,
                         false,
                         &mut (false, 0, 0),
                     )?
@@ -1473,7 +1408,7 @@ pub fn commands(
     options: &mut Options,
     colors: &Colors,
     watch: &mut Option<Instant>,
-    vars: &mut [(String, String, NumStr)],
+    vars: &mut [(String, Vec<NumStr>, NumStr)],
     lines: &[String],
     input: &[char],
     stdout: &mut Stdout,
@@ -1616,7 +1551,7 @@ pub fn commands(
                     print!(
                         "{}={}\n\x1b[G",
                         v.0,
-                        to_output(&v.1.chars().collect::<Vec<char>>(), options.color, colors)
+                        parsed_to_string(&v.1, options, colors)
                     );
                 }
                 else
@@ -1670,18 +1605,11 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                if v.0.contains('(')
-                {
-                    print!(
-                        "{}={}\n\x1b[G",
-                        v.0,
-                        to_output(&v.1.chars().collect::<Vec<char>>(), options.color, colors)
-                    );
-                }
-                else
-                {
-                    print!("{}={}\n\x1b[G", v.0, v.1);
-                }
+                print!(
+                    "{}={}\n\x1b[G",
+                    v.0,
+                    parsed_to_string(&v.1, options, colors)
+                );
             }
             stdout.flush().unwrap();
         }

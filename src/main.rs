@@ -34,15 +34,12 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//changing prec updates custom vars
 //print long answers on enter
 //add optimzation, see if last var output is the same as current
 //lambert w function
 //get rid of '=' check and put it in load_vars and have an extra output or something
 //shift+enter no graph?
 //make == work more consistently
-//standard deviance and stuff
-//add function to convert frequency data to list
 //min distance from x^-(2n-1)
 #[derive(Clone)]
 pub struct Colors

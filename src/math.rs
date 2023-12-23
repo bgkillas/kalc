@@ -2,7 +2,7 @@ use crate::{
     complex::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
         inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog,
-        sort, sub, sum, tetration, to, to_polar, trace, transpose, NumStr,
+        sort, sub, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -636,6 +636,22 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                             Num(Complex::with_val(options.prec, res as u8))
                         }
                         "eigenvalues" => Vector(eigenvalues(&a)?),
+                        "tolist" =>
+                        {
+                            let mut vec = Vec::new();
+                            for a in a
+                            {
+                                if a.len() != 2
+                                {
+                                    return Err("bad list");
+                                }
+                                for _ in 0..a[1].real().to_f64() as usize
+                                {
+                                    vec.push(a[0].clone())
+                                }
+                            }
+                            Vector(sort(vec))
+                        }
                         _ => do_functions(
                             function[i + 1].clone(),
                             options,
@@ -651,6 +667,35 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                 {
                     function[i] = match s.as_str()
                     {
+                        "tofreq" =>
+                        {
+                            if a.is_empty()
+                            {
+                                return Err("bad list");
+                            }
+                            let mut a = sort(a);
+                            let mut last = a[0].clone();
+                            let mut count = 1;
+                            a.remove(0);
+                            let mut mat = Vec::new();
+                            for a in a
+                            {
+                                if a != last
+                                {
+                                    mat.push(vec![
+                                        last.clone(),
+                                        Complex::with_val(options.prec, count),
+                                    ]);
+                                    last = a;
+                                    count = 0;
+                                }
+                                count += 1;
+                            }
+                            mat.push(vec![last.clone(), Complex::with_val(options.prec, count)]);
+                            Matrix(mat)
+                        }
+                        "standarddeviation" | "σ" => Num(variance(&a, options.prec).sqrt()),
+                        "variance" | "var" => Num(variance(&a, options.prec)),
                         "all" =>
                         {
                             let mut res = true;

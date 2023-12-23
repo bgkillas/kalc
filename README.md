@@ -92,13 +92,11 @@ Operators:
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
 
-Trigonometric functions:
+Functions:
 - sin, cos, tan, asin, acos, atan, atan(x,y)
 - csc, sec, cot, acsc, asec, acot
 - sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth
-
-Other functions:
 - sqrt, cbrt, square, cube, quadratic(a,b,c) cubic(a,b,c,d)
 - ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
@@ -111,6 +109,8 @@ Other functions:
 - factors, prime
 - slog(a,b)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
+- tofreq{a,b,c...}, tolist{{a,b},{c,d}...} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)
+- variance/var, standarddeviation/σ (sample-bias corrected)
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})

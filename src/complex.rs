@@ -1142,3 +1142,13 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex) -> Vec<Complex>
         ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
     ]
 }
+pub fn variance(a: &[Complex], prec: (u32, u32)) -> Complex
+{
+    let mean = a.iter().fold(Complex::new(prec), |sum, val| sum + val) / a.len();
+    let mut variance = Complex::new(prec);
+    for a in a
+    {
+        variance += (a - mean.clone()).pow(2)
+    }
+    variance / (a.len() - 1)
+}

@@ -58,12 +58,11 @@ Operators:\n\x1b[G\
 - !x (subfact), x! (fact), x!! (doublefact)\n\x1b[G\
 - && (and), || (or), == (equals), != (not equals)\n\x1b[G\
 - >> (right shift), << (left shift)\n\x1b[G\n\x1b[G\
-Trigonometric functions:\n\x1b[G\
+Functions:\n\x1b[G\
 - sin, cos, tan, asin, acos, atan, atan(x,y)\n\x1b[G\
 - csc, sec, cot, acsc, asec, acot\n\x1b[G\
 - sinh, cosh, tanh, asinh, acosh, atanh\n\x1b[G\
-- csch, sech, coth, acsch, asech, acoth\n\x1b[G\n\x1b[G\
-Other functions:\n\x1b[G\
+- csch, sech, coth, acsch, asech, acoth\n\x1b[G\
 - sqrt, cbrt, square, cube, quadratic(a,b,c) cubic(a,b,c,d)\n\x1b[G\
 - ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\n\x1b[G\
 - abs, sgn, arg\n\x1b[G\
@@ -75,7 +74,9 @@ Other functions:\n\x1b[G\
 - re, im, split(x+yi={{x,y}})\n\x1b[G\
 - factors, prime\n\x1b[G\
 - slog(a,b)\n\x1b[G\
-- vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\n\x1b[G\
+- vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\
+- tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\n\x1b[G\
+- variance/var, standarddeviation/σ (sample-bias corrected)\n\x1b[G\n\x1b[G\
 Vector operations/functions:\n\x1b[G\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
 - angle({{vec1}},{{vec2}})\n\x1b[G\

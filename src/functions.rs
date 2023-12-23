@@ -158,6 +158,12 @@ pub fn functions() -> HashSet<&'static str>
         "quad",
         "quadratic",
         "cubic",
+        "standarddeviation",
+        "variance",
+        "tolist",
+        "tofreq",
+        "σ",
+        "var",
     ]
     .iter()
     .cloned()

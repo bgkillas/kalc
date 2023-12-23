@@ -19,7 +19,7 @@ pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
     func: Option<(Vec<NumStr>, bool)>,
-    vars: &[(String, Vec<NumStr>, NumStr)],
+    vars: &[(String, Vec<NumStr>, NumStr, String)],
     options: Options,
     colors: &Colors,
     start: usize,

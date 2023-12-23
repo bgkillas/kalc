@@ -14,7 +14,7 @@ use rug::{
 #[allow(clippy::too_many_arguments)]
 pub fn input_var(
     input: &str,
-    vars: Vec<(String, Vec<NumStr>, NumStr)>,
+    vars: Vec<(String, Vec<NumStr>, NumStr, String)>,
     dont_do: Option<String>,
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,

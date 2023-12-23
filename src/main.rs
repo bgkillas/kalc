@@ -43,6 +43,7 @@ use std::{
 //make == work more consistently
 //standard deviance and stuff
 //add function to convert frequency data to list
+//min distance from x^-(2n-1)
 #[derive(Clone)]
 pub struct Colors
 {
@@ -203,7 +204,7 @@ fn main()
             }
         }
     }
-    let mut vars: Vec<(String, Vec<NumStr>, NumStr)> = if options.allow_vars
+    let mut vars: Vec<(String, Vec<NumStr>, NumStr, String)> = if options.allow_vars
     {
         if args.is_empty()
         {
@@ -299,6 +300,7 @@ fn main()
                                             do_math(parsed, options)
                                                 .unwrap_or(Num(Complex::new(options.prec)))
                                         },
+                                        r,
                                     ),
                                 );
                                 let mut redef = vec![l];
@@ -309,28 +311,32 @@ fn main()
                                     {
                                         if redef[k] != v.0
                                             && !v.0.contains('(')
-                                            && v.1.iter().any(|s| {
-                                                if let Str(s) = s
-                                                {
-                                                    s.starts_with(
-                                                        &redef[k][0..redef[k]
-                                                            .chars()
-                                                            .position(|a| a == '(')
-                                                            .unwrap_or(redef[k].len())],
-                                                    )
-                                                }
-                                                else
-                                                {
-                                                    false
-                                                }
-                                            })
+                                            && v.3.contains(
+                                                &redef[k][0..=redef[k]
+                                                    .chars()
+                                                    .position(|a| a == '(')
+                                                    .unwrap_or(redef[k].len() - 1)],
+                                            )
                                         {
                                             redef.push(v.0.clone());
+                                            let parsed = input_var(
+                                                &v.3.clone(),
+                                                vars.clone(),
+                                                None,
+                                                &mut Vec::new(),
+                                                &mut 0,
+                                                options,
+                                                false,
+                                                &mut (false, 0, 0),
+                                            )
+                                            .unwrap()
+                                            .0;
                                             vars[j] = (
                                                 v.0.clone(),
-                                                v.1.clone(),
-                                                do_math(v.1.clone(), options)
+                                                parsed.clone(),
+                                                do_math(parsed, options)
                                                     .unwrap_or(Num(Complex::new(options.prec))),
+                                                v.3.clone(),
                                             );
                                         }
                                     }
@@ -362,6 +368,7 @@ fn main()
                             {
                                 do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                             },
+                            r,
                         ))
                     }
                 }
@@ -1198,6 +1205,7 @@ fn main()
                             {
                                 do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                             },
+                            r.to_string(),
                         );
                         let mut redef = vec![l];
                         let mut k = 0;
@@ -1207,28 +1215,32 @@ fn main()
                             {
                                 if redef[k] != v.0
                                     && !v.0.contains('(')
-                                    && v.1.iter().any(|s| {
-                                        if let Str(s) = s
-                                        {
-                                            s.starts_with(
-                                                &redef[k][0..redef[k]
-                                                    .chars()
-                                                    .position(|a| a == '(')
-                                                    .unwrap_or(redef[k].len())],
-                                            )
-                                        }
-                                        else
-                                        {
-                                            false
-                                        }
-                                    })
+                                    && v.3.contains(
+                                        &redef[k][0..=redef[k]
+                                            .chars()
+                                            .position(|a| a == '(')
+                                            .unwrap_or(redef[k].len() - 1)],
+                                    )
                                 {
                                     redef.push(v.0.clone());
+                                    let parsed = input_var(
+                                        &v.3.clone(),
+                                        vars.clone(),
+                                        None,
+                                        &mut Vec::new(),
+                                        &mut 0,
+                                        options,
+                                        false,
+                                        &mut (false, 0, 0),
+                                    )
+                                    .unwrap()
+                                    .0;
                                     vars[j] = (
                                         v.0.clone(),
-                                        v.1.clone(),
-                                        do_math(v.1.clone(), options)
+                                        parsed.clone(),
+                                        do_math(parsed, options)
                                             .unwrap_or(Num(Complex::new(options.prec))),
+                                        v.3.clone(),
                                     );
                                 }
                             }
@@ -1265,17 +1277,21 @@ fn main()
                     )
                     .unwrap()
                     .0;
-                    vars[i] = (
-                        l.to_string(),
-                        parsed.clone(),
-                        if l.contains('(')
-                        {
-                            Str(String::new())
-                        }
-                        else
-                        {
-                            do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
-                        },
+                    vars.insert(
+                        i,
+                        (
+                            l.to_string(),
+                            parsed.clone(),
+                            if l.contains('(')
+                            {
+                                Str(String::new())
+                            }
+                            else
+                            {
+                                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
+                            },
+                            r.to_string(),
+                        ),
                     );
                     let mut redef = vec![l];
                     let mut k = 0;
@@ -1285,28 +1301,32 @@ fn main()
                         {
                             if redef[k] != v.0
                                 && !v.0.contains('(')
-                                && v.1.iter().any(|s| {
-                                    if let Str(s) = s
-                                    {
-                                        s.starts_with(
-                                            &redef[k][0..redef[k]
-                                                .chars()
-                                                .position(|a| a == '(')
-                                                .unwrap_or(redef[k].len())],
-                                        )
-                                    }
-                                    else
-                                    {
-                                        false
-                                    }
-                                })
+                                && v.3.contains(
+                                    &redef[k][0..=redef[k]
+                                        .chars()
+                                        .position(|a| a == '(')
+                                        .unwrap_or(redef[k].len() - 1)],
+                                )
                             {
                                 redef.push(v.0.clone());
+                                let parsed = input_var(
+                                    &v.3.clone(),
+                                    vars.clone(),
+                                    None,
+                                    &mut Vec::new(),
+                                    &mut 0,
+                                    options,
+                                    false,
+                                    &mut (false, 0, 0),
+                                )
+                                .unwrap()
+                                .0;
                                 vars[j] = (
                                     v.0.clone(),
-                                    v.1.clone(),
-                                    do_math(v.1.clone(), options)
+                                    parsed.clone(),
+                                    do_math(parsed, options)
                                         .unwrap_or(Num(Complex::new(options.prec))),
+                                    v.3.clone(),
                                 );
                             }
                         }
@@ -1340,6 +1360,7 @@ fn main()
                     {
                         do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                     },
+                    r.to_string(),
                 ));
             }
         }

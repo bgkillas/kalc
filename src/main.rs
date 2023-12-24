@@ -547,7 +547,7 @@ fn main()
                         }
                         if !input.is_empty()
                         {
-                            println!("{}", "\n".repeat(frac));
+                            print!("\x1b[{}B", frac + 1);
                         }
                         if c == '\x14'
                         {

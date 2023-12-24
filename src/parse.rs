@@ -906,6 +906,12 @@ pub fn input_var(
         })
         {
             place_multiplier(&mut output, sumrec);
+            if neg
+            {
+                output.push(Num(n1.clone()));
+                output.push(Str('*'.to_string()));
+                neg = false;
+            }
             i += if c == '@'
             {
                 chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 2
@@ -915,6 +921,26 @@ pub fn input_var(
                 word.chars().count()
             };
             output.push(Str(word));
+            if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+            {
+                for _ in 0..pwr.2
+                {
+                    output.push(Str(')'.to_string()))
+                }
+                pwr.0 = false;
+                pwr.2 = 0
+            }
+            if scientific
+            {
+                output.push(Str(")".to_string()));
+                scientific = false;
+            }
+            if subfact.0 && subfact.1 == 0
+            {
+                subfact.0 = false;
+                output.push(Str(")".to_string()));
+                output.push(Str(")".to_string()))
+            }
         }
         else
         {

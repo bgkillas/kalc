@@ -384,10 +384,22 @@ fn main()
                                 continue 'upper;
                             }
                         }
+                        let mut func_vars: Vec<(isize, String)> = Vec::new();
+                        let l = l.chars().collect::<Vec<char>>();
+                        if l.contains(&'(')
+                        {
+                            let mut l = l.clone();
+                            l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
+                            l.pop();
+                            for i in l.split(|c| c == &',')
+                            {
+                                func_vars.push((-1, i.iter().collect()));
+                            }
+                        }
                         let parsed = input_var(
                             &r,
                             vars.clone(),
-                            &mut Vec::new(),
+                            &mut func_vars,
                             &mut 0,
                             options,
                             false,
@@ -396,9 +408,9 @@ fn main()
                         .unwrap()
                         .0;
                         vars.push((
-                            l.chars().collect::<Vec<char>>(),
+                            l.clone(),
                             parsed.clone(),
-                            if l.contains('(')
+                            if l.contains(&'(')
                             {
                                 Str(String::new())
                             }
@@ -407,7 +419,7 @@ fn main()
                                 do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
                             },
                             r,
-                        ))
+                        ));
                     }
                 }
             }
@@ -1182,14 +1194,15 @@ fn main()
                     else
                     {
                         let mut func_vars: Vec<(isize, String)> = Vec::new();
-                        if l.contains('(')
+                        let l = l.chars().collect::<Vec<char>>();
+                        if l.contains(&'(')
                         {
                             let mut l = l.clone();
-                            l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                            l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                             l.pop();
-                            for i in l.split(',')
+                            for i in l.split(|c| c == &',')
                             {
-                                func_vars.push((-1, i.to_string()));
+                                func_vars.push((-1, i.iter().collect()));
                             }
                         }
                         let parsed = input_var(
@@ -1203,7 +1216,6 @@ fn main()
                         )
                         .unwrap()
                         .0;
-                        let l = l.chars().collect::<Vec<char>>();
                         vars[i] = (
                             l.clone(),
                             parsed.clone(),
@@ -1285,14 +1297,15 @@ fn main()
                 if j.0.len() <= l.chars().count()
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();
-                    if l.contains('(')
+                    let l = l.chars().collect::<Vec<char>>();
+                    if l.contains(&'(')
                     {
                         let mut l = l.clone();
-                        l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                        l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                         l.pop();
-                        for i in l.split(',')
+                        for i in l.split(|c| c == &',')
                         {
-                            func_vars.push((-1, i.to_string()));
+                            func_vars.push((-1, i.iter().collect()));
                         }
                     }
                     let parsed = input_var(
@@ -1306,7 +1319,6 @@ fn main()
                     )
                     .unwrap()
                     .0;
-                    let l = l.chars().collect::<Vec<char>>();
                     vars.insert(
                         i,
                         (
@@ -1387,10 +1399,22 @@ fn main()
             }
             if vars.is_empty()
             {
+                let mut func_vars: Vec<(isize, String)> = Vec::new();
+                let l = l.chars().collect::<Vec<char>>();
+                if l.contains(&'(')
+                {
+                    let mut l = l.clone();
+                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
+                    l.pop();
+                    for i in l.split(|c| c == &',')
+                    {
+                        func_vars.push((-1, i.iter().collect()));
+                    }
+                }
                 let parsed = input_var(
                     r,
                     vars.clone(),
-                    &mut Vec::new(),
+                    &mut func_vars,
                     &mut 0,
                     options,
                     false,
@@ -1399,9 +1423,9 @@ fn main()
                 .unwrap()
                 .0;
                 vars.push((
-                    l.chars().collect::<Vec<char>>(),
+                    l.clone(),
                     parsed.clone(),
-                    if l.contains('(')
+                    if l.contains(&'(')
                     {
                         Str(String::new())
                     }

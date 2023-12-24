@@ -186,6 +186,7 @@ pub fn read_single_char() -> char
                 (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
                 (KeyCode::Esc, _) => digraph(),
                 (KeyCode::Enter, KeyModifiers::NONE) => '\n',
+                (KeyCode::Enter, KeyModifiers::ALT) => '\x09',
                 (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
                 (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
                 (KeyCode::Left, KeyModifiers::NONE) => '\x1B',

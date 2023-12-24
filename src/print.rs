@@ -18,7 +18,6 @@ use std::{cmp::Ordering, str::FromStr};
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
-    func: Option<(Vec<NumStr>, bool)>,
     vars: &[(String, Vec<NumStr>, NumStr, String)],
     options: Options,
     colors: &Colors,
@@ -67,32 +66,25 @@ pub fn print_concurrent(
             return (0, false);
         }
     }
-    let input = if let Some(s) = func
+    let input = match input_var(
+        &unmodified_input
+            .iter()
+            .collect::<String>()
+            .replace('_', &format!("({})", last.iter().collect::<String>())),
+        vars.to_vec(),
+        None,
+        &mut Vec::new(),
+        &mut 0,
+        options,
+        false,
+        &mut (false, 0, 0),
+    )
     {
-        s
-    }
-    else
-    {
-        match input_var(
-            &unmodified_input
-                .iter()
-                .collect::<String>()
-                .replace('_', &format!("({})", last.iter().collect::<String>())),
-            vars.to_vec(),
-            None,
-            &mut Vec::new(),
-            &mut 0,
-            options,
-            false,
-            &mut (false, 0, 0),
-        )
+        Ok(f) => f,
+        Err(s) =>
         {
-            Ok(f) => f,
-            Err(s) =>
-            {
-                handle_err(s, unmodified_input, options, colors, start, end);
-                return (0, false);
-            }
+            handle_err(s, unmodified_input, options, colors, start, end);
+            return (0, false);
         }
     };
     if input.1

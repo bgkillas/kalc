@@ -1225,7 +1225,7 @@ pub fn input_var(
                         {
                             if &var.0 == n
                             {
-                                return Ok((vec![], graph));
+                                return Err("some parsing error");
                             }
                         }
                         i += if chars[i..i + vl].contains(&'@') && !var.0.contains('@')

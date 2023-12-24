@@ -52,7 +52,9 @@ FLAGS: --help (this message)\n\x1b[G\
 - Type \"{{vec}}#\" to graph a vector\n\x1b[G\
 - Type \"{{mat}}#\" to graph a matrix\n\x1b[G\
 - Type \"number#\" to graph a complex number\n\x1b[G\
-- Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\x1b[G\n\x1b[G\
+- Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\x1b[G\
+- Type \"rnd\" to generate a random number\n\x1b[G\
+- Alt+Enter will not graph whatever is present\n\x1b[G\n\x1b[G\
 Operators:\n\x1b[G\
 - +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-\n\x1b[G\
 - !x (subfact), x! (fact), x!! (doublefact)\n\x1b[G\

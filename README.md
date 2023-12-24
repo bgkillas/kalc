@@ -85,6 +85,7 @@ FLAGS: --help (this message)
 - Type "number#" to graph a complex number
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 - Type "rnd" to generate a random number
+- Alt+Enter will not graph whatever is present
 
 Operators:
 - +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-

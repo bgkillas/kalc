@@ -1805,7 +1805,18 @@ pub fn commands(
                 print!(
                     "{}={}\n\x1b[G",
                     v.0,
-                    parsed_to_string(&v.1, options, colors)
+                    parsed_to_string(
+                        &if v.1.is_empty()
+                        {
+                            vec![v.2.clone()]
+                        }
+                        else
+                        {
+                            v.1.clone()
+                        },
+                        options,
+                        colors
+                    )
                 );
             }
             stdout.flush().unwrap();

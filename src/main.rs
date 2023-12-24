@@ -38,7 +38,6 @@ use std::{
 //add optimzation, see if last var output is the same as current
 //lambert w function
 //get rid of '=' check and put it in load_vars and have an extra output or something
-//shift+enter no graph?
 //make == work more consistently
 #[derive(Clone)]
 pub struct Colors
@@ -435,7 +434,7 @@ fn main()
     'main: loop
     {
         let mut input = Vec::new();
-        let mut graphable;
+        let mut graphable = false;
         if !args.is_empty()
         {
             if options.debug
@@ -517,31 +516,18 @@ fn main()
                 }
                 match c
                 {
-                    '\n' | '\x14' =>
+                    '\n' | '\x14' | '\x09' =>
                     {
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
                         }
-                        let func;
-                        (func, graphable) = input_var(
-                            &input.iter().collect::<String>(),
-                            vars.clone(),
-                            None,
-                            &mut Vec::new(),
-                            &mut 0,
-                            options,
-                            false,
-                            &mut (false, 0, 0),
-                        )
-                        .unwrap_or_else(|_| (vec![], false));
                         if !options.real_time_output && !input.is_empty()
                         {
                             (frac, graphable) = print_concurrent(
                                 &input,
                                 &last,
-                                Some((func.clone(), graphable)),
                                 &vars.clone(),
                                 options,
                                 &colors,
@@ -549,7 +535,7 @@ fn main()
                                 end,
                             );
                         }
-                        if !func.is_empty()
+                        if !input.is_empty()
                         {
                             println!("{}", "\n".repeat(frac));
                         }
@@ -574,6 +560,10 @@ fn main()
                                 .contains('=')
                         {
                             println!();
+                        }
+                        if c == '\x09'
+                        {
+                            graphable = false;
                         }
                         break;
                     }
@@ -602,18 +592,15 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        frac = if options.real_time_output
+                        if options.real_time_output
                         {
-                            print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
                             clear(&input, start, end, options, &colors);
-                            0
-                        };
+                        }
                         if let Some(time) = watch
                         {
                             let time = time.elapsed().as_nanos();
@@ -654,18 +641,15 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        frac = if options.real_time_output
+                        if options.real_time_output
                         {
-                            print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
                             clear(&input, start, end, options, &colors);
-                            0
-                        };
+                        }
                         if let Some(time) = watch
                         {
                             let time = time.elapsed().as_nanos();
@@ -699,10 +683,8 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -717,10 +699,8 @@ fn main()
                         placement = 0;
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -735,10 +715,8 @@ fn main()
                         end = input.len();
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -755,10 +733,8 @@ fn main()
                         input.extend(cut);
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -775,10 +751,9 @@ fn main()
                             input.insert(placement + 1, char);
                             if options.real_time_output
                             {
-                                frac = print_concurrent(
-                                    &input, &last, None, &vars, options, &colors, start, end,
+                                (frac, graphable) = print_concurrent(
+                                    &input, &last, &vars, options, &colors, start, end,
                                 )
-                                .0;
                             }
                             else
                             {
@@ -790,12 +765,10 @@ fn main()
                     '\x15' =>
                     {
                         //ctrl+l
-                        if options.real_time_output && !input.is_empty()
+                        if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -817,12 +790,10 @@ fn main()
                         {
                             get_terminal_width() - if options.prompt { 3 } else { 1 }
                         };
-                        if options.real_time_output && !input.is_empty()
+                        if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -849,10 +820,8 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -886,10 +855,8 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
@@ -1046,14 +1013,12 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            frac = print_concurrent(
-                                &input, &last, None, &vars, options, &colors, start, end,
-                            )
-                            .0;
+                            (frac, graphable) =
+                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors)
+                            clear(&input, start, end, options, &colors);
                         }
                         if let Some(time) = watch
                         {

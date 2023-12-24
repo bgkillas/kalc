@@ -35,7 +35,6 @@ use std::{
     time::Instant,
 };
 //print long answers on enter
-//add optimzation, see if last var output is the same as current
 //lambert w function
 //get rid of '=' check and put it in load_vars and have an extra output or something
 //make == work more consistently
@@ -199,15 +198,34 @@ fn main()
             }
         }
     }
+    #[cfg(unix)]
+    let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
+    #[cfg(not(unix))]
+    let file_path = &format!(
+        "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
+        var("USERNAME").unwrap()
+    );
     let mut vars: Vec<(String, Vec<NumStr>, NumStr, String)> = if options.allow_vars
     {
         if args.is_empty()
         {
             get_vars(options)
         }
+        else if File::open(file_path).is_ok()
+        {
+            get_cli_vars(
+                options,
+                args.concat()
+                    + &BufReader::new(File::open(file_path).unwrap())
+                        .lines()
+                        .map(|l| l.unwrap())
+                        .collect::<Vec<String>>()
+                        .concat(),
+            )
+        }
         else
         {
-            get_cli_vars(options, &args)
+            get_cli_vars(options, args.concat())
         }
     }
     else
@@ -216,13 +234,6 @@ fn main()
     };
     let mut old = vars.clone();
     {
-        #[cfg(unix)]
-        let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
-        #[cfg(not(unix))]
-        let file_path = &format!(
-            "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
-            var("USERNAME").unwrap()
-        );
         if options.allow_vars && File::open(file_path).is_ok()
         {
             let lines = BufReader::new(File::open(file_path).unwrap())
@@ -256,7 +267,6 @@ fn main()
                         {
                             if j.0.chars().count() <= l.chars().count()
                             {
-                                //TODO fix l(2) because 'e' n stuff
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
                                 if l.contains('(')
                                 {
@@ -1093,6 +1103,8 @@ fn main()
             let l = s;
             let r = split.next().unwrap();
             if l.is_empty()
+                || l.chars()
+                    .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ','))
                 || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
                 {
                     Err(s) =>

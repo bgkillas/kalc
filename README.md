@@ -3,7 +3,7 @@
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/9e8947b0-eef1-4a49-9bec-dbc4d311b9e0)
 
-requires gnuplot for graphing, a modern terminal like windows terminal on windows
+requires gnuplot for graphing, a modern terminal like windows terminal on windows(via wsl)
 
 history file is stored in ```~/.config/kalc.history```
 
@@ -16,9 +16,7 @@ parsing tries to comply with wolfram alpha
 config defaults listed in kalc.config
 # issues
 - 0's and infinities of trig functions don't show up as exactly 0(shows as something like 10^-155) or infinity(shows as something like 10^155).
-- matrix to a fractional power is unsupported like {{2,3},{6,7}}^1.5
 - recursive formulas don't work
-- |2|x|| does not format as norm(2*norm(x)) it formats as norm(2)*x||, |ln|x|| works
 # build instructions
 windows is not properly supported due to dependencys being weird, just use wsl
 

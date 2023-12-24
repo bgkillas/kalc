@@ -3,11 +3,9 @@ use crate::{
     Options,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float};
-pub fn get_cli_vars(options: Options, args: &[String])
-    -> Vec<(String, Vec<NumStr>, NumStr, String)>
+pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>, NumStr, String)>
 {
     let mut vars = Vec::new();
-    let args = args.concat();
     if args.chars().all(|c| !c.is_alphabetic())
     {
         return vars;

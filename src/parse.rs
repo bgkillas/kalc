@@ -23,7 +23,7 @@ pub fn input_var(
     pwr: &mut (bool, isize, isize),
 ) -> Result<(Vec<NumStr>, bool), &'static str>
 {
-    if input.starts_with("history")
+    if input.starts_with("history") || input.is_empty()
     {
         return Err(" ");
     }
@@ -43,6 +43,10 @@ pub fn input_var(
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
     let mut i = 0;
+    while !chars.is_empty() && chars[0].is_whitespace()
+    {
+        chars.remove(0);
+    }
     while i < chars.len()
     {
         if chars[i].is_whitespace()

@@ -547,30 +547,35 @@ fn main()
                         }
                         if !input.is_empty()
                         {
-                            print!("\x1b[{}B", frac + 1);
+                            let num = frac
+                                + if !graphable
+                                    && !input
+                                        .iter()
+                                        .collect::<String>()
+                                        .replace("==", "")
+                                        .replace("!=", "")
+                                        .replace("<=", "")
+                                        .replace(">=", "")
+                                        .contains('=')
+                                {
+                                    1
+                                }
+                                else
+                                {
+                                    0
+                                };
+                            if num != 0
+                            {
+                                print!("\x1b[{}B", num);
+                            }
                         }
                         if c == '\x14'
                         {
-                            if !input.is_empty() && !graphable && !input.ends_with(&['='])
-                            {
-                                println!();
-                            }
-                            print!("\x1b[G\x1b[J");
+                            print!("\n\x1b[G\x1b[J");
                             terminal::disable_raw_mode().unwrap();
                             std::process::exit(0);
                         }
-                        if !graphable
-                            && !input
-                                .iter()
-                                .collect::<String>()
-                                .replace("==", "")
-                                .replace("!=", "")
-                                .replace("<=", "")
-                                .replace(">=", "")
-                                .contains('=')
-                        {
-                            println!();
-                        }
+                        println!();
                         if c == '\x09'
                         {
                             graphable = false;

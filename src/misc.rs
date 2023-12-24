@@ -259,7 +259,11 @@ pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors:
 }
 pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
 {
-    if color
+    if input.len() > get_terminal_width() * (get_terminal_height() - 1)
+    {
+        "output too long".to_string()
+    }
+    else if color
     {
         let mut count: isize = 0;
         let mut output = String::new();

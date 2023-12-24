@@ -69,7 +69,6 @@ pub fn arg_opts(
                             let a = match input_var(
                                 &args[i + 1],
                                 Vec::new(),
-                                None,
                                 &mut Vec::new(),
                                 &mut 0,
                                 *options,
@@ -112,7 +111,6 @@ pub fn arg_opts(
                                 let a = match input_var(
                                     &args[i + 1],
                                     Vec::new(),
-                                    None,
                                     &mut Vec::new(),
                                     &mut 0,
                                     *options,
@@ -752,7 +750,7 @@ pub fn file_opts(
 pub fn equal_to(
     options: Options,
     colors: &Colors,
-    vars: &[(String, Vec<NumStr>, NumStr, String)],
+    vars: &[(Vec<char>, Vec<NumStr>, NumStr, String)],
     l: &str,
     last: &str,
 ) -> String
@@ -855,7 +853,6 @@ pub fn equal_to(
             let input=input_var(
                 &l.replace('_', &format!("({})", last)),
                 vars.to_vec(),
-                None,
                 &mut Vec::new(),
                 &mut 0,
                 options, false,
@@ -930,8 +927,8 @@ fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> Str
 pub fn set_commands(
     options: &mut Options,
     colors: &mut Colors,
-    vars: &mut [(String, Vec<NumStr>, NumStr, String)],
-    old: &mut Vec<(String, Vec<NumStr>, NumStr, String)>,
+    vars: &mut [(Vec<char>, Vec<NumStr>, NumStr, String)],
+    old: &mut Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
     l: &str,
     r: &str,
 ) -> Result<(), &'static str>
@@ -1026,7 +1023,6 @@ pub fn set_commands(
                 input_var(
                     r,
                     vars.to_vec(),
-                    None,
                     &mut Vec::new(),
                     &mut 0,
                     *options,
@@ -1050,7 +1046,6 @@ pub fn set_commands(
             input_var(
                 r,
                 vars.to_vec(),
-                None,
                 &mut Vec::new(),
                 &mut 0,
                 *options,
@@ -1087,24 +1082,20 @@ pub fn set_commands(
                         if !var.3.is_empty()
                         {
                             let mut func_vars: Vec<(isize, String)> = Vec::new();
-                            if var.0.contains('(')
+                            if var.0.contains(&'(')
                             {
                                 let mut l = var.0.clone();
-                                l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                 l.pop();
-                                for i in l.split(',')
+                                for i in l.split(|c| c == &',')
                                 {
-                                    func_vars.push((-1, i.to_string()));
+                                    func_vars.push((-1, i.iter().collect()));
                                 }
                             }
-                            else
-                            {
-                                redef.push(var.0.clone());
-                            }
+                            redef.push(var.0.clone());
                             let parsed = input_var(
                                 &var.3,
                                 vars.to_vec(),
-                                None,
                                 &mut func_vars,
                                 &mut 0,
                                 *options,
@@ -1137,26 +1128,25 @@ pub fn set_commands(
                             if redef[k] != v.0
                                 && v.3.contains(
                                     &redef[k][0..=redef[k]
-                                        .chars()
-                                        .position(|a| a == '(')
+                                        .iter()
+                                        .position(|a| a == &'(')
                                         .unwrap_or(redef[k].len() - 1)],
                                 )
                             {
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if v.0.contains('(')
+                                if v.0.contains(&'(')
                                 {
                                     let mut l = v.0.clone();
-                                    l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                     l.pop();
-                                    for i in l.split(',')
+                                    for i in l.split(|c| c == &',')
                                     {
-                                        func_vars.push((-1, i.to_string()));
+                                        func_vars.push((-1, i.iter().collect()));
                                     }
                                 }
                                 let parsed = input_var(
                                     &v.3.clone(),
                                     vars.to_vec(),
-                                    None,
                                     &mut func_vars,
                                     &mut 0,
                                     *options,
@@ -1169,7 +1159,7 @@ pub fn set_commands(
                                 vars[j] = (
                                     v.0.clone(),
                                     parsed.clone(),
-                                    if v.0.contains('(')
+                                    if v.0.contains(&'(')
                                     {
                                         Str(String::new())
                                     }
@@ -1214,7 +1204,6 @@ pub fn set_commands(
                         input_var(
                             r.split_at(comma).0,
                             vars.to_vec(),
-                            None,
                             &mut Vec::new(),
                             &mut 0,
                             *options,
@@ -1231,7 +1220,6 @@ pub fn set_commands(
                         input_var(
                             r.split_at(comma).1,
                             vars.to_vec(),
-                            None,
                             &mut Vec::new(),
                             &mut 0,
                             *options,
@@ -1260,7 +1248,6 @@ pub fn set_commands(
                     input_var(
                         r,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1304,7 +1291,6 @@ pub fn set_commands(
                     input_var(
                         r.split_at(comma).0,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1321,7 +1307,6 @@ pub fn set_commands(
                     input_var(
                         r.split_at(comma).1,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1341,7 +1326,6 @@ pub fn set_commands(
                     input_var(
                         r,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1378,7 +1362,6 @@ pub fn set_commands(
                     input_var(
                         r.split_at(comma).0,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1395,7 +1378,6 @@ pub fn set_commands(
                     input_var(
                         r.split_at(comma).1,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1415,7 +1397,6 @@ pub fn set_commands(
                     input_var(
                         r,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1452,7 +1433,6 @@ pub fn set_commands(
                     input_var(
                         r.split_at(comma).0,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1469,7 +1449,6 @@ pub fn set_commands(
                     input_var(
                         r.split_at(comma).1,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1489,7 +1468,6 @@ pub fn set_commands(
                     input_var(
                         r,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1519,7 +1497,6 @@ pub fn set_commands(
                 input_var(
                     r,
                     vars.to_vec(),
-                    None,
                     &mut Vec::new(),
                     &mut 0,
                     *options,
@@ -1542,7 +1519,6 @@ pub fn set_commands(
                         input_var(
                             r.split(',').next().unwrap(),
                             vars.to_vec(),
-                            None,
                             &mut Vec::new(),
                             &mut 0,
                             *options,
@@ -1559,7 +1535,6 @@ pub fn set_commands(
                         input_var(
                             r.split(',').last().unwrap(),
                             vars.to_vec(),
-                            None,
                             &mut Vec::new(),
                             &mut 0,
                             *options,
@@ -1580,7 +1555,6 @@ pub fn set_commands(
                     input_var(
                         r,
                         vars.to_vec(),
-                        None,
                         &mut Vec::new(),
                         &mut 0,
                         *options,
@@ -1605,7 +1579,7 @@ pub fn commands(
     options: &mut Options,
     colors: &Colors,
     watch: &mut Option<Instant>,
-    vars: &mut [(String, Vec<NumStr>, NumStr, String)],
+    vars: &mut [(Vec<char>, Vec<NumStr>, NumStr, String)],
     lines: &[String],
     input: &[char],
     stdout: &mut Stdout,
@@ -1743,11 +1717,11 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                if v.0.contains('(')
+                if v.0.contains(&'(')
                 {
                     print!(
                         "{}={}\n\x1b[G",
-                        v.0,
+                        v.0.iter().collect::<String>(),
                         parsed_to_string(&v.1, options, colors)
                     );
                 }
@@ -1758,7 +1732,7 @@ pub fn commands(
                         Num(n) =>
                         {
                             let n = get_output(*options, colors, n);
-                            print!("{}={}{}\n\x1b[G", v.0, n.0, n.1)
+                            print!("{}={}{}\n\x1b[G", v.0.iter().collect::<String>(), n.0, n.1)
                         }
                         Vector(m) =>
                         {
@@ -1770,7 +1744,11 @@ pub fn commands(
                                 st.push_str(&n.1);
                                 st.push(',');
                             }
-                            print!("{}={{{}}}\n\x1b[G", v.0, st.trim_end_matches(','))
+                            print!(
+                                "{}={{{}}}\n\x1b[G",
+                                v.0.iter().collect::<String>(),
+                                st.trim_end_matches(',')
+                            )
                         }
                         Matrix(m) =>
                         {
@@ -1789,7 +1767,11 @@ pub fn commands(
                                 st.push('}');
                                 st.push(',');
                             }
-                            print!("{}={{{}}}\n\x1b[G", v.0, st.trim_end_matches(','))
+                            print!(
+                                "{}={{{}}}\n\x1b[G",
+                                v.0.iter().collect::<String>(),
+                                st.trim_end_matches(',')
+                            )
                         }
                         _ => continue,
                     }
@@ -1804,7 +1786,7 @@ pub fn commands(
             {
                 print!(
                     "{}={}\n\x1b[G",
-                    v.0,
+                    v.0.iter().collect::<String>(),
                     parsed_to_string(
                         &if v.1.is_empty()
                         {

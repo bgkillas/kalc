@@ -69,7 +69,6 @@ FLAGS: --help (this message)
 - Type "clear" to clear the screen
 - Type "history [arg]" to see the history, arg indexes it if specified
 - Type "vars" to list all variables
-- Type "lvars" to list all variables without equating them
 - Type "_" to use the previous answer
 - Type "a={expr}" to define a variable
 - Type "f(x)=..." to define a function

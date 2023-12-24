@@ -205,7 +205,7 @@ fn main()
         "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
         var("USERNAME").unwrap()
     );
-    let mut vars: Vec<(String, Vec<NumStr>, NumStr, String)> = if options.allow_vars
+    let mut vars: Vec<(Vec<char>, Vec<NumStr>, NumStr, String)> = if options.allow_vars
     {
         if args.is_empty()
         {
@@ -213,12 +213,24 @@ fn main()
         }
         else if File::open(file_path).is_ok()
         {
+            let args = args.concat();
             get_cli_vars(
                 options,
-                args.concat()
+                args.clone()
                     + &BufReader::new(File::open(file_path).unwrap())
                         .lines()
-                        .map(|l| l.unwrap())
+                        .map(|l| {
+                            let l = l.unwrap();
+                            if !l.starts_with('#')
+                                && args.contains(l.split(|c| c == '=' || c == '(').next().unwrap())
+                            {
+                                l
+                            }
+                            else
+                            {
+                                "".to_string()
+                            }
+                        })
                         .collect::<Vec<String>>()
                         .concat(),
             )
@@ -251,7 +263,7 @@ fn main()
                     if !args.is_empty()
                         && !args.contains(&if l.contains('(')
                         {
-                            l.split('(').next().unwrap().to_owned() + "("
+                            l.split('(').next().unwrap().to_owned()
                         }
                         else
                         {
@@ -265,23 +277,23 @@ fn main()
                         let r = split.next().unwrap().to_string();
                         for (i, j) in vars.clone().iter().enumerate()
                         {
-                            if j.0.chars().count() <= l.chars().count()
+                            if j.0.len() <= l.chars().count()
                             {
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if l.contains('(')
+                                let l = l.chars().collect::<Vec<char>>();
+                                if l.contains(&'(')
                                 {
                                     let mut l = l.clone();
-                                    l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                     l.pop();
-                                    for i in l.split(',')
+                                    for i in l.split(|c| c == &',')
                                     {
-                                        func_vars.push((-1, i.to_string()));
+                                        func_vars.push((-1, i.iter().collect()));
                                     }
                                 }
                                 let parsed = input_var(
                                     &r,
                                     vars.clone(),
-                                    None,
                                     &mut func_vars,
                                     &mut 0,
                                     options,
@@ -295,7 +307,7 @@ fn main()
                                     (
                                         l.clone(),
                                         parsed.clone(),
-                                        if l.contains('(')
+                                        if l.contains(&'(')
                                         {
                                             Str(String::new())
                                         }
@@ -316,28 +328,28 @@ fn main()
                                         if redef[k] != v.0
                                             && v.3.contains(
                                                 &redef[k][0..=redef[k]
-                                                    .chars()
-                                                    .position(|a| a == '(')
+                                                    .iter()
+                                                    .position(|a| a == &'(')
                                                     .unwrap_or(redef[k].len() - 1)],
                                             )
                                         {
                                             let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                            if v.0.contains('(')
+                                            if v.0.contains(&'(')
                                             {
                                                 let mut l = v.0.clone();
                                                 l.drain(
-                                                    0..=l.chars().position(|c| c == '(').unwrap(),
+                                                    0..=l.iter().position(|c| c == &'(').unwrap(),
                                                 );
                                                 l.pop();
-                                                for i in l.split(',')
+                                                for i in l.split(|c| c == &',')
                                                 {
-                                                    func_vars.push((-1, i.to_string()));
+                                                    func_vars
+                                                        .push((-1, i.iter().collect::<String>()));
                                                 }
                                             }
                                             let parsed = input_var(
                                                 &v.3.clone(),
                                                 vars.clone(),
-                                                None,
                                                 &mut func_vars,
                                                 &mut 0,
                                                 options,
@@ -350,7 +362,7 @@ fn main()
                                             vars[j] = (
                                                 v.0.clone(),
                                                 parsed.clone(),
-                                                if v.0.contains('(')
+                                                if v.0.contains(&'(')
                                                 {
                                                     Str(String::new())
                                                 }
@@ -375,7 +387,6 @@ fn main()
                         let parsed = input_var(
                             &r,
                             vars.clone(),
-                            None,
                             &mut Vec::new(),
                             &mut 0,
                             options,
@@ -385,7 +396,7 @@ fn main()
                         .unwrap()
                         .0;
                         vars.push((
-                            l.clone(),
+                            l.chars().collect::<Vec<char>>(),
                             parsed.clone(),
                             if l.contains('(')
                             {
@@ -456,7 +467,6 @@ fn main()
             (output, graphable) = match input_var(
                 &input.iter().map(convert).collect::<String>(),
                 vars.clone(),
-                None,
                 &mut Vec::new(),
                 &mut 0,
                 options,
@@ -1160,9 +1170,9 @@ fn main()
             }
             for (i, v) in vars.iter().enumerate()
             {
-                if v.0.split('(').next() == l.split('(').next()
-                    && v.0.contains('(') == l.contains('(')
-                    && v.0.chars().filter(|c| c == &',').count()
+                if v.0.iter().collect::<String>().split('(').next() == l.split('(').next()
+                    && v.0.contains(&'(') == l.contains('(')
+                    && v.0.iter().filter(|c| c == &&',').count()
                         == l.chars().filter(|c| c == &',').count()
                 {
                     if r == "null"
@@ -1185,7 +1195,6 @@ fn main()
                         let parsed = input_var(
                             r,
                             vars.clone(),
-                            None,
                             &mut func_vars,
                             &mut 0,
                             options,
@@ -1194,10 +1203,11 @@ fn main()
                         )
                         .unwrap()
                         .0;
+                        let l = l.chars().collect::<Vec<char>>();
                         vars[i] = (
-                            l.to_string(),
+                            l.clone(),
                             parsed.clone(),
-                            if l.contains('(')
+                            if l.contains(&'(')
                             {
                                 Str(String::new())
                             }
@@ -1216,26 +1226,25 @@ fn main()
                                 if redef[k] != v.0
                                     && v.3.contains(
                                         &redef[k][0..=redef[k]
-                                            .chars()
-                                            .position(|a| a == '(')
+                                            .iter()
+                                            .position(|a| a == &'(')
                                             .unwrap_or(redef[k].len() - 1)],
                                     )
                                 {
                                     let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                    if v.0.contains('(')
+                                    if v.0.contains(&'(')
                                     {
                                         let mut l = v.0.clone();
-                                        l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                        l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                         l.pop();
-                                        for i in l.split(',')
+                                        for i in l.split(|c| c == &',')
                                         {
-                                            func_vars.push((-1, i.to_string()));
+                                            func_vars.push((-1, i.iter().collect::<String>()));
                                         }
                                     }
                                     let parsed = input_var(
                                         &v.3.clone(),
                                         vars.clone(),
-                                        None,
                                         &mut func_vars,
                                         &mut 0,
                                         options,
@@ -1248,7 +1257,7 @@ fn main()
                                     vars[j] = (
                                         v.0.clone(),
                                         parsed.clone(),
-                                        if v.0.contains('(')
+                                        if v.0.contains(&'(')
                                         {
                                             Str(String::new())
                                         }
@@ -1273,7 +1282,7 @@ fn main()
             }
             for (i, j) in vars.iter().enumerate()
             {
-                if j.0.chars().count() <= l.chars().count()
+                if j.0.len() <= l.chars().count()
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();
                     if l.contains('(')
@@ -1289,7 +1298,6 @@ fn main()
                     let parsed = input_var(
                         r,
                         vars.clone(),
-                        None,
                         &mut func_vars,
                         &mut 0,
                         options,
@@ -1298,12 +1306,13 @@ fn main()
                     )
                     .unwrap()
                     .0;
+                    let l = l.chars().collect::<Vec<char>>();
                     vars.insert(
                         i,
                         (
-                            l.to_string(),
+                            l.clone(),
                             parsed.clone(),
-                            if l.contains('(')
+                            if l.contains(&'(')
                             {
                                 Str(String::new())
                             }
@@ -1323,26 +1332,25 @@ fn main()
                             if redef[k] != v.0
                                 && v.3.contains(
                                     &redef[k][0..=redef[k]
-                                        .chars()
-                                        .position(|a| a == '(')
+                                        .iter()
+                                        .position(|a| a == &'(')
                                         .unwrap_or(redef[k].len() - 1)],
                                 )
                             {
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if v.0.contains('(')
+                                if v.0.contains(&'(')
                                 {
                                     let mut l = v.0.clone();
-                                    l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                     l.pop();
-                                    for i in l.split(',')
+                                    for i in l.split(|c| c == &',')
                                     {
-                                        func_vars.push((-1, i.to_string()));
+                                        func_vars.push((-1, i.iter().collect::<String>()));
                                     }
                                 }
                                 let parsed = input_var(
                                     &v.3.clone(),
                                     vars.clone(),
-                                    None,
                                     &mut func_vars,
                                     &mut 0,
                                     options,
@@ -1355,7 +1363,7 @@ fn main()
                                 vars[j] = (
                                     v.0.clone(),
                                     parsed.clone(),
-                                    if v.0.contains('(')
+                                    if v.0.contains(&'(')
                                     {
                                         Str(String::new())
                                     }
@@ -1382,7 +1390,6 @@ fn main()
                 let parsed = input_var(
                     r,
                     vars.clone(),
-                    None,
                     &mut Vec::new(),
                     &mut 0,
                     options,
@@ -1392,7 +1399,7 @@ fn main()
                 .unwrap()
                 .0;
                 vars.push((
-                    l.to_string(),
+                    l.chars().collect::<Vec<char>>(),
                     parsed.clone(),
                     if l.contains('(')
                     {
@@ -1428,7 +1435,6 @@ fn main()
                         match input_var(
                             i,
                             vars.clone(),
-                            None,
                             &mut Vec::new(),
                             &mut 0,
                             options,

@@ -14,11 +14,10 @@ use crate::{
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
-#[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
-    vars: &[(String, Vec<NumStr>, NumStr, String)],
+    vars: &[(Vec<char>, Vec<NumStr>, NumStr, String)],
     options: Options,
     colors: &Colors,
     start: usize,
@@ -72,7 +71,6 @@ pub fn print_concurrent(
             .collect::<String>()
             .replace('_', &format!("({})", last.iter().collect::<String>())),
         vars.to_vec(),
-        None,
         &mut Vec::new(),
         &mut 0,
         options,

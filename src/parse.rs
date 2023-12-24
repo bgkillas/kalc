@@ -11,11 +11,9 @@ use rug::{
     ops::{CompleteRound, Pow},
     Complex,
 };
-#[allow(clippy::too_many_arguments)]
 pub fn input_var(
     input: &str,
-    vars: Vec<(String, Vec<NumStr>, NumStr, String)>,
-    dont_do: Option<String>,
+    vars: Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,
     options: Options,
@@ -247,16 +245,6 @@ pub fn input_var(
                 if let Str(s) = output.last_mut().unwrap()
                 {
                     if functions.contains(s.as_str())
-                        && !vars.clone().iter().any(|a| {
-                            if a.0.contains('(')
-                            {
-                                a.0[..a.0.find('(').unwrap()] == *s
-                            }
-                            else
-                            {
-                                a.0 == *s
-                            }
-                        })
                     {
                         if i + 4 < chars.len()
                             && chars[i] == '^'
@@ -849,13 +837,16 @@ pub fn input_var(
             }
         }
         if !vars.clone().iter().any(|a| {
-            if a.0.contains('(')
+            if a.0.contains(&'(')
             {
-                a.0[..a.0.find('(').unwrap()] == word
+                a.0[..a.0.iter().position(|c| c == &'(').unwrap()]
+                    .iter()
+                    .collect::<String>()
+                    == word
             }
             else
             {
-                a.0 == word
+                a.0.iter().collect::<String>() == word
             }
         }) && ((functions.contains(word.as_str())
             && i + countv < chars.len()
@@ -921,7 +912,7 @@ pub fn input_var(
             }
             else
             {
-                word.len()
+                word.chars().count()
             };
             output.push(Str(word));
         }
@@ -929,8 +920,7 @@ pub fn input_var(
         {
             for var in vars.clone()
             {
-                let vl = var.0.chars().collect::<Vec<char>>().len();
-                if var.0 != "e"
+                if var.0 != vec!['e']
                     || (!options.small_e
                         || !(i != 0
                             && i + 1 != chars.len()
@@ -938,10 +928,17 @@ pub fn input_var(
                             && (chars[i + 1].is_numeric() || chars[i + 1] == '-')))
                 {
                     let j = i;
-                    if var.0.contains('(')
-                        && wordv == var.0.split('(').next().unwrap()
+                    if var.0.contains(&'(')
+                        && wordv
+                            == var
+                                .0
+                                .split(|c| matches!(c, '(' | '{' | '['))
+                                .next()
+                                .unwrap()
+                                .iter()
+                                .collect::<String>()
                         && i + countj < chars.len()
-                        && chars[i + countj] == '('
+                        && matches!(chars[i + countj], '(' | '{' | '[')
                     {
                         let mut count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
@@ -968,7 +965,16 @@ pub fn input_var(
                         let mut ccount = 0;
                         for c in &chars[j..i]
                         {
-                            if *c == ',' && count == 1
+                            if *c == ','
+                                && count
+                                    == if matches!(chars[j + 1], '{' | '[')
+                                    {
+                                        0
+                                    }
+                                    else
+                                    {
+                                        1
+                                    }
                             {
                                 ccount += 1;
                             }
@@ -981,13 +987,12 @@ pub fn input_var(
                                 count -= 1;
                             }
                         }
-                        let v = var.0.chars().collect::<Vec<char>>();
-                        if ccount != var.0.matches(',').count()
+                        if ccount != var.0.iter().filter(|c| c == &&',').count()
                         {
                             i = j;
                             continue;
                         }
-                        if var.0.contains(',') && chars.len() > 4
+                        if var.0.contains(&',') && chars.len() > 4
                         {
                             place_multiplier(&mut output, sumrec);
                             if neg
@@ -1029,7 +1034,7 @@ pub fn input_var(
                             split.push(&temp[start..]);
                             let mut func_vars: Vec<String> = Vec::new();
                             start = 0;
-                            for (f, c) in v.iter().enumerate()
+                            for (f, c) in var.0.iter().enumerate()
                             {
                                 if c == &'(' || c == &'{' || c == &'['
                                 {
@@ -1044,12 +1049,12 @@ pub fn input_var(
                                     count -= 1;
                                     if count == 0
                                     {
-                                        func_vars.push(v[start..f].iter().collect());
+                                        func_vars.push(var.0[start..f].iter().collect());
                                     }
                                 }
                                 else if c == &',' && count == 1
                                 {
-                                    func_vars.push(v[start..f].iter().collect());
+                                    func_vars.push(var.0[start..f].iter().collect());
                                     start = f + 1;
                                 }
                             }
@@ -1073,7 +1078,6 @@ pub fn input_var(
                                             (parsed, graph) = input_var(
                                                 &varf.iter().collect::<String>(),
                                                 vars.clone(),
-                                                None,
                                                 sumrec,
                                                 bracket,
                                                 options,
@@ -1144,7 +1148,8 @@ pub fn input_var(
                             {
                                 temp = &temp[..temp.len() - 1];
                             }
-                            let l = v[var.0.find('(').unwrap() + 1..v.len() - 1]
+                            let l = var.0[var.0.iter().position(|c| c == &'(').unwrap() + 1
+                                ..var.0.len() - 1]
                                 .iter()
                                 .collect::<String>();
                             let mut var = var;
@@ -1164,7 +1169,6 @@ pub fn input_var(
                                         (parsed, graph) = input_var(
                                             &temp.iter().collect::<String>(),
                                             vars.clone(),
-                                            None,
                                             sumrec,
                                             bracket,
                                             options,
@@ -1220,28 +1224,20 @@ pub fn input_var(
                             continue 'main;
                         }
                     }
-                    else if i + vl <= chars.len()
-                        && (chars[i..i + vl].iter().collect::<String>() == var.0
-                            || (wordv != chars[i..i + vl].iter().collect::<String>()
-                                && wordv.starts_with(&var.0)))
+                    else if i + var.0.len() <= chars.len()
+                        && (chars[i..i + var.0.len()] == var.0
+                            || (wordv != chars[i..i + var.0.len()].iter().collect::<String>()
+                                && wordv.starts_with(&var.0.iter().collect::<String>())))
                     {
-                        if let Some(ref n) = dont_do
-                        {
-                            if &var.0 == n
-                            {
-                                return Err("some parsing error");
-                            }
-                        }
-                        i += if chars[i..i + vl].contains(&'@') && !var.0.contains('@')
+                        i += if chars[i..i + var.0.len()].contains(&'@') && !var.0.contains(&'@')
                         {
                             let mut count = 0;
                             let mut countw = 0;
                             let mut depth = false;
                             let mut word = String::new();
-                            let vc = var.0.chars().collect::<Vec<char>>();
                             for c in chars[i..].iter()
                             {
-                                if word == var.0
+                                if word == var.0.iter().collect::<String>()
                                 {
                                     if depth
                                     {
@@ -1257,7 +1253,7 @@ pub fn input_var(
                                 {
                                     depth = !depth;
                                 }
-                                else if c == &vc[countw]
+                                else if c == &var.0[countw]
                                 {
                                     word.push(*c);
                                     countw += 1;
@@ -1273,7 +1269,7 @@ pub fn input_var(
                         }
                         else
                         {
-                            vl
+                            var.0.len()
                         };
                         place_multiplier(&mut output, sumrec);
                         if neg

@@ -3,7 +3,8 @@ use crate::{
     Options,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float};
-pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>, NumStr, String)>
+pub fn get_cli_vars(options: Options, args: String)
+    -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>
 {
     let mut vars = Vec::new();
     if args.chars().all(|c| !c.is_alphabetic())
@@ -13,7 +14,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains("ec")
     {
         vars.push((
-            "ec".to_string(),
+            vec!['e', 'c'],
             Vec::new(),
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
@@ -24,7 +25,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains("kB")
     {
         vars.push((
-            "kB".to_string(),
+            vec!['k', 'B'],
             Vec::new(),
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
@@ -35,7 +36,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains("me")
     {
         vars.push((
-            "me".to_string(),
+            vec!['m', 'e'],
             Vec::new(),
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
@@ -46,7 +47,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains("mn")
     {
         vars.push((
-            "mn".to_string(),
+            vec!['m', 'n'],
             Vec::new(),
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
@@ -57,7 +58,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains("mp")
     {
         vars.push((
-            "mp".to_string(),
+            vec!['m', 'p'],
             Vec::new(),
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
@@ -68,7 +69,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains("Na")
     {
         vars.push((
-            "Na".to_string(),
+            vec!['N', 'a'],
             Vec::new(),
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
@@ -79,7 +80,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('c')
     {
         vars.push((
-            "c".to_string(),
+            vec!['c'],
             Vec::new(),
             Num(Complex::parse("299792458").unwrap().complete(options.prec)),
             "".to_string(),
@@ -88,7 +89,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('G')
     {
         vars.push((
-            "G".to_string(),
+            vec!['G'],
             Vec::new(),
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
@@ -99,7 +100,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('g')
     {
         vars.push((
-            "g".to_string(),
+            vec!['g'],
             Vec::new(),
             Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
             "".to_string(),
@@ -108,7 +109,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('h')
     {
         vars.push((
-            "h".to_string(),
+            vec!['h'],
             Vec::new(),
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
@@ -119,7 +120,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('k')
     {
         vars.push((
-            "k".to_string(),
+            vec!['k'],
             Vec::new(),
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
@@ -130,7 +131,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('R')
     {
         vars.push((
-            "R".to_string(),
+            vec!['R'],
             Vec::new(),
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
@@ -149,7 +150,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
                 vars.insert(
                     0,
                     (
-                        "phi".to_string(),
+                        vec!['p', 'h', 'i'],
                         Vec::new(),
                         Num(phi.clone().into()),
                         "".to_string(),
@@ -158,7 +159,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
             }
             if phi2
             {
-                vars.push(("φ".to_string(), Vec::new(), Num(phi.into()), "".to_string()))
+                vars.push((vec!['φ'], Vec::new(), Num(phi.into()), "".to_string()))
             }
         }
     }
@@ -175,7 +176,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
                 vars.insert(
                     0,
                     (
-                        "pi".to_string(),
+                        vec!['p', 'i'],
                         Vec::new(),
                         Num(pi.clone().into()),
                         "".to_string(),
@@ -185,7 +186,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
             if pi2
             {
                 vars.push((
-                    'π'.to_string(),
+                    vec!['π'],
                     Vec::new(),
                     Num(pi.clone().into()),
                     "".to_string(),
@@ -199,7 +200,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
                     vars.insert(
                         0,
                         (
-                            "tau".to_string(),
+                            vec!['t', 'a', 'u'],
                             Vec::new(),
                             Num(tau.clone().into()),
                             "".to_string(),
@@ -208,7 +209,7 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
                 }
                 if tau2
                 {
-                    vars.push(('τ'.to_string(), Vec::new(), Num(tau.into()), "".to_string()))
+                    vars.push((vec!['τ'], Vec::new(), Num(tau.into()), "".to_string()))
                 }
             }
         }
@@ -216,11 +217,11 @@ pub fn get_cli_vars(options: Options, args: String) -> Vec<(String, Vec<NumStr>,
     if args.contains('e')
     {
         let e = Float::with_val(options.prec.0, 1).exp();
-        vars.push(("e".to_string(), Vec::new(), Num(e.into()), "".to_string()))
+        vars.push((vec!['e'], Vec::new(), Num(e.into()), "".to_string()))
     }
     vars
 }
-pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
+pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>
 {
     let pi = Float::with_val(options.prec.0, Pi);
     let tau: Float = pi.clone() * 2;
@@ -228,19 +229,19 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
     let e = Float::with_val(options.prec.0, 1).exp();
     vec![
         (
-            "phi".to_string(),
+            vec!['p', 'h', 'i'],
             Vec::new(),
             Num(phi.clone().into()),
             "".to_string(),
         ),
         (
-            "tau".to_string(),
+            vec!['t', 'a', 'u'],
             Vec::new(),
             Num(tau.clone().into()),
             "".to_string(),
         ),
         (
-            "ec".to_string(),
+            vec!['e', 'c'],
             Vec::new(),
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
@@ -248,7 +249,7 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "kB".to_string(),
+            vec!['k', 'B'],
             Vec::new(),
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
@@ -256,7 +257,7 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "me".to_string(),
+            vec!['m', 'e'],
             Vec::new(),
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
@@ -264,7 +265,7 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "mn".to_string(),
+            vec!['m', 'n'],
             Vec::new(),
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
@@ -272,7 +273,7 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "mp".to_string(),
+            vec!['m', 'p'],
             Vec::new(),
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
@@ -280,7 +281,7 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "Na".to_string(),
+            vec!['N', 'a'],
             Vec::new(),
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
@@ -288,20 +289,20 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "pi".to_string(),
+            vec!['p', 'i'],
             Vec::new(),
             Num(pi.clone().into()),
             "".to_string(),
         ),
         (
-            "c".to_string(),
+            vec!['c'],
             Vec::new(),
             Num(Complex::parse("299792458").unwrap().complete(options.prec)),
             "".to_string(),
         ),
-        ("e".to_string(), Vec::new(), Num(e.into()), "".to_string()),
+        (vec!['e'], Vec::new(), Num(e.into()), "".to_string()),
         (
-            "G".to_string(),
+            vec!['G'],
             Vec::new(),
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
@@ -309,13 +310,13 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "g".to_string(),
+            vec!['g'],
             Vec::new(),
             Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
             "".to_string(),
         ),
         (
-            "h".to_string(),
+            vec!['h'],
             Vec::new(),
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
@@ -323,7 +324,7 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "k".to_string(),
+            vec!['k'],
             Vec::new(),
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
@@ -331,15 +332,15 @@ pub fn get_vars(options: Options) -> Vec<(String, Vec<NumStr>, NumStr, String)>
             "".to_string(),
         ),
         (
-            "R".to_string(),
+            vec!['R'],
             Vec::new(),
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
                 .complete(options.prec)),
             "".to_string(),
         ),
-        ("φ".to_string(), Vec::new(), Num(phi.into()), "".to_string()),
-        ("π".to_string(), Vec::new(), Num(pi.into()), "".to_string()),
-        ("τ".to_string(), Vec::new(), Num(tau.into()), "".to_string()),
+        (vec!['φ'], Vec::new(), Num(phi.into()), "".to_string()),
+        (vec!['π'], Vec::new(), Num(pi.into()), "".to_string()),
+        (vec!['τ'], Vec::new(), Num(tau.into()), "".to_string()),
     ]
 }

@@ -40,7 +40,6 @@ use std::{
 //get rid of '=' check and put it in load_vars and have an extra output or something
 //shift+enter no graph?
 //make == work more consistently
-//min distance from x^-(2n-1)
 #[derive(Clone)]
 pub struct Colors
 {
@@ -240,16 +239,14 @@ fn main()
                 {
                     let l = split.next().unwrap().to_string();
                     if !args.is_empty()
-                        && !args.contains(
-                            if l.contains('(')
-                            {
-                                l.split('(').next().unwrap()
-                            }
-                            else
-                            {
-                                &l
-                            },
-                        )
+                        && !args.contains(&if l.contains('(')
+                        {
+                            l.split('(').next().unwrap().to_owned() + "("
+                        }
+                        else
+                        {
+                            l.clone()
+                        })
                     {
                         continue;
                     }
@@ -260,6 +257,7 @@ fn main()
                         {
                             if j.0.chars().count() <= l.chars().count()
                             {
+                                //TODO fix l(2) because 'e' n stuff
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
                                 if l.contains('(')
                                 {
@@ -307,7 +305,6 @@ fn main()
                                     for (j, v) in vars.clone().iter().enumerate()
                                     {
                                         if redef[k] != v.0
-                                            && !v.0.contains('(')
                                             && v.3.contains(
                                                 &redef[k][0..=redef[k]
                                                     .chars()
@@ -315,12 +312,24 @@ fn main()
                                                     .unwrap_or(redef[k].len() - 1)],
                                             )
                                         {
-                                            redef.push(v.0.clone());
+                                            let mut func_vars: Vec<(isize, String)> = Vec::new();
+                                            if v.0.contains('(')
+                                            {
+                                                let mut l = v.0.clone();
+                                                l.drain(
+                                                    0..=l.chars().position(|c| c == '(').unwrap(),
+                                                );
+                                                l.pop();
+                                                for i in l.split(',')
+                                                {
+                                                    func_vars.push((-1, i.to_string()));
+                                                }
+                                            }
                                             let parsed = input_var(
                                                 &v.3.clone(),
                                                 vars.clone(),
                                                 None,
-                                                &mut Vec::new(),
+                                                &mut func_vars,
                                                 &mut 0,
                                                 options,
                                                 false,
@@ -328,13 +337,25 @@ fn main()
                                             )
                                             .unwrap()
                                             .0;
+                                            let check = vars[j].clone();
                                             vars[j] = (
                                                 v.0.clone(),
                                                 parsed.clone(),
-                                                do_math(parsed, options)
-                                                    .unwrap_or(Num(Complex::new(options.prec))),
+                                                if v.0.contains('(')
+                                                {
+                                                    Str(String::new())
+                                                }
+                                                else
+                                                {
+                                                    do_math(parsed, options)
+                                                        .unwrap_or(Num(Complex::new(options.prec)))
+                                                },
                                                 v.3.clone(),
                                             );
+                                            if check.1 != vars[j].1
+                                            {
+                                                redef.push(v.0.clone());
+                                            }
                                         }
                                     }
                                     k += 1;
@@ -1211,7 +1232,6 @@ fn main()
                             for (j, v) in vars.clone().iter().enumerate()
                             {
                                 if redef[k] != v.0
-                                    && !v.0.contains('(')
                                     && v.3.contains(
                                         &redef[k][0..=redef[k]
                                             .chars()
@@ -1219,12 +1239,22 @@ fn main()
                                             .unwrap_or(redef[k].len() - 1)],
                                     )
                                 {
-                                    redef.push(v.0.clone());
+                                    let mut func_vars: Vec<(isize, String)> = Vec::new();
+                                    if v.0.contains('(')
+                                    {
+                                        let mut l = v.0.clone();
+                                        l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                        l.pop();
+                                        for i in l.split(',')
+                                        {
+                                            func_vars.push((-1, i.to_string()));
+                                        }
+                                    }
                                     let parsed = input_var(
                                         &v.3.clone(),
                                         vars.clone(),
                                         None,
-                                        &mut Vec::new(),
+                                        &mut func_vars,
                                         &mut 0,
                                         options,
                                         false,
@@ -1232,13 +1262,25 @@ fn main()
                                     )
                                     .unwrap()
                                     .0;
+                                    let check = vars[j].clone();
                                     vars[j] = (
                                         v.0.clone(),
                                         parsed.clone(),
-                                        do_math(parsed, options)
-                                            .unwrap_or(Num(Complex::new(options.prec))),
+                                        if v.0.contains('(')
+                                        {
+                                            Str(String::new())
+                                        }
+                                        else
+                                        {
+                                            do_math(parsed, options)
+                                                .unwrap_or(Num(Complex::new(options.prec)))
+                                        },
                                         v.3.clone(),
                                     );
+                                    if check.1 != vars[j].1
+                                    {
+                                        redef.push(v.0.clone());
+                                    }
                                 }
                             }
                             k += 1;
@@ -1297,7 +1339,6 @@ fn main()
                         for (j, v) in vars.clone().iter().enumerate()
                         {
                             if redef[k] != v.0
-                                && !v.0.contains('(')
                                 && v.3.contains(
                                     &redef[k][0..=redef[k]
                                         .chars()
@@ -1305,12 +1346,22 @@ fn main()
                                         .unwrap_or(redef[k].len() - 1)],
                                 )
                             {
-                                redef.push(v.0.clone());
+                                let mut func_vars: Vec<(isize, String)> = Vec::new();
+                                if v.0.contains('(')
+                                {
+                                    let mut l = v.0.clone();
+                                    l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                    l.pop();
+                                    for i in l.split(',')
+                                    {
+                                        func_vars.push((-1, i.to_string()));
+                                    }
+                                }
                                 let parsed = input_var(
                                     &v.3.clone(),
                                     vars.clone(),
                                     None,
-                                    &mut Vec::new(),
+                                    &mut func_vars,
                                     &mut 0,
                                     options,
                                     false,
@@ -1318,13 +1369,25 @@ fn main()
                                 )
                                 .unwrap()
                                 .0;
+                                let check = vars[j].clone();
                                 vars[j] = (
                                     v.0.clone(),
                                     parsed.clone(),
-                                    do_math(parsed, options)
-                                        .unwrap_or(Num(Complex::new(options.prec))),
+                                    if v.0.contains('(')
+                                    {
+                                        Str(String::new())
+                                    }
+                                    else
+                                    {
+                                        do_math(parsed, options)
+                                            .unwrap_or(Num(Complex::new(options.prec)))
+                                    },
                                     v.3.clone(),
                                 );
+                                if check.1 != vars[j].1
+                                {
+                                    redef.push(v.0.clone());
+                                }
                             }
                         }
                         k += 1;

@@ -164,6 +164,9 @@ pub fn functions() -> HashSet<&'static str>
         "tofreq",
         "σ",
         "var",
+        "quartiles",
+        "percentile",
+        "percentilerank",
     ]
     .iter()
     .cloned()

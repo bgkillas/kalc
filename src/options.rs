@@ -1135,7 +1135,6 @@ pub fn set_commands(
                         for (j, v) in vars.to_vec().iter().enumerate()
                         {
                             if redef[k] != v.0
-                                && !v.0.contains('(')
                                 && v.3.contains(
                                     &redef[k][0..=redef[k]
                                         .chars()
@@ -1143,12 +1142,22 @@ pub fn set_commands(
                                         .unwrap_or(redef[k].len() - 1)],
                                 )
                             {
-                                redef.push(v.0.clone());
+                                let mut func_vars: Vec<(isize, String)> = Vec::new();
+                                if v.0.contains('(')
+                                {
+                                    let mut l = v.0.clone();
+                                    l.drain(0..=l.chars().position(|c| c == '(').unwrap());
+                                    l.pop();
+                                    for i in l.split(',')
+                                    {
+                                        func_vars.push((-1, i.to_string()));
+                                    }
+                                }
                                 let parsed = input_var(
                                     &v.3.clone(),
                                     vars.to_vec(),
                                     None,
-                                    &mut Vec::new(),
+                                    &mut func_vars,
                                     &mut 0,
                                     *options,
                                     false,
@@ -1156,13 +1165,25 @@ pub fn set_commands(
                                 )
                                 .unwrap()
                                 .0;
+                                let check = vars[j].clone();
                                 vars[j] = (
                                     v.0.clone(),
                                     parsed.clone(),
-                                    do_math(parsed, *options)
-                                        .unwrap_or(Num(Complex::new(options.prec))),
+                                    if v.0.contains('(')
+                                    {
+                                        Str(String::new())
+                                    }
+                                    else
+                                    {
+                                        do_math(parsed, *options)
+                                            .unwrap_or(Num(Complex::new(options.prec)))
+                                    },
                                     v.3.clone(),
                                 );
+                                if check.1 != vars[j].1
+                                {
+                                    redef.push(v.0.clone());
+                                }
                             }
                         }
                         k += 1;

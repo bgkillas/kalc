@@ -166,6 +166,8 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 | "quad"
                                 | "quadratic"
                                 | "cubic"
+                                | "percentilerank"
+                                | "percentile"
                         )
                         {
                             count = 0;
@@ -667,6 +669,103 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                 {
                     function[i] = match s.as_str()
                     {
+                        "quartiles" =>
+                        {
+                            if a.len() < 2
+                            {
+                                return Err("not enough data");
+                            }
+                            let a = sort(a);
+                            let half1 = &a[0..a.len() / 2];
+                            let half2 = if a.len() % 2 == 0
+                            {
+                                &a[a.len() / 2..a.len()]
+                            }
+                            else
+                            {
+                                &a[a.len() / 2 + 1..a.len()]
+                            };
+                            if half1.len() % 2 == 0
+                            {
+                                Vector(vec![
+                                    (half1[half1.len() / 2 - 1].clone()
+                                        + half1[half1.len() / 2].clone())
+                                        / 2,
+                                    if a.len() % 2 == 0
+                                    {
+                                        (half1[half1.len() - 1].clone() + half2[0].clone()) / 2
+                                    }
+                                    else
+                                    {
+                                        a[a.len() / 2].clone()
+                                    },
+                                    (half2[half2.len() / 2 - 1].clone()
+                                        + half2[half2.len() / 2].clone())
+                                        / 2,
+                                ])
+                            }
+                            else
+                            {
+                                Vector(vec![
+                                    half1[half1.len() / 2].clone(),
+                                    if a.len() % 2 == 0
+                                    {
+                                        (half1[half1.len() - 1].clone() + half2[0].clone()) / 2
+                                    }
+                                    else
+                                    {
+                                        a[a.len() / 2].clone()
+                                    },
+                                    half2[half2.len() / 2].clone(),
+                                ])
+                            }
+                        }
+                        "percentile" =>
+                        {
+                            if function.len() < i + 3
+                            {
+                                return Err("not enough input");
+                            }
+                            let b = function[i + 3].num()?;
+                            function.drain(i + 2..=i + 3);
+                            let r: Float = (b.real().clone() / 100) * a.len();
+                            let r = r.ceil().to_f64() as usize;
+                            if r > a.len()
+                            {
+                                return Err("bad input");
+                            }
+                            Num(sort(a)[r.saturating_sub(1)].clone())
+                        }
+                        "percentilerank" =>
+                        {
+                            if function.len() < i + 3
+                            {
+                                return Err("not enough input");
+                            }
+                            let mut cf = 0;
+                            let mut f = 0;
+                            let b = function[i + 3].num()?;
+                            function.drain(i + 2..=i + 3);
+                            for a in sort(a.clone())
+                            {
+                                if a.real() < b.real()
+                                {
+                                    cf += 1;
+                                }
+                                else if a == b
+                                {
+                                    f += 1;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            Num(100
+                                * (Complex::with_val(options.prec, cf)
+                                    + (0.5 * Complex::with_val(options.prec, f)))
+                                / a.len())
+                        }
                         "tofreq" =>
                         {
                             if a.is_empty()
@@ -730,7 +829,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                             let a = sort(a);
                             if a.len() % 2 == 0
                             {
-                                Vector(vec![a[a.len() / 2 - 1].clone(), a[a.len() / 2].clone()])
+                                Num((a[a.len() / 2 - 1].clone() + a[a.len() / 2].clone()) / 2)
                             }
                             else
                             {

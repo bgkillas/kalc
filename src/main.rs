@@ -292,7 +292,7 @@ fn main()
                                         func_vars.push((-1, i.iter().collect()));
                                     }
                                 }
-                                let parsed = input_var(
+                                let parsed = match input_var(
                                     &r,
                                     vars.clone(),
                                     &mut func_vars,
@@ -301,8 +301,14 @@ fn main()
                                     false,
                                     &mut (false, 0, 0),
                                 )
-                                .unwrap()
-                                .0;
+                                {
+                                    Ok(n) => n.0,
+                                    _ =>
+                                    {
+                                        println!("failed at: {}", l.iter().collect::<String>());
+                                        continue 'upper;
+                                    }
+                                };
                                 vars.insert(
                                     i,
                                     (
@@ -348,7 +354,7 @@ fn main()
                                                         .push((-1, i.iter().collect::<String>()));
                                                 }
                                             }
-                                            let parsed = input_var(
+                                            let parsed = match input_var(
                                                 &v.3.clone(),
                                                 vars.clone(),
                                                 &mut func_vars,
@@ -357,8 +363,17 @@ fn main()
                                                 false,
                                                 &mut (false, 0, 0),
                                             )
-                                            .unwrap()
-                                            .0;
+                                            {
+                                                Ok(n) => n.0,
+                                                _ =>
+                                                {
+                                                    println!(
+                                                        "failed at: {}",
+                                                        v.0.iter().collect::<String>()
+                                                    );
+                                                    continue 'upper;
+                                                }
+                                            };
                                             let check = vars[j].clone();
                                             vars[j] = (
                                                 v.0.clone(),
@@ -396,7 +411,7 @@ fn main()
                                 func_vars.push((-1, i.iter().collect()));
                             }
                         }
-                        let parsed = input_var(
+                        let parsed = match input_var(
                             &r,
                             vars.clone(),
                             &mut func_vars,
@@ -405,8 +420,14 @@ fn main()
                             false,
                             &mut (false, 0, 0),
                         )
-                        .unwrap()
-                        .0;
+                        {
+                            Ok(n) => n.0,
+                            _ =>
+                            {
+                                println!("failed at: {}", l.iter().collect::<String>());
+                                continue 'upper;
+                            }
+                        };
                         vars.push((
                             l.clone(),
                             parsed.clone(),
@@ -635,7 +656,7 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output
+                        if options.real_time_output && time.elapsed().as_millis() != 0
                         {
                             (frac, graphable, long) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
@@ -1222,7 +1243,7 @@ fn main()
                                 func_vars.push((-1, i.iter().collect()));
                             }
                         }
-                        let parsed = input_var(
+                        let parsed = match input_var(
                             r,
                             vars.clone(),
                             &mut func_vars,
@@ -1231,8 +1252,14 @@ fn main()
                             false,
                             &mut (false, 0, 0),
                         )
-                        .unwrap()
-                        .0;
+                        {
+                            Ok(n) => n.0,
+                            _ =>
+                            {
+                                println!("failed at: {}", l.iter().collect::<String>());
+                                continue 'main;
+                            }
+                        };
                         vars[i] = (
                             l.clone(),
                             parsed.clone(),
@@ -1271,7 +1298,7 @@ fn main()
                                             func_vars.push((-1, i.iter().collect::<String>()));
                                         }
                                     }
-                                    let parsed = input_var(
+                                    let parsed = match input_var(
                                         &v.3.clone(),
                                         vars.clone(),
                                         &mut func_vars,
@@ -1280,8 +1307,17 @@ fn main()
                                         false,
                                         &mut (false, 0, 0),
                                     )
-                                    .unwrap()
-                                    .0;
+                                    {
+                                        Ok(n) => n.0,
+                                        _ =>
+                                        {
+                                            println!(
+                                                "failed at: {}",
+                                                v.0.iter().collect::<String>()
+                                            );
+                                            continue 'main;
+                                        }
+                                    };
                                     let check = vars[j].clone();
                                     vars[j] = (
                                         v.0.clone(),
@@ -1324,7 +1360,7 @@ fn main()
                             func_vars.push((-1, i.iter().collect()));
                         }
                     }
-                    let parsed = input_var(
+                    let parsed = match input_var(
                         r,
                         vars.clone(),
                         &mut func_vars,
@@ -1333,8 +1369,14 @@ fn main()
                         false,
                         &mut (false, 0, 0),
                     )
-                    .unwrap()
-                    .0;
+                    {
+                        Ok(n) => n.0,
+                        _ =>
+                        {
+                            println!("failed at: {}", l.iter().collect::<String>());
+                            continue 'main;
+                        }
+                    };
                     vars.insert(
                         i,
                         (
@@ -1376,7 +1418,7 @@ fn main()
                                         func_vars.push((-1, i.iter().collect::<String>()));
                                     }
                                 }
-                                let parsed = input_var(
+                                let parsed = match input_var(
                                     &v.3.clone(),
                                     vars.clone(),
                                     &mut func_vars,
@@ -1385,8 +1427,14 @@ fn main()
                                     false,
                                     &mut (false, 0, 0),
                                 )
-                                .unwrap()
-                                .0;
+                                {
+                                    Ok(n) => n.0,
+                                    _ =>
+                                    {
+                                        println!("failed at: {}", v.0.iter().collect::<String>());
+                                        continue 'main;
+                                    }
+                                };
                                 let check = vars[j].clone();
                                 vars[j] = (
                                     v.0.clone(),
@@ -1426,7 +1474,7 @@ fn main()
                         func_vars.push((-1, i.iter().collect()));
                     }
                 }
-                let parsed = input_var(
+                let parsed = match input_var(
                     r,
                     vars.clone(),
                     &mut func_vars,
@@ -1435,8 +1483,14 @@ fn main()
                     false,
                     &mut (false, 0, 0),
                 )
-                .unwrap()
-                .0;
+                {
+                    Ok(n) => n.0,
+                    _ =>
+                    {
+                        println!("failed at: {}", l.iter().collect::<String>());
+                        continue 'main;
+                    }
+                };
                 vars.push((
                     l.clone(),
                     parsed.clone(),

@@ -259,19 +259,20 @@ pub fn print_concurrent(
     let mut long = false;
     if let Num(n) = num
     {
-        let sign = if !n.real().is_zero() && n.imag().is_sign_positive()
-        {
-            "+"
-        }
-        else
-        {
-            ""
-        }
-        .to_string();
+        let output = get_output(options, colors, &n);
         let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
         {
             let fa = fraction(n.real().clone(), options);
             let fb = fraction(n.imag().clone(), options);
+            let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
+            {
+                "+"
+            }
+            else
+            {
+                ""
+            }
+            .to_string();
             match (!fa.is_empty(), !fb.is_empty())
             {
                 (true, true) =>
@@ -322,8 +323,7 @@ pub fn print_concurrent(
                         }
                         else
                         {
-                            get_output(options, colors, &n).1
-                                + if options.color { "\x1b[0m" } else { "" }
+                            output.1.clone() + if options.color { "\x1b[0m" } else { "" }
                         },
                     )
                 }
@@ -337,7 +337,7 @@ pub fn print_concurrent(
                         }
                         else
                         {
-                            get_output(options, colors, &n).0
+                            output.0.clone()
                         },
                         if n.imag().is_zero()
                         {
@@ -364,7 +364,6 @@ pub fn print_concurrent(
         {
             ("".to_string(), "".to_string())
         };
-        let output = get_output(options, colors, &n);
         let terlen = get_terminal_width();
         let len1 = no_col(&output.0, options.color).len();
         let len2 = no_col(&output.1, options.color).len();
@@ -543,7 +542,7 @@ pub fn print_concurrent(
                 {
                     format!(
                         "{}{}{}",
-                        if !i.real().is_zero() && !i.imag().is_zero() && i.imag().is_sign_positive()
+                        if !out.0.is_empty() && !i.imag().is_zero() && i.imag().is_sign_positive()
                         {
                             "+"
                         }
@@ -692,7 +691,7 @@ pub fn print_concurrent(
                     {
                         format!(
                             "{}{}{}",
-                            if !i.real().is_zero()
+                            if !out.0.is_empty()
                                 && !i.imag().is_zero()
                                 && i.imag().is_sign_positive()
                             {
@@ -828,7 +827,10 @@ pub fn print_concurrent(
                     if frac == 1
                     {
                         num *= 2;
-                        num += 1;
+                        if options.multi
+                        {
+                            num += 1;
+                        }
                         format!("\n\x1b[G\x1b[K{}", frac_out)
                     }
                     else
@@ -859,7 +861,10 @@ pub fn print_concurrent(
                 if frac == 1
                 {
                     num *= 2;
-                    num += 1;
+                    if options.multi
+                    {
+                        num += 1;
+                    }
                     format!("\n\x1b[G\x1b[K{}", frac_out)
                 }
                 else

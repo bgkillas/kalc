@@ -34,11 +34,10 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//print long answers on enter
 //lambert w function
 //get rid of '=' check and put it in load_vars and have an extra output or something
 //make == work more consistently
-//control+back
+//maybe make delete and going up not compute when holding a button by checking if the last button press happened within a consistent amount of time or something
 #[derive(Clone)]
 pub struct Colors
 {
@@ -524,6 +523,7 @@ fn main()
                 }
                 break;
             }
+            let mut long = false;
             let mut frac = 0;
             let mut current = Vec::new();
             let mut lines = unmod_lines.clone().unwrap();
@@ -556,10 +556,12 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if (!options.real_time_output || time.elapsed().as_millis() == 0)
+                        if ((!options.real_time_output && c != '\x14')
+                            || long
+                            || time.elapsed().as_millis() == 0)
                             && !input.is_empty()
                         {
-                            (frac, graphable) = print_concurrent(
+                            (frac, graphable, _) = print_concurrent(
                                 &input,
                                 &last,
                                 &vars.clone(),
@@ -567,6 +569,7 @@ fn main()
                                 &colors,
                                 start,
                                 end,
+                                (long || !options.real_time_output) && c == '\n',
                             );
                         }
                         if !input.is_empty()
@@ -633,8 +636,9 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -682,8 +686,9 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -722,8 +727,9 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -738,8 +744,9 @@ fn main()
                         placement = 0;
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -754,8 +761,9 @@ fn main()
                         end = input.len();
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -772,8 +780,9 @@ fn main()
                         input.extend(cut);
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -790,8 +799,8 @@ fn main()
                             input.insert(placement + 1, char);
                             if options.real_time_output
                             {
-                                (frac, graphable) = print_concurrent(
-                                    &input, &last, &vars, options, &colors, start, end,
+                                (frac, graphable, long) = print_concurrent(
+                                    &input, &last, &vars, options, &colors, start, end, false,
                                 )
                             }
                             else
@@ -806,8 +815,9 @@ fn main()
                         //ctrl+l
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -831,8 +841,9 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -859,8 +870,9 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -894,8 +906,9 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {
@@ -1052,8 +1065,9 @@ fn main()
                         }
                         if options.real_time_output && time.elapsed().as_millis() != 0
                         {
-                            (frac, graphable) =
-                                print_concurrent(&input, &last, &vars, options, &colors, start, end)
+                            (frac, graphable, long) = print_concurrent(
+                                &input, &last, &vars, options, &colors, start, end, false,
+                            )
                         }
                         else
                         {

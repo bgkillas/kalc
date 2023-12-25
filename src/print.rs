@@ -14,6 +14,7 @@ use crate::{
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
+#[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
@@ -22,7 +23,8 @@ pub fn print_concurrent(
     colors: &Colors,
     start: usize,
     end: usize,
-) -> (usize, bool)
+    long_output: bool,
+) -> (usize, bool, bool)
 {
     {
         let input = unmodified_input.iter().collect::<String>();
@@ -37,21 +39,47 @@ pub fn print_concurrent(
             );
             return if !out.is_empty()
             {
-                let wrap = (no_col(&out, options.color).len() - 1) / get_terminal_width() + 1;
-                print!(
-                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                    out,
-                    "\x1b[A".repeat(wrap),
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
-                    if options.color { "\x1b[0m" } else { "" }
-                );
-                (wrap, false)
+                let len = no_col(&out, options.color).len();
+                let wrap = (len - 1) / get_terminal_width() + 1;
+                if len > get_terminal_width() * (get_terminal_height() - 1)
+                {
+                    if long_output
+                    {
+                        print!(
+                            "\n\x1b[G\x1b[J{}{}",
+                            out,
+                            if options.color { "\x1b[0m" } else { "" }
+                        );
+                        (wrap, false, false)
+                    }
+                    else
+                    {
+                        print!(
+                            "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                            prompt(options, colors),
+                            to_output(&unmodified_input[start..end], options.color, colors),
+                            if options.color { "\x1b[0m" } else { "" },
+                        );
+                        (0, false, true)
+                    }
+                }
+                else
+                {
+                    print!(
+                        "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                        out,
+                        "\x1b[A".repeat(wrap),
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, false, false)
+                }
             }
             else
             {
                 clear(unmodified_input, start, end, options, colors);
-                (0, false)
+                (0, false, false)
             };
         }
         else if input
@@ -62,7 +90,7 @@ pub fn print_concurrent(
             .contains('=')
         {
             clear(unmodified_input, start, end, options, colors);
-            return (0, false);
+            return (0, false, false);
         }
     }
     let input = match input_var(
@@ -82,7 +110,7 @@ pub fn print_concurrent(
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, colors, start, end);
-            return (0, false);
+            return (0, false, false);
         }
     };
     if input.1
@@ -101,7 +129,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    return (1, true);
+                    return (1, true, false);
                 }
                 for input in split
                 {
@@ -119,7 +147,8 @@ pub fn print_concurrent(
                 }
             }
             out.pop();
-            let wrap = no_col(&out, options.color)
+            let no_col = no_col(&out, options.color);
+            let wrap = no_col
                 .split('\n')
                 .map(|i| {
                     if i.is_empty()
@@ -132,15 +161,42 @@ pub fn print_concurrent(
                     }
                 })
                 .sum();
-            print!(
-                "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                out.replace('\n', "\n\x1b[G"),
-                "\x1b[A".repeat(wrap),
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            (wrap, true)
+            let len = no_col.len();
+            let out = out.replace('\n', "\n\x1b[G");
+            if len > get_terminal_width() * (get_terminal_height() - 1)
+            {
+                if long_output
+                {
+                    print!(
+                        "\n\x1b[G\x1b[J{}{}",
+                        out,
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, true, false)
+                }
+                else
+                {
+                    print!(
+                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    (0, true, true)
+                }
+            }
+            else
+            {
+                print!(
+                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    out,
+                    "\x1b[A".repeat(wrap),
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                (wrap, true, false)
+            }
         }
         else
         {
@@ -152,16 +208,42 @@ pub fn print_concurrent(
                 &input,
                 &last.iter().collect::<String>(),
             );
-            let wrap = (no_col(&out, options.color).len() - 1) / get_terminal_width() + 1;
-            print!(
-                "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                out,
-                "\x1b[A".repeat(wrap),
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            (wrap, true)
+            let len = no_col(&out, options.color).len();
+            let wrap = (len - 1) / get_terminal_width() + 1;
+            if len > get_terminal_width() * (get_terminal_height() - 1)
+            {
+                if long_output
+                {
+                    print!(
+                        "\n\x1b[G\x1b[J{}{}",
+                        out,
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, true, false)
+                }
+                else
+                {
+                    print!(
+                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    (0, true, true)
+                }
+            }
+            else
+            {
+                print!(
+                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    out,
+                    "\x1b[A".repeat(wrap),
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                (wrap, true, false)
+            }
         };
     }
     let num = match do_math(input.0, options)
@@ -170,10 +252,11 @@ pub fn print_concurrent(
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, colors, start, end);
-            return (0, false);
+            return (0, false, false);
         }
     };
     let mut frac = 0;
+    let mut long = false;
     if let Num(n) = num
     {
         let sign = if !n.real().is_zero() && n.imag().is_sign_positive()
@@ -301,13 +384,61 @@ pub fn print_concurrent(
         }
         if len1 + len2 > terlen * (get_terminal_height() - 1)
         {
-            print!(
-                "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
-                if options.color { "\x1b[0m" } else { "" },
-            );
-            frac = 0;
+            if long_output
+            {
+                let num = len1.div_ceil(terlen)
+                    + if len2 != 0
+                    {
+                        (len2 - 1).div_ceil(terlen) - 1
+                    }
+                    else
+                    {
+                        0
+                    }
+                    - 1;
+                print!(
+                    "\x1b[J{}\n\x1b[G\x1b[K{}{}{}{}",
+                    if frac == 1
+                    {
+                        format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
+                    }
+                    else
+                    {
+                        "".to_string()
+                    },
+                    output.0,
+                    if len1 != 0 && len2 != 0
+                    {
+                        "\n\x1b[G"
+                    }
+                    else
+                    {
+                        ""
+                    },
+                    &output.1.replace('+', ""),
+                    if options.color { "\x1b[0m" } else { "" },
+                );
+                frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
+            }
+            else
+            {
+                print!(
+                    "\x1b[J{}\n\x1b[Gtoo long, will print on enter{}\x1b[A\x1b[G\x1b[K{}{}{}",
+                    if frac == 1
+                    {
+                        format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
+                    }
+                    else
+                    {
+                        "".to_string()
+                    },
+                    if frac == 1 { "\x1b[A" } else { "" },
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" },
+                );
+                long = true;
+            }
         }
         else if len1 + len2 > terlen
         {
@@ -475,13 +606,35 @@ pub fn print_concurrent(
         }
         if length > terlen * (get_terminal_height() - 1)
         {
-            print!(
-                "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
-                if options.color { "\x1b[0m" } else { "" },
-            );
-            frac = 0;
+            if long_output
+            {
+                let num = (length - 1) / terlen;
+                print!(
+                    "\x1b[J{}\n\x1b[G\x1b[K{}{}",
+                    if frac == 1
+                    {
+                        format!("\n\x1b[G\x1b[K{}", frac_out)
+                    }
+                    else
+                    {
+                        "".to_string()
+                    },
+                    output,
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                frac += num;
+            }
+            else
+            {
+                print!(
+                    "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" },
+                );
+                long = true;
+                frac = 0;
+            }
         }
         else
         {
@@ -668,13 +821,36 @@ pub fn print_concurrent(
         }
         if length > terlen * (get_terminal_height() - 1) || num > (get_terminal_height() - 2)
         {
-            print!(
-                "\x1b[J\n\x1b[Gtoo long, run from cli\x1b[A\x1b[G\x1b[K{}{}{}",
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
-                if options.color { "\x1b[0m" } else { "" },
-            );
-            frac = 0;
+            if long_output
+            {
+                print!(
+                    "\x1b[J{}\n\x1b[G\x1b[K{}{}",
+                    if frac == 1
+                    {
+                        num *= 2;
+                        num += 1;
+                        format!("\n\x1b[G\x1b[K{}", frac_out)
+                    }
+                    else
+                    {
+                        "".to_string()
+                    },
+                    output,
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                frac += num;
+            }
+            else
+            {
+                print!(
+                    "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" },
+                );
+                long = true;
+                frac = 0;
+            }
         }
         else
         {
@@ -704,7 +880,7 @@ pub fn print_concurrent(
     {
         handle_err("str err", unmodified_input, options, colors, start, end);
     }
-    (frac, false)
+    (frac, false, long)
 }
 pub fn print_answer(func: Vec<NumStr>, options: Options, colors: &Colors)
 {

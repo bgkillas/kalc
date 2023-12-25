@@ -692,7 +692,7 @@ pub fn file_opts(
                 }
                 "frac" =>
                 {
-                    options.polar = split.next().unwrap().parse::<bool>().expect("invalid frac")
+                    options.frac = split.next().unwrap().parse::<bool>().expect("invalid frac")
                 }
                 "prompt" =>
                 {
@@ -772,8 +772,8 @@ pub fn file_opts(
                         .parse::<bool>()
                         .expect("invalid debug")
                 }
-                "deg" => options.deg = Radians,
-                "rad" => options.deg = Degrees,
+                "rad" => options.deg = Radians,
+                "deg" => options.deg = Degrees,
                 "grad" => options.deg = Gradians,
                 "tau" => options.tau = split.next().unwrap().parse::<bool>().expect("invalid tau"),
                 "vars" =>

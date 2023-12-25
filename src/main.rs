@@ -37,7 +37,6 @@ use std::{
 //lambert w function
 //make == work more consistently
 //maybe make delete and going up not compute when holding a button by checking if the last button press happened within a consistent amount of time or something
-//set graphing precision to 64 by default
 #[derive(Clone)]
 pub struct Colors
 {

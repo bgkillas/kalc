@@ -54,7 +54,8 @@ FLAGS: --help (this message)
 --polar toggles displaying polar vectors
 --frac toggles fraction display
 --frac_iter=[num] how many iterations to check for fractions
---prec=[num] sets the precision
+--prec=[num] sets the output precision(default 512)
+--graphprec=[num] sets the graph precision(default 64)
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
 --def ignores config file
 --multi toggles multi line display for matrixes

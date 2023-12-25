@@ -29,6 +29,7 @@ pub fn graph(
         {
             return;
         }
+        options.prec = options.graph_prec;
         let mut fg = Figure::new();
         fg.set_enhanced_text(false);
         let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));

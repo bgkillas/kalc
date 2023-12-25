@@ -35,9 +35,9 @@ use std::{
     time::Instant,
 };
 //lambert w function
-//get rid of '=' check and put it in load_vars and have an extra output or something
 //make == work more consistently
 //maybe make delete and going up not compute when holding a button by checking if the last button press happened within a consistent amount of time or something
+//set graphing precision to 64 by default
 #[derive(Clone)]
 pub struct Colors
 {
@@ -113,6 +113,7 @@ pub struct Options
     prompt: bool,
     comma: bool,
     prec: (u32, u32),
+    graph_prec: (u32, u32),
     frac_iter: usize,
     xr: (f64, f64),
     yr: (f64, f64),
@@ -146,6 +147,7 @@ impl Default for Options
             prompt: true,
             comma: false,
             prec: (512, 512),
+            graph_prec: (64, 64),
             frac_iter: 50,
             xr: (-10.0, 10.0),
             yr: (-10.0, 10.0),

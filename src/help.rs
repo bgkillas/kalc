@@ -26,7 +26,8 @@ FLAGS: --help (this message)\n\x1b[G\
 --polar toggles displaying polar vectors\n\x1b[G\
 --frac toggles fraction display\n\x1b[G\
 --frac_iter=[num] how many iterations to check for fractions\n\x1b[G\
---prec=[num] sets the precision\n\x1b[G\
+--prec=[num] sets the output precision(default 512)\n\x1b[G\
+--graphprec=[num] sets the graph precision(default 64)\n\x1b[G\
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\n\x1b[G\
 --def ignores config file\n\x1b[G\
 --multi toggles multi line display for matrixes\n\x1b[G\

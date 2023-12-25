@@ -89,6 +89,38 @@ pub fn arg_opts(
                     args.remove(i);
                 }
             }
+            "--graphprec" | "--graphprecision" =>
+            {
+                if args.len() > 1
+                {
+                    options.graph_prec = match args[i + 1].parse::<u32>()
+                    {
+                        Ok(x) if x != 0 => (x, x),
+                        _ =>
+                        {
+                            let a = match input_var(
+                                &args[i + 1],
+                                Vec::new(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                &mut (false, 0, 0),
+                            )
+                            {
+                                Ok(n) => n.0,
+                                _ => return Err("invalid graphprec"),
+                            };
+                            match do_math(a, *options)
+                            {
+                                Ok(Num(n)) => (n.real().to_f64() as u32, n.real().to_f64() as u32),
+                                _ => return Err("invalid graphprec"),
+                            }
+                        }
+                    };
+                    args.remove(i);
+                }
+            }
             "--decimal" | "--deci" | "--decimals" =>
             {
                 if args.len() > 1
@@ -512,7 +544,7 @@ pub fn file_opts(
                 {
                     let mut bracket = 0;
                     let mut comma = 0;
-                    for (i, c) in split.next().unwrap().chars().enumerate()
+                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
                     {
                         match c
                         {
@@ -529,13 +561,13 @@ pub fn file_opts(
                     }
                     let xr = split.next().unwrap().split_at(comma);
                     options.xr.0 = xr.0.parse::<f64>().expect("invalid xr");
-                    options.xr.1 = xr.1.parse::<f64>().expect("invalid xr")
+                    options.xr.1 = xr.1[1..].parse::<f64>().expect("invalid xr")
                 }
                 "yr" =>
                 {
                     let mut bracket = 0;
                     let mut comma = 0;
-                    for (i, c) in split.next().unwrap().chars().enumerate()
+                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
                     {
                         match c
                         {
@@ -552,13 +584,13 @@ pub fn file_opts(
                     }
                     let yr = split.next().unwrap().split_at(comma);
                     options.yr.0 = yr.0.parse::<f64>().expect("invalid yr");
-                    options.yr.1 = yr.1.parse::<f64>().expect("invalid yr")
+                    options.yr.1 = yr.1[1..].parse::<f64>().expect("invalid yr")
                 }
                 "zr" =>
                 {
                     let mut bracket = 0;
                     let mut comma = 0;
-                    for (i, c) in split.next().unwrap().chars().enumerate()
+                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
                     {
                         match c
                         {
@@ -575,7 +607,7 @@ pub fn file_opts(
                     }
                     let zr = split.next().unwrap().split_at(comma);
                     options.zr.0 = zr.0.parse::<f64>().expect("invalid zr");
-                    options.zr.1 = zr.1.parse::<f64>().expect("invalid zr")
+                    options.zr.1 = zr.1[1..].parse::<f64>().expect("invalid zr")
                 }
                 "prec" | "precision" =>
                 {
@@ -583,6 +615,14 @@ pub fn file_opts(
                     {
                         Ok(x) if x != 0 => (x, x),
                         _ => return Err("invalid prec"),
+                    };
+                }
+                "graphprec" | "graphprecision" =>
+                {
+                    options.graph_prec = match split.next().unwrap().parse::<u32>()
+                    {
+                        Ok(x) if x != 0 => (x, x),
+                        _ => return Err("invalid graphprec"),
                     };
                 }
                 "decimal" | "deci" | "decimals" =>
@@ -838,6 +878,7 @@ pub fn equal_to(
         "base" => format!("{}", options.base),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
         "prec" | "precision" => format!("{}", options.prec.0),
+        "graphprec" | "graphprecision" => format!("{}", options.graph_prec.0),
         "xr" => format!("{},{}", options.xr.0, options.xr.1),
         "yr" => format!("{},{}", options.yr.0, options.yr.1),
         "zr" => format!("{},{}", options.zr.0, options.zr.1),
@@ -1042,6 +1083,29 @@ pub fn set_commands(
                 _ => return Err("Invalid decimal"),
             };
         }
+        "graphprec" | "graphprecision" => match do_math(
+            input_var(
+                r,
+                vars.to_vec(),
+                &mut Vec::new(),
+                &mut 0,
+                *options,
+                false,
+                &mut (false, 0, 0),
+            )?
+            .0,
+            *options,
+        )?
+        .num()?
+        .real()
+        .to_f64() as u32
+        {
+            n if n != 0 =>
+            {
+                options.graph_prec = (n, n);
+            }
+            _ => return Err("Invalid graphprecision"),
+        },
         "prec" | "precision" => match do_math(
             input_var(
                 r,

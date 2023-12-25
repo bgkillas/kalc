@@ -38,6 +38,7 @@ use std::{
 //lambert w function
 //get rid of '=' check and put it in load_vars and have an extra output or something
 //make == work more consistently
+//control+back
 #[derive(Clone)]
 pub struct Colors
 {
@@ -275,12 +276,12 @@ fn main()
                     if !l.starts_with('#')
                     {
                         let r = split.next().unwrap().to_string();
+                        let l = l.chars().collect::<Vec<char>>();
                         for (i, j) in vars.clone().iter().enumerate()
                         {
-                            if j.0.len() <= l.chars().count()
+                            if j.0.len() <= l.len()
                             {
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                let l = l.chars().collect::<Vec<char>>();
                                 if l.contains(&'(')
                                 {
                                     let mut l = l.clone();
@@ -385,7 +386,6 @@ fn main()
                             }
                         }
                         let mut func_vars: Vec<(isize, String)> = Vec::new();
-                        let l = l.chars().collect::<Vec<char>>();
                         if l.contains(&'(')
                         {
                             let mut l = l.clone();
@@ -541,6 +541,7 @@ fn main()
             let mut end = 0;
             loop
             {
+                let time = Instant::now();
                 let c = read_single_char();
                 if options.debug
                 {
@@ -555,7 +556,8 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if !options.real_time_output && !input.is_empty()
+                        if (!options.real_time_output || time.elapsed().as_millis() == 0)
+                            && !input.is_empty()
                         {
                             (frac, graphable) = print_concurrent(
                                 &input,
@@ -1048,7 +1050,7 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output
+                        if options.real_time_output && time.elapsed().as_millis() != 0
                         {
                             (frac, graphable) =
                                 print_concurrent(&input, &last, &vars, options, &colors, start, end)
@@ -1131,7 +1133,7 @@ fn main()
             let r = split.next().unwrap();
             if l.is_empty()
                 || l.chars()
-                    .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ','))
+                    .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ',' | '\'' | '`'))
                 || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
                 {
                     Err(s) =>
@@ -1180,12 +1182,13 @@ fn main()
                     }
                 }
             }
+            let l = l.chars().collect::<Vec<char>>();
             for (i, v) in vars.iter().enumerate()
             {
-                if v.0.iter().collect::<String>().split('(').next() == l.split('(').next()
-                    && v.0.contains(&'(') == l.contains('(')
+                if v.0.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
+                    && v.0.contains(&'(') == l.contains(&'(')
                     && v.0.iter().filter(|c| c == &&',').count()
-                        == l.chars().filter(|c| c == &',').count()
+                        == l.iter().filter(|c| c == &&',').count()
                 {
                     if r == "null"
                     {
@@ -1194,7 +1197,6 @@ fn main()
                     else
                     {
                         let mut func_vars: Vec<(isize, String)> = Vec::new();
-                        let l = l.chars().collect::<Vec<char>>();
                         if l.contains(&'(')
                         {
                             let mut l = l.clone();
@@ -1294,10 +1296,9 @@ fn main()
             }
             for (i, j) in vars.iter().enumerate()
             {
-                if j.0.len() <= l.chars().count()
+                if j.0.len() <= l.len()
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();
-                    let l = l.chars().collect::<Vec<char>>();
                     if l.contains(&'(')
                     {
                         let mut l = l.clone();
@@ -1400,7 +1401,6 @@ fn main()
             if vars.is_empty()
             {
                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                let l = l.chars().collect::<Vec<char>>();
                 if l.contains(&'(')
                 {
                     let mut l = l.clone();

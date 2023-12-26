@@ -36,7 +36,7 @@ use std::{
 };
 //lambert w function
 //make == work more consistently
-//maybe make delete and going up not compute when holding a button by checking if the last button press happened within a consistent amount of time or something
+//optimization, have vars be calculated in input_var if possible, as in have the 'x' part calculated once instead of how many times 'x' is found in the function, maybe make a var system in do_math to make 'x' work?
 #[derive(Clone)]
 pub struct Colors
 {
@@ -309,23 +309,26 @@ fn main()
                                         continue 'upper;
                                     }
                                 };
-                                vars.insert(
-                                    i,
-                                    (
-                                        l.clone(),
-                                        parsed.clone(),
-                                        if l.contains(&'(')
-                                        {
-                                            Str(String::new())
-                                        }
-                                        else
-                                        {
-                                            do_math(parsed, options)
-                                                .unwrap_or(Num(Complex::new(options.prec)))
-                                        },
-                                        r,
-                                    ),
-                                );
+                                if l.contains(&'(')
+                                {
+                                    vars.insert(
+                                        i,
+                                        (l.clone(), parsed.clone(), Str(String::new()), r.clone()),
+                                    );
+                                }
+                                else
+                                {
+                                    vars.insert(
+                                        i,
+                                        (
+                                            l.clone(),
+                                            Vec::new(),
+                                            do_math(parsed.clone(), options)
+                                                .unwrap_or(Num(Complex::new(options.prec))),
+                                            r.clone(),
+                                        ),
+                                    );
+                                }
                                 let mut redef = vec![l];
                                 let mut k = 0;
                                 while k < redef.len()
@@ -374,22 +377,27 @@ fn main()
                                                     continue 'upper;
                                                 }
                                             };
-                                            let check = vars[j].clone();
-                                            vars[j] = (
-                                                v.0.clone(),
-                                                parsed.clone(),
-                                                if v.0.contains(&'(')
-                                                {
-                                                    Str(String::new())
-                                                }
-                                                else
-                                                {
-                                                    do_math(parsed, options)
-                                                        .unwrap_or(Num(Complex::new(options.prec)))
-                                                },
-                                                v.3.clone(),
-                                            );
-                                            if check.1 != vars[j].1
+                                            let check = vars[j].1.clone();
+                                            if v.0.contains(&'(')
+                                            {
+                                                vars[j] = (
+                                                    v.0.clone(),
+                                                    parsed.clone(),
+                                                    Str(String::new()),
+                                                    v.3.clone(),
+                                                );
+                                            }
+                                            else
+                                            {
+                                                vars[j] = (
+                                                    v.0.clone(),
+                                                    Vec::new(),
+                                                    do_math(parsed.clone(), options)
+                                                        .unwrap_or(Num(Complex::new(options.prec))),
+                                                    v.3.clone(),
+                                                );
+                                            }
+                                            if check != parsed
                                             {
                                                 redef.push(v.0.clone());
                                             }
@@ -428,19 +436,20 @@ fn main()
                                 continue 'upper;
                             }
                         };
-                        vars.push((
-                            l.clone(),
-                            parsed.clone(),
-                            if l.contains(&'(')
-                            {
-                                Str(String::new())
-                            }
-                            else
-                            {
-                                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
-                            },
-                            r,
-                        ));
+                        if l.contains(&'(')
+                        {
+                            vars.push((l.clone(), parsed.clone(), Str(String::new()), r.clone()));
+                        }
+                        else
+                        {
+                            vars.push((
+                                l.clone(),
+                                Vec::new(),
+                                do_math(parsed.clone(), options)
+                                    .unwrap_or(Num(Complex::new(options.prec))),
+                                r.clone(),
+                            ));
+                        }
                     }
                 }
             }
@@ -563,7 +572,6 @@ fn main()
             let mut end = 0;
             loop
             {
-                let time = Instant::now();
                 let c = read_single_char();
                 if options.debug
                 {
@@ -578,10 +586,7 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if ((!options.real_time_output && c != '\x14')
-                            || long
-                            || time.elapsed().as_millis() == 0)
-                            && !input.is_empty()
+                        if ((!options.real_time_output && c != '\x14') || long) && !input.is_empty()
                         {
                             (frac, graphable, _) = print_concurrent(
                                 &input,
@@ -656,7 +661,7 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && time.elapsed().as_millis() != 0
+                        if options.real_time_output
                         {
                             (frac, graphable, long) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
@@ -1085,7 +1090,7 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && time.elapsed().as_millis() != 0
+                        if options.real_time_output
                         {
                             (frac, graphable, long) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
@@ -1260,6 +1265,21 @@ fn main()
                                 continue 'main;
                             }
                         };
+                        if l.contains(&'(')
+                        {
+                            vars[i] =
+                                (l.clone(), parsed.clone(), Str(String::new()), r.to_string());
+                        }
+                        else
+                        {
+                            vars[i] = (
+                                l.clone(),
+                                Vec::new(),
+                                do_math(parsed.clone(), options)
+                                    .unwrap_or(Num(Complex::new(options.prec))),
+                                r.to_string(),
+                            );
+                        }
                         vars[i] = (
                             l.clone(),
                             parsed.clone(),
@@ -1318,22 +1338,27 @@ fn main()
                                             continue 'main;
                                         }
                                     };
-                                    let check = vars[j].clone();
-                                    vars[j] = (
-                                        v.0.clone(),
-                                        parsed.clone(),
-                                        if v.0.contains(&'(')
-                                        {
-                                            Str(String::new())
-                                        }
-                                        else
-                                        {
-                                            do_math(parsed, options)
-                                                .unwrap_or(Num(Complex::new(options.prec)))
-                                        },
-                                        v.3.clone(),
-                                    );
-                                    if check.1 != vars[j].1
+                                    let check = vars[j].1.clone();
+                                    if v.0.contains(&'(')
+                                    {
+                                        vars[j] = (
+                                            v.0.clone(),
+                                            parsed.clone(),
+                                            Str(String::new()),
+                                            v.3.clone(),
+                                        );
+                                    }
+                                    else
+                                    {
+                                        vars[j] = (
+                                            v.0.clone(),
+                                            Vec::new(),
+                                            do_math(parsed.clone(), options)
+                                                .unwrap_or(Num(Complex::new(options.prec))),
+                                            v.3.clone(),
+                                        );
+                                    }
+                                    if check != parsed
                                     {
                                         redef.push(v.0.clone());
                                     }
@@ -1377,22 +1402,26 @@ fn main()
                             continue 'main;
                         }
                     };
-                    vars.insert(
-                        i,
-                        (
-                            l.clone(),
-                            parsed.clone(),
-                            if l.contains(&'(')
-                            {
-                                Str(String::new())
-                            }
-                            else
-                            {
-                                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
-                            },
-                            r.to_string(),
-                        ),
-                    );
+                    if l.contains(&'(')
+                    {
+                        vars.insert(
+                            i,
+                            (l.clone(), parsed.clone(), Str(String::new()), r.to_string()),
+                        );
+                    }
+                    else
+                    {
+                        vars.insert(
+                            i,
+                            (
+                                l.clone(),
+                                Vec::new(),
+                                do_math(parsed.clone(), options)
+                                    .unwrap_or(Num(Complex::new(options.prec))),
+                                r.to_string(),
+                            ),
+                        );
+                    }
                     let mut redef = vec![l];
                     let mut k = 0;
                     while k < redef.len()
@@ -1435,22 +1464,27 @@ fn main()
                                         continue 'main;
                                     }
                                 };
-                                let check = vars[j].clone();
-                                vars[j] = (
-                                    v.0.clone(),
-                                    parsed.clone(),
-                                    if v.0.contains(&'(')
-                                    {
-                                        Str(String::new())
-                                    }
-                                    else
-                                    {
-                                        do_math(parsed, options)
-                                            .unwrap_or(Num(Complex::new(options.prec)))
-                                    },
-                                    v.3.clone(),
-                                );
-                                if check.1 != vars[j].1
+                                let check = vars[j].1.clone();
+                                if v.0.contains(&'(')
+                                {
+                                    vars[j] = (
+                                        v.0.clone(),
+                                        parsed.clone(),
+                                        Str(String::new()),
+                                        v.3.clone(),
+                                    );
+                                }
+                                else
+                                {
+                                    vars[j] = (
+                                        v.0.clone(),
+                                        Vec::new(),
+                                        do_math(parsed.clone(), options)
+                                            .unwrap_or(Num(Complex::new(options.prec))),
+                                        v.3.clone(),
+                                    );
+                                }
+                                if check != parsed
                                 {
                                     redef.push(v.0.clone());
                                 }
@@ -1491,19 +1525,19 @@ fn main()
                         continue 'main;
                     }
                 };
-                vars.push((
-                    l.clone(),
-                    parsed.clone(),
-                    if l.contains(&'(')
-                    {
-                        Str(String::new())
-                    }
-                    else
-                    {
-                        do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
-                    },
-                    r.to_string(),
-                ));
+                if l.contains(&'(')
+                {
+                    vars.push((l.clone(), parsed.clone(), Str(String::new()), r.to_string()));
+                }
+                else
+                {
+                    vars.push((
+                        l.clone(),
+                        Vec::new(),
+                        do_math(parsed.clone(), options).unwrap_or(Num(Complex::new(options.prec))),
+                        r.to_string(),
+                    ));
+                }
             }
         }
         if options.graph && graphable

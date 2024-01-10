@@ -5,9 +5,11 @@
 
 requires gnuplot for graphing, a modern terminal like windows terminal on windows(via wsl)
 
-history file is stored in ```~/.config/kalc.history``` example in repo
+gnuplot 6.0 has issues with 3d graphing
 
-config file is stored in ```~/.config/kalc.config```
+history file is stored in ```~/.config/kalc.history```
+
+config file is stored in ```~/.config/kalc.config``` example in repo
 
 you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo
 

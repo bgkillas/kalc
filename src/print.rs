@@ -887,13 +887,8 @@ pub fn print_concurrent(
     }
     (frac, false, long)
 }
-pub fn print_answer(func: Vec<NumStr>, options: Options, colors: &Colors)
+pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
 {
-    let num = match do_math(func, options)
-    {
-        Ok(num) => num,
-        _ => return,
-    };
     if let Num(n) = num
     {
         let a = get_output(options, colors, &n);

@@ -12,12 +12,9 @@ mod print;
 #[cfg(test)]
 mod tests;
 use crate::{
-    complex::{
-        NumStr,
-        NumStr::{Num, Str},
-    },
+    complex::NumStr,
     graph::graph,
-    load_vars::{get_cli_vars, get_vars},
+    load_vars::{add_var, get_cli_vars, get_vars},
     math::do_math,
     misc::{clear, clearln, convert, get_terminal_width, prompt, read_single_char, write},
     options::{arg_opts, commands, file_opts, set_commands},
@@ -26,7 +23,6 @@ use crate::{
     AngleType::Radians,
 };
 use crossterm::terminal;
-use rug::Complex;
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -37,6 +33,11 @@ use std::{
 //lambert w function
 //make == work more consistently
 //optimization, have vars be calculated in input_var if possible, as in have the 'x' part calculated once instead of how many times 'x' is found in the function, maybe make a var system in do_math to make 'x' work?
+//dont print prompt while var processes, maybe multi thread graphs with '#'
+//zscore for a point and area under the curve to the z score
+//print parsed input while defining functions
+//have printed input display vars not numbers maybe?
+//support f(x)=x^2#x maybe?
 #[derive(Clone)]
 pub struct Colors
 {
@@ -207,44 +208,18 @@ fn main()
         var("USERNAME").unwrap()
     );
     let mut vars: Vec<(Vec<char>, Vec<NumStr>, NumStr, String)> = if options.allow_vars
+        && args.is_empty()
     {
-        if args.is_empty()
-        {
-            get_vars(options)
-        }
-        else if File::open(file_path).is_ok()
-        {
-            let args = args.concat();
-            get_cli_vars(
-                options,
-                args.clone()
-                    + &BufReader::new(File::open(file_path).unwrap())
-                        .lines()
-                        .map(|l| {
-                            let l = l.unwrap();
-                            if !l.starts_with('#')
-                                && args.contains(l.split(|c| c == '=' || c == '(').next().unwrap())
-                            {
-                                l
-                            }
-                            else
-                            {
-                                "".to_string()
-                            }
-                        })
-                        .collect::<Vec<String>>()
-                        .concat(),
-            )
-        }
-        else
-        {
-            get_cli_vars(options, args.concat())
-        }
+        get_vars(options)
     }
     else
     {
         Vec::new()
     };
+    if !args.is_empty()
+    {
+        get_cli_vars(options, args.concat(), &mut vars)
+    }
     let mut old = vars.clone();
     {
         if options.allow_vars && File::open(file_path).is_ok()
@@ -255,200 +230,80 @@ fn main()
                 .collect::<Vec<String>>();
             let mut split;
             let args = args.concat();
-            'upper: for i in lines
+            let mut redo = String::new();
+            'upper: for i in lines.clone()
             {
                 split = i.splitn(2, '=');
                 if split.clone().count() == 2
                 {
                     let l = split.next().unwrap().to_string();
-                    if !args.is_empty()
-                        && !args.contains(&if l.contains('(')
-                        {
-                            l.split('(').next().unwrap().to_owned()
-                        }
-                        else
-                        {
-                            l.clone()
-                        })
-                    {
-                        continue;
-                    }
-                    if !l.starts_with('#')
+                    if !(l.starts_with('#')
+                        || !args.is_empty()
+                            && !args.contains(&if l.contains('(')
+                            {
+                                l.split('(').next().unwrap().to_owned() + "("
+                            }
+                            else
+                            {
+                                l.clone()
+                            }))
                     {
                         let r = split.next().unwrap().to_string();
+                        redo += &r;
                         let l = l.chars().collect::<Vec<char>>();
                         for (i, j) in vars.clone().iter().enumerate()
                         {
                             if j.0.len() <= l.len()
                             {
-                                let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if l.contains(&'(')
+                                add_var(l, &r, i, &mut vars, options);
+                                continue 'upper;
+                            }
+                        }
+                        add_var(l, &r, 0, &mut vars, options);
+                    }
+                }
+            }
+            if !redo.is_empty()
+            {
+                let mut flag = true;
+                let mut blacklist = Vec::new();
+                while flag
+                {
+                    flag = false;
+                    'upper: for i in lines.clone()
+                    {
+                        //TODO fix n(x) with 'e',make another function that makes a vec of new, needed vars
+                        split = i.splitn(2, '=');
+                        if split.clone().count() == 2
+                        {
+                            let l = split.next().unwrap().to_string();
+                            let left = if l.contains('(')
+                            {
+                                l.split('(').next().unwrap().to_owned() + "("
+                            }
+                            else
+                            {
+                                l.clone()
+                            };
+                            if (redo.contains(&left) || args.is_empty())
+                                && !blacklist.contains(&left)
+                                && !l.starts_with('#')
+                            {
+                                blacklist.push(left);
+                                let r = split.next().unwrap().to_string();
+                                redo += &r;
+                                let l = l.chars().collect::<Vec<char>>();
+                                flag = true;
+                                for (i, j) in vars.clone().iter().enumerate()
                                 {
-                                    let mut l = l.clone();
-                                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                                    l.pop();
-                                    for i in l.split(|c| c == &',')
+                                    if j.0.len() <= l.len()
                                     {
-                                        func_vars.push((-1, i.iter().collect()));
-                                    }
-                                }
-                                let parsed = match input_var(
-                                    &r,
-                                    vars.clone(),
-                                    &mut func_vars,
-                                    &mut 0,
-                                    options,
-                                    false,
-                                    &mut (false, 0, 0),
-                                )
-                                {
-                                    Ok(n) => n.0,
-                                    _ =>
-                                    {
-                                        println!("failed at: {}", l.iter().collect::<String>());
+                                        add_var(l, &r, i, &mut vars, options);
                                         continue 'upper;
                                     }
-                                };
-                                if l.contains(&'(')
-                                {
-                                    vars.insert(
-                                        i,
-                                        (l.clone(), parsed.clone(), Str(String::new()), r.clone()),
-                                    );
                                 }
-                                else
-                                {
-                                    vars.insert(
-                                        i,
-                                        (
-                                            l.clone(),
-                                            Vec::new(),
-                                            do_math(parsed.clone(), options)
-                                                .unwrap_or(Num(Complex::new(options.prec))),
-                                            r.clone(),
-                                        ),
-                                    );
-                                }
-                                let mut redef = vec![l];
-                                let mut k = 0;
-                                while k < redef.len()
-                                {
-                                    for (j, v) in vars.clone().iter().enumerate()
-                                    {
-                                        if redef[k] != v.0
-                                            && v.3.contains(
-                                                &redef[k][0..=redef[k]
-                                                    .iter()
-                                                    .position(|a| a == &'(')
-                                                    .unwrap_or(redef[k].len() - 1)],
-                                            )
-                                        {
-                                            let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                            if v.0.contains(&'(')
-                                            {
-                                                let mut l = v.0.clone();
-                                                l.drain(
-                                                    0..=l.iter().position(|c| c == &'(').unwrap(),
-                                                );
-                                                l.pop();
-                                                for i in l.split(|c| c == &',')
-                                                {
-                                                    func_vars
-                                                        .push((-1, i.iter().collect::<String>()));
-                                                }
-                                            }
-                                            let parsed = match input_var(
-                                                &v.3.clone(),
-                                                vars.clone(),
-                                                &mut func_vars,
-                                                &mut 0,
-                                                options,
-                                                false,
-                                                &mut (false, 0, 0),
-                                            )
-                                            {
-                                                Ok(n) => n.0,
-                                                _ =>
-                                                {
-                                                    println!(
-                                                        "failed at: {}",
-                                                        v.0.iter().collect::<String>()
-                                                    );
-                                                    continue 'upper;
-                                                }
-                                            };
-                                            let check = vars[j].1.clone();
-                                            if v.0.contains(&'(')
-                                            {
-                                                vars[j] = (
-                                                    v.0.clone(),
-                                                    parsed.clone(),
-                                                    Str(String::new()),
-                                                    v.3.clone(),
-                                                );
-                                            }
-                                            else
-                                            {
-                                                vars[j] = (
-                                                    v.0.clone(),
-                                                    Vec::new(),
-                                                    do_math(parsed.clone(), options)
-                                                        .unwrap_or(Num(Complex::new(options.prec))),
-                                                    v.3.clone(),
-                                                );
-                                            }
-                                            if check != parsed
-                                            {
-                                                redef.push(v.0.clone());
-                                            }
-                                        }
-                                    }
-                                    k += 1;
-                                }
-                                continue 'upper;
+                                add_var(l, &r, 0, &mut vars, options);
                             }
-                        }
-                        let mut func_vars: Vec<(isize, String)> = Vec::new();
-                        if l.contains(&'(')
-                        {
-                            let mut l = l.clone();
-                            l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                            l.pop();
-                            for i in l.split(|c| c == &',')
-                            {
-                                func_vars.push((-1, i.iter().collect()));
-                            }
-                        }
-                        let parsed = match input_var(
-                            &r,
-                            vars.clone(),
-                            &mut func_vars,
-                            &mut 0,
-                            options,
-                            false,
-                            &mut (false, 0, 0),
-                        )
-                        {
-                            Ok(n) => n.0,
-                            _ =>
-                            {
-                                println!("failed at: {}", l.iter().collect::<String>());
-                                continue 'upper;
-                            }
-                        };
-                        if l.contains(&'(')
-                        {
-                            vars.push((l.clone(), parsed.clone(), Str(String::new()), r.clone()));
-                        }
-                        else
-                        {
-                            vars.push((
-                                l.clone(),
-                                Vec::new(),
-                                do_math(parsed.clone(), options)
-                                    .unwrap_or(Num(Complex::new(options.prec))),
-                                r.clone(),
-                            ));
                         }
                     }
                 }
@@ -533,7 +388,10 @@ fn main()
                 .contains('=');
             if !graphable && noprint
             {
-                print_answer(output, options, &colors);
+                if let Ok(n) = do_math(output, options)
+                {
+                    print_answer(n, options, &colors);
+                }
             }
             if let Some(time) = watch
             {
@@ -1237,135 +1095,7 @@ fn main()
                     }
                     else
                     {
-                        let mut func_vars: Vec<(isize, String)> = Vec::new();
-                        if l.contains(&'(')
-                        {
-                            let mut l = l.clone();
-                            l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                            l.pop();
-                            for i in l.split(|c| c == &',')
-                            {
-                                func_vars.push((-1, i.iter().collect()));
-                            }
-                        }
-                        let parsed = match input_var(
-                            r,
-                            vars.clone(),
-                            &mut func_vars,
-                            &mut 0,
-                            options,
-                            false,
-                            &mut (false, 0, 0),
-                        )
-                        {
-                            Ok(n) => n.0,
-                            _ =>
-                            {
-                                println!("failed at: {}", l.iter().collect::<String>());
-                                continue 'main;
-                            }
-                        };
-                        if l.contains(&'(')
-                        {
-                            vars[i] =
-                                (l.clone(), parsed.clone(), Str(String::new()), r.to_string());
-                        }
-                        else
-                        {
-                            vars[i] = (
-                                l.clone(),
-                                Vec::new(),
-                                do_math(parsed.clone(), options)
-                                    .unwrap_or(Num(Complex::new(options.prec))),
-                                r.to_string(),
-                            );
-                        }
-                        vars[i] = (
-                            l.clone(),
-                            parsed.clone(),
-                            if l.contains(&'(')
-                            {
-                                Str(String::new())
-                            }
-                            else
-                            {
-                                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec)))
-                            },
-                            r.to_string(),
-                        );
-                        let mut redef = vec![l];
-                        let mut k = 0;
-                        while k < redef.len()
-                        {
-                            for (j, v) in vars.clone().iter().enumerate()
-                            {
-                                if redef[k] != v.0
-                                    && v.3.contains(
-                                        &redef[k][0..=redef[k]
-                                            .iter()
-                                            .position(|a| a == &'(')
-                                            .unwrap_or(redef[k].len() - 1)],
-                                    )
-                                {
-                                    let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                    if v.0.contains(&'(')
-                                    {
-                                        let mut l = v.0.clone();
-                                        l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                                        l.pop();
-                                        for i in l.split(|c| c == &',')
-                                        {
-                                            func_vars.push((-1, i.iter().collect::<String>()));
-                                        }
-                                    }
-                                    let parsed = match input_var(
-                                        &v.3.clone(),
-                                        vars.clone(),
-                                        &mut func_vars,
-                                        &mut 0,
-                                        options,
-                                        false,
-                                        &mut (false, 0, 0),
-                                    )
-                                    {
-                                        Ok(n) => n.0,
-                                        _ =>
-                                        {
-                                            println!(
-                                                "failed at: {}",
-                                                v.0.iter().collect::<String>()
-                                            );
-                                            continue 'main;
-                                        }
-                                    };
-                                    let check = vars[j].1.clone();
-                                    if v.0.contains(&'(')
-                                    {
-                                        vars[j] = (
-                                            v.0.clone(),
-                                            parsed.clone(),
-                                            Str(String::new()),
-                                            v.3.clone(),
-                                        );
-                                    }
-                                    else
-                                    {
-                                        vars[j] = (
-                                            v.0.clone(),
-                                            Vec::new(),
-                                            do_math(parsed.clone(), options)
-                                                .unwrap_or(Num(Complex::new(options.prec))),
-                                            v.3.clone(),
-                                        );
-                                    }
-                                    if check != parsed
-                                    {
-                                        redef.push(v.0.clone());
-                                    }
-                                }
-                            }
-                            k += 1;
-                        }
+                        add_var(l, r, i, &mut vars, options);
                     }
                     continue 'main;
                 }
@@ -1374,171 +1104,11 @@ fn main()
             {
                 if j.0.len() <= l.len()
                 {
-                    let mut func_vars: Vec<(isize, String)> = Vec::new();
-                    if l.contains(&'(')
-                    {
-                        let mut l = l.clone();
-                        l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                        l.pop();
-                        for i in l.split(|c| c == &',')
-                        {
-                            func_vars.push((-1, i.iter().collect()));
-                        }
-                    }
-                    let parsed = match input_var(
-                        r,
-                        vars.clone(),
-                        &mut func_vars,
-                        &mut 0,
-                        options,
-                        false,
-                        &mut (false, 0, 0),
-                    )
-                    {
-                        Ok(n) => n.0,
-                        _ =>
-                        {
-                            println!("failed at: {}", l.iter().collect::<String>());
-                            continue 'main;
-                        }
-                    };
-                    if l.contains(&'(')
-                    {
-                        vars.insert(
-                            i,
-                            (l.clone(), parsed.clone(), Str(String::new()), r.to_string()),
-                        );
-                    }
-                    else
-                    {
-                        vars.insert(
-                            i,
-                            (
-                                l.clone(),
-                                Vec::new(),
-                                do_math(parsed.clone(), options)
-                                    .unwrap_or(Num(Complex::new(options.prec))),
-                                r.to_string(),
-                            ),
-                        );
-                    }
-                    let mut redef = vec![l];
-                    let mut k = 0;
-                    while k < redef.len()
-                    {
-                        for (j, v) in vars.clone().iter().enumerate()
-                        {
-                            if redef[k] != v.0
-                                && v.3.contains(
-                                    &redef[k][0..=redef[k]
-                                        .iter()
-                                        .position(|a| a == &'(')
-                                        .unwrap_or(redef[k].len() - 1)],
-                                )
-                            {
-                                let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if v.0.contains(&'(')
-                                {
-                                    let mut l = v.0.clone();
-                                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                                    l.pop();
-                                    for i in l.split(|c| c == &',')
-                                    {
-                                        func_vars.push((-1, i.iter().collect::<String>()));
-                                    }
-                                }
-                                let parsed = match input_var(
-                                    &v.3.clone(),
-                                    vars.clone(),
-                                    &mut func_vars,
-                                    &mut 0,
-                                    options,
-                                    false,
-                                    &mut (false, 0, 0),
-                                )
-                                {
-                                    Ok(n) => n.0,
-                                    _ =>
-                                    {
-                                        println!("failed at: {}", v.0.iter().collect::<String>());
-                                        continue 'main;
-                                    }
-                                };
-                                let check = vars[j].1.clone();
-                                if v.0.contains(&'(')
-                                {
-                                    vars[j] = (
-                                        v.0.clone(),
-                                        parsed.clone(),
-                                        Str(String::new()),
-                                        v.3.clone(),
-                                    );
-                                }
-                                else
-                                {
-                                    vars[j] = (
-                                        v.0.clone(),
-                                        Vec::new(),
-                                        do_math(parsed.clone(), options)
-                                            .unwrap_or(Num(Complex::new(options.prec))),
-                                        v.3.clone(),
-                                    );
-                                }
-                                if check != parsed
-                                {
-                                    redef.push(v.0.clone());
-                                }
-                            }
-                        }
-                        k += 1;
-                    }
+                    add_var(l, r, i, &mut vars, options);
                     continue 'main;
                 }
             }
-            if vars.is_empty()
-            {
-                let mut func_vars: Vec<(isize, String)> = Vec::new();
-                if l.contains(&'(')
-                {
-                    let mut l = l.clone();
-                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                    l.pop();
-                    for i in l.split(|c| c == &',')
-                    {
-                        func_vars.push((-1, i.iter().collect()));
-                    }
-                }
-                let parsed = match input_var(
-                    r,
-                    vars.clone(),
-                    &mut func_vars,
-                    &mut 0,
-                    options,
-                    false,
-                    &mut (false, 0, 0),
-                )
-                {
-                    Ok(n) => n.0,
-                    _ =>
-                    {
-                        println!("failed at: {}", l.iter().collect::<String>());
-                        continue 'main;
-                    }
-                };
-                if l.contains(&'(')
-                {
-                    vars.push((l.clone(), parsed.clone(), Str(String::new()), r.to_string()));
-                }
-                else
-                {
-                    vars.push((
-                        l.clone(),
-                        Vec::new(),
-                        do_math(parsed.clone(), options).unwrap_or(Num(Complex::new(options.prec))),
-                        r.to_string(),
-                    ));
-                }
-            }
+            add_var(l, r, 0, &mut vars, options);
         }
         if options.graph && graphable
         {

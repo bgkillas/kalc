@@ -24,6 +24,7 @@ pub fn graph(
     colors: Colors,
 ) -> JoinHandle<()>
 {
+    //TODO remove most extra axes2d/3d by just making a var to be the lines stuff
     thread::spawn(move || {
         if input.iter().all(|i| i.is_empty())
         {
@@ -400,6 +401,7 @@ pub fn graph(
                 {
                     if !z.0.is_empty()
                     {
+                        //TODO registers the "null" values in calculations, fix other where if applicable
                         if Options::default().yr == options.yr
                         {
                             options.yr = (

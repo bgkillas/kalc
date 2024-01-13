@@ -5,7 +5,7 @@
 
 requires gnuplot for graphing, a modern terminal like windows terminal on windows(via wsl)
 
-gnuplot 6.0 has issues with 3d graphing
+gnuplot 6.0 has issues with graphing
 
 history file is stored in ```~/.config/kalc.history```
 
@@ -109,10 +109,12 @@ Functions:
 - re, im, split(x+yi={x,y})
 - factors, prime
 - slog(a,b)
+- piecewise({value,cond},{value2,cond2}...) (when first condition is met from left to right value is outputted else 0, can add {nan,1} at end for not a number instead of 0)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
 - tofreq{a,b,c...}, tolist{{a,b},{c,d}...} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)
 - variance/var, standarddeviation/σ (sample-bias corrected)
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
+- normP(μ,σ,x) (normal distribution) normD(z) (area under curve to the left of z score)
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})

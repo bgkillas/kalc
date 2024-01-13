@@ -38,6 +38,8 @@ use std::{
 //print parsed input while defining functions
 //have printed input display vars not numbers maybe?
 //support f(x)=x^2#x maybe?
+//have ; be used to define a var or something
+//make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
 #[derive(Clone)]
 pub struct Colors
 {
@@ -188,6 +190,15 @@ fn main()
         {
             println!("{}", s);
             std::process::exit(1);
+        }
+    }
+    for arg in args.iter_mut()
+    {
+        if (arg.starts_with('\'') && arg.ends_with('\''))
+            || (arg.starts_with('\"') && arg.ends_with('\"'))
+        {
+            arg.remove(0);
+            arg.pop();
         }
     }
     if !stdin().is_terminal()
@@ -369,6 +380,7 @@ fn main()
                 options,
                 false,
                 &mut (false, 0, 0),
+                false,
             )
             {
                 Ok(f) => f,
@@ -1137,6 +1149,7 @@ fn main()
                             options,
                             false,
                             &mut (false, 0, 0),
+                            false,
                         )
                         {
                             Ok(f) => f.0,

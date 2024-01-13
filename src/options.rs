@@ -74,6 +74,7 @@ pub fn arg_opts(
                                 *options,
                                 false,
                                 &mut (false, 0, 0),
+                                false,
                             )
                             {
                                 Ok(n) => n.0,
@@ -106,6 +107,7 @@ pub fn arg_opts(
                                 *options,
                                 false,
                                 &mut (false, 0, 0),
+                                false,
                             )
                             {
                                 Ok(n) => n.0,
@@ -148,6 +150,7 @@ pub fn arg_opts(
                                     *options,
                                     false,
                                     &mut (false, 0, 0),
+                                    false,
                                 )
                                 {
                                     Ok(n) => n.0,
@@ -897,7 +900,8 @@ pub fn equal_to(
                 &mut Vec::new(),
                 &mut 0,
                 options, false,
-                &mut (false,0,0)
+                &mut (false,0,0),
+                true
             );
             if let Ok(f)=input
             {
@@ -1069,6 +1073,7 @@ pub fn set_commands(
                     *options,
                     false,
                     &mut (false, 0, 0),
+                    false,
                 )?
                 .0,
                 *options,
@@ -1092,6 +1097,7 @@ pub fn set_commands(
                 *options,
                 false,
                 &mut (false, 0, 0),
+                false,
             )?
             .0,
             *options,
@@ -1115,6 +1121,7 @@ pub fn set_commands(
                 *options,
                 false,
                 &mut (false, 0, 0),
+                false,
             )?
             .0,
             *options,
@@ -1165,6 +1172,7 @@ pub fn set_commands(
                                 *options,
                                 false,
                                 &mut (false, 0, 0),
+                                false,
                             )
                             .unwrap()
                             .0;
@@ -1216,6 +1224,7 @@ pub fn set_commands(
                                     *options,
                                     false,
                                     &mut (false, 0, 0),
+                                    false,
                                 )
                                 .unwrap()
                                 .0;
@@ -1273,6 +1282,7 @@ pub fn set_commands(
                             *options,
                             false,
                             &mut (false, 0, 0),
+                            false,
                         )?
                         .0,
                         *options,
@@ -1289,6 +1299,7 @@ pub fn set_commands(
                             *options,
                             false,
                             &mut (false, 0, 0),
+                            false,
                         )?
                         .0,
                         *options,
@@ -1317,6 +1328,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1360,6 +1372,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1376,6 +1389,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1395,6 +1409,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1431,6 +1446,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1447,6 +1463,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1466,6 +1483,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1502,6 +1520,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1518,6 +1537,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1537,6 +1557,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,
@@ -1566,6 +1587,7 @@ pub fn set_commands(
                     *options,
                     false,
                     &mut (false, 0, 0),
+                    false,
                 )?
                 .0,
                 *options,
@@ -1588,6 +1610,7 @@ pub fn set_commands(
                             *options,
                             false,
                             &mut (false, 0, 0),
+                            false,
                         )?
                         .0,
                         *options,
@@ -1604,6 +1627,7 @@ pub fn set_commands(
                             *options,
                             false,
                             &mut (false, 0, 0),
+                            false,
                         )?
                         .0,
                         *options,
@@ -1624,6 +1648,7 @@ pub fn set_commands(
                         *options,
                         false,
                         &mut (false, 0, 0),
+                        false,
                     )?
                     .0,
                     *options,

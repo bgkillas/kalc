@@ -76,10 +76,12 @@ Functions:\n\x1b[G\
 - re, im, split(x+yi={{x,y}})\n\x1b[G\
 - factors, prime\n\x1b[G\
 - slog(a,b)\n\x1b[G\
+- piecewise({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right value is outputted else 0, can add {{nan,1}} at end for not a number instead of 0)\n\x1b[G\
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\
 - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\n\x1b[G\
 - variance/var, standarddeviation/σ (sample-bias corrected)\n\x1b[G\
-- percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\n\x1b[G\n\x1b[G\
+- percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\n\x1b[G\
+- normP(μ,σ,x) (normal distribution) normD(z) (area under curve to the left of z score)\n\x1b[G\n\x1b[G\
 Vector operations/functions:\n\x1b[G\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
 - angle({{vec1}},{{vec2}})\n\x1b[G\

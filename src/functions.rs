@@ -167,6 +167,9 @@ pub fn functions() -> HashSet<&'static str>
         "quartiles",
         "percentile",
         "percentilerank",
+        "normD",
+        "normP",
+        "piecewise",
     ]
     .iter()
     .cloned()

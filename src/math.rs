@@ -152,6 +152,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 | "atan"
                                 | "arctan"
                                 | "atan2"
+                                | "normP"
                                 | "bi"
                                 | "binomial"
                                 | "angle"
@@ -216,7 +217,15 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         }
                         else if matches!(
                             k.as_str(),
-                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
+                            "sum"
+                                | "summation"
+                                | "prod"
+                                | "product"
+                                | "Σ"
+                                | "Π"
+                                | "vec"
+                                | "mat"
+                                | "piecewise"
                         )
                         {
                             i = j - 1;
@@ -247,24 +256,32 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
             {
                 if matches!(
                     s.as_str(),
-                    "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "vec" | "mat"
+                    "sum"
+                        | "product"
+                        | "prod"
+                        | "summation"
+                        | "Σ"
+                        | "Π"
+                        | "vec"
+                        | "mat"
+                        | "piecewise"
                 )
                 {
                     let mut place = Vec::new();
                     let mut count = 0;
                     for (f, n) in function[i + 2..].iter().enumerate()
                     {
-                        if let Str(s) = n
+                        if let Str(w) = n
                         {
-                            if s == "," && count == 0
+                            if w == "," && (count == 0 || (s == "piecewise" && count == 1))
                             {
                                 place.push(f + i + 2);
                             }
-                            else if s == "(" || s == "{"
+                            else if w == "(" || w == "{"
                             {
                                 count += 1;
                             }
-                            else if s == ")" || s == "}"
+                            else if w == ")" || w == "}"
                             {
                                 if count == 0
                                 {
@@ -275,7 +292,37 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                             }
                         }
                     }
-                    if place.len() == 4
+                    if s == "piecewise" && !place.is_empty()
+                    {
+                        let mut ans = None;
+                        let mut start = i + 3;
+                        for (i, end) in place[0..place.len() - 1].iter().enumerate()
+                        {
+                            if i % 2 == 0
+                                && do_math(function[*end..place[i + 1] - 1].to_vec(), options)?
+                                    .num()?
+                                    .real()
+                                    == &1.0
+                            {
+                                ans = Some(do_math(function[start..*end].to_vec(), options)?);
+                                break;
+                            }
+                            else
+                            {
+                                start = end + 2;
+                            }
+                        }
+                        function[i] = if let Some(n) = ans
+                        {
+                            n
+                        }
+                        else
+                        {
+                            Num(Complex::with_val(options.prec, 0))
+                        };
+                        function.drain(i + 1..=*place.last().unwrap());
+                    }
+                    else if place.len() == 4
                     {
                         if let Str(var) = &function[place[0] - 1]
                         {
@@ -1200,6 +1247,24 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         {
                             function[i] = match s.as_str()
                             {
+                                "normP" =>
+                                {
+                                    if i + 5 < function.len()
+                                    {
+                                        let mu = function[i + 1].num()?;
+                                        let sigma = function[i + 3].num()?;
+                                        let x = function[i + 5].num()?;
+                                        function.drain(i + 2..i + 6);
+                                        let n: Complex = (x - mu).pow(2);
+                                        let n: Complex = -n / (2 * sigma.clone().pow(2));
+                                        let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
+                                        Num(n.exp() / (sigma * tau.sqrt()))
+                                    }
+                                    else
+                                    {
+                                        return Err("not enough args");
+                                    }
+                                }
                                 "cubic" =>
                                 {
                                     if i + 7 < function.len()
@@ -2067,6 +2132,18 @@ fn functions(
         }
         "sinc" => a.clone().sin() / a,
         "conj" | "conjugate" => a.conj(),
+        "normD" =>
+        {
+            if a.imag().is_zero()
+            {
+                let two = Float::with_val(options.prec.0, 2);
+                ((-a / two.clone().sqrt()).real().clone().erfc() / two).into()
+            }
+            else
+            {
+                return Err("complex erf not supported");
+            }
+        }
         "erf" =>
         {
             if a.imag().is_zero()

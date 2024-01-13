@@ -265,10 +265,18 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
         let mut output = String::new();
         let mut abs = Vec::new();
         let mut i = 0;
+        let mut ignore = false;
         while i < input.len()
         {
-            match input[i]
+            let c = input[i];
+            match c
             {
+                '\x1b' =>
+                {
+                    ignore = true;
+                    output.push(c)
+                }
+                '[' if ignore => output.push(c),
                 '|' =>
                 {
                     if !abs.is_empty()
@@ -288,12 +296,7 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                             colors.text
                         ))
                     }
-                    else if i + 1 != input.len() && input[i + 1] == '|'
-                    {
-                        i += 1;
-                        output.push_str("||")
-                    }
-                    else
+                    else if i + 1 == input.len() || input[i + 1] != '|'
                     {
                         output.push_str(&format!(
                             "{}|{}",
@@ -303,26 +306,33 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                         count += 1;
                         abs.insert(0, count);
                     }
+                    else
+                    {
+                        i += 1;
+                        output.push_str("||")
+                    }
                 }
-                '(' =>
+                '(' | '{' | '[' =>
                 {
                     output.push_str(&format!(
-                        "{}({}",
+                        "{}{}{}",
                         colors.brackets[count as usize % colors.brackets.len()],
+                        c,
                         colors.text
                     ));
                     count += 1
                 }
-                ')' =>
+                ')' | '}' | ']' =>
                 {
                     count -= 1;
                     output.push_str(&format!(
-                        "{}){}",
+                        "{}{}{}",
                         colors.brackets[count as usize % colors.brackets.len()],
+                        c,
                         colors.text
                     ))
                 }
-                _ => output.push(input[i]),
+                _ => output.push(c),
             }
             i += 1;
         }

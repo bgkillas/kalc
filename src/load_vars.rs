@@ -378,6 +378,7 @@ pub fn add_var(
         options,
         false,
         &mut (false, 0, 0),
+        false,
     )
     {
         Ok(n) => n.0,
@@ -439,6 +440,7 @@ pub fn add_var(
                     options,
                     false,
                     &mut (false, 0, 0),
+                    false,
                 )
                 {
                     Ok(n) => n.0,

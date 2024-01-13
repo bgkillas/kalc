@@ -104,6 +104,7 @@ pub fn print_concurrent(
         options,
         false,
         &mut (false, 0, 0),
+        false,
     )
     {
         Ok(f) => f,

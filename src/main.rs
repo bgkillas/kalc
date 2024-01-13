@@ -14,7 +14,7 @@ mod tests;
 use crate::{
     complex::NumStr,
     graph::graph,
-    load_vars::{add_var, get_cli_vars, get_vars},
+    load_vars::{add_var, get_cli_vars, get_file_vars, get_vars},
     math::do_math,
     misc::{clear, clearln, convert, get_terminal_width, prompt, read_single_char, write},
     options::{arg_opts, commands, file_opts, set_commands},
@@ -40,6 +40,7 @@ use std::{
 //support f(x)=x^2#x maybe?
 //have ; be used to define a var or something
 //make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
+//color vector and matrix brackets?
 #[derive(Clone)]
 pub struct Colors
 {
@@ -233,88 +234,57 @@ fn main()
     }
     let mut old = vars.clone();
     {
-        if options.allow_vars && File::open(file_path).is_ok()
+        if options.allow_vars
         {
-            let lines = BufReader::new(File::open(file_path).unwrap())
-                .lines()
-                .map(|l| l.unwrap())
-                .collect::<Vec<String>>();
-            let mut split;
-            let args = args.concat();
-            let mut redo = String::new();
-            'upper: for i in lines.clone()
+            if let Ok(file) = File::open(file_path)
             {
-                split = i.splitn(2, '=');
-                if split.clone().count() == 2
-                {
-                    let l = split.next().unwrap().to_string();
-                    if !(l.starts_with('#')
-                        || !args.is_empty()
-                            && !args.contains(&if l.contains('(')
-                            {
-                                l.split('(').next().unwrap().to_owned() + "("
-                            }
-                            else
-                            {
-                                l.clone()
-                            }))
-                    {
-                        let r = split.next().unwrap().to_string();
-                        redo += &r;
-                        let l = l.chars().collect::<Vec<char>>();
-                        for (i, j) in vars.clone().iter().enumerate()
+                let lines = BufReader::new(file)
+                    .lines()
+                    .filter_map(|l| {
+                        let l = l.unwrap();
+                        if !l.starts_with('#') && !l.is_empty()
                         {
-                            if j.0.len() <= l.len()
-                            {
-                                add_var(l, &r, i, &mut vars, options);
-                                continue 'upper;
-                            }
+                            Some(l)
                         }
-                        add_var(l, &r, 0, &mut vars, options);
-                    }
-                }
-            }
-            if !redo.is_empty()
-            {
-                let mut flag = true;
-                let mut blacklist = Vec::new();
-                while flag
-                {
-                    flag = false;
-                    'upper: for i in lines.clone()
-                    {
-                        //TODO fix n(x) with 'e',make another function that makes a vec of new, needed vars
-                        split = i.splitn(2, '=');
-                        if split.clone().count() == 2
+                        else
                         {
-                            let l = split.next().unwrap().to_string();
-                            let left = if l.contains('(')
+                            None
+                        }
+                    })
+                    .collect::<Vec<String>>();
+                let mut split;
+                let args = args.concat();
+                'upper: for i in lines.clone()
+                {
+                    split = i.splitn(2, '=');
+                    let l = split.next().unwrap().to_string();
+                    let left = if l.contains('(')
+                    {
+                        l.split('(').next().unwrap().to_owned() + "("
+                    }
+                    else
+                    {
+                        l.clone()
+                    };
+                    if !(l.starts_with('#') || (!args.is_empty() && !args.contains(&left)))
+                    {
+                        if let Some(r) = split.next()
+                        {
+                            if !args.is_empty()
                             {
-                                l.split('(').next().unwrap().to_owned() + "("
+                                let mut blacklist = vec![left];
+                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                             }
-                            else
+                            let l = l.chars().collect::<Vec<char>>();
+                            for (i, j) in vars.clone().iter().enumerate()
                             {
-                                l.clone()
-                            };
-                            if (redo.contains(&left) || args.is_empty())
-                                && !blacklist.contains(&left)
-                                && !l.starts_with('#')
-                            {
-                                blacklist.push(left);
-                                let r = split.next().unwrap().to_string();
-                                redo += &r;
-                                let l = l.chars().collect::<Vec<char>>();
-                                flag = true;
-                                for (i, j) in vars.clone().iter().enumerate()
+                                if j.0.len() <= l.len()
                                 {
-                                    if j.0.len() <= l.len()
-                                    {
-                                        add_var(l, &r, i, &mut vars, options);
-                                        continue 'upper;
-                                    }
+                                    add_var(l, r, i, &mut vars, options, false);
+                                    continue 'upper;
                                 }
-                                add_var(l, &r, 0, &mut vars, options);
                             }
+                            add_var(l, r, 0, &mut vars, options, false);
                         }
                     }
                 }
@@ -1107,7 +1077,7 @@ fn main()
                     }
                     else
                     {
-                        add_var(l, r, i, &mut vars, options);
+                        add_var(l, r, i, &mut vars, options, true);
                     }
                     continue 'main;
                 }
@@ -1116,11 +1086,11 @@ fn main()
             {
                 if j.0.len() <= l.len()
                 {
-                    add_var(l, r, i, &mut vars, options);
+                    add_var(l, r, i, &mut vars, options, true);
                     continue 'main;
                 }
             }
-            add_var(l, r, 0, &mut vars, options);
+            add_var(l, r, 0, &mut vars, options, true);
         }
         if options.graph && graphable
         {

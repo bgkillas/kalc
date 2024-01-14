@@ -34,13 +34,10 @@ use std::{
 //make == work more consistently
 //optimization, have vars be calculated in input_var if possible, as in have the 'x' part calculated once instead of how many times 'x' is found in the function, maybe make a var system in do_math to make 'x' work?
 //dont print prompt while var processes
-//zscore for a point and area under the curve to the z score
 //print parsed input while defining functions
-//have printed input display vars not numbers maybe?
 //have ; be used to define a var or something
 //make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
 //color vector and matrix brackets?
-//chess castling, output, touch support
 #[derive(Clone)]
 pub struct Colors
 {

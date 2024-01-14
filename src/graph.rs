@@ -509,8 +509,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     )
                     .lines(
-                        &points3d[0][1][0],
-                        &points3d[0][1][1],
+                        if points3d[0][1][0].is_empty()
+                        {
+                            &points3d[0][0][0]
+                        }
+                        else
+                        {
+                            &points3d[0][1][0]
+                        },
+                        if points3d[0][1][1].is_empty()
+                        {
+                            &points3d[0][0][1]
+                        }
+                        else
+                        {
+                            &points3d[0][1][1]
+                        },
                         &points3d[0][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im1col)],
                     )
@@ -521,8 +535,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re2col)],
                     )
                     .lines(
-                        &points3d[1][1][0],
-                        &points3d[1][1][1],
+                        if points3d[1][1][0].is_empty()
+                        {
+                            &points3d[1][0][0]
+                        }
+                        else
+                        {
+                            &points3d[1][1][0]
+                        },
+                        if points3d[1][1][1].is_empty()
+                        {
+                            &points3d[1][0][1]
+                        }
+                        else
+                        {
+                            &points3d[1][1][1]
+                        },
                         &points3d[1][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im2col)],
                     )
@@ -533,8 +561,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re3col)],
                     )
                     .lines(
-                        &points3d[2][1][0],
-                        &points3d[2][1][1],
+                        if points3d[2][1][0].is_empty()
+                        {
+                            &points3d[2][0][0]
+                        }
+                        else
+                        {
+                            &points3d[2][1][0]
+                        },
+                        if points3d[2][1][1].is_empty()
+                        {
+                            &points3d[2][0][1]
+                        }
+                        else
+                        {
+                            &points3d[2][1][1]
+                        },
                         &points3d[2][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im3col)],
                     )
@@ -545,8 +587,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re4col)],
                     )
                     .lines(
-                        &points3d[3][1][0],
-                        &points3d[3][1][1],
+                        if points3d[3][1][0].is_empty()
+                        {
+                            &points3d[3][0][0]
+                        }
+                        else
+                        {
+                            &points3d[3][1][0]
+                        },
+                        if points3d[3][1][1].is_empty()
+                        {
+                            &points3d[3][0][1]
+                        }
+                        else
+                        {
+                            &points3d[3][1][1]
+                        },
                         &points3d[3][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im4col)],
                     )
@@ -557,8 +613,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re5col)],
                     )
                     .lines(
-                        &points3d[4][1][0],
-                        &points3d[4][1][1],
+                        if points3d[4][1][0].is_empty()
+                        {
+                            &points3d[4][0][0]
+                        }
+                        else
+                        {
+                            &points3d[4][1][0]
+                        },
+                        if points3d[4][1][1].is_empty()
+                        {
+                            &points3d[4][0][1]
+                        }
+                        else
+                        {
+                            &points3d[4][1][1]
+                        },
                         &points3d[4][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im5col)],
                     )
@@ -569,8 +639,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re6col)],
                     )
                     .lines(
-                        &points3d[5][1][0],
-                        &points3d[5][1][1],
+                        if points3d[5][1][0].is_empty()
+                        {
+                            &points3d[5][0][0]
+                        }
+                        else
+                        {
+                            &points3d[5][1][0]
+                        },
+                        if points3d[5][1][1].is_empty()
+                        {
+                            &points3d[5][0][1]
+                        }
+                        else
+                        {
+                            &points3d[5][1][1]
+                        },
                         &points3d[5][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im6col)],
                     );
@@ -606,8 +690,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     )
                     .points(
-                        &points3d[0][1][0],
-                        &points3d[0][1][1],
+                        if points3d[0][1][0].is_empty()
+                        {
+                            &points3d[0][0][0]
+                        }
+                        else
+                        {
+                            &points3d[0][1][0]
+                        },
+                        if points3d[0][1][1].is_empty()
+                        {
+                            &points3d[0][0][1]
+                        }
+                        else
+                        {
+                            &points3d[0][1][1]
+                        },
                         &points3d[0][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im1col)],
                     )
@@ -618,8 +716,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re2col)],
                     )
                     .points(
-                        &points3d[1][1][0],
-                        &points3d[1][1][1],
+                        if points3d[1][1][0].is_empty()
+                        {
+                            &points3d[1][0][0]
+                        }
+                        else
+                        {
+                            &points3d[1][1][0]
+                        },
+                        if points3d[1][1][1].is_empty()
+                        {
+                            &points3d[1][0][1]
+                        }
+                        else
+                        {
+                            &points3d[1][1][1]
+                        },
                         &points3d[1][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im2col)],
                     )
@@ -630,8 +742,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re3col)],
                     )
                     .points(
-                        &points3d[2][1][0],
-                        &points3d[2][1][1],
+                        if points3d[2][1][0].is_empty()
+                        {
+                            &points3d[2][0][0]
+                        }
+                        else
+                        {
+                            &points3d[2][1][0]
+                        },
+                        if points3d[2][1][1].is_empty()
+                        {
+                            &points3d[2][0][1]
+                        }
+                        else
+                        {
+                            &points3d[2][1][1]
+                        },
                         &points3d[2][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im3col)],
                     )
@@ -642,8 +768,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re4col)],
                     )
                     .points(
-                        &points3d[3][1][0],
-                        &points3d[3][1][1],
+                        if points3d[3][1][0].is_empty()
+                        {
+                            &points3d[3][0][0]
+                        }
+                        else
+                        {
+                            &points3d[3][1][0]
+                        },
+                        if points3d[3][1][1].is_empty()
+                        {
+                            &points3d[3][0][1]
+                        }
+                        else
+                        {
+                            &points3d[3][1][1]
+                        },
                         &points3d[3][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im4col)],
                     )
@@ -654,8 +794,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re5col)],
                     )
                     .points(
-                        &points3d[4][1][0],
-                        &points3d[4][1][1],
+                        if points3d[4][1][0].is_empty()
+                        {
+                            &points3d[4][0][0]
+                        }
+                        else
+                        {
+                            &points3d[4][1][0]
+                        },
+                        if points3d[4][1][1].is_empty()
+                        {
+                            &points3d[4][0][1]
+                        }
+                        else
+                        {
+                            &points3d[4][1][1]
+                        },
                         &points3d[4][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im5col)],
                     )
@@ -666,8 +820,22 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re6col)],
                     )
                     .points(
-                        &points3d[5][1][0],
-                        &points3d[5][1][1],
+                        if points3d[5][1][0].is_empty()
+                        {
+                            &points3d[5][0][0]
+                        }
+                        else
+                        {
+                            &points3d[5][1][0]
+                        },
+                        if points3d[5][1][1].is_empty()
+                        {
+                            &points3d[5][0][1]
+                        }
+                        else
+                        {
+                            &points3d[5][1][1]
+                        },
                         &points3d[5][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im6col)],
                     );

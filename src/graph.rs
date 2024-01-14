@@ -28,6 +28,7 @@ pub fn graph(
     //TODO hack together polar maybe
     //TODO set amount of ticks
     //see if x=2 and y=2 lines are plausible
+    //multithread '#'
     thread::spawn(move || {
         if input.iter().all(|i| i.is_empty())
         {
@@ -36,13 +37,12 @@ pub fn graph(
         options.prec = options.graph_prec;
         let mut fg = Figure::new();
         fg.set_enhanced_text(false);
-        let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
-        let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();
-        let mut points2d: [[Vec<f64>; 3]; 6] = Default::default();
-        let mut points3d: [[Vec<f64>; 4]; 6] = Default::default();
+        let mut points2d: [[[Vec<f64>; 2]; 2]; 6] = Default::default();
+        let mut points3d: [[[Vec<f64>; 3]; 2]; 6] = Default::default();
         let mut d2_or_d3 = (false, false);
+        let mut lines = false;
         for (i, func) in func.iter().enumerate()
         {
             let re_or_im;
@@ -62,12 +62,12 @@ pub fn graph(
                     }
                 }
                 {
-                    Num(_n) =>
+                    Num(n) =>
                     {
                         if d2_or_d3.1
                         {
-                            (points3d[i], re_or_im) = get_list_3d(func, options);
-                            if points3d[i][2].is_empty() && points3d[i][3].is_empty()
+                            (points3d[i], re_or_im) = get_list_3d(&[Num(n)], options);
+                            if points3d[i][0][2].is_empty() && points3d[i][1][2].is_empty()
                             {
                                 fail(options, &colors);
                                 return;
@@ -76,8 +76,8 @@ pub fn graph(
                         else
                         {
                             d2_or_d3.0 = true;
-                            (points2d[i], re_or_im) = get_list_2d(func, options);
-                            if points2d[i][1].is_empty() && points2d[i][2].is_empty()
+                            (points2d[i], re_or_im) = get_list_2d(&[Num(n)], options);
+                            if points2d[i][0][1].is_empty() && points2d[i][1][1].is_empty()
                             {
                                 fail(options, &colors);
                                 return;
@@ -92,24 +92,205 @@ pub fn graph(
                             im_cap[i] = unmod[i].to_owned() + ":im";
                         }
                     }
-                    Vector(v) => match v.len()
+                    Vector(v) =>
                     {
-                        3 =>
-                        {}
-                        2 =>
-                        {}
-                        _ =>
-                        {}
-                    },
-                    Matrix(m) => match m[0].len()
+                        lines = true;
+                        match v.len()
+                        {
+                            3 =>
+                            {
+                                d2_or_d3.1 = true;
+                                points3d[i] = [
+                                    [
+                                        vec![0.0, v[0].real().to_f64()],
+                                        vec![0.0, v[1].real().to_f64()],
+                                        vec![0.0, v[2].real().to_f64()],
+                                    ],
+                                    [
+                                        vec![0.0, v[0].imag().to_f64()],
+                                        vec![0.0, v[1].imag().to_f64()],
+                                        vec![0.0, v[2].imag().to_f64()],
+                                    ],
+                                ];
+                                if points3d[i][0].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
+                                }
+                                if points3d[i][1].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
+                                }
+                            }
+                            2 =>
+                            {
+                                d2_or_d3.0 = true;
+                                points2d[i] = [
+                                    [
+                                        vec![0.0, v[0].real().to_f64()],
+                                        vec![0.0, v[1].real().to_f64()],
+                                    ],
+                                    [
+                                        vec![0.0, v[0].imag().to_f64()],
+                                        vec![0.0, v[1].imag().to_f64()],
+                                    ],
+                                ];
+                                if points2d[i][0].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
+                                }
+                                if points2d[i][1].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
+                                }
+                            }
+                            _ =>
+                            {
+                                d2_or_d3.0 = true;
+                                let mut vec = Vec::with_capacity(v.len());
+                                for i in 0..v.len()
+                                {
+                                    vec.push(i as f64);
+                                }
+                                points2d[i] = [
+                                    [
+                                        vec,
+                                        v.iter().map(|c| c.real().to_f64()).collect::<Vec<f64>>(),
+                                    ],
+                                    [
+                                        Vec::new(),
+                                        if v.iter().any(|c| !c.imag().is_zero())
+                                        {
+                                            v.iter()
+                                                .map(|c| c.imag().to_f64())
+                                                .collect::<Vec<f64>>()
+                                        }
+                                        else
+                                        {
+                                            Vec::new()
+                                        },
+                                    ],
+                                ];
+                                if points2d[i][0].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
+                                }
+                                if points2d[i][1].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
+                                }
+                            }
+                        }
+                    }
+                    Matrix(m) =>
                     {
-                        3 =>
-                        {}
-                        2 =>
-                        {}
-                        _ =>
-                        {}
-                    },
+                        lines = true;
+                        match m[0].len()
+                        {
+                            3 =>
+                            {
+                                d2_or_d3.1 = true;
+                                points3d[i] = [
+                                    [
+                                        m.iter()
+                                            .map(|c| c[0].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                        m.iter()
+                                            .map(|c| c[1].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                        m.iter()
+                                            .map(|c| c[2].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    ],
+                                    [
+                                        if m.iter().any(|c| !c[0].imag().is_zero())
+                                        {
+                                            m.iter()
+                                                .map(|c| c[0].imag().to_f64())
+                                                .collect::<Vec<f64>>()
+                                        }
+                                        else
+                                        {
+                                            Vec::new()
+                                        },
+                                        if m.iter().any(|c| !c[1].imag().is_zero())
+                                        {
+                                            m.iter()
+                                                .map(|c| c[1].imag().to_f64())
+                                                .collect::<Vec<f64>>()
+                                        }
+                                        else
+                                        {
+                                            Vec::new()
+                                        },
+                                        if m.iter().any(|c| !c[2].imag().is_zero())
+                                        {
+                                            m.iter()
+                                                .map(|c| c[2].imag().to_f64())
+                                                .collect::<Vec<f64>>()
+                                        }
+                                        else
+                                        {
+                                            Vec::new()
+                                        },
+                                    ],
+                                ];
+                                if points3d[i][0].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
+                                }
+                                if points3d[i][1].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
+                                }
+                            }
+                            2 =>
+                            {
+                                d2_or_d3.0 = true;
+                                points2d[i] = [
+                                    [
+                                        m.iter()
+                                            .map(|c| c[0].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                        m.iter()
+                                            .map(|c| c[1].real().to_f64())
+                                            .collect::<Vec<f64>>(),
+                                    ],
+                                    [
+                                        if m.iter().any(|c| !c[0].imag().is_zero())
+                                        {
+                                            m.iter()
+                                                .map(|c| c[0].imag().to_f64())
+                                                .collect::<Vec<f64>>()
+                                        }
+                                        else
+                                        {
+                                            Vec::new()
+                                        },
+                                        if m.iter().any(|c| !c[1].imag().is_zero())
+                                        {
+                                            m.iter()
+                                                .map(|c| c[1].imag().to_f64())
+                                                .collect::<Vec<f64>>()
+                                        }
+                                        else
+                                        {
+                                            Vec::new()
+                                        },
+                                    ],
+                                ];
+                                if points2d[i][0].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    re_cap[i] = unmod[i].to_owned() + ":re";
+                                }
+                                if points2d[i][1].iter().flatten().any(|a| *a != 0.0)
+                                {
+                                    im_cap[i] = unmod[i].to_owned() + ":im";
+                                }
+                            }
+                            _ =>
+                            {}
+                        }
+                    }
                     _ =>
                     {}
                 }
@@ -126,14 +307,16 @@ pub fn graph(
                 {
                     im_cap[i] = unmod[i].to_owned() + ":im";
                 }
-                if points2d[i][1].is_empty() && points2d[i][2].is_empty()
+                if points2d[i][0][1].is_empty() && points2d[i][1][1].is_empty()
                 {
                     fail(options, &colors);
                     return;
                 }
                 if !has_x
                 {
-                    points2d[i].swap(0, 1);
+                    points2d[i][1][0] = points2d[i][0][0].clone();
+                    points2d[i][0].swap(0, 1);
+                    points2d[i][1].swap(0, 1);
                 }
             }
             else
@@ -148,7 +331,7 @@ pub fn graph(
                 {
                     im_cap[i] = unmod[i].to_owned() + ":im";
                 }
-                if points3d[i][2].is_empty() && points3d[i][3].is_empty()
+                if points3d[i][0][2].is_empty() && points3d[i][1][2].is_empty()
                 {
                     fail(options, &colors);
                     return;
@@ -166,7 +349,54 @@ pub fn graph(
         }
         if d2_or_d3.0
         {
-            if options.lines
+            if lines
+            {
+                if Options::default().yr == options.yr
+                {
+                    options.xr = (
+                        points2d.iter().fold(f64::MAX, |min, x| {
+                            min.min(
+                                x[0][0]
+                                    .iter()
+                                    .chain(&x[1][0])
+                                    .fold(f64::MAX, |min, x| min.min(*x)),
+                            )
+                        }),
+                        points2d.iter().fold(f64::MIN, |max, x| {
+                            max.max(
+                                x[0][0]
+                                    .iter()
+                                    .chain(&x[1][0])
+                                    .fold(f64::MIN, |max, x| max.max(*x)),
+                            )
+                        }),
+                    )
+                }
+                if Options::default().yr == options.yr
+                {
+                    options.yr = (
+                        points2d.iter().fold(f64::MAX, |min, x| {
+                            min.min(
+                                x[0][1]
+                                    .iter()
+                                    .chain(&x[1][1])
+                                    .fold(f64::MAX, |min, x| min.min(*x)),
+                            )
+                        }),
+                        points2d.iter().fold(f64::MIN, |max, x| {
+                            max.max(
+                                x[0][1]
+                                    .iter()
+                                    .chain(&x[1][1])
+                                    .fold(f64::MIN, |max, x| max.max(*x)),
+                            )
+                        }),
+                    )
+                }
+            }
+            let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+            let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
+            if options.lines || lines
             {
                 fg.axes2d()
                     .set_x_ticks(xticks, &[], &[])
@@ -188,63 +418,105 @@ pub fn graph(
                     .lines([0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
                     .lines([0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
                     .lines(
-                        &points2d[0][0],
-                        &points2d[0][1],
+                        &points2d[0][0][0],
+                        &points2d[0][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     )
                     .lines(
-                        &points2d[0][0],
-                        &points2d[0][2],
+                        if points2d[0][1][0].is_empty()
+                        {
+                            &points2d[0][0][0]
+                        }
+                        else
+                        {
+                            &points2d[0][1][0]
+                        },
+                        &points2d[0][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im1col)],
                     )
                     .lines(
-                        &points2d[1][0],
-                        &points2d[1][1],
+                        &points2d[1][0][0],
+                        &points2d[1][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re2col)],
                     )
                     .lines(
-                        &points2d[1][0],
-                        &points2d[1][2],
+                        if points2d[1][1][0].is_empty()
+                        {
+                            &points2d[2][0][0]
+                        }
+                        else
+                        {
+                            &points2d[1][1][0]
+                        },
+                        &points2d[1][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im2col)],
                     )
                     .lines(
-                        &points2d[2][0],
-                        &points2d[2][1],
+                        &points2d[2][0][0],
+                        &points2d[2][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re3col)],
                     )
                     .lines(
-                        &points2d[2][0],
-                        &points2d[2][2],
+                        if points2d[2][1][0].is_empty()
+                        {
+                            &points2d[2][0][0]
+                        }
+                        else
+                        {
+                            &points2d[2][1][0]
+                        },
+                        &points2d[2][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im3col)],
                     )
                     .lines(
-                        &points2d[3][0],
-                        &points2d[3][1],
+                        &points2d[3][0][0],
+                        &points2d[3][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re4col)],
                     )
                     .lines(
-                        &points2d[3][0],
-                        &points2d[3][2],
+                        if points2d[3][1][0].is_empty()
+                        {
+                            &points2d[3][0][0]
+                        }
+                        else
+                        {
+                            &points2d[3][1][0]
+                        },
+                        &points2d[3][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im4col)],
                     )
                     .lines(
-                        &points2d[4][0],
-                        &points2d[4][1],
+                        &points2d[4][0][0],
+                        &points2d[4][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re5col)],
                     )
                     .lines(
-                        &points2d[4][0],
-                        &points2d[4][2],
+                        if points2d[4][1][0].is_empty()
+                        {
+                            &points2d[4][0][0]
+                        }
+                        else
+                        {
+                            &points2d[4][1][0]
+                        },
+                        &points2d[4][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im5col)],
                     )
                     .lines(
-                        &points2d[5][0],
-                        &points2d[5][1],
+                        &points2d[5][0][0],
+                        &points2d[5][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re6col)],
                     )
                     .lines(
-                        &points2d[5][0],
-                        &points2d[5][2],
+                        if points2d[5][1][0].is_empty()
+                        {
+                            &points2d[5][0][0]
+                        }
+                        else
+                        {
+                            &points2d[5][1][0]
+                        },
+                        &points2d[5][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im6col)],
                     );
             }
@@ -270,164 +542,374 @@ pub fn graph(
                     .lines([0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
                     .lines([0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
                     .points(
-                        &points2d[0][0],
-                        &points2d[0][1],
+                        &points2d[0][0][0],
+                        &points2d[0][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     )
                     .points(
-                        &points2d[0][0],
-                        &points2d[0][2],
+                        if points2d[0][1][0].is_empty()
+                        {
+                            &points2d[0][0][0]
+                        }
+                        else
+                        {
+                            &points2d[0][1][0]
+                        },
+                        &points2d[0][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im1col)],
                     )
                     .points(
-                        &points2d[1][0],
-                        &points2d[1][1],
+                        &points2d[1][0][0],
+                        &points2d[1][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re2col)],
                     )
                     .points(
-                        &points2d[1][0],
-                        &points2d[1][2],
+                        if points2d[1][1][0].is_empty()
+                        {
+                            &points2d[2][0][0]
+                        }
+                        else
+                        {
+                            &points2d[1][1][0]
+                        },
+                        &points2d[1][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im2col)],
                     )
                     .points(
-                        &points2d[2][0],
-                        &points2d[2][1],
+                        &points2d[2][0][0],
+                        &points2d[2][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re3col)],
                     )
                     .points(
-                        &points2d[2][0],
-                        &points2d[2][2],
+                        if points2d[2][1][0].is_empty()
+                        {
+                            &points2d[2][0][0]
+                        }
+                        else
+                        {
+                            &points2d[2][1][0]
+                        },
+                        &points2d[2][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im3col)],
                     )
                     .points(
-                        &points2d[3][0],
-                        &points2d[3][1],
+                        &points2d[3][0][0],
+                        &points2d[3][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re4col)],
                     )
                     .points(
-                        &points2d[3][0],
-                        &points2d[3][2],
+                        if points2d[3][1][0].is_empty()
+                        {
+                            &points2d[3][0][0]
+                        }
+                        else
+                        {
+                            &points2d[3][1][0]
+                        },
+                        &points2d[3][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im4col)],
                     )
                     .points(
-                        &points2d[4][0],
-                        &points2d[4][1],
+                        &points2d[4][0][0],
+                        &points2d[4][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re5col)],
                     )
                     .points(
-                        &points2d[4][0],
-                        &points2d[4][2],
+                        if points2d[4][1][0].is_empty()
+                        {
+                            &points2d[4][0][0]
+                        }
+                        else
+                        {
+                            &points2d[4][1][0]
+                        },
+                        &points2d[4][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im5col)],
                     )
                     .points(
-                        &points2d[5][0],
-                        &points2d[5][1],
+                        &points2d[5][0][0],
+                        &points2d[5][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re6col)],
                     )
                     .points(
-                        &points2d[5][0],
-                        &points2d[5][2],
+                        if points2d[5][1][0].is_empty()
+                        {
+                            &points2d[5][0][0]
+                        }
+                        else
+                        {
+                            &points2d[5][1][0]
+                        },
+                        &points2d[5][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im6col)],
                     );
             }
         }
         if d2_or_d3.1
         {
+            if lines
+            {
+                if Options::default().yr == options.yr
+                {
+                    options.xr = (
+                        points3d.iter().fold(f64::MAX, |min, x| {
+                            min.min(
+                                x[0][0]
+                                    .iter()
+                                    .chain(&x[1][0])
+                                    .fold(f64::MAX, |min, x| min.min(*x)),
+                            )
+                        }),
+                        points3d.iter().fold(f64::MIN, |max, x| {
+                            max.max(
+                                x[0][0]
+                                    .iter()
+                                    .chain(&x[1][0])
+                                    .fold(f64::MIN, |max, x| max.max(*x)),
+                            )
+                        }),
+                    )
+                }
+                if Options::default().yr == options.yr
+                {
+                    options.yr = (
+                        points3d.iter().fold(f64::MAX, |min, x| {
+                            min.min(
+                                x[0][1]
+                                    .iter()
+                                    .chain(&x[1][1])
+                                    .fold(f64::MAX, |min, x| min.min(*x)),
+                            )
+                        }),
+                        points3d.iter().fold(f64::MIN, |max, x| {
+                            max.max(
+                                x[0][1]
+                                    .iter()
+                                    .chain(&x[1][1])
+                                    .fold(f64::MIN, |max, x| max.max(*x)),
+                            )
+                        }),
+                    )
+                }
+                if Options::default().zr == options.zr
+                {
+                    options.zr = (
+                        points3d.iter().fold(f64::MAX, |min, x| {
+                            min.min(
+                                x[0][2]
+                                    .iter()
+                                    .chain(&x[1][2])
+                                    .fold(f64::MAX, |min, x| min.min(*x)),
+                            )
+                        }),
+                        points3d.iter().fold(f64::MIN, |max, x| {
+                            max.max(
+                                x[0][2]
+                                    .iter()
+                                    .chain(&x[1][2])
+                                    .fold(f64::MIN, |max, x| max.max(*x)),
+                            )
+                        }),
+                    )
+                }
+            }
+            let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
+            let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
             let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
-            fg.axes3d()
-                .set_x_ticks(xticks, &[], &[])
-                .set_y_ticks(yticks, &[], &[])
-                .set_z_ticks(zticks, &[], &[])
-                .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
-                .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
-                .set_x_label("x", &[])
-                .set_y_label("y", &[])
-                .set_z_label("z", &[])
-                .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[1]), Color(&colors.im2col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(&colors.re3col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[2]), Color(&colors.im3col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(&colors.re4col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(&colors.im4col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(&colors.re5col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
-                .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
-                .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
-                .points(
-                    &points3d[0][0],
-                    &points3d[0][1],
-                    &points3d[0][2],
-                    &[PointSymbol(options.point_style), Color(&colors.re1col)],
-                )
-                .points(
-                    &points3d[0][0],
-                    &points3d[0][1],
-                    &points3d[0][3],
-                    &[PointSymbol(options.point_style), Color(&colors.im1col)],
-                )
-                .points(
-                    &points3d[1][0],
-                    &points3d[1][1],
-                    &points3d[1][2],
-                    &[PointSymbol(options.point_style), Color(&colors.re2col)],
-                )
-                .points(
-                    &points3d[1][0],
-                    &points3d[1][1],
-                    &points3d[1][3],
-                    &[PointSymbol(options.point_style), Color(&colors.im2col)],
-                )
-                .points(
-                    &points3d[2][0],
-                    &points3d[2][1],
-                    &points3d[2][2],
-                    &[PointSymbol(options.point_style), Color(&colors.re3col)],
-                )
-                .points(
-                    &points3d[2][0],
-                    &points3d[2][1],
-                    &points3d[2][3],
-                    &[PointSymbol(options.point_style), Color(&colors.im3col)],
-                )
-                .points(
-                    &points3d[3][0],
-                    &points3d[3][1],
-                    &points3d[3][2],
-                    &[PointSymbol(options.point_style), Color(&colors.re4col)],
-                )
-                .points(
-                    &points3d[3][0],
-                    &points3d[3][1],
-                    &points3d[3][3],
-                    &[PointSymbol(options.point_style), Color(&colors.im4col)],
-                )
-                .points(
-                    &points3d[4][0],
-                    &points3d[4][1],
-                    &points3d[4][2],
-                    &[PointSymbol(options.point_style), Color(&colors.re5col)],
-                )
-                .points(
-                    &points3d[4][0],
-                    &points3d[4][1],
-                    &points3d[4][3],
-                    &[PointSymbol(options.point_style), Color(&colors.im5col)],
-                )
-                .points(
-                    &points3d[5][0],
-                    &points3d[5][1],
-                    &points3d[5][2],
-                    &[PointSymbol(options.point_style), Color(&colors.re6col)],
-                )
-                .points(
-                    &points3d[5][0],
-                    &points3d[5][1],
-                    &points3d[5][3],
-                    &[PointSymbol(options.point_style), Color(&colors.im6col)],
-                );
+            if options.lines || lines
+            {
+                fg.axes3d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_z_ticks(zticks, &[], &[])
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                    .set_x_label("x", &[])
+                    .set_y_label("y", &[])
+                    .set_z_label("z", &[])
+                    .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[1]), Color(&colors.im2col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(&colors.re3col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[2]), Color(&colors.im3col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(&colors.re4col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(&colors.im4col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(&colors.re5col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
+                    .lines(
+                        &points3d[0][0][0],
+                        &points3d[0][0][1],
+                        &points3d[0][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                    )
+                    .lines(
+                        &points3d[0][1][0],
+                        &points3d[0][1][1],
+                        &points3d[0][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im1col)],
+                    )
+                    .lines(
+                        &points3d[1][0][0],
+                        &points3d[1][0][1],
+                        &points3d[1][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re2col)],
+                    )
+                    .lines(
+                        &points3d[1][1][0],
+                        &points3d[1][1][1],
+                        &points3d[1][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im2col)],
+                    )
+                    .lines(
+                        &points3d[2][0][0],
+                        &points3d[2][0][1],
+                        &points3d[2][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re3col)],
+                    )
+                    .lines(
+                        &points3d[2][1][0],
+                        &points3d[2][1][1],
+                        &points3d[2][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im3col)],
+                    )
+                    .lines(
+                        &points3d[3][0][0],
+                        &points3d[3][0][1],
+                        &points3d[3][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re4col)],
+                    )
+                    .lines(
+                        &points3d[3][1][0],
+                        &points3d[3][1][1],
+                        &points3d[3][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im4col)],
+                    )
+                    .lines(
+                        &points3d[4][0][0],
+                        &points3d[4][0][1],
+                        &points3d[4][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re5col)],
+                    )
+                    .lines(
+                        &points3d[4][1][0],
+                        &points3d[4][1][1],
+                        &points3d[4][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im5col)],
+                    )
+                    .lines(
+                        &points3d[5][0][0],
+                        &points3d[5][0][1],
+                        &points3d[5][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re6col)],
+                    )
+                    .lines(
+                        &points3d[5][1][0],
+                        &points3d[5][1][1],
+                        &points3d[5][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im6col)],
+                    );
+            }
+            else
+            {
+                fg.axes3d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_z_ticks(zticks, &[], &[])
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                    .set_x_label("x", &[])
+                    .set_y_label("y", &[])
+                    .set_z_label("z", &[])
+                    .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[1]), Color(&colors.im2col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[2]), Color(&colors.re3col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[2]), Color(&colors.im3col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[3]), Color(&colors.re4col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[3]), Color(&colors.im4col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[4]), Color(&colors.re5col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
+                    .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
+                    .points(
+                        &points3d[0][0][0],
+                        &points3d[0][0][1],
+                        &points3d[0][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                    )
+                    .points(
+                        &points3d[0][1][0],
+                        &points3d[0][1][1],
+                        &points3d[0][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im1col)],
+                    )
+                    .points(
+                        &points3d[1][0][0],
+                        &points3d[1][0][1],
+                        &points3d[1][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re2col)],
+                    )
+                    .points(
+                        &points3d[1][1][0],
+                        &points3d[1][1][1],
+                        &points3d[1][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im2col)],
+                    )
+                    .points(
+                        &points3d[2][0][0],
+                        &points3d[2][0][1],
+                        &points3d[2][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re3col)],
+                    )
+                    .points(
+                        &points3d[2][1][0],
+                        &points3d[2][1][1],
+                        &points3d[2][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im3col)],
+                    )
+                    .points(
+                        &points3d[3][0][0],
+                        &points3d[3][0][1],
+                        &points3d[3][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re4col)],
+                    )
+                    .points(
+                        &points3d[3][1][0],
+                        &points3d[3][1][1],
+                        &points3d[3][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im4col)],
+                    )
+                    .points(
+                        &points3d[4][0][0],
+                        &points3d[4][0][1],
+                        &points3d[4][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re5col)],
+                    )
+                    .points(
+                        &points3d[4][1][0],
+                        &points3d[4][1][1],
+                        &points3d[4][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im5col)],
+                    )
+                    .points(
+                        &points3d[5][0][0],
+                        &points3d[5][0][1],
+                        &points3d[5][0][2],
+                        &[PointSymbol(options.point_style), Color(&colors.re6col)],
+                    )
+                    .points(
+                        &points3d[5][1][0],
+                        &points3d[5][1][1],
+                        &points3d[5][1][2],
+                        &[PointSymbol(options.point_style), Color(&colors.im6col)],
+                    );
+            }
         }
         if let Some(time) = watch
         {
@@ -440,7 +922,7 @@ pub fn graph(
         stdout().flush().unwrap();
     })
 }
-pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, bool))
+pub fn get_list_2d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 2]; 2], (bool, bool))
 {
     if let Num(n) = &func[0]
     {
@@ -449,10 +931,12 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
             return Default::default();
         }
     }
-    let mut data: [Vec<f64>; 3] = [
-        Vec::with_capacity(options.samples_2d + 1),
-        Vec::with_capacity(options.samples_2d + 1),
-        Vec::with_capacity(options.samples_2d + 1),
+    let mut data: [[Vec<f64>; 2]; 2] = [
+        [
+            Vec::with_capacity(options.samples_2d + 1),
+            Vec::with_capacity(options.samples_2d + 1),
+        ],
+        [Vec::new(), Vec::with_capacity(options.samples_2d + 1)],
     ];
     let den_range = (options.xr.1 - options.xr.0) / options.samples_2d as f64;
     let mut zero = (false, false);
@@ -481,8 +965,8 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
                     {
                         zero.0 = true
                     }
-                    data[0].push(n);
-                    data[1].push(f);
+                    data[0][0].push(n);
+                    data[0][1].push(f);
                 }
                 if num.imag().is_finite()
                 {
@@ -493,10 +977,10 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
                     }
                     if !complex
                     {
-                        data[0].push(n);
-                        data[1].push(f64::INFINITY);
+                        data[0][0].push(n);
+                        data[0][1].push(f64::NAN);
                     }
-                    data[2].push(f);
+                    data[1][1].push(f);
                 }
             }
             Ok(Vector(v)) =>
@@ -511,22 +995,22 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
                         {
                             zero.0 = true
                         }
-                        data[0].push(n);
-                        data[1].push(f);
+                        data[0][0].push(n);
+                        data[0][1].push(f);
                     }
                     if num.imag().is_finite()
                     {
                         let f = num.imag().to_f64();
-                        if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                        if (f * 1e8).round() / 1e8 != 0.0
                         {
                             zero.1 = true
                         }
                         if !complex
                         {
-                            data[0].push(n);
-                            data[1].push(f64::INFINITY);
+                            data[0][0].push(n);
+                            data[0][1].push(f64::NAN);
                         }
-                        data[2].push(f);
+                        data[1][1].push(f);
                     }
                 }
             }
@@ -544,8 +1028,8 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
                             {
                                 zero.0 = true
                             }
-                            data[0].push(n);
-                            data[1].push(f);
+                            data[0][0].push(n);
+                            data[0][1].push(f);
                         }
                         if num.imag().is_finite()
                         {
@@ -556,10 +1040,10 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
                             }
                             if !complex
                             {
-                                data[0].push(n);
-                                data[1].push(f64::INFINITY);
+                                data[0][0].push(n);
+                                data[0][1].push(f64::NAN);
                             }
-                            data[2].push(f);
+                            data[1][1].push(f);
                         }
                     }
                 }
@@ -570,15 +1054,15 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([Vec<f64>; 3], (bool, 
     }
     if !zero.0
     {
-        data[1] = Vec::new();
+        data[0][1] = Vec::new();
     }
     if !zero.1
     {
-        data[2] = Vec::new();
+        data[1][1] = Vec::new();
     }
     (data, zero)
 }
-pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, bool))
+pub fn get_list_3d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 3]; 2], (bool, bool))
 {
     if let Num(n) = &func[0]
     {
@@ -587,11 +1071,17 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
             return Default::default();
         }
     }
-    let mut data: [Vec<f64>; 4] = [
-        Vec::with_capacity(options.samples_3d.0 + 1),
-        Vec::with_capacity(options.samples_3d.1 + 1),
-        Vec::with_capacity((options.samples_3d.0 + 1) * (options.samples_3d.1 + 1)),
-        Vec::with_capacity((options.samples_3d.0 + 1) * (options.samples_3d.1 + 1)),
+    let mut data: [[Vec<f64>; 3]; 2] = [
+        [
+            Vec::with_capacity(options.samples_3d.0 + 1),
+            Vec::with_capacity(options.samples_3d.1 + 1),
+            Vec::with_capacity((options.samples_3d.0 + 1) * (options.samples_3d.1 + 1)),
+        ],
+        [
+            Vec::new(),
+            Vec::new(),
+            Vec::with_capacity((options.samples_3d.0 + 1) * (options.samples_3d.1 + 1)),
+        ],
     ];
     let den_x_range = (options.xr.1 - options.xr.0) / options.samples_3d.0 as f64;
     let den_y_range = (options.yr.1 - options.yr.0) / options.samples_3d.1 as f64;
@@ -634,9 +1124,9 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
                         {
                             zero.0 = true
                         }
-                        data[0].push(n);
-                        data[1].push(f);
-                        data[2].push(num.real().to_f64());
+                        data[0][0].push(n);
+                        data[0][1].push(f);
+                        data[0][2].push(num.real().to_f64());
                     }
                     if num.imag().is_finite()
                     {
@@ -646,11 +1136,11 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
                         }
                         if !complex
                         {
-                            data[0].push(n);
-                            data[1].push(f);
-                            data[2].push(f64::INFINITY);
+                            data[0][0].push(n);
+                            data[0][1].push(f);
+                            data[0][2].push(f64::NAN);
                         }
-                        data[3].push(num.imag().to_f64());
+                        data[1][2].push(num.imag().to_f64());
                     }
                 }
                 Ok(Vector(v)) =>
@@ -664,9 +1154,9 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
                             {
                                 zero.0 = true
                             }
-                            data[0].push(n);
-                            data[1].push(f);
-                            data[2].push(num.real().to_f64());
+                            data[0][0].push(n);
+                            data[0][1].push(f);
+                            data[0][2].push(num.real().to_f64());
                         }
                         if num.imag().is_finite()
                         {
@@ -676,11 +1166,11 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
                             }
                             if !complex
                             {
-                                data[0].push(n);
-                                data[1].push(f);
-                                data[2].push(f64::INFINITY);
+                                data[0][0].push(n);
+                                data[0][1].push(f);
+                                data[0][2].push(f64::NAN);
                             }
-                            data[3].push(num.imag().to_f64());
+                            data[1][2].push(num.imag().to_f64());
                         }
                     }
                     continue;
@@ -698,9 +1188,9 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
                                 {
                                     zero.0 = true
                                 }
-                                data[0].push(n);
-                                data[1].push(f);
-                                data[2].push(num.real().to_f64());
+                                data[0][0].push(n);
+                                data[0][1].push(f);
+                                data[0][2].push(num.real().to_f64());
                             }
                             if num.imag().is_finite()
                             {
@@ -710,11 +1200,11 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
                                 }
                                 if !complex
                                 {
-                                    data[0].push(n);
-                                    data[1].push(f);
-                                    data[2].push(f64::INFINITY);
+                                    data[0][0].push(n);
+                                    data[0][1].push(f);
+                                    data[0][2].push(f64::NAN);
                                 }
-                                data[3].push(num.imag().to_f64());
+                                data[1][2].push(num.imag().to_f64());
                             }
                         }
                     }
@@ -726,11 +1216,11 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([Vec<f64>; 4], (bool, 
     }
     if !zero.0
     {
-        data[2] = Vec::new();
+        data[0][2] = Vec::new();
     }
     if !zero.1
     {
-        data[3] = Vec::new();
+        data[1][2] = Vec::new();
     }
     (data, zero)
 }

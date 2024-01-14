@@ -41,6 +41,7 @@ use std::{
 //have ; be used to define a var or something
 //make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
 //color vector and matrix brackets?
+//chess castling, output, touch support
 #[derive(Clone)]
 pub struct Colors
 {

@@ -109,7 +109,7 @@ Functions:
 - re, im, split(x+yi={x,y})
 - factors, prime
 - slog(a,b)
-- piecewise({value,cond},{value2,cond2}...) (when first condition is met from left to right value is outputted else 0, can add {nan,1} at end for not a number instead of 0)
+- piecewise({value,cond},{value2,cond2}...) (when first condition is met from left to right. value elsewards is nan)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
 - tofreq{a,b,c...}, tolist{{a,b},{c,d}...} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)
 - variance/var, standarddeviation/σ (sample-bias corrected)

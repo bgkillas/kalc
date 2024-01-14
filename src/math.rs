@@ -318,7 +318,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         }
                         else
                         {
-                            Num(Complex::with_val(options.prec, 0))
+                            Num(Complex::with_val(options.prec, Nan))
                         };
                         function.drain(i + 1..=*place.last().unwrap());
                     }

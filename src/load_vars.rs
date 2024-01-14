@@ -462,7 +462,9 @@ pub fn add_var(
                         &redef[k][0..=redef[k]
                             .iter()
                             .position(|a| a == &'(')
-                            .unwrap_or(redef[k].len() - 1)],
+                            .unwrap_or(redef[k].len() - 1)]
+                            .iter()
+                            .collect::<String>(),
                     )
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();

@@ -968,6 +968,27 @@ pub fn inverse(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
         Err("not square")
     }
 }
+pub fn nth_prime(n: usize) -> usize
+{
+    let mut count = 0;
+    let mut num = 2;
+    if n == 0
+    {
+        num = 0
+    }
+    while count < n
+    {
+        if is_prime(num)
+        {
+            count += 1;
+        }
+        if count < n
+        {
+            num += 1;
+        }
+    }
+    num
+}
 pub fn is_prime(num: usize) -> bool
 {
     if num <= 1
@@ -992,27 +1013,6 @@ pub fn is_prime(num: usize) -> bool
         i += 6;
     }
     true
-}
-pub fn nth_prime(n: usize) -> usize
-{
-    let mut count = 0;
-    let mut num = 2;
-    if n == 0
-    {
-        num = 0
-    }
-    while count < n
-    {
-        if is_prime(num)
-        {
-            count += 1;
-        }
-        if count < n
-        {
-            num += 1;
-        }
-    }
-    num
 }
 pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
 {

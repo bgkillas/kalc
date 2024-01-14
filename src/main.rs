@@ -33,11 +33,10 @@ use std::{
 //lambert w function
 //make == work more consistently
 //optimization, have vars be calculated in input_var if possible, as in have the 'x' part calculated once instead of how many times 'x' is found in the function, maybe make a var system in do_math to make 'x' work?
-//dont print prompt while var processes, maybe multi thread graphs with '#'
+//dont print prompt while var processes
 //zscore for a point and area under the curve to the z score
 //print parsed input while defining functions
 //have printed input display vars not numbers maybe?
-//support f(x)=x^2#x maybe?
 //have ; be used to define a var or something
 //make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
 //color vector and matrix brackets?
@@ -108,6 +107,7 @@ pub struct Options
     sci: bool,
     deg: AngleType,
     base: usize,
+    ticks: f64,
     tau: bool,
     polar: bool,
     frac: bool,
@@ -132,6 +132,7 @@ pub struct Options
     small_e: bool,
     debug: bool,
     depth: bool,
+    flat: bool,
     graph: bool,
 }
 impl Default for Options
@@ -142,6 +143,7 @@ impl Default for Options
             sci: false,
             deg: Radians,
             base: 10,
+            ticks: 20.0,
             tau: false,
             polar: false,
             frac: true,
@@ -166,6 +168,7 @@ impl Default for Options
             small_e: false,
             debug: false,
             depth: false,
+            flat: false,
             graph: true,
         }
     }

@@ -44,6 +44,7 @@ pub fn arg_opts(
         {
             "--debug" => options.debug = !options.debug,
             "--depth" => options.depth = !options.depth,
+            "--flat" => options.flat = !options.flat,
             "--tau" => options.tau = !options.tau,
             "--small_e" => options.small_e = !options.small_e,
             "--rad" => options.deg = Radians,
@@ -291,6 +292,18 @@ pub fn arg_opts(
                     {
                         Ok(x) if (2..=36).contains(&x) => x,
                         _ => return Err("invalid base"),
+                    };
+                    args.remove(i);
+                }
+            }
+            "--ticks" =>
+            {
+                if args.len() > 1
+                {
+                    options.ticks = match args[i + 1].parse::<f64>()
+                    {
+                        Ok(x) => x,
+                        _ => return Err("invalid ticks"),
                     };
                     args.remove(i);
                 }
@@ -660,6 +673,10 @@ pub fn file_opts(
                         .parse::<bool>()
                         .expect("invalid depth")
                 }
+                "flat" =>
+                {
+                    options.flat = split.next().unwrap().parse::<bool>().expect("invalid flat")
+                }
                 "small_e" =>
                 {
                     options.small_e = split
@@ -767,6 +784,14 @@ pub fn file_opts(
                         _ => return Err("base out of range"),
                     }
                 }
+                "ticks" =>
+                {
+                    options.ticks = match split.next().unwrap().parse::<f64>()
+                    {
+                        Ok(n) => n,
+                        _ => return Err("ticks out of range"),
+                    }
+                }
                 "debug" =>
                 {
                     options.debug = split
@@ -866,6 +891,8 @@ pub fn equal_to(
             colors.im6col,
         ),
         "color" => format!("{}", options.color),
+        "depth" => format!("{}", options.depth),
+        "flat" => format!("{}", options.flat),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
         "sci" | "scientific" => format!("{}", options.sci),
@@ -879,6 +906,7 @@ pub fn equal_to(
         "graph" => format!("{}", options.graph),
         "point" => format!("{}", options.point_style),
         "base" => format!("{}", options.base),
+        "ticks" => format!("{}", options.ticks),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
         "prec" | "precision" => format!("{}", options.prec.0),
         "graphprec" | "graphprecision" => format!("{}", options.graph_prec.0),
@@ -1059,6 +1087,14 @@ pub fn set_commands(
             match r.parse::<usize>()
             {
                 Ok(n) if (2..=36).contains(&n) => options.base = n,
+                _ => return Err("Invalid base"),
+            };
+        }
+        "ticks" =>
+        {
+            match r.parse::<f64>()
+            {
+                Ok(n) => options.ticks = n,
                 _ => return Err("Invalid base"),
             };
         }
@@ -1693,6 +1729,12 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             options.depth = !options.depth;
+        }
+        "flat" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout.flush().unwrap();
+            options.flat = !options.flat;
         }
         "deg" =>
         {

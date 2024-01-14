@@ -24,11 +24,6 @@ pub fn graph(
     colors: Colors,
 ) -> JoinHandle<()>
 {
-    //TODO remove most extra axes2d/3d by just making a var to be the lines stuff
-    //TODO hack together polar maybe
-    //TODO set amount of ticks
-    //see if x=2 and y=2 lines are plausible
-    //multithread '#'
     thread::spawn(move || {
         if input.iter().all(|i| i.is_empty())
         {
@@ -43,300 +38,45 @@ pub fn graph(
         let mut points3d: [[[Vec<f64>; 3]; 2]; 6] = Default::default();
         let mut d2_or_d3 = (false, false);
         let mut lines = false;
-        for (i, func) in func.iter().enumerate()
+        let mut handles = Vec::new();
+        for func in func
+        {
+            handles.push(get_data(options, colors.clone(), func));
+        }
+        let mut i = 0;
+        #[allow(clippy::explicit_counter_loop)]
+        for handle in handles
         {
             let re_or_im;
-            let (has_x, has_y) = (
-                func.iter().any(|i| i.str_is("x")),
-                func.iter().any(|i| i.str_is("y")),
-            );
-            if !has_y && !has_x
+            let failed;
+            let dimen;
+            let line;
+            (dimen, re_or_im, line, failed, points2d[i], points3d[i]) = handle.join().unwrap();
+            if failed
             {
-                match match do_math(func.clone(), options)
-                {
-                    Ok(n) => n,
-                    _ =>
-                    {
-                        fail(options, &colors);
-                        return;
-                    }
-                }
-                {
-                    Num(n) =>
-                    {
-                        if d2_or_d3.1
-                        {
-                            (points3d[i], re_or_im) = get_list_3d(&[Num(n)], options);
-                            if points3d[i][0][2].is_empty() && points3d[i][1][2].is_empty()
-                            {
-                                fail(options, &colors);
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            d2_or_d3.0 = true;
-                            (points2d[i], re_or_im) = get_list_2d(&[Num(n)], options);
-                            if points2d[i][0][1].is_empty() && points2d[i][1][1].is_empty()
-                            {
-                                fail(options, &colors);
-                                return;
-                            }
-                        }
-                        if re_or_im.0
-                        {
-                            re_cap[i] = unmod[i].to_owned() + ":re";
-                        }
-                        if re_or_im.1
-                        {
-                            im_cap[i] = unmod[i].to_owned() + ":im";
-                        }
-                    }
-                    Vector(v) =>
-                    {
-                        lines = true;
-                        match v.len()
-                        {
-                            3 =>
-                            {
-                                d2_or_d3.1 = true;
-                                points3d[i] = [
-                                    [
-                                        vec![0.0, v[0].real().to_f64()],
-                                        vec![0.0, v[1].real().to_f64()],
-                                        vec![0.0, v[2].real().to_f64()],
-                                    ],
-                                    [
-                                        vec![0.0, v[0].imag().to_f64()],
-                                        vec![0.0, v[1].imag().to_f64()],
-                                        vec![0.0, v[2].imag().to_f64()],
-                                    ],
-                                ];
-                                if points3d[i][0].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    re_cap[i] = unmod[i].to_owned() + ":re";
-                                }
-                                if points3d[i][1].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    im_cap[i] = unmod[i].to_owned() + ":im";
-                                }
-                            }
-                            2 =>
-                            {
-                                d2_or_d3.0 = true;
-                                points2d[i] = [
-                                    [
-                                        vec![0.0, v[0].real().to_f64()],
-                                        vec![0.0, v[1].real().to_f64()],
-                                    ],
-                                    [
-                                        vec![0.0, v[0].imag().to_f64()],
-                                        vec![0.0, v[1].imag().to_f64()],
-                                    ],
-                                ];
-                                if points2d[i][0].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    re_cap[i] = unmod[i].to_owned() + ":re";
-                                }
-                                if points2d[i][1].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    im_cap[i] = unmod[i].to_owned() + ":im";
-                                }
-                            }
-                            _ =>
-                            {
-                                d2_or_d3.0 = true;
-                                let mut vec = Vec::with_capacity(v.len());
-                                for i in 0..v.len()
-                                {
-                                    vec.push(i as f64);
-                                }
-                                points2d[i] = [
-                                    [
-                                        vec,
-                                        v.iter().map(|c| c.real().to_f64()).collect::<Vec<f64>>(),
-                                    ],
-                                    [
-                                        Vec::new(),
-                                        if v.iter().any(|c| !c.imag().is_zero())
-                                        {
-                                            v.iter()
-                                                .map(|c| c.imag().to_f64())
-                                                .collect::<Vec<f64>>()
-                                        }
-                                        else
-                                        {
-                                            Vec::new()
-                                        },
-                                    ],
-                                ];
-                                if points2d[i][0].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    re_cap[i] = unmod[i].to_owned() + ":re";
-                                }
-                                if points2d[i][1].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    im_cap[i] = unmod[i].to_owned() + ":im";
-                                }
-                            }
-                        }
-                    }
-                    Matrix(m) =>
-                    {
-                        lines = true;
-                        match m[0].len()
-                        {
-                            3 =>
-                            {
-                                d2_or_d3.1 = true;
-                                points3d[i] = [
-                                    [
-                                        m.iter()
-                                            .map(|c| c[0].real().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                        m.iter()
-                                            .map(|c| c[1].real().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                        m.iter()
-                                            .map(|c| c[2].real().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                    ],
-                                    [
-                                        if m.iter().any(|c| !c[0].imag().is_zero())
-                                        {
-                                            m.iter()
-                                                .map(|c| c[0].imag().to_f64())
-                                                .collect::<Vec<f64>>()
-                                        }
-                                        else
-                                        {
-                                            Vec::new()
-                                        },
-                                        if m.iter().any(|c| !c[1].imag().is_zero())
-                                        {
-                                            m.iter()
-                                                .map(|c| c[1].imag().to_f64())
-                                                .collect::<Vec<f64>>()
-                                        }
-                                        else
-                                        {
-                                            Vec::new()
-                                        },
-                                        if m.iter().any(|c| !c[2].imag().is_zero())
-                                        {
-                                            m.iter()
-                                                .map(|c| c[2].imag().to_f64())
-                                                .collect::<Vec<f64>>()
-                                        }
-                                        else
-                                        {
-                                            Vec::new()
-                                        },
-                                    ],
-                                ];
-                                if points3d[i][0].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    re_cap[i] = unmod[i].to_owned() + ":re";
-                                }
-                                if points3d[i][1].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    im_cap[i] = unmod[i].to_owned() + ":im";
-                                }
-                            }
-                            2 =>
-                            {
-                                d2_or_d3.0 = true;
-                                points2d[i] = [
-                                    [
-                                        m.iter()
-                                            .map(|c| c[0].real().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                        m.iter()
-                                            .map(|c| c[1].real().to_f64())
-                                            .collect::<Vec<f64>>(),
-                                    ],
-                                    [
-                                        if m.iter().any(|c| !c[0].imag().is_zero())
-                                        {
-                                            m.iter()
-                                                .map(|c| c[0].imag().to_f64())
-                                                .collect::<Vec<f64>>()
-                                        }
-                                        else
-                                        {
-                                            Vec::new()
-                                        },
-                                        if m.iter().any(|c| !c[1].imag().is_zero())
-                                        {
-                                            m.iter()
-                                                .map(|c| c[1].imag().to_f64())
-                                                .collect::<Vec<f64>>()
-                                        }
-                                        else
-                                        {
-                                            Vec::new()
-                                        },
-                                    ],
-                                ];
-                                if points2d[i][0].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    re_cap[i] = unmod[i].to_owned() + ":re";
-                                }
-                                if points2d[i][1].iter().flatten().any(|a| *a != 0.0)
-                                {
-                                    im_cap[i] = unmod[i].to_owned() + ":im";
-                                }
-                            }
-                            _ =>
-                            {}
-                        }
-                    }
-                    _ =>
-                    {}
-                }
+                return;
             }
-            else if !has_y || !has_x
+            if re_or_im.0
+            {
+                re_cap[i] = unmod[i].clone() + if re_or_im.1 { ":re" } else { "" }
+            }
+            if re_or_im.1
+            {
+                im_cap[i] = unmod[i].clone() + ":im"
+            }
+            if dimen.0
             {
                 d2_or_d3.0 = true;
-                (points2d[i], re_or_im) = get_list_2d(func, options);
-                if re_or_im.0
-                {
-                    re_cap[i] = unmod[i].to_owned() + ":re";
-                }
-                if re_or_im.1
-                {
-                    im_cap[i] = unmod[i].to_owned() + ":im";
-                }
-                if points2d[i][0][1].is_empty() && points2d[i][1][1].is_empty()
-                {
-                    fail(options, &colors);
-                    return;
-                }
-                if !has_x
-                {
-                    points2d[i][1][0] = points2d[i][0][0].clone();
-                    points2d[i][0].swap(0, 1);
-                    points2d[i][1].swap(0, 1);
-                }
             }
-            else
+            if dimen.1
             {
                 d2_or_d3.1 = true;
-                (points3d[i], re_or_im) = get_list_3d(func, options);
-                if re_or_im.0
-                {
-                    re_cap[i] = unmod[i].to_owned() + ":re";
-                }
-                if re_or_im.1
-                {
-                    im_cap[i] = unmod[i].to_owned() + ":im";
-                }
-                if points3d[i][0][2].is_empty() && points3d[i][1][2].is_empty()
-                {
-                    fail(options, &colors);
-                    return;
-                }
             }
+            if line
+            {
+                lines = true
+            }
+            i += 1;
         }
         if d2_or_d3.0 == d2_or_d3.1
         {
@@ -394,8 +134,17 @@ pub fn graph(
                     )
                 }
             }
-            let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
-            let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
+            let (xticks, yticks) = if options.ticks == 0.0
+            {
+                (Some((Fix(1.0), 1)), Some((Fix(1.0), 1)))
+            }
+            else
+            {
+                (
+                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 1)),
+                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 1)),
+                )
+            };
             if options.lines || lines
             {
                 fg.axes2d()
@@ -713,9 +462,22 @@ pub fn graph(
                     )
                 }
             }
-            let xticks = Some((Fix((options.xr.1 - options.xr.0) / 20.0), 1));
-            let yticks = Some((Fix((options.yr.1 - options.yr.0) / 20.0), 1));
-            let zticks = Some((Fix((options.zr.1 - options.zr.0) / 20.0), 1));
+            let (xticks, yticks, zticks) = if options.ticks == 0.0
+            {
+                (
+                    Some((Fix(1.0), 1)),
+                    Some((Fix(1.0), 1)),
+                    Some((Fix(1.0), 1)),
+                )
+            }
+            else
+            {
+                (
+                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 1)),
+                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 1)),
+                    Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 1)),
+                )
+            };
             if options.lines || lines
             {
                 fg.axes3d()
@@ -920,6 +682,295 @@ pub fn graph(
             print!("\x1b[G\x1b[Kno gnuplot\n\x1b[G{}", prompt(options, &colors));
         }
         stdout().flush().unwrap();
+    })
+}
+#[allow(clippy::type_complexity)]
+fn get_data(
+    options: Options,
+    colors: Colors,
+    func: Vec<NumStr>,
+) -> JoinHandle<(
+    (bool, bool),
+    (bool, bool),
+    bool,
+    bool,
+    [[Vec<f64>; 2]; 2],
+    [[Vec<f64>; 3]; 2],
+)>
+{
+    thread::spawn(move || {
+        let mut lines = false;
+        let mut points2d: [[Vec<f64>; 2]; 2] = Default::default();
+        let mut points3d: [[Vec<f64>; 3]; 2] = Default::default();
+        let mut d2_or_d3: (bool, bool) = (false, false);
+        let mut re_or_im = (false, false);
+        let (has_x, has_y) = (
+            func.iter().any(|i| i.str_is("x")),
+            func.iter().any(|i| i.str_is("y")),
+        );
+        if !has_y && !has_x
+        {
+            match match do_math(func.clone(), options)
+            {
+                Ok(n) => n,
+                _ =>
+                {
+                    fail(options, &colors);
+                    return (
+                        (false, false),
+                        (false, false),
+                        false,
+                        true,
+                        Default::default(),
+                        Default::default(),
+                    );
+                }
+            }
+            {
+                Num(n) =>
+                {
+                    d2_or_d3.0 = true;
+                    (points2d, re_or_im) = get_list_2d(&[Num(n)], options);
+                    if points2d[0][1].is_empty() && points2d[1][1].is_empty()
+                    {
+                        fail(options, &colors);
+                        return (
+                            (false, false),
+                            (false, false),
+                            false,
+                            true,
+                            Default::default(),
+                            Default::default(),
+                        );
+                    }
+                }
+                Vector(v) =>
+                {
+                    lines = true;
+                    match v.len()
+                    {
+                        3 =>
+                        {
+                            d2_or_d3.1 = true;
+                            points3d = [
+                                [
+                                    vec![0.0, v[0].real().to_f64()],
+                                    vec![0.0, v[1].real().to_f64()],
+                                    vec![0.0, v[2].real().to_f64()],
+                                ],
+                                [
+                                    vec![0.0, v[0].imag().to_f64()],
+                                    vec![0.0, v[1].imag().to_f64()],
+                                    vec![0.0, v[2].imag().to_f64()],
+                                ],
+                            ];
+                            re_or_im = (
+                                points3d[0].iter().flatten().any(|a| *a != 0.0),
+                                points3d[1].iter().flatten().any(|a| *a != 0.0),
+                            );
+                        }
+                        2 =>
+                        {
+                            d2_or_d3.0 = true;
+                            points2d = [
+                                [
+                                    vec![0.0, v[0].real().to_f64()],
+                                    vec![0.0, v[1].real().to_f64()],
+                                ],
+                                [
+                                    vec![0.0, v[0].imag().to_f64()],
+                                    vec![0.0, v[1].imag().to_f64()],
+                                ],
+                            ];
+                            re_or_im = (
+                                points2d[0].iter().flatten().any(|a| *a != 0.0),
+                                points2d[1].iter().flatten().any(|a| *a != 0.0),
+                            );
+                        }
+                        _ =>
+                        {
+                            d2_or_d3.0 = true;
+                            let mut vec = Vec::with_capacity(v.len());
+                            for i in 0..v.len()
+                            {
+                                vec.push(i as f64);
+                            }
+                            points2d = [
+                                [
+                                    vec,
+                                    v.iter().map(|c| c.real().to_f64()).collect::<Vec<f64>>(),
+                                ],
+                                [
+                                    Vec::new(),
+                                    if v.iter().any(|c| !c.imag().is_zero())
+                                    {
+                                        v.iter().map(|c| c.imag().to_f64()).collect::<Vec<f64>>()
+                                    }
+                                    else
+                                    {
+                                        Vec::new()
+                                    },
+                                ],
+                            ];
+                            re_or_im = (
+                                points2d[0].iter().flatten().any(|a| *a != 0.0),
+                                points2d[1].iter().flatten().any(|a| *a != 0.0),
+                            );
+                        }
+                    }
+                }
+                Matrix(m) =>
+                {
+                    lines = true;
+                    match m[0].len()
+                    {
+                        3 =>
+                        {
+                            d2_or_d3.1 = true;
+                            points3d = [
+                                [
+                                    m.iter().map(|c| c[0].real().to_f64()).collect::<Vec<f64>>(),
+                                    m.iter().map(|c| c[1].real().to_f64()).collect::<Vec<f64>>(),
+                                    m.iter().map(|c| c[2].real().to_f64()).collect::<Vec<f64>>(),
+                                ],
+                                [
+                                    if m.iter().any(|c| !c[0].imag().is_zero())
+                                    {
+                                        m.iter().map(|c| c[0].imag().to_f64()).collect::<Vec<f64>>()
+                                    }
+                                    else
+                                    {
+                                        Vec::new()
+                                    },
+                                    if m.iter().any(|c| !c[1].imag().is_zero())
+                                    {
+                                        m.iter().map(|c| c[1].imag().to_f64()).collect::<Vec<f64>>()
+                                    }
+                                    else
+                                    {
+                                        Vec::new()
+                                    },
+                                    if m.iter().any(|c| !c[2].imag().is_zero())
+                                    {
+                                        m.iter().map(|c| c[2].imag().to_f64()).collect::<Vec<f64>>()
+                                    }
+                                    else
+                                    {
+                                        Vec::new()
+                                    },
+                                ],
+                            ];
+                            re_or_im = (
+                                points3d[0].iter().flatten().any(|a| *a != 0.0),
+                                points3d[1].iter().flatten().any(|a| *a != 0.0),
+                            );
+                        }
+                        2 =>
+                        {
+                            d2_or_d3.0 = true;
+                            points2d = [
+                                [
+                                    m.iter().map(|c| c[0].real().to_f64()).collect::<Vec<f64>>(),
+                                    m.iter().map(|c| c[1].real().to_f64()).collect::<Vec<f64>>(),
+                                ],
+                                [
+                                    if m.iter().any(|c| !c[0].imag().is_zero())
+                                    {
+                                        m.iter().map(|c| c[0].imag().to_f64()).collect::<Vec<f64>>()
+                                    }
+                                    else
+                                    {
+                                        Vec::new()
+                                    },
+                                    if m.iter().any(|c| !c[1].imag().is_zero())
+                                    {
+                                        m.iter().map(|c| c[1].imag().to_f64()).collect::<Vec<f64>>()
+                                    }
+                                    else
+                                    {
+                                        Vec::new()
+                                    },
+                                ],
+                            ];
+                            re_or_im = (
+                                points2d[0].iter().flatten().any(|a| *a != 0.0),
+                                points2d[1].iter().flatten().any(|a| *a != 0.0),
+                            );
+                        }
+                        _ =>
+                        {}
+                    }
+                }
+                _ =>
+                {}
+            }
+        }
+        else if !has_y || !has_x
+        {
+            d2_or_d3.0 = true;
+            (points2d, re_or_im) = get_list_2d(&func, options);
+            if points2d[0][1].is_empty() && points2d[1][1].is_empty()
+            {
+                fail(options, &colors);
+                return (
+                    (false, false),
+                    (false, false),
+                    false,
+                    true,
+                    Default::default(),
+                    Default::default(),
+                );
+            }
+            if !has_x
+            {
+                points2d[1][0] = points2d[0][0].clone();
+                points2d[0].swap(0, 1);
+                points2d[1].swap(0, 1);
+            }
+            if options.flat
+            {
+                re_or_im.1 = false;
+                points2d[0].swap(0, 1);
+                points2d[0][1] = points2d[1][1].clone();
+                points2d[1] = Default::default();
+            }
+            else if options.depth
+            {
+                re_or_im.1 = false;
+                d2_or_d3 = (false, true);
+                points3d[0][0] = points2d[0][0].clone();
+                points3d[0][1] = points2d[0][1].clone();
+                points3d[0][2] = points2d[1][1].clone();
+                points2d = Default::default();
+            }
+        }
+        else
+        {
+            d2_or_d3.1 = true;
+            (points3d, re_or_im) = get_list_3d(&func, options);
+            if points3d[0][2].is_empty() && points3d[1][2].is_empty()
+            {
+                fail(options, &colors);
+                return (
+                    (false, false),
+                    (false, false),
+                    false,
+                    true,
+                    Default::default(),
+                    Default::default(),
+                );
+            }
+            if options.depth
+            {
+                re_or_im.1 = false;
+                d2_or_d3 = (false, true);
+                points3d[0][0] = points2d[0][0].clone();
+                points3d[0][1] = points2d[0][1].clone();
+                points3d[0][2] = points2d[1][1].clone();
+                points2d = Default::default();
+            }
+        }
+        (d2_or_d3, re_or_im, lines, false, points2d, points3d)
     })
 }
 pub fn get_list_2d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 2]; 2], (bool, bool))

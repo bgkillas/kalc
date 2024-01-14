@@ -46,6 +46,7 @@ FLAGS: --help (this message)
 --point [char] point style for graphing
 --sci toggles scientific notation
 --base=[num] sets the number base (2,8,16)
+--ticks=[num] sets amount of ticks, when 0 will be at every whole number
 --prompt toggles the prompt
 --color toggles color
 --comma toggles comma seperation
@@ -64,6 +65,7 @@ FLAGS: --help (this message)
 --tabbed toggles tabbed display for matrixes
 --debug displays computation time in nanoseconds
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis
+--flat display 2d complex graphs like they are on the 2d number line
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number
 
 - flags can be executed in runtime just without the dashes
@@ -107,7 +109,7 @@ Functions:
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)
 - deg, rad, grad (all real only)
 - re, im, split(x+yi={x,y})
-- factors, prime
+- factors, prime, isprime
 - slog(a,b)
 - piecewise({value,cond},{value2,cond2}...) (when first condition is met from left to right. value elsewards is nan)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)

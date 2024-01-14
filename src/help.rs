@@ -16,6 +16,7 @@ FLAGS: --help (this message)\n\x1b[G\
 --point [char] point style for graphing\n\x1b[G\
 --sci toggles scientific notation\n\x1b[G\
 --base=[num] sets the number base (2,8,16)\n\x1b[G\
+--ticks=[num] sets amount of ticks, when 0 will be at every whole number\n\x1b[G\
 --prompt toggles the prompt\n\x1b[G\
 --color toggles color\n\x1b[G\
 --comma toggles comma seperation\n\x1b[G\
@@ -34,6 +35,7 @@ FLAGS: --help (this message)\n\x1b[G\
 --tabbed toggles tabbed display for matrixes\n\x1b[G\
 --debug displays computation time in nanoseconds\n\x1b[G\
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\n\x1b[G\
+--flat display 2d complex graphs like they are on the 2d number line\n\x1b[G\
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\n\x1b[G\n\x1b[G\
 - flags can be executed in runtime just without the dashes\n\x1b[G\
 - Type \"colors=\" to see color settings\n\x1b[G\
@@ -74,7 +76,7 @@ Functions:\n\x1b[G\
 - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)\n\x1b[G\
 - deg, rad, grad (all real only)\n\x1b[G\
 - re, im, split(x+yi={{x,y}})\n\x1b[G\
-- factors, prime\n\x1b[G\
+- factors, prime, isprime\n\x1b[G\
 - slog(a,b)\n\x1b[G\
 - piecewise({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\n\x1b[G\
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\

@@ -170,6 +170,8 @@ pub fn functions() -> HashSet<&'static str>
         "normD",
         "normP",
         "piecewise",
+        "is_prime",
+        "isprime",
     ]
     .iter()
     .cloned()

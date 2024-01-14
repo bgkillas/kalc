@@ -14,6 +14,7 @@ use rug::{
         Constant::Pi,
         Special::{Infinity, Nan},
     },
+    integer::IsPrime,
     ops::Pow,
     Complex, Float,
 };
@@ -2208,9 +2209,23 @@ fn functions(
         }
         "prime" =>
         {
-            if a.imag().is_zero()
+            if a.imag().is_zero() && a.real().clone().fract() == 0.0
             {
                 Complex::with_val(options.prec, nth_prime(a.real().to_f64() as usize))
+            }
+            else
+            {
+                return Err("cant get a complex prime");
+            }
+        }
+        "isprime" | "is_prime" =>
+        {
+            if a.imag().is_zero() && a.real().clone().fract() == 0.0
+            {
+                Complex::with_val(
+                    options.prec,
+                    (a.real().to_integer().unwrap().is_probably_prime(100) != IsPrime::No) as u8,
+                )
             }
             else
             {

@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{Matrix, Num, Piecewise, Str, Vector},
     },
     help::help,
     load_vars::get_vars,
@@ -81,7 +81,7 @@ pub fn arg_opts(
                                 Ok(n) => n.0,
                                 _ => return Err("invalid prec"),
                             };
-                            match do_math(a, *options)
+                            match do_math(a, *options, Vec::new())
                             {
                                 Ok(Num(n)) => (n.real().to_f64() as u32, n.real().to_f64() as u32),
                                 _ => return Err("invalid prec"),
@@ -114,7 +114,7 @@ pub fn arg_opts(
                                 Ok(n) => n.0,
                                 _ => return Err("invalid graphprec"),
                             };
-                            match do_math(a, *options)
+                            match do_math(a, *options, Vec::new())
                             {
                                 Ok(Num(n)) => (n.real().to_f64() as u32, n.real().to_f64() as u32),
                                 _ => return Err("invalid graphprec"),
@@ -157,7 +157,7 @@ pub fn arg_opts(
                                     Ok(n) => n.0,
                                     _ => return Err("invalid deci"),
                                 };
-                                match do_math(a, *options)
+                                match do_math(a, *options, Vec::new())
                                 {
                                     Ok(Num(n)) => n.real().to_f64() as usize,
                                     _ => return Err("invalid deci"),
@@ -993,6 +993,7 @@ fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> Str
                 out.push_str(&format!("{{{}}}", str))
             }
             Str(n) => out.push_str(n),
+            Piecewise(n) => out.push_str(&n.0.iter().collect::<String>()),
         }
     }
     to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
@@ -1113,6 +1114,7 @@ pub fn set_commands(
                 )?
                 .0,
                 *options,
+                Vec::new(),
             )?
             .num()?
             .real()
@@ -1137,6 +1139,7 @@ pub fn set_commands(
             )?
             .0,
             *options,
+            Vec::new(),
         )?
         .num()?
         .real()
@@ -1161,6 +1164,7 @@ pub fn set_commands(
             )?
             .0,
             *options,
+            Vec::new(),
         )?
         .num()?
         .real()
@@ -1221,7 +1225,7 @@ pub fn set_commands(
                                 }
                                 else
                                 {
-                                    do_math(parsed, *options)
+                                    do_math(parsed, *options, Vec::new())
                                         .unwrap_or(Num(Complex::new(options.prec)))
                                 },
                                 var.3.clone(),
@@ -1274,7 +1278,7 @@ pub fn set_commands(
                                     }
                                     else
                                     {
-                                        do_math(parsed, *options)
+                                        do_math(parsed, *options, Vec::new())
                                             .unwrap_or(Num(Complex::new(options.prec)))
                                     },
                                     v.3.clone(),
@@ -1322,6 +1326,7 @@ pub fn set_commands(
                         )?
                         .0,
                         *options,
+                        Vec::new(),
                     )?
                     .num()?
                     .real()
@@ -1339,6 +1344,7 @@ pub fn set_commands(
                         )?
                         .0,
                         *options,
+                        Vec::new(),
                     )?
                     .num()?
                     .real()
@@ -1368,6 +1374,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1412,6 +1419,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1429,6 +1437,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1449,6 +1458,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1486,6 +1496,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1503,6 +1514,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1523,6 +1535,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1560,6 +1573,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1577,6 +1591,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1597,6 +1612,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()
@@ -1627,6 +1643,7 @@ pub fn set_commands(
                 )?
                 .0,
                 *options,
+                Vec::new(),
             )?
             .num()?
             .real()
@@ -1650,6 +1667,7 @@ pub fn set_commands(
                         )?
                         .0,
                         *options,
+                        Vec::new(),
                     )?
                     .num()?
                     .real()
@@ -1667,6 +1685,7 @@ pub fn set_commands(
                         )?
                         .0,
                         *options,
+                        Vec::new(),
                     )?
                     .num()?
                     .real()
@@ -1688,6 +1707,7 @@ pub fn set_commands(
                     )?
                     .0,
                     *options,
+                    Vec::new(),
                 )?
                 .num()?
                 .real()

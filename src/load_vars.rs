@@ -42,11 +42,11 @@ pub fn get_file_vars(
                     {
                         if j.0.len() <= l.len()
                         {
-                            add_var(l, r, i, vars, options, false);
+                            add_var(l, r, i, vars, options, false, false);
                             continue 'lower;
                         }
                     }
-                    add_var(l, r, 0, vars, options, false);
+                    add_var(l, r, 0, vars, options, false, false);
                 }
             }
         }
@@ -402,6 +402,7 @@ pub fn add_var(
     vars: &mut Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
     options: Options,
     redef: bool,
+    replace: bool,
 )
 {
     let mut func_vars: Vec<(isize, String)> = Vec::new();
@@ -414,6 +415,10 @@ pub fn add_var(
         {
             func_vars.push((-1, i.iter().collect()));
         }
+    }
+    if r.contains("piecewise")
+    {
+        vars.push((l.clone(), Vec::new(), Str(String::new()), String::new()));
     }
     let parsed = match input_var(
         r,
@@ -444,10 +449,14 @@ pub fn add_var(
             (
                 l.clone(),
                 Vec::new(),
-                do_math(parsed, options).unwrap_or(Num(Complex::new(options.prec))),
+                do_math(parsed, options, Vec::new()).unwrap_or(Num(Complex::new(options.prec))),
                 r.to_string(),
             ),
         );
+    }
+    if replace
+    {
+        vars.remove(i + 1);
     }
     if redef
     {
@@ -506,7 +515,7 @@ pub fn add_var(
                         vars[j] = (
                             v.0.clone(),
                             Vec::new(),
-                            do_math(parsed.clone(), options)
+                            do_math(parsed.clone(), options, Vec::new())
                                 .unwrap_or(Num(Complex::new(options.prec))),
                             v.3.clone(),
                         );

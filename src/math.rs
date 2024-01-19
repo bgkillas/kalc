@@ -3,8 +3,9 @@ use crate::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
         inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog,
         sort, sub, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{Matrix, Num, Piecewise, Str, Vector},
     },
+    parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Options,
 };
@@ -18,7 +19,11 @@ use rug::{
     ops::Pow,
     Complex, Float,
 };
-pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'static str>
+pub fn do_math(
+    mut function: Vec<NumStr>,
+    options: Options,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+) -> Result<NumStr, &'static str>
 {
     if function.len() == 1 && !function[0].str_is("rnd")
     {
@@ -28,214 +33,237 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
     {
         return Err(" ");
     }
+    let mut vars = Vec::new();
+    for v in func_vars
+    {
+        vars.push((v.0, do_math(v.1, options, Vec::new())?))
+    }
     let mut i = 0;
-    'outer: while i < function.len() - 1
+    'outer: while i < function.len()
     {
         if let Str(s) = &function[i]
         {
-            if s == "{"
+            match s.as_str()
             {
-                let mut j = i + 1;
-                let mut count = 1;
-                while count > 0
+                "{" =>
                 {
-                    if j >= function.len()
+                    let mut j = i + 1;
+                    let mut count = 1;
+                    while count > 0
                     {
-                        return Err("curly bracket err");
-                    }
-                    if let Str(s) = &function[j]
-                    {
-                        match s.as_str()
+                        if j >= function.len()
                         {
-                            "{" => count += 1,
-                            "}" => count -= 1,
-                            _ =>
-                            {}
+                            return Err("curly bracket err");
                         }
-                    }
-                    j += 1;
-                }
-                if i + 1 == j - 1
-                {
-                    return Err("no interior vector");
-                }
-                let mut single = 0;
-                let v = function[i + 1..j - 1].to_vec();
-                let mut vec = Vec::new();
-                let mut mat = Vec::<Vec<Complex>>::new();
-                for (f, n) in v.iter().enumerate()
-                {
-                    if let Str(s) = n
-                    {
-                        match s.as_str()
+                        if let Str(s) = &function[j]
                         {
-                            "," if count == 0 =>
+                            match s.as_str()
                             {
-                                let z = do_math(v[single..f].to_vec(), options)?;
-                                match z
-                                {
-                                    Num(n) => vec.push(n),
-                                    Vector(n) => mat.push(n),
-                                    _ => return Err("broken matrix"),
-                                }
-                                single = f + 1;
+                                "{" => count += 1,
+                                "}" => count -= 1,
+                                _ =>
+                                {}
                             }
-                            "{" | "(" => count += 1,
-                            "}" | ")" => count -= 1,
-                            _ =>
-                            {}
+                        }
+                        j += 1;
+                    }
+                    if i + 1 == j - 1
+                    {
+                        return Err("no interior vector");
+                    }
+                    let mut single = 0;
+                    let v = function[i + 1..j - 1].to_vec();
+                    let mut vec = Vec::new();
+                    let mut mat = Vec::<Vec<Complex>>::new();
+                    for (f, n) in v.iter().enumerate()
+                    {
+                        if let Str(s) = n
+                        {
+                            match s.as_str()
+                            {
+                                "," if count == 0 =>
+                                {
+                                    let z = do_math(v[single..f].to_vec(), options, Vec::new())?;
+                                    match z
+                                    {
+                                        Num(n) => vec.push(n),
+                                        Vector(n) => mat.push(n),
+                                        _ => return Err("broken matrix"),
+                                    }
+                                    single = f + 1;
+                                }
+                                "{" | "(" => count += 1,
+                                "}" | ")" => count -= 1,
+                                _ =>
+                                {}
+                            }
                         }
                     }
-                }
-                if single != v.len()
-                {
-                    let z = do_math(v[single..].to_vec(), options)?;
-                    match z
+                    if single != v.len()
                     {
-                        Num(n) => vec.push(n),
-                        Vector(n) => mat.push(n),
-                        _ => return Err("broken matrix"),
+                        let z = do_math(v[single..].to_vec(), options, Vec::new())?;
+                        match z
+                        {
+                            Num(n) => vec.push(n),
+                            Vector(n) => mat.push(n),
+                            _ => return Err("broken matrix"),
+                        }
                     }
-                }
-                function.drain(i..j);
-                if !mat.is_empty()
-                {
-                    if vec.is_empty()
+                    function.drain(i..j);
+                    if !mat.is_empty()
                     {
-                        function.insert(i, Matrix(mat));
+                        if vec.is_empty()
+                        {
+                            function.insert(i, Matrix(mat));
+                        }
+                        else
+                        {
+                            return Err("vector err");
+                        }
                     }
                     else
                     {
-                        return Err("vector err");
+                        function.insert(i, Vector(vec));
                     }
                 }
-                else
+                "(" =>
                 {
-                    function.insert(i, Vector(vec));
-                }
-            }
-            else if s == "("
-            {
-                let mut j = i + 1;
-                let mut count = 1;
-                while count > 0
-                {
-                    if j >= function.len()
+                    let mut j = i + 1;
+                    let mut count = 1;
+                    while count > 0
                     {
-                        return Err("round bracket err");
-                    }
-                    if let Str(s) = &function[j]
-                    {
-                        match s.as_str()
+                        if j >= function.len()
                         {
-                            "(" => count += 1,
-                            ")" => count -= 1,
-                            _ =>
-                            {}
+                            return Err("round bracket err");
                         }
-                    }
-                    j += 1;
-                }
-                if i + 1 == j - 1
-                {
-                    return Err("no interior bracket");
-                }
-                let v = function[i + 1..j - 1].to_vec();
-                if i != 0
-                {
-                    if let Str(k) = &function[i - 1]
-                    {
-                        if matches!(
-                            k.as_str(),
-                            "log"
-                                | "slog"
-                                | "root"
-                                | "atan"
-                                | "arctan"
-                                | "atan2"
-                                | "normP"
-                                | "bi"
-                                | "binomial"
-                                | "angle"
-                                | "cross"
-                                | "dot"
-                                | "part"
-                                | "proj"
-                                | "project"
-                                | "link"
-                                | "C"
-                                | "P"
-                                | "quad"
-                                | "quadratic"
-                                | "cubic"
-                                | "percentilerank"
-                                | "percentile"
-                        )
+                        if let Str(s) = &function[j]
                         {
-                            count = 0;
-                            let mut place = Vec::new();
-                            for (f, n) in v.iter().enumerate()
+                            match s.as_str()
                             {
-                                if let Str(s) = n
+                                "(" => count += 1,
+                                ")" => count -= 1,
+                                _ =>
+                                {}
+                            }
+                        }
+                        j += 1;
+                    }
+                    if i + 1 == j - 1
+                    {
+                        return Err("no interior bracket");
+                    }
+                    let v = function[i + 1..j - 1].to_vec();
+                    if i != 0
+                    {
+                        if let Str(k) = &function[i - 1]
+                        {
+                            if matches!(
+                                k.as_str(),
+                                "log"
+                                    | "slog"
+                                    | "root"
+                                    | "atan"
+                                    | "arctan"
+                                    | "atan2"
+                                    | "normP"
+                                    | "bi"
+                                    | "binomial"
+                                    | "angle"
+                                    | "cross"
+                                    | "dot"
+                                    | "part"
+                                    | "proj"
+                                    | "project"
+                                    | "link"
+                                    | "C"
+                                    | "P"
+                                    | "quad"
+                                    | "quadratic"
+                                    | "cubic"
+                                    | "percentilerank"
+                                    | "percentile"
+                            )
+                            {
+                                count = 0;
+                                let mut place = Vec::new();
+                                for (f, n) in v.iter().enumerate()
                                 {
-                                    match s.as_str()
+                                    if let Str(s) = n
                                     {
-                                        "," if count == 0 => place.push(f),
-                                        "(" | "{" => count += 1,
-                                        ")" | "}" => count -= 1,
-                                        _ =>
-                                        {}
+                                        match s.as_str()
+                                        {
+                                            "," if count == 0 => place.push(f),
+                                            "(" | "{" => count += 1,
+                                            ")" | "}" => count -= 1,
+                                            _ =>
+                                            {}
+                                        }
                                     }
                                 }
-                            }
-                            if !place.is_empty()
-                            {
-                                function.drain(i..j);
-                                function.insert(i, do_math(v[..place[0]].to_vec(), options)?);
-                                for (k, l) in place.iter().enumerate()
+                                if !place.is_empty()
                                 {
-                                    function.insert(i + k + 1, Str(','.to_string()));
+                                    function.drain(i..j);
                                     function.insert(
-                                        i + k + 2,
-                                        do_math(
-                                            v[l + 1
-                                                ..if k + 1 != place.len()
-                                                {
-                                                    place[k + 1]
-                                                }
-                                                else
-                                                {
-                                                    v.len()
-                                                }]
-                                                .to_vec(),
-                                            options,
-                                        )?,
+                                        i,
+                                        do_math(v[..place[0]].to_vec(), options, Vec::new())?,
                                     );
-                                    i += 1;
+                                    for (k, l) in place.iter().enumerate()
+                                    {
+                                        function.insert(i + k + 1, Str(','.to_string()));
+                                        function.insert(
+                                            i + k + 2,
+                                            do_math(
+                                                v[l + 1
+                                                    ..if k + 1 != place.len()
+                                                    {
+                                                        place[k + 1]
+                                                    }
+                                                    else
+                                                    {
+                                                        v.len()
+                                                    }]
+                                                    .to_vec(),
+                                                options,
+                                                Vec::new(),
+                                            )?,
+                                        );
+                                        i += 1;
+                                    }
+                                    continue 'outer;
                                 }
-                                continue 'outer;
+                            }
+                            else if matches!(
+                                k.as_str(),
+                                "sum"
+                                    | "summation"
+                                    | "prod"
+                                    | "product"
+                                    | "Σ"
+                                    | "Π"
+                                    | "vec"
+                                    | "mat"
+                                    | "piecewise"
+                            )
+                            {
+                                i = j - 1;
+                                continue;
                             }
                         }
-                        else if matches!(
-                            k.as_str(),
-                            "sum"
-                                | "summation"
-                                | "prod"
-                                | "product"
-                                | "Σ"
-                                | "Π"
-                                | "vec"
-                                | "mat"
-                                | "piecewise"
-                        )
+                    }
+                    function[i] = do_math(v, options, Vec::new())?;
+                    function.drain(i + 1..j);
+                }
+                _ =>
+                {
+                    for v in &vars
+                    {
+                        if *s == v.0
                         {
-                            i = j - 1;
-                            continue;
+                            function[i] = v.1.clone();
+                            break;
                         }
                     }
                 }
-                function[i] = do_math(v, options)?;
-                function.drain(i + 1..j);
             }
         }
         i += 1;
@@ -300,12 +328,63 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                         for (i, end) in place[0..place.len() - 1].iter().enumerate()
                         {
                             if i % 2 == 0
-                                && do_math(function[*end..place[i + 1] - 1].to_vec(), options)?
-                                    .num()?
-                                    .real()
+                                && do_math(
+                                    function[*end..place[i + 1] - 1].to_vec(),
+                                    options,
+                                    Vec::new(),
+                                )?
+                                .num()?
+                                .real()
                                     == &1.0
                             {
-                                ans = Some(do_math(function[start..*end].to_vec(), options)?);
+                                let mut func = function[start..*end].to_vec();
+                                for (i, f) in func.clone().iter().enumerate()
+                                {
+                                    if let Piecewise(p) = f
+                                    {
+                                        let mut n = 1;
+                                        for f in func[i + 2..].iter()
+                                        {
+                                            n += 1;
+                                            if f.str_is(")")
+                                            {
+                                                break;
+                                            }
+                                        }
+                                        func.splice(
+                                            i..i,
+                                            input_var(
+                                                &p.0.iter().collect::<String>(),
+                                                vec![
+                                                    (
+                                                        p.0.clone(),
+                                                        p.1.clone(),
+                                                        Str(String::new()),
+                                                        String::new(),
+                                                    ),
+                                                    (
+                                                        vec![p.0[p.0.len() - 2]],
+                                                        Vec::new(),
+                                                        do_math(
+                                                            func[i + 2..n].to_vec(),
+                                                            options,
+                                                            Vec::new(),
+                                                        )?,
+                                                        String::new(),
+                                                    ),
+                                                ],
+                                                &mut Vec::new(),
+                                                &mut 0,
+                                                options,
+                                                false,
+                                                &mut (false, 0, 0),
+                                                false,
+                                            )?
+                                            .0,
+                                        );
+                                    }
+                                }
+                                ans = Some(do_math(func, options, Vec::new())?);
                                 break;
                             }
                             else
@@ -327,11 +406,18 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                     {
                         if let Str(var) = &function[place[0] - 1]
                         {
-                            let start =
-                                do_math(function[place[1] + 1..place[2]].to_vec(), options)?
-                                    .num()?;
-                            let end = do_math(function[place[2] + 1..place[3]].to_vec(), options)?
-                                .num()?;
+                            let start = do_math(
+                                function[place[1] + 1..place[2]].to_vec(),
+                                options,
+                                Vec::new(),
+                            )?
+                            .num()?;
+                            let end = do_math(
+                                function[place[2] + 1..place[3]].to_vec(),
+                                options,
+                                Vec::new(),
+                            )?
+                            .num()?;
                             if !start.imag().is_zero() || !end.imag().is_zero()
                             {
                                 return Err("imag start/end");
@@ -381,7 +467,7 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                                 }
                                 else
                                 {
-                                    do_math(function[i + 2..place[0]].to_vec(), options)
+                                    do_math(function[i + 2..place[0]].to_vec(), options, Vec::new())
                                 }
                                 {
                                     Ok(Num(a)) => Num(a.clone()),
@@ -397,27 +483,30 @@ pub fn do_math(mut function: Vec<NumStr>, options: Options) -> Result<NumStr, &'
                             }
                             "product" | "prod" | "Π" =>
                             {
-                                function[i] =
-                                    match if place.is_empty()
+                                function[i] = match if place.is_empty()
+                                {
+                                    Ok(function[i + 1].clone())
+                                }
+                                else
+                                {
+                                    do_math(function[i + 2..place[0]].to_vec(), options, Vec::new())
+                                }
+                                {
+                                    Ok(Num(a)) => Num(a.clone()),
+                                    Ok(Vector(a)) => Num(a
+                                        .iter()
+                                        .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                            sum * val
+                                        })),
+                                    Ok(Matrix(a)) =>
                                     {
-                                        Ok(function[i + 1].clone())
-                                    }
-                                    else
-                                    {
-                                        do_math(function[i + 2..place[0]].to_vec(), options)
-                                    }
-                                    {
-                                        Ok(Num(a)) => Num(a.clone()),
-                                        Ok(Vector(a)) => Num(a.iter().fold(
+                                        Num(a.iter().flatten().fold(
                                             Complex::with_val(options.prec, 1),
                                             |sum, val| sum * val,
-                                        )),
-                                        Ok(Matrix(a)) => Num(a.iter().flatten().fold(
-                                            Complex::with_val(options.prec, 1),
-                                            |sum, val| sum * val,
-                                        )),
-                                        _ => return Err("sum err"),
+                                        ))
                                     }
+                                    _ => return Err("sum err"),
+                                }
                             }
                             _ => return Err("sum err"),
                         }

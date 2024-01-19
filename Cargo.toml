@@ -17,8 +17,8 @@ strip = true
 panic = "abort"
 
 [dependencies]
-rug          = "1.22.0"
-gnuplot      = "0.0.39"
+rug          = "1.23.0"
+gnuplot      = "0.0.41"
 crossterm    = "0.27.0"
 
 [target.'cfg(not(unix))'.dependencies]

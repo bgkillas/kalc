@@ -38,6 +38,8 @@ use std::{
 //have ; be used to define a var or something
 //make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
 //color vector and matrix brackets?
+//matrix exponentiation
+//TODO pass through function definitions,ie f(2), x=2 parsed(f) to do_math to fix piecewise and optimize at same time :>
 #[derive(Clone)]
 pub struct Colors
 {
@@ -229,7 +231,7 @@ fn main()
     {
         Vec::new()
     };
-    if !args.is_empty()
+    if !args.is_empty() && options.allow_vars
     {
         get_cli_vars(options, args.concat(), &mut vars)
     }
@@ -277,15 +279,33 @@ fn main()
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                             }
                             let l = l.chars().collect::<Vec<char>>();
+                            for (i, v) in vars.iter().enumerate()
+                            {
+                                if v.0.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
+                                    && v.0.contains(&'(') == l.contains(&'(')
+                                    && v.0.iter().filter(|c| c == &&',').count()
+                                        == l.iter().filter(|c| c == &&',').count()
+                                {
+                                    if r == "null"
+                                    {
+                                        vars.remove(i);
+                                    }
+                                    else
+                                    {
+                                        add_var(l, r, i, &mut vars, options, true, true);
+                                    }
+                                    continue 'upper;
+                                }
+                            }
                             for (i, j) in vars.clone().iter().enumerate()
                             {
                                 if j.0.len() <= l.len()
                                 {
-                                    add_var(l, r, i, &mut vars, options, false);
+                                    add_var(l, r, i, &mut vars, options, false, false);
                                     continue 'upper;
                                 }
                             }
-                            add_var(l, r, 0, &mut vars, options, false);
+                            add_var(l, r, 0, &mut vars, options, false, false);
                         }
                     }
                 }
@@ -371,7 +391,7 @@ fn main()
                 .contains('=');
             if !graphable && noprint
             {
-                if let Ok(n) = do_math(output, options)
+                if let Ok(n) = do_math(output, options, Vec::new())
                 {
                     print_answer(n, options, &colors);
                 }
@@ -1049,7 +1069,7 @@ fn main()
             {
                 continue;
             }
-            if l.contains('(')
+            if l.contains('(') && !r.contains("piecewise")
             {
                 let s = l.split('(').next().iter().copied().collect::<String>() + "(";
                 let recur_test = r.split(&s);
@@ -1078,7 +1098,7 @@ fn main()
                     }
                     else
                     {
-                        add_var(l, r, i, &mut vars, options, true);
+                        add_var(l, r, i, &mut vars, options, true, true);
                     }
                     continue 'main;
                 }
@@ -1087,11 +1107,11 @@ fn main()
             {
                 if j.0.len() <= l.len()
                 {
-                    add_var(l, r, i, &mut vars, options, true);
+                    add_var(l, r, i, &mut vars, options, true, false);
                     continue 'main;
                 }
             }
-            add_var(l, r, 0, &mut vars, options, true);
+            add_var(l, r, 0, &mut vars, options, true, false);
         }
         if options.graph && graphable
         {

@@ -5,8 +5,6 @@
 
 requires gnuplot for graphing, a modern terminal like windows terminal on windows(via wsl)
 
-gnuplot 6.0 has issues with graphing
-
 history file is stored in ```~/.config/kalc.history```
 
 config file is stored in ```~/.config/kalc.config``` example in repo

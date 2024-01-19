@@ -247,7 +247,7 @@ pub fn print_concurrent(
             }
         };
     }
-    let num = match do_math(input.0, options)
+    let num = match do_math(input.0, options, Vec::new())
     {
         Ok(n) => n,
         Err(s) =>

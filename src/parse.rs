@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Str},
+        NumStr::{Num, Piecewise, Str},
     },
     functions::functions,
     Options,
@@ -42,6 +42,7 @@ pub fn input_var(
     let mut output: Vec<NumStr> = Vec::new();
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
+    let mut piecewise = 0;
     let mut i = 0;
     while !chars.is_empty() && chars[0].is_whitespace()
     {
@@ -549,6 +550,10 @@ pub fn input_var(
                 }
                 ')' if i != 0 =>
                 {
+                    if piecewise == *bracket as usize
+                    {
+                        piecewise = 0;
+                    }
                     if pwr.1 == *bracket
                     {
                         for _ in 0..pwr.2
@@ -783,7 +788,11 @@ pub fn input_var(
             countv -= 1;
             word.pop();
         }
-        if matches!(
+        if word == "piecewise" && piecewise == 0
+        {
+            piecewise = *bracket as usize + 1;
+        }
+        else if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
         ) && chars.len() > i + countv + 1
@@ -1023,6 +1032,12 @@ pub fn input_var(
                         if i == j
                         {
                             i = chars.len() - 1
+                        }
+                        if piecewise != 0
+                        {
+                            output.push(Piecewise((var.0, var.1)));
+                            i = j + 1;
+                            continue 'main;
                         }
                         count = 0;
                         let mut ccount = 0;

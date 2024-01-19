@@ -67,11 +67,11 @@ fn test_math()
         Str(")".to_string()),
         Str(")".to_string()),
     ];
-    let out = do_math(output.0, Options::default())
+    let out = do_math(output.0, Options::default(), Vec::new())
         .unwrap()
         .num()
         .unwrap();
-    let answer = do_math(expected, Options::default())
+    let answer = do_math(expected, Options::default(), Vec::new())
         .unwrap()
         .num()
         .unwrap();

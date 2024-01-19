@@ -12,6 +12,7 @@ use rug::{
     Complex, Float,
 };
 use std::ops::{Shl, Shr};
+#[allow(clippy::type_complexity)]
 #[derive(Clone, PartialEq)]
 pub enum NumStr
 {
@@ -19,6 +20,7 @@ pub enum NumStr
     Str(String),
     Vector(Vec<Complex>),
     Matrix(Vec<Vec<Complex>>),
+    Piecewise((Vec<char>, Vec<NumStr>)),
 }
 impl NumStr
 {
@@ -707,7 +709,7 @@ pub fn mvec(
                     *k = Num(Complex::with_val(options.prec, z));
                 }
             }
-            let math = do_math(func, options)?;
+            let math = do_math(func, options, Vec::new())?;
             match math
             {
                 Num(n) => vec.push(n),
@@ -730,7 +732,7 @@ pub fn mvec(
                     *k = Num(Complex::with_val(options.prec, z));
                 }
             }
-            let math = do_math(func, options)?;
+            let math = do_math(func, options, Vec::new())?;
             match math
             {
                 Num(n) => vec.push(n),
@@ -793,7 +795,7 @@ pub fn sum(
                 *k = Num(Complex::with_val(options.prec, z));
             }
         }
-        let math = do_math(func, options)?;
+        let math = do_math(func, options, Vec::new())?;
         if product
         {
             value = value.mul(&math)?;

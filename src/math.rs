@@ -379,6 +379,7 @@ pub fn do_math(
                                                 false,
                                                 &mut (false, 0, 0),
                                                 false,
+                                                0,
                                             )?
                                             .0,
                                         );

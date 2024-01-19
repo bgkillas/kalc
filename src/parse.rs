@@ -21,6 +21,7 @@ pub fn input_var(
     mut graph: bool,
     pwr: &mut (bool, isize, isize),
     print: bool,
+    mut piecewise: usize,
 ) -> Result<(Vec<NumStr>, bool), &'static str>
 {
     if input.starts_with("history") || input.is_empty()
@@ -42,7 +43,6 @@ pub fn input_var(
     let mut output: Vec<NumStr> = Vec::new();
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
-    let mut piecewise = 0;
     let mut i = 0;
     while !chars.is_empty() && chars[0].is_whitespace()
     {
@@ -75,8 +75,8 @@ pub fn input_var(
     {
         match c
         {
-            '(' => stack_end.push(')'),
-            '{' => stack_end.push('}'),
+            '(' => stack_end.insert(0, ')'),
+            '{' => stack_end.insert(0, '}'),
             ')' | '}' =>
             {
                 if let Some(top) = stack_end.last()
@@ -1166,6 +1166,7 @@ pub fn input_var(
                                                 graph,
                                                 pwr,
                                                 print,
+                                                piecewise,
                                             )?;
                                             let j = k;
                                             if parsed.len() > 1
@@ -1262,6 +1263,7 @@ pub fn input_var(
                                             graph,
                                             pwr,
                                             print,
+                                            piecewise,
                                         )?;
                                         let j = k;
                                         if parsed.len() > 1

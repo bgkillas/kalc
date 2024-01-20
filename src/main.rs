@@ -31,15 +31,10 @@ use std::{
     time::Instant,
 };
 //lambert w function
-//make == work more consistently
-//optimization, have vars be calculated in input_var if possible, as in have the 'x' part calculated once instead of how many times 'x' is found in the function, maybe make a var system in do_math to make 'x' work?
-//dont print prompt while var processes
-//print parsed input while defining functions
-//have ; be used to define a var or something
-//make so {x,f(x)} and +-f(x) works by adding list instead of everything be vectors
-//color vector and matrix brackets?
 //matrix exponentiation
-//TODO pass through function definitions,ie f(2), x=2 parsed(f) to do_math to fix piecewise and optimize at same time :>
+//pass through function definitions,ie f(2), x=2 parsed(f) to do_math to fix piecewise and optimize at same time :>
+//fix recursive functions
+//fix user set functions calling on preset vars in cli
 #[derive(Clone)]
 pub struct Colors
 {
@@ -1071,6 +1066,12 @@ fn main()
                     _ => false,
                 }
             {
+                print!(
+                    "{}{}",
+                    prompt(options, &colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                stdout.flush().unwrap();
                 continue;
             }
             if l.contains('(') && !r.contains("piecewise")

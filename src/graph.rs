@@ -852,7 +852,11 @@ pub fn graph(
         stdout().flush().unwrap();
     })
 }
-pub fn get_list_2d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 2]; 2], (bool, bool))
+#[allow(clippy::type_complexity)]
+pub fn get_list_2d(
+    func: &[NumStr],
+    options: Options,
+) -> ([[Vec<f64>; 2]; 2], [Vec<f64>; 2], (bool, bool))
 {
     if let Num(n) = &func[0]
     {
@@ -868,8 +872,13 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 2]; 2], (b
         ],
         [Vec::new(), Vec::with_capacity(options.samples_2d + 1)],
     ];
+    let mut data3d: [Vec<f64>; 2] = [
+        Vec::with_capacity(options.samples_2d + 1),
+        Vec::with_capacity(options.samples_2d + 1),
+    ];
     let den_range = (options.xr.1 - options.xr.0) / options.samples_2d as f64;
     let mut zero = (false, false);
+    let list = func.iter().any(|c| c.str_is("±"));
     for i in 0..=options.samples_2d
     {
         let n = options.xr.0 + i as f64 * den_range;
@@ -916,33 +925,82 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 2]; 2], (b
             }
             Ok(Vector(v)) =>
             {
-                for num in v
+                if list || v.len() == 1 || v.len() > 3
                 {
-                    let complex = num.real().is_finite();
-                    if complex
+                    for num in v
                     {
-                        let f = num.real().to_f64();
-                        if (f * 1e8).round() / 1e8 != 0.0
+                        let complex = num.real().is_finite();
+                        if complex
                         {
-                            zero.0 = true
-                        }
-                        data[0][0].push(n);
-                        data[0][1].push(f);
-                    }
-                    if num.imag().is_finite()
-                    {
-                        let f = num.imag().to_f64();
-                        if (f * 1e8).round() / 1e8 != 0.0
-                        {
-                            zero.1 = true
-                        }
-                        if !complex
-                        {
+                            let f = num.real().to_f64();
+                            if (f * 1e8).round() / 1e8 != 0.0
+                            {
+                                zero.0 = true
+                            }
                             data[0][0].push(n);
-                            data[0][1].push(f64::NAN);
+                            data[0][1].push(f);
                         }
-                        data[1][1].push(f);
+                        if num.imag().is_finite()
+                        {
+                            let f = num.imag().to_f64();
+                            if (f * 1e8).round() / 1e8 != 0.0
+                            {
+                                zero.1 = true
+                            }
+                            if !complex
+                            {
+                                data[0][0].push(n);
+                                data[0][1].push(f64::NAN);
+                            }
+                            data[1][1].push(f);
+                        }
                     }
+                }
+                else if v.len() == 3
+                {
+                    let xr = v[0].real().to_f64();
+                    let yr = v[1].real().to_f64();
+                    let zr = v[2].real().to_f64();
+                    let xi = v[0].imag().to_f64();
+                    let yi = v[1].imag().to_f64();
+                    let zi = v[2].imag().to_f64();
+                    if (xr * 1e8).round() / 1e8 != 0.0
+                        || (yr * 1e8).round() / 1e8 != 0.0
+                        || (zr * 1e8).round() / 1e8 != 0.0
+                    {
+                        zero.0 = true;
+                    }
+                    if (xi * 1e8).round() / 1e8 != 0.0
+                        || (yi * 1e8).round() / 1e8 != 0.0
+                        || (zi * 1e8).round() / 1e8 != 0.0
+                    {
+                        zero.1 = true;
+                    }
+                    data[0][0].push(xr);
+                    data[0][1].push(yr);
+                    data3d[0].push(zr);
+                    data[1][0].push(xi);
+                    data[1][1].push(yi);
+                    data3d[1].push(zi);
+                }
+                else if v.len() == 2
+                {
+                    let xr = v[0].real().to_f64();
+                    let yr = v[1].real().to_f64();
+                    let xi = v[0].imag().to_f64();
+                    let yi = v[1].imag().to_f64();
+                    if (xr * 1e8).round() / 1e8 != 0.0 || (yr * 1e8).round() / 1e8 != 0.0
+                    {
+                        zero.0 = true;
+                    }
+                    if (xi * 1e8).round() / 1e8 != 0.0 || (yi * 1e8).round() / 1e8 != 0.0
+                    {
+                        zero.1 = true;
+                    }
+                    data[0][0].push(xr);
+                    data[0][1].push(yr);
+                    data[1][0].push(xi);
+                    data[1][1].push(yi);
                 }
             }
             Ok(Matrix(m)) =>
@@ -986,14 +1044,16 @@ pub fn get_list_2d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 2]; 2], (b
     if !zero.0
     {
         data[0][1] = Vec::new();
+        data3d[0] = Vec::new();
     }
     if !zero.1
     {
         data[1][1] = Vec::new();
+        data3d[1] = Vec::new();
     }
-    (data, zero)
+    (data, data3d, zero)
 }
-pub fn get_list_3d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 3]; 2], (bool, bool))
+pub fn get_list_3d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 3]; 2], (bool, bool), bool)
 {
     if let Num(n) = &func[0]
     {
@@ -1018,6 +1078,8 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 3]; 2], (b
     let den_y_range = (options.yr.1 - options.yr.0) / options.samples_3d.1 as f64;
     let mut modified: Vec<NumStr>;
     let mut zero = (false, false);
+    let list = func.iter().any(|c| c.str_is("±"));
+    let mut d2 = false;
     for i in 0..=options.samples_3d.0
     {
         let n = options.xr.0 + i as f64 * den_x_range;
@@ -1077,35 +1139,84 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 3]; 2], (b
                 }
                 Ok(Vector(v)) =>
                 {
-                    for num in v
+                    if list || v.len() == 1 || v.len() > 3
                     {
-                        let complex = num.real().is_finite();
-                        if complex
+                        for num in v
                         {
-                            if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                            let complex = num.real().is_finite();
+                            if complex
                             {
-                                zero.0 = true
-                            }
-                            data[0][0].push(n);
-                            data[0][1].push(f);
-                            data[0][2].push(num.real().to_f64());
-                        }
-                        if num.imag().is_finite()
-                        {
-                            if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
-                            {
-                                zero.1 = true
-                            }
-                            if !complex
-                            {
+                                if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                                {
+                                    zero.0 = true
+                                }
                                 data[0][0].push(n);
                                 data[0][1].push(f);
-                                data[0][2].push(f64::NAN);
+                                data[0][2].push(num.real().to_f64());
                             }
-                            data[1][2].push(num.imag().to_f64());
+                            if num.imag().is_finite()
+                            {
+                                if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                                {
+                                    zero.1 = true
+                                }
+                                if !complex
+                                {
+                                    data[0][0].push(n);
+                                    data[0][1].push(f);
+                                    data[0][2].push(f64::NAN);
+                                }
+                                data[1][2].push(num.imag().to_f64());
+                            }
                         }
                     }
-                    continue;
+                    else if v.len() == 3
+                    {
+                        let xr = v[0].real().to_f64();
+                        let yr = v[1].real().to_f64();
+                        let zr = v[2].real().to_f64();
+                        let xi = v[0].imag().to_f64();
+                        let yi = v[1].imag().to_f64();
+                        let zi = v[2].imag().to_f64();
+                        if (xr * 1e8).round() / 1e8 != 0.0
+                            || (yr * 1e8).round() / 1e8 != 0.0
+                            || (zr * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.0 = true;
+                        }
+                        if (xi * 1e8).round() / 1e8 != 0.0
+                            || (yi * 1e8).round() / 1e8 != 0.0
+                            || (zi * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.1 = true;
+                        }
+                        data[0][0].push(xr);
+                        data[0][1].push(yr);
+                        data[0][2].push(zr);
+                        data[1][0].push(xi);
+                        data[1][1].push(yi);
+                        data[1][2].push(zi);
+                    }
+                    else if v.len() == 2
+                    {
+                        d2 = true;
+                        let xr = v[0].real().to_f64();
+                        let yr = v[1].real().to_f64();
+                        let xi = v[0].imag().to_f64();
+                        let yi = v[1].imag().to_f64();
+                        if (xr * 1e8).round() / 1e8 != 0.0 || (yr * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.0 = true;
+                        }
+                        if (xi * 1e8).round() / 1e8 != 0.0 || (yi * 1e8).round() / 1e8 != 0.0
+                        {
+                            zero.1 = true;
+                        }
+                        data[0][0].push(xr);
+                        data[0][1].push(yr);
+                        data[1][0].push(xi);
+                        data[1][1].push(yi);
+                    }
                 }
                 Ok(Matrix(m)) =>
                 {
@@ -1154,7 +1265,7 @@ pub fn get_list_3d(func: &[NumStr], options: Options) -> ([[Vec<f64>; 3]; 2], (b
     {
         data[1][2] = Vec::new();
     }
-    (data, zero)
+    (data, zero, d2)
 }
 fn fail(options: Options, colors: &Colors)
 {
@@ -1210,7 +1321,7 @@ fn get_data(
                 Num(n) =>
                 {
                     d2_or_d3.0 = true;
-                    (points2d, re_or_im) = get_list_2d(&[Num(n)], options);
+                    (points2d, _, re_or_im) = get_list_2d(&[Num(n)], options);
                     if points2d[0][1].is_empty() && points2d[1][1].is_empty()
                     {
                         fail(options, &colors);
@@ -1388,8 +1499,20 @@ fn get_data(
         else if !has_y || !has_x
         {
             d2_or_d3.0 = true;
-            (points2d, re_or_im) = get_list_2d(&func, options);
-            if points2d[0][1].is_empty() && points2d[1][1].is_empty()
+            let data3d;
+            (points2d, data3d, re_or_im) = get_list_2d(&func, options);
+            if !data3d[0].is_empty() || !data3d[1].is_empty()
+            {
+                d2_or_d3 = (false, true);
+                points3d[0][0] = points2d[0][0].clone();
+                points3d[0][1] = points2d[0][1].clone();
+                points3d[0][2] = data3d[0].clone();
+                points3d[1][0] = points2d[1][0].clone();
+                points3d[1][1] = points2d[1][1].clone();
+                points3d[1][2] = data3d[1].clone();
+                points2d = Default::default();
+            }
+            else if points2d[0][1].is_empty() && points2d[1][1].is_empty()
             {
                 fail(options, &colors);
                 return (
@@ -1430,8 +1553,18 @@ fn get_data(
         else
         {
             d2_or_d3.1 = true;
-            (points3d, re_or_im) = get_list_3d(&func, options);
-            if points3d[0][2].is_empty() && points3d[1][2].is_empty()
+            let d2;
+            (points3d, re_or_im, d2) = get_list_3d(&func, options);
+            if d2
+            {
+                d2_or_d3 = (true, false);
+                points2d[0][0] = points3d[0][0].clone();
+                points2d[0][1] = points3d[0][1].clone();
+                points2d[1][0] = points3d[1][0].clone();
+                points2d[1][1] = points3d[1][1].clone();
+                points3d = Default::default();
+            }
+            else if points3d[0][2].is_empty() && points3d[1][2].is_empty()
             {
                 fail(options, &colors);
                 return (

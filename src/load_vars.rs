@@ -18,7 +18,6 @@ pub fn get_file_vars(
 {
     'lower: for i in lines.clone()
     {
-        //TODO fix n(x) with 'e',make another function that makes a vec of new, needed vars
         let mut split = i.splitn(2, '=');
         if split.clone().count() == 2
         {
@@ -58,7 +57,6 @@ pub fn get_cli_vars(
     vars: &mut Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
 )
 {
-    //TODO maybe scrap and have it load it in load_vars
     if args.chars().all(|c| !c.is_alphabetic())
     {
         return;

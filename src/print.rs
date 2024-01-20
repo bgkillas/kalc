@@ -89,8 +89,58 @@ pub fn print_concurrent(
             .replace("<=", "")
             .contains('=')
         {
-            clear(unmodified_input, start, end, options, colors);
-            return (0, false, false);
+            let input = unmodified_input
+                [unmodified_input.iter().position(|c| c == &'=').unwrap()..]
+                .iter()
+                .collect::<String>();
+            let out = equal_to(
+                options,
+                colors,
+                vars,
+                &input,
+                &last.iter().collect::<String>(),
+            );
+            if out.is_empty()
+            {
+                clear(unmodified_input, start, end, options, colors);
+                return (0, false, false);
+            }
+            let len = no_col(&out, options.color).len();
+            let wrap = (len - 1) / get_terminal_width() + 1;
+            return if len > get_terminal_width() * (get_terminal_height() - 1)
+            {
+                if long_output
+                {
+                    print!(
+                        "\n\x1b[G\x1b[J{}{}",
+                        out,
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, true, false)
+                }
+                else
+                {
+                    print!(
+                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    (0, true, true)
+                }
+            }
+            else
+            {
+                print!(
+                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    out,
+                    "\x1b[A".repeat(wrap),
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                (wrap, true, false)
+            };
         }
     }
     let input = match input_var(

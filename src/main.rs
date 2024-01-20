@@ -346,6 +346,7 @@ fn main()
     let mut watch = None;
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
+    let cli = !args.is_empty();
     'main: loop
     {
         let mut input = Vec::new();
@@ -359,7 +360,7 @@ fn main()
             }
             input = args.remove(0).chars().collect();
             let output;
-            (output, graphable) = match input_var(
+            (output, graphable, varcheck) = match input_var(
                 &input.iter().map(convert).collect::<String>(),
                 vars.clone(),
                 &mut Vec::new(),
@@ -378,15 +379,7 @@ fn main()
                     continue;
                 }
             };
-            let noprint = !input
-                .iter()
-                .collect::<String>()
-                .replace("==", "")
-                .replace("!=", "")
-                .replace(">=", "")
-                .replace("<=", "")
-                .contains('=');
-            if !graphable && noprint
+            if !graphable && !varcheck
             {
                 if let Ok(n) = do_math(output, options, Vec::new())
                 {
@@ -397,7 +390,7 @@ fn main()
             {
                 print!(" {}", time.elapsed().as_nanos());
             }
-            if !graphable && noprint
+            if !graphable && !varcheck
             {
                 println!();
             }
@@ -446,7 +439,7 @@ fn main()
                         }
                         if ((!options.real_time_output && c != '\x14') || long) && !input.is_empty()
                         {
-                            (frac, graphable, _) = print_concurrent(
+                            (frac, graphable, _, varcheck) = print_concurrent(
                                 &input,
                                 &last,
                                 &vars.clone(),
@@ -459,23 +452,7 @@ fn main()
                         }
                         if !input.is_empty()
                         {
-                            let num = frac
-                                + if !graphable
-                                    && !input
-                                        .iter()
-                                        .collect::<String>()
-                                        .replace("==", "")
-                                        .replace("!=", "")
-                                        .replace("<=", "")
-                                        .replace(">=", "")
-                                        .contains('=')
-                                {
-                                    1
-                                }
-                                else
-                                {
-                                    0
-                                };
+                            let num = frac + if !graphable && !varcheck { 1 } else { 0 };
                             if num != 0
                             {
                                 print!("\x1b[{}B", num);
@@ -521,7 +498,7 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -571,7 +548,7 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -612,7 +589,7 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -629,7 +606,7 @@ fn main()
                         placement = 0;
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -646,7 +623,7 @@ fn main()
                         end = input.len();
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -665,7 +642,7 @@ fn main()
                         input.extend(cut);
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -684,7 +661,7 @@ fn main()
                             input.insert(placement + 1, char);
                             if options.real_time_output
                             {
-                                (frac, graphable, long) = print_concurrent(
+                                (frac, graphable, long, varcheck) = print_concurrent(
                                     &input, &last, &vars, options, &colors, start, end, false,
                                 )
                             }
@@ -700,7 +677,7 @@ fn main()
                         //ctrl+l
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -726,7 +703,7 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -755,7 +732,7 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -791,7 +768,7 @@ fn main()
                         };
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -950,7 +927,7 @@ fn main()
                         }
                         if options.real_time_output
                         {
-                            (frac, graphable, long) = print_concurrent(
+                            (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
                             )
                         }
@@ -986,15 +963,6 @@ fn main()
                 &input,
                 &mut stdout,
             );
-            varcheck = !input.ends_with(&['='])
-                && input
-                    .iter()
-                    .collect::<String>()
-                    .replace("==", "")
-                    .replace("!=", "")
-                    .replace(">=", "")
-                    .replace("<=", "")
-                    .contains('=');
             if !varcheck
             {
                 print!(
@@ -1066,12 +1034,14 @@ fn main()
                     _ => false,
                 }
             {
-                print!(
-                    "{}{}",
-                    prompt(options, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
-                );
-                stdout.flush().unwrap();
+                if !cli
+                {
+                    print!(
+                        "{}{}",
+                        prompt(options, &colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                }
                 continue;
             }
             if l.contains('(') && !r.contains("piecewise")
@@ -1105,12 +1075,15 @@ fn main()
                     {
                         add_var(l, r, i, &mut vars, options, true, true);
                     }
-                    print!(
-                        "{}{}",
-                        prompt(options, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    stdout.flush().unwrap();
+                    if !cli
+                    {
+                        print!(
+                            "{}{}",
+                            prompt(options, &colors),
+                            if options.color { "\x1b[0m" } else { "" }
+                        );
+                        stdout.flush().unwrap();
+                    }
                     continue 'main;
                 }
             }
@@ -1119,25 +1092,31 @@ fn main()
                 if j.0.len() <= l.len()
                 {
                     add_var(l, r, i, &mut vars, options, true, false);
-                    print!(
-                        "{}{}",
-                        prompt(options, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    stdout.flush().unwrap();
+                    if !cli
+                    {
+                        print!(
+                            "{}{}",
+                            prompt(options, &colors),
+                            if options.color { "\x1b[0m" } else { "" }
+                        );
+                        stdout.flush().unwrap();
+                    }
                     continue 'main;
                 }
             }
             add_var(l, r, 0, &mut vars, options, true, false);
-            print!(
-                "{}{}",
-                prompt(options, &colors),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            stdout.flush().unwrap();
+            if !cli
+            {
+                print!(
+                    "{}{}",
+                    prompt(options, &colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                stdout.flush().unwrap();
+            }
             continue;
         }
-        if options.graph && graphable
+        else if options.graph && graphable
         {
             let inputs: Vec<String> = input
                 .iter()

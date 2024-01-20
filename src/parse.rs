@@ -22,7 +22,7 @@ pub fn input_var(
     pwr: &mut (bool, isize, isize),
     print: bool,
     mut piecewise: usize,
-) -> Result<(Vec<NumStr>, bool), &'static str>
+) -> Result<(Vec<NumStr>, bool, bool), &'static str>
 {
     if input.starts_with("history") || input.is_empty()
     {
@@ -354,6 +354,10 @@ pub fn input_var(
                     else if chars[i - 1] == '<'
                     {
                         output.push(Str("<=".to_string()));
+                    }
+                    else
+                    {
+                        return Ok((Vec::new(), false, true));
                     }
                 }
                 '{' =>
@@ -1147,7 +1151,8 @@ pub fn input_var(
                                         else
                                         {
                                             let mut parsed;
-                                            (parsed, graph) = input_var(
+                                            let exit;
+                                            (parsed, graph, exit) = input_var(
                                                 &varf.iter().collect::<String>(),
                                                 vars.clone(),
                                                 sumrec,
@@ -1158,6 +1163,10 @@ pub fn input_var(
                                                 print,
                                                 piecewise,
                                             )?;
+                                            if exit
+                                            {
+                                                return Ok((Vec::new(), false, true));
+                                            }
                                             let j = k;
                                             if parsed.len() > 1
                                             {
@@ -1244,7 +1253,8 @@ pub fn input_var(
                                     else
                                     {
                                         let mut parsed;
-                                        (parsed, graph) = input_var(
+                                        let exit;
+                                        (parsed, graph, exit) = input_var(
                                             &temp.iter().collect::<String>(),
                                             vars.clone(),
                                             sumrec,
@@ -1255,6 +1265,10 @@ pub fn input_var(
                                             print,
                                             piecewise,
                                         )?;
+                                        if exit
+                                        {
+                                            return Ok((Vec::new(), false, true));
+                                        }
                                         let j = k;
                                         if parsed.len() > 1
                                         {
@@ -1664,16 +1678,7 @@ pub fn input_var(
     {
         return Err(" ");
     }
-    Ok((
-        output,
-        graph
-            && !input
-                .replace("==", "")
-                .replace("!=", "")
-                .replace("<=", "")
-                .replace(">=", "")
-                .contains('='),
-    ))
+    Ok((output, graph, false))
 }
 #[allow(clippy::type_complexity)]
 fn place_multiplier(

@@ -24,125 +24,8 @@ pub fn print_concurrent(
     start: usize,
     end: usize,
     long_output: bool,
-) -> (usize, bool, bool)
+) -> (usize, bool, bool, bool)
 {
-    {
-        let input = unmodified_input.iter().collect::<String>();
-        if input.ends_with('=')
-        {
-            let out = equal_to(
-                options,
-                colors,
-                vars,
-                &input[..input.len() - 1],
-                &last.iter().collect::<String>(),
-            );
-            return if !out.is_empty()
-            {
-                let len = no_col(&out, options.color).len();
-                let wrap = (len - 1) / get_terminal_width() + 1;
-                if len > get_terminal_width() * (get_terminal_height() - 1)
-                {
-                    if long_output
-                    {
-                        print!(
-                            "\n\x1b[G\x1b[J{}{}",
-                            out,
-                            if options.color { "\x1b[0m" } else { "" }
-                        );
-                        (wrap, false, false)
-                    }
-                    else
-                    {
-                        print!(
-                            "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                            prompt(options, colors),
-                            to_output(&unmodified_input[start..end], options.color, colors),
-                            if options.color { "\x1b[0m" } else { "" },
-                        );
-                        (0, false, true)
-                    }
-                }
-                else
-                {
-                    print!(
-                        "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                        out,
-                        "\x1b[A".repeat(wrap),
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    (wrap, false, false)
-                }
-            }
-            else
-            {
-                clear(unmodified_input, start, end, options, colors);
-                (0, false, false)
-            };
-        }
-        else if input
-            .replace("==", "")
-            .replace("!=", "")
-            .replace(">=", "")
-            .replace("<=", "")
-            .contains('=')
-        {
-            let input = unmodified_input
-                [unmodified_input.iter().position(|c| c == &'=').unwrap()..]
-                .iter()
-                .collect::<String>();
-            let out = equal_to(
-                options,
-                colors,
-                vars,
-                &input,
-                &last.iter().collect::<String>(),
-            );
-            if out.is_empty()
-            {
-                clear(unmodified_input, start, end, options, colors);
-                return (0, false, false);
-            }
-            let len = no_col(&out, options.color).len();
-            let wrap = (len - 1) / get_terminal_width() + 1;
-            return if len > get_terminal_width() * (get_terminal_height() - 1)
-            {
-                if long_output
-                {
-                    print!(
-                        "\n\x1b[G\x1b[J{}{}",
-                        out,
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    (wrap, true, false)
-                }
-                else
-                {
-                    print!(
-                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
-                        if options.color { "\x1b[0m" } else { "" },
-                    );
-                    (0, true, true)
-                }
-            }
-            else
-            {
-                print!(
-                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                    out,
-                    "\x1b[A".repeat(wrap),
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
-                    if options.color { "\x1b[0m" } else { "" }
-                );
-                (wrap, true, false)
-            };
-        }
-    }
     let input = match input_var(
         &unmodified_input
             .iter()
@@ -162,9 +45,121 @@ pub fn print_concurrent(
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, colors, start, end);
-            return (0, false, false);
+            return (0, false, false, false);
         }
     };
+    {
+        let tempinput = unmodified_input.iter().collect::<String>();
+        if tempinput.ends_with('=')
+        {
+            let out = equal_to(
+                options,
+                colors,
+                vars,
+                &tempinput[..tempinput.len() - 1],
+                &last.iter().collect::<String>(),
+            );
+            return if !out.is_empty()
+            {
+                let len = no_col(&out, options.color).len();
+                let wrap = (len - 1) / get_terminal_width() + 1;
+                if len > get_terminal_width() * (get_terminal_height() - 1)
+                {
+                    if long_output
+                    {
+                        print!(
+                            "\n\x1b[G\x1b[J{}{}",
+                            out,
+                            if options.color { "\x1b[0m" } else { "" }
+                        );
+                        (wrap, false, false, false)
+                    }
+                    else
+                    {
+                        print!(
+                            "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                            prompt(options, colors),
+                            to_output(&unmodified_input[start..end], options.color, colors),
+                            if options.color { "\x1b[0m" } else { "" },
+                        );
+                        (0, false, true, false)
+                    }
+                }
+                else
+                {
+                    print!(
+                        "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                        out,
+                        "\x1b[A".repeat(wrap),
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, false, false, false)
+                }
+            }
+            else
+            {
+                clear(unmodified_input, start, end, options, colors);
+                (0, false, false, false)
+            };
+        }
+        else if input.2
+        {
+            let input = unmodified_input
+                [unmodified_input.iter().position(|c| c == &'=').unwrap()..]
+                .iter()
+                .collect::<String>();
+            let out = equal_to(
+                options,
+                colors,
+                vars,
+                &input,
+                &last.iter().collect::<String>(),
+            );
+            if out.is_empty()
+            {
+                clear(unmodified_input, start, end, options, colors);
+                return (0, false, false, false);
+            }
+            let len = no_col(&out, options.color).len();
+            let wrap = (len - 1) / get_terminal_width() + 1;
+            return if len > get_terminal_width() * (get_terminal_height() - 1)
+            {
+                if long_output
+                {
+                    print!(
+                        "\n\x1b[G\x1b[J{}{}",
+                        out,
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, true, false, true)
+                }
+                else
+                {
+                    print!(
+                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        prompt(options, colors),
+                        to_output(&unmodified_input[start..end], options.color, colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    (0, true, true, true)
+                }
+            }
+            else
+            {
+                print!(
+                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    out,
+                    "\x1b[A".repeat(wrap),
+                    prompt(options, colors),
+                    to_output(&unmodified_input[start..end], options.color, colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                (wrap, true, false, true)
+            };
+        }
+    }
     if input.1
     {
         return if unmodified_input.contains(&'#')
@@ -181,7 +176,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    return (1, true, false);
+                    return (1, true, false, false);
                 }
                 for input in split
                 {
@@ -224,7 +219,7 @@ pub fn print_concurrent(
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap, true, false)
+                    (wrap, true, false, false)
                 }
                 else
                 {
@@ -234,7 +229,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
-                    (0, true, true)
+                    (0, true, true, false)
                 }
             }
             else
@@ -247,7 +242,7 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (wrap, true, false)
+                (wrap, true, false, false)
             }
         }
         else
@@ -271,7 +266,7 @@ pub fn print_concurrent(
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap, true, false)
+                    (wrap, true, false, false)
                 }
                 else
                 {
@@ -281,7 +276,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
-                    (0, true, true)
+                    (0, true, true, false)
                 }
             }
             else
@@ -294,7 +289,7 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (wrap, true, false)
+                (wrap, true, false, false)
             }
         };
     }
@@ -304,7 +299,7 @@ pub fn print_concurrent(
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, colors, start, end);
-            return (0, false, false);
+            return (0, false, false, false);
         }
     };
     let mut frac = 0;
@@ -955,7 +950,7 @@ pub fn print_concurrent(
     {
         handle_err("str err", unmodified_input, options, colors, start, end);
     }
-    (frac, false, long)
+    (frac, false, long, false)
 }
 pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
 {

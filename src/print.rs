@@ -612,7 +612,7 @@ pub fn print_concurrent(
                 let num = (length - 1) / terlen;
                 print!(
                     "\x1b[J{}\n\x1b[G\x1b[K{}{}",
-                    if frac == 1
+                    if frac == 1 && options.frac
                     {
                         format!("\n\x1b[G\x1b[K{}", frac_out)
                     }
@@ -642,7 +642,7 @@ pub fn print_concurrent(
             let num = (length - 1) / terlen;
             print!(
                 "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
-                if frac == 1
+                if frac == 1 && options.frac
                 {
                     format!("\n\x1b[G\x1b[K{}", frac_out)
                 }
@@ -652,7 +652,14 @@ pub fn print_concurrent(
                 },
                 output,
                 "\x1b[A".repeat(num),
-                if frac == 1 { "\x1b[A" } else { "" },
+                if frac == 1 && options.frac
+                {
+                    "\x1b[A"
+                }
+                else
+                {
+                    ""
+                },
                 prompt(options, colors),
                 to_output(&unmodified_input[start..end], options.color, colors),
                 if options.color { "\x1b[0m" } else { "" }
@@ -826,7 +833,7 @@ pub fn print_concurrent(
             {
                 print!(
                     "\x1b[J{}\n\x1b[G\x1b[K{}{}",
-                    if frac == 1
+                    if frac == 1 && options.frac
                     {
                         num *= 2;
                         if options.multi
@@ -860,7 +867,7 @@ pub fn print_concurrent(
         {
             print!(
                 "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
-                if frac == 1
+                if frac == 1 && options.frac
                 {
                     num *= 2;
                     if options.multi
@@ -875,12 +882,23 @@ pub fn print_concurrent(
                 },
                 output,
                 "\x1b[A".repeat(num),
-                if frac == 1 { "\x1b[A" } else { "" },
+                if frac == 1 && options.frac
+                {
+                    "\x1b[A"
+                }
+                else
+                {
+                    ""
+                },
                 prompt(options, colors),
                 to_output(&unmodified_input[start..end], options.color, colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
             frac += num;
+            if !options.frac
+            {
+                frac -= 1;
+            }
         }
     }
     else

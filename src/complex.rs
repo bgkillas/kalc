@@ -11,7 +11,10 @@ use rug::{
     ops::Pow,
     Complex, Float,
 };
-use std::ops::{Shl, Shr};
+use std::{
+    cmp::Ordering,
+    ops::{Shl, Shr},
+};
 #[allow(clippy::type_complexity)]
 #[derive(Clone, PartialEq)]
 pub enum NumStr
@@ -1018,32 +1021,7 @@ pub fn is_prime(num: usize) -> bool
 }
 pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
 {
-    let mut i = 0;
-    let mut dirty = false;
-    loop
-    {
-        if i + 1 == a.len()
-        {
-            if dirty
-            {
-                i = 0;
-                dirty = false;
-            }
-            else
-            {
-                break;
-            }
-        }
-        if a[i].real() > a[i + 1].real()
-        {
-            dirty = true;
-            a.swap(i, i + 1)
-        }
-        else
-        {
-            i += 1;
-        }
-    }
+    a.sort_by(|x, y| x.real().partial_cmp(y.real()).unwrap_or(Ordering::Equal));
     a
 }
 pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>

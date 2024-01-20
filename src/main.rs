@@ -355,6 +355,7 @@ fn main()
     {
         let mut input = Vec::new();
         let mut graphable = false;
+        let mut varcheck = false;
         if !args.is_empty()
         {
             if options.debug
@@ -981,16 +982,6 @@ fn main()
                 }
                 stdout.flush().unwrap();
             }
-            if input.is_empty()
-            {
-                print!(
-                    "\x1b[G\x1b[K{}{}",
-                    prompt(options, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
-                );
-                stdout.flush().unwrap();
-                continue;
-            }
             commands(
                 &mut options,
                 &colors,
@@ -1000,12 +991,32 @@ fn main()
                 &input,
                 &mut stdout,
             );
-            print!(
-                "\x1b[G\x1b[K{}{}",
-                prompt(options, &colors),
-                if options.color { "\x1b[0m" } else { "" }
-            );
+            varcheck = !input.ends_with(&['='])
+                && input
+                    .iter()
+                    .collect::<String>()
+                    .replace("==", "")
+                    .replace("!=", "")
+                    .replace(">=", "")
+                    .replace("<=", "")
+                    .contains('=');
+            if !varcheck
+            {
+                print!(
+                    "\x1b[G\x1b[K{}{}",
+                    prompt(options, &colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+            }
+            else
+            {
+                print!("\x1b[G\x1b[K")
+            }
             stdout.flush().unwrap();
+            if input.is_empty() && !varcheck
+            {
+                continue;
+            }
             write(
                 &input
                     .iter()
@@ -1019,15 +1030,7 @@ fn main()
                 unmod_lines.as_mut().unwrap(),
             );
         }
-        if !input.ends_with(&['='])
-            && input
-                .iter()
-                .collect::<String>()
-                .replace("==", "")
-                .replace("!=", "")
-                .replace(">=", "")
-                .replace("<=", "")
-                .contains('=')
+        if varcheck
         {
             let n = input.iter().collect::<String>();
             let mut split = n.splitn(2, '=');
@@ -1101,6 +1104,12 @@ fn main()
                     {
                         add_var(l, r, i, &mut vars, options, true, true);
                     }
+                    print!(
+                        "{}{}",
+                        prompt(options, &colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    stdout.flush().unwrap();
                     continue 'main;
                 }
             }
@@ -1109,10 +1118,23 @@ fn main()
                 if j.0.len() <= l.len()
                 {
                     add_var(l, r, i, &mut vars, options, true, false);
+                    print!(
+                        "{}{}",
+                        prompt(options, &colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    stdout.flush().unwrap();
                     continue 'main;
                 }
             }
             add_var(l, r, 0, &mut vars, options, true, false);
+            print!(
+                "{}{}",
+                prompt(options, &colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            stdout.flush().unwrap();
+            continue;
         }
         if options.graph && graphable
         {

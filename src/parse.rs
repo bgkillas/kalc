@@ -79,12 +79,9 @@ pub fn input_var(
             '{' => stack_end.insert(0, '}'),
             ')' | '}' =>
             {
-                if let Some(top) = stack_end.last()
+                if !stack_end.is_empty() && stack_end[0] == *c
                 {
-                    if top == c
-                    {
-                        stack_end.pop();
-                    }
+                    stack_end.remove(0);
                 }
                 else
                 {
@@ -361,6 +358,7 @@ pub fn input_var(
                 }
                 '{' =>
                 {
+                    *bracket += 1;
                     place_multiplier(
                         &mut output,
                         sumrec,
@@ -376,6 +374,7 @@ pub fn input_var(
                 }
                 '}' =>
                 {
+                    *bracket -= 1;
                     output.push(Str("}".to_string()));
                 }
                 '±' if i + 1 != chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
@@ -883,7 +882,7 @@ pub fn input_var(
             && i + countv < chars.len()
             && matches!(
                 chars[i + countv],
-                'x' | 'y' | 'z' | '(' | '|' | '[' | '{' | '0'..='9' | '^'
+                'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^'
             ))
             || matches!(word.as_str(), "rnd" | "inf" | "nan" | "NaN"))
         {
@@ -1004,13 +1003,13 @@ pub fn input_var(
                         && wordv
                             == var
                                 .0
-                                .split(|c| matches!(c, '(' | '{' | '['))
+                                .split(|c| matches!(c, '(' | '{'))
                                 .next()
                                 .unwrap()
                                 .iter()
                                 .collect::<String>()
                         && i + countj < chars.len()
-                        && matches!(chars[i + countj], '(' | '{' | '[')
+                        && matches!(chars[i + countj], '(' | '{')
                     {
                         let mut count = 0;
                         for (f, c) in chars[i..].iter().enumerate()
@@ -1043,20 +1042,11 @@ pub fn input_var(
                         let mut ccount = 0;
                         for c in &chars[j..i]
                         {
-                            if *c == ','
-                                && count
-                                    == if matches!(chars[j + 1], '{' | '[')
-                                    {
-                                        0
-                                    }
-                                    else
-                                    {
-                                        1
-                                    }
+                            if *c == ',' && count == if chars[j + 1] == '{' { 0 } else { 1 }
                             {
                                 ccount += 1;
                             }
-                            else if *c == '(' || c == &'{' || c == &'['
+                            else if *c == '(' || c == &'{'
                             {
                                 count += 1;
                             }
@@ -1093,7 +1083,7 @@ pub fn input_var(
                             count = 0;
                             for (f, c) in temp.iter().enumerate()
                             {
-                                if c == &'(' || c == &'{' || c == &'['
+                                if c == &'(' || c == &'{'
                                 {
                                     count += 1;
                                 }
@@ -1118,7 +1108,7 @@ pub fn input_var(
                             start = 0;
                             for (f, c) in var.0.iter().enumerate()
                             {
-                                if c == &'(' || c == &'{' || c == &'['
+                                if c == &'(' || c == &'{'
                                 {
                                     if count == 0
                                     {
@@ -1449,7 +1439,7 @@ pub fn input_var(
                         output.push(Num(Complex::with_val(options.prec, 10)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
-                                || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '|' | '['))
+                                || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '|'))
                         {
                             output.push(Str('^'.to_string()));
                         }

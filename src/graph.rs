@@ -134,9 +134,13 @@ pub fn graph(
                     )
                 }
             }
-            let (xticks, yticks) = if options.ticks == 0.0
+            let (xticks, yticks) = if options.ticks == -1.0
             {
                 (Some((Fix(1.0), 1)), Some((Fix(1.0), 1)))
+            }
+            else if options.ticks == 0.0
+            {
+                (None, None)
             }
             else
             {
@@ -462,13 +466,17 @@ pub fn graph(
                     )
                 }
             }
-            let (xticks, yticks, zticks) = if options.ticks == 0.0
+            let (xticks, yticks, zticks) = if options.ticks == -1.0
             {
                 (
                     Some((Fix(1.0), 1)),
                     Some((Fix(1.0), 1)),
                     Some((Fix(1.0), 1)),
                 )
+            }
+            else if options.ticks == 0.0
+            {
+                (None, None, None)
             }
             else
             {

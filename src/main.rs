@@ -1041,6 +1041,7 @@ fn main()
                         prompt(options, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
+                    stdout.flush().unwrap()
                 }
                 continue;
             }

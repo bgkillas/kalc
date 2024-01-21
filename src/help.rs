@@ -16,7 +16,7 @@ FLAGS: --help (this message)\n\x1b[G\
 --point [char] point style for graphing\n\x1b[G\
 --sci toggles scientific notation\n\x1b[G\
 --base=[num] sets the number base (2,8,16)\n\x1b[G\
---ticks=[num] sets amount of ticks, when 0 will be at every whole number\n\x1b[G\
+--ticks=[num] sets amount of ticks, -1 will be at every whole number, 0 will be none\n\x1b[G\
 --prompt toggles the prompt\n\x1b[G\
 --color toggles color\n\x1b[G\
 --comma toggles comma seperation\n\x1b[G\

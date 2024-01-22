@@ -170,12 +170,12 @@ pub fn graph(
                     .lines([0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
                     .lines([0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
                     .lines([0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
-                    .lines(
+                    .lines_points(
                         &points2d[0][0][0],
                         &points2d[0][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points2d[0][1][0].is_empty()
                         {
                             &points2d[0][0][0]
@@ -187,12 +187,12 @@ pub fn graph(
                         &points2d[0][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im1col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points2d[1][0][0],
                         &points2d[1][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re2col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points2d[1][1][0].is_empty()
                         {
                             &points2d[1][0][0]
@@ -204,12 +204,12 @@ pub fn graph(
                         &points2d[1][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im2col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points2d[2][0][0],
                         &points2d[2][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re3col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points2d[2][1][0].is_empty()
                         {
                             &points2d[2][0][0]
@@ -221,12 +221,12 @@ pub fn graph(
                         &points2d[2][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im3col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points2d[3][0][0],
                         &points2d[3][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re4col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points2d[3][1][0].is_empty()
                         {
                             &points2d[3][0][0]
@@ -238,12 +238,12 @@ pub fn graph(
                         &points2d[3][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im4col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points2d[4][0][0],
                         &points2d[4][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re5col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points2d[4][1][0].is_empty()
                         {
                             &points2d[4][0][0]
@@ -255,12 +255,12 @@ pub fn graph(
                         &points2d[4][1][1],
                         &[PointSymbol(options.point_style), Color(&colors.im5col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points2d[5][0][0],
                         &points2d[5][0][1],
                         &[PointSymbol(options.point_style), Color(&colors.re6col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points2d[5][1][0].is_empty()
                         {
                             &points2d[5][0][0]
@@ -510,13 +510,13 @@ pub fn graph(
                     .lines([0], [0], [0], &[Caption(&im_cap[4]), Color(&colors.im5col)])
                     .lines([0], [0], [0], &[Caption(&re_cap[5]), Color(&colors.re6col)])
                     .lines([0], [0], [0], &[Caption(&im_cap[5]), Color(&colors.im6col)])
-                    .lines(
+                    .lines_points(
                         &points3d[0][0][0],
                         &points3d[0][0][1],
                         &points3d[0][0][2],
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points3d[0][1][0].is_empty()
                         {
                             &points3d[0][0][0]
@@ -536,13 +536,13 @@ pub fn graph(
                         &points3d[0][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im1col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points3d[1][0][0],
                         &points3d[1][0][1],
                         &points3d[1][0][2],
                         &[PointSymbol(options.point_style), Color(&colors.re2col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points3d[1][1][0].is_empty()
                         {
                             &points3d[1][0][0]
@@ -562,13 +562,13 @@ pub fn graph(
                         &points3d[1][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im2col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points3d[2][0][0],
                         &points3d[2][0][1],
                         &points3d[2][0][2],
                         &[PointSymbol(options.point_style), Color(&colors.re3col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points3d[2][1][0].is_empty()
                         {
                             &points3d[2][0][0]
@@ -588,13 +588,13 @@ pub fn graph(
                         &points3d[2][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im3col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points3d[3][0][0],
                         &points3d[3][0][1],
                         &points3d[3][0][2],
                         &[PointSymbol(options.point_style), Color(&colors.re4col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points3d[3][1][0].is_empty()
                         {
                             &points3d[3][0][0]
@@ -614,13 +614,13 @@ pub fn graph(
                         &points3d[3][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im4col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points3d[4][0][0],
                         &points3d[4][0][1],
                         &points3d[4][0][2],
                         &[PointSymbol(options.point_style), Color(&colors.re5col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points3d[4][1][0].is_empty()
                         {
                             &points3d[4][0][0]
@@ -640,13 +640,13 @@ pub fn graph(
                         &points3d[4][1][2],
                         &[PointSymbol(options.point_style), Color(&colors.im5col)],
                     )
-                    .lines(
+                    .lines_points(
                         &points3d[5][0][0],
                         &points3d[5][0][1],
                         &points3d[5][0][2],
                         &[PointSymbol(options.point_style), Color(&colors.re6col)],
                     )
-                    .lines(
+                    .lines_points(
                         if points3d[5][1][0].is_empty()
                         {
                             &points3d[5][0][0]

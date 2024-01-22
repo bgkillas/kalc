@@ -120,7 +120,7 @@ pub fn print_concurrent(
             if out.is_empty()
             {
                 clear(unmodified_input, start, end, options, colors);
-                return (0, false, false, false);
+                return (0, false, false, true);
             }
             let len = no_col(&out, options.color).len();
             let wrap = (len - 1) / get_terminal_width() + 1;

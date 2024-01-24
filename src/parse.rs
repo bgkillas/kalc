@@ -4,6 +4,7 @@ use crate::{
         NumStr::{Num, Piecewise, Str},
     },
     functions::functions,
+    math::do_math,
     Options,
 };
 use rug::{
@@ -1138,47 +1139,57 @@ pub fn input_var(
                             for (varf, func_var) in split.iter().zip(func_vars)
                             {
                                 let mut k = 0;
+                                let num = if let Ok(n) =
+                                    Complex::parse(varf.iter().collect::<String>())
+                                {
+                                    vec![Num(n.complete(options.prec))]
+                                }
+                                else
+                                {
+                                    let mut parsed;
+                                    let exit;
+                                    (parsed, graph, exit) = input_var(
+                                        &temp.iter().collect::<String>(),
+                                        vars.clone(),
+                                        sumrec,
+                                        bracket,
+                                        options,
+                                        graph,
+                                        pwr,
+                                        print,
+                                        piecewise,
+                                    )?;
+                                    if exit
+                                    {
+                                        return Ok((Vec::new(), false, true));
+                                    }
+                                    if graph || print
+                                    {
+                                        if parsed.len() > 1
+                                        {
+                                            parsed.insert(0, Str('('.to_string()));
+                                            parsed.push(Str(')'.to_string()));
+                                        }
+                                        parsed
+                                    }
+                                    else
+                                    {
+                                        vec![do_math(parsed, options, Vec::new())?]
+                                    }
+                                };
                                 while k < var.1.len()
                                 {
                                     if var.1[k].str_is(&func_var)
                                     {
                                         var.1.remove(k);
-                                        if let Ok(n) =
-                                            Complex::parse(varf.iter().collect::<String>())
+                                        if num.len() == 1
                                         {
-                                            var.1.insert(k, Num(n.complete(options.prec)))
+                                            var.1.insert(k, num[0].clone());
                                         }
                                         else
                                         {
-                                            let mut parsed;
-                                            let exit;
-                                            (parsed, graph, exit) = input_var(
-                                                &varf.iter().collect::<String>(),
-                                                vars.clone(),
-                                                sumrec,
-                                                bracket,
-                                                options,
-                                                graph,
-                                                pwr,
-                                                print,
-                                                piecewise,
-                                            )?;
-                                            if exit
-                                            {
-                                                return Ok((Vec::new(), false, true));
-                                            }
-                                            let j = k;
-                                            if parsed.len() > 1
-                                            {
-                                                parsed.insert(0, Str('('.to_string()));
-                                                parsed.push(Str(')'.to_string()));
-                                                k += parsed.len() - 2;
-                                            }
-                                            else
-                                            {
-                                                k += parsed.len();
-                                            }
-                                            var.1.splice(j..j, parsed);
+                                            var.1.splice(k..k, num.clone());
+                                            k += num.len();
                                         }
                                     }
                                     k += 1;
@@ -1241,46 +1252,56 @@ pub fn input_var(
                                 .collect::<String>();
                             let mut var = var;
                             let mut k = 0;
+                            let num = if let Ok(n) = Complex::parse(temp.iter().collect::<String>())
+                            {
+                                vec![Num(n.complete(options.prec))]
+                            }
+                            else
+                            {
+                                let mut parsed;
+                                let exit;
+                                (parsed, graph, exit) = input_var(
+                                    &temp.iter().collect::<String>(),
+                                    vars.clone(),
+                                    sumrec,
+                                    bracket,
+                                    options,
+                                    graph,
+                                    pwr,
+                                    print,
+                                    piecewise,
+                                )?;
+                                if exit
+                                {
+                                    return Ok((Vec::new(), false, true));
+                                }
+                                if graph || print
+                                {
+                                    if parsed.len() > 1
+                                    {
+                                        parsed.insert(0, Str('('.to_string()));
+                                        parsed.push(Str(')'.to_string()));
+                                    }
+                                    parsed
+                                }
+                                else
+                                {
+                                    vec![do_math(parsed, options, Vec::new())?]
+                                }
+                            };
                             while k < var.1.len()
                             {
                                 if var.1[k].str_is(&l)
                                 {
                                     var.1.remove(k);
-                                    if let Ok(n) = Complex::parse(temp.iter().collect::<String>())
+                                    if num.len() == 1
                                     {
-                                        var.1.insert(k, Num(n.complete(options.prec)))
+                                        var.1.insert(k, num[0].clone());
                                     }
                                     else
                                     {
-                                        let mut parsed;
-                                        let exit;
-                                        (parsed, graph, exit) = input_var(
-                                            &temp.iter().collect::<String>(),
-                                            vars.clone(),
-                                            sumrec,
-                                            bracket,
-                                            options,
-                                            graph,
-                                            pwr,
-                                            print,
-                                            piecewise,
-                                        )?;
-                                        if exit
-                                        {
-                                            return Ok((Vec::new(), false, true));
-                                        }
-                                        let j = k;
-                                        if parsed.len() > 1
-                                        {
-                                            parsed.insert(0, Str('('.to_string()));
-                                            parsed.push(Str(')'.to_string()));
-                                            k += parsed.len() - 2;
-                                        }
-                                        else
-                                        {
-                                            k += parsed.len();
-                                        }
-                                        var.1.splice(j..j, parsed);
+                                        var.1.splice(k..k, num.clone());
+                                        k += num.len();
                                     }
                                 }
                                 k += 1;

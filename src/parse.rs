@@ -1149,7 +1149,7 @@ pub fn input_var(
                                     let mut parsed;
                                     let exit;
                                     (parsed, graph, exit) = input_var(
-                                        &temp.iter().collect::<String>(),
+                                        &varf.iter().collect::<String>(),
                                         vars.clone(),
                                         sumrec,
                                         bracket,
@@ -1190,6 +1190,7 @@ pub fn input_var(
                                         {
                                             var.1.splice(k..k, num.clone());
                                             k += num.len();
+                                            continue;
                                         }
                                     }
                                     k += 1;
@@ -1302,6 +1303,7 @@ pub fn input_var(
                                     {
                                         var.1.splice(k..k, num.clone());
                                         k += num.len();
+                                        continue;
                                     }
                                 }
                                 k += 1;

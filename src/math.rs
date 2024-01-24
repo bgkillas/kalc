@@ -3,9 +3,8 @@ use crate::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
         inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog,
         sort, sub, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
-        NumStr::{Matrix, Num, Piecewise, Str, Vector},
+        NumStr::{Matrix, Num, Str, Vector},
     },
-    parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Options,
 };
@@ -22,7 +21,7 @@ use rug::{
 pub fn do_math(
     mut function: Vec<NumStr>,
     options: Options,
-    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
 ) -> Result<NumStr, &'static str>
 {
     if function.len() == 1 && !function[0].str_is("rnd")
@@ -33,12 +32,33 @@ pub fn do_math(
     {
         return Err(" ");
     }
-    let mut vars = Vec::new();
-    for v in func_vars
+    for (i, v) in func_vars.clone().iter().enumerate()
     {
-        vars.push((v.0, do_math(v.1, options, Vec::new())?))
+        if v.1.len() != 1
+        {
+            func_vars[i] = (
+                v.0.clone(),
+                vec![do_math(v.1.clone(), options, func_vars[..i].to_vec())?],
+            );
+        }
     }
     let mut i = 0;
+    while i < function.len()
+    {
+        if let Str(s) = &function[i]
+        {
+            for v in &func_vars
+            {
+                if *s == v.0
+                {
+                    function[i] = v.1[0].clone();
+                    break;
+                }
+            }
+        }
+        i += 1;
+    }
+    i = 0;
     'outer: while i < function.len()
     {
         if let Str(s) = &function[i]
@@ -83,7 +103,8 @@ pub fn do_math(
                             {
                                 "," if count == 0 =>
                                 {
-                                    let z = do_math(v[single..f].to_vec(), options, Vec::new())?;
+                                    let z =
+                                        do_math(v[single..f].to_vec(), options, func_vars.clone())?;
                                     match z
                                     {
                                         Num(n) => vec.push(n),
@@ -101,7 +122,7 @@ pub fn do_math(
                     }
                     if single != v.len()
                     {
-                        let z = do_math(v[single..].to_vec(), options, Vec::new())?;
+                        let z = do_math(v[single..].to_vec(), options, func_vars.clone())?;
                         match z
                         {
                             Num(n) => vec.push(n),
@@ -205,7 +226,11 @@ pub fn do_math(
                                     function.drain(i..j);
                                     function.insert(
                                         i,
-                                        do_math(v[..place[0]].to_vec(), options, Vec::new())?,
+                                        do_math(
+                                            v[..place[0]].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?,
                                     );
                                     for (k, l) in place.iter().enumerate()
                                     {
@@ -224,7 +249,7 @@ pub fn do_math(
                                                     }]
                                                     .to_vec(),
                                                 options,
-                                                Vec::new(),
+                                                func_vars.clone(),
                                             )?,
                                         );
                                         i += 1;
@@ -250,20 +275,11 @@ pub fn do_math(
                             }
                         }
                     }
-                    function[i] = do_math(v, options, Vec::new())?;
+                    function[i] = do_math(v, options, func_vars.clone())?;
                     function.drain(i + 1..j);
                 }
                 _ =>
-                {
-                    for v in &vars
-                    {
-                        if *s == v.0
-                        {
-                            function[i] = v.1.clone();
-                            break;
-                        }
-                    }
-                }
+                {}
             }
         }
         i += 1;
@@ -331,61 +347,17 @@ pub fn do_math(
                                 && do_math(
                                     function[*end..place[i + 1] - 1].to_vec(),
                                     options,
-                                    Vec::new(),
+                                    func_vars.clone(),
                                 )?
                                 .num()?
                                 .real()
                                     == &1.0
                             {
-                                let mut func = function[start..*end].to_vec();
-                                for (i, f) in func.clone().iter().enumerate()
-                                {
-                                    if let Piecewise(p) = f
-                                    {
-                                        let mut n = 1;
-                                        for f in func[i + 2..].iter()
-                                        {
-                                            n += 1;
-                                            if f.str_is(")")
-                                            {
-                                                break;
-                                            }
-                                        }
-                                        func.splice(
-                                            i..i,
-                                            input_var(
-                                                &p.0.iter().collect::<String>(),
-                                                vec![
-                                                    (
-                                                        p.0.clone(),
-                                                        p.1.clone(),
-                                                        Str(String::new()),
-                                                        String::new(),
-                                                    ),
-                                                    (
-                                                        vec![p.0[p.0.len() - 2]],
-                                                        Vec::new(),
-                                                        do_math(
-                                                            func[i + 2..n].to_vec(),
-                                                            options,
-                                                            Vec::new(),
-                                                        )?,
-                                                        String::new(),
-                                                    ),
-                                                ],
-                                                &mut Vec::new(),
-                                                &mut 0,
-                                                options,
-                                                false,
-                                                &mut (false, 0, 0),
-                                                false,
-                                                0,
-                                            )?
-                                            .0,
-                                        );
-                                    }
-                                }
-                                ans = Some(do_math(func, options, Vec::new())?);
+                                ans = Some(do_math(
+                                    function[start..*end].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?);
                                 break;
                             }
                             else
@@ -410,13 +382,13 @@ pub fn do_math(
                             let start = do_math(
                                 function[place[1] + 1..place[2]].to_vec(),
                                 options,
-                                Vec::new(),
+                                func_vars.clone(),
                             )?
                             .num()?;
                             let end = do_math(
                                 function[place[2] + 1..place[3]].to_vec(),
                                 options,
-                                Vec::new(),
+                                func_vars.clone(),
                             )?
                             .num()?;
                             if !start.imag().is_zero() || !end.imag().is_zero()
@@ -468,7 +440,11 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    do_math(function[i + 2..place[0]].to_vec(), options, Vec::new())
+                                    do_math(
+                                        function[i + 2..place[0]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )
                                 }
                                 {
                                     Ok(Num(a)) => Num(a.clone()),
@@ -484,30 +460,31 @@ pub fn do_math(
                             }
                             "product" | "prod" | "Π" =>
                             {
-                                function[i] = match if place.is_empty()
-                                {
-                                    Ok(function[i + 1].clone())
-                                }
-                                else
-                                {
-                                    do_math(function[i + 2..place[0]].to_vec(), options, Vec::new())
-                                }
-                                {
-                                    Ok(Num(a)) => Num(a.clone()),
-                                    Ok(Vector(a)) => Num(a
-                                        .iter()
-                                        .fold(Complex::with_val(options.prec, 1), |sum, val| {
-                                            sum * val
-                                        })),
-                                    Ok(Matrix(a)) =>
+                                function[i] =
+                                    match if place.is_empty()
                                     {
-                                        Num(a.iter().flatten().fold(
+                                        Ok(function[i + 1].clone())
+                                    }
+                                    else
+                                    {
+                                        do_math(
+                                            function[i + 2..place[0]].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )
+                                    }
+                                    {
+                                        Ok(Num(a)) => Num(a.clone()),
+                                        Ok(Vector(a)) => Num(a.iter().fold(
                                             Complex::with_val(options.prec, 1),
                                             |sum, val| sum * val,
-                                        ))
+                                        )),
+                                        Ok(Matrix(a)) => Num(a.iter().flatten().fold(
+                                            Complex::with_val(options.prec, 1),
+                                            |sum, val| sum * val,
+                                        )),
+                                        _ => return Err("sum err"),
                                     }
-                                    _ => return Err("sum err"),
-                                }
                             }
                             _ => return Err("sum err"),
                         }

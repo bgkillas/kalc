@@ -23,7 +23,6 @@ pub enum NumStr
     Str(String),
     Vector(Vec<Complex>),
     Matrix(Vec<Vec<Complex>>),
-    Piecewise((Vec<char>, Vec<NumStr>)),
 }
 impl NumStr
 {

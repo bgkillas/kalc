@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Matrix, Num, Piecewise, Str, Vector},
+        NumStr::{Matrix, Num, Str, Vector},
     },
     help::help,
     load_vars::get_vars,
@@ -1001,7 +1001,6 @@ fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> Str
                 out.push_str(&format!("{{{}}}", str))
             }
             Str(n) => out.push_str(n),
-            Piecewise(n) => out.push_str(&n.0.iter().collect::<String>()),
         }
     }
     to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)

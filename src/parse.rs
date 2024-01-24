@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Piecewise, Str},
+        NumStr::{Num, Str},
     },
     functions::functions,
     math::do_math,
@@ -12,6 +12,7 @@ use rug::{
     ops::{CompleteRound, Pow},
     Complex,
 };
+#[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
 pub fn input_var(
     input: &str,
@@ -22,9 +23,10 @@ pub fn input_var(
     mut graph: bool,
     pwr: &mut (bool, isize, isize),
     print: bool,
-    mut piecewise: usize,
-) -> Result<(Vec<NumStr>, bool, bool), &'static str>
+    depth: usize,
+) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, bool, bool), &'static str>
 {
+    let mut funcvars = Vec::new();
     if input.starts_with("history") || input.is_empty()
     {
         return Err(" ");
@@ -358,7 +360,7 @@ pub fn input_var(
                     }
                     else
                     {
-                        return Ok((Vec::new(), false, true));
+                        return Ok((Vec::new(), Vec::new(), false, true));
                     }
                 }
                 '{' =>
@@ -554,10 +556,6 @@ pub fn input_var(
                 }
                 ')' if i != 0 =>
                 {
-                    if piecewise == *bracket as usize
-                    {
-                        piecewise = 0;
-                    }
                     if pwr.1 == *bracket
                     {
                         for _ in 0..pwr.2
@@ -792,11 +790,7 @@ pub fn input_var(
             countv -= 1;
             word.pop();
         }
-        if word == "piecewise" && piecewise == 0
-        {
-            piecewise = *bracket as usize + 1;
-        }
-        else if matches!(
+        if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
         ) && chars.len() > i + countv + 1
@@ -1037,12 +1031,6 @@ pub fn input_var(
                         {
                             i = chars.len() - 1
                         }
-                        if piecewise != 0
-                        {
-                            output.push(Piecewise((var.0, var.1)));
-                            i = j + 1;
-                            continue 'main;
-                        }
                         count = 0;
                         let mut ccount = 0;
                         for c in &chars[j..i]
@@ -1148,7 +1136,8 @@ pub fn input_var(
                                 {
                                     let mut parsed;
                                     let exit;
-                                    (parsed, graph, exit) = input_var(
+                                    let func;
+                                    (parsed, func, graph, exit) = input_var(
                                         &varf.iter().collect::<String>(),
                                         vars.clone(),
                                         sumrec,
@@ -1157,13 +1146,13 @@ pub fn input_var(
                                         graph,
                                         pwr,
                                         print,
-                                        piecewise,
+                                        depth + 1,
                                     )?;
                                     if exit
                                     {
-                                        return Ok((Vec::new(), false, true));
+                                        return Ok((Vec::new(), Vec::new(), false, true));
                                     }
-                                    if graph || print
+                                    if print
                                     {
                                         if parsed.len() > 1
                                         {
@@ -1171,6 +1160,13 @@ pub fn input_var(
                                             parsed.push(Str(')'.to_string()));
                                         }
                                         parsed
+                                    }
+                                    else if graph
+                                    {
+                                        let iden = format!("@{}{}@", func_var, depth);
+                                        funcvars.extend(func);
+                                        funcvars.push((iden.clone(), parsed));
+                                        vec![Str(iden)]
                                     }
                                     else
                                     {
@@ -1261,7 +1257,8 @@ pub fn input_var(
                             {
                                 let mut parsed;
                                 let exit;
-                                (parsed, graph, exit) = input_var(
+                                let func;
+                                (parsed, func, graph, exit) = input_var(
                                     &temp.iter().collect::<String>(),
                                     vars.clone(),
                                     sumrec,
@@ -1270,13 +1267,13 @@ pub fn input_var(
                                     graph,
                                     pwr,
                                     print,
-                                    piecewise,
+                                    depth + 1,
                                 )?;
                                 if exit
                                 {
-                                    return Ok((Vec::new(), false, true));
+                                    return Ok((Vec::new(), Vec::new(), false, true));
                                 }
-                                if graph || print
+                                if print
                                 {
                                     if parsed.len() > 1
                                     {
@@ -1284,6 +1281,13 @@ pub fn input_var(
                                         parsed.push(Str(')'.to_string()));
                                     }
                                     parsed
+                                }
+                                else if graph
+                                {
+                                    let iden = format!("@{}{}@", l, depth);
+                                    funcvars.extend(func);
+                                    funcvars.push((iden.clone(), parsed));
+                                    vec![Str(iden)]
                                 }
                                 else
                                 {
@@ -1681,6 +1685,7 @@ pub fn input_var(
         }
         else if !matches!(c.as_str(), "rnd" | ")" | "}" | "x" | "y")
             && !sumrec.iter().any(|s| &s.1 == c)
+            && !c.starts_with('@')
         {
             output.pop();
         }
@@ -1701,7 +1706,7 @@ pub fn input_var(
     {
         return Err(" ");
     }
-    Ok((output, graph, false))
+    Ok((output, funcvars, graph, false))
 }
 #[allow(clippy::type_complexity)]
 fn place_multiplier(

@@ -104,7 +104,7 @@ pub fn print_concurrent(
                 (0, false, false, false)
             };
         }
-        else if input.2
+        else if input.3
         {
             let input = unmodified_input
                 [unmodified_input.iter().position(|c| c == &'=').unwrap()..]
@@ -160,7 +160,7 @@ pub fn print_concurrent(
             };
         }
     }
-    if input.1
+    if input.2
     {
         return if unmodified_input.contains(&'#')
         {

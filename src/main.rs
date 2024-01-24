@@ -34,7 +34,6 @@ use std::{
 //turn vars into a struct
 //lambert w function
 //matrix exponentiation
-//pass through function definitions,ie f(2), x=2 parsed(f) to do_math to fix piecewise and optimize at same time :>
 //fix recursive functions
 #[derive(Clone)]
 pub struct Colors
@@ -361,7 +360,7 @@ fn main()
             }
             input = args.remove(0).chars().collect();
             let output;
-            (output, graphable, varcheck) = match input_var(
+            (output, _, graphable, varcheck) = match input_var(
                 &input.iter().map(convert).collect::<String>(),
                 vars.clone(),
                 &mut Vec::new(),
@@ -1156,7 +1155,7 @@ fn main()
                             0,
                         )
                         {
-                            Ok(f) => f.0,
+                            Ok(f) => (f.0, f.1),
                             _ => continue 'main,
                         },
                     );

@@ -30,12 +30,12 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
+//figure out probability of winning for 3 turned game
 //turn vars into a struct
 //lambert w function
 //matrix exponentiation
 //pass through function definitions,ie f(2), x=2 parsed(f) to do_math to fix piecewise and optimize at same time :>
 //fix recursive functions
-//fix user set functions calling on preset vars in cli
 #[derive(Clone)]
 pub struct Colors
 {
@@ -269,12 +269,12 @@ fn main()
                     {
                         if let Some(r) = split.next()
                         {
+                            let l = l.chars().collect::<Vec<char>>();
                             if !args.is_empty()
                             {
                                 let mut blacklist = vec![left];
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                             }
-                            let l = l.chars().collect::<Vec<char>>();
                             for (i, v) in vars.iter().enumerate()
                             {
                                 if v.0.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()

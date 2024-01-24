@@ -20,7 +20,7 @@ config defaults listed in kalc.config
 # build instructions
 windows is not properly supported due to dependencys being weird, just use wsl
 
-rust>=1.73.0 diffutils gcc m4 make
+dependencys are: rust>=1.73.0, diffutils, gcc, m4, make
 ```
 git clone https://github.com/bgkillas/kalc
 cd kalc

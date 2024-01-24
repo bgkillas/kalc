@@ -16,6 +16,11 @@ pub fn get_file_vars(
     blacklist: &mut Vec<String>,
 )
 {
+    if r.chars().all(|c| !c.is_alphabetic())
+    {
+        return;
+    }
+    get_preset_vars(options, r, vars, blacklist);
     'lower: for i in lines.clone()
     {
         let mut split = i.splitn(2, '=');
@@ -49,6 +54,242 @@ pub fn get_file_vars(
                 }
             }
         }
+    }
+}
+fn get_preset_vars(
+    options: Options,
+    args: &str,
+    vars: &mut Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
+    blacklist: &mut Vec<String>,
+)
+{
+    if args.contains("ec") && !blacklist.contains(&"ec".to_string())
+    {
+        blacklist.push("ec".to_string());
+        vars.push((
+            vec!['e', 'c'],
+            Vec::new(),
+            Num(Complex::parse("1.602176634e-19")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains("kB") && !blacklist.contains(&"kB".to_string())
+    {
+        blacklist.push("kB".to_string());
+        vars.push((
+            vec!['k', 'B'],
+            Vec::new(),
+            Num(Complex::parse("1.380649e-23")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains("me") && !blacklist.contains(&"me".to_string())
+    {
+        blacklist.push("me".to_string());
+        vars.push((
+            vec!['m', 'e'],
+            Vec::new(),
+            Num(Complex::parse("9.1093837015e-31")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains("mn") && !blacklist.contains(&"mn".to_string())
+    {
+        blacklist.push("mn".to_string());
+        vars.push((
+            vec!['m', 'n'],
+            Vec::new(),
+            Num(Complex::parse("1.67492749804e-27")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains("mp") && !blacklist.contains(&"mp".to_string())
+    {
+        blacklist.push("mp".to_string());
+        vars.push((
+            vec!['m', 'p'],
+            Vec::new(),
+            Num(Complex::parse("1.67262192369e-27")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains("Na") && !blacklist.contains(&"Na".to_string())
+    {
+        blacklist.push("Na".to_string());
+        vars.push((
+            vec!['N', 'a'],
+            Vec::new(),
+            Num(Complex::parse("6.02214076e23")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains('c') && !blacklist.contains(&"c".to_string())
+    {
+        blacklist.push("c".to_string());
+        vars.push((
+            vec!['c'],
+            Vec::new(),
+            Num(Complex::parse("299792458").unwrap().complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains('G') && !blacklist.contains(&"G".to_string())
+    {
+        blacklist.push("G".to_string());
+        vars.push((
+            vec!['G'],
+            Vec::new(),
+            Num(Complex::parse("6.67430e-11")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains('g') && !blacklist.contains(&"g".to_string())
+    {
+        blacklist.push("g".to_string());
+        vars.push((
+            vec!['g'],
+            Vec::new(),
+            Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains('h') && !blacklist.contains(&"h".to_string())
+    {
+        blacklist.push("h".to_string());
+        vars.push((
+            vec!['h'],
+            Vec::new(),
+            Num(Complex::parse("6.62607015e-34")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains('k') && !blacklist.contains(&"k".to_string())
+    {
+        blacklist.push("k".to_string());
+        vars.push((
+            vec!['k'],
+            Vec::new(),
+            Num(Complex::parse("8.9875517923e9")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    if args.contains('R') && !blacklist.contains(&"R".to_string())
+    {
+        blacklist.push("R".to_string());
+        vars.push((
+            vec!['R'],
+            Vec::new(),
+            Num(Complex::parse("8.31446261815324")
+                .unwrap()
+                .complete(options.prec)),
+            "".to_string(),
+        ));
+    }
+    {
+        let phi1 = args.contains("phi") && !blacklist.contains(&"phi".to_string());
+        let phi2 = args.contains('φ') && !blacklist.contains(&"φ".to_string());
+        if phi1 || phi2
+        {
+            let phi: Float = (1 + Float::with_val(options.prec.0, 5).sqrt()) / 2;
+            if phi1
+            {
+                blacklist.push("phi".to_string());
+                vars.insert(
+                    0,
+                    (
+                        vec!['p', 'h', 'i'],
+                        Vec::new(),
+                        Num(phi.clone().into()),
+                        "".to_string(),
+                    ),
+                )
+            }
+            if phi2
+            {
+                blacklist.push("φ".to_string());
+                vars.push((vec!['φ'], Vec::new(), Num(phi.into()), "".to_string()))
+            }
+        }
+    }
+    {
+        let pi1 = args.contains("pi") && !blacklist.contains(&"pi".to_string());
+        let pi2 = args.contains('π') && !blacklist.contains(&"π".to_string());
+        let tau1 = args.contains("tau") && !blacklist.contains(&"tau".to_string());
+        let tau2 = args.contains('τ') && !blacklist.contains(&"τ".to_string());
+        if pi1 || pi2 || tau1 || tau2
+        {
+            let pi = Float::with_val(options.prec.0, Pi);
+            if pi1
+            {
+                blacklist.push("pi".to_string());
+                vars.insert(
+                    0,
+                    (
+                        vec!['p', 'i'],
+                        Vec::new(),
+                        Num(pi.clone().into()),
+                        "".to_string(),
+                    ),
+                );
+            }
+            if pi2
+            {
+                blacklist.push("π".to_string());
+                vars.push((
+                    vec!['π'],
+                    Vec::new(),
+                    Num(pi.clone().into()),
+                    "".to_string(),
+                ))
+            }
+            if tau1 || tau2
+            {
+                let tau: Float = pi.clone() * 2;
+                if tau1
+                {
+                    blacklist.push("tau".to_string());
+                    vars.insert(
+                        0,
+                        (
+                            vec!['t', 'a', 'u'],
+                            Vec::new(),
+                            Num(tau.clone().into()),
+                            "".to_string(),
+                        ),
+                    );
+                }
+                if tau2
+                {
+                    blacklist.push("τ".to_string());
+
+                    vars.push((vec!['τ'], Vec::new(), Num(tau.into()), "".to_string()))
+                }
+            }
+        }
+    }
+    if args.contains('e') && !blacklist.contains(&"e".to_string())
+    {
+        blacklist.push("e".to_string());
+        let e = Float::with_val(options.prec.0, 1).exp();
+        vars.push((vec!['e'], Vec::new(), Num(e.into()), "".to_string()))
     }
 }
 pub fn get_cli_vars(

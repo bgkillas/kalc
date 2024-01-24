@@ -83,6 +83,8 @@ FLAGS: --help (this message)
 - Type "{vec}#" to graph a vector
 - Type "{mat}#" to graph a matrix
 - Type "number#" to graph a complex number
+- Type "{x,y}" to graph a parametric equation, example: {cos(x),sin(x)} unit circle, {f(x)cos(x),f(x)sin(x)} for polar graph
+- Type "{x,y,z}" to graph a parametric equation in 3d, example: {cos(x),sin(x),x} helix, {sin(x)cos(y),sin(x)sin(y),cos(x)} sphere
 - Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 - Type "rnd" to generate a random number
 - Alt+Enter will not graph whatever is present

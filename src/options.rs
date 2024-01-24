@@ -12,10 +12,14 @@ use crate::{
     AngleType::{Degrees, Gradians, Radians},
     Colors, Options,
 };
-use crossterm::terminal;
+use crossterm::{
+    execute, terminal,
+    terminal::{Clear, ClearType},
+};
 use rug::Complex;
 use std::{
     fs::File,
+    io,
     io::{BufRead, BufReader, Stdout, Write},
     time::Instant,
 };
@@ -1821,6 +1825,7 @@ pub fn commands(
         }
         "clear" =>
         {
+            execute!(io::stdout(), Clear(ClearType::Purge)).unwrap();
             print!("\x1b[H\x1b[J{}", prompt(*options, colors));
             stdout.flush().unwrap();
         }

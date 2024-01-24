@@ -30,6 +30,7 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
+//turn vars into a struct
 //lambert w function
 //matrix exponentiation
 //pass through function definitions,ie f(2), x=2 parsed(f) to do_math to fix piecewise and optimize at same time :>
@@ -460,7 +461,14 @@ fn main()
                         }
                         if c == '\x14'
                         {
-                            print!("\n\x1b[G\x1b[J");
+                            if input.is_empty()
+                            {
+                                print!("\x1b[G\x1b[J");
+                            }
+                            else
+                            {
+                                print!("\n\x1b[G\x1b[J");
+                            }
                             terminal::disable_raw_mode().unwrap();
                             std::process::exit(0);
                         }

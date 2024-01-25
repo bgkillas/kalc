@@ -674,7 +674,7 @@ pub fn add_var(
         Ok(n) => n.0,
         _ =>
         {
-            println!("failed at: {}", l.iter().collect::<String>());
+            println!("failed at: {}\x1b[G", l.iter().collect::<String>());
             return;
         }
     };
@@ -742,7 +742,7 @@ pub fn add_var(
                         Ok(n) => n.0,
                         _ =>
                         {
-                            println!("failed at: {}", v.0.iter().collect::<String>());
+                            println!("failed at: {}\x1b[G", v.0.iter().collect::<String>());
                             return;
                         }
                     };

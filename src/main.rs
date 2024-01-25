@@ -35,6 +35,9 @@ use std::{
 //lambert w function
 //matrix exponentiation
 //fix recursive functions
+//fix f(x,h)=(f(x+h)-f(x))/h
+//"vars" commands funcs maybe not having parsed vars, maybe a optimization for redefining funcs
+//maybe make recursion test more rigerous in parse
 #[derive(Clone)]
 pub struct Colors
 {
@@ -388,9 +391,9 @@ fn main()
             }
             if let Some(time) = watch
             {
-                print!(" {}", time.elapsed().as_nanos());
+                println!(" {}", time.elapsed().as_nanos());
             }
-            if !graphable && !varcheck
+            else if !graphable && !varcheck
             {
                 println!();
             }
@@ -1055,15 +1058,23 @@ fn main()
             if l.contains('(') && !r.contains("piecewise")
             {
                 let s = l.split('(').next().iter().copied().collect::<String>() + "(";
-                let recur_test = r.split(&s);
-                let count = recur_test.clone().count();
-                for (i, s) in recur_test.enumerate()
+                if l.contains(',') == r.contains(',')
                 {
-                    if i + 1 != count
-                        && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                    let recur_test = r.split(&s);
+                    let count = recur_test.clone().count();
+                    for (i, s) in recur_test.enumerate()
                     {
-                        println!("recursive functions not supported");
-                        continue 'main;
+                        if i + 1 != count
+                            && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
+                        {
+                            print!(
+                                "recursive functions not supported\n\x1b[G\x1b[K{}{}",
+                                prompt(options, &colors),
+                                if options.color { "\x1b[0m" } else { "" }
+                            );
+                            stdout.flush().unwrap();
+                            continue 'main;
+                        }
                     }
                 }
             }

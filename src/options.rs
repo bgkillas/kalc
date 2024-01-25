@@ -811,10 +811,6 @@ pub fn file_opts(
                 "deg" => options.deg = Degrees,
                 "grad" => options.deg = Gradians,
                 "tau" => options.tau = split.next().unwrap().parse::<bool>().expect("invalid tau"),
-                "vars" =>
-                {
-                    options.allow_vars = split.next().unwrap().parse::<bool>().expect("invalid var")
-                }
                 _ =>
                 {}
             }

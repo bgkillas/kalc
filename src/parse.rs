@@ -1161,7 +1161,7 @@ pub fn input_var(
                                         }
                                         parsed
                                     }
-                                    else if graph
+                                    else if graph && parsed.len() > 1
                                     {
                                         let iden = format!("@{}{}@", func_var, depth);
                                         funcvars.extend(func);
@@ -1282,7 +1282,7 @@ pub fn input_var(
                                     }
                                     parsed
                                 }
-                                else if graph
+                                else if graph && parsed.len() > 1
                                 {
                                     let iden = format!("@{}{}@", l, depth);
                                     funcvars.extend(func);

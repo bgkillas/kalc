@@ -666,6 +666,7 @@ pub fn add_var(
             return;
         }
     };
+    vars.pop();
     if l.contains(&'(')
     {
         vars.insert(i, (l.clone(), parsed, Str(String::new()), r.to_string()));

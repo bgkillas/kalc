@@ -26,6 +26,11 @@ pub fn print_concurrent(
     long_output: bool,
 ) -> (usize, bool, bool, bool)
 {
+    if unmodified_input.starts_with(&['#'])
+    {
+        clear(unmodified_input, start, end, options, colors);
+        return (0, false, false, false);
+    }
     let input = match input_var(
         &unmodified_input
             .iter()

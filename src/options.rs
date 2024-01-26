@@ -46,6 +46,7 @@ pub fn arg_opts(
         }
         match args[i].as_str()
         {
+            "--" => break,
             "--debug" => options.debug = !options.debug,
             "--depth" => options.depth = !options.depth,
             "--flat" => options.flat = !options.flat,
@@ -359,7 +360,7 @@ pub fn arg_opts(
                 println!("{} v{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
             }
-            "--default" | "--def" =>
+            "--default" | "--defaults" | "--def" =>
             {
                 *options = Options::default();
             }
@@ -1785,6 +1786,12 @@ pub fn commands(
 {
     match input.iter().collect::<String>().as_str()
     {
+        "default" | "defaults" | "reset" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout.flush().unwrap();
+            *options = Options::default();
+        }
         "color" =>
         {
             print!("\x1b[A\x1b[G\x1b[K");
@@ -1938,7 +1945,7 @@ pub fn commands(
                         "{}={}\n\x1b[G",
                         v.0.iter().collect::<String>(),
                         parsed_to_string(
-                            &input_var(
+                            &match input_var(
                                 &v.3,
                                 vars.to_vec(),
                                 &mut func_vars,
@@ -1950,8 +1957,10 @@ pub fn commands(
                                 0,
                                 Vec::new()
                             )
-                            .unwrap()
-                            .0,
+                            {
+                                Ok(n) => n.0,
+                                _ => v.1.clone(),
+                            },
                             options,
                             colors
                         )

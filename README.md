@@ -50,6 +50,7 @@ FLAGS: --help (this message)
 --comma toggles comma seperation
 --graph toggles graphing
 --vars toggles default variables
+--default sets to default settings
 --line toggles line graphing
 --rt toggles real time printing
 --polar toggles displaying polar vectors
@@ -80,6 +81,7 @@ FLAGS: --help (this message)
 - Type "f...=null" to delete a function or variable
 - Type "{x,y,z...}" to define a cartesian vector
 - Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
+- Type "f(x)#g(x)" to graph multiple things
 - Type "{vec}#" to graph a vector
 - Type "{mat}#" to graph a matrix
 - Type "number#" to graph a complex number

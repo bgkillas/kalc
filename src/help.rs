@@ -22,6 +22,7 @@ pub fn help()
     --comma toggles comma seperation\n\x1b[G\
     --graph toggles graphing\n\x1b[G\
     --vars toggles default variables\n\x1b[G\
+    --default sets to default settings\n\x1b[G\
     --line toggles line graphing\n\x1b[G\
     --rt toggles real time printing\n\x1b[G\
     --polar toggles displaying polar vectors\n\x1b[G\
@@ -51,6 +52,7 @@ pub fn help()
     - Type \"f...=null\" to delete a function or variable\n\x1b[G\
     - Type \"{{x,y,z...}}\" to define a cartesian vector\n\x1b[G\
     - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\x1b[G\
+    - Type \"f(x)#g(x)\" to graph multiple things\n\x1b[G\
     - Type \"{{vec}}#\" to graph a vector\n\x1b[G\
     - Type \"{{mat}}#\" to graph a matrix\n\x1b[G\
     - Type \"number#\" to graph a complex number\n\x1b[G\

@@ -656,7 +656,7 @@ pub fn add_var(
         &mut (false, 0, 0),
         false,
         0,
-        vec![l.clone()],
+        l.clone(),
     )
     {
         Ok(n) => n.0,
@@ -725,7 +725,7 @@ pub fn add_var(
                         &mut (false, 0, 0),
                         false,
                         0,
-                        redef.clone(),
+                        v.0.clone(),
                     )
                     {
                         Ok(n) => n.0,

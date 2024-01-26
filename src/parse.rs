@@ -24,7 +24,7 @@ pub fn input_var(
     pwr: &mut (bool, isize, isize),
     print: bool,
     depth: usize,
-    blacklist: Vec<Vec<char>>,
+    blacklist: Vec<char>,
 ) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, bool, bool), &'static str>
 {
     let mut funcvars = Vec::new();
@@ -48,6 +48,7 @@ pub fn input_var(
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
     let mut i = 0;
+    //  let mut piecewise=0;
     while !chars.is_empty() && chars[0].is_whitespace()
     {
         chars.remove(0);
@@ -557,6 +558,10 @@ pub fn input_var(
                 }
                 ')' if i != 0 =>
                 {
+                    // if piecewise == *bracket as usize
+                    // {
+                    //     piecewise = 0;
+                    // }
                     if pwr.1 == *bracket
                     {
                         for _ in 0..pwr.2
@@ -791,6 +796,11 @@ pub fn input_var(
             countv -= 1;
             word.pop();
         }
+        // if word == "piecewise" && piecewise == 0
+        // {
+        //     piecewise = *bracket as usize + 1;
+        // }
+        // else
         if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
@@ -1032,6 +1042,10 @@ pub fn input_var(
                         {
                             i = chars.len() - 1
                         }
+                        if blacklist == var.0
+                        {
+                            return Err("recursive");
+                        }
                         count = 0;
                         let mut ccount = 0;
                         for c in &chars[j..i]
@@ -1053,10 +1067,6 @@ pub fn input_var(
                         {
                             i = j;
                             continue;
-                        }
-                        if blacklist.contains(&var.0)
-                        {
-                            return Err("recursive");
                         }
                         if var.0.contains(&',') && chars.len() > 4
                         {
@@ -1142,20 +1152,23 @@ pub fn input_var(
                                     let mut parsed;
                                     let exit;
                                     let func;
-                                    let mut blacklist = blacklist.clone();
-                                    blacklist.push(var.0.clone());
-                                    (parsed, func, graph, exit) = input_var(
+                                    let tempgraph;
+                                    (parsed, func, tempgraph, exit) = input_var(
                                         &varf.iter().collect::<String>(),
                                         vars.clone(),
                                         sumrec,
                                         bracket,
                                         options,
-                                        graph,
+                                        false,
                                         pwr,
                                         print,
                                         depth + 1,
-                                        blacklist,
+                                        blacklist.clone(),
                                     )?;
+                                    if tempgraph
+                                    {
+                                        graph = true
+                                    }
                                     if exit
                                     {
                                         return Ok((Vec::new(), Vec::new(), false, true));
@@ -1179,7 +1192,7 @@ pub fn input_var(
                                         }
                                         parsed
                                     }
-                                    else if graph && parsed.len() > 1
+                                    else if tempgraph && parsed.len() > 1
                                     {
                                         let iden = format!("@{}{}@", func_var, depth);
                                         funcvars.extend(func);
@@ -1267,7 +1280,6 @@ pub fn input_var(
                                 .collect::<String>();
                             let mut var = var;
                             let mut k = 0;
-
                             let num = if let Ok(n) = Complex::parse(temp.iter().collect::<String>())
                             {
                                 vec![Num(n.complete(options.prec))]
@@ -1277,20 +1289,23 @@ pub fn input_var(
                                 let mut parsed;
                                 let exit;
                                 let func;
-                                let mut blacklist = blacklist.clone();
-                                blacklist.push(var.0);
-                                (parsed, func, graph, exit) = input_var(
+                                let tempgraph;
+                                (parsed, func, tempgraph, exit) = input_var(
                                     &temp.iter().collect::<String>(),
                                     vars.clone(),
                                     sumrec,
                                     bracket,
                                     options,
-                                    graph,
+                                    false,
                                     pwr,
                                     print,
                                     depth + 1,
-                                    blacklist,
+                                    blacklist.clone(),
                                 )?;
+                                if tempgraph
+                                {
+                                    graph = true
+                                }
                                 if exit
                                 {
                                     return Ok((Vec::new(), Vec::new(), false, true));
@@ -1314,7 +1329,7 @@ pub fn input_var(
                                     }
                                     parsed
                                 }
-                                else if graph && parsed.len() > 1
+                                else if tempgraph && parsed.len() > 1
                                 {
                                     let iden = format!("@{}{}@", l, depth);
                                     funcvars.extend(func);
@@ -1382,7 +1397,7 @@ pub fn input_var(
                             || (wordv != chars[i..i + var.0.len()].iter().collect::<String>()
                                 && wordv.starts_with(&var.0.iter().collect::<String>())))
                     {
-                        if blacklist.contains(&var.0)
+                        if blacklist == var.0
                         {
                             return Err("recursive");
                         }

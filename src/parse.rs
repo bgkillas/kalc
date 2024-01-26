@@ -24,6 +24,7 @@ pub fn input_var(
     pwr: &mut (bool, isize, isize),
     print: bool,
     depth: usize,
+    blacklist: Vec<Vec<char>>,
 ) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, bool, bool), &'static str>
 {
     let mut funcvars = Vec::new();
@@ -1053,6 +1054,10 @@ pub fn input_var(
                             i = j;
                             continue;
                         }
+                        if blacklist.contains(&var.0)
+                        {
+                            return Err("recursive");
+                        }
                         if var.0.contains(&',') && chars.len() > 4
                         {
                             place_multiplier(
@@ -1137,6 +1142,8 @@ pub fn input_var(
                                     let mut parsed;
                                     let exit;
                                     let func;
+                                    let mut blacklist = blacklist.clone();
+                                    blacklist.push(var.0.clone());
                                     (parsed, func, graph, exit) = input_var(
                                         &varf.iter().collect::<String>(),
                                         vars.clone(),
@@ -1147,6 +1154,7 @@ pub fn input_var(
                                         pwr,
                                         print,
                                         depth + 1,
+                                        blacklist,
                                     )?;
                                     if exit
                                     {
@@ -1269,6 +1277,8 @@ pub fn input_var(
                                 let mut parsed;
                                 let exit;
                                 let func;
+                                let mut blacklist = blacklist.clone();
+                                blacklist.push(var.0);
                                 (parsed, func, graph, exit) = input_var(
                                     &temp.iter().collect::<String>(),
                                     vars.clone(),
@@ -1279,6 +1289,7 @@ pub fn input_var(
                                     pwr,
                                     print,
                                     depth + 1,
+                                    blacklist,
                                 )?;
                                 if exit
                                 {
@@ -1371,6 +1382,10 @@ pub fn input_var(
                             || (wordv != chars[i..i + var.0.len()].iter().collect::<String>()
                                 && wordv.starts_with(&var.0.iter().collect::<String>())))
                     {
+                        if blacklist.contains(&var.0)
+                        {
+                            return Err("recursive");
+                        }
                         i += if chars[i..i + var.0.len()].contains(&'@') && !var.0.contains(&'@')
                         {
                             let mut count = 0;

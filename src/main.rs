@@ -36,7 +36,6 @@ use std::{
 //matrix exponentiation
 //fix recursive functions
 //"vars" commands funcs maybe not having parsed vars, maybe a optimization for redefining funcs
-//maybe make recursion test more rigerous in parse
 #[derive(Clone)]
 pub struct Colors
 {
@@ -372,6 +371,7 @@ fn main()
                 &mut (false, 0, 0),
                 false,
                 0,
+                Vec::new(),
             )
             {
                 Ok(f) => f,
@@ -1054,29 +1054,6 @@ fn main()
                 }
                 continue;
             }
-            if l.contains('(') && !r.contains("piecewise")
-            {
-                let s = l.split('(').next().iter().copied().collect::<String>() + "(";
-                if l.contains(',') == r.contains(',')
-                {
-                    let recur_test = r.split(&s);
-                    let count = recur_test.clone().count();
-                    for (i, s) in recur_test.enumerate()
-                    {
-                        if i + 1 != count
-                            && (s.is_empty() || !s.chars().last().unwrap().is_alphabetic())
-                        {
-                            print!(
-                                "recursive functions not supported\n\x1b[G\x1b[K{}{}",
-                                prompt(options, &colors),
-                                if options.color { "\x1b[0m" } else { "" }
-                            );
-                            stdout.flush().unwrap();
-                            continue 'main;
-                        }
-                    }
-                }
-            }
             let l = l.chars().collect::<Vec<char>>();
             for (i, v) in vars.iter().enumerate()
             {
@@ -1163,6 +1140,7 @@ fn main()
                             &mut (false, 0, 0),
                             false,
                             0,
+                            Vec::new(),
                         )
                         {
                             Ok(f) => (f.0, f.1),

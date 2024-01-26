@@ -39,6 +39,7 @@ pub fn print_concurrent(
         &mut (false, 0, 0),
         false,
         0,
+        Vec::new(),
     )
     {
         Ok(f) => f,

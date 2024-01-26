@@ -81,6 +81,7 @@ pub fn arg_opts(
                                 &mut (false, 0, 0),
                                 false,
                                 0,
+                                Vec::new(),
                             )
                             {
                                 Ok(n) => n.0,
@@ -115,6 +116,7 @@ pub fn arg_opts(
                                 &mut (false, 0, 0),
                                 false,
                                 0,
+                                Vec::new(),
                             )
                             {
                                 Ok(n) => n.0,
@@ -159,6 +161,7 @@ pub fn arg_opts(
                                     &mut (false, 0, 0),
                                     false,
                                     0,
+                                    Vec::new(),
                                 )
                                 {
                                     Ok(n) => n.0,
@@ -933,7 +936,8 @@ pub fn equal_to(
                 options, false,
                 &mut (false,0,0),
                 true,
-                0
+                0,
+                Vec::new()
             );
             if let Ok(f)=input
             {
@@ -1119,6 +1123,7 @@ pub fn set_commands(
                     &mut (false, 0, 0),
                     false,
                     0,
+                    Vec::new(),
                 )?
                 .0,
                 *options,
@@ -1145,6 +1150,7 @@ pub fn set_commands(
                 &mut (false, 0, 0),
                 false,
                 0,
+                Vec::new(),
             )?
             .0,
             *options,
@@ -1171,6 +1177,7 @@ pub fn set_commands(
                 &mut (false, 0, 0),
                 false,
                 0,
+                Vec::new(),
             )?
             .0,
             *options,
@@ -1224,6 +1231,7 @@ pub fn set_commands(
                                 &mut (false, 0, 0),
                                 false,
                                 0,
+                                Vec::new(),
                             )
                             .unwrap()
                             .0;
@@ -1277,6 +1285,7 @@ pub fn set_commands(
                                     &mut (false, 0, 0),
                                     false,
                                     0,
+                                    Vec::new(),
                                 )
                                 .unwrap()
                                 .0;
@@ -1336,6 +1345,7 @@ pub fn set_commands(
                             &mut (false, 0, 0),
                             false,
                             0,
+                            Vec::new(),
                         )?
                         .0,
                         *options,
@@ -1355,6 +1365,7 @@ pub fn set_commands(
                             &mut (false, 0, 0),
                             false,
                             0,
+                            Vec::new(),
                         )?
                         .0,
                         *options,
@@ -1386,6 +1397,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1432,6 +1444,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1451,6 +1464,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1473,6 +1487,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1512,6 +1527,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1531,6 +1547,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1553,6 +1570,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1592,6 +1610,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1611,6 +1630,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1633,6 +1653,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1665,6 +1686,7 @@ pub fn set_commands(
                     &mut (false, 0, 0),
                     false,
                     0,
+                    Vec::new(),
                 )?
                 .0,
                 *options,
@@ -1690,6 +1712,7 @@ pub fn set_commands(
                             &mut (false, 0, 0),
                             false,
                             0,
+                            Vec::new(),
                         )?
                         .0,
                         *options,
@@ -1709,6 +1732,7 @@ pub fn set_commands(
                             &mut (false, 0, 0),
                             false,
                             0,
+                            Vec::new(),
                         )?
                         .0,
                         *options,
@@ -1732,6 +1756,7 @@ pub fn set_commands(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        Vec::new(),
                     )?
                     .0,
                     *options,
@@ -1922,7 +1947,8 @@ pub fn commands(
                                 false,
                                 &mut (false, 0, 0),
                                 true,
-                                0
+                                0,
+                                Vec::new()
                             )
                             .unwrap()
                             .0,

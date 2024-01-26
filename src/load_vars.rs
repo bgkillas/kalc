@@ -645,10 +645,7 @@ pub fn add_var(
             func_vars.push((-1, i.iter().collect()));
         }
     }
-    if r.contains("piecewise")
-    {
-        vars.push((l.clone(), Vec::new(), Str(String::new()), String::new()));
-    }
+    vars.push((l.clone(), Vec::new(), Str(String::new()), String::new()));
     let parsed = match input_var(
         r,
         vars.clone(),
@@ -659,6 +656,7 @@ pub fn add_var(
         &mut (false, 0, 0),
         false,
         0,
+        vec![l.clone()],
     )
     {
         Ok(n) => n.0,
@@ -727,6 +725,7 @@ pub fn add_var(
                         &mut (false, 0, 0),
                         false,
                         0,
+                        redef.clone(),
                     )
                     {
                         Ok(n) => n.0,

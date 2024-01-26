@@ -380,6 +380,6 @@ pub fn prompt(options: Options, colors: &Colors) -> String
     }
     else
     {
-        "".to_string()
+        String::new()
     }
 }

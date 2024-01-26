@@ -328,7 +328,7 @@ pub fn print_concurrent(
                     (
                         if n.real().is_zero() && !n.imag().is_zero()
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -336,7 +336,7 @@ pub fn print_concurrent(
                         },
                         if n.imag().is_zero()
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -358,7 +358,7 @@ pub fn print_concurrent(
                     (
                         if n.real().is_zero() && !n.imag().is_zero()
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -366,7 +366,7 @@ pub fn print_concurrent(
                         },
                         if n.imag().is_zero()
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -380,7 +380,7 @@ pub fn print_concurrent(
                     (
                         if n.real().is_zero() && !n.imag().is_zero()
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -388,7 +388,7 @@ pub fn print_concurrent(
                         },
                         if n.imag().is_zero()
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -404,12 +404,12 @@ pub fn print_concurrent(
                         },
                     )
                 }
-                _ => ("".to_string(), "".to_string()),
+                _ => (String::new(), String::new()),
             }
         }
         else
         {
-            ("".to_string(), "".to_string())
+            (String::new(), String::new())
         };
         let terlen = get_terminal_width();
         let len1 = no_col(&output.0, options.color).len();
@@ -450,7 +450,7 @@ pub fn print_concurrent(
                     }
                     else
                     {
-                        "".to_string()
+                        String::new()
                     },
                     output.0,
                     if len1 != 0 && len2 != 0
@@ -476,7 +476,7 @@ pub fn print_concurrent(
                     }
                     else
                     {
-                        "".to_string()
+                        String::new()
                     },
                     if frac == 1 { "\x1b[A" } else { "" },
                     prompt(options, colors),
@@ -506,7 +506,7 @@ pub fn print_concurrent(
                 }
                 else
                 {
-                    "".to_string()
+                    String::new()
                 },
                 output.0,
                 if len1 != 0 && len2 != 0
@@ -535,7 +535,7 @@ pub fn print_concurrent(
                 }
                 else
                 {
-                    "".to_string()
+                    String::new()
                 },
                 output.0,
                 output.1,
@@ -611,7 +611,7 @@ pub fn print_concurrent(
                         }
                         else
                         {
-                            "".to_string()
+                            String::new()
                         }
                     )
                 }
@@ -663,7 +663,7 @@ pub fn print_concurrent(
                     }
                     else
                     {
-                        "".to_string()
+                        String::new()
                     },
                     output,
                     if options.color { "\x1b[0m" } else { "" }
@@ -693,7 +693,7 @@ pub fn print_concurrent(
                 }
                 else
                 {
-                    "".to_string()
+                    String::new()
                 },
                 output,
                 "\x1b[A".repeat(num),
@@ -769,7 +769,7 @@ pub fn print_concurrent(
                             }
                             else
                             {
-                                "".to_string()
+                                String::new()
                             }
                         )
                     }
@@ -889,7 +889,7 @@ pub fn print_concurrent(
                     }
                     else
                     {
-                        "".to_string()
+                        String::new()
                     },
                     output,
                     if options.color { "\x1b[0m" } else { "" }
@@ -923,7 +923,7 @@ pub fn print_concurrent(
                 }
                 else
                 {
-                    "".to_string()
+                    String::new()
                 },
                 output,
                 "\x1b[A".repeat(num),
@@ -1114,7 +1114,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             }
             else
             {
-                "".to_string()
+                String::new()
             },
             if !num.imag().is_zero()
             {
@@ -1137,7 +1137,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             }
             else
             {
-                "".to_string()
+                String::new()
             },
         )
     }
@@ -1155,7 +1155,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
         (
             if num.real().is_zero() && !num.imag().is_zero()
             {
-                "".to_string()
+                String::new()
             }
             else
             {
@@ -1197,7 +1197,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             },
             if num.imag().is_zero()
             {
-                "".to_string()
+                String::new()
             }
             else
             {
@@ -1279,7 +1279,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
         (
             if re == "0" && im != "0"
             {
-                "".to_string()
+                String::new()
             }
             else
             {
@@ -1287,7 +1287,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             },
             if im == "0"
             {
-                "".to_string()
+                String::new()
             }
             else
             {

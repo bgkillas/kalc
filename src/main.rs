@@ -35,7 +35,6 @@ use std::{
 //lambert w function
 //matrix exponentiation
 //fix recursive functions
-//fix f(x,h)=(f(x+h)-f(x))/h
 //"vars" commands funcs maybe not having parsed vars, maybe a optimization for redefining funcs
 //maybe make recursion test more rigerous in parse
 #[derive(Clone)]

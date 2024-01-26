@@ -937,9 +937,13 @@ pub fn equal_to(
             );
             if let Ok(f)=input
             {
-            parsed_to_string(&f.0
-                                  ,&options, colors)
-        }else{"".to_string()}}
+            parsed_to_string(&f.0 ,&options, colors)
+        }
+            else
+            {
+                String::new()
+            }
+        }
     }
 }
 fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> String
@@ -1895,10 +1899,36 @@ pub fn commands(
             {
                 if v.0.contains(&'(')
                 {
+                    let mut func_vars: Vec<(isize, String)> = Vec::new();
+
+                    let mut l = v.0.clone();
+                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
+                    l.pop();
+                    for i in l.split(|c| c == &',')
+                    {
+                        func_vars.push((-1, i.iter().collect()));
+                    }
+
                     print!(
                         "{}={}\n\x1b[G",
                         v.0.iter().collect::<String>(),
-                        parsed_to_string(&v.1, options, colors)
+                        parsed_to_string(
+                            &input_var(
+                                &v.3,
+                                vars.to_vec(),
+                                &mut func_vars,
+                                &mut 0,
+                                *options,
+                                false,
+                                &mut (false, 0, 0),
+                                true,
+                                0
+                            )
+                            .unwrap()
+                            .0,
+                            options,
+                            colors
+                        )
                     );
                 }
                 else

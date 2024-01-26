@@ -1153,6 +1153,16 @@ pub fn input_var(
                                         return Ok((Vec::new(), Vec::new(), false, true));
                                     }
                                     if print
+                                        || parsed.iter().any(|c| {
+                                            if let Str(s) = c
+                                            {
+                                                sumrec.iter().any(|c| c.0 == -1 && c.1 == *s)
+                                            }
+                                            else
+                                            {
+                                                false
+                                            }
+                                        })
                                     {
                                         if parsed.len() > 1
                                         {
@@ -1249,6 +1259,7 @@ pub fn input_var(
                                 .collect::<String>();
                             let mut var = var;
                             let mut k = 0;
+
                             let num = if let Ok(n) = Complex::parse(temp.iter().collect::<String>())
                             {
                                 vec![Num(n.complete(options.prec))]
@@ -1274,6 +1285,16 @@ pub fn input_var(
                                     return Ok((Vec::new(), Vec::new(), false, true));
                                 }
                                 if print
+                                    || parsed.iter().any(|c| {
+                                        if let Str(s) = c
+                                        {
+                                            sumrec.iter().any(|c| c.0 == -1 && c.1 == *s)
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    })
                                 {
                                     if parsed.len() > 1
                                     {
@@ -1731,7 +1752,7 @@ fn place_multiplier(
             output.push(Str('*'.to_string()))
         }
     }
-    else if let Num(_) = output.last().unwrap_or(&Str("".to_string()))
+    else if let Num(_) = output.last().unwrap_or(&Str(String::new()))
     {
         output.push(Str('*'.to_string()))
     }

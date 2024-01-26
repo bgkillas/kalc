@@ -72,7 +72,7 @@ fn get_preset_vars(
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("kB") && !blacklist.contains(&"kB".to_string())
@@ -84,7 +84,7 @@ fn get_preset_vars(
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("me") && !blacklist.contains(&"me".to_string())
@@ -96,7 +96,7 @@ fn get_preset_vars(
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("mn") && !blacklist.contains(&"mn".to_string())
@@ -108,7 +108,7 @@ fn get_preset_vars(
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("mp") && !blacklist.contains(&"mp".to_string())
@@ -120,7 +120,7 @@ fn get_preset_vars(
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("Na") && !blacklist.contains(&"Na".to_string())
@@ -132,7 +132,7 @@ fn get_preset_vars(
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('c') && !blacklist.contains(&"c".to_string())
@@ -142,7 +142,7 @@ fn get_preset_vars(
             vec!['c'],
             Vec::new(),
             Num(Complex::parse("299792458").unwrap().complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('G') && !blacklist.contains(&"G".to_string())
@@ -154,7 +154,7 @@ fn get_preset_vars(
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('g') && !blacklist.contains(&"g".to_string())
@@ -164,7 +164,7 @@ fn get_preset_vars(
             vec!['g'],
             Vec::new(),
             Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('h') && !blacklist.contains(&"h".to_string())
@@ -176,7 +176,7 @@ fn get_preset_vars(
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('k') && !blacklist.contains(&"k".to_string())
@@ -188,7 +188,7 @@ fn get_preset_vars(
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('R') && !blacklist.contains(&"R".to_string())
@@ -200,7 +200,7 @@ fn get_preset_vars(
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     {
@@ -218,14 +218,14 @@ fn get_preset_vars(
                         vec!['p', 'h', 'i'],
                         Vec::new(),
                         Num(phi.clone().into()),
-                        "".to_string(),
+                        String::new(),
                     ),
                 )
             }
             if phi2
             {
                 blacklist.push("φ".to_string());
-                vars.push((vec!['φ'], Vec::new(), Num(phi.into()), "".to_string()))
+                vars.push((vec!['φ'], Vec::new(), Num(phi.into()), String::new()))
             }
         }
     }
@@ -246,19 +246,14 @@ fn get_preset_vars(
                         vec!['p', 'i'],
                         Vec::new(),
                         Num(pi.clone().into()),
-                        "".to_string(),
+                        String::new(),
                     ),
                 );
             }
             if pi2
             {
                 blacklist.push("π".to_string());
-                vars.push((
-                    vec!['π'],
-                    Vec::new(),
-                    Num(pi.clone().into()),
-                    "".to_string(),
-                ))
+                vars.push((vec!['π'], Vec::new(), Num(pi.clone().into()), String::new()))
             }
             if tau1 || tau2
             {
@@ -272,7 +267,7 @@ fn get_preset_vars(
                             vec!['t', 'a', 'u'],
                             Vec::new(),
                             Num(tau.clone().into()),
-                            "".to_string(),
+                            String::new(),
                         ),
                     );
                 }
@@ -280,7 +275,7 @@ fn get_preset_vars(
                 {
                     blacklist.push("τ".to_string());
 
-                    vars.push((vec!['τ'], Vec::new(), Num(tau.into()), "".to_string()))
+                    vars.push((vec!['τ'], Vec::new(), Num(tau.into()), String::new()))
                 }
             }
         }
@@ -289,7 +284,7 @@ fn get_preset_vars(
     {
         blacklist.push("e".to_string());
         let e = Float::with_val(options.prec.0, 1).exp();
-        vars.push((vec!['e'], Vec::new(), Num(e.into()), "".to_string()))
+        vars.push((vec!['e'], Vec::new(), Num(e.into()), String::new()))
     }
 }
 pub fn get_cli_vars(
@@ -310,7 +305,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("kB")
@@ -321,7 +316,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("me")
@@ -332,7 +327,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("mn")
@@ -343,7 +338,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("mp")
@@ -354,7 +349,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains("Na")
@@ -365,7 +360,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('c')
@@ -374,7 +369,7 @@ pub fn get_cli_vars(
             vec!['c'],
             Vec::new(),
             Num(Complex::parse("299792458").unwrap().complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('G')
@@ -385,7 +380,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('g')
@@ -394,7 +389,7 @@ pub fn get_cli_vars(
             vec!['g'],
             Vec::new(),
             Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('h')
@@ -405,7 +400,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('k')
@@ -416,7 +411,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     if args.contains('R')
@@ -427,7 +422,7 @@ pub fn get_cli_vars(
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ));
     }
     {
@@ -444,13 +439,13 @@ pub fn get_cli_vars(
                         vec!['p', 'h', 'i'],
                         Vec::new(),
                         Num(phi.clone().into()),
-                        "".to_string(),
+                        String::new(),
                     ),
                 )
             }
             if phi2
             {
-                vars.push((vec!['φ'], Vec::new(), Num(phi.into()), "".to_string()))
+                vars.push((vec!['φ'], Vec::new(), Num(phi.into()), String::new()))
             }
         }
     }
@@ -470,18 +465,13 @@ pub fn get_cli_vars(
                         vec!['p', 'i'],
                         Vec::new(),
                         Num(pi.clone().into()),
-                        "".to_string(),
+                        String::new(),
                     ),
                 );
             }
             if pi2
             {
-                vars.push((
-                    vec!['π'],
-                    Vec::new(),
-                    Num(pi.clone().into()),
-                    "".to_string(),
-                ))
+                vars.push((vec!['π'], Vec::new(), Num(pi.clone().into()), String::new()))
             }
             if tau1 || tau2
             {
@@ -494,13 +484,13 @@ pub fn get_cli_vars(
                             vec!['t', 'a', 'u'],
                             Vec::new(),
                             Num(tau.clone().into()),
-                            "".to_string(),
+                            String::new(),
                         ),
                     );
                 }
                 if tau2
                 {
-                    vars.push((vec!['τ'], Vec::new(), Num(tau.into()), "".to_string()))
+                    vars.push((vec!['τ'], Vec::new(), Num(tau.into()), String::new()))
                 }
             }
         }
@@ -508,7 +498,7 @@ pub fn get_cli_vars(
     if args.contains('e')
     {
         let e = Float::with_val(options.prec.0, 1).exp();
-        vars.push((vec!['e'], Vec::new(), Num(e.into()), "".to_string()))
+        vars.push((vec!['e'], Vec::new(), Num(e.into()), String::new()))
     }
 }
 pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>
@@ -522,13 +512,13 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             vec!['p', 'h', 'i'],
             Vec::new(),
             Num(phi.clone().into()),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['t', 'a', 'u'],
             Vec::new(),
             Num(tau.clone().into()),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['e', 'c'],
@@ -536,7 +526,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("1.602176634e-19")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['k', 'B'],
@@ -544,7 +534,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("1.380649e-23")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['m', 'e'],
@@ -552,7 +542,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("9.1093837015e-31")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['m', 'n'],
@@ -560,7 +550,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("1.67492749804e-27")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['m', 'p'],
@@ -568,7 +558,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("1.67262192369e-27")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['N', 'a'],
@@ -576,34 +566,34 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("6.02214076e23")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['p', 'i'],
             Vec::new(),
             Num(pi.clone().into()),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['c'],
             Vec::new(),
             Num(Complex::parse("299792458").unwrap().complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
-        (vec!['e'], Vec::new(), Num(e.into()), "".to_string()),
+        (vec!['e'], Vec::new(), Num(e.into()), String::new()),
         (
             vec!['G'],
             Vec::new(),
             Num(Complex::parse("6.67430e-11")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['g'],
             Vec::new(),
             Num(Complex::parse("9.80665").unwrap().complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['h'],
@@ -611,7 +601,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("6.62607015e-34")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['k'],
@@ -619,7 +609,7 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("8.9875517923e9")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
         (
             vec!['R'],
@@ -627,11 +617,11 @@ pub fn get_vars(options: Options) -> Vec<(Vec<char>, Vec<NumStr>, NumStr, String
             Num(Complex::parse("8.31446261815324")
                 .unwrap()
                 .complete(options.prec)),
-            "".to_string(),
+            String::new(),
         ),
-        (vec!['φ'], Vec::new(), Num(phi.into()), "".to_string()),
-        (vec!['π'], Vec::new(), Num(pi.into()), "".to_string()),
-        (vec!['τ'], Vec::new(), Num(tau.into()), "".to_string()),
+        (vec!['φ'], Vec::new(), Num(phi.into()), String::new()),
+        (vec!['π'], Vec::new(), Num(pi.into()), String::new()),
+        (vec!['τ'], Vec::new(), Num(tau.into()), String::new()),
     ]
 }
 pub fn add_var(

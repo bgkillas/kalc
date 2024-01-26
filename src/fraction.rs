@@ -29,7 +29,7 @@ pub fn fraction(value: Float, options: Options) -> String
     }
     else
     {
-        "".to_string()
+        String::new()
     };
     let val = value.abs();
     let tau = if options.tau { "τ" } else { "π" };
@@ -49,7 +49,7 @@ pub fn fraction(value: Float, options: Options) -> String
                     sign,
                     if orig == 1.0
                     {
-                        "".to_string()
+                        String::new()
                     }
                     else
                     {
@@ -95,7 +95,7 @@ pub fn fraction(value: Float, options: Options) -> String
                         "{sign}{}{}{}",
                         if last == 1 && i != 0
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {
@@ -113,7 +113,7 @@ pub fn fraction(value: Float, options: Options) -> String
                         },
                         if recip == 1
                         {
-                            "".to_string()
+                            String::new()
                         }
                         else
                         {

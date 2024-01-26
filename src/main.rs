@@ -35,6 +35,7 @@ use std::{
 //lambert w function
 //matrix exponentiation
 //fix recursive functions
+//beta distribution
 //"vars" commands funcs maybe not having parsed vars, maybe a optimization for redefining funcs
 #[derive(Clone)]
 pub struct Colors
@@ -192,6 +193,17 @@ fn main()
             std::process::exit(1);
         }
     }
+    let mut stdout = stdout();
+    if args.is_empty()
+    {
+        terminal::enable_raw_mode().unwrap();
+        print!(
+            "\x1b[G\x1b[K{}{}",
+            prompt(options, &colors),
+            if options.color { "\x1b[0m" } else { "" }
+        );
+        stdout.flush().unwrap();
+    }
     for arg in args.iter_mut()
     {
         if (arg.starts_with('\'') && arg.ends_with('\''))
@@ -308,16 +320,8 @@ fn main()
             }
         }
     }
-    let mut stdout = stdout();
     let (mut file, mut unmod_lines) = if args.is_empty()
     {
-        terminal::enable_raw_mode().unwrap();
-        print!(
-            "\x1b[G\x1b[K{}{}",
-            prompt(options, &colors),
-            if options.color { "\x1b[0m" } else { "" }
-        );
-        stdout.flush().unwrap();
         #[cfg(unix)]
         let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
         #[cfg(not(unix))]

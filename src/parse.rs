@@ -5,7 +5,7 @@ use crate::{
     },
     functions::functions,
     math::do_math,
-    Options,
+    Options, Variable,
 };
 use rug::{
     float::Special::{Infinity, Nan},
@@ -16,7 +16,7 @@ use rug::{
 #[allow(clippy::too_many_arguments)]
 pub fn input_var(
     input: &str,
-    vars: Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
+    vars: Vec<Variable>,
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,
     options: Options,
@@ -877,16 +877,16 @@ pub fn input_var(
             }
         }
         if !vars.clone().iter().any(|a| {
-            if a.0.contains(&'(')
+            if a.name.contains(&'(')
             {
-                a.0[..a.0.iter().position(|c| c == &'(').unwrap()]
+                a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
                     .iter()
                     .collect::<String>()
                     == word
             }
             else
             {
-                a.0.iter().collect::<String>() == word
+                a.name.iter().collect::<String>() == word
             }
         }) && ((functions.contains(word.as_str())
             && i + countv < chars.len()
@@ -1001,7 +1001,7 @@ pub fn input_var(
         {
             for var in vars.clone()
             {
-                if var.0 != vec!['e']
+                if var.name != vec!['e']
                     || (!options.small_e
                         || !(i != 0
                             && i + 1 != chars.len()
@@ -1009,10 +1009,10 @@ pub fn input_var(
                             && (chars[i + 1].is_numeric() || chars[i + 1] == '-')))
                 {
                     let j = i;
-                    if var.0.contains(&'(')
+                    if var.name.contains(&'(')
                         && wordv
                             == var
-                                .0
+                                .name
                                 .split(|c| matches!(c, '(' | '{'))
                                 .next()
                                 .unwrap()
@@ -1042,7 +1042,7 @@ pub fn input_var(
                         {
                             i = chars.len() - 1
                         }
-                        if blacklist == var.0
+                        if blacklist == var.name
                         {
                             return Err("recursive");
                         }
@@ -1063,12 +1063,12 @@ pub fn input_var(
                                 count -= 1;
                             }
                         }
-                        if ccount != var.0.iter().filter(|c| c == &&',').count()
+                        if ccount != var.name.iter().filter(|c| c == &&',').count()
                         {
                             i = j;
                             continue;
                         }
-                        if var.0.contains(&',') && chars.len() > 4
+                        if var.name.contains(&',') && chars.len() > 4
                         {
                             place_multiplier(
                                 &mut output,
@@ -1114,7 +1114,7 @@ pub fn input_var(
                             split.push(&temp[start..]);
                             let mut func_vars: Vec<String> = Vec::new();
                             start = 0;
-                            for (f, c) in var.0.iter().enumerate()
+                            for (f, c) in var.name.iter().enumerate()
                             {
                                 if c == &'(' || c == &'{'
                                 {
@@ -1129,12 +1129,12 @@ pub fn input_var(
                                     count -= 1;
                                     if count == 0
                                     {
-                                        func_vars.push(var.0[start..f].iter().collect());
+                                        func_vars.push(var.name[start..f].iter().collect());
                                     }
                                 }
                                 else if c == &',' && count == 1
                                 {
-                                    func_vars.push(var.0[start..f].iter().collect());
+                                    func_vars.push(var.name[start..f].iter().collect());
                                     start = f + 1;
                                 }
                             }
@@ -1204,18 +1204,18 @@ pub fn input_var(
                                         vec![do_math(parsed, options, Vec::new())?]
                                     }
                                 };
-                                while k < var.1.len()
+                                while k < var.parsed.len()
                                 {
-                                    if var.1[k].str_is(&func_var)
+                                    if var.parsed[k].str_is(&func_var)
                                     {
-                                        var.1.remove(k);
+                                        var.parsed.remove(k);
                                         if num.len() == 1
                                         {
-                                            var.1.insert(k, num[0].clone());
+                                            var.parsed.insert(k, num[0].clone());
                                         }
                                         else
                                         {
-                                            var.1.splice(k..k, num.clone());
+                                            var.parsed.splice(k..k, num.clone());
                                             k += num.len();
                                             continue;
                                         }
@@ -1223,7 +1223,7 @@ pub fn input_var(
                                     k += 1;
                                 }
                             }
-                            output.extend(var.1);
+                            output.extend(var.parsed);
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
@@ -1274,8 +1274,8 @@ pub fn input_var(
                             {
                                 temp = &temp[..temp.len() - 1];
                             }
-                            let l = var.0[var.0.iter().position(|c| c == &'(').unwrap() + 1
-                                ..var.0.len() - 1]
+                            let l = var.name[var.name.iter().position(|c| c == &'(').unwrap() + 1
+                                ..var.name.len() - 1]
                                 .iter()
                                 .collect::<String>();
                             let mut var = var;
@@ -1341,25 +1341,25 @@ pub fn input_var(
                                     vec![do_math(parsed, options, Vec::new())?]
                                 }
                             };
-                            while k < var.1.len()
+                            while k < var.parsed.len()
                             {
-                                if var.1[k].str_is(&l)
+                                if var.parsed[k].str_is(&l)
                                 {
-                                    var.1.remove(k);
+                                    var.parsed.remove(k);
                                     if num.len() == 1
                                     {
-                                        var.1.insert(k, num[0].clone());
+                                        var.parsed.insert(k, num[0].clone());
                                     }
                                     else
                                     {
-                                        var.1.splice(k..k, num.clone());
+                                        var.parsed.splice(k..k, num.clone());
                                         k += num.len();
                                         continue;
                                     }
                                 }
                                 k += 1;
                             }
-                            output.extend(var.1);
+                            output.extend(var.parsed);
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
@@ -1392,16 +1392,17 @@ pub fn input_var(
                             continue 'main;
                         }
                     }
-                    else if i + var.0.len() <= chars.len()
-                        && (chars[i..i + var.0.len()] == var.0
-                            || (wordv != chars[i..i + var.0.len()].iter().collect::<String>()
-                                && wordv.starts_with(&var.0.iter().collect::<String>())))
+                    else if i + var.name.len() <= chars.len()
+                        && (chars[i..i + var.name.len()] == var.name
+                            || (wordv != chars[i..i + var.name.len()].iter().collect::<String>()
+                                && wordv.starts_with(&var.name.iter().collect::<String>())))
                     {
-                        if blacklist == var.0
+                        if blacklist == var.name
                         {
                             return Err("recursive");
                         }
-                        i += if chars[i..i + var.0.len()].contains(&'@') && !var.0.contains(&'@')
+                        i += if chars[i..i + var.name.len()].contains(&'@')
+                            && !var.name.contains(&'@')
                         {
                             let mut count = 0;
                             let mut countw = 0;
@@ -1409,7 +1410,7 @@ pub fn input_var(
                             let mut word = String::new();
                             for c in chars[i..].iter()
                             {
-                                if word == var.0.iter().collect::<String>()
+                                if word == var.name.iter().collect::<String>()
                                 {
                                     if depth
                                     {
@@ -1425,7 +1426,7 @@ pub fn input_var(
                                 {
                                     depth = !depth;
                                 }
-                                else if c == &var.0[countw]
+                                else if c == &var.name[countw]
                                 {
                                     word.push(*c);
                                     countw += 1;
@@ -1441,7 +1442,7 @@ pub fn input_var(
                         }
                         else
                         {
-                            var.0.len()
+                            var.name.len()
                         };
                         place_multiplier(
                             &mut output,
@@ -1456,11 +1457,11 @@ pub fn input_var(
                         }
                         if print
                         {
-                            output.push(Str(var.0.iter().collect::<String>()));
+                            output.push(Str(var.name.iter().collect::<String>()));
                         }
                         else
                         {
-                            output.push(var.2);
+                            output.push(var.parsed[0].clone());
                         }
                         if scientific
                         {
@@ -1730,7 +1731,7 @@ pub fn input_var(
     }
     while let Some(Str(c)) = output.last()
     {
-        if print && vars.iter().any(|a| a.0.iter().collect::<String>() == *c)
+        if print && vars.iter().any(|a| a.name.iter().collect::<String>() == *c)
         {
             break;
         }
@@ -1763,7 +1764,7 @@ pub fn input_var(
 fn place_multiplier(
     output: &mut Vec<NumStr>,
     sumrec: &[(isize, String)],
-    vars: Option<Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>>,
+    vars: Option<Vec<Variable>>,
 )
 {
     if let Some(Str(s)) = output.last()
@@ -1772,7 +1773,7 @@ fn place_multiplier(
             || sumrec.iter().any(|a| a.1 == *s)
             || (if let Some(n) = vars
             {
-                n.iter().any(|a| a.0.iter().collect::<String>() == *s)
+                n.iter().any(|a| a.name.iter().collect::<String>() == *s)
             }
             else
             {

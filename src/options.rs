@@ -10,7 +10,7 @@ use crate::{
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Options,
+    Colors, Options, Variable,
 };
 use crossterm::{
     execute, terminal,
@@ -833,13 +833,8 @@ pub fn file_opts(
     }
     Ok(())
 }
-pub fn equal_to(
-    options: Options,
-    colors: &Colors,
-    vars: &[(Vec<char>, Vec<NumStr>, NumStr, String)],
-    l: &str,
-    last: &str,
-) -> String
+pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, last: &str)
+    -> String
 {
     match l
     {
@@ -1024,8 +1019,8 @@ pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) ->
 pub fn set_commands(
     options: &mut Options,
     colors: &mut Colors,
-    vars: &mut [(Vec<char>, Vec<NumStr>, NumStr, String)],
-    old: &mut Vec<(Vec<char>, Vec<NumStr>, NumStr, String)>,
+    vars: &mut [Variable],
+    old: &mut Vec<Variable>,
     l: &str,
     r: &str,
 ) -> Result<(), &'static str>
@@ -1209,7 +1204,7 @@ pub fn set_commands(
                     {
                         for var in vars.iter_mut()
                         {
-                            if i.0 .2 == var.2 && i.0 .0 == var.0
+                            if i.0.name == var.name && i.0.parsed == var.parsed
                             {
                                 *var = i.1.clone();
                             }
@@ -1219,12 +1214,12 @@ pub fn set_commands(
                     let mut redef = Vec::new();
                     for (i, var) in vars.to_vec().iter().enumerate()
                     {
-                        if !var.3.is_empty()
+                        if !var.unparsed.is_empty()
                         {
                             let mut func_vars: Vec<(isize, String)> = Vec::new();
-                            if var.0.contains(&'(')
+                            if var.name.contains(&'(')
                             {
-                                let mut l = var.0.clone();
+                                let mut l = var.name.clone();
                                 l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                 l.pop();
                                 for i in l.split(|c| c == &',')
@@ -1232,9 +1227,9 @@ pub fn set_commands(
                                     func_vars.push((-1, i.iter().collect()));
                                 }
                             }
-                            redef.push(var.0.clone());
+                            redef.push(var.name.clone());
                             let parsed = input_var(
-                                &var.3,
+                                &var.unparsed,
                                 vars.to_vec(),
                                 &mut func_vars,
                                 &mut 0,
@@ -1247,20 +1242,15 @@ pub fn set_commands(
                             )
                             .unwrap()
                             .0;
-                            vars[i] = (
-                                var.0.clone(),
-                                parsed.clone(),
-                                if l.contains('(')
-                                {
-                                    Str(String::new())
-                                }
-                                else
-                                {
-                                    do_math(parsed, *options, Vec::new())
-                                        .unwrap_or(Num(Complex::new(options.prec)))
-                                },
-                                var.3.clone(),
-                            )
+                            vars[i].parsed = if l.contains('(')
+                            {
+                                parsed
+                            }
+                            else
+                            {
+                                vec![do_math(parsed, *options, Vec::new())
+                                    .unwrap_or(Num(Complex::new(options.prec)))]
+                            };
                         }
                     }
                     let mut k = 0;
@@ -1268,8 +1258,8 @@ pub fn set_commands(
                     {
                         for (j, v) in vars.to_vec().iter().enumerate()
                         {
-                            if redef[k] != v.0
-                                && v.3.contains(
+                            if redef[k] != v.name
+                                && v.unparsed.contains(
                                     &redef[k][0..=redef[k]
                                         .iter()
                                         .position(|a| a == &'(')
@@ -1277,9 +1267,9 @@ pub fn set_commands(
                                 )
                             {
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if v.0.contains(&'(')
+                                if v.name.contains(&'(')
                                 {
-                                    let mut l = v.0.clone();
+                                    let mut l = v.name.clone();
                                     l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                     l.pop();
                                     for i in l.split(|c| c == &',')
@@ -1288,7 +1278,7 @@ pub fn set_commands(
                                     }
                                 }
                                 let parsed = input_var(
-                                    &v.3.clone(),
+                                    &v.unparsed.clone(),
                                     vars.to_vec(),
                                     &mut func_vars,
                                     &mut 0,
@@ -1301,24 +1291,19 @@ pub fn set_commands(
                                 )
                                 .unwrap()
                                 .0;
-                                let check = vars[j].clone();
-                                vars[j] = (
-                                    v.0.clone(),
-                                    parsed.clone(),
-                                    if v.0.contains(&'(')
-                                    {
-                                        Str(String::new())
-                                    }
-                                    else
-                                    {
-                                        do_math(parsed, *options, Vec::new())
-                                            .unwrap_or(Num(Complex::new(options.prec)))
-                                    },
-                                    v.3.clone(),
-                                );
-                                if check.1 != vars[j].1
+                                let check = vars[j].parsed.clone();
+                                vars[j].parsed = if l.contains('(')
                                 {
-                                    redef.push(v.0.clone());
+                                    parsed
+                                }
+                                else
+                                {
+                                    vec![do_math(parsed, *options, Vec::new())
+                                        .unwrap_or(Num(Complex::new(options.prec)))]
+                                };
+                                if check != vars[j].parsed
+                                {
+                                    redef.push(v.name.clone());
                                 }
                             }
                         }
@@ -1788,7 +1773,7 @@ pub fn set_commands(
 pub fn commands(
     options: &mut Options,
     colors: &Colors,
-    vars: &mut [(Vec<char>, Vec<NumStr>, NumStr, String)],
+    vars: &mut [Variable],
     lines: &[String],
     input: &[char],
     stdout: &mut Stdout,
@@ -1938,11 +1923,11 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                if v.0.contains(&'(')
+                if v.name.contains(&'(')
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();
 
-                    let mut l = v.0.clone();
+                    let mut l = v.name.clone();
                     l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                     l.pop();
                     for i in l.split(|c| c == &',')
@@ -1952,10 +1937,10 @@ pub fn commands(
 
                     print!(
                         "{}={}\n\x1b[G",
-                        v.0.iter().collect::<String>(),
+                        v.name.iter().collect::<String>(),
                         parsed_to_string(
                             &match input_var(
-                                &v.3,
+                                &v.unparsed,
                                 vars.to_vec(),
                                 &mut func_vars,
                                 &mut 0,
@@ -1968,7 +1953,7 @@ pub fn commands(
                             )
                             {
                                 Ok(n) => n.0,
-                                _ => v.1.clone(),
+                                _ => v.parsed.clone(),
                             },
                             options,
                             colors
@@ -1977,12 +1962,17 @@ pub fn commands(
                 }
                 else
                 {
-                    match &v.2
+                    match &v.parsed[0]
                     {
                         Num(n) =>
                         {
                             let n = get_output(*options, colors, n);
-                            print!("{}={}{}\n\x1b[G", v.0.iter().collect::<String>(), n.0, n.1)
+                            print!(
+                                "{}={}{}\n\x1b[G",
+                                v.name.iter().collect::<String>(),
+                                n.0,
+                                n.1
+                            )
                         }
                         Vector(m) =>
                         {
@@ -1996,7 +1986,7 @@ pub fn commands(
                             }
                             print!(
                                 "{}={{{}}}\n\x1b[G",
-                                v.0.iter().collect::<String>(),
+                                v.name.iter().collect::<String>(),
                                 st.trim_end_matches(',')
                             )
                         }
@@ -2019,7 +2009,7 @@ pub fn commands(
                             }
                             print!(
                                 "{}={{{}}}\n\x1b[G",
-                                v.0.iter().collect::<String>(),
+                                v.name.iter().collect::<String>(),
                                 st.trim_end_matches(',')
                             )
                         }
@@ -2036,19 +2026,8 @@ pub fn commands(
             {
                 print!(
                     "{}={}\n\x1b[G",
-                    v.0.iter().collect::<String>(),
-                    parsed_to_string(
-                        &if v.1.is_empty()
-                        {
-                            vec![v.2.clone()]
-                        }
-                        else
-                        {
-                            v.1.clone()
-                        },
-                        options,
-                        colors
-                    )
+                    v.name.iter().collect::<String>(),
+                    parsed_to_string(&v.parsed, options, colors)
                 );
             }
             stdout.flush().unwrap();

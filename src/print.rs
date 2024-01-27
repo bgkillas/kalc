@@ -10,7 +10,7 @@ use crate::{
     options::{equal_to, parsed_to_string},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Options,
+    Colors, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::{cmp::Ordering, str::FromStr};
@@ -18,7 +18,7 @@ use std::{cmp::Ordering, str::FromStr};
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
-    vars: &[(Vec<char>, Vec<NumStr>, NumStr, String)],
+    vars: &[Variable],
     options: Options,
     colors: &Colors,
     start: usize,

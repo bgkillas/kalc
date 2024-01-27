@@ -38,6 +38,13 @@ use std::{
 //beta distribution
 //"vars" commands funcs maybe not having parsed vars, maybe a optimization for redefining funcs
 #[derive(Clone)]
+pub struct Variable
+{
+    name: Vec<char>,
+    parsed: Vec<NumStr>,
+    unparsed: String,
+}
+#[derive(Clone)]
 pub struct Colors
 {
     text: String,
@@ -232,8 +239,7 @@ fn main()
         "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
         var("USERNAME").unwrap()
     );
-    let mut vars: Vec<(Vec<char>, Vec<NumStr>, NumStr, String)> = if options.allow_vars
-        && args.is_empty()
+    let mut vars: Vec<Variable> = if options.allow_vars && args.is_empty()
     {
         get_vars(options)
     }
@@ -291,9 +297,10 @@ fn main()
                             }
                             for (i, v) in vars.iter().enumerate()
                             {
-                                if v.0.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
-                                    && v.0.contains(&'(') == l.contains(&'(')
-                                    && v.0.iter().filter(|c| c == &&',').count()
+                                if v.name.split(|c| c == &'(').next()
+                                    == l.split(|c| c == &'(').next()
+                                    && v.name.contains(&'(') == l.contains(&'(')
+                                    && v.name.iter().filter(|c| c == &&',').count()
                                         == l.iter().filter(|c| c == &&',').count()
                                 {
                                     if r == "null"
@@ -309,7 +316,7 @@ fn main()
                             }
                             for (i, j) in vars.clone().iter().enumerate()
                             {
-                                if j.0.len() <= l.len()
+                                if j.name.len() <= l.len()
                                 {
                                     add_var(l, r, i, &mut vars, options, false, false);
                                     continue 'upper;
@@ -1162,9 +1169,9 @@ fn main()
             let l = l.chars().collect::<Vec<char>>();
             for (i, v) in vars.iter().enumerate()
             {
-                if v.0.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
-                    && v.0.contains(&'(') == l.contains(&'(')
-                    && v.0.iter().filter(|c| c == &&',').count()
+                if v.name.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
+                    && v.name.contains(&'(') == l.contains(&'(')
+                    && v.name.iter().filter(|c| c == &&',').count()
                         == l.iter().filter(|c| c == &&',').count()
                 {
                     if r == "null"
@@ -1189,7 +1196,7 @@ fn main()
             }
             for (i, j) in vars.iter().enumerate()
             {
-                if j.0.len() <= l.len()
+                if j.name.len() <= l.len()
                 {
                     add_var(l, r, i, &mut vars, options, true, false);
                     if !cli

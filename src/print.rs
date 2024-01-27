@@ -19,16 +19,14 @@ use std::{cmp::Ordering, str::FromStr};
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
-    vars: &[Variable],
+    mut vars: Vec<Variable>,
     mut options: Options,
-    colors: &Colors,
+    mut colors: Colors,
     start: usize,
     end: usize,
     long_output: bool,
 ) -> (usize, bool, bool, bool)
 {
-    let mut vars = vars.to_vec();
-    let mut colors = colors.clone();
     if unmodified_input.starts_with(&['#'])
     {
         print!("\x1b[J");

@@ -35,8 +35,8 @@ use std::{
 //lambert w function
 //matrix exponentiation
 //fix recursive functions
+//fix temp vars not existing for user set functions in user set functions
 //beta distribution
-//"vars" commands funcs maybe not having parsed vars, maybe a optimization for redefining funcs
 #[derive(Clone)]
 pub struct Variable
 {
@@ -460,9 +460,9 @@ fn main()
                             (frac, graphable, _, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                &vars,
+                                vars.clone(),
                                 options,
-                                &colors,
+                                colors.clone(),
                                 start,
                                 end,
                                 (long || !options.real_time_output) && c == '\n',
@@ -524,7 +524,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -582,7 +589,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -631,7 +645,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -656,7 +677,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -681,7 +709,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -708,7 +743,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -735,7 +777,14 @@ fn main()
                             if options.real_time_output && !slow
                             {
                                 (frac, graphable, long, varcheck) = print_concurrent(
-                                    &input, &last, &vars, options, &colors, start, end, false,
+                                    &input,
+                                    &last,
+                                    vars.clone(),
+                                    options,
+                                    colors.clone(),
+                                    start,
+                                    end,
+                                    false,
                                 );
                                 if watch.elapsed().as_millis() > options.slowcheck
                                 {
@@ -759,7 +808,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -793,7 +849,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
@@ -830,7 +893,14 @@ fn main()
                         if options.real_time_output
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                             if slow
@@ -874,7 +944,14 @@ fn main()
                         if options.real_time_output
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                             if slow
@@ -1041,7 +1118,14 @@ fn main()
                         if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
-                                &input, &last, &vars, options, &colors, start, end, false,
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {

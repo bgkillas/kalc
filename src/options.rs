@@ -951,7 +951,7 @@ pub fn equal_to(
         }
     }
 }
-fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> String
+pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> String
 {
     let mut out = String::new();
     for i in input

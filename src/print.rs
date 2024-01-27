@@ -7,7 +7,7 @@ use crate::{
     get_terminal_width,
     math::do_math,
     misc::{clear, get_terminal_height, handle_err, no_col, prompt, to_output},
-    options::equal_to,
+    options::{equal_to, parsed_to_string},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Colors, Options,
@@ -112,17 +112,35 @@ pub fn print_concurrent(
         }
         else if input.3
         {
-            let input = unmodified_input
-                [unmodified_input.iter().position(|c| c == &'=').unwrap()..]
-                .iter()
-                .collect::<String>();
-            let out = equal_to(
+            let n = unmodified_input.iter().position(|c| c == &'=').unwrap();
+            let input = unmodified_input[n..].iter().collect::<String>();
+            let mut func = unmodified_input[..n].to_vec();
+            let mut func_vars: Vec<(isize, String)> = Vec::new();
+            if func.contains(&'(')
+            {
+                func.drain(0..=func.iter().position(|c| c == &'(').unwrap());
+                func.pop();
+                for i in func.split(|c| c == &',')
+                {
+                    func_vars.push((-1, i.iter().collect()));
+                }
+            }
+            let out = match input_var(
+                &input.replace('_', &format!("({})", last.iter().collect::<String>())),
+                vars.to_vec(),
+                &mut func_vars,
+                &mut 0,
                 options,
-                colors,
-                vars,
-                &input,
-                &last.iter().collect::<String>(),
-            );
+                false,
+                &mut (false, 0, 0),
+                true,
+                0,
+                Vec::new(),
+            )
+            {
+                Ok(n) => parsed_to_string(&n.0, &options, colors),
+                _ => String::new(),
+            };
             if out.is_empty()
             {
                 clear(unmodified_input, start, end, options, colors);

@@ -5,10 +5,9 @@ use crate::{
     },
     fraction::fraction,
     get_terminal_width,
+    load_vars::set_commands_or_vars,
     math::do_math,
-    misc::{
-        clearln, get_terminal_height, handle_err, no_col, prompt, set_commands_or_vars, to_output,
-    },
+    misc::{clearln, get_terminal_height, handle_err, no_col, prompt, to_output},
     options::{equal_to, parsed_to_string, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -43,10 +42,6 @@ pub fn print_concurrent(
         if count != 1
         {
             unparsed = split.clone().last().unwrap();
-            if unmodified_input.is_empty()
-            {
-                return (0, false, false, false);
-            }
             for (i, s) in split.enumerate()
             {
                 if i == count - 1
@@ -220,7 +215,7 @@ pub fn print_concurrent(
         {
             let mut out = String::new();
             {
-                let split = unmodified_input.iter().collect::<String>();
+                let split = unparsed.iter().collect::<String>();
                 let split = split.split('#');
                 if split.clone().count() > 6
                 {
@@ -301,7 +296,7 @@ pub fn print_concurrent(
         }
         else
         {
-            let input = unmodified_input.iter().collect::<String>();
+            let input = unparsed.iter().collect::<String>();
             let out = equal_to(
                 options,
                 &colors,

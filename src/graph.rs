@@ -19,8 +19,7 @@ use std::{
 pub fn graph(
     input: Vec<String>,
     unmod: Vec<String>,
-    func: Vec<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>)>,
-    mut options: Options,
+    func: Vec<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options)>,
     watch: Option<Instant>,
     colors: Colors,
 ) -> JoinHandle<()>
@@ -30,7 +29,7 @@ pub fn graph(
         {
             return;
         }
-        options.prec = options.graph_prec;
+        let mut options = func[0].2;
         let mut fg = Figure::new();
         fg.set_enhanced_text(false);
         let mut re_cap: [String; 6] = Default::default();
@@ -42,7 +41,7 @@ pub fn graph(
         let mut handles = Vec::new();
         for func in func
         {
-            handles.push(get_data(options, colors.clone(), func));
+            handles.push(get_data(colors.clone(), func));
         }
         let mut i = 0;
         #[allow(clippy::explicit_counter_loop)]
@@ -863,8 +862,7 @@ pub fn graph(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_2d(
-    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>),
-    options: Options,
+    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
 ) -> ([[Vec<f64>; 2]; 2], [Vec<f64>; 2], (bool, bool))
 {
     if let Num(n) = &func.0[0]
@@ -876,23 +874,23 @@ pub fn get_list_2d(
     }
     let mut data: [[Vec<f64>; 2]; 2] = [
         [
-            Vec::with_capacity(options.samples_2d + 1),
-            Vec::with_capacity(options.samples_2d + 1),
+            Vec::with_capacity(func.2.samples_2d + 1),
+            Vec::with_capacity(func.2.samples_2d + 1),
         ],
-        [Vec::new(), Vec::with_capacity(options.samples_2d + 1)],
+        [Vec::new(), Vec::with_capacity(func.2.samples_2d + 1)],
     ];
     let mut data3d: [Vec<f64>; 2] = [
-        Vec::with_capacity(options.samples_2d + 1),
-        Vec::with_capacity(options.samples_2d + 1),
+        Vec::with_capacity(func.2.samples_2d + 1),
+        Vec::with_capacity(func.2.samples_2d + 1),
     ];
-    let den_range = (options.xr.1 - options.xr.0) / options.samples_2d as f64;
+    let den_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
     let mut zero = (false, false);
     let list = func.0.iter().any(|c| c.str_is("±"))
         || func.1.iter().any(|c| c.1.iter().any(|c| c.str_is("±")));
-    for i in 0..=options.samples_2d
+    for i in 0..=func.2.samples_2d
     {
-        let n = options.xr.0 + i as f64 * den_range;
-        let num = Num(Complex::with_val(options.prec, n));
+        let n = func.2.xr.0 + i as f64 * den_range;
+        let num = Num(Complex::with_val(func.2.prec, n));
         match do_math(
             func.0
                 .iter()
@@ -902,7 +900,7 @@ pub fn get_list_2d(
                     _ => i.clone(),
                 })
                 .collect(),
-            options,
+            func.2,
             func.1
                 .iter()
                 .map(|i| {
@@ -1078,9 +1076,9 @@ pub fn get_list_2d(
     }
     (data, data3d, zero)
 }
+#[allow(clippy::type_complexity)]
 pub fn get_list_3d(
-    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>),
-    options: Options,
+    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
 ) -> ([[Vec<f64>; 3]; 2], (bool, bool), bool)
 {
     if let Num(n) = &func.0[0]
@@ -1092,28 +1090,28 @@ pub fn get_list_3d(
     }
     let mut data: [[Vec<f64>; 3]; 2] = [
         [
-            Vec::with_capacity(options.samples_3d.0 + 1),
-            Vec::with_capacity(options.samples_3d.1 + 1),
-            Vec::with_capacity((options.samples_3d.0 + 1) * (options.samples_3d.1 + 1)),
+            Vec::with_capacity(func.2.samples_3d.0 + 1),
+            Vec::with_capacity(func.2.samples_3d.1 + 1),
+            Vec::with_capacity((func.2.samples_3d.0 + 1) * (func.2.samples_3d.1 + 1)),
         ],
         [
             Vec::new(),
             Vec::new(),
-            Vec::with_capacity((options.samples_3d.0 + 1) * (options.samples_3d.1 + 1)),
+            Vec::with_capacity((func.2.samples_3d.0 + 1) * (func.2.samples_3d.1 + 1)),
         ],
     ];
-    let den_x_range = (options.xr.1 - options.xr.0) / options.samples_3d.0 as f64;
-    let den_y_range = (options.yr.1 - options.yr.0) / options.samples_3d.1 as f64;
+    let den_x_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_3d.0 as f64;
+    let den_y_range = (func.2.yr.1 - func.2.yr.0) / func.2.samples_3d.1 as f64;
     let mut modified: Vec<NumStr>;
     let mut modifiedvars: Vec<(String, Vec<NumStr>)>;
     let mut zero = (false, false);
     let list = func.0.iter().any(|c| c.str_is("±"))
         || func.1.iter().any(|c| c.1.iter().any(|c| c.str_is("±")));
     let mut d2 = false;
-    for i in 0..=options.samples_3d.0
+    for i in 0..=func.2.samples_3d.0
     {
-        let n = options.xr.0 + i as f64 * den_x_range;
-        let num = Num(Complex::with_val(options.prec, n));
+        let n = func.2.xr.0 + i as f64 * den_x_range;
+        let num = Num(Complex::with_val(func.2.prec, n));
         modified = func
             .0
             .iter()
@@ -1139,10 +1137,10 @@ pub fn get_list_3d(
                 )
             })
             .collect();
-        for g in 0..=options.samples_3d.1
+        for g in 0..=func.2.samples_3d.1
         {
-            let f = options.yr.0 + g as f64 * den_y_range;
-            let num = Num(Complex::with_val(options.prec, f));
+            let f = func.2.yr.0 + g as f64 * den_y_range;
+            let num = Num(Complex::with_val(func.2.prec, f));
             match do_math(
                 modified
                     .iter()
@@ -1152,7 +1150,7 @@ pub fn get_list_3d(
                         _ => j.clone(),
                     })
                     .collect(),
-                options,
+                func.2,
                 modifiedvars
                     .iter()
                     .map(|i| {
@@ -1338,9 +1336,8 @@ fn fail(options: Options, colors: &Colors)
 }
 #[allow(clippy::type_complexity)]
 fn get_data(
-    options: Options,
     colors: Colors,
-    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>),
+    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
 ) -> JoinHandle<(
     (bool, bool),
     (bool, bool),
@@ -1364,12 +1361,12 @@ fn get_data(
         );
         if !has_y && !has_x
         {
-            match match do_math(func.0.clone(), options, Vec::new())
+            match match do_math(func.0.clone(), func.2, Vec::new())
             {
                 Ok(n) => n,
                 _ =>
                 {
-                    fail(options, &colors);
+                    fail(func.2, &colors);
                     return (
                         (false, false),
                         (false, false),
@@ -1384,10 +1381,10 @@ fn get_data(
                 Num(n) =>
                 {
                     d2_or_d3.0 = true;
-                    (points2d, _, re_or_im) = get_list_2d((vec![Num(n)], Vec::new()), options);
+                    (points2d, _, re_or_im) = get_list_2d((vec![Num(n)], Vec::new(), func.2));
                     if points2d[0][1].is_empty() && points2d[1][1].is_empty()
                     {
-                        fail(options, &colors);
+                        fail(func.2, &colors);
                         return (
                             (false, false),
                             (false, false),
@@ -1563,7 +1560,7 @@ fn get_data(
         {
             d2_or_d3.0 = true;
             let data3d;
-            (points2d, data3d, re_or_im) = get_list_2d(func, options);
+            (points2d, data3d, re_or_im) = get_list_2d(func.clone());
             if !data3d[0].is_empty() || !data3d[1].is_empty()
             {
                 d2_or_d3 = (false, true);
@@ -1577,7 +1574,7 @@ fn get_data(
             }
             else if points2d[0][1].is_empty() && points2d[1][1].is_empty()
             {
-                fail(options, &colors);
+                fail(func.2, &colors);
                 return (
                     (false, false),
                     (false, false),
@@ -1596,14 +1593,14 @@ fn get_data(
                 }
                 points2d[0].swap(0, 1);
             }
-            if options.flat
+            if func.2.flat
             {
                 re_or_im.1 = false;
                 points2d[0].swap(0, 1);
                 points2d[0][1] = points2d[1][1].clone();
                 points2d[1] = Default::default();
             }
-            else if options.depth
+            else if func.2.depth
             {
                 re_or_im.1 = false;
                 d2_or_d3 = (false, true);
@@ -1617,7 +1614,7 @@ fn get_data(
         {
             d2_or_d3.1 = true;
             let d2;
-            (points3d, re_or_im, d2) = get_list_3d(func, options);
+            (points3d, re_or_im, d2) = get_list_3d(func.clone());
             if d2
             {
                 d2_or_d3 = (true, false);
@@ -1629,7 +1626,7 @@ fn get_data(
             }
             else if points3d[0][2].is_empty() && points3d[1][2].is_empty()
             {
-                fail(options, &colors);
+                fail(func.2, &colors);
                 return (
                     (false, false),
                     (false, false),
@@ -1639,14 +1636,14 @@ fn get_data(
                     Default::default(),
                 );
             }
-            if options.flat
+            if func.2.flat
             {
                 re_or_im.1 = false;
                 points3d[0][1] = points3d[0][2].clone();
                 points3d[0][2] = points3d[1][2].clone();
                 points3d[1] = Default::default();
             }
-            else if options.depth
+            else if func.2.depth
             {
                 re_or_im.1 = false;
                 points3d[0][0] = points3d[0][1].clone();

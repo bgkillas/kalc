@@ -14,12 +14,10 @@ mod tests;
 use crate::{
     complex::NumStr,
     graph::graph,
-    load_vars::{add_var, get_cli_vars, get_file_vars, get_vars},
+    load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
-    misc::{
-        clearln, convert, get_terminal_width, prompt, read_single_char, set_commands_or_vars, write,
-    },
-    options::{arg_opts, commands, file_opts},
+    misc::{clearln, convert, get_terminal_width, prompt, read_single_char, write},
+    options::{arg_opts, commands, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
     AngleType::Radians,
@@ -1134,49 +1132,51 @@ fn main()
                 .split('#')
                 .map(String::from)
                 .collect();
-            let unmod = inputs.clone();
-            let mut funcs = Vec::new();
             if inputs.len() < 7
             {
+                let unmod = inputs.clone();
+                let mut funcs = Vec::new();
+                let mut vars = vars.clone();
                 for i in &inputs
                 {
-                    //TODO
-                    // let mut unparsed = unmodified_input;
-                    // {
-                    //     let split = unmodified_input.split(|c| c == &';');
-                    //     let count = split.clone().count();
-                    //     if count != 1
-                    //     {
-                    //         unparsed = split.clone().last().unwrap();
-                    //         if unmodified_input.is_empty()
-                    //         {
-                    //             return (0, false, false, false);
-                    //         }
-                    //         for (i, s) in split.enumerate()
-                    //         {
-                    //             if i == count - 1
-                    //             {
-                    //                 break;
-                    //             }
-                    //             silent_commands(&mut options, s);
-                    //             set_commands_or_vars(
-                    //                 &mut colors,
-                    //                 &mut options,
-                    //                 None,
-                    //                 &mut vars,
-                    //                 true,
-                    //                 s,
-                    //             );
-                    //         }
-                    //     }
-                    // }
                     if i.is_empty()
                     {
                         continue;
                     }
+                    let mut options = options;
+                    let mut colors = colors.clone();
+                    let mut unparsed = i.as_str();
+                    {
+                        let split = i.split(|c| c == ';');
+                        let count = split.clone().count();
+                        if count != 1
+                        {
+                            unparsed = split.clone().last().unwrap();
+                            for (i, s) in split.enumerate()
+                            {
+                                if i == count - 1
+                                {
+                                    break;
+                                }
+                                let s = &s.chars().collect::<Vec<char>>();
+                                silent_commands(&mut options, s);
+                                if s.contains(&'=')
+                                {
+                                    set_commands_or_vars(
+                                        &mut colors,
+                                        &mut options,
+                                        None,
+                                        &mut vars,
+                                        true,
+                                        s,
+                                    );
+                                }
+                            }
+                        }
+                    }
                     funcs.push(
                         match input_var(
-                            i,
+                            unparsed,
                             vars.clone(),
                             &mut Vec::new(),
                             &mut 0,
@@ -1188,7 +1188,7 @@ fn main()
                             Vec::new(),
                         )
                         {
-                            Ok(f) => (f.0, f.1),
+                            Ok(f) => (f.0, f.1, options),
                             _ => continue 'main,
                         },
                     );
@@ -1201,7 +1201,7 @@ fn main()
                 {
                     None
                 };
-                handles.push(graph(inputs, unmod, funcs, options, watch, colors.clone()));
+                handles.push(graph(inputs, unmod, funcs, watch, colors.clone()));
             }
         }
     }

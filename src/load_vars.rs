@@ -678,16 +678,20 @@ pub fn add_var(
         }
     };
     vars.pop();
-    if l.contains(&'(')
+    if replace
     {
-        vars.insert(
-            i,
-            Variable {
-                name: l.clone(),
-                parsed,
-                unparsed: r.to_string(),
+        vars[i] = Variable {
+            name: l.clone(),
+            parsed: if l.contains(&'(')
+            {
+                parsed
+            }
+            else
+            {
+                vec![do_math(parsed, options, Vec::new()).unwrap_or(Num(Complex::new(options.prec)))]
             },
-        );
+            unparsed: r.to_string(),
+        };
     }
     else
     {
@@ -695,16 +699,18 @@ pub fn add_var(
             i,
             Variable {
                 name: l.clone(),
-                parsed: vec![
-                    do_math(parsed, options, Vec::new()).unwrap_or(Num(Complex::new(options.prec)))
-                ],
+                parsed: if l.contains(&'(')
+                {
+                    parsed
+                }
+                else
+                {
+                    vec![do_math(parsed, options, Vec::new())
+                        .unwrap_or(Num(Complex::new(options.prec)))]
+                },
                 unparsed: r.to_string(),
             },
-        );
-    }
-    if replace
-    {
-        vars.remove(i + 1);
+        )
     }
     if redef
     {

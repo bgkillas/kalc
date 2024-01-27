@@ -68,27 +68,28 @@ FLAGS: --help (this message)
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number
 
 - flags can be executed in runtime just without the dashes
-- Type "colors=" to see color settings
-- Type "exit" to exit the program
-- Type "clear" to clear the screen
-- Type "history [arg]" to see the history, arg indexes it if specified
-- Type "vars" to list all variables
-- Type "_" to use the previous answer
-- Type "a={expr}" to define a variable
-- Type "f(x)=..." to define a function
-- Type "f(x,y,z...)=..." to define a multi variable function
-- Type "...=" display parsed input, show values of stuff like xr/deci/prec etc
-- Type "f...=null" to delete a function or variable
-- Type "{x,y,z...}" to define a cartesian vector
-- Type "[radius,theta,phi]" to define a polar vector (same as car{vec})
-- Type "f(x)#g(x)" to graph multiple things
-- Type "{vec}#" to graph a vector
-- Type "{mat}#" to graph a matrix
-- Type "number#" to graph a complex number
-- Type "{x,y}" to graph a parametric equation, example: {cos(x),sin(x)} unit circle, {f(x)cos(x),f(x)sin(x)} for polar graph
-- Type "{x,y,z}" to graph a parametric equation in 3d, example: {cos(x),sin(x),x} helix, {sin(x)cos(y),sin(x)sin(y),cos(x)} sphere
-- Type "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
-- Type "rnd" to generate a random number
+- "colors=" to see color settings
+- "exit" to exit the program
+- "clear" to clear the screen
+- "history [arg]" to see the history, arg indexes it if specified
+- "vars" to list all variables
+- "option/var;function" to set a temporal option/var, example: "a=45;deg;sin(a)"=sqrt(2)/2
+- "_" to use the previous answer
+- "a={expr}" to define a variable
+- "f(x)=..." to define a function
+- "f(x,y,z...)=..." to define a multi variable function
+- "...=" display parsed input, show values of stuff like xr/deci/prec etc
+- "f...=null" to delete a function or variable
+- "{x,y,z...}" to define a cartesian vector
+- "[radius,theta,phi]" to define a polar vector (same as car{vec})
+- "f(x)#g(x)" to graph multiple things
+- "{vec}#" to graph a vector
+- "{mat}#" to graph a matrix
+- "number#" to graph a complex number
+- "{x,y}" to graph a parametric equation, example: {cos(x),sin(x)} unit circle, {f(x)cos(x),f(x)sin(x)} for polar graph
+- "{x,y,z}" to graph a parametric equation in 3d, example: {cos(x),sin(x),x} helix, {sin(x)cos(y),sin(x)sin(y),cos(x)} sphere
+- "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
+- "rnd" to generate a random number
 - Alt+Enter will not graph whatever is present
 
 Operators:

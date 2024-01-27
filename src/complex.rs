@@ -15,7 +15,6 @@ use std::{
     cmp::Ordering,
     ops::{Shl, Shr},
 };
-#[allow(clippy::type_complexity)]
 #[derive(Clone, PartialEq)]
 pub enum NumStr
 {

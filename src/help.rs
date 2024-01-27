@@ -39,27 +39,28 @@ pub fn help()
     --flat display 2d complex graphs like they are on the 2d number line\n\x1b[G\
     --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\n\x1b[G\n\x1b[G\
     - flags can be executed in runtime just without the dashes\n\x1b[G\
-    - Type \"colors=\" to see color settings\n\x1b[G\
-    - Type \"exit\" to exit the program\n\x1b[G\
-    - Type \"clear\" to clear the screen\n\x1b[G\
-    - Type \"history [arg]\" to see the history, arg indexes it if specified\n\x1b[G\
-    - Type \"vars\" to list all variables\n\x1b[G\
-    - Type \"_\" to use the previous answer\n\x1b[G\
-    - Type \"a={{expr}}\" to define a variable\n\x1b[G\
-    - Type \"f(x)=...\" to define a function\n\x1b[G\
-    - Type \"f(x,y,z...)=...\" to define a multi variable function\n\x1b[G\
-    - Type \"...=\" display parsed input, show values of stuff like xr/deci/prec etc\n\x1b[G\
-    - Type \"f...=null\" to delete a function or variable\n\x1b[G\
-    - Type \"{{x,y,z...}}\" to define a cartesian vector\n\x1b[G\
-    - Type \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\x1b[G\
-    - Type \"f(x)#g(x)\" to graph multiple things\n\x1b[G\
-    - Type \"{{vec}}#\" to graph a vector\n\x1b[G\
-    - Type \"{{mat}}#\" to graph a matrix\n\x1b[G\
-    - Type \"number#\" to graph a complex number\n\x1b[G\
-    - Type \"{{x,y}}\" to graph a parametric equation, example: {{cos(x),sin(x)}} unit circle, {{f(x)cos(x),f(x)sin(x)}} for polar graph\n\x1b[G\
-    - Type \"{{x,y,z}}\" to graph a parametric equation in 3d, example: {{cos(x),sin(x),x}} helix, {{sin(x)cos(y),sin(x)sin(y),cos(x)}} sphere\n\x1b[G\
-    - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\x1b[G\
-    - Type \"rnd\" to generate a random number\n\x1b[G\
+    - \"colors=\" to see color settings\n\x1b[G\
+    - \"exit\" to exit the program\n\x1b[G\
+    - \"clear\" to clear the screen\n\x1b[G\
+    - \"history [arg]\" to see the history, arg indexes it if specified\n\x1b[G\
+    - \"vars\" to list all variables\n\x1b[G\
+    - \"option/var;function\" to set a temporal option/var, example: \"a=45;deg;sin(a)\"=sqrt(2)/2\n\x1b[G\
+    - \"_\" to use the previous answer\n\x1b[G\
+    - \"a={{expr}}\" to define a variable\n\x1b[G\
+    - \"f(x)=...\" to define a function\n\x1b[G\
+    - \"f(x,y,z...)=...\" to define a multi variable function\n\x1b[G\
+    - \"...=\" display parsed input, show values of stuff like xr/deci/prec etc\n\x1b[G\
+    - \"f...=null\" to delete a function or variable\n\x1b[G\
+    - \"{{x,y,z...}}\" to define a cartesian vector\n\x1b[G\
+    - \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\n\x1b[G\
+    - \"f(x)#g(x)\" to graph multiple things\n\x1b[G\
+    - \"{{vec}}#\" to graph a vector\n\x1b[G\
+    - \"{{mat}}#\" to graph a matrix\n\x1b[G\
+    - \"number#\" to graph a complex number\n\x1b[G\
+    - \"{{x,y}}\" to graph a parametric equation, example: {{cos(x),sin(x)}} unit circle, {{f(x)cos(x),f(x)sin(x)}} for polar graph\n\x1b[G\
+    - \"{{x,y,z}}\" to graph a parametric equation in 3d, example: {{cos(x),sin(x),x}} helix, {{sin(x)cos(y),sin(x)sin(y),cos(x)}} sphere\n\x1b[G\
+    - \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\x1b[G\
+    - \"rnd\" to generate a random number\n\x1b[G\
     - Alt+Enter will not graph whatever is present\n\n\x1b[G\
     Operators:\n\x1b[G\
     - +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-\n\x1b[G\

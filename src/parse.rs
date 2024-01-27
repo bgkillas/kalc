@@ -1760,7 +1760,6 @@ pub fn input_var(
     }
     Ok((output, funcvars, graph, false))
 }
-#[allow(clippy::type_complexity)]
 fn place_multiplier(
     output: &mut Vec<NumStr>,
     sumrec: &[(isize, String)],

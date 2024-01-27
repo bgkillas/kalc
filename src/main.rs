@@ -16,8 +16,10 @@ use crate::{
     graph::graph,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars},
     math::do_math,
-    misc::{clearln, convert, get_terminal_width, prompt, read_single_char, write},
-    options::{arg_opts, commands, file_opts, set_commands},
+    misc::{
+        clearln, convert, get_terminal_width, prompt, read_single_char, set_commands_or_vars, write,
+    },
+    options::{arg_opts, commands, file_opts},
     parse::input_var,
     print::{print_answer, print_concurrent},
     AngleType::Radians,
@@ -251,7 +253,6 @@ fn main()
     {
         get_cli_vars(options, args.concat(), &mut vars)
     }
-    let mut old = vars.clone();
     {
         if options.allow_vars
         {
@@ -461,7 +462,7 @@ fn main()
                             (frac, graphable, _, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                &vars.clone(),
+                                &vars,
                                 options,
                                 &colors,
                                 start,
@@ -1116,112 +1117,14 @@ fn main()
         }
         if varcheck
         {
-            let n = input.iter().collect::<String>();
-            let mut split = n.splitn(2, '=');
-            let s = split.next().unwrap().replace(' ', "");
-            let l = s;
-            let r = split.next().unwrap();
-            if l.is_empty()
-                || l.chars()
-                    .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ',' | '\'' | '`'))
-                || match set_commands(&mut options, &mut colors, &mut vars, &mut old, &l, r)
-                {
-                    Err(s) =>
-                    {
-                        if !s.is_empty()
-                        {
-                            if s == " "
-                            {
-                                print!(
-                                    "\x1b[G\x1b[Kempty input\n\x1b[G\x1b[K{}{}",
-                                    prompt(options, &colors),
-                                    if options.color { "\x1b[0m" } else { "" },
-                                );
-                                stdout.flush().unwrap()
-                            }
-                            else
-                            {
-                                print!(
-                                    "\x1b[G\x1b[K{}\n\x1b[G\x1b[K{}{}",
-                                    s,
-                                    prompt(options, &colors),
-                                    if options.color { "\x1b[0m" } else { "" },
-                                );
-                                stdout.flush().unwrap()
-                            }
-                        }
-                        true
-                    }
-                    _ => false,
-                }
-            {
-                if !cli
-                {
-                    print!(
-                        "{}{}",
-                        prompt(options, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    stdout.flush().unwrap()
-                }
-                continue;
-            }
-            let l = l.chars().collect::<Vec<char>>();
-            for (i, v) in vars.iter().enumerate()
-            {
-                if v.name.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
-                    && v.name.contains(&'(') == l.contains(&'(')
-                    && v.name.iter().filter(|c| c == &&',').count()
-                        == l.iter().filter(|c| c == &&',').count()
-                {
-                    if r == "null"
-                    {
-                        vars.remove(i);
-                    }
-                    else
-                    {
-                        add_var(l, r, i, &mut vars, options, true, true);
-                    }
-                    if !cli
-                    {
-                        print!(
-                            "{}{}",
-                            prompt(options, &colors),
-                            if options.color { "\x1b[0m" } else { "" }
-                        );
-                        stdout.flush().unwrap();
-                    }
-                    continue 'main;
-                }
-            }
-            for (i, j) in vars.iter().enumerate()
-            {
-                if j.name.len() <= l.len()
-                {
-                    add_var(l, r, i, &mut vars, options, true, false);
-                    if !cli
-                    {
-                        print!(
-                            "{}{}",
-                            prompt(options, &colors),
-                            if options.color { "\x1b[0m" } else { "" }
-                        );
-                        stdout.flush().unwrap();
-                    }
-                    continue 'main;
-                }
-            }
-            add_var(l, r, 0, &mut vars, options, true, false);
-            if !cli
-            {
-                print!(
-                    "{}{}",
-                    prompt(options, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
-                );
-                stdout.flush().unwrap();
-            }
-            continue;
+            set_commands_or_vars(
+                &mut colors,
+                &mut options,
+                Some(&mut stdout),
+                &mut vars,
+                cli,
+                &input,
+            );
         }
         else if options.graph && graphable
         {
@@ -1237,6 +1140,36 @@ fn main()
             {
                 for i in &inputs
                 {
+                    //TODO
+                    // let mut unparsed = unmodified_input;
+                    // {
+                    //     let split = unmodified_input.split(|c| c == &';');
+                    //     let count = split.clone().count();
+                    //     if count != 1
+                    //     {
+                    //         unparsed = split.clone().last().unwrap();
+                    //         if unmodified_input.is_empty()
+                    //         {
+                    //             return (0, false, false, false);
+                    //         }
+                    //         for (i, s) in split.enumerate()
+                    //         {
+                    //             if i == count - 1
+                    //             {
+                    //                 break;
+                    //             }
+                    //             silent_commands(&mut options, s);
+                    //             set_commands_or_vars(
+                    //                 &mut colors,
+                    //                 &mut options,
+                    //                 None,
+                    //                 &mut vars,
+                    //                 true,
+                    //                 s,
+                    //             );
+                    //         }
+                    //     }
+                    // }
                     if i.is_empty()
                     {
                         continue;

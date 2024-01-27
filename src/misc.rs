@@ -1,8 +1,13 @@
-use crate::{functions::functions, Colors, Options};
+use crate::{
+    functions::functions, load_vars::add_var, options::set_commands, Colors, Options, Variable,
+};
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
-use std::{fs::File, io::Write};
+use std::{
+    fs::File,
+    io::{Stdout, Write},
+};
 #[cfg(not(unix))]
 use term_size::dimensions;
 #[cfg(unix)]
@@ -248,15 +253,6 @@ pub fn clearln(input: &[char], start: usize, end: usize, options: Options, color
         if options.color { "\x1b[0m" } else { "" }
     );
 }
-pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
-{
-    print!(
-        "\x1b[G\x1b[J{}{}{}",
-        prompt(options, colors),
-        to_output(&input[start..end], options.color, colors),
-        if options.color { "\x1b[0m" } else { "" }
-    );
-}
 pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
 {
     if color
@@ -381,5 +377,145 @@ pub fn prompt(options: Options, colors: &Colors) -> String
     else
     {
         String::new()
+    }
+}
+pub fn set_commands_or_vars(
+    colors: &mut Colors,
+    options: &mut Options,
+    stdout: Option<&mut Stdout>,
+    vars: &mut Vec<Variable>,
+    cli: bool,
+    input: &[char],
+)
+{
+    let n = input.iter().collect::<String>();
+    let mut split = n.splitn(2, '=');
+    let s = split.next().unwrap().replace(' ', "");
+    let l = s;
+    let r = split.next().unwrap();
+    if l.is_empty()
+        || l.chars()
+            .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ',' | '\'' | '`'))
+        || match set_commands(options, colors, vars, &l, r)
+        {
+            Err(s) =>
+            {
+                if !s.is_empty()
+                {
+                    if let Some(stdout) = stdout
+                    {
+                        if s == " "
+                        {
+                            print!(
+                                "\x1b[G\x1b[Kempty input\n\x1b[G\x1b[K{}{}",
+                                prompt(*options, colors),
+                                if options.color { "\x1b[0m" } else { "" },
+                            );
+                            stdout.flush().unwrap()
+                        }
+                        else
+                        {
+                            print!(
+                                "\x1b[G\x1b[K{}\n\x1b[G\x1b[K{}{}",
+                                s,
+                                prompt(*options, colors),
+                                if options.color { "\x1b[0m" } else { "" },
+                            );
+                            stdout.flush().unwrap()
+                        }
+                        if !cli
+                        {
+                            print!(
+                                "{}{}",
+                                prompt(*options, colors),
+                                if options.color { "\x1b[0m" } else { "" }
+                            );
+                            stdout.flush().unwrap()
+                        }
+                        return;
+                    }
+                }
+                true
+            }
+            _ => false,
+        }
+    {
+        if let Some(stdout) = stdout
+        {
+            if !cli
+            {
+                print!(
+                    "{}{}",
+                    prompt(*options, colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                stdout.flush().unwrap()
+            }
+        }
+        return;
+    }
+    let l = l.chars().collect::<Vec<char>>();
+    for (i, v) in vars.iter().enumerate()
+    {
+        if v.name.split(|c| c == &'(').next() == l.split(|c| c == &'(').next()
+            && v.name.contains(&'(') == l.contains(&'(')
+            && v.name.iter().filter(|c| c == &&',').count()
+                == l.iter().filter(|c| c == &&',').count()
+        {
+            if r == "null"
+            {
+                vars.remove(i);
+            }
+            else
+            {
+                add_var(l, r, i, vars, *options, true, true);
+            }
+            if let Some(stdout) = stdout
+            {
+                if !cli
+                {
+                    print!(
+                        "{}{}",
+                        prompt(*options, colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    stdout.flush().unwrap();
+                }
+            }
+            return;
+        }
+    }
+    for (i, j) in vars.iter().enumerate()
+    {
+        if j.name.len() <= l.len()
+        {
+            add_var(l, r, i, vars, *options, true, false);
+            if let Some(stdout) = stdout
+            {
+                if !cli
+                {
+                    print!(
+                        "{}{}",
+                        prompt(*options, colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    stdout.flush().unwrap();
+                }
+            }
+            return;
+        }
+    }
+    add_var(l, r, 0, vars, *options, true, false);
+    if let Some(stdout) = stdout
+    {
+        if !cli
+        {
+            print!(
+                "{}{}",
+                prompt(*options, colors),
+                if options.color { "\x1b[0m" } else { "" }
+            );
+            stdout.flush().unwrap();
+        }
     }
 }

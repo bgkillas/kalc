@@ -6,8 +6,10 @@ use crate::{
     fraction::fraction,
     get_terminal_width,
     math::do_math,
-    misc::{clear, get_terminal_height, handle_err, no_col, prompt, to_output},
-    options::{equal_to, parsed_to_string},
+    misc::{
+        clearln, get_terminal_height, handle_err, no_col, prompt, set_commands_or_vars, to_output,
+    },
+    options::{equal_to, parsed_to_string, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Colors, Options, Variable,
@@ -19,20 +21,48 @@ pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
     vars: &[Variable],
-    options: Options,
+    mut options: Options,
     colors: &Colors,
     start: usize,
     end: usize,
     long_output: bool,
 ) -> (usize, bool, bool, bool)
 {
+    let mut vars = vars.to_vec();
+    let mut colors = colors.clone();
     if unmodified_input.starts_with(&['#'])
     {
-        clear(unmodified_input, start, end, options, colors);
+        print!("\x1b[J");
+        clearln(unmodified_input, start, end, options, &colors);
         return (0, false, false, false);
     }
+    let mut unparsed = unmodified_input;
+    {
+        let split = unmodified_input.split(|c| c == &';');
+        let count = split.clone().count();
+        if count != 1
+        {
+            unparsed = split.clone().last().unwrap();
+            if unmodified_input.is_empty()
+            {
+                return (0, false, false, false);
+            }
+            for (i, s) in split.enumerate()
+            {
+                if i == count - 1
+                {
+                    break;
+                }
+                silent_commands(&mut options, s);
+                if s.contains(&'=')
+                {
+                    set_commands_or_vars(&mut colors, &mut options, None, &mut vars, true, s);
+                }
+            }
+        }
+    }
     let input = match input_var(
-        &unmodified_input
+        &unparsed
             .iter()
             .collect::<String>()
             .replace('_', &format!("({})", last.iter().collect::<String>())),
@@ -50,7 +80,7 @@ pub fn print_concurrent(
         Ok(f) => f,
         Err(s) =>
         {
-            handle_err(s, unmodified_input, options, colors, start, end);
+            handle_err(s, unmodified_input, options, &colors, start, end);
             return (0, false, false, false);
         }
     };
@@ -60,8 +90,8 @@ pub fn print_concurrent(
         {
             let out = equal_to(
                 options,
-                colors,
-                vars,
+                &colors,
+                &vars,
                 &tempinput[..tempinput.len() - 1],
                 &last.iter().collect::<String>(),
             );
@@ -84,8 +114,8 @@ pub fn print_concurrent(
                     {
                         print!(
                             "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                            prompt(options, colors),
-                            to_output(&unmodified_input[start..end], options.color, colors),
+                            prompt(options, &colors),
+                            to_output(&unmodified_input[start..end], options.color, &colors),
                             if options.color { "\x1b[0m" } else { "" },
                         );
                         (0, false, true, false)
@@ -97,8 +127,8 @@ pub fn print_concurrent(
                         "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                         out,
                         "\x1b[A".repeat(wrap),
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
                     (wrap, false, false, false)
@@ -106,15 +136,15 @@ pub fn print_concurrent(
             }
             else
             {
-                clear(unmodified_input, start, end, options, colors);
+                clearln(unmodified_input, start, end, options, &colors);
                 (0, false, false, false)
             };
         }
         else if input.3
         {
-            let n = unmodified_input.iter().position(|c| c == &'=').unwrap();
-            let input = unmodified_input[n..].iter().collect::<String>();
-            let mut func = unmodified_input[..n].to_vec();
+            let n = unparsed.iter().position(|c| c == &'=').unwrap();
+            let input = unparsed[n..].iter().collect::<String>();
+            let mut func = unparsed[..n].to_vec();
             let mut func_vars: Vec<(isize, String)> = Vec::new();
             if func.contains(&'(')
             {
@@ -138,12 +168,12 @@ pub fn print_concurrent(
                 Vec::new(),
             )
             {
-                Ok(n) => parsed_to_string(&n.0, &options, colors),
+                Ok(n) => parsed_to_string(&n.0, &options, &colors),
                 _ => String::new(),
             };
             if out.is_empty()
             {
-                clear(unmodified_input, start, end, options, colors);
+                clearln(unmodified_input, start, end, options, &colors);
                 return (0, false, false, true);
             }
             let len = no_col(&out, options.color).len();
@@ -163,8 +193,8 @@ pub fn print_concurrent(
                 {
                     print!(
                         "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
                     (0, true, true, true)
@@ -176,8 +206,8 @@ pub fn print_concurrent(
                     "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
                     "\x1b[A".repeat(wrap),
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
                 (wrap, true, false, true)
@@ -196,8 +226,8 @@ pub fn print_concurrent(
                 {
                     print!(
                         "\n\x1b[G\x1b[Jtoo many graphs\x1b[A\x1b[G\x1b[K{}{}{}",
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
                     return (1, true, false, false);
@@ -208,8 +238,8 @@ pub fn print_concurrent(
                     {
                         out += &equal_to(
                             options,
-                            colors,
-                            vars,
+                            &colors,
+                            &vars,
                             input,
                             &last.iter().collect::<String>(),
                         );
@@ -249,8 +279,8 @@ pub fn print_concurrent(
                 {
                     print!(
                         "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
                     (0, true, true, false)
@@ -262,8 +292,8 @@ pub fn print_concurrent(
                     "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
                     "\x1b[A".repeat(wrap),
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
                 (wrap, true, false, false)
@@ -274,8 +304,8 @@ pub fn print_concurrent(
             let input = unmodified_input.iter().collect::<String>();
             let out = equal_to(
                 options,
-                colors,
-                vars,
+                &colors,
+                &vars,
                 &input,
                 &last.iter().collect::<String>(),
             );
@@ -296,8 +326,8 @@ pub fn print_concurrent(
                 {
                     print!(
                         "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                        prompt(options, colors),
-                        to_output(&unmodified_input[start..end], options.color, colors),
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
                     (0, true, true, false)
@@ -309,8 +339,8 @@ pub fn print_concurrent(
                     "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
                     "\x1b[A".repeat(wrap),
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
                 (wrap, true, false, false)
@@ -322,7 +352,7 @@ pub fn print_concurrent(
         Ok(n) => n,
         Err(s) =>
         {
-            handle_err(s, unmodified_input, options, colors, start, end);
+            handle_err(s, unmodified_input, options, &colors, start, end);
             return (0, false, false, false);
         }
     };
@@ -330,7 +360,7 @@ pub fn print_concurrent(
     let mut long = false;
     if let Num(n) = num
     {
-        let output = get_output(options, colors, &n);
+        let output = get_output(options, &colors, &n);
         let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
         {
             let fa = fraction(n.real().clone(), options);
@@ -367,7 +397,7 @@ pub fn print_concurrent(
                             sign + fb.as_str()
                                 + &if options.color
                                 {
-                                    format!("{}i\x1b[0m", colors.imag)
+                                    format!("{}i\x1b[0m", &colors.imag)
                                 }
                                 else
                                 {
@@ -419,7 +449,7 @@ pub fn print_concurrent(
                             sign + fb.as_str()
                                 + &if options.color
                                 {
-                                    format!("{}i\x1b[0m", colors.imag)
+                                    format!("{}i\x1b[0m", &colors.imag)
                                 }
                                 else
                                 {
@@ -503,8 +533,8 @@ pub fn print_concurrent(
                         String::new()
                     },
                     if frac == 1 { "\x1b[A" } else { "" },
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" },
                 );
                 long = true;
@@ -543,8 +573,8 @@ pub fn print_concurrent(
                 },
                 &output.1.replace('+', ""),
                 "\x1b[A".repeat(num + frac - if len1 == 0 || len2 == 0 { 1 } else { 0 }),
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
+                prompt(options, &colors),
+                to_output(&unmodified_input[start..end], options.color, &colors),
                 if options.color { "\x1b[0m" } else { "" },
             );
             frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
@@ -564,8 +594,8 @@ pub fn print_concurrent(
                 output.0,
                 output.1,
                 if frac == 1 { "\x1b[A" } else { "" },
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
+                prompt(options, &colors),
+                to_output(&unmodified_input[start..end], options.color, &colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
         }
@@ -596,7 +626,7 @@ pub fn print_concurrent(
         let mut frac_temp;
         for (k, i) in v.iter().enumerate()
         {
-            out = get_output(options, colors, i);
+            out = get_output(options, &colors, i);
             if options.frac || options.frac_iter == 0
             {
                 frac_temp = fraction(i.real().clone(), options);
@@ -626,7 +656,7 @@ pub fn print_concurrent(
                         {
                             if options.color
                             {
-                                format!("{}i", colors.imag)
+                                format!("{}i", &colors.imag)
                             }
                             else
                             {
@@ -698,8 +728,8 @@ pub fn print_concurrent(
             {
                 print!(
                     "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" },
                 );
                 long = true;
@@ -729,8 +759,8 @@ pub fn print_concurrent(
                 {
                     ""
                 },
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
+                prompt(options, &colors),
+                to_output(&unmodified_input[start..end], options.color, &colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
             frac += num;
@@ -752,7 +782,7 @@ pub fn print_concurrent(
             }
             for (k, i) in j.iter().enumerate()
             {
-                out = get_output(options, colors, i);
+                out = get_output(options, &colors, i);
                 if options.frac || options.frac_iter == 0
                 {
                     frac_temp = fraction(i.real().clone(), options);
@@ -784,7 +814,7 @@ pub fn print_concurrent(
                             {
                                 if options.color
                                 {
-                                    format!("{}i", colors.imag)
+                                    format!("{}i", &colors.imag)
                                 }
                                 else
                                 {
@@ -924,8 +954,8 @@ pub fn print_concurrent(
             {
                 print!(
                     "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
-                    prompt(options, colors),
-                    to_output(&unmodified_input[start..end], options.color, colors),
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" },
                 );
                 long = true;
@@ -959,8 +989,8 @@ pub fn print_concurrent(
                 {
                     ""
                 },
-                prompt(options, colors),
-                to_output(&unmodified_input[start..end], options.color, colors),
+                prompt(options, &colors),
+                to_output(&unmodified_input[start..end], options.color, &colors),
                 if options.color { "\x1b[0m" } else { "" }
             );
             frac += num;
@@ -972,7 +1002,7 @@ pub fn print_concurrent(
     }
     else
     {
-        handle_err("str err", unmodified_input, options, colors, start, end);
+        handle_err("str err", unmodified_input, options, &colors, start, end);
     }
     (frac, false, long, false)
 }
@@ -1152,7 +1182,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     n.trim_end_matches('0').trim_end_matches('.').to_string()
                 } + &if options.color
                 {
-                    format!("{}i", colors.imag)
+                    format!("{}i", &colors.imag)
                 }
                 else
                 {
@@ -1202,7 +1232,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     {
                         if options.color
                         {
-                            format!("{}e", colors.sci)
+                            format!("{}e", &colors.sci)
                         }
                         else
                         {
@@ -1211,7 +1241,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     }
                     else if options.color
                     {
-                        format!("{}E", colors.sci)
+                        format!("{}E", &colors.sci)
                     }
                     else
                     {
@@ -1247,7 +1277,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     {
                         if options.color
                         {
-                            format!("{}e", colors.sci)
+                            format!("{}e", &colors.sci)
                         }
                         else
                         {
@@ -1256,7 +1286,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     }
                     else if options.color
                     {
-                        format!("{}E", colors.sci)
+                        format!("{}E", &colors.sci)
                     }
                     else
                     {
@@ -1264,7 +1294,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                     },
                 ) + &if options.color
                 {
-                    format!("{}i", colors.imag)
+                    format!("{}i", &colors.imag)
                 }
                 else
                 {
@@ -1318,7 +1348,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                 sign + &im
                     + &if options.color
                     {
-                        format!("{}i", colors.imag)
+                        format!("{}i", &colors.imag)
                     }
                     else
                     {

@@ -1020,7 +1020,6 @@ pub fn set_commands(
     options: &mut Options,
     colors: &mut Colors,
     vars: &mut [Variable],
-    old: &mut Vec<Variable>,
     l: &str,
     r: &str,
 ) -> Result<(), &'static str>
@@ -1200,17 +1199,16 @@ pub fn set_commands(
                 if !vars.is_empty()
                 {
                     let v = get_vars(*options);
-                    for i in old.clone().iter().zip(&v)
+                    for var in vars.iter_mut()
                     {
-                        for var in vars.iter_mut()
+                        for i in &v
                         {
-                            if i.0.name == var.name && i.0.parsed == var.parsed
+                            if i.name == var.name && i.unparsed == var.unparsed
                             {
-                                *var = i.1.clone();
+                                *var = i.clone();
                             }
                         }
                     }
-                    *old = v;
                     let mut redef = Vec::new();
                     for (i, var) in vars.to_vec().iter().enumerate()
                     {
@@ -1768,6 +1766,34 @@ pub fn set_commands(
         _ => return Ok(()),
     }
     Err("")
+}
+pub fn silent_commands(options: &mut Options, input: &[char])
+{
+    match input.iter().collect::<String>().as_str()
+    {
+        "default" | "defaults" | "reset" => *options = Options::default(),
+        "color" => options.color = !options.color,
+        "prompt" => options.prompt = !options.prompt,
+        "depth" => options.depth = !options.depth,
+        "flat" => options.flat = !options.flat,
+        "deg" => options.deg = Degrees,
+        "rad" => options.deg = Radians,
+        "grad" => options.deg = Gradians,
+        "rt" => options.real_time_output = !options.real_time_output,
+        "tau" => options.tau = true,
+        "pi" => options.tau = false,
+        "small_e" => options.small_e = !options.small_e,
+        "sci" | "scientific" => options.sci = !options.sci,
+        "line" | "lines" => options.lines = !options.lines,
+        "polar" => options.polar = !options.polar,
+        "frac" => options.frac = !options.frac,
+        "multi" => options.multi = !options.multi,
+        "tabbed" => options.tabbed = !options.tabbed,
+        "comma" => options.comma = !options.comma,
+        "graph" => options.graph = !options.graph,
+        _ =>
+        {}
+    }
 }
 #[allow(clippy::too_many_arguments)]
 pub fn commands(

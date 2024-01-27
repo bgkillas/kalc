@@ -21,7 +21,6 @@ use std::{
     fs::File,
     io,
     io::{BufRead, BufReader, Stdout, Write},
-    time::Instant,
 };
 pub fn arg_opts(
     options: &mut Options,
@@ -394,6 +393,14 @@ pub fn file_opts(
             split = line.split('=');
             match split.next().unwrap()
             {
+                "slowcheck" =>
+                {
+                    options.slowcheck = split
+                        .next()
+                        .unwrap()
+                        .parse::<u128>()
+                        .expect("invalid slowcheck")
+                }
                 "frac_iter" =>
                 {
                     options.frac_iter = split
@@ -1777,7 +1784,6 @@ pub fn set_commands(
 pub fn commands(
     options: &mut Options,
     colors: &Colors,
-    watch: &mut Option<Instant>,
     vars: &mut [(Vec<char>, Vec<NumStr>, NumStr, String)],
     lines: &[String],
     input: &[char],
@@ -1865,7 +1871,6 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             options.debug = !options.debug;
-            *watch = None;
         }
         "help" =>
         {

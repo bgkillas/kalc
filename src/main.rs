@@ -16,7 +16,7 @@ use crate::{
     graph::graph,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars},
     math::do_math,
-    misc::{clear, clearln, convert, get_terminal_width, prompt, read_single_char, write},
+    misc::{clearln, convert, get_terminal_width, prompt, read_single_char, write},
     options::{arg_opts, commands, file_opts, set_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
@@ -130,6 +130,7 @@ pub struct Options
     depth: bool,
     flat: bool,
     graph: bool,
+    slowcheck: u128,
 }
 impl Default for Options
 {
@@ -166,6 +167,7 @@ impl Default for Options
             depth: false,
             flat: false,
             graph: true,
+            slowcheck: 250,
         }
     }
 }
@@ -348,7 +350,6 @@ fn main()
         options.color = !options.color;
         (None, None)
     };
-    let mut watch = None;
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
     let cli = !args.is_empty();
@@ -359,10 +360,14 @@ fn main()
         let mut varcheck = false;
         if !args.is_empty()
         {
-            if options.debug
+            let watch = if options.debug
             {
-                watch = Some(Instant::now());
+                Some(Instant::now())
             }
+            else
+            {
+                None
+            };
             input = args.remove(0).chars().collect();
             let output;
             (output, _, graphable, varcheck) = match input_var(
@@ -427,13 +432,11 @@ fn main()
             };
             let mut start = 0;
             let mut end = 0;
+            let mut slow = false;
             loop
             {
                 let c = read_single_char();
-                if options.debug
-                {
-                    watch = Some(Instant::now());
-                }
+                let watch = Instant::now();
                 match c
                 {
                     '\n' | '\x14' | '\x09' =>
@@ -443,7 +446,10 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if ((!options.real_time_output && c != '\x14') || long) && !input.is_empty()
+                        if ((!options.real_time_output && c != '\x14')
+                            || (long && !slow)
+                            || (slow && c != '\x14'))
+                            && !input.is_empty()
                         {
                             (frac, graphable, _, varcheck) = print_concurrent(
                                 &input,
@@ -509,19 +515,27 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
-                        if let Some(time) = watch
+                        if options.debug
                         {
-                            let time = time.elapsed().as_nanos();
+                            let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}{}",
                                 time,
@@ -559,19 +573,27 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
-                        if let Some(time) = watch
+                        if options.debug
                         {
-                            let time = time.elapsed().as_nanos();
+                            let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}{}",
                                 time,
@@ -600,15 +622,23 @@ fn main()
                             input.len()
                                 - (get_terminal_width() - if options.prompt { 3 } else { 1 })
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                     }
                     '\x18' =>
@@ -617,15 +647,23 @@ fn main()
                         cut = input.drain(..placement).collect();
                         end -= placement;
                         placement = 0;
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -634,15 +672,23 @@ fn main()
                         //ctrl+k
                         cut = input.drain(placement..).collect();
                         end = input.len();
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -653,15 +699,23 @@ fn main()
                         end += cut.len();
                         cut.extend(input.drain(placement..));
                         input.extend(cut);
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -672,15 +726,23 @@ fn main()
                         {
                             let char = input.remove(placement);
                             input.insert(placement + 1, char);
-                            if options.real_time_output
+                            if options.real_time_output && !slow
                             {
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input, &last, &vars, options, &colors, start, end, false,
-                                )
+                                );
+                                if watch.elapsed().as_millis() > options.slowcheck
+                                {
+                                    slow = true;
+                                    print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                                }
                             }
                             else
                             {
-                                clear(&input, start, end, options, &colors);
+                                clearln(&input, start, end, options, &colors);
                             }
                             print!("{}", "\x08".repeat(end - start - (placement - start)));
                         }
@@ -688,15 +750,23 @@ fn main()
                     '\x15' =>
                     {
                         //ctrl+l
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -714,15 +784,23 @@ fn main()
                         {
                             get_terminal_width() - if options.prompt { 3 } else { 1 }
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
@@ -747,11 +825,19 @@ fn main()
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            slow = watch.elapsed().as_millis() > options.slowcheck;
+                            if slow
+                            {
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                     }
                     '\x1E' =>
@@ -783,11 +869,19 @@ fn main()
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            slow = watch.elapsed().as_millis() > options.slowcheck;
+                            if slow
+                            {
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
                     }
                     '\x1B' =>
@@ -864,11 +958,11 @@ fn main()
                             else if placement == s
                             {
                                 placement = 0;
-                                print!("{}", "\x08".repeat(s));
+                                print!("\x1b[{}D", s);
                             }
                             else
                             {
-                                print!("{}", "\x08".repeat(s - placement));
+                                print!("\x1b[{}D", s - placement);
                             }
                         }
                     }
@@ -903,11 +997,11 @@ fn main()
                             else if placement == s
                             {
                                 placement = input.len();
-                                print!("{}", "\x1b[C".repeat(input.len() - s));
+                                print!("\x1b[{}C", input.len() - s);
                             }
                             else
                             {
-                                print!("{}", "\x1b[C".repeat(placement - s));
+                                print!("\x1b[{}C", placement - s);
                             }
                         }
                     }
@@ -938,19 +1032,27 @@ fn main()
                         {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input, &last, &vars, options, &colors, start, end, false,
-                            )
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                slow = true;
+                                print!(
+                                    "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                    input.len()+if options.prompt{2}else{0}
+                                );
+                            }
                         }
                         else
                         {
-                            clear(&input, start, end, options, &colors);
+                            clearln(&input, start, end, options, &colors);
                         }
-                        if let Some(time) = watch
+                        if options.debug
                         {
-                            let time = time.elapsed().as_nanos();
+                            let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}{}",
                                 time,
@@ -970,7 +1072,6 @@ fn main()
             commands(
                 &mut options,
                 &colors,
-                &mut watch,
                 &mut vars,
                 &lines,
                 &input,
@@ -1152,6 +1253,14 @@ fn main()
                         },
                     );
                 }
+                let watch = if options.debug
+                {
+                    Some(Instant::now())
+                }
+                else
+                {
+                    None
+                };
                 handles.push(graph(inputs, unmod, funcs, options, watch, colors.clone()));
             }
         }

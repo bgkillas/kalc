@@ -60,12 +60,12 @@ pub fn help()
     - Type \"{{x,y,z}}\" to graph a parametric equation in 3d, example: {{cos(x),sin(x),x}} helix, {{sin(x)cos(y),sin(x)sin(y),cos(x)}} sphere\n\x1b[G\
     - Type \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\n\x1b[G\
     - Type \"rnd\" to generate a random number\n\x1b[G\
-    - Alt+Enter will not graph whatever is present\n\x1b[G\n\x1b[G\
+    - Alt+Enter will not graph whatever is present\n\n\x1b[G\
     Operators:\n\x1b[G\
     - +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-\n\x1b[G\
     - !x (subfact), x! (fact), x!! (doublefact)\n\x1b[G\
     - && (and), || (or), == (equals), != (not equals)\n\x1b[G\
-    - >> (right shift), << (left shift)\n\x1b[G\n\x1b[G\
+    - >> (right shift), << (left shift)\n\n\x1b[G\
     Functions:\n\x1b[G\
     - sin, cos, tan, asin, acos, atan, atan(x,y)\n\x1b[G\
     - csc, sec, cot, acsc, asec, acot\n\x1b[G\
@@ -87,7 +87,7 @@ pub fn help()
     - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\n\x1b[G\
     - variance/var, standarddeviation/σ (sample-bias corrected)\n\x1b[G\
     - percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\n\x1b[G\
-    - normP(μ,σ,x) (normal distribution) normD(z) (area under curve to the left of z score)\n\x1b[G\n\x1b[G\
+    - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)\n\n\x1b[G\
     Vector operations/functions:\n\x1b[G\
     - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
     - angle({{vec1}},{{vec2}})\n\x1b[G\
@@ -109,7 +109,7 @@ pub fn help()
     - max, min, mean, mode\n\x1b[G\
     - I(n) produces n identity matrix\n\x1b[G\
     - rotate(theta) produces a rotational matrix\n\x1b[G\
-    - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\x1b[G\n\x1b[G\
+    - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\n\x1b[G\
     Constants:\n\x1b[G\
     - c: speed of light, 299792458 m/s\n\x1b[G\
     - g: gravity, 9.80665 m/s^2\n\x1b[G\

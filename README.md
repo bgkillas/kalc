@@ -118,7 +118,7 @@ Functions:
 - tofreq{a,b,c...}, tolist{{a,b},{c,d}...} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)
 - variance/var, standarddeviation/σ (sample-bias corrected)
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
-- normP(μ,σ,x) (normal distribution) normD(z) (area under curve to the left of z score)
+- normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})

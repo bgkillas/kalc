@@ -45,7 +45,11 @@ pub fn arg_opts(
         }
         match args[i].as_str()
         {
-            "--" => break,
+            "--" =>
+            {
+                args.remove(i);
+                break;
+            }
             "--debug" => options.debug = !options.debug,
             "--depth" => options.depth = !options.depth,
             "--flat" => options.flat = !options.flat,

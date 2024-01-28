@@ -18,10 +18,10 @@ pub fn help()
     --base=[num] sets the number base (2,8,16)\n\x1b[G\
     --ticks=[num] sets amount of ticks, -1 will be at every whole number, 0 will be none\n\x1b[G\
     --prompt toggles the prompt\n\x1b[G\
-    --color toggles color\n\x1b[G\
+    --color toggles color output, toggled by default when running from arguments\n\x1b[G\
     --comma toggles comma seperation\n\x1b[G\
     --graph toggles graphing\n\x1b[G\
-    --vars toggles default variables\n\x1b[G\
+    --vars disables default variables and kalc.vars\n\x1b[G\
     --default sets to default settings\n\x1b[G\
     --line toggles line graphing\n\x1b[G\
     --rt toggles real time printing\n\x1b[G\
@@ -34,7 +34,6 @@ pub fn help()
     --def ignores config file\n\x1b[G\
     --multi toggles multi line display for matrixes\n\x1b[G\
     --tabbed toggles tabbed display for matrixes\n\x1b[G\
-    --debug displays computation time in nanoseconds\n\x1b[G\
     --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\n\x1b[G\
     --flat display 2d complex graphs like they are on the 2d number line\n\x1b[G\
     --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\n\x1b[G\n\x1b[G\
@@ -63,7 +62,7 @@ pub fn help()
     - \"rnd\" to generate a random number\n\x1b[G\
     - Alt+Enter will not graph whatever is present\n\n\x1b[G\
     Operators:\n\x1b[G\
-    - +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-\n\x1b[G\
+    - +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-\n\x1b[G\
     - !x (subfact), x! (fact), x!! (doublefact)\n\x1b[G\
     - && (and), || (or), == (equals), != (not equals)\n\x1b[G\
     - >> (right shift), << (left shift)\n\n\x1b[G\

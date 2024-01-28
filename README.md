@@ -46,10 +46,10 @@ FLAGS: --help (this message)
 --base=[num] sets the number base (2,8,16)
 --ticks=[num] sets amount of ticks, -1 will be at every whole number, 0 will be none
 --prompt toggles the prompt
---color toggles color
+--color toggles color output, toggled by default when running from arguments
 --comma toggles comma seperation
 --graph toggles graphing
---vars toggles default variables
+--vars disables default variables and kalc.vars\n\x1b[G\
 --default sets to default settings
 --line toggles line graphing
 --rt toggles real time printing
@@ -62,7 +62,6 @@ FLAGS: --help (this message)
 --def ignores config file
 --multi toggles multi line display for matrixes
 --tabbed toggles tabbed display for matrixes
---debug displays computation time in nanoseconds
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis
 --flat display 2d complex graphs like they are on the 2d number line
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number
@@ -93,7 +92,7 @@ FLAGS: --help (this message)
 - Alt+Enter will not graph whatever is present
 
 Operators:
-- +, -, *, /, //, ^, ^^, %, <, >, <=, >=, |x|, ±/+-
+- +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-
 - !x (subfact), x! (fact), x!! (doublefact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)

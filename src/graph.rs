@@ -18,7 +18,6 @@ use std::{
 #[allow(clippy::type_complexity)]
 pub fn graph(
     input: Vec<String>,
-    unmod: Vec<String>,
     func: Vec<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options)>,
     watch: Option<Instant>,
     colors: Colors,
@@ -58,11 +57,11 @@ pub fn graph(
             }
             if re_or_im.0
             {
-                re_cap[i] = unmod[i].clone() + if re_or_im.1 { ":re" } else { "" }
+                re_cap[i] = input[i].clone() + if re_or_im.1 { ":re" } else { "" }
             }
             if re_or_im.1
             {
-                im_cap[i] = unmod[i].clone() + ":im"
+                im_cap[i] = input[i].clone() + ":im"
             }
             if dimen.0
             {

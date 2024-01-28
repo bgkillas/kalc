@@ -1164,7 +1164,11 @@ fn main()
                 &colors,
                 &mut vars,
                 &lines,
-                &input,
+                &input
+                    .clone()
+                    .into_iter()
+                    .filter(|&c| !c.is_whitespace())
+                    .collect::<Vec<char>>(),
                 &mut stdout,
             );
             if !varcheck
@@ -1210,7 +1214,7 @@ fn main()
         }
         else if options.graph && graphable
         {
-            let inputs: Vec<String> = input
+            let mut inputs: Vec<String> = input
                 .iter()
                 .collect::<String>()
                 .split('#')
@@ -1218,33 +1222,35 @@ fn main()
                 .collect();
             if inputs.len() < 7
             {
-                let unmod = inputs.clone();
                 let mut funcs = Vec::new();
                 let mut vars = vars.clone();
-                for i in &inputs
+                let mut options = options;
+                let mut colors = colors.clone();
+                for (i, s) in inputs.clone().iter().enumerate()
                 {
-                    if i.is_empty()
+                    if s.is_empty()
                     {
                         continue;
                     }
-                    let mut options = options;
-                    let mut colors = colors.clone();
-                    let mut unparsed = i.as_str();
                     {
-                        let split = i.split(|c| c == ';');
+                        let split = s.split(|c| c == ';');
                         let count = split.clone().count();
                         if count != 1
                         {
-                            unparsed = split.clone().last().unwrap();
+                            inputs[i] = split.clone().last().unwrap().to_string();
                             for (i, s) in split.enumerate()
                             {
                                 if i == count - 1
                                 {
                                     break;
                                 }
-                                let s = &s.chars().collect::<Vec<char>>();
-                                silent_commands(&mut options, s);
-                                if s.contains(&'=')
+                                silent_commands(
+                                    &mut options,
+                                    &s.chars()
+                                        .filter(|c| !c.is_whitespace())
+                                        .collect::<Vec<char>>(),
+                                );
+                                if s.contains('=')
                                 {
                                     set_commands_or_vars(
                                         &mut colors,
@@ -1252,7 +1258,7 @@ fn main()
                                         None,
                                         &mut vars,
                                         true,
-                                        s,
+                                        &s.chars().collect::<Vec<char>>(),
                                     );
                                 }
                             }
@@ -1260,7 +1266,7 @@ fn main()
                     }
                     funcs.push(
                         match input_var(
-                            unparsed,
+                            s,
                             vars.clone(),
                             &mut Vec::new(),
                             &mut 0,
@@ -1285,7 +1291,7 @@ fn main()
                 {
                     None
                 };
-                handles.push(graph(inputs, unmod, funcs, watch, colors.clone()));
+                handles.push(graph(inputs, funcs, watch, colors.clone()));
             }
         }
     }

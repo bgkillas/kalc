@@ -46,38 +46,19 @@ pub fn print_concurrent(
                 {
                     break;
                 }
-                silent_commands(&mut options, s);
+                silent_commands(
+                    &mut options,
+                    &s.iter()
+                        .copied()
+                        .filter(|&c| !c.is_whitespace())
+                        .collect::<Vec<char>>(),
+                );
                 if s.contains(&'=')
                 {
-                    set_commands_or_vars(&mut colors, &mut options, None, &mut vars, true, s);
+                    set_commands_or_vars(&mut colors, &mut options, None, &mut vars, true, &s);
                 }
             }
         }
-    }
-    let input = match input_var(
-        &unparsed
-            .iter()
-            .collect::<String>()
-            .replace('_', &format!("({})", last.iter().collect::<String>())),
-        vars.to_vec(),
-        &mut Vec::new(),
-        &mut 0,
-        options,
-        false,
-        &mut (false, 0, 0),
-        false,
-        0,
-        Vec::new(),
-    )
-    {
-        Ok(f) => f,
-        Err(s) =>
-        {
-            handle_err(s, unmodified_input, options, &colors, start, end);
-            return (0, false, false, false);
-        }
-    };
-    {
         let tempinput = unmodified_input.iter().collect::<String>();
         if tempinput.ends_with('=')
         {
@@ -85,7 +66,7 @@ pub fn print_concurrent(
                 options,
                 &colors,
                 &vars,
-                &tempinput[..tempinput.len() - 1],
+                &tempinput.replace(' ', "")[..tempinput.len() - 1],
                 &last.iter().collect::<String>(),
             );
             return if !out.is_empty()
@@ -124,7 +105,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap, false, false, false)
+                    (wrap - 1, false, false, false)
                 }
             }
             else
@@ -133,7 +114,32 @@ pub fn print_concurrent(
                 (0, false, false, false)
             };
         }
-        else if input.3
+    }
+    let input = match input_var(
+        &unparsed
+            .iter()
+            .collect::<String>()
+            .replace('_', &format!("({})", last.iter().collect::<String>())),
+        vars.to_vec(),
+        &mut Vec::new(),
+        &mut 0,
+        options,
+        false,
+        &mut (false, 0, 0),
+        false,
+        0,
+        Vec::new(),
+    )
+    {
+        Ok(f) => f,
+        Err(s) =>
+        {
+            handle_err(s, unmodified_input, options, &colors, start, end);
+            return (0, false, false, false);
+        }
+    };
+    {
+        if input.3
         {
             let n = unparsed.iter().position(|c| c == &'=').unwrap();
             let input = unparsed[n..].iter().collect::<String>();

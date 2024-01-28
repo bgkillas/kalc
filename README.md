@@ -202,7 +202,7 @@ kalc
 > deg // enables degrees
 > pol({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
 {9.273618495496,57.373262293469,39.805571092265}
-> flat;exp(ix) # piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} //graphing circles 3 different ways
+> piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # flat;exp(ix) //graphing circles 3 different ways
 ```
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc

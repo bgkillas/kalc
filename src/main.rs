@@ -37,6 +37,7 @@ use std::{
 //fix recursive functions
 //fix temp vars not existing for user set functions in user set functions
 //beta distribution
+//optimize '_'
 #[derive(Clone)]
 pub struct Variable
 {
@@ -340,6 +341,12 @@ fn main()
         if File::open(file_path).is_err()
         {
             File::create(file_path).unwrap();
+            OpenOptions::new()
+                .append(true)
+                .open(file_path)
+                .unwrap()
+                .write_all(b"\n")
+                .unwrap();
         }
         (
             Some(OpenOptions::new().append(true).open(file_path).unwrap()),
@@ -445,7 +452,7 @@ fn main()
                 let watch = Instant::now();
                 match c
                 {
-                    '\n' | '\x14' | '\x09' =>
+                    '\n' | '\x14' | '\x09' | '\x06' =>
                     {
                         end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
                         if end > input.len()
@@ -476,7 +483,7 @@ fn main()
                                 print!("\x1b[{}B", num);
                             }
                         }
-                        if c == '\x14'
+                        if c == '\x14' || c == '\x06'
                         {
                             if input.is_empty()
                             {
@@ -873,10 +880,14 @@ fn main()
                         }
                         print!("{}", "\x08".repeat(end - start - (placement - start)));
                     }
-                    '\x1D' =>
+                    '\x1D' | '\x05' =>
                     {
                         //up history
-                        i -= if i > 0 { 1 } else { 0 };
+                        i -= if i > 1 { 1 } else { 0 };
+                        if lines.len() == 1
+                        {
+                            continue;
+                        }
                         input = lines[i].clone().chars().collect::<Vec<char>>();
                         placement = input.len();
                         end = input.len();
@@ -916,7 +927,7 @@ fn main()
                             clearln(&input, start, end, options, &colors);
                         }
                     }
-                    '\x1E' =>
+                    '\x1E' | '\x04' =>
                     {
                         //down history
                         i += 1;

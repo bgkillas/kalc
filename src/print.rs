@@ -219,7 +219,7 @@ pub fn print_concurrent(
         {
             let mut out = String::new();
             {
-                let split = unparsed.iter().collect::<String>();
+                let split = unmodified_input.iter().collect::<String>();
                 let split = split.split('#');
                 if split.clone().count() > 6
                 {
@@ -231,10 +231,44 @@ pub fn print_concurrent(
                     );
                     return (1, true, false, false);
                 }
+                let mut vars = vars.clone();
+                let mut options = options;
+                let mut colors = colors.clone();
                 for input in split
                 {
                     if !input.is_empty()
                     {
+                        let mut input = input;
+                        let split = input.split(|c| c == ';');
+                        let count = split.clone().count();
+                        if count != 1
+                        {
+                            input = split.clone().last().unwrap();
+                            for (i, s) in split.enumerate()
+                            {
+                                if i == count - 1
+                                {
+                                    break;
+                                }
+                                silent_commands(
+                                    &mut options,
+                                    &s.chars()
+                                        .filter(|c| !c.is_whitespace())
+                                        .collect::<Vec<char>>(),
+                                );
+                                if s.contains('=')
+                                {
+                                    set_commands_or_vars(
+                                        &mut colors,
+                                        &mut options,
+                                        None,
+                                        &mut vars,
+                                        true,
+                                        &s.chars().collect::<Vec<char>>(),
+                                    );
+                                }
+                            }
+                        }
                         out += &equal_to(
                             options,
                             &colors,

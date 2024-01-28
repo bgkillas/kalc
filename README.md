@@ -179,30 +179,41 @@ numbers/minus sign convert to superscript acting as exponents
 kalc
 > 1+1
 2
-> f(x)=sin(2x)
+> f(x)=sin(2x) //define f(x), will display how it was parsed
+sin(2*x)
 > f(x) // graphs f(x) in 2D
+sin(2*x)
 > f(pi/2) // evaluates f(x) at x=pi/2, so sin(2pi/2)=sin(pi)=0
 0
 > f(x,y)=x^2+y^2
+x^2+y^2
 > f(1,2) // evaluates f(x,y) at x=1, y=2, so 1^2+2^2=5
 5
 > f(x,y) // graphs f(x,y) in 3D
+x^2+y^2
 > a=3^3
+3^3
 > cbrt(a)
 3
 > im(exp(xi)) // graphs the imag part of exp(xi) in 2D, so sin(x)
+im(exp(x*1i))
 > f(x,y,z,w)=x+y+z+w
+x+y+z+w
 > f(1,2,3,4) // evaluates f(x,y,z,w) at x=1, y=2, z=3, w=4, so 1+2+3+4=10
 10
 > f(x,y,2,5) // graphs f(x,y,2,5) in 3D with z=2 and w=5 so x+y+2+5
-> f(x,y,2,5)= // displays how its parsed
-((x)+(y)+(2)+(5))
+x+y+2+5
 > f(2,5,x,y) // graphs f(2,5,x,y) in 3D with x=2 and y=5 so 2+5+x+y, to graph x and y have to be the unknown variables
+2+5+x+y
 > |z| // graphs |(x+yi)| in 3D
+norm((x+y+1i))
 > deg // enables degrees
 > pol({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
 {9.273618495496,57.373262293469,39.805571092265}
 > piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # flat;exp(ix) //graphing circles 3 different ways
+piecewise({0±sqrt(2^2-x^2),(x<2)&&(x>-2)})
+3*{cos(x),sin(x)}
+exp(1i*x)
 ```
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc

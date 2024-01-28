@@ -1266,7 +1266,7 @@ fn main()
                     }
                     funcs.push(
                         match input_var(
-                            s,
+                            &inputs[i],
                             vars.clone(),
                             &mut Vec::new(),
                             &mut 0,

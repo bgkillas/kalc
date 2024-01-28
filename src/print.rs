@@ -59,14 +59,14 @@ pub fn print_concurrent(
                 }
             }
         }
-        let tempinput = unmodified_input.iter().collect::<String>();
+        let tempinput = unparsed.iter().collect::<String>();
         if tempinput.ends_with('=')
         {
             let out = equal_to(
                 options,
                 &colors,
                 &vars,
-                &tempinput.replace(' ', "")[..tempinput.len() - 1],
+                &tempinput.replace(' ', "")[..tempinput.replace(' ', "").len() - 1],
                 &last.iter().collect::<String>(),
             );
             return if !out.is_empty()

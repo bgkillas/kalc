@@ -836,7 +836,7 @@ pub fn file_opts(
 pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, last: &str)
     -> String
 {
-    match l
+    match l.replace(' ', "").as_str()
     {
         "colors" => format!(
             "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[38;2;{};{};{}mre1col={} \x1b[38;2;{};{};{}mim1col={} \x1b[38;2;{};{};{}mre2col={} \

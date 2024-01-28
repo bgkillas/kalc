@@ -37,7 +37,6 @@ use std::{
 //fix recursive functions
 //fix temp vars not existing for user set functions in user set functions
 //beta distribution
-//optimize '_'
 #[derive(Clone)]
 pub struct Variable
 {

@@ -66,7 +66,7 @@ pub fn print_concurrent(
                 options,
                 &colors,
                 &vars,
-                &tempinput.replace(' ', "")[..tempinput.replace(' ', "").len() - 1],
+                &tempinput[..tempinput.len() - 1],
                 &last.iter().collect::<String>(),
             );
             return if !out.is_empty()

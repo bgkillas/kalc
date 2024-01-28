@@ -14,9 +14,11 @@ you can set permanent variables and functions in the file ```~/.config/kalc.vars
 parsing tries to comply with wolfram alpha
 
 config defaults listed in kalc.config
-# issues
-- 0's and infinities of trig functions don't show up as exactly 0(shows as something like 10^-155) or infinity(shows as something like 10^155).
-- recursive formulas don't work
+
+# install instructions
+use aur or run
+```cargo install kalc```
+
 # build instructions
 windows is not properly supported due to dependencys being weird, just use wsl
 

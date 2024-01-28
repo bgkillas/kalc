@@ -1758,6 +1758,22 @@ pub fn input_var(
             break;
         }
     }
+    i = 1;
+    while i + 1 < output.len()
+    {
+        if Str("*".to_string()) == output[i]
+        {
+            if let Str(c) = &output[i + 1]
+            {
+                if matches!(c.as_str(), "+" | "-" | "*" | "/" | "//" | "^" | "^^" | "%")
+                {
+                    output.remove(i);
+                    continue;
+                }
+            }
+        }
+        i += 1;
+    }
     if output.is_empty()
     {
         return Err(" ");

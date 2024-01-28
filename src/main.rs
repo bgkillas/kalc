@@ -138,6 +138,7 @@ pub struct Options
     flat: bool,
     graph: bool,
     slowcheck: u128,
+    var_multiply: bool,
 }
 impl Default for Options
 {
@@ -175,6 +176,7 @@ impl Default for Options
             flat: false,
             graph: true,
             slowcheck: 250,
+            var_multiply: false,
         }
     }
 }

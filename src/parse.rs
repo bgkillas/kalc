@@ -1392,12 +1392,14 @@ pub fn input_var(
                             continue 'main;
                         }
                     }
-                    else if wordv == var.name.iter().collect::<String>()
-                        && (i == 0 || !chars[i - 1].is_alphabetic())
-                    /*   else if i + var.name.len() <= chars.len()
-                    && (chars[i..i + var.name.len()] == var.name
-                        || (wordv != chars[i..i + var.name.len()].iter().collect::<String>()
-                            && wordv.starts_with(&var.name.iter().collect::<String>())))*/
+                    else if (options.var_multiply
+                        && (i + var.name.len() <= chars.len()
+                            && (chars[i..i + var.name.len()] == var.name
+                                || (wordv
+                                    != chars[i..i + var.name.len()].iter().collect::<String>()
+                                    && wordv.starts_with(&var.name.iter().collect::<String>())))))
+                        || (wordv == var.name.iter().collect::<String>()
+                            && (i == 0 || !chars[i - 1].is_alphabetic()))
                     {
                         if blacklist == var.name
                         {

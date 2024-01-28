@@ -397,6 +397,14 @@ pub fn file_opts(
             split = line.split('=');
             match split.next().unwrap()
             {
+                "var_multiply" =>
+                {
+                    options.var_multiply = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid var_multiply")
+                }
                 "slowcheck" =>
                 {
                     options.slowcheck = split

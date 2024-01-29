@@ -44,10 +44,15 @@ pub fn input_var(
         .replace(']', "})")
         .chars()
         .collect::<Vec<char>>();
+    if chars.ends_with(&['^'])
+    {
+        chars.pop();
+    }
     let mut output: Vec<NumStr> = Vec::new();
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
     let mut i = 0;
+    let mut powertree = 0;
     //  let mut piecewise=0;
     while !chars.is_empty() && chars[0].is_whitespace()
     {
@@ -245,6 +250,14 @@ pub fn input_var(
                 output.push(Str(')'.to_string()));
                 subfact.0 = false;
             }
+            if i >= chars.len() || chars[i] != '^'
+            {
+                for _ in 0..powertree
+                {
+                    output.push(Str(')'.to_string()));
+                }
+                powertree = 0;
+            }
             continue;
         }
         if !c.is_alphabetic() && c != '@'
@@ -373,12 +386,6 @@ pub fn input_var(
                         sumrec,
                         if print { Some(vars.clone()) } else { None },
                     );
-                    if neg
-                    {
-                        output.push(Num(n1.clone()));
-                        output.push(Str('*'.to_string()));
-                        neg = false;
-                    }
                     output.push(Str("{".to_string()));
                 }
                 '}' =>
@@ -506,7 +513,8 @@ pub fn input_var(
                                 || (!output.is_empty() && output.last().unwrap().str_is(")"))
                                 || matches!(chars[i - 1], '}' | ']' | ')' | '@')))
                     {
-                        if i + 1 != chars.len() && (chars[i + 1] == '(' || chars[i + 1] == '-')
+                        if i + 1 != chars.len()
+                            && matches!(chars[i + 1], '(' | '{' | '[' | '|' | '-' | '!')
                         {
                             output.push(Num(n1.clone()));
                             output.push(Str("*".to_string()));
@@ -535,7 +543,11 @@ pub fn input_var(
                     }
                     else
                     {
-                        output.push(Str("^".to_string()))
+                        if pwr.0
+                        {
+                            powertree += 1;
+                        }
+                        output.push(Str("^".to_string()));
                     }
                 }
                 '(' if i + 1 != chars.len() =>
@@ -562,7 +574,7 @@ pub fn input_var(
                     // {
                     //     piecewise = 0;
                     // }
-                    if pwr.1 == *bracket
+                    if (i + 2 >= chars.len() || chars[i + 1] != '^') && pwr.1 == *bracket
                     {
                         for _ in 0..pwr.2
                         {
@@ -596,6 +608,15 @@ pub fn input_var(
                 {
                     if !abs.is_empty() && abs[0] == *bracket && can_abs(&output)
                     {
+                        *bracket -= 1;
+                        if (i + 2 >= chars.len() || chars[i + 1] != '^') && pwr.1 == *bracket
+                        {
+                            for _ in 0..pwr.2
+                            {
+                                output.push(Str(')'.to_string()))
+                            }
+                            *pwr = (false, 0, 0);
+                        }
                         output.push(Str(")".to_string()));
                         output.push(Str(")".to_string()));
                         abs.remove(0);
@@ -608,6 +629,15 @@ pub fn input_var(
                     }
                     else
                     {
+                        *bracket += 1;
+                        if pwr.0
+                        {
+                            pwr.1 = *bracket;
+                        }
+                        if subfact.0
+                        {
+                            subfact.1 = *bracket;
+                        }
                         place_multiplier(
                             &mut output,
                             sumrec,
@@ -726,12 +756,6 @@ pub fn input_var(
                             || chars[i + 1] == '-'
                             || chars[i + 1] == '!')
                     {
-                        if neg
-                        {
-                            output.push(Num(n1.clone()));
-                            output.push(Str("*".to_string()));
-                            neg = false;
-                        }
                         output.push(Str("(".to_string()));
                         output.push(Str("subfact".to_string()));
                         output.push(Str("(".to_string()));

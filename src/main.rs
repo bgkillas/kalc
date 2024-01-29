@@ -38,6 +38,7 @@ use std::{
 //fix temp vars not existing for user set functions in user set functions
 //beta distribution
 //support units properly
+//rpn maybe
 #[derive(Clone)]
 pub struct Variable
 {

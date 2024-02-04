@@ -31,20 +31,19 @@ use std::{
     time::Instant,
 };
 //figure out probability of winning for 3 turned game
-//turn vars into a struct
 //lambert w function
 //matrix exponentiation
-//fix recursive functions
-//fix temp vars not existing for user set functions in user set functions
 //beta distribution
 //support units properly
 //rpn maybe
+//make dice function
 #[derive(Clone)]
 pub struct Variable
 {
     name: Vec<char>,
     parsed: Vec<NumStr>,
     unparsed: String,
+    funcvars: Vec<(String, Vec<NumStr>)>,
 }
 #[derive(Clone)]
 pub struct Colors
@@ -386,7 +385,8 @@ fn main()
             };
             input = args.remove(0).chars().collect();
             let output;
-            (output, _, graphable, varcheck) = match input_var(
+            let funcvar;
+            (output, funcvar, graphable, varcheck) = match input_var(
                 &input.iter().map(convert).collect::<String>(),
                 vars.clone(),
                 &mut Vec::new(),
@@ -408,7 +408,7 @@ fn main()
             };
             if !graphable && !varcheck
             {
-                if let Ok(n) = do_math(output, options, Vec::new())
+                if let Ok(n) = do_math(output, options, funcvar)
                 {
                     print_answer(n, options, &colors);
                 }

@@ -9,7 +9,7 @@ history file is stored in ```~/.config/kalc.history```
 
 config file is stored in ```~/.config/kalc.config``` example in repo
 
-you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo
+you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo, also contains more advanced example usage
 
 parsing tries to comply with wolfram alpha
 
@@ -87,6 +87,7 @@ FLAGS: --help (this message)
 - "{vec}#" to graph a vector
 - "{mat}#" to graph a matrix
 - "number#" to graph a complex number
+- "[f(x),x]" to graph a polar graph of f(x)
 - "{x,y}" to graph a parametric equation, example: {cos(x),sin(x)} unit circle, {f(x)cos(x),f(x)sin(x)} for polar graph
 - "{x,y,z}" to graph a parametric equation in 3d, example: {cos(x),sin(x),x} helix, {sin(x)cos(y),sin(x)sin(y),cos(x)} sphere
 - "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
@@ -211,7 +212,7 @@ norm((x+y+1i))
 > deg // enables degrees
 > pol({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
 {9.273618495496,57.373262293469,39.805571092265}
-> piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # flat;exp(ix) //graphing circles 3 different ways
+> piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # [5,x] # flat;exp(ix) //graphing circles 4 different ways
 piecewise({0±sqrt(2^2-x^2),(x<2)&&(x>-2)})
 3*{cos(x),sin(x)}
 exp(1i*x)

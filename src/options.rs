@@ -1234,7 +1234,7 @@ pub fn set_commands(
                                 }
                             }
                             redef.push(var.name.clone());
-                            let parsed = input_var(
+                            let parsed = match input_var(
                                 &var.unparsed,
                                 vars.to_vec(),
                                 &mut func_vars,
@@ -1246,17 +1246,20 @@ pub fn set_commands(
                                 0,
                                 Vec::new(),
                             )
-                            .unwrap()
-                            .0;
+                            {
+                                Ok(n) => (n.0, n.1),
+                                _ => return Err("prec crash"),
+                            };
                             vars[i].parsed = if l.contains('(')
                             {
-                                parsed
+                                parsed.0
                             }
                             else
                             {
-                                vec![do_math(parsed, *options, Vec::new())
+                                vec![do_math(parsed.0, *options, parsed.1.clone())
                                     .unwrap_or(Num(Complex::new(options.prec)))]
                             };
+                            vars[i].funcvars = parsed.1;
                         }
                     }
                     let mut k = 0;
@@ -1283,7 +1286,7 @@ pub fn set_commands(
                                         func_vars.push((-1, i.iter().collect()));
                                     }
                                 }
-                                let parsed = input_var(
+                                let parsed = match input_var(
                                     &v.unparsed.clone(),
                                     vars.to_vec(),
                                     &mut func_vars,
@@ -1295,18 +1298,22 @@ pub fn set_commands(
                                     0,
                                     Vec::new(),
                                 )
-                                .unwrap()
-                                .0;
-                                let check = vars[j].parsed.clone();
-                                vars[j].parsed = if l.contains('(')
                                 {
-                                    parsed
+                                    Ok(n) => (n.0, n.1),
+                                    _ => return Err("prec crash"),
+                                };
+                                let check = vars[j].parsed.clone();
+                                if v.name.contains(&'(')
+                                {
+                                    (vars[j].parsed, vars[j].funcvars) = parsed.clone();
                                 }
                                 else
                                 {
-                                    vec![do_math(parsed, *options, Vec::new())
-                                        .unwrap_or(Num(Complex::new(options.prec)))]
-                                };
+                                    vars[j].funcvars = parsed.1.clone();
+                                    vars[j].parsed =
+                                        vec![do_math(parsed.0.clone(), *options, parsed.1.clone())
+                                            .unwrap_or(Num(Complex::new(options.prec)))];
+                                }
                                 if check != vars[j].parsed
                                 {
                                     redef.push(v.name.clone());

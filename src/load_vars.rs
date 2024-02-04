@@ -1,9 +1,5 @@
 use crate::{
-    complex::NumStr::{Num, Str},
-    math::do_math,
-    misc::prompt,
-    options::set_commands,
-    parse::input_var,
+    complex::NumStr::Num, math::do_math, misc::prompt, options::set_commands, parse::input_var,
     Colors, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float};
@@ -72,6 +68,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("kB") && !blacklist.contains(&"kB".to_string())
@@ -83,6 +80,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("me") && !blacklist.contains(&"me".to_string())
@@ -94,6 +92,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("mn") && !blacklist.contains(&"mn".to_string())
@@ -105,6 +104,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("mp") && !blacklist.contains(&"mp".to_string())
@@ -116,6 +116,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("Na") && !blacklist.contains(&"Na".to_string())
@@ -127,6 +128,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('c') && !blacklist.contains(&"c".to_string())
@@ -138,6 +140,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('G') && !blacklist.contains(&"G".to_string())
@@ -149,6 +152,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('g') && !blacklist.contains(&"g".to_string())
@@ -160,6 +164,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('h') && !blacklist.contains(&"h".to_string())
@@ -171,6 +176,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('k') && !blacklist.contains(&"k".to_string())
@@ -182,6 +188,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('R') && !blacklist.contains(&"R".to_string())
@@ -193,6 +200,7 @@ fn get_preset_vars(
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     {
@@ -210,6 +218,7 @@ fn get_preset_vars(
                         name: vec!['p', 'h', 'i'],
                         parsed: vec![Num(phi.clone().into())],
                         unparsed: String::new(),
+                        funcvars: Vec::new(),
                     },
                 );
             }
@@ -220,6 +229,7 @@ fn get_preset_vars(
                     name: vec!['φ'],
                     parsed: vec![Num(phi.into())],
                     unparsed: String::new(),
+                    funcvars: Vec::new(),
                 });
             }
         }
@@ -241,6 +251,7 @@ fn get_preset_vars(
                         name: vec!['p', 'i'],
                         parsed: vec![Num(pi.clone().into())],
                         unparsed: String::new(),
+                        funcvars: Vec::new(),
                     },
                 );
             }
@@ -251,6 +262,7 @@ fn get_preset_vars(
                     name: vec!['π'],
                     parsed: vec![Num(pi.clone().into())],
                     unparsed: String::new(),
+                    funcvars: Vec::new(),
                 });
             }
             if tau1 || tau2
@@ -265,6 +277,7 @@ fn get_preset_vars(
                             name: vec!['t', 'a', 'u'],
                             parsed: vec![Num(tau.clone().into())],
                             unparsed: String::new(),
+                            funcvars: Vec::new(),
                         },
                     );
                 }
@@ -275,6 +288,7 @@ fn get_preset_vars(
                         name: vec!['τ'],
                         parsed: vec![Num(tau.into())],
                         unparsed: String::new(),
+                        funcvars: Vec::new(),
                     });
                 }
             }
@@ -288,6 +302,7 @@ fn get_preset_vars(
             name: vec!['e'],
             parsed: vec![Num(e.into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
 }
@@ -305,6 +320,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("kB")
@@ -315,6 +331,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("me")
@@ -325,6 +342,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("mn")
@@ -335,6 +353,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("mp")
@@ -345,6 +364,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains("Na")
@@ -355,6 +375,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('c')
@@ -365,6 +386,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('G')
@@ -375,6 +397,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('g')
@@ -385,6 +408,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('h')
@@ -395,6 +419,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('k')
@@ -405,6 +430,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     if args.contains('R')
@@ -415,6 +441,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
     {
@@ -431,6 +458,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                         name: vec!['p', 'h', 'i'],
                         parsed: vec![Num(phi.clone().into())],
                         unparsed: String::new(),
+                        funcvars: Vec::new(),
                     },
                 );
             }
@@ -440,6 +468,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                     name: vec!['φ'],
                     parsed: vec![Num(phi.into())],
                     unparsed: String::new(),
+                    funcvars: Vec::new(),
                 });
             }
         }
@@ -460,6 +489,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                         name: vec!['p', 'i'],
                         parsed: vec![Num(pi.clone().into())],
                         unparsed: String::new(),
+                        funcvars: Vec::new(),
                     },
                 );
             }
@@ -469,6 +499,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                     name: vec!['π'],
                     parsed: vec![Num(pi.clone().into())],
                     unparsed: String::new(),
+                    funcvars: Vec::new(),
                 });
             }
             if tau1 || tau2
@@ -482,6 +513,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                             name: vec!['t', 'a', 'u'],
                             parsed: vec![Num(tau.clone().into())],
                             unparsed: String::new(),
+                            funcvars: Vec::new(),
                         },
                     );
                 }
@@ -491,6 +523,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                         name: vec!['τ'],
                         parsed: vec![Num(tau.into())],
                         unparsed: String::new(),
+                        funcvars: Vec::new(),
                     });
                 }
             }
@@ -503,6 +536,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
             name: vec!['e'],
             parsed: vec![Num(e.into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         });
     }
 }
@@ -517,11 +551,13 @@ pub fn get_vars(options: Options) -> Vec<Variable>
             name: vec!['p', 'h', 'i'],
             parsed: vec![Num(phi.clone().into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['t', 'a', 'u'],
             parsed: vec![Num(tau.clone().into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['e', 'c'],
@@ -529,6 +565,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['k', 'B'],
@@ -536,6 +573,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['m', 'e'],
@@ -543,6 +581,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['m', 'n'],
@@ -550,6 +589,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['m', 'p'],
@@ -557,6 +597,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['N', 'a'],
@@ -564,11 +605,13 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['p', 'i'],
             parsed: vec![Num(pi.clone().into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['c'],
@@ -576,11 +619,13 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['e'],
             parsed: vec![Num(e.into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['G'],
@@ -588,6 +633,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['g'],
@@ -595,6 +641,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['h'],
@@ -602,6 +649,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['k'],
@@ -609,6 +657,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['R'],
@@ -616,21 +665,25 @@ pub fn get_vars(options: Options) -> Vec<Variable>
                 .unwrap()
                 .complete(options.prec))],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['φ'],
             parsed: vec![Num(phi.into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['π'],
             parsed: vec![Num(pi.into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
         Variable {
             name: vec!['τ'],
             parsed: vec![Num(tau.into())],
             unparsed: String::new(),
+            funcvars: Vec::new(),
         },
     ]
 }
@@ -655,11 +708,24 @@ pub fn add_var(
             func_vars.push((-1, i.iter().collect()));
         }
     }
-    vars.push(Variable {
-        name: l.clone(),
-        parsed: vec![Str(String::new())],
-        unparsed: String::new(),
-    });
+    let mut k = 0;
+    for (j, v) in vars.iter().enumerate()
+    {
+        if v.name.len() <= l.len()
+        {
+            k = j;
+            break;
+        }
+    }
+    vars.insert(
+        k,
+        Variable {
+            name: l.clone(),
+            parsed: Vec::new(),
+            unparsed: String::new(),
+            funcvars: Vec::new(),
+        },
+    );
     let parsed = match input_var(
         r,
         vars.clone(),
@@ -673,27 +739,29 @@ pub fn add_var(
         l.clone(),
     )
     {
-        Ok(n) => n.0,
-        _ =>
+        Ok(n) => (n.0, n.1),
+        Err(s) =>
         {
-            println!("failed at: {}\x1b[G", l.iter().collect::<String>());
+            println!("failed at: {} {}\x1b[G", l.iter().collect::<String>(), s);
             return;
         }
     };
-    vars.pop();
+    vars.remove(k);
     if replace
     {
         vars[i] = Variable {
             name: l.clone(),
             parsed: if l.contains(&'(')
             {
-                parsed
+                parsed.0
             }
             else
             {
-                vec![do_math(parsed, options, Vec::new()).unwrap_or(Num(Complex::new(options.prec)))]
+                vec![do_math(parsed.0, options, parsed.1.clone())
+                    .unwrap_or(Num(Complex::new(options.prec)))]
             },
             unparsed: r.to_string(),
+            funcvars: parsed.1,
         };
     }
     else
@@ -704,16 +772,24 @@ pub fn add_var(
                 name: l.clone(),
                 parsed: if l.contains(&'(')
                 {
-                    parsed
+                    parsed.0
                 }
                 else
                 {
-                    vec![do_math(parsed, options, Vec::new())
+                    vec![do_math(parsed.0, options, parsed.1.clone())
                         .unwrap_or(Num(Complex::new(options.prec)))]
                 },
                 unparsed: r.to_string(),
+                funcvars: parsed.1,
             },
         )
+    }
+    if l.contains(&'(') && r.contains("piecewise")
+    {
+        let parsed = vars[i].parsed.clone();
+        vars[i]
+            .funcvars
+            .push((l.iter().collect::<String>(), parsed))
     }
     if redef
     {
@@ -757,21 +833,25 @@ pub fn add_var(
                         v.name.clone(),
                     )
                     {
-                        Ok(n) => n.0,
-                        _ =>
+                        Ok(n) => (n.0, n.1),
+                        Err(s) =>
                         {
-                            println!("failed at: {}\x1b[G", v.name.iter().collect::<String>());
+                            println!(
+                                "failed at: {} {}\x1b[G",
+                                v.name.iter().collect::<String>(),
+                                s
+                            );
                             return;
                         }
                     };
-                    let check = vars[j].parsed.clone();
+                    let check = (vars[j].parsed.clone(), vars[j].funcvars.clone());
                     if v.name.contains(&'(')
                     {
-                        vars[j].parsed = parsed.clone();
+                        (vars[j].parsed, vars[j].funcvars) = parsed.clone();
                     }
                     else
                     {
-                        vars[j].parsed = vec![do_math(parsed.clone(), options, Vec::new())
+                        vars[j].parsed = vec![do_math(parsed.0.clone(), options, parsed.1.clone())
                             .unwrap_or(Num(Complex::new(options.prec)))];
                     }
                     if check != parsed
@@ -784,7 +864,6 @@ pub fn add_var(
         }
     }
 }
-
 pub fn set_commands_or_vars(
     colors: &mut Colors,
     options: &mut Options,

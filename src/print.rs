@@ -141,7 +141,7 @@ pub fn print_concurrent(
     {
         if input.3
         {
-            let n = unparsed.iter().position(|c| c == &'=').unwrap();
+            let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0);
             let input = unparsed[n..].iter().collect::<String>();
             let mut func = unparsed[..n].to_vec();
             let mut func_vars: Vec<(isize, String)> = Vec::new();
@@ -380,7 +380,7 @@ pub fn print_concurrent(
             }
         };
     }
-    let num = match do_math(input.0, options, Vec::new())
+    let num = match do_math(input.0, options, input.1)
     {
         Ok(n) => n,
         Err(s) =>

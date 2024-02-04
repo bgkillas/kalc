@@ -53,7 +53,8 @@ pub fn input_var(
     let mut stack_start = Vec::new();
     let mut i = 0;
     let mut powertree = 0;
-    //  let mut piecewise=0;
+    //TODO make so recursive functions can work with 2 different functions
+    let mut piecewise = 0;
     while !chars.is_empty() && chars[0].is_whitespace()
     {
         chars.remove(0);
@@ -570,10 +571,10 @@ pub fn input_var(
                 }
                 ')' if i != 0 =>
                 {
-                    // if piecewise == *bracket as usize
-                    // {
-                    //     piecewise = 0;
-                    // }
+                    if piecewise == *bracket as usize
+                    {
+                        piecewise = 0;
+                    }
                     if (i + 2 >= chars.len() || chars[i + 1] != '^') && pwr.1 == *bracket
                     {
                         for _ in 0..pwr.2
@@ -820,12 +821,11 @@ pub fn input_var(
             countv -= 1;
             word.pop();
         }
-        // if word == "piecewise" && piecewise == 0
-        // {
-        //     piecewise = *bracket as usize + 1;
-        // }
-        // else
-        if matches!(
+        if word == "piecewise" && piecewise == 0
+        {
+            piecewise = *bracket as usize + 1;
+        }
+        else if matches!(
             word.as_str(),
             "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
         ) && chars.len() > i + countv + 1
@@ -1066,7 +1066,7 @@ pub fn input_var(
                         {
                             i = chars.len() - 1
                         }
-                        if blacklist == var.name
+                        if blacklist == var.name && piecewise == 0
                         {
                             return Err("recursive");
                         }
@@ -1091,6 +1091,12 @@ pub fn input_var(
                         {
                             i = j;
                             continue;
+                        }
+                        if piecewise != 0
+                        {
+                            output.push(Str("@".to_owned() + &var.name.iter().collect::<String>()));
+                            i = j + var.name.split(|c| c == &'(').next().unwrap().len();
+                            continue 'main;
                         }
                         if var.name.contains(&',') && chars.len() > 4
                         {
@@ -1198,16 +1204,6 @@ pub fn input_var(
                                         return Ok((Vec::new(), Vec::new(), false, true));
                                     }
                                     if print
-                                        || parsed.iter().any(|c| {
-                                            if let Str(s) = c
-                                            {
-                                                sumrec.iter().any(|c| c.0 == -1 && c.1 == *s)
-                                            }
-                                            else
-                                            {
-                                                false
-                                            }
-                                        })
                                     {
                                         if parsed.len() > 1
                                         {
@@ -1216,20 +1212,29 @@ pub fn input_var(
                                         }
                                         parsed
                                     }
-                                    else if tempgraph && parsed.len() > 1
+                                    else if (tempgraph && parsed.len() > 1)
+                                        //TODO optimize below not allowing things that should be parsed here parsed in math.rs
+                                        || sumrec.iter().any(|c| c.0 == -1)
                                     {
-                                        let iden = format!("@{}{}@", func_var, depth);
+                                        let iden = format!("@{}{}{}@", i, func_var, depth);
                                         funcvars.extend(func);
                                         funcvars.push((iden.clone(), parsed));
                                         vec![Str(iden)]
                                     }
                                     else
                                     {
-                                        vec![do_math(parsed, options, Vec::new())?]
+                                        vec![do_math(parsed, options, func)?]
                                     }
                                 };
                                 while k < var.parsed.len()
                                 {
+                                    for fv in &var.funcvars
+                                    {
+                                        if var.parsed[k].str_is(&fv.0) && !fv.0.contains('(')
+                                        {
+                                            var.parsed[k] = Str(format!("@{}{}", depth, fv.0));
+                                        }
+                                    }
                                     if var.parsed[k].str_is(&func_var)
                                     {
                                         var.parsed.remove(k);
@@ -1246,7 +1251,38 @@ pub fn input_var(
                                     }
                                     k += 1;
                                 }
+                                for fv in var.funcvars.iter_mut()
+                                {
+                                    k = 0;
+                                    if !fv.0.contains('(')
+                                    {
+                                        fv.0 = format!("@{}{}", depth, fv.0);
+                                        while k < fv.1.len()
+                                        {
+                                            if fv.1[k].str_is(&func_var)
+                                            {
+                                                fv.1.remove(k);
+                                                if num.len() == 1
+                                                {
+                                                    fv.1.insert(k, num[0].clone());
+                                                }
+                                                else
+                                                {
+                                                    fv.1.splice(k..k, num.clone());
+                                                    k += num.len();
+                                                    continue;
+                                                }
+                                            }
+                                            k += 1;
+                                        }
+                                    }
+                                    else if !fv.0.starts_with('@')
+                                    {
+                                        fv.0 = format!("@{}", fv.0);
+                                    }
+                                }
                             }
+                            funcvars.extend(var.funcvars);
                             output.extend(var.parsed);
                             if pwr.1 == *bracket + 1
                             {
@@ -1335,16 +1371,6 @@ pub fn input_var(
                                     return Ok((Vec::new(), Vec::new(), false, true));
                                 }
                                 if print
-                                    || parsed.iter().any(|c| {
-                                        if let Str(s) = c
-                                        {
-                                            sumrec.iter().any(|c| c.0 == -1 && c.1 == *s)
-                                        }
-                                        else
-                                        {
-                                            false
-                                        }
-                                    })
                                 {
                                     if parsed.len() > 1
                                     {
@@ -1353,7 +1379,9 @@ pub fn input_var(
                                     }
                                     parsed
                                 }
-                                else if tempgraph && parsed.len() > 1
+                                else if (tempgraph && parsed.len() > 1)
+                                //TODO optimize below not allowing things that should be parsed here parsed in math.rs
+                                    || sumrec.iter().any(|c| c.0 == -1)
                                 {
                                     let iden = format!("@{}{}@", l, depth);
                                     funcvars.extend(func);
@@ -1362,11 +1390,18 @@ pub fn input_var(
                                 }
                                 else
                                 {
-                                    vec![do_math(parsed, options, Vec::new())?]
+                                    vec![do_math(parsed, options, func)?]
                                 }
                             };
                             while k < var.parsed.len()
                             {
+                                for fv in &var.funcvars
+                                {
+                                    if var.parsed[k].str_is(&fv.0)
+                                    {
+                                        var.parsed[k] = Str(format!("@{}{}", depth, fv.0));
+                                    }
+                                }
                                 if var.parsed[k].str_is(&l)
                                 {
                                     var.parsed.remove(k);
@@ -1383,6 +1418,37 @@ pub fn input_var(
                                 }
                                 k += 1;
                             }
+                            for fv in var.funcvars.iter_mut()
+                            {
+                                k = 0;
+                                if !fv.0.contains('(')
+                                {
+                                    fv.0 = format!("@{}{}", depth, fv.0);
+                                    while k < fv.1.len()
+                                    {
+                                        if fv.1[k].str_is(&l)
+                                        {
+                                            fv.1.remove(k);
+                                            if num.len() == 1
+                                            {
+                                                fv.1.insert(k, num[0].clone());
+                                            }
+                                            else
+                                            {
+                                                fv.1.splice(k..k, num.clone());
+                                                k += num.len();
+                                                continue;
+                                            }
+                                        }
+                                        k += 1;
+                                    }
+                                }
+                                else
+                                {
+                                    fv.0 = format!("@{}", fv.0);
+                                }
+                            }
+                            funcvars.extend(var.funcvars);
                             output.extend(var.parsed);
                             if pwr.1 == *bracket + 1
                             {

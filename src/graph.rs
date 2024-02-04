@@ -919,6 +919,10 @@ pub fn get_list_2d(
         {
             Ok(Num(num)) =>
             {
+                if num.real().is_nan()
+                {
+                    continue;
+                }
                 let complex = num.real().is_finite();
                 if complex
                 {
@@ -951,6 +955,10 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
+                        if num.real().is_nan()
+                        {
+                            continue;
+                        }
                         let complex = num.real().is_finite();
                         if complex
                         {
@@ -1031,6 +1039,10 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
+                        if num.real().is_nan()
+                        {
+                            continue;
+                        }
                         let complex = num.real().is_finite();
                         if complex
                         {
@@ -1169,6 +1181,10 @@ pub fn get_list_3d(
             {
                 Ok(Num(num)) =>
                 {
+                    if num.real().is_nan()
+                    {
+                        continue;
+                    }
                     let complex = num.real().is_finite();
                     if complex
                     {
@@ -1201,6 +1217,10 @@ pub fn get_list_3d(
                     {
                         for num in v
                         {
+                            if num.real().is_nan()
+                            {
+                                continue;
+                            }
                             let complex = num.real().is_finite();
                             if complex
                             {
@@ -1282,6 +1302,10 @@ pub fn get_list_3d(
                     {
                         for num in v
                         {
+                            if num.real().is_nan()
+                            {
+                                continue;
+                            }
                             let complex = num.real().is_finite();
                             if complex
                             {
@@ -1360,7 +1384,7 @@ fn get_data(
         );
         if !has_y && !has_x
         {
-            match match do_math(func.0.clone(), func.2, Vec::new())
+            match match do_math(func.0.clone(), func.2, func.1)
             {
                 Ok(n) => n,
                 _ =>

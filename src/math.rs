@@ -418,6 +418,7 @@ pub fn do_math(
                                                             {
                                                                 commas += 1;
                                                                 funcs.push(Vec::new());
+                                                                continue;
                                                             }
                                                         }
                                                         funcs[commas].push(n.clone());

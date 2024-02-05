@@ -927,9 +927,9 @@ pub fn input_var(
             );
             if neg
             {
+                output.push(Str('('.to_string()));
                 output.push(Num(n1.clone()));
                 output.push(Str('*'.to_string()));
-                neg = false;
             }
             i += countv;
             if matches!(word.as_str(), "inf" | "nan" | "NaN")
@@ -967,6 +967,11 @@ pub fn input_var(
             {
                 output.push(Str(word))
             }
+            if neg
+            {
+                output.push(Str(')'.to_string()));
+                neg = false;
+            }
         }
         else if sumrec.iter().any(|a| {
             if wordv.starts_with(&a.1)
@@ -987,9 +992,9 @@ pub fn input_var(
             );
             if neg
             {
+                output.push(Str('('.to_string()));
                 output.push(Num(n1.clone()));
                 output.push(Str('*'.to_string()));
-                neg = false;
             }
             i += if c == '@'
             {
@@ -1019,6 +1024,11 @@ pub fn input_var(
                 subfact.0 = false;
                 output.push(Str(")".to_string()));
                 output.push(Str(")".to_string()))
+            }
+            if neg
+            {
+                output.push(Str(')'.to_string()));
+                neg = false;
             }
         }
         else
@@ -1107,9 +1117,9 @@ pub fn input_var(
                             );
                             if neg
                             {
+                                output.push(Str('('.to_string()));
                                 output.push(Num(n1.clone()));
                                 output.push(Str('*'.to_string()));
-                                neg = false;
                             }
                             output.push(Str('('.to_string()));
                             let mut temp = &chars[j + countj + 1..i + 1];
@@ -1299,6 +1309,11 @@ pub fn input_var(
                                 output.push(Str(")".to_string()))
                             }
                             output.push(Str(")".to_string()));
+                            if neg
+                            {
+                                output.push(Str(')'.to_string()));
+                                neg = false;
+                            }
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
@@ -1324,9 +1339,9 @@ pub fn input_var(
                             );
                             if neg
                             {
+                                output.push(Str('('.to_string()));
                                 output.push(Num(n1.clone()));
                                 output.push(Str('*'.to_string()));
-                                neg = false;
                             }
                             output.push(Str('('.to_string()));
                             let mut temp = &chars[j + countj + 1..i + 1];
@@ -1464,6 +1479,11 @@ pub fn input_var(
                                 output.push(Str(")".to_string()));
                                 output.push(Str(")".to_string()))
                             }
+                            if neg
+                            {
+                                output.push(Str(')'.to_string()));
+                                neg = false;
+                            }
                             output.push(Str(")".to_string()));
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
@@ -1545,9 +1565,9 @@ pub fn input_var(
                         );
                         if neg
                         {
+                            output.push(Str('('.to_string()));
                             output.push(Num(n1.clone()));
                             output.push(Str('*'.to_string()));
-                            neg = false;
                         }
                         if print
                         {
@@ -1556,6 +1576,11 @@ pub fn input_var(
                         else
                         {
                             output.push(var.parsed[0].clone());
+                        }
+                        if neg
+                        {
+                            output.push(Str(')'.to_string()));
+                            neg = false;
                         }
                         if scientific
                         {
@@ -1593,9 +1618,9 @@ pub fn input_var(
             {
                 if neg
                 {
+                    output.push(Str('('.to_string()));
                     output.push(Num(n1.clone()));
                     output.push(Str('*'.to_string()));
-                    neg = false;
                 }
                 match c
                 {
@@ -1733,6 +1758,11 @@ pub fn input_var(
                     }
                     _ =>
                     {}
+                }
+                if neg
+                {
+                    output.push(Str(')'.to_string()));
+                    neg = false;
                 }
             }
             i += 1;

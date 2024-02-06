@@ -37,7 +37,8 @@ use std::{
 //support units properly
 //rpn maybe
 //make dice function
-//fix H(a,n,b), tet(a,n)=piecewise({1,n==0},{a^(tet(a,n-1)),n>0})
+//fix H(a,n,b)
+//fix n(x)=
 #[derive(Clone)]
 pub struct Variable
 {

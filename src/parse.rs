@@ -39,6 +39,7 @@ pub fn input_var(
     let mut pow = String::new();
     let mut exp = (String::new(), 0);
     let mut subfact = (false, 0);
+    let mut err = "";
     let mut chars = input
         .replace('[', "(car{")
         .replace(']', "})")
@@ -1193,7 +1194,7 @@ pub fn input_var(
                                     let exit;
                                     let func;
                                     let tempgraph;
-                                    (parsed, func, tempgraph, exit) = input_var(
+                                    (parsed, func, tempgraph, exit) = match input_var(
                                         &varf.iter().collect::<String>(),
                                         vars.clone(),
                                         sumrec,
@@ -1204,7 +1205,15 @@ pub fn input_var(
                                         print,
                                         depth + 1,
                                         blacklist.clone(),
-                                    )?;
+                                    )
+                                    {
+                                        Ok(f) => f,
+                                        Err(s) =>
+                                        {
+                                            err = s;
+                                            continue;
+                                        }
+                                    };
                                     if tempgraph
                                     {
                                         graph = true
@@ -1233,7 +1242,15 @@ pub fn input_var(
                                     }
                                     else
                                     {
-                                        vec![do_math(parsed, options, func)?]
+                                        vec![match do_math(parsed, options, func)
+                                        {
+                                            Ok(f) => f,
+                                            Err(s) =>
+                                            {
+                                                err = s;
+                                                continue;
+                                            }
+                                        }]
                                     }
                                 };
                                 while k < var.parsed.len()
@@ -1365,7 +1382,7 @@ pub fn input_var(
                                 let exit;
                                 let func;
                                 let tempgraph;
-                                (parsed, func, tempgraph, exit) = input_var(
+                                (parsed, func, tempgraph, exit) = match input_var(
                                     &temp.iter().collect::<String>(),
                                     vars.clone(),
                                     sumrec,
@@ -1376,7 +1393,15 @@ pub fn input_var(
                                     print,
                                     depth + 1,
                                     blacklist.clone(),
-                                )?;
+                                )
+                                {
+                                    Ok(f) => f,
+                                    Err(s) =>
+                                    {
+                                        err = s;
+                                        continue;
+                                    }
+                                };
                                 if tempgraph
                                 {
                                     graph = true
@@ -1398,14 +1423,22 @@ pub fn input_var(
                                 //TODO optimize below not allowing things that should be parsed here parsed in math.rs
                                     || sumrec.iter().any(|c| c.0 == -1)
                                 {
-                                    let iden = format!("@{}{}@", l, depth);
+                                    let iden = format!("@{}{}{}@", i, l, depth);
                                     funcvars.extend(func);
                                     funcvars.push((iden.clone(), parsed));
                                     vec![Str(iden)]
                                 }
                                 else
                                 {
-                                    vec![do_math(parsed, options, func)?]
+                                    vec![match do_math(parsed, options, func)
+                                    {
+                                        Ok(f) => f,
+                                        Err(s) =>
+                                        {
+                                            err = s;
+                                            continue;
+                                        }
+                                    }]
                                 }
                             };
                             while k < var.parsed.len()
@@ -1894,9 +1927,9 @@ pub fn input_var(
         }
         i += 1;
     }
-    if output.is_empty()
+    if !err.is_empty()
     {
-        return Err(" ");
+        return Err(err);
     }
     Ok((output, funcvars, graph, false))
 }

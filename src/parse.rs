@@ -358,11 +358,13 @@ pub fn input_var(
                 {
                     output.push(Str("&&".to_string()));
                 }
-                '=' if i != 0
-                    && i + 1 < chars.len()
-                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                '=' if i + 1 < chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    if chars[i + 1] == '='
+                    if i == 0
+                    {
+                        return Ok((Vec::new(), Vec::new(), false, true));
+                    }
+                    else if chars[i + 1] == '='
                     {
                         output.push(Str("==".to_string()));
                         i += 1;

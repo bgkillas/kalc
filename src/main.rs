@@ -39,6 +39,8 @@ use std::{
 //make dice function
 //fix H(a,n,b)
 //fix n(x)=
+//add view option
+//display right side when defining variables/functions
 #[derive(Clone)]
 pub struct Variable
 {

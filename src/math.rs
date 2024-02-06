@@ -1,8 +1,8 @@
 use crate::{
     complex::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
-        inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, rem, root, shl, shr, slog,
-        sort, sub, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
+        inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl,
+        shr, slog, sort, sub, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -374,126 +374,12 @@ pub fn do_math(
                                 .real()
                                     == &1.0
                             {
-                                let mut func = function[start..*end].to_vec();
                                 //TODO move to parse.rs
-                                for fv in func_vars.clone()
-                                {
-                                    if fv.0.contains('(')
-                                    {
-                                        if fv.0.contains(',')
-                                        {
-                                            let mut vars = fv.0.split(',').collect::<Vec<&str>>();
-                                            vars[0] = vars[0].split('(').last().unwrap();
-                                            {
-                                                let vl = vars.len() - 1;
-                                                vars[vl] = &vars[vl][0..vars[vl].len() - 1];
-                                            }
-                                            for (x, f) in func.clone().iter().enumerate()
-                                            {
-                                                if f.str_is(&fv.0)
-                                                {
-                                                    let mut bracket = 0;
-                                                    let mut k = 0;
-                                                    let mut funcs: Vec<Vec<NumStr>> =
-                                                        vec![Vec::new()];
-                                                    let mut commas = 0;
-                                                    for (i, n) in func[x + 2..].iter().enumerate()
-                                                    {
-                                                        if let Str(s) = n
-                                                        {
-                                                            if s == "("
-                                                            {
-                                                                bracket += 1
-                                                            }
-                                                            else if s == ")"
-                                                            {
-                                                                if bracket == 0
-                                                                {
-                                                                    k = i;
-                                                                    break;
-                                                                }
-                                                                bracket -= 1;
-                                                            }
-                                                            else if s == "," && bracket == 0
-                                                            {
-                                                                commas += 1;
-                                                                funcs.push(Vec::new());
-                                                                continue;
-                                                            }
-                                                        }
-                                                        funcs[commas].push(n.clone());
-                                                    }
-                                                    k += x;
-                                                    let mut i = 0;
-                                                    while i < func_vars.len()
-                                                    {
-                                                        if vars.contains(&func_vars[i].0.as_str())
-                                                        {
-                                                            func_vars.remove(i);
-                                                            continue;
-                                                        }
-                                                        i += 1;
-                                                    }
-                                                    for (n, var) in vars.iter().enumerate()
-                                                    {
-                                                        func_vars.push((
-                                                            var.to_string(),
-                                                            funcs[n].to_vec(),
-                                                        ));
-                                                    }
-                                                    func.drain(x..=k + 2);
-                                                    func.splice(x..x, fv.1.clone());
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            let var = fv.0.split('(').last().unwrap();
-                                            let var = &var[0..var.len() - 1];
-                                            for (i, f) in func.clone().iter().enumerate()
-                                            {
-                                                if f.str_is(&fv.0)
-                                                {
-                                                    for (i, j) in
-                                                        func_vars.clone().iter().enumerate()
-                                                    {
-                                                        if j.0 == var
-                                                        {
-                                                            func_vars.remove(i);
-                                                        }
-                                                    }
-                                                    let mut bracket = 0;
-                                                    let mut k = 0;
-                                                    for (i, n) in func[i + 2..].iter().enumerate()
-                                                    {
-                                                        if let Str(s) = n
-                                                        {
-                                                            if s == "("
-                                                            {
-                                                                bracket += 1
-                                                            }
-                                                            else if s == ")"
-                                                            {
-                                                                if bracket == 0
-                                                                {
-                                                                    k = i;
-                                                                }
-                                                                bracket -= 1;
-                                                            }
-                                                        }
-                                                    }
-                                                    func_vars.push((
-                                                        var.to_string(),
-                                                        func[i + 2..=k + 1].to_vec(),
-                                                    ));
-                                                    func.drain(i..=k + 2);
-                                                    func.splice(i..i, fv.1.clone());
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                ans = Some(do_math(func, options, func_vars.clone())?);
+                                ans = Some(recursion(
+                                    func_vars.clone(),
+                                    function[start..*end].to_vec(),
+                                    options,
+                                )?);
                                 break;
                             }
                             else

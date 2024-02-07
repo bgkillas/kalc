@@ -53,8 +53,15 @@ pub fn do_math(
                 {
                     if v.1.len() == 1
                     {
-                        if let Str(_) = v.1[0]
+                        if let Str(s) = &v.1[0]
                         {
+                            for v in &func_vars
+                            {
+                                if *s == v.0 && !v.0.contains('(') && v.1.len() == 1
+                                {
+                                    function[i] = v.1[0].clone();
+                                }
+                            }
                         }
                         else
                         {

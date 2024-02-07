@@ -1071,6 +1071,11 @@ pub fn get_list_2d(
                     }
                 }
             }
+            Err(s) =>
+            {
+                println!("{}", s);
+                return (Default::default(), Default::default(), (false, false));
+            }
             _ =>
             {}
         }
@@ -1333,6 +1338,11 @@ pub fn get_list_3d(
                             }
                         }
                     }
+                }
+                Err(s) =>
+                {
+                    println!("{}", s);
+                    return (Default::default(), Default::default(), false);
                 }
                 _ =>
                 {}

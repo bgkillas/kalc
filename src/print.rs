@@ -141,7 +141,7 @@ pub fn print_concurrent(
     {
         if input.3
         {
-            let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0);
+            let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
             let input = unparsed[n..].iter().collect::<String>();
             let mut func = unparsed[..n].to_vec();
             let mut func_vars: Vec<(isize, String)> = Vec::new();

@@ -37,10 +37,8 @@ use std::{
 //support units properly
 //rpn maybe
 //make dice function
-//fix H(a,n,b)
-//fix n(x)=
 //add view option
-//display right side when defining variables/functions
+//tangent surface
 #[derive(Clone)]
 pub struct Variable
 {

@@ -895,7 +895,14 @@ pub fn input_var(
                     );
                     output.push(Str(word.clone()));
                     output.push(Str("(".to_string()));
-                    output.push(Str(sum.1));
+                    if sumrec.iter().any(|c| c.0 == -1)
+                    {
+                        output.push(Str("@".to_owned() + &sum.1));
+                    }
+                    else
+                    {
+                        output.push(Str(sum.1));
+                    }
                     output.push(Str(",".to_string()));
                     *bracket += 1;
                     i += count + countv + 1;
@@ -903,6 +910,7 @@ pub fn input_var(
                 }
             }
         }
+        let mut num = 0;
         if !vars.clone().iter().any(|a| {
             if a.name.contains(&'(')
             {
@@ -976,17 +984,33 @@ pub fn input_var(
                 neg = false;
             }
         }
-        else if sumrec.iter().any(|a| {
-            if wordv.starts_with(&a.1)
-            {
-                word = a.1.clone();
-                true
-            }
-            else
-            {
-                false
-            }
-        })
+        else if (!vars
+            .iter()
+            .any(|c| c.name.iter().collect::<String>().split('(').next().unwrap() == wordv)
+            && sumrec.iter().any(|a| {
+                if wordv.starts_with(&a.1)
+                {
+                    num = a.0;
+                    word = a.1.clone();
+                    true
+                }
+                else
+                {
+                    false
+                }
+            }))
+            || sumrec.iter().any(|a| {
+                if wordv == a.1
+                {
+                    num = a.0;
+                    word = a.1.clone();
+                    true
+                }
+                else
+                {
+                    false
+                }
+            })
         {
             place_multiplier(
                 &mut output,
@@ -1007,7 +1031,14 @@ pub fn input_var(
             {
                 word.chars().count()
             };
-            output.push(Str(word));
+            if num > 0 && sumrec.iter().any(|c| c.0 == -1)
+            {
+                output.push(Str("@".to_owned() + &word));
+            }
+            else
+            {
+                output.push(Str(word));
+            }
             if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
             {
                 for _ in 0..pwr.2

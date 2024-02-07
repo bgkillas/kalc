@@ -67,18 +67,22 @@ pub fn do_math(
         }
         i += 1;
     }
+    // use std::io::Write;
     // for i in &function
     // {
     //     match i
     //     {
-    //         Num(n) => print!("{}", get_output(options, &Colors::default(), n).0),
+    //         Num(n) => print!(
+    //             "{}",
+    //             crate::print::get_output(options, &crate::Colors::default(), n).0
+    //         ),
     //         Str(s) => print!("{}", s),
     //         _ =>
     //         {}
     //     }
     // }
     // print!("\n\x1b[G");
-    // stdout().flush().unwrap();
+    // std::io::stdout().flush().unwrap();
     i = 0;
     'outer: while i < function.len()
     {

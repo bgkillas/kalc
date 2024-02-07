@@ -1316,41 +1316,13 @@ pub fn recursion(
                     let vl = vars.len() - 1;
                     vars[vl] = &vars[vl][0..vars[vl].len() - 1];
                 }
-                for (x, f) in func.clone().iter().enumerate()
+                let mut x = func.len();
+                while x > 0
                 {
-                    if f.str_is(&fv.0)
+                    x -= 1;
+                    if func[x].str_is(&fv.0)
                     {
-                        let mut bracket = 0;
-                        let mut k = 0;
-                        let mut funcs: Vec<Vec<NumStr>> = vec![Vec::new()];
-                        let mut commas = 0;
-                        for (i, n) in func[x + 2..].iter().enumerate()
-                        {
-                            if let Str(s) = n
-                            {
-                                if s == "("
-                                {
-                                    bracket += 1
-                                }
-                                else if s == ")"
-                                {
-                                    if bracket == 0
-                                    {
-                                        k = i;
-                                        break;
-                                    }
-                                    bracket -= 1;
-                                }
-                                else if s == "," && bracket == 0
-                                {
-                                    commas += 1;
-                                    funcs.push(Vec::new());
-                                    continue;
-                                }
-                            }
-                            funcs[commas].push(n.clone());
-                        }
-                        k += x;
+                        let mut fv = fv.clone();
                         let mut i = 0;
                         while i < func_vars.len()
                         {
@@ -1361,26 +1333,93 @@ pub fn recursion(
                             }
                             i += 1;
                         }
-                        'upper: for (n, var) in vars.iter().enumerate()
+                        let mut bracket = 0;
+                        let mut k = 0;
+                        let mut processed = Vec::new();
+                        let mut last = 0;
+                        for (i, n) in func[x + 2..].iter().enumerate()
                         {
-                            for (i, fv) in func_vars.clone().iter().enumerate()
+                            if let Str(s) = n
                             {
-                                if fv.0 == *var
+                                if s == "(" || s == "{"
                                 {
-                                    func_vars[i].1 = vec![recursion(
-                                        func_vars.clone(),
-                                        funcs[n].clone(),
+                                    bracket += 1
+                                }
+                                else if s == ")" || s == "}"
+                                {
+                                    if bracket == 0
+                                    {
+                                        if let Ok(n) = do_math(
+                                            func[x + 2 + last..x + 2 + i].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )
+                                        {
+                                            processed.push(vec![n]);
+                                        }
+                                        else
+                                        {
+                                            let iden = format!(
+                                                "@{}{}@",
+                                                func_vars.len(),
+                                                vars[processed.len()]
+                                            );
+                                            func_vars.push((
+                                                iden.clone(),
+                                                func[x + 2 + last..x + 2 + i].to_vec(),
+                                            ));
+                                            processed.push(vec![Str(iden)]);
+                                        }
+                                        k = i;
+                                        break;
+                                    }
+                                    bracket -= 1;
+                                }
+                                else if s == "," && bracket == 0
+                                {
+                                    if let Ok(n) = do_math(
+                                        func[x + 2 + last..x + 2 + i].to_vec(),
                                         options,
-                                    )?];
-                                    continue 'upper;
+                                        func_vars.clone(),
+                                    )
+                                    {
+                                        processed.push(vec![n]);
+                                    }
+                                    else
+                                    {
+                                        let iden = format!(
+                                            "@{}{}@",
+                                            func_vars.len(),
+                                            vars[processed.len()]
+                                        );
+                                        func_vars.push((
+                                            iden.clone(),
+                                            func[x + 2 + last..x + 2 + i].to_vec(),
+                                        ));
+                                        processed.push(vec![Str(iden)]);
+                                    }
+                                    last = i + 1;
                                 }
                             }
-                            func_vars.push((
-                                var.to_string(),
-                                vec![recursion(func_vars.clone(), funcs[n].clone(), options)?],
-                            ));
                         }
-                        func.drain(x..=k + 2);
+                        let mut i = 0;
+                        while i < fv.1.len()
+                        {
+                            if let Str(s) = &fv.1[i]
+                            {
+                                for v in processed.iter().zip(vars.clone())
+                                {
+                                    if *s == v.1
+                                    {
+                                        fv.1.remove(i);
+                                        fv.1.splice(i..i, v.0.clone());
+                                        break;
+                                    }
+                                }
+                            }
+                            i += 1;
+                        }
+                        func.drain(x..=k + x + 2);
                         func.splice(x..x, fv.1.clone());
                     }
                 }
@@ -1389,10 +1428,13 @@ pub fn recursion(
             {
                 let var = fv.0.split('(').last().unwrap();
                 let var = &var[0..var.len() - 1];
-                for (i, f) in func.clone().iter().enumerate()
+                let mut x = func.len();
+                while x > 0
                 {
-                    if f.str_is(&fv.0)
+                    x -= 1;
+                    if func[x].str_is(&fv.0)
                     {
+                        let mut fv = fv.clone();
                         for (i, j) in func_vars.clone().iter().enumerate()
                         {
                             if j.0 == var
@@ -1402,15 +1444,15 @@ pub fn recursion(
                         }
                         let mut bracket = 0;
                         let mut k = 0;
-                        for (i, n) in func[i + 2..].iter().enumerate()
+                        for (i, n) in func[x + 2..].iter().enumerate()
                         {
                             if let Str(s) = n
                             {
-                                if s == "("
+                                if s == "(" || s == "{"
                                 {
                                     bracket += 1
                                 }
-                                else if s == ")"
+                                else if s == ")" || s == "}"
                                 {
                                     if bracket == 0
                                     {
@@ -1420,9 +1462,32 @@ pub fn recursion(
                                 }
                             }
                         }
-                        func_vars.push((var.to_string(), func[i + 2..=k + 1].to_vec()));
-                        func.drain(i..=k + 2);
-                        func.splice(i..i, fv.1.clone());
+                        let mut i = 0;
+                        while i < func_vars.len()
+                        {
+                            if var == func_vars[i].0
+                            {
+                                func_vars.remove(i);
+                                break;
+                            }
+                            i += 1;
+                        }
+                        let iden = format!("@{}{}@", func_vars.len(), var);
+                        let mut i = 0;
+                        while i < fv.1.len()
+                        {
+                            if let Str(s) = &fv.1[i]
+                            {
+                                if *s == var
+                                {
+                                    fv.1[i] = Str(iden.clone());
+                                }
+                            }
+                            i += 1;
+                        }
+                        func_vars.push((iden.clone(), func[i + 2..=k + 1].to_vec()));
+                        func.drain(x..=k + x + 2);
+                        func.splice(x..x, fv.1.clone());
                     }
                 }
             }

@@ -38,7 +38,7 @@ use std::{
 //rpn maybe
 //make dice function
 //add view option
-//tangent surface
+//tangent surface, via summation and lists
 #[derive(Clone)]
 pub struct Variable
 {

@@ -55,13 +55,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &v.1[0]
                         {
-                            for v in &func_vars
-                            {
-                                if *s == v.0 && !v.0.contains('(') && v.1.len() == 1
-                                {
-                                    function[i] = v.1[0].clone();
-                                }
-                            }
+                            recursively_get_var(&mut function, &func_vars, &i, s);
                         }
                         else
                         {
@@ -1657,6 +1651,28 @@ pub fn do_math(
     else
     {
         Err("failed to compute")
+    }
+}
+fn recursively_get_var(
+    function: &mut Vec<NumStr>,
+    func_vars: &Vec<(String, Vec<NumStr>)>,
+    i: &usize,
+    s: &String,
+)
+{
+    for v in func_vars
+    {
+        if *s == v.0 && !v.0.contains('(') && v.1.len() == 1
+        {
+            if let Str(s) = &v.1[0]
+            {
+                recursively_get_var(function, func_vars, i, s)
+            }
+            else
+            {
+                function[*i] = v.1[0].clone();
+            }
+        }
     }
 }
 fn do_functions(

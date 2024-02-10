@@ -36,9 +36,8 @@ use std::{
 //beta distribution
 //support units properly
 //rpn maybe
-//make dice function
-//add view option
 //tangent surface, via summation and lists
+//make list cubic
 #[derive(Clone)]
 pub struct Variable
 {
@@ -208,6 +207,22 @@ fn main()
         }
     }
     let mut stdout = stdout();
+    if !stdin().is_terminal()
+    {
+        for line in stdin().lock().lines()
+        {
+            if !line.as_ref().unwrap().is_empty()
+            {
+                if let Ok(line) = line
+                {
+                    if !line.starts_with('#')
+                    {
+                        args.push(line);
+                    }
+                }
+            }
+        }
+    }
     if args.is_empty()
     {
         terminal::enable_raw_mode().unwrap();
@@ -225,16 +240,6 @@ fn main()
         {
             arg.remove(0);
             arg.pop();
-        }
-    }
-    if !stdin().is_terminal()
-    {
-        for line in stdin().lock().lines()
-        {
-            if !line.as_ref().unwrap().is_empty()
-            {
-                args.push(line.unwrap());
-            }
         }
     }
     #[cfg(unix)]
@@ -388,40 +393,47 @@ fn main()
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
-            (output, funcvar, graphable, varcheck) = match input_var(
-                &input.iter().map(convert).collect::<String>(),
-                vars.clone(),
-                &mut Vec::new(),
-                &mut 0,
-                options,
-                false,
-                &mut (false, 0, 0),
-                false,
-                0,
-                Vec::new(),
-            )
+            if input.contains(&';') || input.contains(&'#')
             {
-                Ok(f) => f,
-                Err(s) =>
-                {
-                    println!("{}: {}", input.iter().collect::<String>(), s);
-                    continue;
-                }
-            };
-            if !graphable && !varcheck
-            {
-                if let Ok(n) = do_math(output, options, funcvar)
-                {
-                    print_answer(n, options, &colors);
-                }
+                graphable = true
             }
-            if let Some(time) = watch
+            else
             {
-                println!(" {}", time.elapsed().as_nanos());
-            }
-            else if !graphable && !varcheck
-            {
-                println!();
+                (output, funcvar, graphable, varcheck) = match input_var(
+                    &input.iter().map(convert).collect::<String>(),
+                    vars.clone(),
+                    &mut Vec::new(),
+                    &mut 0,
+                    options,
+                    false,
+                    &mut (false, 0, 0),
+                    false,
+                    0,
+                    Vec::new(),
+                )
+                {
+                    Ok(f) => f,
+                    Err(s) =>
+                    {
+                        println!("{}: {}", input.iter().collect::<String>(), s);
+                        continue;
+                    }
+                };
+                if !graphable && !varcheck
+                {
+                    if let Ok(n) = do_math(output, options, funcvar)
+                    {
+                        print_answer(n, options, &colors);
+                    }
+                }
+                if let Some(time) = watch
+                {
+                    println!(" {}", time.elapsed().as_nanos());
+                }
+                else if !graphable && !varcheck
+                {
+                    println!();
+                }
             }
         }
         else

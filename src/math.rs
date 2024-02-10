@@ -825,6 +825,41 @@ pub fn do_math(
                         {
                             function[i] = match s.as_str()
                             {
+                                "dice" =>
+                                {
+                                    let faces = a
+                                        .iter()
+                                        .map(|c| c.real().to_f64() as usize)
+                                        .collect::<Vec<usize>>();
+                                    let mut distribution = vec![vec![1; faces[0]]];
+                                    if faces.len() != 1
+                                    {
+                                        for i in 1..faces.len()
+                                        {
+                                            distribution.push(Vec::new());
+                                            for p in
+                                                0..=faces[0..=i].iter().sum::<usize>() - (i + 1)
+                                            {
+                                                let value = distribution[i - 1][(p + 1)
+                                                    .saturating_sub(faces[i])
+                                                    ..=p.min(
+                                                        faces[0..i].iter().sum::<usize>() - i,
+                                                    )]
+                                                    .iter()
+                                                    .sum();
+                                                distribution[i].push(value)
+                                            }
+                                        }
+                                    }
+                                    Vector(
+                                        distribution
+                                            .last()
+                                            .unwrap()
+                                            .iter()
+                                            .map(|a| Complex::with_val(options.prec, a))
+                                            .collect::<Vec<Complex>>(),
+                                    )
+                                }
                                 "quartiles" =>
                                 {
                                     if a.len() < 2

@@ -1513,6 +1513,7 @@ pub fn do_math(
         {
             match s.as_str()
             {
+                "×" => function[i] = function[i - 1].mul(&function[i + 1])?,
                 "^" => function[i] = function[i - 1].pow(&function[i + 1])?,
                 "^^" => function[i] = function[i - 1].func(&function[i + 1], tetration)?,
                 "//" => function[i] = function[i - 1].func(&function[i + 1], root)?,

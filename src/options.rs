@@ -956,7 +956,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             );
             if let Ok(f)=input
             {
-            parsed_to_string(&f.0 ,&options, colors)
+            parsed_to_string(f.0,f.1 ,&options, colors)
         }
             else
             {
@@ -965,8 +965,38 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         }
     }
 }
-pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) -> String
+pub fn parsed_to_string(
+    mut input: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    options: &Options,
+    colors: &Colors,
+) -> String
 {
+    let mut i = 0;
+    'main: while i < input.len()
+    {
+        if let Str(s) = &input[i]
+        {
+            for v in &func_vars
+            {
+                if *s == v.0 && !v.0.contains('(')
+                {
+                    if v.1.len() == 1
+                    {
+                        input[i] = v.1[0].clone();
+                    }
+                    else
+                    {
+                        input[i] = Str('('.to_string());
+                        input.splice(i + 1..i + 1, v.1.clone());
+                        input.insert(i + v.1.len() + 1, Str(')'.to_string()));
+                    }
+                    continue 'main;
+                }
+            }
+        }
+        i += 1;
+    }
     let mut out = String::new();
     for i in input
     {
@@ -974,7 +1004,7 @@ pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) ->
         {
             Num(n) =>
             {
-                let n = get_output(*options, colors, n);
+                let n = get_output(*options, colors, &n);
                 out.push_str(&format!(
                     "{}{}{}",
                     n.0,
@@ -988,7 +1018,7 @@ pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) ->
                 let mut num;
                 for i in n
                 {
-                    num = get_output(*options, colors, i);
+                    num = get_output(*options, colors, &i);
                     str.push_str(&format!(
                         "{}{}{},",
                         num.0,
@@ -1007,7 +1037,7 @@ pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) ->
                 {
                     for j in i
                     {
-                        num = get_output(*options, colors, j);
+                        num = get_output(*options, colors, &j);
                         str.push_str(&format!(
                             "{}{}{},",
                             num.0,
@@ -1019,7 +1049,11 @@ pub fn parsed_to_string(input: &[NumStr], options: &Options, colors: &Colors) ->
                 str.pop();
                 out.push_str(&format!("{{{}}}", str))
             }
-            Str(n) => out.push_str(n),
+            Str(n) if n.starts_with('@') && n.contains('(') =>
+            {
+                out.push_str(&n.split('(').next().unwrap().replace("@", ""))
+            }
+            Str(n) => out.push_str(&n),
         }
     }
     to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
@@ -1966,37 +2000,12 @@ pub fn commands(
             {
                 if v.name.contains(&'(')
                 {
-                    let mut func_vars: Vec<(isize, String)> = Vec::new();
-
-                    let mut l = v.name.clone();
-                    l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                    l.pop();
-                    for i in l.split(|c| c == &',')
-                    {
-                        func_vars.push((-1, i.iter().collect()));
-                    }
-
                     print!(
                         "{}={}\n\x1b[G",
                         v.name.iter().collect::<String>(),
-                        parsed_to_string(
-                            &match input_var(
-                                &v.unparsed,
-                                vars.to_vec(),
-                                &mut func_vars,
-                                &mut 0,
-                                *options,
-                                false,
-                                &mut (false, 0, 0),
-                                true,
-                                0,
-                                Vec::new()
-                            )
-                            {
-                                Ok(n) => n.0,
-                                _ => v.parsed.clone(),
-                            },
-                            options,
+                        to_output(
+                            &v.unparsed.chars().collect::<Vec<char>>(),
+                            options.color,
                             colors
                         )
                     );
@@ -2057,19 +2066,6 @@ pub fn commands(
                         _ => continue,
                     }
                 }
-            }
-            stdout.flush().unwrap();
-        }
-        "lvars" =>
-        {
-            print!("\x1b[A\x1b[G\x1b[K");
-            for v in vars.iter()
-            {
-                print!(
-                    "{}={}\n\x1b[G",
-                    v.name.iter().collect::<String>(),
-                    parsed_to_string(&v.parsed, options, colors)
-                );
             }
             stdout.flush().unwrap();
         }

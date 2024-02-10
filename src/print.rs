@@ -167,7 +167,7 @@ pub fn print_concurrent(
                 Vec::new(),
             )
             {
-                Ok(n) => parsed_to_string(&n.0, &options, &colors),
+                Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
                 _ => String::new(),
             };
             if out.is_empty()

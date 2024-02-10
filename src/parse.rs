@@ -937,9 +937,9 @@ pub fn input_var(
             );
             if neg
             {
-                output.push(Str('('.to_string()));
                 output.push(Num(n1.clone()));
-                output.push(Str('*'.to_string()));
+                output.push(Str('×'.to_string()));
+                neg = false;
             }
             i += countv;
             if matches!(word.as_str(), "inf" | "nan" | "NaN")
@@ -977,11 +977,6 @@ pub fn input_var(
             {
                 output.push(Str(word))
             }
-            if neg
-            {
-                output.push(Str(')'.to_string()));
-                neg = false;
-            }
         }
         else if (!vars
             .iter()
@@ -1018,9 +1013,9 @@ pub fn input_var(
             );
             if neg
             {
-                output.push(Str('('.to_string()));
                 output.push(Num(n1.clone()));
-                output.push(Str('*'.to_string()));
+                output.push(Str('×'.to_string()));
+                neg = false;
             }
             i += if c == '@'
             {
@@ -1057,11 +1052,6 @@ pub fn input_var(
                 subfact.0 = false;
                 output.push(Str(")".to_string()));
                 output.push(Str(")".to_string()))
-            }
-            if neg
-            {
-                output.push(Str(')'.to_string()));
-                neg = false;
             }
         }
         else
@@ -1145,9 +1135,9 @@ pub fn input_var(
                             );
                             if neg
                             {
-                                output.push(Str('('.to_string()));
                                 output.push(Num(n1.clone()));
-                                output.push(Str('*'.to_string()));
+                                output.push(Str('×'.to_string()));
+                                neg = false;
                             }
                             output.push(Str('('.to_string()));
                             let mut temp = &chars[j + countj + 1..i + 1];
@@ -1216,7 +1206,7 @@ pub fn input_var(
                                 }
                                 else
                                 {
-                                    let mut parsed;
+                                    let parsed;
                                     let exit;
                                     let func;
                                     let tempgraph;
@@ -1248,16 +1238,7 @@ pub fn input_var(
                                     {
                                         return Ok((Vec::new(), Vec::new(), false, true));
                                     }
-                                    if print
-                                    {
-                                        if parsed.len() > 1
-                                        {
-                                            parsed.insert(0, Str('('.to_string()));
-                                            parsed.push(Str(')'.to_string()));
-                                        }
-                                        parsed
-                                    }
-                                    else if (tempgraph && parsed.len() > 1)
+                                    if (tempgraph && parsed.len() > 1)||print
                                         //TODO optimize below not allowing things that should be parsed here parsed in math.rs
                                         || sumrec.iter().any(|c| c.0 == -1)
                                     {
@@ -1386,11 +1367,6 @@ pub fn input_var(
                                 output.push(Str(")".to_string()))
                             }
                             output.push(Str(")".to_string()));
-                            if neg
-                            {
-                                output.push(Str(')'.to_string()));
-                                neg = false;
-                            }
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
@@ -1416,10 +1392,11 @@ pub fn input_var(
                             );
                             if neg
                             {
-                                output.push(Str('('.to_string()));
                                 output.push(Num(n1.clone()));
-                                output.push(Str('*'.to_string()));
+                                output.push(Str('×'.to_string()));
+                                neg = false;
                             }
+
                             output.push(Str('('.to_string()));
                             let mut temp = &chars[j + countj + 1..i + 1];
                             if temp.ends_with(&[')'])
@@ -1438,7 +1415,7 @@ pub fn input_var(
                             }
                             else
                             {
-                                let mut parsed;
+                                let parsed;
                                 let exit;
                                 let func;
                                 let tempgraph;
@@ -1470,16 +1447,7 @@ pub fn input_var(
                                 {
                                     return Ok((Vec::new(), Vec::new(), false, true));
                                 }
-                                if print
-                                {
-                                    if parsed.len() > 1
-                                    {
-                                        parsed.insert(0, Str('('.to_string()));
-                                        parsed.push(Str(')'.to_string()));
-                                    }
-                                    parsed
-                                }
-                                else if (tempgraph && parsed.len() > 1)
+                                if (tempgraph && parsed.len() > 1)||print
                                 //TODO optimize below not allowing things that should be parsed here parsed in math.rs
                                     || sumrec.iter().any(|c| c.0 == -1)
                                 {
@@ -1612,11 +1580,6 @@ pub fn input_var(
                                 output.push(Str(")".to_string()));
                                 output.push(Str(")".to_string()))
                             }
-                            if neg
-                            {
-                                output.push(Str(')'.to_string()));
-                                neg = false;
-                            }
                             output.push(Str(")".to_string()));
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
@@ -1705,9 +1668,9 @@ pub fn input_var(
                         );
                         if neg
                         {
-                            output.push(Str('('.to_string()));
                             output.push(Num(n1.clone()));
-                            output.push(Str('*'.to_string()));
+                            output.push(Str('×'.to_string()));
+                            neg = false;
                         }
                         if print
                         {
@@ -1716,11 +1679,6 @@ pub fn input_var(
                         else
                         {
                             output.push(var.parsed[0].clone());
-                        }
-                        if neg
-                        {
-                            output.push(Str(')'.to_string()));
-                            neg = false;
                         }
                         if scientific
                         {
@@ -1758,9 +1716,9 @@ pub fn input_var(
             {
                 if neg
                 {
-                    output.push(Str('('.to_string()));
                     output.push(Num(n1.clone()));
-                    output.push(Str('*'.to_string()));
+                    output.push(Str('×'.to_string()));
+                    neg = false;
                 }
                 match c
                 {
@@ -1898,11 +1856,6 @@ pub fn input_var(
                     }
                     _ =>
                     {}
-                }
-                if neg
-                {
-                    output.push(Str(')'.to_string()));
-                    neg = false;
                 }
             }
             i += 1;

@@ -54,7 +54,6 @@ pub fn input_var(
     let mut stack_start = Vec::new();
     let mut i = 0;
     let mut powertree = 0;
-    //TODO make so recursive functions can work with 2 different functions
     let mut piecewise = 0;
     while !chars.is_empty() && chars[0].is_whitespace()
     {
@@ -1238,8 +1237,8 @@ pub fn input_var(
                                     {
                                         return Ok((Vec::new(), Vec::new(), false, true));
                                     }
-                                    if (tempgraph && parsed.len() > 1)||print
-                                        //TODO optimize below not allowing things that should be parsed here parsed in math.rs
+                                    if (tempgraph && parsed.len() > 1)
+                                        || print
                                         || sumrec.iter().any(|c| c.0 == -1)
                                     {
                                         let iden = format!("@{}{}{}@", i, func_var, depth);
@@ -1447,8 +1446,8 @@ pub fn input_var(
                                 {
                                     return Ok((Vec::new(), Vec::new(), false, true));
                                 }
-                                if (tempgraph && parsed.len() > 1)||print
-                                //TODO optimize below not allowing things that should be parsed here parsed in math.rs
+                                if (tempgraph && parsed.len() > 1)
+                                    || print
                                     || sumrec.iter().any(|c| c.0 == -1)
                                 {
                                     let iden = format!("@{}{}{}@", i, l, depth);
@@ -1990,6 +1989,46 @@ pub fn input_var(
     if !err.is_empty()
     {
         return Err(err);
+    }
+    if graph && !print
+    {
+        i = output.len();
+        count = 0;
+        let mut to = 0;
+        while i != 0
+        {
+            i -= 1;
+            if let Str(s) = &output[i]
+            {
+                match s.as_str()
+                {
+                    "(" =>
+                    {
+                        count -= 1;
+                        if count == 0
+                        {
+                            if let Ok(n) =
+                                do_math(output[i + 1..to].to_vec(), options, funcvars.clone())
+                            {
+                                output.drain(i..=to);
+                                output.insert(i, n);
+                            }
+                            to = 0;
+                        }
+                    }
+                    ")" =>
+                    {
+                        if count == 0
+                        {
+                            to = i;
+                        }
+                        count += 1;
+                    }
+                    _ =>
+                    {}
+                }
+            }
+        }
     }
     Ok((output, funcvars, graph, false))
 }

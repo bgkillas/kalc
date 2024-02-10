@@ -981,16 +981,9 @@ pub fn parsed_to_string(
             {
                 if *s == v.0 && !v.0.contains('(')
                 {
-                    if v.1.len() == 1
-                    {
-                        input[i] = v.1[0].clone();
-                    }
-                    else
-                    {
-                        input[i] = Str('('.to_string());
-                        input.splice(i + 1..i + 1, v.1.clone());
-                        input.insert(i + v.1.len() + 1, Str(')'.to_string()));
-                    }
+                    input[i] = Str('('.to_string());
+                    input.splice(i + 1..i + 1, v.1.clone());
+                    input.insert(i + v.1.len() + 1, Str(')'.to_string()));
                     continue 'main;
                 }
             }

@@ -36,7 +36,6 @@ use std::{
 //beta distribution
 //support units properly
 //rpn maybe
-//tangent surface, via summation and lists
 #[derive(Clone)]
 pub struct Variable
 {

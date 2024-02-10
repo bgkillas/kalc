@@ -37,7 +37,6 @@ use std::{
 //support units properly
 //rpn maybe
 //tangent surface, via summation and lists
-//make list cubic
 #[derive(Clone)]
 pub struct Variable
 {
@@ -141,6 +140,7 @@ pub struct Options
     graph: bool,
     slowcheck: u128,
     var_multiply: bool,
+    interactive: bool,
 }
 impl Default for Options
 {
@@ -179,6 +179,7 @@ impl Default for Options
             graph: true,
             slowcheck: 250,
             var_multiply: false,
+            interactive: true,
         }
     }
 }
@@ -223,7 +224,8 @@ fn main()
             }
         }
     }
-    if args.is_empty()
+    options.interactive = args.is_empty();
+    if options.interactive
     {
         terminal::enable_raw_mode().unwrap();
         print!(
@@ -249,7 +251,7 @@ fn main()
         "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
         var("USERNAME").unwrap()
     );
-    let mut vars: Vec<Variable> = if options.allow_vars && args.is_empty()
+    let mut vars: Vec<Variable> = if options.allow_vars && options.interactive
     {
         get_vars(options)
     }
@@ -257,7 +259,7 @@ fn main()
     {
         Vec::new()
     };
-    if !args.is_empty() && options.allow_vars
+    if !options.interactive && options.allow_vars
     {
         get_cli_vars(options, args.concat(), &mut vars)
     }
@@ -294,12 +296,12 @@ fn main()
                     {
                         l.clone()
                     };
-                    if !(l.starts_with('#') || (!args.is_empty() && !args.contains(&left)))
+                    if !(l.starts_with('#') || (!options.interactive && !args.contains(&left)))
                     {
                         if let Some(r) = split.next()
                         {
                             let l = l.chars().collect::<Vec<char>>();
-                            if !args.is_empty()
+                            if !options.interactive
                             {
                                 let mut blacklist = vec![left];
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
@@ -338,7 +340,7 @@ fn main()
             }
         }
     }
-    let (mut file, mut unmod_lines) = if args.is_empty()
+    let (mut file, mut unmod_lines) = if options.interactive
     {
         #[cfg(unix)]
         let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
@@ -374,7 +376,6 @@ fn main()
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
-    let cli = !args.is_empty();
     'main: loop
     {
         let mut input = Vec::new();
@@ -1236,7 +1237,6 @@ fn main()
                 &mut options,
                 Some(&mut stdout),
                 &mut vars,
-                cli,
                 &input,
             );
         }
@@ -1285,7 +1285,6 @@ fn main()
                                         &mut options,
                                         None,
                                         &mut vars,
-                                        true,
                                         &s.chars().collect::<Vec<char>>(),
                                     );
                                 }

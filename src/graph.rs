@@ -884,8 +884,27 @@ pub fn get_list_2d(
     ];
     let den_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
     let mut zero = (false, false);
-    let list = func.0.iter().any(|c| c.str_is("±"))
-        || func.1.iter().any(|c| c.1.iter().any(|c| c.str_is("±")));
+    let list = func.0.iter().any(|c| {
+        if let Str(s) = c
+        {
+            matches!(s.as_str(), "±" | "cubic" | "quadratic")
+        }
+        else
+        {
+            false
+        }
+    }) || func.1.iter().any(|c| {
+        c.1.iter().any(|c| {
+            if let Str(s) = c
+            {
+                matches!(s.as_str(), "±" | "cubic" | "quadratic")
+            }
+            else
+            {
+                false
+            }
+        })
+    });
     for i in 0..=func.2.samples_2d
     {
         let n = func.2.xr.0 + i as f64 * den_range;
@@ -1121,8 +1140,27 @@ pub fn get_list_3d(
     let mut modified: Vec<NumStr>;
     let mut modifiedvars: Vec<(String, Vec<NumStr>)>;
     let mut zero = (false, false);
-    let list = func.0.iter().any(|c| c.str_is("±"))
-        || func.1.iter().any(|c| c.1.iter().any(|c| c.str_is("±")));
+    let list = func.0.iter().any(|c| {
+        if let Str(s) = c
+        {
+            matches!(s.as_str(), "±" | "cubic" | "quadratic")
+        }
+        else
+        {
+            false
+        }
+    }) || func.1.iter().any(|c| {
+        c.1.iter().any(|c| {
+            if let Str(s) = c
+            {
+                matches!(s.as_str(), "±" | "cubic" | "quadratic")
+            }
+            else
+            {
+                false
+            }
+        })
+    });
     let mut d2 = false;
     for i in 0..=func.2.samples_3d.0
     {

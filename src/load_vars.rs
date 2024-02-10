@@ -869,7 +869,6 @@ pub fn set_commands_or_vars(
     options: &mut Options,
     stdout: Option<&mut Stdout>,
     vars: &mut Vec<Variable>,
-    cli: bool,
     input: &[char],
 )
 {
@@ -908,7 +907,7 @@ pub fn set_commands_or_vars(
                             );
                             stdout.flush().unwrap()
                         }
-                        if !cli
+                        if options.interactive
                         {
                             print!(
                                 "{}{}",
@@ -927,7 +926,7 @@ pub fn set_commands_or_vars(
     {
         if let Some(stdout) = stdout
         {
-            if !cli
+            if options.interactive
             {
                 print!(
                     "{}{}",
@@ -957,7 +956,7 @@ pub fn set_commands_or_vars(
             }
             if let Some(stdout) = stdout
             {
-                if !cli
+                if options.interactive
                 {
                     print!(
                         "{}{}",
@@ -977,7 +976,7 @@ pub fn set_commands_or_vars(
             add_var(l, r, i, vars, *options, true, false);
             if let Some(stdout) = stdout
             {
-                if !cli
+                if options.interactive
                 {
                     print!(
                         "{}{}",
@@ -993,7 +992,7 @@ pub fn set_commands_or_vars(
     add_var(l, r, 0, vars, *options, true, false);
     if let Some(stdout) = stdout
     {
-        if !cli
+        if options.interactive
         {
             print!(
                 "{}{}",

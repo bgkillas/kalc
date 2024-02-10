@@ -831,6 +831,10 @@ pub fn do_math(
                                         .iter()
                                         .map(|c| c.real().to_f64() as usize)
                                         .collect::<Vec<usize>>();
+                                    if faces.iter().any(|c| c == &0)
+                                    {
+                                        return Err("bad face value");
+                                    }
                                     let mut distribution = vec![vec![1; faces[0]]];
                                     if faces.len() != 1
                                     {

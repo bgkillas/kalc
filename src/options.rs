@@ -1051,7 +1051,7 @@ pub fn parsed_to_string(
             }
             Str(n) if n.starts_with('@') && n.contains('(') =>
             {
-                out.push_str(&n.split('(').next().unwrap().replace("@", ""))
+                out.push_str(&n.split('(').next().unwrap().replace('@', ""))
             }
             Str(n) => out.push_str(&n),
         }

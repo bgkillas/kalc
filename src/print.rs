@@ -55,7 +55,7 @@ pub fn print_concurrent(
                 );
                 if s.contains(&'=')
                 {
-                    set_commands_or_vars(&mut colors, &mut options, None, &mut vars, true, &s);
+                    set_commands_or_vars(&mut colors, &mut options, None, &mut vars, s);
                 }
             }
         }
@@ -263,7 +263,6 @@ pub fn print_concurrent(
                                         &mut options,
                                         None,
                                         &mut vars,
-                                        true,
                                         &s.chars().collect::<Vec<char>>(),
                                     );
                                 }

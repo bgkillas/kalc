@@ -379,7 +379,6 @@ pub fn do_math(
                                 .real()
                                     == &1.0
                             {
-                                //TODO move to parse.rs
                                 ans = Some(recursion(
                                     func_vars.clone(),
                                     function[start..*end].to_vec(),

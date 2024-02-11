@@ -9,7 +9,7 @@ use rug::{
         Special::{Infinity, Nan},
     },
     ops::Pow,
-    Complex, Float,
+    Complex, Float, Integer,
 };
 use std::{
     cmp::Ordering,
@@ -427,11 +427,23 @@ pub fn shr(a: &Complex, b: &Complex) -> Complex
 }
 pub fn ne(a: &Complex, b: &Complex) -> Complex
 {
-    Complex::with_val(a.prec(), (a != b) as u8)
+    let c: Complex = a - b.clone();
+    let int = Integer::from(10).pow(a.prec().0 / 4);
+    let re: Float = c.real().clone() * int.clone();
+    let re: Float = re.round() / int.clone();
+    let im: Float = c.imag().clone() * int.clone();
+    let im: Float = im.round() / int;
+    Complex::with_val(a.prec(), (!re.is_zero() || !im.is_zero()) as u8)
 }
 pub fn eq(a: &Complex, b: &Complex) -> Complex
 {
-    Complex::with_val(a.prec(), (a == b) as u8)
+    let c: Complex = a - b.clone();
+    let int = Integer::from(10).pow(a.prec().0 / 4);
+    let re: Float = c.real().clone() * int.clone();
+    let re: Float = re.round() / int.clone();
+    let im: Float = c.imag().clone() * int.clone();
+    let im: Float = im.round() / int;
+    Complex::with_val(a.prec(), (re.is_zero() && im.is_zero()) as u8)
 }
 pub fn ge(a: &Complex, b: &Complex) -> Complex
 {

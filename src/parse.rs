@@ -657,6 +657,7 @@ pub fn input_var(
                     if i + 1 < chars.len() && chars[i + 1] == '='
                     {
                         output.push(Str("!=".to_string()));
+                        i += 1;
                     }
                     else if i != 0
                         && (chars[i - 1].is_alphanumeric()

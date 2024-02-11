@@ -979,7 +979,7 @@ pub fn parsed_to_string(
         {
             for v in &func_vars
             {
-                if *s == v.0 && !v.0.contains('(')
+                if *s == v.0 && !v.0.ends_with(')')
                 {
                     input[i] = Str('('.to_string());
                     input.splice(i + 1..i + 1, v.1.clone());

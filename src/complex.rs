@@ -1306,7 +1306,7 @@ pub fn recursion(
 {
     for fv in func_vars.clone()
     {
-        if fv.0.contains('(')
+        if fv.0.ends_with(')')
         {
             if fv.0.contains(',')
             {

@@ -34,7 +34,7 @@ pub fn do_math(
     }
     for (i, v) in func_vars.clone().iter().enumerate()
     {
-        if v.1.len() != 1 && !v.0.contains('(')
+        if v.1.len() != 1 && !v.0.ends_with(')')
         {
             if let Ok(n) = do_math(v.1.clone(), options, func_vars[..i].to_vec())
             {
@@ -49,7 +49,7 @@ pub fn do_math(
         {
             for v in &func_vars
             {
-                if *s == v.0 && !v.0.contains('(')
+                if *s == v.0 && !v.0.ends_with(')')
                 {
                     if v.1.len() == 1
                     {
@@ -1701,7 +1701,7 @@ fn recursively_get_var(
 {
     for v in func_vars
     {
-        if *s == v.0 && !v.0.contains('(') && v.1.len() == 1
+        if *s == v.0 && !v.0.ends_with(')') && v.1.len() == 1
         {
             if let Str(s) = &v.1[0]
             {

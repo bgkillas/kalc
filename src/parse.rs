@@ -1262,7 +1262,7 @@ pub fn input_var(
                                 let mut k = 0;
                                 for (x, fv) in var.funcvars.clone().iter().enumerate()
                                 {
-                                    if !fv.0.contains('(')
+                                    if !fv.0.ends_with(')')
                                     {
                                         k = fv.1.len();
                                         while k != 0
@@ -1302,7 +1302,7 @@ pub fn input_var(
                                 {
                                     if var.parsed[k].str_is(&fv.0)
                                     {
-                                        if !fv.0.contains('(')
+                                        if !fv.0.ends_with(')')
                                         {
                                             var.parsed[k] =
                                                 Str(format!("@{}@{}{}", i, depth, fv.0));
@@ -1323,16 +1323,19 @@ pub fn input_var(
                                     k -= 1;
                                     for fc in var.funcvars.clone()
                                     {
-                                        if fv.1[k].str_is(&fc.0)
+                                        if let Str(s) = &fv.1[k]
                                         {
-                                            if !fc.0.contains('(')
+                                            if s == &fc.0 && s != &fv.0
                                             {
-                                                var.funcvars[x].1[k] =
-                                                    Str(format!("@{}@{}{}", i, depth, fc.0))
-                                            }
-                                            else if !fc.0.starts_with('@')
-                                            {
-                                                var.funcvars[x].1[k] = Str(format!("@{}", fc.0))
+                                                if !fc.0.contains('(')
+                                                {
+                                                    var.funcvars[x].1[k] =
+                                                        Str(format!("@{}@{}{}", i, depth, fc.0))
+                                                }
+                                                else if !fc.0.starts_with('@')
+                                                {
+                                                    var.funcvars[x].1[k] = Str(format!("@{}", fc.0))
+                                                }
                                             }
                                         }
                                     }
@@ -1340,7 +1343,7 @@ pub fn input_var(
                             }
                             for (x, fv) in var.funcvars.clone().iter().enumerate()
                             {
-                                if !fv.0.contains('(')
+                                if !fv.0.ends_with(')')
                                 {
                                     var.funcvars[x].0 = format!("@{}@{}{}", i, depth, fv.0);
                                 }
@@ -1395,7 +1398,6 @@ pub fn input_var(
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
-
                             output.push(Str('('.to_string()));
                             let mut temp = &chars[j + countj + 1..i + 1];
                             if temp.ends_with(&[')'])
@@ -1488,7 +1490,7 @@ pub fn input_var(
                             }
                             for fv in var.funcvars.iter_mut()
                             {
-                                if !fv.0.contains('(')
+                                if !fv.0.ends_with(')')
                                 {
                                     k = fv.1.len();
                                     while k != 0
@@ -1516,7 +1518,7 @@ pub fn input_var(
                                 {
                                     if var.parsed[k].str_is(&fv.0)
                                     {
-                                        if !fv.0.contains('(')
+                                        if !fv.0.ends_with(')')
                                         {
                                             var.parsed[k] =
                                                 Str(format!("@{}@{}{}", i, depth, fv.0));
@@ -1537,16 +1539,19 @@ pub fn input_var(
                                     k -= 1;
                                     for fc in var.funcvars.clone()
                                     {
-                                        if fv.1[k].str_is(&fc.0)
+                                        if let Str(s) = &fv.1[k]
                                         {
-                                            if !fc.0.contains('(')
+                                            if s == &fc.0 && s != &fv.0
                                             {
-                                                var.funcvars[x].1[k] =
-                                                    Str(format!("@{}@{}{}", i, depth, fc.0))
-                                            }
-                                            else if !fc.0.starts_with('@')
-                                            {
-                                                var.funcvars[x].1[k] = Str(format!("@{}", fc.0))
+                                                if !fc.0.contains('(')
+                                                {
+                                                    var.funcvars[x].1[k] =
+                                                        Str(format!("@{}@{}{}", i, depth, fc.0))
+                                                }
+                                                else if !fc.0.starts_with('@')
+                                                {
+                                                    var.funcvars[x].1[k] = Str(format!("@{}", fc.0))
+                                                }
                                             }
                                         }
                                     }
@@ -1554,7 +1559,7 @@ pub fn input_var(
                             }
                             for (x, fv) in var.funcvars.clone().iter().enumerate()
                             {
-                                if !fv.0.contains('(')
+                                if !fv.0.ends_with(')')
                                 {
                                     var.funcvars[x].0 = format!("@{}@{}{}", i, depth, fv.0);
                                 }

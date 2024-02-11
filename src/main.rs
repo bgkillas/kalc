@@ -140,6 +140,7 @@ pub struct Options
     slowcheck: u128,
     var_multiply: bool,
     interactive: bool,
+    surface: bool,
 }
 impl Default for Options
 {
@@ -179,6 +180,7 @@ impl Default for Options
             slowcheck: 250,
             var_multiply: false,
             interactive: true,
+            surface: false,
         }
     }
 }

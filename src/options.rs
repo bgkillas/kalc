@@ -52,6 +52,7 @@ pub fn arg_opts(
             }
             "--debug" => options.debug = !options.debug,
             "--depth" => options.depth = !options.depth,
+            "--surface" => options.surface = !options.surface,
             "--flat" => options.flat = !options.flat,
             "--tau" => options.tau = !options.tau,
             "--small_e" => options.small_e = !options.small_e,
@@ -246,27 +247,52 @@ pub fn arg_opts(
             }
             "--3d" =>
             {
-                if args.len() > 2
+                if args.len() > 2 && args[i + 2].parse::<usize>().is_ok()
                 {
                     options.samples_3d.0 = args[i + 1].parse::<usize>().expect("invalid 3d");
                     options.samples_3d.1 = args[i + 2].parse::<usize>().expect("invalid 3d");
                     args.remove(i);
                     args.remove(i);
                 }
+                else if args.len() > 1
+                {
+                    options.samples_3d.0 = args[i + 1].parse::<usize>().expect("invalid 3d");
+                    options.samples_3d.1 = options.samples_3d.0;
+                    args.remove(i);
+                }
             }
             "--yr" =>
             {
-                if args.len() > 2
+                if args.len() > 2 && args[i + 2].parse::<f64>().is_ok()
                 {
                     options.yr.0 = args[i + 1].parse::<f64>().expect("invalid yr");
                     options.yr.1 = args[i + 2].parse::<f64>().expect("invalid yr");
                     args.remove(i);
                     args.remove(i);
                 }
+                else if args.len() > 1
+                {
+                    options.yr.0 = -args[i + 1].parse::<f64>().expect("invalid yr");
+                    options.yr.1 = -options.yr.0;
+                    args.remove(i);
+                }
             }
             "--range" =>
             {
-                if args.len() > 1
+                if args.len() > 2 && args[i + 2].parse::<f64>().is_ok()
+                {
+                    let n1 = args[i + 1].parse::<f64>().expect("invalid range");
+                    let n2 = args[i + 2].parse::<f64>().expect("invalid range");
+                    options.xr.0 = n1;
+                    options.xr.1 = n2;
+                    options.yr.0 = n1;
+                    options.yr.1 = n2;
+                    options.zr.0 = n1;
+                    options.zr.1 = n2;
+                    args.remove(i);
+                    args.remove(i);
+                }
+                else if args.len() > 1
                 {
                     let n = args[i + 1].parse::<f64>().expect("invalid range");
                     options.xr.0 = -n;
@@ -280,21 +306,33 @@ pub fn arg_opts(
             }
             "--xr" =>
             {
-                if args.len() > 2
+                if args.len() > 2 && args[i + 2].parse::<f64>().is_ok()
                 {
                     options.xr.0 = args[i + 1].parse::<f64>().expect("invalid xr");
                     options.xr.1 = args[i + 2].parse::<f64>().expect("invalid xr");
                     args.remove(i);
                     args.remove(i);
                 }
+                else if args.len() > 1
+                {
+                    options.xr.0 = -args[i + 1].parse::<f64>().expect("invalid xr");
+                    options.xr.1 = -options.xr.0;
+                    args.remove(i);
+                }
             }
             "--zr" =>
             {
-                if args.len() > 2
+                if args.len() > 2 && args[i + 2].parse::<f64>().is_ok()
                 {
                     options.zr.0 = args[i + 1].parse::<f64>().expect("invalid zr");
                     options.zr.1 = args[i + 2].parse::<f64>().expect("invalid zr");
                     args.remove(i);
+                    args.remove(i);
+                }
+                else if args.len() > 1
+                {
+                    options.zr.0 = -args[i + 1].parse::<f64>().expect("invalid zr");
+                    options.zr.1 = -options.zr.0;
                     args.remove(i);
                 }
             }
@@ -703,6 +741,14 @@ pub fn file_opts(
                         .parse::<bool>()
                         .expect("invalid depth")
                 }
+                "surface" =>
+                {
+                    options.surface = split
+                        .next()
+                        .unwrap()
+                        .parse::<bool>()
+                        .expect("invalid surface")
+                }
                 "flat" =>
                 {
                     options.flat = split.next().unwrap().parse::<bool>().expect("invalid flat")
@@ -913,6 +959,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         ),
         "color" => format!("{}", options.color),
         "depth" => format!("{}", options.depth),
+        "surface" => format!("{}", options.surface),
         "flat" => format!("{}", options.flat),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
@@ -1817,6 +1864,7 @@ pub fn silent_commands(options: &mut Options, input: &[char])
         "color" => options.color = !options.color,
         "prompt" => options.prompt = !options.prompt,
         "depth" => options.depth = !options.depth,
+        "surface" => options.surface = !options.surface,
         "flat" => options.flat = !options.flat,
         "deg" => options.deg = Degrees,
         "rad" => options.deg = Radians,
@@ -1872,6 +1920,12 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             options.depth = !options.depth;
+        }
+        "surface" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout.flush().unwrap();
+            options.surface = !options.surface;
         }
         "flat" =>
         {

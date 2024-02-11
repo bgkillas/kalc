@@ -485,7 +485,40 @@ pub fn graph(
                     Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 1)),
                 )
             };
-            if options.lines || lines
+            if options.surface
+                && points3d[1..6]
+                    .iter()
+                    .all(|p| p[0][2].is_empty() && p[1][2].is_empty())
+                && (points3d[0][0][2].is_empty() || points3d[0][1][2].is_empty())
+            {
+                fg.axes3d()
+                    .set_x_ticks(xticks, &[], &[])
+                    .set_y_ticks(yticks, &[], &[])
+                    .set_z_ticks(zticks, &[], &[])
+                    .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
+                    .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
+                    .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
+                    .set_x_label("x", &[])
+                    .set_y_label("y", &[])
+                    .set_z_label("z", &[])
+                    .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
+                    .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
+                    .surface(
+                        &points3d[0][0][2],
+                        options.samples_3d.0 + 1,
+                        options.samples_3d.1 + 1,
+                        Some((options.xr.0, options.yr.0, options.xr.1, options.yr.1)),
+                        &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                    )
+                    .surface(
+                        &points3d[0][1][2],
+                        options.samples_3d.0 + 1,
+                        options.samples_3d.1 + 1,
+                        Some((options.xr.0, options.yr.0, options.xr.1, options.yr.1)),
+                        &[PointSymbol(options.point_style), Color(&colors.re1col)],
+                    );
+            }
+            else if options.lines || lines
             {
                 fg.axes3d()
                     .set_x_ticks(xticks, &[], &[])

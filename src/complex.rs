@@ -1201,6 +1201,7 @@ pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
                 Complex::with_val(a[0][0].prec(), 1),
                 -a[0][0].clone() - a[1][1].clone(),
                 a[0][0].clone() * a[1][1].clone() - a[0][1].clone() * a[1][0].clone(),
+                false,
             )),
             3 => Ok(cubic(
                 Complex::with_val(a[0][0].prec(), -1),
@@ -1216,6 +1217,7 @@ pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
                     + a[0][1].clone() * a[1][2].clone() * a[2][0].clone()
                     + a[0][2].clone() * a[1][0].clone() * a[2][1].clone()
                     - a[0][2].clone() * a[1][1].clone() * a[2][0].clone(),
+                false,
             )),
             _ => Err("unsupported"),
         }
@@ -1225,7 +1227,7 @@ pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
         Err("not square")
     }
 }
-pub fn quadratic(a: Complex, b: Complex, c: Complex) -> Vec<Complex>
+pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Complex>
 {
     if a.is_zero()
     {
@@ -1235,13 +1237,31 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex) -> Vec<Complex>
     let p: Complex = p - (4 * c * a.clone());
     let p = p.sqrt();
     let a: Complex = 2 * a;
-    vec![(p.clone() - b.clone()) / a.clone(), (-p - b) / a]
+    if real
+    {
+        let z1 = (p.clone() - b.clone()) / a.clone();
+        let z2 = (-p - b) / a;
+        let mut vec = Vec::new();
+        if z1.imag().to_f64().abs() < 0.0000000000000001
+        {
+            vec.push(z1)
+        }
+        if z2.imag().to_f64().abs() < 0.0000000000000001
+        {
+            vec.push(z2)
+        }
+        vec
+    }
+    else
+    {
+        vec![(p.clone() - b.clone()) / a.clone(), (-p - b) / a]
+    }
 }
-pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex) -> Vec<Complex>
+pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<Complex>
 {
     if a.is_zero()
     {
-        return quadratic(b, c, d);
+        return quadratic(b, c, d, real);
     }
     let prec = a.prec();
     let threerecip = Float::with_val(prec.0, 3).recip();
@@ -1282,11 +1302,37 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex) -> Vec<Complex>
     //-((1 - i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 + i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
     //-((1 + i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 - i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
     let omega: Complex = (1 + (Complex::with_val(prec, (0, 1)) * threesqrt.clone())) / 2;
-    vec![
-        (left.clone() - right.clone() - b.clone()) / 3,
-        ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone()) / 3,
-        ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
-    ]
+    if real
+    {
+        let z1: Complex = (left.clone() - right.clone() - b.clone()) / 3;
+        let z2: Complex =
+            ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone())
+                / 3;
+        let z3: Complex = ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3;
+        let mut vec = Vec::new();
+        if z1.imag().to_f64().abs() < 0.0000000000000001
+        {
+            vec.push(z1)
+        }
+        if z2.imag().to_f64().abs() < 0.0000000000000001
+        {
+            vec.push(z2)
+        }
+        if z3.imag().to_f64().abs() < 0.0000000000000001
+        {
+            vec.push(z3)
+        }
+        vec
+    }
+    else
+    {
+        vec![
+            (left.clone() - right.clone() - b.clone()) / 3,
+            ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone())
+                / 3,
+            ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
+        ]
+    }
 }
 pub fn variance(a: &[Complex], prec: (u32, u32)) -> Complex
 {

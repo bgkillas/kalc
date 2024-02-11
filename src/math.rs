@@ -1402,14 +1402,24 @@ pub fn do_math(
                                 }
                                 "cubic" =>
                                 {
-                                    if i + 7 < function.len()
+                                    if i + 9 < function.len() && function[i + 8].str_is(",")
+                                    {
+                                        let a = function[i + 1].num()?;
+                                        let b = function[i + 3].num()?;
+                                        let c = function[i + 5].num()?;
+                                        let d = function[i + 7].num()?;
+                                        let real = function[i + 9].num()?.real() == &1;
+                                        function.drain(i + 2..i + 10);
+                                        Vector(cubic(a, b, c, d, real))
+                                    }
+                                    else if i + 7 < function.len()
                                     {
                                         let a = function[i + 1].num()?;
                                         let b = function[i + 3].num()?;
                                         let c = function[i + 5].num()?;
                                         let d = function[i + 7].num()?;
                                         function.drain(i + 2..i + 8);
-                                        Vector(cubic(a, b, c, d))
+                                        Vector(cubic(a, b, c, d, false))
                                     }
                                     else
                                     {
@@ -1418,13 +1428,22 @@ pub fn do_math(
                                 }
                                 "quad" | "quadratic" =>
                                 {
-                                    if i + 5 < function.len()
+                                    if i + 7 < function.len() && function[i + 6].str_is(",")
+                                    {
+                                        let a = function[i + 1].num()?;
+                                        let b = function[i + 3].num()?;
+                                        let c = function[i + 5].num()?;
+                                        let real = function[i + 7].num()?.real() == &1;
+                                        function.drain(i + 2..i + 8);
+                                        Vector(quadratic(a, b, c, real))
+                                    }
+                                    else if i + 5 < function.len()
                                     {
                                         let a = function[i + 1].num()?;
                                         let b = function[i + 3].num()?;
                                         let c = function[i + 5].num()?;
                                         function.drain(i + 2..i + 6);
-                                        Vector(quadratic(a, b, c))
+                                        Vector(quadratic(a, b, c, false))
                                     }
                                     else
                                     {

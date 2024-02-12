@@ -35,6 +35,8 @@ use std::{
 //beta distribution
 //support units properly
 //rpn maybe
+//gcf and lcm
+//inspect stdout uses
 #[derive(Clone)]
 pub struct Variable
 {
@@ -316,10 +318,14 @@ fn main()
                                 {
                                     if r == "null"
                                     {
-                                        vars.remove(i);
+                                        if let Err(s) =
+                                            add_var(l, r, i, &mut vars, options, true, true, true)
+                                        {
+                                            println!("{}", s)
+                                        }
                                     }
                                     else if let Err(s) =
-                                        add_var(l, r, i, &mut vars, options, true, true)
+                                        add_var(l, r, i, &mut vars, options, true, true, false)
                                     {
                                         println!("{}", s)
                                     }
@@ -331,14 +337,15 @@ fn main()
                                 if j.name.len() <= l.len()
                                 {
                                     if let Err(s) =
-                                        add_var(l, r, i, &mut vars, options, false, false)
+                                        add_var(l, r, i, &mut vars, options, false, false, false)
                                     {
                                         println!("{}", s)
                                     }
                                     continue 'upper;
                                 }
                             }
-                            if let Err(s) = add_var(l, r, 0, &mut vars, options, false, false)
+                            if let Err(s) =
+                                add_var(l, r, 0, &mut vars, options, false, false, false)
                             {
                                 println!("{}", s)
                             }

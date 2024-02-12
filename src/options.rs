@@ -2045,7 +2045,7 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for v in vars.iter()
             {
-                if v.name.contains(&'(')
+                if !v.unparsed.is_empty()
                 {
                     print!(
                         "{}={}\n\x1b[G",
@@ -2065,10 +2065,11 @@ pub fn commands(
                         {
                             let n = get_output(*options, colors, n);
                             print!(
-                                "{}={}{}\n\x1b[G",
+                                "{}={}{}{}\n\x1b[G",
                                 v.name.iter().collect::<String>(),
                                 n.0,
-                                n.1
+                                n.1,
+                                if options.color { &colors.text } else { "" }
                             )
                         }
                         Vector(m) =>
@@ -2079,6 +2080,10 @@ pub fn commands(
                                 let n = get_output(*options, colors, i);
                                 st.push_str(&n.0);
                                 st.push_str(&n.1);
+                                if options.color
+                                {
+                                    st.push_str(&colors.text)
+                                }
                                 st.push(',');
                             }
                             print!(
@@ -2098,6 +2103,10 @@ pub fn commands(
                                     let n = get_output(*options, colors, g);
                                     st.push_str(&n.0);
                                     st.push_str(&n.1);
+                                    if options.color
+                                    {
+                                        st.push_str(&colors.text)
+                                    }
                                     st.push(',');
                                 }
                                 st = st.trim_end_matches(',').to_string();

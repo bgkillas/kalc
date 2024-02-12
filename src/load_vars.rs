@@ -42,14 +42,14 @@ pub fn get_file_vars(
                     {
                         if j.name.len() <= l.len()
                         {
-                            if let Err(s) = add_var(l, r, i, vars, options, false, false)
+                            if let Err(s) = add_var(l, r, i, vars, options, false, false, false)
                             {
                                 println!("{}", s)
                             }
                             continue 'lower;
                         }
                     }
-                    if let Err(s) = add_var(l, r, 0, vars, options, false, false)
+                    if let Err(s) = add_var(l, r, 0, vars, options, false, false, false)
                     {
                         println!("{}", s)
                     }
@@ -693,6 +693,7 @@ pub fn get_vars(options: Options) -> Vec<Variable>
         },
     ]
 }
+#[allow(clippy::too_many_arguments)]
 pub fn add_var(
     l: Vec<char>,
     r: &str,
@@ -701,72 +702,64 @@ pub fn add_var(
     options: Options,
     redef: bool,
     replace: bool,
+    null: bool,
 ) -> Result<(), &'static str>
 {
-    let mut func_vars: Vec<(isize, String)> = Vec::new();
-    if l.contains(&'(')
+    if null
     {
-        let mut l = l.clone();
-        l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-        l.pop();
-        for i in l.split(|c| c == &',')
-        {
-            func_vars.push((-1, i.iter().collect()));
-        }
-    }
-    let mut k = 0;
-    for (j, v) in vars.iter().enumerate()
-    {
-        if v.name.len() <= l.len()
-        {
-            k = j;
-            break;
-        }
-    }
-    vars.insert(
-        k,
-        Variable {
-            name: l.clone(),
-            parsed: Vec::new(),
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-    );
-    let parsed = input_var(
-        r,
-        vars.clone(),
-        &mut func_vars,
-        &mut 0,
-        options,
-        false,
-        &mut (false, 0, 0),
-        false,
-        0,
-        l.clone(),
-    )?;
-    vars.remove(k);
-    if replace
-    {
-        vars[i] = Variable {
-            name: l.clone(),
-            parsed: if l.contains(&'(')
-            {
-                parsed.0
-            }
-            else
-            {
-                vec![do_math(parsed.0, options, parsed.1.clone())
-                    .unwrap_or(Num(Complex::new(options.prec)))]
-            },
-            unparsed: r.to_string(),
-            funcvars: parsed.1,
-        };
+        vars.remove(i);
     }
     else
     {
+        let mut func_vars: Vec<(isize, String)> = Vec::new();
+        if l.contains(&'(')
+        {
+            let mut l = l.clone();
+            l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
+            l.pop();
+            for i in l.split(|c| c == &',')
+            {
+                func_vars.push((-1, i.iter().collect()));
+            }
+        }
+        let mut k = 0;
+        for (j, v) in vars.iter().enumerate()
+        {
+            if v.name.len() <= l.len()
+            {
+                k = j;
+                break;
+            }
+        }
         vars.insert(
-            i,
+            k,
             Variable {
+                name: l.clone(),
+                parsed: Vec::new(),
+                unparsed: String::new(),
+                funcvars: Vec::new(),
+            },
+        );
+        let parsed = input_var(
+            r,
+            vars.clone(),
+            &mut func_vars,
+            &mut 0,
+            options,
+            false,
+            &mut (false, 0, 0),
+            false,
+            0,
+            l.clone(),
+        )?;
+        vars.remove(k);
+        if parsed.0.is_empty()
+        {
+            println!("bad input\x1b[G")
+        }
+        else if replace
+        {
+            vars[i] = Variable {
                 name: l.clone(),
                 parsed: if l.contains(&'(')
                 {
@@ -779,15 +772,35 @@ pub fn add_var(
                 },
                 unparsed: r.to_string(),
                 funcvars: parsed.1,
-            },
-        )
-    }
-    if l.contains(&'(') && r.contains("piecewise")
-    {
-        let parsed = vars[i].parsed.clone();
-        vars[i]
-            .funcvars
-            .push((l.iter().collect::<String>(), parsed))
+            };
+        }
+        else
+        {
+            vars.insert(
+                i,
+                Variable {
+                    name: l.clone(),
+                    parsed: if l.contains(&'(')
+                    {
+                        parsed.0
+                    }
+                    else
+                    {
+                        vec![do_math(parsed.0, options, parsed.1.clone())
+                            .unwrap_or(Num(Complex::new(options.prec)))]
+                    },
+                    unparsed: r.to_string(),
+                    funcvars: parsed.1,
+                },
+            )
+        }
+        if l.contains(&'(') && r.contains("piecewise")
+        {
+            let parsed = vars[i].parsed.clone();
+            vars[i]
+                .funcvars
+                .push((l.iter().collect::<String>(), parsed))
+        }
     }
     if redef
     {
@@ -936,11 +949,11 @@ pub fn set_commands_or_vars(
         {
             if r == "null"
             {
-                vars.remove(i);
+                add_var(l, r, i, vars, *options, true, true, true)?
             }
             else
             {
-                add_var(l, r, i, vars, *options, true, true)?;
+                add_var(l, r, i, vars, *options, true, true, false)?
             }
             if let Some(stdout) = stdout
             {
@@ -961,7 +974,7 @@ pub fn set_commands_or_vars(
     {
         if j.name.len() <= l.len()
         {
-            add_var(l, r, i, vars, *options, true, false)?;
+            add_var(l, r, i, vars, *options, true, false, false)?;
             if let Some(stdout) = stdout
             {
                 if options.interactive
@@ -977,7 +990,7 @@ pub fn set_commands_or_vars(
             return Ok(());
         }
     }
-    add_var(l, r, 0, vars, *options, true, false)?;
+    add_var(l, r, 0, vars, *options, true, false, false)?;
     if let Some(stdout) = stdout
     {
         if options.interactive

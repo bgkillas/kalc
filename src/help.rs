@@ -81,7 +81,7 @@ pub fn help()
     - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)\n\x1b[G\
     - deg, rad, grad (all real only)\n\x1b[G\
     - re, im, split(x+yi={{x,y}})\n\x1b[G\
-    - factors, prime, isprime\n\x1b[G\
+    - factors, prime, isprime, gcd, lcm\n\x1b[G\
     - slog(a,b), ssrt(k,a) (k is lambert w branch)\n\x1b[G\
     - piecewise({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\n\x1b[G\
     - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\

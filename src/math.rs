@@ -1,6 +1,6 @@
 use crate::{
     complex::{
-        add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
+        add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, gcd, ge, gt, identity,
         inverse, lambertw, le, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem,
         root, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, trace, transpose, variance,
         NumStr,
@@ -208,6 +208,9 @@ pub fn do_math(
                             if matches!(
                                 k.as_str(),
                                 "log"
+                                    | "gcd"
+                                    | "gcf"
+                                    | "lcm"
                                     | "ssrt"
                                     | "W"
                                     | "productlog"
@@ -2421,6 +2424,38 @@ fn functions(
             else
             {
                 return Err("cant get a complex prime");
+            }
+        }
+        "lcm" =>
+        {
+            if let Some(b) = c
+            {
+                Complex::with_val(options.prec, {
+                    let a = a.real().to_integer().unwrap();
+                    let b = b.real().to_integer().unwrap();
+                    a.clone() * b.clone() / gcd(a, b)
+                })
+            }
+            else
+            {
+                return Err("not enough args");
+            }
+        }
+        "gcd" | "gcf" =>
+        {
+            if let Some(b) = c
+            {
+                Complex::with_val(
+                    options.prec,
+                    gcd(
+                        a.real().to_integer().unwrap(),
+                        b.real().to_integer().unwrap(),
+                    ),
+                )
+            }
+            else
+            {
+                return Err("not enough args");
             }
         }
         "isprime" | "is_prime" =>

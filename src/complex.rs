@@ -1553,6 +1553,21 @@ pub fn recursion(
     }
     do_math(func, options, func_vars)
 }
+pub fn gcd(mut x: Integer, mut y: Integer) -> Integer
+{
+    while x != y
+    {
+        if x > y
+        {
+            x -= y.clone()
+        }
+        else
+        {
+            y -= x.clone()
+        }
+    }
+    x
+}
 //https://github.com/IstvanMezo/LambertW-function/blob/master/complex%20Lambert.cpp
 pub fn lambertw(z: Complex, k: isize) -> Complex
 {

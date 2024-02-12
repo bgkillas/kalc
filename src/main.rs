@@ -35,7 +35,6 @@ use std::{
 //beta distribution
 //support units properly
 //rpn maybe
-//gcf and lcm
 //inspect stdout uses
 #[derive(Clone)]
 pub struct Variable

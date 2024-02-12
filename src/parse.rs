@@ -2055,7 +2055,9 @@ fn place_multiplier(
     if let Some(Str(s)) = output.last()
     {
         if matches!(s.as_str(), ")" | "x" | "y" | "]" | "}" | "rnd" | "@")
-            || sumrec.iter().any(|a| a.1 == *s)
+            || sumrec
+                .iter()
+                .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s)
             || (if let Some(n) = vars
             {
                 n.iter().any(|a| a.name.iter().collect::<String>() == *s)

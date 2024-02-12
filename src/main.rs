@@ -321,7 +321,11 @@ fn main()
                                     }
                                     else
                                     {
-                                        add_var(l, r, i, &mut vars, options, true, true);
+                                        if let Err(s) =
+                                            add_var(l, r, i, &mut vars, options, true, true)
+                                        {
+                                            println!("{}", s)
+                                        }
                                     }
                                     continue 'upper;
                                 }
@@ -330,11 +334,18 @@ fn main()
                             {
                                 if j.name.len() <= l.len()
                                 {
-                                    add_var(l, r, i, &mut vars, options, false, false);
+                                    if let Err(s) =
+                                        add_var(l, r, i, &mut vars, options, false, false)
+                                    {
+                                        println!("{}", s)
+                                    }
                                     continue 'upper;
                                 }
                             }
-                            add_var(l, r, 0, &mut vars, options, false, false);
+                            if let Err(s) = add_var(l, r, 0, &mut vars, options, false, false)
+                            {
+                                println!("{}", s)
+                            }
                         }
                     }
                 }
@@ -1233,13 +1244,16 @@ fn main()
         }
         if varcheck
         {
-            set_commands_or_vars(
+            if let Err(s) = set_commands_or_vars(
                 &mut colors,
                 &mut options,
                 Some(&mut stdout),
                 &mut vars,
                 &input,
-            );
+            )
+            {
+                println!("{}", s)
+            }
         }
         else if options.graph && graphable
         {
@@ -1281,13 +1295,16 @@ fn main()
                                 );
                                 if s.contains('=')
                                 {
-                                    set_commands_or_vars(
+                                    if let Err(s) = set_commands_or_vars(
                                         &mut colors,
                                         &mut options,
                                         None,
                                         &mut vars,
                                         &s.chars().collect::<Vec<char>>(),
-                                    );
+                                    )
+                                    {
+                                        println!("{}", s)
+                                    }
                                 }
                             }
                         }

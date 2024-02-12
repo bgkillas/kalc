@@ -42,11 +42,17 @@ pub fn get_file_vars(
                     {
                         if j.name.len() <= l.len()
                         {
-                            add_var(l, r, i, vars, options, false, false);
+                            if let Err(s) = add_var(l, r, i, vars, options, false, false)
+                            {
+                                println!("{}", s)
+                            }
                             continue 'lower;
                         }
                     }
-                    add_var(l, r, 0, vars, options, false, false);
+                    if let Err(s) = add_var(l, r, 0, vars, options, false, false)
+                    {
+                        println!("{}", s)
+                    }
                 }
             }
         }
@@ -695,7 +701,7 @@ pub fn add_var(
     options: Options,
     redef: bool,
     replace: bool,
-)
+) -> Result<(), &'static str>
 {
     let mut func_vars: Vec<(isize, String)> = Vec::new();
     if l.contains(&'(')
@@ -726,7 +732,7 @@ pub fn add_var(
             funcvars: Vec::new(),
         },
     );
-    let parsed = match input_var(
+    let parsed = input_var(
         r,
         vars.clone(),
         &mut func_vars,
@@ -737,15 +743,7 @@ pub fn add_var(
         false,
         0,
         l.clone(),
-    )
-    {
-        Ok(n) => (n.0, n.1),
-        Err(s) =>
-        {
-            println!("failed at: {} {}\x1b[G", l.iter().collect::<String>(), s);
-            return;
-        }
-    };
+    )?;
     vars.remove(k);
     if replace
     {
@@ -820,7 +818,7 @@ pub fn add_var(
                             func_vars.push((-1, i.iter().collect::<String>()));
                         }
                     }
-                    let parsed = match input_var(
+                    let parsed = input_var(
                         &v.unparsed.clone(),
                         vars.clone(),
                         &mut func_vars,
@@ -831,30 +829,19 @@ pub fn add_var(
                         false,
                         0,
                         v.name.clone(),
-                    )
-                    {
-                        Ok(n) => (n.0, n.1),
-                        Err(s) =>
-                        {
-                            println!(
-                                "failed at: {} {}\x1b[G",
-                                v.name.iter().collect::<String>(),
-                                s
-                            );
-                            return;
-                        }
-                    };
+                    )?;
                     let check = (vars[j].parsed.clone(), vars[j].funcvars.clone());
                     if v.name.contains(&'(')
                     {
-                        (vars[j].parsed, vars[j].funcvars) = parsed.clone();
+                        vars[j].parsed = parsed.0.clone();
+                        vars[j].funcvars = parsed.1.clone();
                     }
                     else
                     {
                         vars[j].parsed = vec![do_math(parsed.0.clone(), options, parsed.1.clone())
                             .unwrap_or(Num(Complex::new(options.prec)))];
                     }
-                    if check != parsed
+                    if check.0 != parsed.0 || check.1 != parsed.1
                     {
                         redef.push(v.name.clone());
                     }
@@ -863,6 +850,7 @@ pub fn add_var(
             k += 1;
         }
     }
+    Ok(())
 }
 pub fn set_commands_or_vars(
     colors: &mut Colors,
@@ -870,7 +858,7 @@ pub fn set_commands_or_vars(
     stdout: Option<&mut Stdout>,
     vars: &mut Vec<Variable>,
     input: &[char],
-)
+) -> Result<(), &'static str>
 {
     let n = input.iter().collect::<String>();
     let mut split = n.splitn(2, '=');
@@ -916,7 +904,7 @@ pub fn set_commands_or_vars(
                             );
                             stdout.flush().unwrap()
                         }
-                        return;
+                        return Ok(());
                     }
                 }
                 true
@@ -936,7 +924,7 @@ pub fn set_commands_or_vars(
                 stdout.flush().unwrap()
             }
         }
-        return;
+        return Ok(());
     }
     let l = l.chars().collect::<Vec<char>>();
     for (i, v) in vars.iter().enumerate()
@@ -952,7 +940,7 @@ pub fn set_commands_or_vars(
             }
             else
             {
-                add_var(l, r, i, vars, *options, true, true);
+                add_var(l, r, i, vars, *options, true, true)?;
             }
             if let Some(stdout) = stdout
             {
@@ -966,14 +954,14 @@ pub fn set_commands_or_vars(
                     stdout.flush().unwrap();
                 }
             }
-            return;
+            return Ok(());
         }
     }
     for (i, j) in vars.iter().enumerate()
     {
         if j.name.len() <= l.len()
         {
-            add_var(l, r, i, vars, *options, true, false);
+            add_var(l, r, i, vars, *options, true, false)?;
             if let Some(stdout) = stdout
             {
                 if options.interactive
@@ -986,10 +974,10 @@ pub fn set_commands_or_vars(
                     stdout.flush().unwrap();
                 }
             }
-            return;
+            return Ok(());
         }
     }
-    add_var(l, r, 0, vars, *options, true, false);
+    add_var(l, r, 0, vars, *options, true, false)?;
     if let Some(stdout) = stdout
     {
         if options.interactive
@@ -1002,4 +990,5 @@ pub fn set_commands_or_vars(
             stdout.flush().unwrap();
         }
     }
+    Ok(())
 }

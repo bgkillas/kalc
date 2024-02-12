@@ -72,7 +72,8 @@ pub fn help()
     - sinh, cosh, tanh, asinh, acosh, atanh\n\x1b[G\
     - csch, sech, coth, acsch, asech, acoth\n\x1b[G\
     - sqrt, cbrt, square, cube, quadratic(a,b,c) cubic(a,b,c,d) (quadratic and cubic finds the zeros for the given polynomials, you can use cubic(a,b,c,d,1) to only find real solutions for cubics/quadratics)\n\x1b[G\
-    - ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\n\x1b[G\
+    - ln, log(base,num), W(k,z) (product log, branch k, defaults to k=0)\n\x1b[G\
+    - root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\n\x1b[G\
     - abs, sgn, arg\n\x1b[G\
     - ceil, floor, round, int, frac\n\x1b[G\
     - fact(real), doublefact(real), subfact(natural)\n\x1b[G\

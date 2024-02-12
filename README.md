@@ -107,7 +107,8 @@ Functions:
 - sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth
 - sqrt, cbrt, square, cube, quadratic(a,b,c) cubic(a,b,c,d) (quadratic and cubic finds the zeros for the given polynomials, you can use cubic(a,b,c,d,1) to only find real solutions for cubics/quadratics)
-- ln, log(base,num), root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
+- ln, log(base,num), W(k,z) (product log, branch k, defaults to k=0)
+- root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
 - fact(real), doublefact(real), subfact(natural)

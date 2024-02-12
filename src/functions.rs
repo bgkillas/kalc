@@ -173,6 +173,9 @@ pub fn functions() -> HashSet<&'static str>
         "is_prime",
         "isprime",
         "dice",
+        "W",
+        "productlog",
+        "lambertw",
     ]
     .iter()
     .cloned()

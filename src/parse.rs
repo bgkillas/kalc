@@ -1681,9 +1681,13 @@ pub fn input_var(
                         {
                             output.push(Str(var.name.iter().collect::<String>()));
                         }
-                        else
+                        else if !var.parsed.is_empty()
                         {
                             output.push(var.parsed[0].clone());
+                        }
+                        else
+                        {
+                            return Err("bad input");
                         }
                         if scientific
                         {

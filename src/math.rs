@@ -1,8 +1,9 @@
 use crate::{
     complex::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, ge, gt, identity,
-        inverse, le, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl,
-        shr, slog, sort, sub, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
+        inverse, lambertw, le, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem,
+        root, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, trace, transpose, variance,
+        NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -207,6 +208,9 @@ pub fn do_math(
                             if matches!(
                                 k.as_str(),
                                 "log"
+                                    | "W"
+                                    | "productlog"
+                                    | "lambertw"
                                     | "slog"
                                     | "root"
                                     | "atan"
@@ -323,7 +327,7 @@ pub fn do_math(
         {
             if s != "rnd"
                 && ((s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                    || matches!(s.as_str(), "C" | "P" | "I"))
+                    || matches!(s.as_str(), "C" | "P" | "I" | "W"))
             {
                 if matches!(
                     s.as_str(),
@@ -2052,6 +2056,17 @@ fn functions(
         ),
         "recip" => a.recip(),
         "exp" | "aln" => a.exp(),
+        "W" | "productlog" | "lambertw" =>
+        {
+            if let Some(b) = c
+            {
+                lambertw(b, a.real().to_f64() as isize)
+            }
+            else
+            {
+                lambertw(a, 0)
+            }
+        }
         "log" =>
         {
             let a = a.ln();

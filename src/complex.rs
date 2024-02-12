@@ -1599,32 +1599,8 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
 }
 fn initpoint(z: Complex, k: isize) -> Complex
 {
-    /*	const double pi{ 3.14159265358979323846 };
-    const double e{ 2.71828182845904523536 };
-    complex<double> I{0, 1};
-    complex<double> two_pi_k_I{ 0., 2. * pi * k };
-    complex<double> ip{ log(z) + two_pi_k_I - log(log(z) + two_pi_k_I) };// initial point coming from the general asymptotic approximation
-    complex<double> p{ sqrt( 2. * (e * z + 1.) ) };// used when we are close to the branch cut around zero and when k=0,-1
-
-    if (abs(z - (-exp(-1.))) <= 1.) //we are close to the branch cut, the initial point must be chosen carefully
-    {
-        if (k == 0) ip = -1. + p - 1./3. * pow(p, 2) + 11./72. * pow(p, 3);
-        if (k == 1 && z.imag() < 0.) ip = -1. - p - 1./3. * pow(p, 2) - 11. / 72. * pow(p, 3);
-        if (k == -1 && z.imag() > 0.) ip = -1. - p - 1./3. * pow(p, 2) - 11./72. * pow(p, 3);
-    }
-
-    if (k == 0 && abs(z - .5) <= .5) ip = (0.35173371 * (0.1237166 + 7.061302897 * z)) / (2. + 0.827184 * (1. + 2. * z));// (1,1) Pade approximant for W(0,a)
-
-    if (k == -1 && abs(z - .5) <= .5) ip = -(((2.2591588985 +
-        4.22096*I) * ((-14.073271 - 33.767687754*I) * z - (12.7127 -
-            19.071643*I) * (1. + 2.*z))) / (2. - (17.23103 - 10.629721*I) * (1. + 2.*z)));// (1,1) Pade approximant for W(-1,a)
-
-    return ip;*/
     let pi = Float::with_val(z.prec().0, Pi);
     let e = Float::with_val(z.prec().0, 1).exp();
-    let two_pi_k_i = Complex::with_val(z.prec(), (0, 2 * pi * k));
-    let zln = z.clone().ln();
-    let mut ip = zln.clone() + two_pi_k_i.clone() - (zln + two_pi_k_i).ln();
     {
         let test: Complex = z.clone() + (1 / e.clone());
         if test.abs().real() <= &1
@@ -1633,13 +1609,11 @@ fn initpoint(z: Complex, k: isize) -> Complex
             let p = p1.clone().sqrt();
             if k == 0
             {
-                ip = p.clone() - (p1 / 3) + ((11 * p.pow(3)) / 72) - 1;
+                return p.clone() - (p1 / 3) + ((11 * p.pow(3)) / 72) - 1;
             }
-            else if k == 1 && z.imag() < &0
+            else if (k == 1 && z.imag() < &0) || (k == -1 && z.imag() > &0)
             {
-            }
-            else if k == -1 && z.imag() > &0
-            {
+                return -1 - p.clone() - (p1 / 3) - ((11 * p.pow(3)) / 72);
             }
         }
     }
@@ -1649,17 +1623,20 @@ fn initpoint(z: Complex, k: isize) -> Complex
         {
             if k == 0
             {
-                ip = (0.35173371 * (0.1237166 + 7.061302897 * z.clone()))
-                    / (2 + 0.827184 * (1 + 2 * z))
+                return (0.35173371 * (0.1237166 + 7.061302897 * z.clone()))
+                    / (2 + 0.827184 * (1 + 2 * z));
             }
             else if k == -1
             {
-                ip = (Complex::with_val(z.prec(), (-2.2591588985, -4.22096))
+                return (Complex::with_val(z.prec(), (-2.2591588985, -4.22096))
                     * (Complex::with_val(z.prec(), (-14.073271, 33.767687754)) * z.clone()
-                        + Complex::with_val(z.prec(), (-12.7127, 19.071643)) * (1 + 2 * z.clone())))
-                    / (2 + Complex::with_val(z.prec(), (-17.23103, 10.629721)) * (1 + 2 * z))
+                        + Complex::with_val(z.prec(), (-12.7127, 19.071643))
+                            * (1 + 2 * z.clone())))
+                    / (2 + Complex::with_val(z.prec(), (-17.23103, 10.629721)) * (1 + 2 * z));
             }
         }
     }
-    ip
+    let two_pi_k_i = Complex::with_val(z.prec(), (0, 2 * pi * k));
+    let zln = z.clone().ln() + two_pi_k_i;
+    zln.clone() - zln.ln()
 }

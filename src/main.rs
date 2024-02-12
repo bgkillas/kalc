@@ -31,7 +31,6 @@ use std::{
     time::Instant,
 };
 //figure out probability of winning for 3 turned game
-//lambert w function
 //matrix exponentiation
 //beta distribution
 //support units properly
@@ -319,13 +318,10 @@ fn main()
                                     {
                                         vars.remove(i);
                                     }
-                                    else
+                                    else if let Err(s) =
+                                        add_var(l, r, i, &mut vars, options, true, true)
                                     {
-                                        if let Err(s) =
-                                            add_var(l, r, i, &mut vars, options, true, true)
-                                        {
-                                            println!("{}", s)
-                                        }
+                                        println!("{}", s)
                                     }
                                     continue 'upper;
                                 }
@@ -1252,7 +1248,12 @@ fn main()
                 &input,
             )
             {
-                println!("{}", s)
+                print!(
+                    "\x1b[A\x1b[G\x1b[K{}\x1b[B\x1b[G{}",
+                    s,
+                    prompt(options, &colors)
+                );
+                stdout.flush().unwrap()
             }
         }
         else if options.graph && graphable
@@ -1303,7 +1304,12 @@ fn main()
                                         &s.chars().collect::<Vec<char>>(),
                                     )
                                     {
-                                        println!("{}", s)
+                                        print!(
+                                            "\x1b[A\x1b[G\x1b[K{}\x1b[B\x1b[G{}",
+                                            s,
+                                            prompt(options, &colors)
+                                        );
+                                        stdout.flush().unwrap()
                                     }
                                 }
                             }

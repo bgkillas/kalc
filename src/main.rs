@@ -286,26 +286,38 @@ fn main()
                     .collect::<Vec<String>>();
                 let mut split;
                 let args = args.concat();
+                let mut blacklist = Vec::new();
                 'upper: for i in lines.clone()
                 {
                     split = i.splitn(2, '=');
                     let l = split.next().unwrap().to_string();
                     let left = if l.contains('(')
                     {
-                        l.split('(').next().unwrap().to_owned() + "("
+                        l.split('(').next().unwrap().to_owned()
                     }
                     else
                     {
                         l.clone()
                     };
-                    if !(l.starts_with('#') || (!options.interactive && !args.contains(&left)))
+                    if !(l.starts_with('#')
+                        || (!options.interactive
+                            && !if l.contains('(')
+                            {
+                                args.contains(&(left.clone() + "("))
+                                    || args.contains(&(left.clone() + "{"))
+                                    || args.contains(&(left.clone() + "["))
+                            }
+                            else
+                            {
+                                args.contains(&left)
+                            }))
                     {
                         if let Some(r) = split.next()
                         {
                             let l = l.chars().collect::<Vec<char>>();
                             if !options.interactive
                             {
-                                let mut blacklist = vec![left];
+                                blacklist.push(left);
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                             }
                             for (i, v) in vars.iter().enumerate()

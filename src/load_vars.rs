@@ -25,13 +25,22 @@ pub fn get_file_vars(
             let l = split.next().unwrap().to_string();
             let left = if l.contains('(')
             {
-                l.split('(').next().unwrap().to_owned() + "("
+                l.split('(').next().unwrap().to_owned()
             }
             else
             {
                 l.clone()
             };
-            if r.contains(&left) && !blacklist.contains(&left)
+            if !if l.contains('(')
+            {
+                r.contains(&(left.clone() + "("))
+                    || r.contains(&(left.clone() + "{"))
+                    || r.contains(&(left.clone() + "["))
+            }
+            else
+            {
+                r.contains(&left)
+            } && !blacklist.contains(&left)
             {
                 blacklist.push(left);
                 if let Some(r) = split.next()

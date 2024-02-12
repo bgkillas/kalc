@@ -208,6 +208,7 @@ pub fn do_math(
                             if matches!(
                                 k.as_str(),
                                 "log"
+                                    | "ssrt"
                                     | "W"
                                     | "productlog"
                                     | "lambertw"
@@ -2089,6 +2090,19 @@ fn functions(
             else
             {
                 a
+            }
+        }
+        "ssrt" =>
+        {
+            if let Some(b) = c
+            {
+                let b = b.ln();
+                b.clone() / lambertw(b, a.real().to_f64() as isize)
+            }
+            else
+            {
+                let a = a.ln();
+                a.clone() / lambertw(a, 0)
             }
         }
         "slog" =>

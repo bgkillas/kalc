@@ -176,6 +176,7 @@ pub fn functions() -> HashSet<&'static str>
         "W",
         "productlog",
         "lambertw",
+        "ssrt",
     ]
     .iter()
     .cloned()

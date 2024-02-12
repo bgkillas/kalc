@@ -2012,10 +2012,14 @@ pub fn input_var(
             {
                 match s.as_str()
                 {
+                    "x" | "y" =>
+                    {
+                        to = 0;
+                    }
                     "(" =>
                     {
                         count -= 1;
-                        if count == 0
+                        if count == 0 && to != 0
                         {
                             if let Ok(n) =
                                 do_math(output[i + 1..to].to_vec(), options, funcvars.clone())

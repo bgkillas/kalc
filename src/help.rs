@@ -82,7 +82,7 @@ pub fn help()
     - deg, rad, grad (all real only)\n\x1b[G\
     - re, im, split(x+yi={{x,y}})\n\x1b[G\
     - factors, prime, isprime\n\x1b[G\
-    - slog(a,b)\n\x1b[G\
+    - slog(a,b), ssrt(k,a) (k is lambert w branch)\n\x1b[G\
     - piecewise({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\n\x1b[G\
     - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\n\x1b[G\
     - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\n\x1b[G\

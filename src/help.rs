@@ -78,7 +78,7 @@ pub fn help()
     - ceil, floor, round, int, frac\n\x1b[G\
     - fact(real), doublefact(real), subfact(natural)\n\x1b[G\
     - sinc, cis, exp\n\x1b[G\
-    - zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)\n\x1b[G\
+    - zeta, gamma, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r) (all real only)\n\x1b[G\
     - deg, rad, grad (all real only)\n\x1b[G\
     - re, im, split(x+yi={{x,y}})\n\x1b[G\
     - factors, prime, isprime, gcd, lcm\n\x1b[G\

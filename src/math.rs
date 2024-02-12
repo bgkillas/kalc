@@ -208,6 +208,7 @@ pub fn do_math(
                             if matches!(
                                 k.as_str(),
                                 "log"
+                                    | "multinomial"
                                     | "gcd"
                                     | "gcf"
                                     | "lcm"
@@ -1390,6 +1391,23 @@ pub fn do_math(
                         {
                             function[i] = match s.as_str()
                             {
+                                "multinomial" =>
+                                {
+                                    let mut numerator: Float =
+                                        function[i + 1].num()?.real().clone() + 1;
+                                    let mut divisor = numerator.clone().gamma();
+                                    let mut j = i + 1;
+                                    while j + 1 < function.len() && function[j + 1].str_is(",")
+                                    {
+                                        j += 2;
+                                        let temp = function[j].num()?.real().clone();
+                                        numerator += temp.clone();
+                                        let temp: Float = temp.clone() + 1;
+                                        divisor *= temp.gamma();
+                                    }
+                                    function.drain(i + 2..=j);
+                                    Num((numerator.gamma() / divisor).into())
+                                }
                                 "normP" =>
                                 {
                                     if i + 5 < function.len()

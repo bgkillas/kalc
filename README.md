@@ -113,7 +113,7 @@ Functions:
 - ceil, floor, round, int, frac
 - fact(real), doublefact(real), subfact(natural)
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai, binomial/bi/C, P(n,r) (all real only)
+- zeta, gamma, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r) (all real only)
 - deg, rad, grad (all real only)
 - re, im, split(x+yi={x,y})
 - factors, prime, isprime, gcd, lcm

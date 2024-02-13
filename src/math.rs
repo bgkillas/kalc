@@ -837,28 +837,31 @@ pub fn do_math(
                                 {
                                     let faces = a
                                         .iter()
-                                        .map(|c| c.real().to_f64() as usize)
-                                        .collect::<Vec<usize>>();
+                                        .map(|c| c.real().to_f64() as u128)
+                                        .collect::<Vec<u128>>();
                                     if faces.iter().any(|c| c == &0)
                                     {
                                         return Err("bad face value");
                                     }
-                                    let mut distribution = vec![vec![1; faces[0]]];
+                                    let mut distribution = vec![vec![1; faces[0] as usize]];
                                     if faces.len() != 1
                                     {
                                         for i in 1..faces.len()
                                         {
                                             distribution.push(Vec::new());
-                                            for p in
-                                                0..=faces[0..=i].iter().sum::<usize>() - (i + 1)
+                                            for p in 0..=faces[0..=i].iter().sum::<u128>()
+                                                - (i + 1) as u128
                                             {
                                                 let value = distribution[i - 1][(p + 1)
                                                     .saturating_sub(faces[i])
+                                                    as usize
                                                     ..=p.min(
-                                                        faces[0..i].iter().sum::<usize>() - i,
-                                                    )]
+                                                        faces[0..i].iter().sum::<u128>()
+                                                            - i as u128,
+                                                    )
+                                                        as usize]
                                                     .iter()
-                                                    .sum();
+                                                    .sum::<u128>();
                                                 distribution[i].push(value)
                                             }
                                         }

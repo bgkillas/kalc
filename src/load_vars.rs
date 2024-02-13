@@ -1,9 +1,8 @@
 use crate::{
-    complex::NumStr::Num, math::do_math, misc::prompt, options::set_commands, parse::input_var,
-    Colors, Options, Variable,
+    complex::NumStr::Num, math::do_math, options::set_commands, parse::input_var, Colors, Options,
+    Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float};
-use std::io::{Stdout, Write};
 pub fn get_file_vars(
     options: Options,
     vars: &mut Vec<Variable>,
@@ -776,8 +775,7 @@ pub fn add_var(
                 }
                 else
                 {
-                    vec![do_math(parsed.0, options, parsed.1.clone())
-                        .unwrap_or(Num(Complex::new(options.prec)))]
+                    vec![do_math(parsed.0, options, parsed.1.clone())?]
                 },
                 unparsed: r.to_string(),
                 funcvars: parsed.1,
@@ -795,8 +793,7 @@ pub fn add_var(
                     }
                     else
                     {
-                        vec![do_math(parsed.0, options, parsed.1.clone())
-                            .unwrap_or(Num(Complex::new(options.prec)))]
+                        vec![do_math(parsed.0, options, parsed.1.clone())?]
                     },
                     unparsed: r.to_string(),
                     funcvars: parsed.1,
@@ -860,8 +857,8 @@ pub fn add_var(
                     }
                     else
                     {
-                        vars[j].parsed = vec![do_math(parsed.0.clone(), options, parsed.1.clone())
-                            .unwrap_or(Num(Complex::new(options.prec)))];
+                        vars[j].parsed =
+                            vec![do_math(parsed.0.clone(), options, parsed.1.clone())?];
                     }
                     if check.0 != parsed.0 || check.1 != parsed.1
                     {
@@ -877,7 +874,6 @@ pub fn add_var(
 pub fn set_commands_or_vars(
     colors: &mut Colors,
     options: &mut Options,
-    stdout: Option<&mut Stdout>,
     vars: &mut Vec<Variable>,
     input: &[char],
 ) -> Result<(), &'static str>
@@ -890,63 +886,12 @@ pub fn set_commands_or_vars(
     if l.is_empty()
         || l.chars()
             .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ',' | '\'' | '`'))
-        || match set_commands(options, colors, vars, &l, r)
-        {
-            Err(s) =>
-            {
-                if !s.is_empty()
-                {
-                    if let Some(stdout) = stdout
-                    {
-                        if s == " "
-                        {
-                            print!(
-                                "\x1b[G\x1b[Kempty input\n\x1b[G\x1b[K{}{}",
-                                prompt(*options, colors),
-                                if options.color { "\x1b[0m" } else { "" },
-                            );
-                            stdout.flush().unwrap()
-                        }
-                        else
-                        {
-                            print!(
-                                "\x1b[G\x1b[K{}\n\x1b[G\x1b[K{}{}",
-                                s,
-                                prompt(*options, colors),
-                                if options.color { "\x1b[0m" } else { "" },
-                            );
-                            stdout.flush().unwrap()
-                        }
-                        if options.interactive
-                        {
-                            print!(
-                                "{}{}",
-                                prompt(*options, colors),
-                                if options.color { "\x1b[0m" } else { "" }
-                            );
-                            stdout.flush().unwrap()
-                        }
-                        return Ok(());
-                    }
-                }
-                true
-            }
-            _ => false,
-        }
     {
-        if let Some(stdout) = stdout
-        {
-            if options.interactive
-            {
-                print!(
-                    "{}{}",
-                    prompt(*options, colors),
-                    if options.color { "\x1b[0m" } else { "" }
-                );
-                stdout.flush().unwrap()
-            }
-        }
         return Ok(());
+    }
+    else
+    {
+        set_commands(options, colors, vars, &l, r)?
     }
     let l = l.chars().collect::<Vec<char>>();
     for (i, v) in vars.iter().enumerate()
@@ -964,18 +909,6 @@ pub fn set_commands_or_vars(
             {
                 add_var(l, r, i, vars, *options, true, true, false)?
             }
-            if let Some(stdout) = stdout
-            {
-                if options.interactive
-                {
-                    print!(
-                        "{}{}",
-                        prompt(*options, colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    stdout.flush().unwrap();
-                }
-            }
             return Ok(());
         }
     }
@@ -984,33 +917,9 @@ pub fn set_commands_or_vars(
         if j.name.len() <= l.len()
         {
             add_var(l, r, i, vars, *options, true, false, false)?;
-            if let Some(stdout) = stdout
-            {
-                if options.interactive
-                {
-                    print!(
-                        "{}{}",
-                        prompt(*options, colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    stdout.flush().unwrap();
-                }
-            }
             return Ok(());
         }
     }
     add_var(l, r, 0, vars, *options, true, false, false)?;
-    if let Some(stdout) = stdout
-    {
-        if options.interactive
-        {
-            print!(
-                "{}{}",
-                prompt(*options, colors),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            stdout.flush().unwrap();
-        }
-    }
     Ok(())
 }

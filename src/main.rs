@@ -1258,21 +1258,19 @@ fn main()
         }
         if varcheck
         {
-            if let Err(s) = set_commands_or_vars(
-                &mut colors,
-                &mut options,
-                Some(&mut stdout),
-                &mut vars,
-                &input,
-            )
+            if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, &input)
+            {
+                print!("\x1b[G\x1b[K{}\x1b[B\x1b[G{}", s, prompt(options, &colors));
+            }
+            else
             {
                 print!(
-                    "\x1b[A\x1b[G\x1b[K{}\x1b[B\x1b[G{}",
-                    s,
-                    prompt(options, &colors)
+                    "{}{}",
+                    prompt(options, &colors),
+                    if options.color { "\x1b[0m" } else { "" }
                 );
-                stdout.flush().unwrap()
             }
+            stdout.flush().unwrap()
         }
         else if options.graph && graphable
         {
@@ -1317,7 +1315,6 @@ fn main()
                                     if let Err(s) = set_commands_or_vars(
                                         &mut colors,
                                         &mut options,
-                                        None,
                                         &mut vars,
                                         &s.chars().collect::<Vec<char>>(),
                                     )

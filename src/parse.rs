@@ -27,6 +27,10 @@ pub fn input_var(
     blacklist: Vec<char>,
 ) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, bool, bool), &'static str>
 {
+    // if input == "debugtest"
+    // {
+    //     return Err("debugfail");
+    // }
     let mut funcvars = Vec::new();
     if input.starts_with("history") || input.is_empty()
     {

@@ -55,8 +55,7 @@ pub fn print_concurrent(
                 );
                 if s.contains(&'=')
                 {
-                    if let Err(s) =
-                        set_commands_or_vars(&mut colors, &mut options, None, &mut vars, s)
+                    if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                     {
                         handle_err(s, unmodified_input, options, &colors, start, end);
                         return (0, false, false, false);
@@ -267,7 +266,6 @@ pub fn print_concurrent(
                                     if let Err(s) = set_commands_or_vars(
                                         &mut colors,
                                         &mut options,
-                                        None,
                                         &mut vars,
                                         &s.chars().collect::<Vec<char>>(),
                                     )

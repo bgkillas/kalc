@@ -31,11 +31,12 @@ use std::{
     time::Instant,
 };
 //figure out probability of winning for 3 turned game
+//support units properly
+//derivitives and integrals
+//rpn
 //matrix exponentiation
 //beta distribution
-//support units properly
-//rpn maybe
-//inspect stdout uses
+//make dice Integer
 #[derive(Clone)]
 pub struct Variable
 {
@@ -420,7 +421,7 @@ fn main()
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
-            if input.contains(&';') || input.contains(&'#')
+            if input.contains(&'#')
             {
                 graphable = true
             }
@@ -1260,7 +1261,18 @@ fn main()
         {
             if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, &input)
             {
-                print!("\x1b[G\x1b[K{}\x1b[B\x1b[G{}", s, prompt(options, &colors));
+                if !s.is_empty()
+                {
+                    print!("\x1b[G\x1b[K{}\x1b[B\x1b[G{}", s, prompt(options, &colors));
+                }
+                else
+                {
+                    print!(
+                        "{}{}",
+                        prompt(options, &colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                }
             }
             else
             {

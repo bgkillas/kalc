@@ -889,9 +889,13 @@ pub fn set_commands_or_vars(
     {
         return Ok(());
     }
-    else
+    else if let Err(s) = set_commands(options, colors, vars, &l, r)
     {
-        set_commands(options, colors, vars, &l, r)?
+        if s.is_empty()
+        {
+            return Ok(());
+        }
+        return Err(s);
     }
     let l = l.chars().collect::<Vec<char>>();
     for (i, v) in vars.iter().enumerate()

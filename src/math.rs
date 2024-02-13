@@ -816,6 +816,10 @@ pub fn do_math(
                                             vec.push(a[0].clone())
                                         }
                                     }
+                                    if vec.is_empty()
+                                    {
+                                        return Err("bad list");
+                                    }
                                     Vector(sort(vec))
                                 }
                                 _ => do_functions(

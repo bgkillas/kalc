@@ -89,7 +89,7 @@ pub fn help()
     - variance/var, standarddeviation/σ (sample-bias corrected)\n\x1b[G\
     - percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\n\x1b[G\
     - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)\n\x1b[G\
-    - dice({{a,b,c...}}) gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die\n\n\x1b[G\
+    - dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die\n\n\x1b[G\
     Vector operations/functions:\n\x1b[G\
     - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
     - angle({{vec1}},{{vec2}})\n\x1b[G\

@@ -849,20 +849,23 @@ pub fn add_var(
                         0,
                         v.name.clone(),
                     )?;
-                    let check = (vars[j].parsed.clone(), vars[j].funcvars.clone());
                     if v.name.contains(&'(')
                     {
-                        vars[j].parsed = parsed.0.clone();
-                        vars[j].funcvars = parsed.1.clone();
+                        if vars[j].parsed.clone() != parsed.0
+                            || vars[j].funcvars.clone() != parsed.1
+                        {
+                            redef.push(v.name.clone());
+                            vars[j].parsed = parsed.0.clone();
+                            vars[j].funcvars = parsed.1.clone();
+                        }
                     }
-                    else
+                    else if let Ok(n) = do_math(parsed.0.clone(), options, parsed.1.clone())
                     {
-                        vars[j].parsed =
-                            vec![do_math(parsed.0.clone(), options, parsed.1.clone())?];
-                    }
-                    if check.0 != parsed.0 || check.1 != parsed.1
-                    {
-                        redef.push(v.name.clone());
+                        if n != vars[j].parsed[0]
+                        {
+                            redef.push(v.name.clone());
+                            vars[j].parsed = vec![n];
+                        }
                     }
                 }
             }

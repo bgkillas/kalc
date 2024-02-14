@@ -1537,21 +1537,24 @@ pub fn set_commands(
                                     Ok(n) => (n.0, n.1),
                                     _ => return Err("prec crash"),
                                 };
-                                let check = vars[j].parsed.clone();
                                 if v.name.contains(&'(')
                                 {
-                                    (vars[j].parsed, vars[j].funcvars) = parsed.clone();
+                                    if vars[j].parsed.clone() != parsed.0
+                                        || vars[j].funcvars.clone() != parsed.1
+                                    {
+                                        redef.push(v.name.clone());
+                                        vars[j].parsed = parsed.0.clone();
+                                        vars[j].funcvars = parsed.1.clone();
+                                    }
                                 }
-                                else
+                                else if let Ok(n) =
+                                    do_math(parsed.0.clone(), *options, parsed.1.clone())
                                 {
-                                    vars[j].funcvars = parsed.1.clone();
-                                    vars[j].parsed =
-                                        vec![do_math(parsed.0.clone(), *options, parsed.1.clone())
-                                            .unwrap_or(Num(Complex::new(options.prec)))];
-                                }
-                                if check != vars[j].parsed
-                                {
-                                    redef.push(v.name.clone());
+                                    if n != vars[j].parsed[0]
+                                    {
+                                        redef.push(v.name.clone());
+                                        vars[j].parsed = vec![n];
+                                    }
                                 }
                             }
                         }

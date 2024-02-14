@@ -12,6 +12,10 @@ pub fn help()
     --xr=[min],[max] x range for graphing\n\x1b[G\
     --yr=[min],[max] y range for graphing\n\x1b[G\
     --zr=[min],[max] z range for graphing\n\x1b[G\
+    --vxr=[min],[max] x range for graphing, graph view override, useful for parametric\n\x1b[G\
+    --vyr=[min],[max] y range for graphing, graph view override, useful for parametric\n\x1b[G\
+    --vzr=[min],[max] z range for graphing, graph view override, useful for parametric\n\x1b[G\
+    --vrange=[num] sets all ranges to [-num],[num], graph view override, useful for parametric\n\x1b[G\
     --range=[num] sets all ranges to [-num],[num]\n\x1b[G\
     --point [char] point style for graphing\n\x1b[G\
     --sci toggles scientific notation\n\x1b[G\

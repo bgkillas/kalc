@@ -133,6 +133,14 @@ pub fn graph(
                     )
                 }
             }
+            if options.vxr.0 != 0.0 || options.vxr.1 != 0.0
+            {
+                options.xr = options.vxr;
+            }
+            if options.vyr.0 != 0.0 || options.vyr.1 != 0.0
+            {
+                options.yr = options.vyr;
+            }
             let (xticks, yticks) = if options.ticks == -1.0
             {
                 (Some((Fix(1.0), 1)), Some((Fix(1.0), 1)))
@@ -464,6 +472,18 @@ pub fn graph(
                         }),
                     )
                 }
+            }
+            if options.vxr.0 != 0.0 || options.vxr.1 != 0.0
+            {
+                options.xr = options.vxr;
+            }
+            if options.vyr.0 != 0.0 || options.vyr.1 != 0.0
+            {
+                options.yr = options.vyr;
+            }
+            if options.vzr.0 != 0.0 || options.vzr.1 != 0.0
+            {
+                options.zr = options.vzr;
             }
             let (xticks, yticks, zticks) = if options.ticks == -1.0
             {
@@ -1523,6 +1543,32 @@ fn get_data(
                                 points3d[0].iter().flatten().any(|a| *a != 0.0),
                                 points3d[1].iter().flatten().any(|a| *a != 0.0),
                             );
+                        }
+                        2 if func.0.iter().any(|c| c.str_is("±")) =>
+                        {
+                            lines = false;
+                            d2_or_d3.0 = true;
+                            (points2d, _, _) =
+                                get_list_2d((vec![Num(v[0].clone())], Vec::new(), func.2));
+                            let points2dtemp: [[Vec<f64>; 2]; 2];
+                            (points2dtemp, _, re_or_im) =
+                                get_list_2d((vec![Num(v[1].clone())], Vec::new(), func.2));
+                            points2d[0][0].extend(points2dtemp[0][0].clone());
+                            points2d[0][1].extend(points2dtemp[0][1].clone());
+                            points2d[1][0].extend(points2dtemp[1][0].clone());
+                            points2d[1][1].extend(points2dtemp[1][1].clone());
+                            if points2d[0][1].is_empty() && points2d[1][1].is_empty()
+                            {
+                                fail(func.2, &colors);
+                                return (
+                                    (false, false),
+                                    (false, false),
+                                    false,
+                                    true,
+                                    Default::default(),
+                                    Default::default(),
+                                );
+                            }
                         }
                         2 =>
                         {

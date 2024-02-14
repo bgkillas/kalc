@@ -43,6 +43,10 @@ FLAGS: --help (this message)
 --yr=[min],[max] y range for graphing
 --zr=[min],[max] z range for graphing
 --range=[num] sets all ranges to [-num],[num]
+--vxr=[min],[max] x range for graphing, graph view override, useful for parametric
+--vyr=[min],[max] y range for graphing, graph view override, useful for parametric
+--vzr=[min],[max] z range for graphing, graph view override, useful for parametric
+--vrange=[num] sets all ranges to [-num],[num], graph view override, useful for parametric
 --point [char] point style for graphing
 --sci toggles scientific notation
 --base=[num] sets the number base (2,8,16)

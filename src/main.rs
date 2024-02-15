@@ -547,7 +547,7 @@ fn main()
                             terminal::disable_raw_mode().unwrap();
                             std::process::exit(0);
                         }
-                        println!();
+                        print!("\n\x1b[G\x1b[K");
                         if c == '\x09'
                         {
                             graphable = false;
@@ -1236,14 +1236,10 @@ fn main()
             if !varcheck
             {
                 print!(
-                    "\x1b[G\x1b[K{}{}",
+                    "{}{}",
                     prompt(options, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-            }
-            else
-            {
-                print!("\x1b[G\x1b[K")
             }
             stdout.flush().unwrap();
             if input.is_empty() && !varcheck

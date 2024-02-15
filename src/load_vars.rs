@@ -763,7 +763,7 @@ pub fn add_var(
         vars.remove(k);
         if parsed.0.is_empty()
         {
-            println!("bad input\x1b[G")
+            return Err("bad input");
         }
         else if replace
         {

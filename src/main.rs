@@ -31,12 +31,12 @@ use std::{
     time::Instant,
 };
 //figure out probability of winning for 3 turned game
+//range=0,10;{x^3-6x^2+11x,-x^4+7x^3-17x^2+17x,x^4-5x^3+5x^2+5x}
 //support units properly
 //derivitives and integrals
 //rpn
 //matrix exponentiation
 //beta distribution
-//make dice Integer
 #[derive(Clone)]
 pub struct Variable
 {
@@ -610,14 +610,12 @@ fn main()
                             print!(
                                 " {}{}",
                                 time,
-                                "\x08".repeat(
-                                    time.to_string().len() + 1 + end - start - (placement - start)
-                                )
+                                "\x08".repeat(time.to_string().len() + 1 + end - placement)
                             );
                         }
                         else
                         {
-                            print!("{}", "\x08".repeat(end - start - (placement - start)));
+                            print!("{}", "\x08".repeat(end - placement));
                         }
                     }
                     '\x7F' =>
@@ -675,14 +673,12 @@ fn main()
                             print!(
                                 " {}{}",
                                 time,
-                                "\x08".repeat(
-                                    time.to_string().len() + 1 + end - start - (placement - start)
-                                )
+                                "\x08".repeat(time.to_string().len() + 1 + end - placement)
                             );
                         }
                         else
                         {
-                            print!("{}", "\x08".repeat(end - start - (placement - start)));
+                            print!("{}", "\x08".repeat(end - placement));
                         }
                     }
                     '\x11' =>
@@ -757,7 +753,7 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        print!("{}", "\x08".repeat(end - placement));
                     }
                     '\x19' =>
                     {
@@ -789,7 +785,7 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        print!("{}", "\x08".repeat(end - placement));
                     }
                     '\x17' =>
                     {
@@ -823,7 +819,7 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        print!("{}", "\x08".repeat(end - placement));
                     }
                     '\x16' =>
                     {
@@ -857,7 +853,7 @@ fn main()
                             {
                                 clearln(&input, start, end, options, &colors);
                             }
-                            print!("{}", "\x08".repeat(end - start - (placement - start)));
+                            print!("{}", "\x08".repeat(end - placement));
                         }
                     }
                     '\x15' =>
@@ -888,7 +884,7 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        print!("{}", "\x08".repeat(end - placement));
                     }
                     '\x10' =>
                     {
@@ -929,7 +925,7 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - start - (placement - start)));
+                        print!("{}", "\x08".repeat(end - placement));
                     }
                     '\x1D' | '\x05' =>
                     {
@@ -1042,7 +1038,7 @@ fn main()
                                 end = input.len()
                             }
                             clearln(&input, start, end, options, &colors);
-                            print!("{}", "\x08".repeat(end - start - (placement - start)))
+                            print!("{}", "\x08".repeat(end - placement))
                         }
                         else if placement != 0
                         {
@@ -1098,7 +1094,7 @@ fn main()
                                 end -= start - placement;
                                 start = start - (start - placement);
                                 clearln(&input, start, end, options, &colors);
-                                print!("{}", "\x08".repeat(end - start - (placement - start)));
+                                print!("{}", "\x08".repeat(end - placement));
                             }
                             else if placement == s
                             {
@@ -1208,14 +1204,12 @@ fn main()
                             print!(
                                 " {}{}",
                                 time,
-                                "\x08".repeat(
-                                    time.to_string().len() + 1 + end - start - (placement - start)
-                                )
+                                "\x08".repeat(time.to_string().len() + 1 + end - placement)
                             );
                         }
                         else if placement != input.len()
                         {
-                            print!("{}", "\x08".repeat(end - start - (placement - start)));
+                            print!("{}", "\x08".repeat(end - placement));
                         }
                     }
                 }

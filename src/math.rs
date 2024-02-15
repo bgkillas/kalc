@@ -17,7 +17,7 @@ use rug::{
     },
     integer::IsPrime,
     ops::Pow,
-    Complex, Float,
+    Complex, Float, Integer,
 };
 pub fn do_math(
     mut function: Vec<NumStr>,
@@ -841,31 +841,37 @@ pub fn do_math(
                                 {
                                     let faces = a
                                         .iter()
-                                        .map(|c| c.real().to_f64() as u128)
-                                        .collect::<Vec<u128>>();
+                                        .map(|c| c.real().to_f64() as usize)
+                                        .collect::<Vec<usize>>();
                                     if faces.iter().any(|c| c == &0)
                                     {
                                         return Err("bad face value");
                                     }
-                                    let mut distribution = vec![vec![1; faces[0] as usize]];
+                                    let mut distribution = vec![vec![Integer::from(1); faces[0]]];
                                     if faces.len() != 1
                                     {
                                         for i in 1..faces.len()
                                         {
                                             distribution.push(Vec::new());
-                                            for p in 0..=faces[0..=i].iter().sum::<u128>()
-                                                - (i + 1) as u128
+                                            for p in 0..=(faces[0..=i].iter().sum::<Integer>()
+                                                - (i + 1))
+                                                .to_usize()
+                                                .unwrap()
                                             {
-                                                let value = distribution[i - 1][(p + 1)
-                                                    .saturating_sub(faces[i])
-                                                    as usize
+                                                let value = distribution[i - 1][if (p + 1)
+                                                    > faces[i]
+                                                {
+                                                    p + 1 - faces[i]
+                                                }
+                                                else
+                                                {
+                                                    0
+                                                }
                                                     ..=p.min(
-                                                        faces[0..i].iter().sum::<u128>()
-                                                            - i as u128,
-                                                    )
-                                                        as usize]
+                                                        faces[0..i].iter().sum::<usize>() - i,
+                                                    )]
                                                     .iter()
-                                                    .sum::<u128>();
+                                                    .sum::<Integer>();
                                                 distribution[i].push(value)
                                             }
                                         }

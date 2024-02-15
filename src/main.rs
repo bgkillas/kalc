@@ -34,6 +34,9 @@ use std::{
 //range=0,10;{x^3-6x^2+11x,-x^4+7x^3-17x^2+17x,x^4-5x^3+5x^2+5x}
 //support units properly
 //derivitives and integrals
+//arc length via above
+//area under graph via cutting graph between 2 points in half (and assume triangle+rectangle) until it converges, if its converging
+//tangent slopes via first principles
 //rpn
 //matrix exponentiation
 //beta distribution
@@ -455,9 +458,14 @@ fn main()
                 };
                 if !graphable && !varcheck
                 {
-                    if let Ok(n) = do_math(output, options, funcvar)
+                    match do_math(output, options, funcvar)
                     {
-                        print_answer(n, options, &colors);
+                        Ok(n) => print_answer(n, options, &colors),
+                        Err(s) =>
+                        {
+                            println!("{}: {}", input.iter().collect::<String>(), s);
+                            continue;
+                        }
                     }
                 }
                 if let Some(time) = watch

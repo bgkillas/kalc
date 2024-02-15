@@ -181,6 +181,8 @@ pub fn functions() -> HashSet<&'static str>
         "gcf",
         "lcm",
         "multinomial",
+        "Β",
+        "beta",
     ]
     .iter()
     .cloned()

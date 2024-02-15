@@ -233,6 +233,8 @@ pub fn do_math(
                                     | "link"
                                     | "C"
                                     | "P"
+                                    | "Β"
+                                    | "beta"
                                     | "quad"
                                     | "quadratic"
                                     | "cubic"
@@ -2354,6 +2356,26 @@ fn functions(
             else
             {
                 return Err("complex factorial not supported");
+            }
+        }
+        "Β" | "beta" =>
+        {
+            if let Some(b) = c
+            {
+                if a.imag().is_zero() && b.imag().is_zero()
+                {
+                    let a = a.real();
+                    let b = b.real();
+                    Complex::with_val(options.prec, gamma(a) * gamma(b) / gamma(&(a + b.clone())))
+                }
+                else
+                {
+                    return Err("complex factorial not supported");
+                }
+            }
+            else
+            {
+                return Err("not enough args");
             }
         }
         "subfact" =>

@@ -237,6 +237,7 @@ pub fn do_math(
                                     | "P"
                                     | "gamma"
                                     | "Β"
+                                    | "B"
                                     | "beta"
                                     | "I"
                                     | "quad"
@@ -338,7 +339,7 @@ pub fn do_math(
         {
             if s != "rnd"
                 && ((s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                    || matches!(s.as_str(), "C" | "P" | "I" | "W"))
+                    || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W"))
             {
                 if matches!(
                     s.as_str(),
@@ -1427,7 +1428,7 @@ pub fn do_math(
                                     function.drain(i + 2..=j);
                                     Num((numerator.gamma() / divisor).into())
                                 }
-                                "Β" | "beta" =>
+                                "Β" | "B" | "beta" =>
                                 {
                                     if i + 3 < function.len()
                                     {
@@ -1437,7 +1438,7 @@ pub fn do_math(
                                         {
                                             let x = function[i + 5].num()?;
                                             function.drain(i + 2..i + 6);
-                                            Num(incomplete_beta(a, b - 1, x - 1))
+                                            Num(incomplete_beta(a, b, x))
                                         }
                                         else if a.imag().is_zero() && b.imag().is_zero()
                                         {
@@ -1454,8 +1455,8 @@ pub fn do_math(
                                             function.drain(i + 2..i + 4);
                                             Num(incomplete_beta(
                                                 Complex::with_val(options.prec, 1),
-                                                a - 1,
-                                                b - 1,
+                                                a,
+                                                b,
                                             ))
                                         }
                                     }
@@ -1473,7 +1474,7 @@ pub fn do_math(
                                         let x = function[i + 5].num()?;
                                         function.drain(i + 2..i + 6);
                                         Num(gamma(&(x.real() + b.real().clone()))
-                                            * incomplete_beta(a, b.clone() - 1, x.clone() - 1)
+                                            * incomplete_beta(a, b.clone(), x.clone())
                                             / (gamma(x.real()) * gamma(b.real())))
                                     }
                                     else

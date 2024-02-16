@@ -182,6 +182,7 @@ pub fn functions() -> HashSet<&'static str>
         "lcm",
         "multinomial",
         "Β",
+        "B",
         "beta",
         "betaP",
         "betaC",

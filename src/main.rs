@@ -39,8 +39,6 @@ use std::{
 //tangent slopes via first principles
 //rpn
 //matrix exponentiation
-//incomplete gamma function and subfactorial
-//beta function by continued fraction expansion
 #[derive(Clone)]
 pub struct Variable
 {

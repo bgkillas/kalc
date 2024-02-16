@@ -1569,43 +1569,78 @@ pub fn gcd(mut x: Integer, mut y: Integer) -> Integer
     x
 }
 //simpsons rule
+// pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
+// {
+//     let mut last = Complex::new(a.prec());
+//     let i = 12u32;
+//     let mut area = Complex::new(a.prec());
+//     let n: Complex = x.clone() / 2.pow(i);
+//     for k in 1..=2.pow(i)
+//     {
+//         let g: Complex = k * n.clone();
+//         let f: Complex = 1 - g.clone();
+//         let num: Complex = g.pow(a.clone()) * f.pow(b.clone());
+//         let g: Complex = (k * 2 - 1) * n.clone() / 2;
+//         let f: Complex = 1 - g.clone();
+//         let mid: Complex = g.pow(a.clone()) * f.pow(b.clone());
+//         area += (last + 4 * mid + num.clone()) * x.clone() / (3 * 2.pow(i + 1));
+//         last = num;
+//     }
+//     area
+// }
 pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
 {
-    let mut last = Complex::new(a.prec());
-    let i = 12u32;
-    let mut area = Complex::new(a.prec());
-    let n: Complex = x.clone() / 2.pow(i);
-    for k in 1..=2.pow(i)
+    if x.real() > &((a.real().clone() + 1) / (a.real() + b.real().clone() + 2))
     {
-        let g: Complex = k * n.clone();
-        let f: Complex = 1 - g.clone();
-        let num: Complex = g.pow(a.clone()) * f.pow(b.clone());
-        let g: Complex = (k * 2 - 1) * n.clone() / 2;
-        let f: Complex = 1 - g.clone();
-        let mid: Complex = g.pow(a.clone()) * f.pow(b.clone());
-        area += (last + 4 * mid + num.clone()) * x.clone() / (3 * 2.pow(i + 1));
-        last = num;
+        (gamma(a.real()) * gamma(b.real()) / gamma(&(a.real() + b.real().clone())))
+            - incomplete_beta(1 - x, b, a)
     }
-    area
+    else
+    {
+        let f: Complex = 1 - x.clone();
+        x.clone().pow(a.clone()) * f.pow(b.clone())
+            / (a.clone() * (1 + incomplete_beta_recursion(x, a, b, 1, 10)))
+    }
+}
+fn incomplete_beta_recursion(x: Complex, a: Complex, b: Complex, iter: usize, max: usize)
+    -> Complex
+{
+    if iter == max
+    {
+        Complex::new(x.prec())
+    }
+    else if iter % 2 == 1
+    {
+        let m = (iter - 1) / 2;
+        (-x.clone() * (a.clone() + m) * (a.clone() + b.clone() + m)
+            / ((a.clone() + (2 * m)) * (a.clone() + (2 * m) + 1)))
+            / (1 + incomplete_beta_recursion(x, a, b, iter + 1, max))
+    }
+    else
+    {
+        let m = iter / 2;
+        (x.clone() * m * (b.clone() - m) / ((a.clone() + (2 * m)) * (a.clone() + (2 * m) - 1)))
+            / (1 + incomplete_beta_recursion(x, a, b, iter + 1, max))
+    }
 }
 pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
 {
-    let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
-    let mut last: Complex = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 1);
-    let mut num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 2);
-    for m in 3..100
-    {
-        if (num.clone() - last.clone()).abs().real() > &prec
-        {
-            last = num.clone();
-            num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, m);
-        }
-        else
-        {
-            break;
-        }
-    }
-    num
+    // let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
+    // let mut last: Complex = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 1);
+    // let mut num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 2);
+    // for m in 3..100
+    // {
+    //     if (num.clone() - last.clone()).abs().real() > &prec
+    //     {
+    //         last = num.clone();
+    //         num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, m);
+    //     }
+    //     else
+    //     {
+    //         break;
+    //     }
+    // }
+    incomplete_gamma_recursion(s, z, 0, 100)
 }
 fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -> Complex
 {
@@ -1629,22 +1664,23 @@ fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -
 }
 pub fn subfactorial(z: Complex) -> Complex
 {
-    let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
-    let mut last: Complex = subfactorial_recursion(z.clone(), 0, 1);
-    let mut num = subfactorial_recursion(z.clone(), 0, 2);
-    for m in 3..100
-    {
-        if (num.clone() - last.clone()).abs().real() > &prec
-        {
-            last = num.clone();
-            num = subfactorial_recursion(z.clone(), 0, m);
-        }
-        else
-        {
-            break;
-        }
-    }
-    num + gamma(&(z.real().clone() + 1)) / Complex::with_val(z.prec(), 1).exp()
+    //let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
+    // let mut last: Complex = subfactorial_recursion(z.clone(), 0, 1);
+    // let mut num = subfactorial_recursion(z.clone(), 0, 2);
+    // for m in 3..100
+    // {
+    //     if (num.clone() - last.clone()).abs().real() > &prec
+    //     {
+    //         last = num.clone();
+    //         num = subfactorial_recursion(z.clone(), 0, m);
+    //     }
+    //     else
+    //     {
+    //         break;
+    //     }
+    // }
+    subfactorial_recursion(z.clone(), 0, 100)
+        + gamma(&(z.real().clone() + 1)) / Complex::with_val(z.prec(), 1).exp()
 }
 fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
 {

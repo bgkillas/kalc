@@ -833,7 +833,18 @@ pub fn input_var(
         }
         else if matches!(
             word.as_str(),
-            "sum" | "summation" | "prod" | "production" | "vec" | "mat" | "Σ" | "Π"
+            "area"
+                | "volume"
+                | "length"
+                | "slope"
+                | "sum"
+                | "summation"
+                | "prod"
+                | "production"
+                | "vec"
+                | "mat"
+                | "Σ"
+                | "Π"
         ) && chars.len() > i + countv + 1
         {
             let mut place = 0;

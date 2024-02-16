@@ -186,6 +186,10 @@ pub fn functions() -> HashSet<&'static str>
         "beta",
         "betaP",
         "betaC",
+        "slope",
+        "area",
+        "volume",
+        "length",
     ]
     .iter()
     .cloned()

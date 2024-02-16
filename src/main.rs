@@ -34,9 +34,7 @@ use std::{
 //range=0,10;{x^3-6x^2+11x,-x^4+7x^3-17x^2+17x,x^4-5x^3+5x^2+5x}
 //support units properly
 //derivitives and integrals
-//arc length via above
-//area under graph via cutting graph between 2 points in half (and assume triangle+rectangle) until it converges, if its converging
-//tangent slopes via first principles
+//area under graph via cutting graph between 2 points in half (and assume triangle+rectangle) until it converges, if its converging, something like area(x,f(x),1,4(,1000)), volume(x,y,f(x,y),1,4,1,4(,1000))
 //rpn
 //matrix exponentiation
 #[derive(Clone)]

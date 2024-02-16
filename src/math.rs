@@ -25,10 +25,6 @@ pub fn do_math(
     mut func_vars: Vec<(String, Vec<NumStr>)>,
 ) -> Result<NumStr, &'static str>
 {
-    if function.len() == 1 && !function[0].str_is("rnd")
-    {
-        return Ok(function[0].clone());
-    }
     if function.is_empty()
     {
         return Err(" ");
@@ -68,6 +64,10 @@ pub fn do_math(
             }
         }
         i += 1;
+    }
+    if function.len() == 1 && !function[0].str_is("rnd")
+    {
+        return Ok(function[0].clone());
     }
     // use std::io::Write;
     // for i in &function
@@ -302,6 +302,10 @@ pub fn do_math(
                             else if matches!(
                                 k.as_str(),
                                 "sum"
+                                    | "area"
+                                    | "volume"
+                                    | "length"
+                                    | "slope"
                                     | "summation"
                                     | "prod"
                                     | "product"
@@ -344,6 +348,10 @@ pub fn do_math(
                 if matches!(
                     s.as_str(),
                     "sum"
+                        | "area"
+                        | "volume"
+                        | "length"
+                        | "slope"
                         | "product"
                         | "prod"
                         | "summation"
@@ -379,7 +387,120 @@ pub fn do_math(
                             }
                         }
                     }
-                    if s == "piecewise" && !place.is_empty()
+                    if s == "length" && place.len() >= 4
+                    {
+                        if let Str(var) = &function[place[0] - 1]
+                        {
+                            let start = do_math(
+                                function[place[1] + 1..place[2]].to_vec(),
+                                options,
+                                func_vars.clone(),
+                            )?
+                            .num()?;
+                            let end = do_math(
+                                function[place[2] + 1..place[3]].to_vec(),
+                                options,
+                                func_vars.clone(),
+                            )?
+                            .num()?;
+                            let func = function[place[0] + 1..place[1]].to_vec();
+                            let points = if place.len() == 5
+                            {
+                                do_math(
+                                    function[place[3] + 1..place[4]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?
+                                .num()?
+                                .real()
+                                .to_f64() as usize
+                            }
+                            else
+                            {
+                                1000
+                            };
+                            let delta: Complex = (end - start.clone()) / points;
+                            func_vars.push((var.clone(), vec![Num(start.clone())]));
+                            let mut last =
+                                do_math(func.clone(), options, func_vars.clone())?.num()?;
+                            func_vars.pop();
+                            let mut length = Complex::new(options.prec);
+                            for n in 1..=points
+                            {
+                                let x: Complex = start.clone() + (n * delta.clone());
+                                func_vars.push((var.clone(), vec![Num(x.clone())]));
+                                let y = do_math(func.clone(), options, func_vars.clone())?.num()?;
+                                func_vars.pop();
+                                let t: Complex = delta.clone().pow(2) + (y.clone() - last).pow(2);
+                                last = y;
+                                length += t.sqrt()
+                            }
+                            function[i] = Num(length);
+                            function.drain(i + 1..=*place.last().unwrap());
+                        }
+                        else
+                        {
+                            return Err("failed to get var for length");
+                        }
+                    }
+                    else if s == "volume" && place.len() >= 7
+                    {
+                        if let Str(_var) = &function[place[0] - 1]
+                        {
+                            todo!()
+                        }
+                        else
+                        {
+                            return Err("failed to get var for volume");
+                        }
+                    }
+                    else if s == "area" && place.len() >= 4
+                    {
+                        if let Str(_var) = &function[place[0] - 1]
+                        {
+                            todo!()
+                        }
+                        else
+                        {
+                            return Err("failed to get var for area");
+                        }
+                    }
+                    else if s == "slope" && place.len() >= 3
+                    {
+                        if let Str(var) = &function[place[0] - 1]
+                        {
+                            let point = do_math(
+                                function[place[1] + 1..place[2]].to_vec(),
+                                options,
+                                func_vars.clone(),
+                            )?
+                            .num()?;
+                            let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
+                            let func = function[place[0] + 1..place[1]].to_vec();
+                            func_vars.push((var.clone(), vec![Num(point.clone())]));
+                            let n1 = do_math(func.clone(), options, func_vars.clone())?;
+                            func_vars.pop();
+                            func_vars.push((var.clone(), vec![Num(point + h.clone())]));
+                            let n2 = do_math(func, options, func_vars.clone())?;
+                            func_vars.pop();
+                            match (n1, n2)
+                            {
+                                (Num(n1), Num(n2)) => function[i] = Num((n2 - n1) / h),
+                                (Vector(n1), Vector(n2)) if n1.len() == 2 =>
+                                {
+                                    function[i] = Num((n2[1].clone() - n1[1].clone())
+                                        / (n2[0].clone() - n1[0].clone()))
+                                }
+                                (_, _) => return Err("not supported slope data"),
+                            }
+                            function.drain(i + 1..=place[2]);
+                        }
+                        else
+                        {
+                            return Err("failed to get var for slope");
+                        }
+                    }
+                    else if s == "piecewise" && !place.is_empty()
                     {
                         let mut ans = None;
                         let mut start = i + 3;

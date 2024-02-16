@@ -115,10 +115,10 @@ Functions:
 - root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
-- fact(real), doublefact(real), subfact(natural)
+- fact, doublefact, subfact (real)
 - sinc, cis, exp
-- zeta, gamma, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r) (all real only)
-- deg, rad, grad (all real only)
+- zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r) (all real only)
+- deg, rad, grad
 - re, im, split(x+yi={x,y})
 - factors, prime, isprime, gcd, lcm
 - slog(a,b), ssrt(k,a) (k is lambert w branch)

@@ -1,9 +1,9 @@
 use crate::{
     complex::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, gcd, ge, gt, identity,
-        incomplete_beta, inverse, lambertw, le, lt, minors, mvec, ne, nth_prime, or, quadratic,
-        recursion, rem, root, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, trace,
-        transpose, variance, NumStr,
+        incomplete_beta, incomplete_gamma, inverse, lambertw, le, lt, minors, mvec, ne, nth_prime,
+        or, quadratic, recursion, rem, root, shl, shr, slog, sort, sub, subfactorial, sum,
+        tetration, to, to_polar, trace, transpose, variance, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -235,6 +235,7 @@ pub fn do_math(
                                     | "link"
                                     | "C"
                                     | "P"
+                                    | "gamma"
                                     | "Β"
                                     | "beta"
                                     | "I"
@@ -2336,7 +2337,11 @@ fn functions(
         }
         "gamma" | "Γ" =>
         {
-            if a.imag().is_zero()
+            if let Some(b) = c
+            {
+                incomplete_gamma(a, b)
+            }
+            else if a.imag().is_zero()
             {
                 Complex::with_val(options.prec, gamma(a.real()))
             }
@@ -2461,13 +2466,16 @@ fn functions(
                 || a.real().is_sign_negative()
                 || !a.real().clone().fract().is_zero()
             {
-                return Err("complex/fractional subfactorial not supported");
+                subfactorial(a)
             }
-            let b: Float = a.real().clone() + 1;
-            Complex::with_val(
-                options.prec,
-                (gamma(&b) / Float::with_val(options.prec.0, 1).exp()).round(),
-            )
+            else
+            {
+                let b: Float = a.real().clone() + 1;
+                Complex::with_val(
+                    options.prec,
+                    (gamma(&b) / Float::with_val(options.prec.0, 1).exp()).round(),
+                )
+            }
         }
         "sinc" => a.clone().sin() / a,
         "conj" | "conjugate" => a.conj(),

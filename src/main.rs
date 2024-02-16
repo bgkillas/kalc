@@ -39,6 +39,8 @@ use std::{
 //tangent slopes via first principles
 //rpn
 //matrix exponentiation
+//incomplete gamma function and subfactorial
+//beta function by continued fraction expansion
 #[derive(Clone)]
 pub struct Variable
 {
@@ -294,7 +296,16 @@ fn main()
                     .collect::<Vec<String>>();
                 let mut split;
                 let args = args.concat();
-                let mut blacklist = Vec::new();
+                let mut blacklist = if options.interactive
+                {
+                    Vec::new()
+                }
+                else
+                {
+                    vars.iter()
+                        .map(|v| v.name.iter().collect::<String>())
+                        .collect::<Vec<String>>()
+                };
                 'upper: for i in lines.clone()
                 {
                     split = i.splitn(2, '=');
@@ -307,9 +318,9 @@ fn main()
                     {
                         l.clone()
                     };
-                    if !(l.starts_with('#')
-                        || (!options.interactive
-                            && !if l.contains('(')
+                    if options.interactive
+                        || (!blacklist.contains(&l)
+                            && if l.contains('(')
                             {
                                 args.contains(&(left.clone() + "("))
                                     || args.contains(&(left.clone() + "{"))
@@ -318,34 +329,38 @@ fn main()
                             else
                             {
                                 args.contains(&left)
-                            }))
+                            })
                     {
                         if let Some(r) = split.next()
                         {
-                            let l = l.chars().collect::<Vec<char>>();
+                            let le = l.chars().collect::<Vec<char>>();
                             if !options.interactive
                             {
-                                blacklist.push(left);
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
+                                if blacklist.contains(&l)
+                                {
+                                    continue;
+                                }
+                                blacklist.push(l);
                             }
                             for (i, v) in vars.iter().enumerate()
                             {
                                 if v.name.split(|c| c == &'(').next()
-                                    == l.split(|c| c == &'(').next()
-                                    && v.name.contains(&'(') == l.contains(&'(')
+                                    == le.split(|c| c == &'(').next()
+                                    && v.name.contains(&'(') == le.contains(&'(')
                                     && v.name.iter().filter(|c| c == &&',').count()
-                                        == l.iter().filter(|c| c == &&',').count()
+                                        == le.iter().filter(|c| c == &&',').count()
                                 {
                                     if r == "null"
                                     {
                                         if let Err(s) =
-                                            add_var(l, r, i, &mut vars, options, true, true, true)
+                                            add_var(le, r, i, &mut vars, options, true, true, true)
                                         {
                                             println!("{}", s)
                                         }
                                     }
                                     else if let Err(s) =
-                                        add_var(l, r, i, &mut vars, options, true, true, false)
+                                        add_var(le, r, i, &mut vars, options, true, true, false)
                                     {
                                         println!("{}", s)
                                     }
@@ -354,10 +369,10 @@ fn main()
                             }
                             for (i, j) in vars.clone().iter().enumerate()
                             {
-                                if j.name.len() <= l.len()
+                                if j.name.len() <= le.len()
                                 {
                                     if let Err(s) =
-                                        add_var(l, r, i, &mut vars, options, false, false, false)
+                                        add_var(le, r, i, &mut vars, options, false, false, false)
                                     {
                                         println!("{}", s)
                                     }
@@ -365,7 +380,7 @@ fn main()
                                 }
                             }
                             if let Err(s) =
-                                add_var(l, r, 0, &mut vars, options, false, false, false)
+                                add_var(le, r, 0, &mut vars, options, false, false, false)
                             {
                                 println!("{}", s)
                             }

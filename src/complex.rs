@@ -1588,6 +1588,79 @@ pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
     }
     area
 }
+pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
+{
+    let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
+    let mut last: Complex = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 1);
+    let mut num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 2);
+    for m in 3..100
+    {
+        if (num.clone() - last.clone()).abs().real() > &prec
+        {
+            last = num.clone();
+            num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, m);
+        }
+        else
+        {
+            break;
+        }
+    }
+    num
+}
+fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -> Complex
+{
+    if iter == max
+    {
+        Complex::with_val(s.prec(), 1)
+    }
+    else if iter == 0
+    {
+        (z.clone().pow(s.clone()) / z.clone().exp()) / incomplete_gamma_recursion(s, z, 1, max)
+    }
+    else if iter % 2 == 1
+    {
+        z.clone()
+            + ((iter.div_ceil(2) - s.clone()) / incomplete_gamma_recursion(s, z, iter + 1, max))
+    }
+    else
+    {
+        1 + (iter.div_ceil(2) / incomplete_gamma_recursion(s, z, iter + 1, max))
+    }
+}
+pub fn subfactorial(z: Complex) -> Complex
+{
+    let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
+    let mut last: Complex = subfactorial_recursion(z.clone(), 0, 1);
+    let mut num = subfactorial_recursion(z.clone(), 0, 2);
+    for m in 3..100
+    {
+        if (num.clone() - last.clone()).abs().real() > &prec
+        {
+            last = num.clone();
+            num = subfactorial_recursion(z.clone(), 0, m);
+        }
+        else
+        {
+            break;
+        }
+    }
+    num + gamma(&(z.real().clone() + 1)) / Complex::with_val(z.prec(), 1).exp()
+}
+fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
+{
+    if iter == max
+    {
+        Complex::with_val(z.prec(), 1)
+    }
+    else if iter == 0
+    {
+        Complex::with_val(z.prec(), -1).pow(z.clone()) / subfactorial_recursion(z, 1, max)
+    }
+    else
+    {
+        (z.clone() + iter + 1) - iter / subfactorial_recursion(z, iter + 1, max)
+    }
+}
 //https://github.com/IstvanMezo/LambertW-function/blob/master/complex%20Lambert.cpp
 pub fn lambertw(z: Complex, k: isize) -> Complex
 {

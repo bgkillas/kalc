@@ -30,7 +30,7 @@ pub fn get_file_vars(
             {
                 l.clone()
             };
-            if !if l.contains('(')
+            if if l.contains('(')
             {
                 r.contains(&(left.clone() + "("))
                     || r.contains(&(left.clone() + "{"))
@@ -39,11 +39,11 @@ pub fn get_file_vars(
             else
             {
                 r.contains(&left)
-            } && !blacklist.contains(&left)
+            } && !blacklist.contains(&l)
             {
-                blacklist.push(left);
                 if let Some(r) = split.next()
                 {
+                    blacklist.push(l.clone());
                     let l = l.chars().collect::<Vec<char>>();
                     get_file_vars(options, vars, lines.clone(), r, blacklist);
                     for (i, j) in vars.clone().iter().enumerate()

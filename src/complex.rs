@@ -1568,6 +1568,26 @@ pub fn gcd(mut x: Integer, mut y: Integer) -> Integer
     }
     x
 }
+//simpsons rule
+pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
+{
+    let mut last = Complex::new(a.prec());
+    let i = 12u32;
+    let mut area = Complex::new(a.prec());
+    let n: Complex = x.clone() / 2.pow(i);
+    for k in 1..=2.pow(i)
+    {
+        let g: Complex = k * n.clone();
+        let f: Complex = 1 - g.clone();
+        let num: Complex = g.pow(a.clone()) * f.pow(b.clone());
+        let g: Complex = (k * 2 - 1) * n.clone() / 2;
+        let f: Complex = 1 - g.clone();
+        let mid: Complex = g.pow(a.clone()) * f.pow(b.clone());
+        area += (last + 4 * mid + num.clone()) * x.clone() / (3 * 2.pow(i + 1));
+        last = num;
+    }
+    area
+}
 //https://github.com/IstvanMezo/LambertW-function/blob/master/complex%20Lambert.cpp
 pub fn lambertw(z: Complex, k: isize) -> Complex
 {

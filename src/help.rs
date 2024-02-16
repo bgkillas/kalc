@@ -93,6 +93,7 @@ pub fn help()
     - variance/var, standarddeviation/σ (sample-bias corrected)\n\x1b[G\
     - percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\n\x1b[G\
     - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)\n\x1b[G\
+    - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\n\x1b[G\
     - dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die\n\n\x1b[G\
     Vector operations/functions:\n\x1b[G\
     - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
@@ -113,7 +114,7 @@ pub fn help()
     - abs, norm\n\x1b[G\
     - len, wid\n\x1b[G\
     - max, min, mean, mode\n\x1b[G\
-    - I(n) produces n identity matrix\n\x1b[G\
+    - iden(n) produces an n dimension identity matrix\n\x1b[G\
     - rotate(theta) produces a rotational matrix\n\x1b[G\
     - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\n\x1b[G\
     Constants:\n\x1b[G\

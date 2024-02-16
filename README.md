@@ -128,6 +128,7 @@ Functions:
 - variance/var, standarddeviation/σ (sample-bias corrected)
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
 - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)
+- betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
 - dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die
 
 Vector functions:
@@ -150,7 +151,7 @@ Matrix functions:
 - abs, norm
 - len, wid
 - max, min, mean, mode
-- I(n) produces n identity matrix
+- iden(n) produces an n dimension identity matrix
 - rotate(theta) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 

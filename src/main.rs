@@ -39,7 +39,6 @@ use std::{
 //tangent slopes via first principles
 //rpn
 //matrix exponentiation
-//beta distribution
 #[derive(Clone)]
 pub struct Variable
 {

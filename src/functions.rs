@@ -183,6 +183,8 @@ pub fn functions() -> HashSet<&'static str>
         "multinomial",
         "Β",
         "beta",
+        "betaP",
+        "betaC",
     ]
     .iter()
     .cloned()

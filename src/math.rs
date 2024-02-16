@@ -1,9 +1,9 @@
 use crate::{
     complex::{
         add, and, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, gcd, ge, gt, identity,
-        inverse, lambertw, le, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem,
-        root, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, trace, transpose, variance,
-        NumStr,
+        incomplete_beta, inverse, lambertw, le, lt, minors, mvec, ne, nth_prime, or, quadratic,
+        recursion, rem, root, shl, shr, slog, sort, sub, sum, tetration, to, to_polar, trace,
+        transpose, variance, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -222,6 +222,8 @@ pub fn do_math(
                                     | "arctan"
                                     | "atan2"
                                     | "normP"
+                                    | "betaP"
+                                    | "betaC"
                                     | "bi"
                                     | "binomial"
                                     | "angle"
@@ -235,6 +237,7 @@ pub fn do_math(
                                     | "P"
                                     | "Β"
                                     | "beta"
+                                    | "I"
                                     | "quad"
                                     | "quadratic"
                                     | "cubic"
@@ -1423,6 +1426,100 @@ pub fn do_math(
                                     function.drain(i + 2..=j);
                                     Num((numerator.gamma() / divisor).into())
                                 }
+                                "Β" | "beta" =>
+                                {
+                                    if i + 3 < function.len()
+                                    {
+                                        let a = function[i + 1].num()?;
+                                        let b = function[i + 3].num()?;
+                                        if i + 4 < function.len() && function[i + 4].str_is(",")
+                                        {
+                                            let x = function[i + 5].num()?;
+                                            function.drain(i + 2..i + 6);
+                                            Num(incomplete_beta(a, b - 1, x - 1))
+                                        }
+                                        else if a.imag().is_zero() && b.imag().is_zero()
+                                        {
+                                            function.drain(i + 2..i + 4);
+                                            let a = a.real();
+                                            let b = b.real();
+                                            Num(Complex::with_val(
+                                                options.prec,
+                                                gamma(a) * gamma(b) / gamma(&(a + b.clone())),
+                                            ))
+                                        }
+                                        else
+                                        {
+                                            function.drain(i + 2..i + 4);
+                                            Num(incomplete_beta(
+                                                Complex::with_val(options.prec, 1),
+                                                a - 1,
+                                                b - 1,
+                                            ))
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return Err("not enough args");
+                                    }
+                                }
+                                "I" | "betaC" =>
+                                {
+                                    if i + 5 < function.len()
+                                    {
+                                        let a = function[i + 1].num()?;
+                                        let b = function[i + 3].num()?;
+                                        let x = function[i + 5].num()?;
+                                        function.drain(i + 2..i + 6);
+                                        Num(gamma(&(x.real() + b.real().clone()))
+                                            * incomplete_beta(a, b.clone() - 1, x.clone() - 1)
+                                            / (gamma(x.real()) * gamma(b.real())))
+                                    }
+                                    else
+                                    {
+                                        return Err("not enough args");
+                                    }
+                                }
+                                "betaP" =>
+                                {
+                                    if i + 5 < function.len()
+                                    {
+                                        let alpha = function[i + 1].num()?;
+                                        let beta = function[i + 3].num()?;
+                                        let x = function[i + 5].num()?;
+                                        if alpha.imag().is_zero()
+                                            && beta.imag().is_zero()
+                                            && x.imag().is_zero()
+                                        {
+                                            let alpha = alpha.real();
+                                            let beta = beta.real();
+                                            let x = x.real();
+                                            function.drain(i + 2..i + 6);
+                                            if x > &0 && x < &1
+                                            {
+                                                let c: Float = 1 - x.clone();
+                                                let num: Float = (alpha + beta.clone()).gamma()
+                                                    * x.pow(alpha.clone() - 1)
+                                                    * c.pow(beta.clone() - 1)
+                                                    / (alpha.clone().gamma()
+                                                        * beta.clone().gamma());
+                                                Num(num.into())
+                                            }
+                                            else
+                                            {
+                                                Num(Complex::new(options.prec))
+                                            }
+                                        }
+                                        else
+                                        {
+                                            return Err("betaP does not support imag");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return Err("not enough args");
+                                    }
+                                }
                                 "normP" =>
                                 {
                                     if i + 5 < function.len()
@@ -1499,7 +1596,7 @@ pub fn do_math(
                                         (*a.imag()).clone().into(),
                                     ])
                                 }
-                                "I" => Matrix(identity(
+                                "iden" | "identity" => Matrix(identity(
                                     function[i + 1].num()?.real().to_f64() as usize,
                                     options.prec,
                                 )),
@@ -2356,26 +2453,6 @@ fn functions(
             else
             {
                 return Err("complex factorial not supported");
-            }
-        }
-        "Β" | "beta" =>
-        {
-            if let Some(b) = c
-            {
-                if a.imag().is_zero() && b.imag().is_zero()
-                {
-                    let a = a.real();
-                    let b = b.real();
-                    Complex::with_val(options.prec, gamma(a) * gamma(b) / gamma(&(a + b.clone())))
-                }
-                else
-                {
-                    return Err("complex factorial not supported");
-                }
-            }
-            else
-            {
-                return Err("not enough args");
             }
         }
         "subfact" =>

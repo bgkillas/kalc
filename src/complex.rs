@@ -1892,6 +1892,14 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
             -Complex::with_val(z.prec(), Infinity)
         };
     }
+    if z.imag().is_zero() && (k == 0 || k == -1)
+    {
+        let e: Float = -1 / Float::with_val(z.prec().0, 1).exp();
+        if z.real() == &e
+        {
+            return Complex::with_val(z.prec(), -1);
+        }
+    }
     let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
     let mut w = initpoint(z.clone(), k);
     let mut wprev = w.clone();
@@ -1928,7 +1936,7 @@ fn initpoint(z: Complex, k: isize) -> Complex
     let e = Float::with_val(z.prec().0, 1).exp();
     {
         let test: Complex = z.clone() + (1 / e.clone());
-        if test.abs().real() <= &1
+        if test.abs().real() <= &1.0001
         {
             let p1: Complex = 2 * e * z.clone() + 2;
             let p = p1.clone().sqrt();
@@ -1944,7 +1952,7 @@ fn initpoint(z: Complex, k: isize) -> Complex
     }
     {
         let test: Complex = z.clone() - 0.5;
-        if test.abs().real() <= &0.5
+        if test.abs().real() <= &0.5001
         {
             if k == 0
             {

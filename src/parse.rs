@@ -993,7 +993,18 @@ pub fn input_var(
                 output.push(Str(word))
             }
         }
-        else if (!vars
+        else if sumrec.iter().any(|a| {
+            if wordv == a.1
+            {
+                num = a.0;
+                word = a.1.clone();
+                true
+            }
+            else
+            {
+                false
+            }
+        }) || (!vars
             .iter()
             .any(|c| c.name.iter().collect::<String>().split('(').next().unwrap() == wordv)
             && sumrec.iter().any(|a| {
@@ -1008,18 +1019,6 @@ pub fn input_var(
                     false
                 }
             }))
-            || sumrec.iter().any(|a| {
-                if wordv == a.1
-                {
-                    num = a.0;
-                    word = a.1.clone();
-                    true
-                }
-                else
-                {
-                    false
-                }
-            })
         {
             place_multiplier(
                 &mut output,
@@ -1257,7 +1256,8 @@ pub fn input_var(
                                         || print
                                         || sumrec.iter().any(|c| c.0 == -1)
                                     {
-                                        let iden = format!("@{}{}{}@", i, func_var, depth);
+                                        let iden =
+                                            format!("@{}{}{}{}@", i, func_var, depth, vars.len());
                                         funcvars.extend(func);
                                         funcvars.push((iden.clone(), parsed));
                                         vec![Str(iden)]
@@ -1468,7 +1468,7 @@ pub fn input_var(
                                     || print
                                     || sumrec.iter().any(|c| c.0 == -1)
                                 {
-                                    let iden = format!("@{}{}{}@", i, l, depth);
+                                    let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
                                     funcvars.extend(func);
                                     funcvars.push((iden.clone(), parsed));
                                     vec![Str(iden)]

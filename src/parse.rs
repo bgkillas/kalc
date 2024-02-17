@@ -1268,8 +1268,15 @@ pub fn input_var(
                                         let iden =
                                             format!("@{}{}{}{}@", i, func_var, depth, vars.len());
                                         funcvars.extend(func);
-                                        funcvars.push((iden.clone(), parsed));
-                                        vec![Str(iden)]
+                                        if parsed.len() == 1
+                                        {
+                                            parsed
+                                        }
+                                        else
+                                        {
+                                            funcvars.push((iden.clone(), parsed));
+                                            vec![Str(iden)]
+                                        }
                                     }
                                     else
                                     {
@@ -1489,8 +1496,15 @@ pub fn input_var(
                                 {
                                     let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
                                     funcvars.extend(func);
-                                    funcvars.push((iden.clone(), parsed));
-                                    vec![Str(iden)]
+                                    if parsed.len() == 1
+                                    {
+                                        parsed
+                                    }
+                                    else
+                                    {
+                                        funcvars.push((iden.clone(), parsed));
+                                        vec![Str(iden)]
+                                    }
                                 }
                                 else
                                 {

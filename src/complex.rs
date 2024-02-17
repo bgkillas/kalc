@@ -1789,45 +1789,45 @@ pub fn length(
     }
     Ok(length)
 }
+#[allow(clippy::too_many_arguments)]
 pub fn area(
     mut func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
-    mut start: Complex,
-    mut end: Complex,
+    start: Complex,
+    end: Complex,
     points: usize,
 ) -> Result<Complex, &'static str>
 {
-    if start.real() > end.real()
-    {
-        (start, end) = (end, start)
-    }
     let mut funcs = Vec::new();
     {
         let mut brackets = 0;
         let mut last = 1;
-        for (i, f) in func.iter().enumerate()
+        if func[0].str_is("{")
         {
-            if let Str(s) = f
+            for (i, f) in func.iter().enumerate()
             {
-                match s.as_str()
+                if let Str(s) = f
                 {
-                    "(" | "{" => brackets += 1,
-                    ")" | "}" => brackets -= 1,
-                    "," if brackets == 1 =>
+                    match s.as_str()
                     {
-                        funcs.push(func[last..i].to_vec());
-                        last = i + 1;
+                        "(" | "{" => brackets += 1,
+                        ")" | "}" => brackets -= 1,
+                        "," if brackets == 1 =>
+                        {
+                            funcs.push(func[last..i].to_vec());
+                            last = i + 1;
+                        }
+                        _ =>
+                        {}
                     }
-                    _ =>
-                    {}
                 }
             }
-        }
-        if last != 1
-        {
-            func = func[last..func.len() - 1].to_vec();
+            if last != 1
+            {
+                func = func[last..func.len() - 1].to_vec();
+            }
         }
     }
     let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
@@ -1863,11 +1863,15 @@ pub fn area(
             {
                 area += 0.375 * h * (last + y + 3 * (ym1 + ym2))
             }
-            (Num(mut last), Num(mut y), Num(mut ym1), Num(mut ym2)) =>
+            (Num(last), Num(y), Num(ym1), Num(ym2)) =>
             {
+                let mut lastt=Complex::new(options.prec);
+                let mut yt=Complex::new(options.prec);
+                let mut ym1t=Complex::new(options.prec);
+                let mut ym2t=Complex::new(options.prec);
                 for i in &funcs
                 {
-       last *= (
+       lastt +=( (
            do_math(
         place_var(i.clone(), &var, Num(x.clone()-delta.clone()+div.clone())),
         options,
@@ -1876,8 +1880,8 @@ pub fn area(
         place_var(i.clone(), &var, Num(x.clone()-delta.clone())),
         options,
         func_vars.clone(),
-    )?.num()?).abs()/div.clone();
-       y *= (
+    )?.num()?).abs()/div.clone()).pow(2);
+       yt += ((
            do_math(
         place_var(i.clone(), &var, Num(x.clone()+div.clone())),
         options,
@@ -1886,8 +1890,8 @@ pub fn area(
         place_var(i.clone(), &var, Num(x.clone())),
         options,
         func_vars.clone(),
-    )?.num()?).abs()/div.clone();
-       ym1 *= (do_math(
+    )?.num()?).abs()/div.clone()).pow(2);
+       ym1t +=( (do_math(
         place_var(i.clone(), &var, Num(x.clone()-h.clone()+div.clone())),
         options,
         func_vars.clone(),
@@ -1895,17 +1899,17 @@ pub fn area(
         place_var(i.clone(), &var, Num(x.clone()-h.clone())),
         options,
         func_vars.clone(),
-    )?.num()?).abs()/div.clone();
-       ym2 *= (do_math(
+    )?.num()?).abs()/div.clone()).pow(2);
+       ym2t += ((do_math(
         place_var(i.clone(), &var, Num(x.clone()-2*h.clone()+div.clone())),
         options,
         func_vars.clone())?.num()?-do_math(
         place_var(i.clone(), &var, Num(x.clone()-2*h.clone())),
         options,
         func_vars.clone(),
-    )?.num()?).abs()/div.clone();
+    )?.num()?)/div.clone()).pow(2);
                 }
-                area += 0.375 * h * (last + y + 3 * (ym1 + ym2))
+                area += 0.375 * h * ((last*lastt.sqrt()) + (y*yt.sqrt()) + 3 * ((ym1*ym1t.sqrt()) + (ym2*ym2t.sqrt())))
             }
             (_, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         };

@@ -834,7 +834,6 @@ pub fn input_var(
         else if matches!(
             word.as_str(),
             "area"
-                | "volume"
                 | "length"
                 | "slope"
                 | "sum"

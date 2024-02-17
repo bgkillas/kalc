@@ -131,7 +131,7 @@ Functions:
 - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
 - dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die
 - slope(x,f(x),point), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)
-- area(x,f(x),from,to (,amount of data points) ), volume(x,y,f(x,y),from x,to x,from y,to y (,amount of data points) ) (bracketed means optional)
+- area(x,f(x),from,to (,amount of data points) ) (bracketed means optional)
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})

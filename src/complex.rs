@@ -1697,6 +1697,122 @@ fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
         (z.clone() + iter + 1) - iter / subfactorial_recursion(z, iter + 1, max)
     }
 }
+pub fn length(
+    func: Vec<NumStr>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
+    options: Options,
+    var: String,
+    start: Complex,
+    end: Complex,
+    points: usize,
+) -> Result<Complex, &'static str>
+{
+    let delta: Complex = (end - start.clone()) / points;
+    func_vars.push((var.clone(), vec![Num(start.clone())]));
+    let mut last = do_math(func.clone(), options, func_vars.clone())?;
+    func_vars.pop();
+    let mut length = Complex::new(options.prec);
+    for n in 1..=points
+    {
+        let x: Complex = start.clone() + (n * delta.clone());
+        func_vars.push((var.clone(), vec![Num(x.clone())]));
+        let y = do_math(func.clone(), options, func_vars.clone())?;
+        func_vars.pop();
+        let t: Complex = match (last, y.clone())
+        {
+            (Num(last), Num(y)) => delta.clone().pow(2) + (y.clone() - last).pow(2),
+            (Vector(last), Vector(y)) if last.len() == 2 =>
+            {
+                (last[0].clone() - y[0].clone()).pow(2) + (last[1].clone() - y[1].clone()).pow(2)
+            }
+            (Vector(last), Vector(y)) if last.len() == 3 =>
+            {
+                (last[0].clone() - y[0].clone()).pow(2)
+                    + (last[1].clone() - y[1].clone()).pow(2)
+                    + (last[2].clone() - y[2].clone()).pow(2)
+            }
+            (_, _) => return Err("not supported arc length data"),
+        };
+        last = y;
+        length += t.sqrt()
+    }
+    Ok(length)
+}
+pub fn area(
+    func: Vec<NumStr>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
+    options: Options,
+    var: String,
+    start: Complex,
+    end: Complex,
+    points: usize,
+) -> Result<Complex, &'static str>
+{
+    func_vars.push((var.clone(), vec![Num(start.clone())]));
+    let mut last = do_math(func.clone(), options, func_vars.clone())?;
+    func_vars.pop();
+    let delta: Complex = (end - start.clone()) / points;
+    let mut area = Complex::new(options.prec);
+    for n in 1..=points
+    {
+        let h: Complex = delta.clone() / 3;
+        let x: Complex = start.clone() + ((n - 1) * delta.clone());
+        func_vars.push((var.clone(), vec![Num(start.clone() + (n * delta.clone()))]));
+        let y = do_math(func.clone(), options, func_vars.clone())?;
+        func_vars.pop();
+        func_vars.push((var.clone(), vec![Num(x.clone() + h.clone())]));
+        let ym1 = do_math(func.clone(), options, func_vars.clone())?;
+        func_vars.pop();
+        func_vars.push((var.clone(), vec![Num(x + 2 * h.clone())]));
+        let ym2 = do_math(func.clone(), options, func_vars.clone())?;
+        func_vars.pop();
+        match (last, y.clone(), ym1, ym2)
+        {
+            (Num(last), Num(y), Num(ym1), Num(ym2)) =>
+            {
+                area += 3 * h * (last + y + 3 * (ym1 + ym2)) / 8
+            }
+            // (Vector(last), Vector(y), Vector(ym1), Vector(ym2))
+            //     if last.len() == 2 =>
+            // {
+            //     area += 3
+            //         * h
+            //         * (last[1].clone()
+            //             + y[1].clone()
+            //             + 3 * (ym1[1].clone() + ym2[1].clone()))
+            //         / 8
+            // }
+            (_, _, _, _) => return Err("not supported area data"),
+        };
+        last = y;
+    }
+    Ok(area)
+}
+pub fn slope(
+    func: Vec<NumStr>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
+    options: Options,
+    var: String,
+    point: Complex,
+) -> Result<Complex, &'static str>
+{
+    let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
+    func_vars.push((var.clone(), vec![Num(point.clone())]));
+    let n1 = do_math(func.clone(), options, func_vars.clone())?;
+    func_vars.pop();
+    func_vars.push((var.clone(), vec![Num(point + h.clone())]));
+    let n2 = do_math(func, options, func_vars.clone())?;
+    func_vars.pop();
+    match (n1, n2)
+    {
+        (Num(n1), Num(n2)) => Ok((n2 - n1) / h),
+        (Vector(n1), Vector(n2)) if n1.len() == 2 =>
+        {
+            Ok((n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone()))
+        }
+        (_, _) => Err("not supported slope data"),
+    }
+}
 //https://github.com/IstvanMezo/LambertW-function/blob/master/complex%20Lambert.cpp
 pub fn lambertw(z: Complex, k: isize) -> Complex
 {

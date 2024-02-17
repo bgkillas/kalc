@@ -188,7 +188,6 @@ pub fn functions() -> HashSet<&'static str>
         "betaC",
         "slope",
         "area",
-        "volume",
         "length",
     ]
     .iter()

@@ -34,6 +34,7 @@ use std::{
 //derivitives and integrals
 //rpn
 //matrix exponentiation
+//support f'(x)
 #[derive(Clone)]
 pub struct Variable
 {

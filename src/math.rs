@@ -393,7 +393,8 @@ pub fn do_math(
                     }
                     match (s.as_str(), &function[place[0] - 1])
                     {
-                        ("length" | "arclength", Str(var)) if place.len() >= 4 =>
+                        ("length" | "arclength", Str(var))
+                            if place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = Num(length(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -430,7 +431,8 @@ pub fn do_math(
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("area" | "integrate", Str(var)) if place.len() >= 4 =>
+                        ("area" | "integrate", Str(var))
+                            if place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = Num(area(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -467,7 +469,7 @@ pub fn do_math(
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("slope" | "D", Str(var)) if place.len() >= 3 =>
+                        ("slope" | "D", Str(var)) if place.len() == 3 || place.len() == 4 =>
                         {
                             function[i] = slope(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -587,7 +589,7 @@ pub fn do_math(
                             };
                             function.drain(i + 1..=place[3]);
                         }
-                        ("sum" | "summation" | "Σ", _) if place.len() == 1 || place.is_empty() =>
+                        ("sum" | "summation" | "Σ", _) if place.len() <= 1 =>
                         {
                             function[i] = match if place.is_empty()
                             {
@@ -621,7 +623,7 @@ pub fn do_math(
                                 function.drain(i + 1..=place[0]);
                             }
                         }
-                        ("product" | "prod" | "Π", _) if place.len() == 1 || place.is_empty() =>
+                        ("product" | "prod" | "Π", _) if place.len() <= 1 =>
                         {
                             function[i] = match if place.is_empty()
                             {

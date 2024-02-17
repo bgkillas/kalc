@@ -1702,42 +1702,89 @@ fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
 }
 pub fn length(
     func: Vec<NumStr>,
-    mut func_vars: Vec<(String, Vec<NumStr>)>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
-    start: Complex,
-    end: Complex,
+    mut start: Complex,
+    mut end: Complex,
     points: usize,
 ) -> Result<Complex, &'static str>
 {
+    if start.real() > end.real()
+    {
+        (start, end) = (end, start)
+    }
     let delta: Complex = (end - start.clone()) / points;
-    func_vars.push((var.clone(), vec![Num(start.clone())]));
-    let mut last = do_math(func.clone(), options, func_vars.clone())?;
-    func_vars.pop();
+    let mut last = slope(
+        func.clone(),
+        func_vars.clone(),
+        options,
+        var.clone(),
+        start.clone(),
+        false,
+    )?;
     let mut length = Complex::new(options.prec);
     for n in 1..=points
     {
+        let h: Complex = delta.clone() / 3;
         let x: Complex = start.clone() + (n * delta.clone());
-        func_vars.push((var.clone(), vec![Num(x.clone())]));
-        let y = do_math(func.clone(), options, func_vars.clone())?;
-        func_vars.pop();
-        let t: Complex = match (last, y.clone())
+        let y = slope(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            x.clone(),
+            false,
+        )?;
+        let ym1 = slope(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            x.clone() - h.clone(),
+            false,
+        )?;
+        let ym2 = slope(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            x - 2 * h.clone(),
+            false,
+        )?;
+        match (last, y.clone(), ym1, ym2)
         {
-            (Num(last), Num(y)) => delta.clone().pow(2) + (y.clone() - last).pow(2),
-            (Vector(last), Vector(y)) if last.len() == 2 =>
+            (Num(last), Num(y), Num(ym1), Num(ym2)) =>
             {
-                (last[0].clone() - y[0].clone()).pow(2) + (last[1].clone() - y[1].clone()).pow(2)
+                let last: Complex = 1 + last.pow(2);
+                let y: Complex = 1 + y.pow(2);
+                let ym1: Complex = 1 + ym1.pow(2);
+                let ym2: Complex = 1 + ym2.pow(2);
+                length += 0.375 * h * (last.sqrt() + y.sqrt() + 3 * (ym1.sqrt() + ym2.sqrt()))
             }
-            (Vector(last), Vector(y)) if last.len() == 3 =>
+            (Vector(last), Vector(y), Vector(ym1), Vector(ym2)) =>
             {
-                (last[0].clone() - y[0].clone()).pow(2)
-                    + (last[1].clone() - y[1].clone()).pow(2)
-                    + (last[2].clone() - y[2].clone()).pow(2)
+                let last: Complex = last
+                    .iter()
+                    .map(|n| n.clone().pow(2))
+                    .fold(Complex::new(options.prec), |total, x| total + x);
+                let y: Complex = y
+                    .iter()
+                    .map(|n| n.clone().pow(2))
+                    .fold(Complex::new(options.prec), |total, x| total + x);
+                let ym1: Complex = ym1
+                    .iter()
+                    .map(|n| n.clone().pow(2))
+                    .fold(Complex::new(options.prec), |total, x| total + x);
+                let ym2: Complex = ym2
+                    .iter()
+                    .map(|n| n.clone().pow(2))
+                    .fold(Complex::new(options.prec), |total, x| total + x);
+                length += 0.375 * h * (last.sqrt() + y.sqrt() + 3 * (ym1.sqrt() + ym2.sqrt()))
             }
-            (_, _) => return Err("not supported arc length data"),
+            (_, _, _, _) => return Err("not supported arc length data"),
         };
         last = y;
-        length += t.sqrt()
     }
     Ok(length)
 }
@@ -1746,35 +1793,40 @@ pub fn area(
     mut func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
-    start: Complex,
-    end: Complex,
+    mut start: Complex,
+    mut end: Complex,
     points: usize,
 ) -> Result<Complex, &'static str>
 {
+    if start.real() > end.real()
+    {
+        (start, end) = (end, start)
+    }
     func_vars.push((var.clone(), vec![Num(start.clone())]));
     let mut last = do_math(func.clone(), options, func_vars.clone())?;
     func_vars.pop();
     let delta: Complex = (end - start.clone()) / points;
-    let mut area = Complex::new(options.prec);
+    let mut area: Complex = Complex::new(options.prec);
     for n in 1..=points
     {
         let h: Complex = delta.clone() / 3;
-        let x: Complex = start.clone() + ((n - 1) * delta.clone());
-        func_vars.push((var.clone(), vec![Num(start.clone() + (n * delta.clone()))]));
+        let x: Complex = start.clone() + (n * delta.clone());
+        func_vars.push((var.clone(), vec![Num(x.clone())]));
         let y = do_math(func.clone(), options, func_vars.clone())?;
         func_vars.pop();
-        func_vars.push((var.clone(), vec![Num(x.clone() + h.clone())]));
+        func_vars.push((var.clone(), vec![Num(x.clone() - h.clone())]));
         let ym1 = do_math(func.clone(), options, func_vars.clone())?;
         func_vars.pop();
-        func_vars.push((var.clone(), vec![Num(x + 2 * h.clone())]));
+        func_vars.push((var.clone(), vec![Num(x - 2 * h.clone())]));
         let ym2 = do_math(func.clone(), options, func_vars.clone())?;
         func_vars.pop();
         match (last, y.clone(), ym1, ym2)
         {
             (Num(last), Num(y), Num(ym1), Num(ym2)) =>
             {
-                area += 3 * h * (last + y + 3 * (ym1 + ym2)) / 8
+                area += 0.375 * h * (last + y + 3 * (ym1 + ym2))
             }
+            //TODO support area under 2d and 3d parametric curve
             // (Vector(last), Vector(y), Vector(ym1), Vector(ym2))
             //     if last.len() == 2 =>
             // {

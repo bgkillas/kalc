@@ -421,17 +421,34 @@ pub fn do_math(
                             };
                             let delta: Complex = (end - start.clone()) / points;
                             func_vars.push((var.clone(), vec![Num(start.clone())]));
-                            let mut last =
-                                do_math(func.clone(), options, func_vars.clone())?.num()?;
+                            let mut last = do_math(func.clone(), options, func_vars.clone())?;
                             func_vars.pop();
                             let mut length = Complex::new(options.prec);
                             for n in 1..=points
                             {
                                 let x: Complex = start.clone() + (n * delta.clone());
                                 func_vars.push((var.clone(), vec![Num(x.clone())]));
-                                let y = do_math(func.clone(), options, func_vars.clone())?.num()?;
+                                let y = do_math(func.clone(), options, func_vars.clone())?;
                                 func_vars.pop();
-                                let t: Complex = delta.clone().pow(2) + (y.clone() - last).pow(2);
+                                let t: Complex = match (last, y.clone())
+                                {
+                                    (Num(last), Num(y)) =>
+                                    {
+                                        delta.clone().pow(2) + (y.clone() - last).pow(2)
+                                    }
+                                    (Vector(last), Vector(y)) if last.len() == 2 =>
+                                    {
+                                        (last[0].clone() - y[0].clone()).pow(2)
+                                            + (last[1].clone() - y[1].clone()).pow(2)
+                                    }
+                                    (Vector(last), Vector(y)) if last.len() == 3 =>
+                                    {
+                                        (last[0].clone() - y[0].clone()).pow(2)
+                                            + (last[1].clone() - y[1].clone()).pow(2)
+                                            + (last[2].clone() - y[2].clone()).pow(2)
+                                    }
+                                    (_, _) => return Err("not supported arc length data"),
+                                };
                                 last = y;
                                 length += t.sqrt()
                             }
@@ -447,7 +464,6 @@ pub fn do_math(
                     {
                         if let Str(_var) = &function[place[0] - 1]
                         {
-                            todo!()
                         }
                         else
                         {
@@ -456,9 +472,79 @@ pub fn do_math(
                     }
                     else if s == "area" && place.len() >= 4
                     {
-                        if let Str(_var) = &function[place[0] - 1]
+                        if let Str(var) = &function[place[0] - 1]
                         {
-                            todo!()
+                            let start = do_math(
+                                function[place[1] + 1..place[2]].to_vec(),
+                                options,
+                                func_vars.clone(),
+                            )?
+                            .num()?;
+                            let end = do_math(
+                                function[place[2] + 1..place[3]].to_vec(),
+                                options,
+                                func_vars.clone(),
+                            )?
+                            .num()?;
+                            let points = if place.len() == 5
+                            {
+                                do_math(
+                                    function[place[3] + 1..place[4]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?
+                                .num()?
+                                .real()
+                                .to_f64() as usize
+                            }
+                            else
+                            {
+                                1000
+                            };
+                            let func = function[place[0] + 1..place[1]].to_vec();
+                            func_vars.push((var.clone(), vec![Num(start.clone())]));
+                            let mut last = do_math(func.clone(), options, func_vars.clone())?;
+                            func_vars.pop();
+                            let delta: Complex = (end - start.clone()) / points;
+                            let mut area = Complex::new(options.prec);
+                            for n in 1..=points
+                            {
+                                let h: Complex = delta.clone() / 3;
+                                let x: Complex = start.clone() + ((n - 1) * delta.clone());
+                                func_vars.push((
+                                    var.clone(),
+                                    vec![Num(start.clone() + (n * delta.clone()))],
+                                ));
+                                let y = do_math(func.clone(), options, func_vars.clone())?;
+                                func_vars.pop();
+                                func_vars.push((var.clone(), vec![Num(x.clone() + h.clone())]));
+                                let ym1 = do_math(func.clone(), options, func_vars.clone())?;
+                                func_vars.pop();
+                                func_vars.push((var.clone(), vec![Num(x + 2 * h.clone())]));
+                                let ym2 = do_math(func.clone(), options, func_vars.clone())?;
+                                func_vars.pop();
+                                match (last, y.clone(), ym1, ym2)
+                                {
+                                    (Num(last), Num(y), Num(ym1), Num(ym2)) =>
+                                    {
+                                        area += 3 * h * (last + y + 3 * (ym1 + ym2)) / 8
+                                    }
+                                    // (Vector(last), Vector(y), Vector(ym1), Vector(ym2))
+                                    //     if last.len() == 2 =>
+                                    // {
+                                    //     area += 3
+                                    //         * h
+                                    //         * (last[1].clone()
+                                    //             + y[1].clone()
+                                    //             + 3 * (ym1[1].clone() + ym2[1].clone()))
+                                    //         / 8
+                                    // }
+                                    (_, _, _, _) => return Err("not supported area data"),
+                                };
+                                last = y;
+                            }
+                            function[i] = Num(area);
+                            function.drain(i + 1..=*place.last().unwrap());
                         }
                         else
                         {

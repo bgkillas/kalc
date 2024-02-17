@@ -1,5 +1,6 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
+    graph::place_var,
     math::do_math,
     Options,
 };
@@ -1789,8 +1790,8 @@ pub fn length(
     Ok(length)
 }
 pub fn area(
-    func: Vec<NumStr>,
-    mut func_vars: Vec<(String, Vec<NumStr>)>,
+    mut func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
     mut start: Complex,
@@ -1802,42 +1803,111 @@ pub fn area(
     {
         (start, end) = (end, start)
     }
-    func_vars.push((var.clone(), vec![Num(start.clone())]));
-    let mut last = do_math(func.clone(), options, func_vars.clone())?;
-    func_vars.pop();
+    let mut funcs = Vec::new();
+    {
+        let mut brackets = 0;
+        let mut last = 1;
+        for (i, f) in func.iter().enumerate()
+        {
+            if let Str(s) = f
+            {
+                match s.as_str()
+                {
+                    "(" | "{" => brackets += 1,
+                    ")" | "}" => brackets -= 1,
+                    "," if brackets == 1 =>
+                    {
+                        funcs.push(func[last..i].to_vec());
+                        last = i + 1;
+                    }
+                    _ =>
+                    {}
+                }
+            }
+        }
+        if last != 1
+        {
+            func = func[last..func.len() - 1].to_vec();
+        }
+    }
+    let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
     let delta: Complex = (end - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
+    let mut last = do_math(
+        place_var(func.clone(), &var, Num(start.clone())),
+        options,
+        func_vars.clone(),
+    )?;
     for n in 1..=points
     {
         let h: Complex = delta.clone() / 3;
         let x: Complex = start.clone() + (n * delta.clone());
-        func_vars.push((var.clone(), vec![Num(x.clone())]));
-        let y = do_math(func.clone(), options, func_vars.clone())?;
-        func_vars.pop();
-        func_vars.push((var.clone(), vec![Num(x.clone() - h.clone())]));
-        let ym1 = do_math(func.clone(), options, func_vars.clone())?;
-        func_vars.pop();
-        func_vars.push((var.clone(), vec![Num(x - 2 * h.clone())]));
-        let ym2 = do_math(func.clone(), options, func_vars.clone())?;
-        func_vars.pop();
+        let y = do_math(
+            place_var(func.clone(), &var, Num(x.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let ym1 = do_math(
+            place_var(func.clone(), &var, Num(x.clone() - h.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let ym2 = do_math(
+            place_var(func.clone(), &var, Num(x.clone() - 2 * h.clone())),
+            options,
+            func_vars.clone(),
+        )?;
         match (last, y.clone(), ym1, ym2)
         {
-            (Num(last), Num(y), Num(ym1), Num(ym2)) =>
+            (Num(last), Num(y), Num(ym1), Num(ym2)) if funcs.is_empty() =>
             {
                 area += 0.375 * h * (last + y + 3 * (ym1 + ym2))
             }
-            //TODO support area under 2d and 3d parametric curve
-            // (Vector(last), Vector(y), Vector(ym1), Vector(ym2))
-            //     if last.len() == 2 =>
-            // {
-            //     area += 3
-            //         * h
-            //         * (last[1].clone()
-            //             + y[1].clone()
-            //             + 3 * (ym1[1].clone() + ym2[1].clone()))
-            //         / 8
-            // }
-            (_, _, _, _) => return Err("not supported area data"),
+            (Num(mut last), Num(mut y), Num(mut ym1), Num(mut ym2)) =>
+            {
+                for i in &funcs
+                {
+       last *= (
+           do_math(
+        place_var(i.clone(), &var, Num(x.clone()-delta.clone()+div.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?-do_math(
+        place_var(i.clone(), &var, Num(x.clone()-delta.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?).abs()/div.clone();
+       y *= (
+           do_math(
+        place_var(i.clone(), &var, Num(x.clone()+div.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?-do_math(
+        place_var(i.clone(), &var, Num(x.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?).abs()/div.clone();
+       ym1 *= (do_math(
+        place_var(i.clone(), &var, Num(x.clone()-h.clone()+div.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?-do_math(
+        place_var(i.clone(), &var, Num(x.clone()-h.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?).abs()/div.clone();
+       ym2 *= (do_math(
+        place_var(i.clone(), &var, Num(x.clone()-2*h.clone()+div.clone())),
+        options,
+        func_vars.clone())?.num()?-do_math(
+        place_var(i.clone(), &var, Num(x.clone()-2*h.clone())),
+        options,
+        func_vars.clone(),
+    )?.num()?).abs()/div.clone();
+                }
+                area += 0.375 * h * (last + y + 3 * (ym1 + ym2))
+            }
+            (_, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         };
         last = y;
     }
@@ -1845,7 +1915,7 @@ pub fn area(
 }
 pub fn slope(
     func: Vec<NumStr>,
-    mut func_vars: Vec<(String, Vec<NumStr>)>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
     point: Complex,
@@ -1853,12 +1923,16 @@ pub fn slope(
 ) -> Result<NumStr, &'static str>
 {
     let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
-    func_vars.push((var.clone(), vec![Num(point.clone())]));
-    let n1 = do_math(func.clone(), options, func_vars.clone())?;
-    func_vars.pop();
-    func_vars.push((var.clone(), vec![Num(point + h.clone())]));
-    let n2 = do_math(func, options, func_vars.clone())?;
-    func_vars.pop();
+    let n1 = do_math(
+        place_var(func.clone(), &var, Num(point.clone())),
+        options,
+        func_vars.clone(),
+    )?;
+    let n2 = do_math(
+        place_var(func.clone(), &var, Num(point + h.clone())),
+        options,
+        func_vars.clone(),
+    )?;
     match (n1, n2)
     {
         (Num(n1), Num(n2)) => Ok(Num((n2 - n1) / h)),
@@ -1868,13 +1942,21 @@ pub fn slope(
                 .map(|(f, i)| (f - i) / h.clone())
                 .collect::<Vec<Complex>>(),
         )),
+        (Vector(n1), Vector(n2)) if n1.len() == 1 => Ok(Num((n2[0].clone() - n1[0].clone()) / h)),
         (Vector(n1), Vector(n2)) if n1.len() == 2 => Ok(Num(
             (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone())
         )),
-        (Vector(n1), Vector(n2)) if n1.len() == 3 => Ok(Vector(vec![
-            (n2[2].clone() - n1[2].clone()) / (n2[0].clone() - n1[0].clone()),
-            (n2[2].clone() - n1[2].clone()) / (n2[1].clone() - n1[1].clone()),
-        ])),
+        (Vector(n1), Vector(n2)) =>
+        {
+            let num = n2.last().unwrap().clone() - n1.last().unwrap().clone();
+            Ok(Vector(
+                n1[0..n1.len() - 1]
+                    .iter()
+                    .zip(n2[0..n2.len() - 1].to_vec())
+                    .map(|(i, f)| num.clone() / (f - i))
+                    .collect::<Vec<Complex>>(),
+            ))
+        }
         (_, _) => Err("not supported slope data"),
     }
 }

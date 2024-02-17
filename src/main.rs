@@ -30,11 +30,11 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//support units properly
 //derivitives and integrals
+//surface area of a 3d curve
 //rpn
+//support units properly
 //matrix exponentiation
-//support f'(x)
 #[derive(Clone)]
 pub struct Variable
 {

@@ -1010,7 +1010,7 @@ pub fn input_var(
             .iter()
             .any(|c| c.name.iter().collect::<String>().split('(').next().unwrap() == wordv)
             && sumrec.iter().any(|a| {
-                if wordv.starts_with(&a.1)
+                if wordv.starts_with(&a.1) && !a.1.is_empty()
                 {
                     num = a.0;
                     word = a.1.clone();
@@ -1155,7 +1155,14 @@ pub fn input_var(
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
-                            output.push(Str('('.to_string()));
+                            let nobrackets = i != chars.len()
+                                && j != 0
+                                && chars[j - 1] == ','
+                                && chars[i + 1] == ',';
+                            if !nobrackets
+                            {
+                                output.push(Str('('.to_string()));
+                            }
                             let mut temp = &chars[j + countj + 1..i + 1];
                             if temp.ends_with(&[')'])
                             {
@@ -1386,7 +1393,10 @@ pub fn input_var(
                                 output.push(Str(")".to_string()));
                                 output.push(Str(")".to_string()))
                             }
-                            output.push(Str(")".to_string()));
+                            if !nobrackets
+                            {
+                                output.push(Str(")".to_string()));
+                            }
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
@@ -1416,7 +1426,14 @@ pub fn input_var(
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
-                            output.push(Str('('.to_string()));
+                            let nobrackets = i != chars.len()
+                                && j != 0
+                                && chars[j - 1] == ','
+                                && chars[i + 1] == ',';
+                            if !nobrackets
+                            {
+                                output.push(Str('('.to_string()));
+                            }
                             let mut temp = &chars[j + countj + 1..i + 1];
                             if temp.ends_with(&[')'])
                             {
@@ -1602,7 +1619,10 @@ pub fn input_var(
                                 output.push(Str(")".to_string()));
                                 output.push(Str(")".to_string()))
                             }
-                            output.push(Str(")".to_string()));
+                            if !nobrackets
+                            {
+                                output.push(Str(")".to_string()));
+                            }
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));

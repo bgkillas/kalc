@@ -963,14 +963,7 @@ pub fn get_list_2d(
         let n = func.2.xr.0 + i as f64 * den_range;
         let num = Num(Complex::with_val(func.2.prec, n));
         match do_math(
-            func.0
-                .iter()
-                .map(|i| match i
-                {
-                    Str(s) if s == "x" || s == "y" => num.clone(),
-                    _ => i.clone(),
-                })
-                .collect(),
+            place_varxy(func.0.clone(), num.clone()),
             func.2,
             func.1
                 .iter()
@@ -1219,15 +1212,7 @@ pub fn get_list_3d(
     {
         let n = func.2.xr.0 + i as f64 * den_x_range;
         let num = Num(Complex::with_val(func.2.prec, n));
-        modified = func
-            .0
-            .iter()
-            .map(|i| match i
-            {
-                Str(s) if s == "x" => num.clone(),
-                _ => i.clone(),
-            })
-            .collect();
+        modified = place_var(func.0.clone(), "x", num.clone());
         modifiedvars = func
             .1
             .iter()
@@ -1249,14 +1234,7 @@ pub fn get_list_3d(
             let f = func.2.yr.0 + g as f64 * den_y_range;
             let num = Num(Complex::with_val(func.2.prec, f));
             match do_math(
-                modified
-                    .iter()
-                    .map(|j| match j
-                    {
-                        Str(s) if s == "y" => num.clone(),
-                        _ => j.clone(),
-                    })
-                    .collect(),
+                place_var(modified.clone(), "y", num.clone()),
                 func.2,
                 modifiedvars
                     .iter()
@@ -1804,4 +1782,32 @@ fn get_data(
         }
         (d2_or_d3, re_or_im, lines, false, points2d, points3d)
     })
+}
+fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
+{
+    for i in func.iter_mut()
+    {
+        if let Str(s) = i
+        {
+            if matches!(s.as_str(), "x" | "y")
+            {
+                *i = num.clone()
+            }
+        }
+    }
+    func
+}
+pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
+{
+    for i in func.iter_mut()
+    {
+        if let Str(s) = i
+        {
+            if s == var
+            {
+                *i = num.clone()
+            }
+        }
+    }
+    func
 }

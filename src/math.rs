@@ -313,6 +313,9 @@ pub fn do_math(
                                     | "vec"
                                     | "mat"
                                     | "piecewise"
+                                    | "D"
+                                    | "integrate"
+                                    | "arclength"
                             )
                             {
                                 i = j - 1;
@@ -342,7 +345,7 @@ pub fn do_math(
         {
             if s != "rnd"
                 && ((s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                    || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W"))
+                    || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D"))
             {
                 if matches!(
                     s.as_str(),
@@ -358,6 +361,9 @@ pub fn do_math(
                         | "vec"
                         | "mat"
                         | "piecewise"
+                        | "D"
+                        | "integrate"
+                        | "arclength"
                 )
                 {
                     let mut place = Vec::new();
@@ -385,9 +391,9 @@ pub fn do_math(
                             }
                         }
                     }
-                    if s == "length" && place.len() >= 4
+                    match (s.as_str(), &function[place[0] - 1])
                     {
-                        if let Str(var) = &function[place[0] - 1]
+                        ("length" | "arclength", Str(var)) if place.len() >= 4 =>
                         {
                             function[i] = Num(length(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -424,14 +430,7 @@ pub fn do_math(
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        else
-                        {
-                            return Err("failed to get var for length");
-                        }
-                    }
-                    else if s == "area" && place.len() >= 4
-                    {
-                        if let Str(var) = &function[place[0] - 1]
+                        ("area" | "integrate", Str(var)) if place.len() >= 4 =>
                         {
                             function[i] = Num(area(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -468,16 +467,9 @@ pub fn do_math(
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        else
+                        ("slope" | "D", Str(var)) if place.len() >= 3 =>
                         {
-                            return Err("failed to get var for area");
-                        }
-                    }
-                    else if s == "slope" && place.len() >= 3
-                    {
-                        if let Str(var) = &function[place[0] - 1]
-                        {
-                            function[i] = Num(slope(
+                            function[i] = slope(
                                 function[place[0] + 1..place[1]].to_vec(),
                                 func_vars.clone(),
                                 options,
@@ -488,55 +480,66 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                            )?);
-                            function.drain(i + 1..=place[2]);
+                                if place.len() == 4
+                                {
+                                    !do_math(
+                                        function[place[2] + 1..place[3]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .real()
+                                    .is_zero()
+                                }
+                                else
+                                {
+                                    true
+                                },
+                            )?;
+                            function.drain(i + 1..=*place.last().unwrap());
                         }
-                        else
+                        ("piecewise", _) =>
                         {
-                            return Err("failed to get var for slope");
-                        }
-                    }
-                    else if s == "piecewise" && !place.is_empty()
-                    {
-                        let mut ans = None;
-                        let mut start = i + 3;
-                        for (i, end) in place[0..place.len() - 1].iter().enumerate()
-                        {
-                            if i % 2 == 0
-                                && do_math(
-                                    function[*end + 1..place[i + 1] - 1].to_vec(),
-                                    options,
-                                    func_vars.clone(),
-                                )?
-                                .num()?
-                                .real()
-                                    == &1.0
+                            let mut ans = None;
+                            let mut start = i + 3;
+                            for (i, end) in place[0..place.len() - 1].iter().enumerate()
                             {
-                                ans = Some(recursion(
-                                    func_vars.clone(),
-                                    function[start..*end].to_vec(),
-                                    options,
-                                )?);
-                                break;
+                                if i % 2 == 0
+                                    && do_math(
+                                        function[*end + 1..place[i + 1] - 1].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .real()
+                                        == &1.0
+                                {
+                                    ans = Some(recursion(
+                                        func_vars.clone(),
+                                        function[start..*end].to_vec(),
+                                        options,
+                                    )?);
+                                    break;
+                                }
+                                else
+                                {
+                                    start = end + 2;
+                                }
+                            }
+                            function[i] = if let Some(n) = ans
+                            {
+                                n
                             }
                             else
                             {
-                                start = end + 2;
-                            }
+                                Num(Complex::with_val(options.prec, Nan))
+                            };
+                            function.drain(i + 1..=*place.last().unwrap());
                         }
-                        function[i] = if let Some(n) = ans
-                        {
-                            n
-                        }
-                        else
-                        {
-                            Num(Complex::with_val(options.prec, Nan))
-                        };
-                        function.drain(i + 1..=*place.last().unwrap());
-                    }
-                    else if place.len() == 4
-                    {
-                        if let Str(var) = &function[place[0] - 1]
+                        (
+                            "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "vec" | "mat",
+                            Str(var),
+                        ) if place.len() == 4 =>
                         {
                             let start = do_math(
                                 function[place[1] + 1..place[2]].to_vec(),
@@ -584,83 +587,79 @@ pub fn do_math(
                             };
                             function.drain(i + 1..=place[3]);
                         }
-                        else
+                        ("sum" | "summation" | "Σ", _) if place.len() == 1 || place.is_empty() =>
                         {
-                            return Err("failed to get var for sum/prod");
-                        }
-                    }
-                    else if place.len() == 1 || place.is_empty()
-                    {
-                        match s.as_str()
-                        {
-                            "sum" | "summation" | "Σ" =>
+                            function[i] = match if place.is_empty()
                             {
-                                function[i] = match if place.is_empty()
-                                {
-                                    Ok(function[i + 1].clone())
-                                }
-                                else
-                                {
-                                    do_math(
-                                        function[i + 2..place[0]].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )
-                                }
-                                {
-                                    Ok(Num(a)) => Num(a.clone()),
-                                    Ok(Vector(a)) => Num(a
-                                        .iter()
-                                        .fold(Complex::new(options.prec), |sum, val| sum + val)),
-                                    Ok(Matrix(a)) => Num(a
-                                        .iter()
-                                        .flatten()
-                                        .fold(Complex::new(options.prec), |sum, val| sum + val)),
-                                    _ => return Err("sum err"),
-                                }
+                                Ok(function[i + 1].clone())
                             }
-                            "product" | "prod" | "Π" =>
+                            else
                             {
-                                function[i] =
-                                    match if place.is_empty()
-                                    {
-                                        Ok(function[i + 1].clone())
-                                    }
-                                    else
-                                    {
-                                        do_math(
-                                            function[i + 2..place[0]].to_vec(),
-                                            options,
-                                            func_vars.clone(),
-                                        )
-                                    }
-                                    {
-                                        Ok(Num(a)) => Num(a.clone()),
-                                        Ok(Vector(a)) => Num(a.iter().fold(
-                                            Complex::with_val(options.prec, 1),
-                                            |sum, val| sum * val,
-                                        )),
-                                        Ok(Matrix(a)) => Num(a.iter().flatten().fold(
-                                            Complex::with_val(options.prec, 1),
-                                            |sum, val| sum * val,
-                                        )),
-                                        _ => return Err("sum err"),
-                                    }
+                                do_math(
+                                    function[i + 2..place[0]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )
                             }
-                            _ => return Err("sum err"),
+                            {
+                                Ok(Num(a)) => Num(a.clone()),
+                                Ok(Vector(a)) => Num(a
+                                    .iter()
+                                    .fold(Complex::new(options.prec), |sum, val| sum + val)),
+                                Ok(Matrix(a)) => Num(a
+                                    .iter()
+                                    .flatten()
+                                    .fold(Complex::new(options.prec), |sum, val| sum + val)),
+                                _ => return Err("sum err"),
+                            };
+                            if place.is_empty()
+                            {
+                                function.remove(i + 1);
+                            }
+                            else
+                            {
+                                function.drain(i + 1..=place[0]);
+                            }
                         }
-                        if place.is_empty()
+                        ("product" | "prod" | "Π", _) if place.len() == 1 || place.is_empty() =>
                         {
-                            function.remove(i + 1);
+                            function[i] = match if place.is_empty()
+                            {
+                                Ok(function[i + 1].clone())
+                            }
+                            else
+                            {
+                                do_math(
+                                    function[i + 2..place[0]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )
+                            }
+                            {
+                                Ok(Num(a)) => Num(a.clone()),
+                                Ok(Vector(a)) => Num(a
+                                    .iter()
+                                    .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                        sum * val
+                                    })),
+                                Ok(Matrix(a)) => Num(a
+                                    .iter()
+                                    .flatten()
+                                    .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                        sum * val
+                                    })),
+                                _ => return Err("prod err"),
+                            };
+                            if place.is_empty()
+                            {
+                                function.remove(i + 1);
+                            }
+                            else
+                            {
+                                function.drain(i + 1..=place[0]);
+                            }
                         }
-                        else
-                        {
-                            function.drain(i + 1..=place[0]);
-                        }
-                    }
-                    else
-                    {
-                        return Err("not enough args for sum/prod");
+                        (_, _) => return Err("arg/var err with sum/prod/vec/slope or similar"),
                     }
                 }
                 else

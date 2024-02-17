@@ -740,7 +740,8 @@ pub fn mvec(
                                 }
                             }
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
-                            | "mat"
+                            | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
+                            | "slope"
                                 if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                             {
                                 sum.push(bracket)
@@ -819,7 +820,8 @@ pub fn mvec(
                                 }
                             }
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
-                            | "mat"
+                            | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
+                            | "slope"
                                 if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                             {
                                 sum.push(bracket)
@@ -939,6 +941,7 @@ pub fn sum(
                             }
                         }
                         "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
+                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope"
                             if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                         {
                             sum.push(bracket)
@@ -1794,7 +1797,8 @@ pub fn slope(
     options: Options,
     var: String,
     point: Complex,
-) -> Result<Complex, &'static str>
+    combine: bool,
+) -> Result<NumStr, &'static str>
 {
     let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
     func_vars.push((var.clone(), vec![Num(point.clone())]));
@@ -1805,11 +1809,20 @@ pub fn slope(
     func_vars.pop();
     match (n1, n2)
     {
-        (Num(n1), Num(n2)) => Ok((n2 - n1) / h),
-        (Vector(n1), Vector(n2)) if n1.len() == 2 =>
-        {
-            Ok((n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone()))
-        }
+        (Num(n1), Num(n2)) => Ok(Num((n2 - n1) / h)),
+        (Vector(n1), Vector(n2)) if !combine => Ok(Vector(
+            n2.iter()
+                .zip(n1)
+                .map(|(f, i)| (f - i) / h.clone())
+                .collect::<Vec<Complex>>(),
+        )),
+        (Vector(n1), Vector(n2)) if n1.len() == 2 => Ok(Num(
+            (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone())
+        )),
+        (Vector(n1), Vector(n2)) if n1.len() == 3 => Ok(Vector(vec![
+            (n2[2].clone() - n1[2].clone()) / (n2[0].clone() - n1[0].clone()),
+            (n2[2].clone() - n1[2].clone()) / (n2[1].clone() - n1[1].clone()),
+        ])),
         (_, _) => Err("not supported slope data"),
     }
 }

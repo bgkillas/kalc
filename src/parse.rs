@@ -844,6 +844,9 @@ pub fn input_var(
                 | "mat"
                 | "Σ"
                 | "Π"
+                | "D"
+                | "integrate"
+                | "arclength"
         ) && chars.len() > i + countv + 1
         {
             let mut place = 0;

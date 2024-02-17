@@ -95,8 +95,8 @@ pub fn help()
     - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)\n\x1b[G\
     - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\n\x1b[G\
     - dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die\n\x1b[G\
-    - slope(x,f(x),point), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)\n\x1b[G\
-    - area(x,f(x),from,to (,amount of data points) ) (bracketed means optional)\n\n\x1b[G\
+    - slope(x,f(x),point), can add a 0 to the args to not combine the x and y slopes for parametric equations\n\x1b[G\
+    - area(x,f(x),from,to (,amount of data points) ), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)\n\n\x1b[G\
     Vector operations/functions:\n\x1b[G\
     - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\n\x1b[G\
     - angle({{vec1}},{{vec2}})\n\x1b[G\

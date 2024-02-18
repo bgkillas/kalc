@@ -434,17 +434,6 @@ pub fn do_math(
                         ("area" | "integrate", Str(var))
                             if place.len() == 4 || place.len() == 5 || place.len() == 6 =>
                         {
-                            let n;
-                            let k = *place.last().unwrap();
-                            if place.len() == 6
-                            {
-                                n = true;
-                                place.pop();
-                            }
-                            else
-                            {
-                                n = false
-                            }
                             function[i] = area(
                                 function[place[0] + 1..place[1]].to_vec(),
                                 func_vars.clone(),
@@ -462,7 +451,7 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                if place.len() == 5
+                                if place.len() >= 5
                                 {
                                     do_math(
                                         function[place[3] + 1..place[4]].to_vec(),
@@ -477,9 +466,9 @@ pub fn do_math(
                                 {
                                     1000
                                 },
-                                !n,
+                                place.len() != 6,
                             )?;
-                            function.drain(i + 1..=k);
+                            function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("slope" | "D", Str(var)) if place.len() == 3 || place.len() == 4 =>
                         {

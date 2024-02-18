@@ -669,7 +669,11 @@ pub fn input_var(
                                 && (output.last().unwrap().str_is(")")
                                     || output.last().unwrap().str_is("}"))))
                     {
-                        if let Num(a) = output.clone().last().unwrap()
+                        if let Num(a) = match output.clone().last()
+                        {
+                            Some(n) => n,
+                            _ => return Err("factorial err"),
+                        }
                         {
                             if a.real().is_sign_negative()
                             {

@@ -432,9 +432,20 @@ pub fn do_math(
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("area" | "integrate", Str(var))
-                            if place.len() == 4 || place.len() == 5 =>
+                            if place.len() == 4 || place.len() == 5 || place.len() == 6 =>
                         {
-                            function[i] = Num(area(
+                            let n;
+                            let k = *place.last().unwrap();
+                            if place.len() == 6
+                            {
+                                n = true;
+                                place.pop();
+                            }
+                            else
+                            {
+                                n = false
+                            }
+                            function[i] = area(
                                 function[place[0] + 1..place[1]].to_vec(),
                                 func_vars.clone(),
                                 options,
@@ -466,8 +477,9 @@ pub fn do_math(
                                 {
                                     1000
                                 },
-                            )?);
-                            function.drain(i + 1..=*place.last().unwrap());
+                                !n,
+                            )?;
+                            function.drain(i + 1..=k);
                         }
                         ("slope" | "D", Str(var)) if place.len() == 3 || place.len() == 4 =>
                         {
@@ -482,21 +494,7 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                if place.len() == 4
-                                {
-                                    !do_math(
-                                        function[place[2] + 1..place[3]].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?
-                                    .num()?
-                                    .real()
-                                    .is_zero()
-                                }
-                                else
-                                {
-                                    true
-                                },
+                                place.len() != 4,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }

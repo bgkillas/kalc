@@ -1798,38 +1798,38 @@ pub fn area(
     start: Complex,
     end: Complex,
     points: usize,
-) -> Result<Complex, &'static str>
+    combine: bool,
+) -> Result<NumStr, &'static str>
 {
     let mut funcs = Vec::new();
+    if combine && func[0].str_is("{")
     {
         let mut brackets = 0;
         let mut last = 1;
-        if func[0].str_is("{")
+        for (i, f) in func.iter().enumerate()
         {
-            for (i, f) in func.iter().enumerate()
+            if let Str(s) = f
             {
-                if let Str(s) = f
+                match s.as_str()
                 {
-                    match s.as_str()
+                    "(" | "{" => brackets += 1,
+                    ")" | "}" => brackets -= 1,
+                    "," if brackets == 1 =>
                     {
-                        "(" | "{" => brackets += 1,
-                        ")" | "}" => brackets -= 1,
-                        "," if brackets == 1 =>
-                        {
-                            funcs.push(func[last..i].to_vec());
-                            last = i + 1;
-                        }
-                        _ =>
-                        {}
+                        funcs.push(func[last..i].to_vec());
+                        last = i + 1;
                     }
+                    _ =>
+                    {}
                 }
             }
-            if last != 1
-            {
-                func = func[last..func.len() - 1].to_vec();
-            }
+        }
+        if last != 1
+        {
+            func = func[last..func.len() - 1].to_vec();
         }
     }
+    let mut areavec: Vec<Complex> = Vec::new();
     let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
     let delta: Complex = (end - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
@@ -1911,11 +1911,31 @@ pub fn area(
                 }
                 area += 0.375 * h * ((last*lastt.sqrt()) + (y*yt.sqrt()) + 3 * ((ym1*ym1t.sqrt()) + (ym2*ym2t.sqrt())))
             }
+            (Vector(last), Vector(y), Vector(ym1), Vector(ym2)) if areavec.is_empty()&&!combine =>
+                {
+                    for i in 0..last.len()
+                    {
+                        areavec.push(0.375 * h.clone() * (last[i].clone() + y[i].clone() + 3 * (ym1[i].clone() + ym2[i].clone())))
+                }
+                }        (Vector(last), Vector(y), Vector(ym1), Vector(ym2))if !combine =>
+                {
+                    for (i,v) in areavec.iter_mut().enumerate()
+                    {
+                        *v+= 0.375 * h.clone() * (last[i].clone() + y[i].clone() + 3 * (ym1[i].clone() + ym2[i].clone()))
+                    }
+                }
             (_, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         };
         last = y;
     }
-    Ok(area)
+    if areavec.is_empty()
+    {
+        Ok(Num(area))
+    }
+    else
+    {
+        Ok(Vector(areavec))
+    }
 }
 pub fn slope(
     func: Vec<NumStr>,

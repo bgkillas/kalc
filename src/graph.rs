@@ -57,11 +57,12 @@ pub fn graph(
             }
             if re_or_im.0
             {
-                re_cap[i] = input[i].clone() + if re_or_im.1 { ":re" } else { "" }
+                re_cap[i] =
+                    input[i].clone().replace('`', "''") + if re_or_im.1 { ":re" } else { "" }
             }
             if re_or_im.1
             {
-                im_cap[i] = input[i].clone() + ":im"
+                im_cap[i] = input[i].clone().replace('`', "''") + ":im"
             }
             if dimen.0
             {

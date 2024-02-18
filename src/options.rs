@@ -19,7 +19,6 @@ use crossterm::{
 use rug::Complex;
 use std::{
     fs::File,
-    io,
     io::{BufRead, BufReader, Stdout, Write},
 };
 pub fn arg_opts(
@@ -2486,7 +2485,7 @@ pub fn commands(
         }
         "clear" =>
         {
-            execute!(io::stdout(), Clear(ClearType::Purge)).unwrap();
+            execute!(stdout, Clear(ClearType::Purge)).unwrap();
             print!("\x1b[H\x1b[J{}", prompt(*options, colors));
             stdout.flush().unwrap();
         }
@@ -2640,9 +2639,12 @@ pub fn commands(
         }
         "version" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!(
+                "\x1b[A\x1b[G\x1b[K{} {}\n\x1b[G",
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            );
             stdout.flush().unwrap();
-            println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
         }
         "exit" | "quit" | "break" =>
         {

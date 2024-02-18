@@ -1926,7 +1926,7 @@ pub fn slope(
     combine: bool,
 ) -> Result<NumStr, &'static str>
 {
-    let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
+    let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 4);
     let n1 = do_math(
         place_var(func.clone(), &var, Num(point.clone())),
         options,

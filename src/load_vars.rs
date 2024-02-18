@@ -723,12 +723,21 @@ pub fn add_var(
         if l.contains(&'(')
         {
             let mut l = l.clone();
-            l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
+            if l.drain(0..=l.iter().position(|c| c == &'(').unwrap())
+                .collect::<String>()
+                .contains(',')
+            {
+                return Err("bad var name");
+            }
             l.pop();
             for i in l.split(|c| c == &',')
             {
                 func_vars.push((-1, i.iter().collect()));
             }
+        }
+        else if l.contains(&',')
+        {
+            return Err("bad var name");
         }
         let mut k = 0;
         for (j, v) in vars.iter().enumerate()

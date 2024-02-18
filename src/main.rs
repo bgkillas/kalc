@@ -213,7 +213,6 @@ fn main()
             std::process::exit(1);
         }
     }
-    let mut stdout = stdout();
     if !stdin().is_terminal()
     {
         for line in stdin().lock().lines()
@@ -231,6 +230,7 @@ fn main()
         }
     }
     options.interactive = args.is_empty();
+    let mut stdout = stdout();
     if options.interactive
     {
         terminal::enable_raw_mode().unwrap();

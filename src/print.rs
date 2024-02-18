@@ -297,7 +297,7 @@ pub fn print_concurrent(
             out.pop();
             let no_col = no_col(&out, options.color);
             let wrap = no_col
-                .split('\n')
+                .split(|c| c == &'\n')
                 .map(|i| {
                     if i.is_empty()
                     {
@@ -944,7 +944,7 @@ pub fn print_concurrent(
         else
         {
             let mut len = 0;
-            for i in no_col(&frac_out, options.color).chars()
+            for i in no_col(&frac_out, options.color)
             {
                 len += 1;
                 if i == '\n'
@@ -958,7 +958,7 @@ pub fn print_concurrent(
                 }
             }
             len = 0;
-            for i in no_col(&output, options.color).chars()
+            for i in no_col(&output, options.color)
             {
                 len += 1;
                 if i == '\n'

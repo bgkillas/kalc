@@ -202,7 +202,7 @@ pub fn read_single_char() -> char
         _ => '\0',
     }
 }
-pub fn no_col(input: &str, color: bool) -> String
+pub fn no_col(input: &str, color: bool) -> Vec<char>
 {
     if color
     {
@@ -226,11 +226,11 @@ pub fn no_col(input: &str, color: bool) -> String
                 output.push(c)
             }
         }
-        output
+        output.chars().collect::<Vec<char>>()
     }
     else
     {
-        input.to_string()
+        input.chars().collect::<Vec<char>>()
     }
 }
 pub fn write(input: &str, file: &mut File, lines: &mut Vec<String>)

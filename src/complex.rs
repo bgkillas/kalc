@@ -1734,16 +1734,16 @@ pub fn length(
     }
     .sqrt();
     let mut length = Complex::new(options.prec);
-    for n in 0..points
+    let h: Complex = delta.clone() / 4;
+    for _ in 0..points
     {
-        let h: Complex = delta.clone() / 4;
-        let x: Complex = start.clone() + (n * delta.clone());
+        start += delta.clone();
         let x1 = slope(
             func.clone(),
             func_vars.clone(),
             options,
             var.clone(),
-            x.clone() + h.clone(),
+            start.clone() - 3 * h.clone(),
             false,
         )?;
         let x2 = slope(
@@ -1751,7 +1751,7 @@ pub fn length(
             func_vars.clone(),
             options,
             var.clone(),
-            x.clone() + 2 * h.clone(),
+            start.clone() - 2 * h.clone(),
             false,
         )?;
         let x3 = slope(
@@ -1759,7 +1759,7 @@ pub fn length(
             func_vars.clone(),
             options,
             var.clone(),
-            x.clone() + 3 * h.clone(),
+            start.clone() - h.clone(),
             false,
         )?;
         let x4 = slope(
@@ -1767,7 +1767,7 @@ pub fn length(
             func_vars.clone(),
             options,
             var.clone(),
-            x + delta.clone(),
+            start.clone(),
             false,
         )?;
         match (x1, x2, x3, x4)
@@ -1780,7 +1780,7 @@ pub fn length(
                 let nx4: Complex = 1 + nx4.pow(2);
                 let nx4 = nx4.sqrt();
                 length += 2
-                    * h
+                    * h.clone()
                     * (7 * (x0 + nx4.clone()) + (12 * nx2.sqrt()) + 32 * (nx1.sqrt() + nx3.sqrt()))
                     / 45;
                 x0 = nx4
@@ -1807,7 +1807,8 @@ pub fn length(
                     .map(|n| n.clone().pow(2))
                     .fold(Complex::new(options.prec), |total, x| total + x)
                     .sqrt();
-                length += 2 * h * (7 * (x0 + nx4.clone()) + (12 * nx2) + 32 * (nx1 + nx3)) / 45;
+                length +=
+                    2 * h.clone() * (7 * (x0 + nx4.clone()) + (12 * nx2) + 32 * (nx1 + nx3)) / 45;
                 x0 = nx4
             }
             (_, _, _, _) => return Err("not supported arc length data"),
@@ -1821,7 +1822,7 @@ pub fn area(
     func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
-    start: Complex,
+    mut start: Complex,
     end: Complex,
     points: usize,
     combine: bool,
@@ -1886,27 +1887,27 @@ pub fn area(
         }
         x0 = Num(x0.num()? * nx0t.sqrt());
     }
-    for n in 0..points
+    let h: Complex = delta.clone() / 4;
+    for _ in 0..points
     {
-        let h: Complex = delta.clone() / 4;
-        let x: Complex = start.clone() + (n * delta.clone());
+        start += delta.clone();
         let x1 = do_math(
-            place_var(func.clone(), &var, Num(x.clone() + h.clone())),
+            place_var(func.clone(), &var, Num(start.clone() - 3 * h.clone())),
             options,
             func_vars.clone(),
         )?;
         let x2 = do_math(
-            place_var(func.clone(), &var, Num(x.clone() + 2 * h.clone())),
+            place_var(func.clone(), &var, Num(start.clone() - 2 * h.clone())),
             options,
             func_vars.clone(),
         )?;
         let x3 = do_math(
-            place_var(func.clone(), &var, Num(x.clone() + 3 * h.clone())),
+            place_var(func.clone(), &var, Num(start.clone() - h.clone())),
             options,
             func_vars.clone(),
         )?;
         let x4 = do_math(
-            place_var(func.clone(), &var, Num(x.clone() + delta.clone())),
+            place_var(func.clone(), &var, Num(start.clone())),
             options,
             func_vars.clone(),
         )?;
@@ -1914,7 +1915,7 @@ pub fn area(
         {
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
             {
-                area += 2 * h * (7 * (nx0 + nx4) + 12 * nx2 + 32 * (nx1 + nx3)) / 45;
+                area += 2 * h.clone() * (7 * (nx0 + nx4) + 12 * nx2 + 32 * (nx1 + nx3)) / 45;
                 x0 = x4;
             }
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
@@ -1926,13 +1927,13 @@ pub fn area(
                 for i in &funcs
                 {
                     nx1t += ((do_math(
-                        place_var(i.clone(), &var, Num(x.clone() + h.clone() + div.clone())),
+                        place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone() + div.clone())),
                         options,
                         func_vars.clone(),
                     )?
                     .num()?
                         - do_math(
-                            place_var(i.clone(), &var, Num(x.clone() + h.clone())),
+                            place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone())),
                             options,
                             func_vars.clone(),
                         )?
@@ -1943,14 +1944,14 @@ pub fn area(
                         place_var(
                             i.clone(),
                             &var,
-                            Num(x.clone() + 2 * h.clone() + div.clone()),
+                            Num(start.clone() - 2 * h.clone() + div.clone()),
                         ),
                         options,
                         func_vars.clone(),
                     )?
                     .num()?
                         - do_math(
-                            place_var(i.clone(), &var, Num(x.clone() + 2 * h.clone())),
+                            place_var(i.clone(), &var, Num(start.clone() - 2 * h.clone())),
                             options,
                             func_vars.clone(),
                         )?
@@ -1961,14 +1962,14 @@ pub fn area(
                         place_var(
                             i.clone(),
                             &var,
-                            Num(x.clone() + 3 * h.clone() + div.clone()),
+                            Num(start.clone() - h.clone() + div.clone()),
                         ),
                         options,
                         func_vars.clone(),
                     )?
                     .num()?
                         - do_math(
-                            place_var(i.clone(), &var, Num(x.clone() + 3 * h.clone())),
+                            place_var(i.clone(), &var, Num(start.clone() - h.clone())),
                             options,
                             func_vars.clone(),
                         )?
@@ -1979,14 +1980,14 @@ pub fn area(
                         place_var(
                             i.clone(),
                             &var,
-                            Num(x.clone() + delta.clone() + div.clone()),
+                            Num(start.clone() + div.clone()),
                         ),
                         options,
                         func_vars.clone(),
                     )?
                     .num()?
                         - do_math(
-                            place_var(i.clone(), &var, Num(x.clone() + delta.clone())),
+                            place_var(i.clone(), &var, Num(start.clone())),
                             options,
                             func_vars.clone(),
                         )?
@@ -1996,7 +1997,7 @@ pub fn area(
                 }
                 let x4 = nx4 * nx4t.sqrt();
                 area += 2
-                    * h
+                    * h.clone()
                     * (7 * (nx0 + x4.clone())
                         + 12 * (nx2 * nx2t.sqrt())
                         + 32 * ((nx1 * nx1t.sqrt()) + (nx3 * nx3t.sqrt())))

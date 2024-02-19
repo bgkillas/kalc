@@ -426,7 +426,7 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    1000
+                                    100
                                 },
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
@@ -464,7 +464,7 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    1000
+                                    100
                                 },
                                 place.len() != 6,
                             )?;

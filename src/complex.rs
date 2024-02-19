@@ -1716,76 +1716,102 @@ pub fn length(
         (start, end) = (end, start)
     }
     let delta: Complex = (end - start.clone()) / points;
-    let mut last = slope(
+    let mut x0: Complex = match slope(
         func.clone(),
         func_vars.clone(),
         options,
         var.clone(),
         start.clone(),
         false,
-    )?;
-    let mut length = Complex::new(options.prec);
-    for n in 1..=points
+    )?
     {
-        let h: Complex = delta.clone() / 3;
+        Num(nx0) => 1 + nx0.pow(2),
+        Vector(nx0) => nx0
+            .iter()
+            .map(|n| n.clone().pow(2))
+            .fold(Complex::new(options.prec), |total, x| total + x),
+        _ => return Err("not supported arc length data"),
+    }
+    .sqrt();
+    let mut length = Complex::new(options.prec);
+    for n in 0..points
+    {
+        let h: Complex = delta.clone() / 4;
         let x: Complex = start.clone() + (n * delta.clone());
-        let y = slope(
+        let x1 = slope(
             func.clone(),
             func_vars.clone(),
             options,
             var.clone(),
-            x.clone(),
+            x.clone() + h.clone(),
             false,
         )?;
-        let ym1 = slope(
+        let x2 = slope(
             func.clone(),
             func_vars.clone(),
             options,
             var.clone(),
-            x.clone() - h.clone(),
+            x.clone() + 2 * h.clone(),
             false,
         )?;
-        let ym2 = slope(
+        let x3 = slope(
             func.clone(),
             func_vars.clone(),
             options,
             var.clone(),
-            x - 2 * h.clone(),
+            x.clone() + 3 * h.clone(),
             false,
         )?;
-        match (last, y.clone(), ym1, ym2)
+        let x4 = slope(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            x + delta.clone(),
+            false,
+        )?;
+        match (x1, x2, x3, x4)
         {
-            (Num(last), Num(y), Num(ym1), Num(ym2)) =>
+            (Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
-                let last: Complex = 1 + last.pow(2);
-                let y: Complex = 1 + y.pow(2);
-                let ym1: Complex = 1 + ym1.pow(2);
-                let ym2: Complex = 1 + ym2.pow(2);
-                length += 0.375 * h * (last.sqrt() + y.sqrt() + 3 * (ym1.sqrt() + ym2.sqrt()))
+                let nx1: Complex = 1 + nx1.pow(2);
+                let nx2: Complex = 1 + nx2.pow(2);
+                let nx3: Complex = 1 + nx3.pow(2);
+                let nx4: Complex = 1 + nx4.pow(2);
+                let nx4 = nx4.sqrt();
+                length += 2
+                    * h
+                    * (7 * (x0 + nx4.clone()) + (12 * nx2.sqrt()) + 32 * (nx1.sqrt() + nx3.sqrt()))
+                    / 45;
+                x0 = nx4
             }
-            (Vector(last), Vector(y), Vector(ym1), Vector(ym2)) =>
+            (Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) =>
             {
-                let last: Complex = last
+                let nx1: Complex = nx1
                     .iter()
                     .map(|n| n.clone().pow(2))
-                    .fold(Complex::new(options.prec), |total, x| total + x);
-                let y: Complex = y
+                    .fold(Complex::new(options.prec), |total, x| total + x)
+                    .sqrt();
+                let nx2: Complex = nx2
                     .iter()
                     .map(|n| n.clone().pow(2))
-                    .fold(Complex::new(options.prec), |total, x| total + x);
-                let ym1: Complex = ym1
+                    .fold(Complex::new(options.prec), |total, x| total + x)
+                    .sqrt();
+                let nx3: Complex = nx3
                     .iter()
                     .map(|n| n.clone().pow(2))
-                    .fold(Complex::new(options.prec), |total, x| total + x);
-                let ym2: Complex = ym2
+                    .fold(Complex::new(options.prec), |total, x| total + x)
+                    .sqrt();
+                let nx4 = nx4
                     .iter()
                     .map(|n| n.clone().pow(2))
-                    .fold(Complex::new(options.prec), |total, x| total + x);
-                length += 0.375 * h * (last.sqrt() + y.sqrt() + 3 * (ym1.sqrt() + ym2.sqrt()))
+                    .fold(Complex::new(options.prec), |total, x| total + x)
+                    .sqrt();
+                length += 2 * h * (7 * (x0 + nx4.clone()) + (12 * nx2) + 32 * (nx1 + nx3)) / 45;
+                x0 = nx4
             }
             (_, _, _, _) => return Err("not supported arc length data"),
         };
-        last = y;
     }
     Ok(length)
 }
@@ -1833,100 +1859,180 @@ pub fn area(
     let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
     let delta: Complex = (end - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
-    let mut last = do_math(
+    let mut x0 = do_math(
         place_var(func.clone(), &var, Num(start.clone())),
         options,
         func_vars.clone(),
     )?;
-    for n in 1..=points
+    if !funcs.is_empty()
     {
-        let h: Complex = delta.clone() / 3;
-        let x: Complex = start.clone() + (n * delta.clone());
-        let y = do_math(
-            place_var(func.clone(), &var, Num(x.clone())),
-            options,
-            func_vars.clone(),
-        )?;
-        let ym1 = do_math(
-            place_var(func.clone(), &var, Num(x.clone() - h.clone())),
-            options,
-            func_vars.clone(),
-        )?;
-        let ym2 = do_math(
-            place_var(func.clone(), &var, Num(x.clone() - 2 * h.clone())),
-            options,
-            func_vars.clone(),
-        )?;
-        match (last, y.clone(), ym1, ym2)
+        let mut nx0t = Complex::new(options.prec);
+        for i in &funcs
         {
-            (Num(last), Num(y), Num(ym1), Num(ym2)) if funcs.is_empty() =>
+            nx0t += ((do_math(
+                place_var(i.clone(), &var, Num(start.clone() + div.clone())),
+                options,
+                func_vars.clone(),
+            )?
+            .num()?
+                - do_math(
+                    place_var(i.clone(), &var, Num(start.clone())),
+                    options,
+                    func_vars.clone(),
+                )?
+                .num()?)
+                / div.clone())
+            .pow(2);
+        }
+        x0 = Num(x0.num()? * nx0t.sqrt());
+    }
+    for n in 0..points
+    {
+        let h: Complex = delta.clone() / 4;
+        let x: Complex = start.clone() + (n * delta.clone());
+        let x1 = do_math(
+            place_var(func.clone(), &var, Num(x.clone() + h.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let x2 = do_math(
+            place_var(func.clone(), &var, Num(x.clone() + 2 * h.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let x3 = do_math(
+            place_var(func.clone(), &var, Num(x.clone() + 3 * h.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let x4 = do_math(
+            place_var(func.clone(), &var, Num(x.clone() + delta.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        match (x0, x1, x2, x3, x4.clone())
+        {
+            (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
             {
-                area += 0.375 * h * (last + y + 3 * (ym1 + ym2))
+                area += 2 * h * (7 * (nx0 + nx4) + 12 * nx2 + 32 * (nx1 + nx3)) / 45;
+                x0 = x4;
             }
-            (Num(last), Num(y), Num(ym1), Num(ym2)) =>
+            (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
-                let mut lastt=Complex::new(options.prec);
-                let mut yt=Complex::new(options.prec);
-                let mut ym1t=Complex::new(options.prec);
-                let mut ym2t=Complex::new(options.prec);
+                let mut nx1t = Complex::new(options.prec);
+                let mut nx2t = Complex::new(options.prec);
+                let mut nx3t = Complex::new(options.prec);
+                let mut nx4t = Complex::new(options.prec);
                 for i in &funcs
                 {
-       lastt +=( (
-           do_math(
-        place_var(i.clone(), &var, Num(x.clone()-delta.clone()+div.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?-do_math(
-        place_var(i.clone(), &var, Num(x.clone()-delta.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?).abs()/div.clone()).pow(2);
-       yt += ((
-           do_math(
-        place_var(i.clone(), &var, Num(x.clone()+div.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?-do_math(
-        place_var(i.clone(), &var, Num(x.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?).abs()/div.clone()).pow(2);
-       ym1t +=( (do_math(
-        place_var(i.clone(), &var, Num(x.clone()-h.clone()+div.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?-do_math(
-        place_var(i.clone(), &var, Num(x.clone()-h.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?).abs()/div.clone()).pow(2);
-       ym2t += ((do_math(
-        place_var(i.clone(), &var, Num(x.clone()-2*h.clone()+div.clone())),
-        options,
-        func_vars.clone())?.num()?-do_math(
-        place_var(i.clone(), &var, Num(x.clone()-2*h.clone())),
-        options,
-        func_vars.clone(),
-    )?.num()?)/div.clone()).pow(2);
+                    nx1t += ((do_math(
+                        place_var(i.clone(), &var, Num(x.clone() + h.clone() + div.clone())),
+                        options,
+                        func_vars.clone(),
+                    )?
+                    .num()?
+                        - do_math(
+                            place_var(i.clone(), &var, Num(x.clone() + h.clone())),
+                            options,
+                            func_vars.clone(),
+                        )?
+                        .num()?)
+                        / div.clone())
+                    .pow(2);
+                    nx2t += ((do_math(
+                        place_var(
+                            i.clone(),
+                            &var,
+                            Num(x.clone() + 2 * h.clone() + div.clone()),
+                        ),
+                        options,
+                        func_vars.clone(),
+                    )?
+                    .num()?
+                        - do_math(
+                            place_var(i.clone(), &var, Num(x.clone() + 2 * h.clone())),
+                            options,
+                            func_vars.clone(),
+                        )?
+                        .num()?)
+                        / div.clone())
+                    .pow(2);
+                    nx3t += ((do_math(
+                        place_var(
+                            i.clone(),
+                            &var,
+                            Num(x.clone() + 3 * h.clone() + div.clone()),
+                        ),
+                        options,
+                        func_vars.clone(),
+                    )?
+                    .num()?
+                        - do_math(
+                            place_var(i.clone(), &var, Num(x.clone() + 3 * h.clone())),
+                            options,
+                            func_vars.clone(),
+                        )?
+                        .num()?)
+                        / div.clone())
+                    .pow(2);
+                    nx4t += ((do_math(
+                        place_var(
+                            i.clone(),
+                            &var,
+                            Num(x.clone() + delta.clone() + div.clone()),
+                        ),
+                        options,
+                        func_vars.clone(),
+                    )?
+                    .num()?
+                        - do_math(
+                            place_var(i.clone(), &var, Num(x.clone() + delta.clone())),
+                            options,
+                            func_vars.clone(),
+                        )?
+                        .num()?)
+                        / div.clone())
+                    .pow(2);
                 }
-                area += 0.375 * h * ((last*lastt.sqrt()) + (y*yt.sqrt()) + 3 * ((ym1*ym1t.sqrt()) + (ym2*ym2t.sqrt())))
+                let x4 = nx4 * nx4t.sqrt();
+                area += 2
+                    * h
+                    * (7 * (nx0 + x4.clone())
+                        + 12 * (nx2 * nx2t.sqrt())
+                        + 32 * ((nx1 * nx1t.sqrt()) + (nx3 * nx3t.sqrt())))
+                    / 45;
+                x0 = Num(x4);
             }
-            (Vector(last), Vector(y), Vector(ym1), Vector(ym2)) if areavec.is_empty()&&!combine =>
+            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
+                if areavec.is_empty() && !combine =>
+            {
+                for i in 0..nx0.len()
                 {
-                    for i in 0..last.len()
-                    {
-                        areavec.push(0.375 * h.clone() * (last[i].clone() + y[i].clone() + 3 * (ym1[i].clone() + ym2[i].clone())))
+                    areavec.push(
+                        2 * h.clone()
+                            * (7 * (nx0[i].clone() + nx4[i].clone())
+                                + 12 * nx2[i].clone()
+                                + 32 * (nx1[i].clone() + nx3[i].clone()))
+                            / 45,
+                    )
                 }
-                }        (Vector(last), Vector(y), Vector(ym1), Vector(ym2))if !combine =>
+                x0 = x4;
+            }
+            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) if !combine =>
+            {
+                for (i, v) in areavec.iter_mut().enumerate()
                 {
-                    for (i,v) in areavec.iter_mut().enumerate()
-                    {
-                        *v+= 0.375 * h.clone() * (last[i].clone() + y[i].clone() + 3 * (ym1[i].clone() + ym2[i].clone()))
-                    }
+                    *v += 2
+                        * h.clone()
+                        * (7 * (nx0[i].clone() + nx4[i].clone())
+                            + 12 * nx2[i].clone()
+                            + 32 * (nx1[i].clone() + nx3[i].clone()))
+                        / 45
                 }
-            (_, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
-        };
-        last = y;
+                x0 = x4;
+            }
+            (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
+        }
     }
     if areavec.is_empty()
     {

@@ -33,8 +33,8 @@ use std::{
 //derivitives and integrals
 //surface area of a 3d curve
 //rpn
-//support units properly
 //matrix exponentiation
+//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable
 {

@@ -6,7 +6,7 @@ use crate::{
     help::help,
     load_vars::get_vars,
     math::do_math,
-    misc::{prompt, to_output},
+    misc::to_output,
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
@@ -2486,7 +2486,7 @@ pub fn commands(
         "clear" =>
         {
             execute!(stdout, Clear(ClearType::Purge)).unwrap();
-            print!("\x1b[H\x1b[J{}", prompt(*options, colors));
+            print!("\x1b[H\x1b[J");
             stdout.flush().unwrap();
         }
         "debug" =>

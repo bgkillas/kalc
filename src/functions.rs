@@ -192,6 +192,7 @@ pub fn functions() -> HashSet<&'static str>
         "integrate",
         "length",
         "arclength",
+        "roll",
     ]
     .iter()
     .cloned()

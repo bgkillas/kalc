@@ -16,7 +16,7 @@ use rug::{
         Special::{Infinity, Nan},
     },
     integer::IsPrime,
-    ops::Pow,
+    ops::{DivRounding, Pow},
     Complex, Float, Integer,
 };
 pub fn do_math(
@@ -391,7 +391,17 @@ pub fn do_math(
                             }
                         }
                     }
-                    match (s.as_str(), &function[place[0] - 1])
+                    match (
+                        s.as_str(),
+                        if place.is_empty()
+                        {
+                            Str("".to_string())
+                        }
+                        else
+                        {
+                            function[place[0] - 1].clone()
+                        },
+                    )
                     {
                         ("length" | "arclength", Str(var))
                             if place.len() == 4 || place.len() == 5 =>
@@ -558,7 +568,7 @@ pub fn do_math(
                                 "vec" | "mat" => mvec(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     func_vars.clone(),
-                                    var,
+                                    &var,
                                     start,
                                     end,
                                     s == "vec",
@@ -567,7 +577,7 @@ pub fn do_math(
                                 _ => sum(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     func_vars.clone(),
-                                    var,
+                                    &var,
                                     start,
                                     end,
                                     !(s == "sum" || s == "summation" || s == "Σ"),
@@ -934,6 +944,84 @@ pub fn do_math(
                                     }
                                     Vector(sort(vec))
                                 }
+                                "roll" =>
+                                {
+                                    let mut sum: Integer = Integer::new();
+                                    for i in a
+                                    {
+                                        if i.len() != 2
+                                        {
+                                            return Err("bad dice data");
+                                        }
+                                        let n = i[0].real().to_integer().unwrap();
+                                        for _ in 0..i[1].real().to_f64() as usize
+                                        {
+                                            sum += (n.clone() * unsafe { rand() })
+                                                .div_ceil(libc::RAND_MAX);
+                                        }
+                                    }
+                                    Num(Complex::with_val(options.prec, sum))
+                                }
+                                "dice" =>
+                                {
+                                    let mut faces = Vec::new();
+                                    for a in a
+                                    {
+                                        if a.len() != 2
+                                        {
+                                            return Err("bad list");
+                                        }
+                                        for _ in 0..a[1].real().to_f64() as usize
+                                        {
+                                            faces.push(a[0].real().to_f64() as usize)
+                                        }
+                                    }
+                                    if faces.is_empty()
+                                    {
+                                        return Err("bad list");
+                                    }
+                                    if faces.iter().any(|c| c == &0)
+                                    {
+                                        return Err("bad face value");
+                                    }
+                                    let mut distribution = vec![vec![Integer::from(1); faces[0]]];
+                                    if faces.len() != 1
+                                    {
+                                        for i in 1..faces.len()
+                                        {
+                                            distribution.push(Vec::new());
+                                            for p in 0..=(faces[0..=i].iter().sum::<Integer>()
+                                                - (i + 1))
+                                                .to_usize()
+                                                .unwrap()
+                                            {
+                                                let value = distribution[i - 1][if (p + 1)
+                                                    > faces[i]
+                                                {
+                                                    p + 1 - faces[i]
+                                                }
+                                                else
+                                                {
+                                                    0
+                                                }
+                                                    ..=p.min(
+                                                        faces[0..i].iter().sum::<usize>() - i,
+                                                    )]
+                                                    .iter()
+                                                    .sum::<Integer>();
+                                                distribution[i].push(value)
+                                            }
+                                        }
+                                    }
+                                    Vector(
+                                        distribution
+                                            .last()
+                                            .unwrap()
+                                            .iter()
+                                            .map(|a| Complex::with_val(options.prec, a))
+                                            .collect::<Vec<Complex>>(),
+                                    )
+                                }
                                 _ => do_functions(
                                     function[i + 1].clone(),
                                     options,
@@ -949,6 +1037,19 @@ pub fn do_math(
                         {
                             function[i] = match s.as_str()
                             {
+                                "roll" =>
+                                {
+                                    let faces = a
+                                        .iter()
+                                        .map(|c| c.real().to_integer().unwrap())
+                                        .collect::<Vec<Integer>>();
+                                    let mut sum: Integer = Integer::new();
+                                    for i in faces
+                                    {
+                                        sum += (i * unsafe { rand() }).div_ceil(libc::RAND_MAX);
+                                    }
+                                    Num(Complex::with_val(options.prec, sum))
+                                }
                                 "dice" =>
                                 {
                                     let faces = a

@@ -19,6 +19,7 @@ use rug::{
     ops::{DivRounding, Pow},
     Complex, Float, Integer,
 };
+use std::ops::Rem;
 pub fn do_math(
     mut function: Vec<NumStr>,
     options: Options,
@@ -954,10 +955,17 @@ pub fn do_math(
                                             return Err("bad dice data");
                                         }
                                         let n = i[0].real().to_integer().unwrap();
-                                        for _ in 0..i[1].real().to_f64() as usize
+                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n.clone());
+                                        let end = i[1].real().to_f64() as usize;
+                                        let mut i = 0;
+                                        while i < end
                                         {
-                                            sum += (n.clone() * unsafe { rand() })
-                                                .div_ceil(libc::RAND_MAX);
+                                            let rnd = unsafe { rand() };
+                                            if rnd < max
+                                            {
+                                                sum += (n.clone() * rnd).div_ceil(libc::RAND_MAX);
+                                                i += 1;
+                                            }
                                         }
                                     }
                                     Num(Complex::with_val(options.prec, sum))
@@ -1044,9 +1052,17 @@ pub fn do_math(
                                         .map(|c| c.real().to_integer().unwrap())
                                         .collect::<Vec<Integer>>();
                                     let mut sum: Integer = Integer::new();
-                                    for i in faces
+                                    let mut i = 0;
+                                    while i < faces.len()
                                     {
-                                        sum += (i * unsafe { rand() }).div_ceil(libc::RAND_MAX);
+                                        let n = faces[i].clone();
+                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n.clone());
+                                        let rnd = unsafe { rand() };
+                                        if rnd < max
+                                        {
+                                            sum += (n * rnd).div_ceil(libc::RAND_MAX);
+                                            i += 1;
+                                        }
                                     }
                                     Num(Complex::with_val(options.prec, sum))
                                 }

@@ -21,7 +21,6 @@ pub fn input_var(
     bracket: &mut isize,
     options: Options,
     mut graph: bool,
-    pwr: &mut (bool, isize, isize),
     print: bool,
     depth: usize,
     blacklist: Vec<char>,
@@ -57,8 +56,8 @@ pub fn input_var(
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
     let mut i = 0;
-    let mut powertree = 0;
     let mut piecewise = 0;
+    let mut pwr: (bool, isize, isize) = (false, 0, 0);
     while !chars.is_empty() && chars[0].is_whitespace()
     {
         chars.remove(0);
@@ -240,7 +239,7 @@ pub fn input_var(
                 output.push(Str(")".to_string()));
                 scientific = false;
             }
-            if pwr.0 && pwr.1 == 0 && (chars.len() <= i || chars[i] != '^')
+            if pwr.0 && pwr.1 == *bracket && (chars.len() <= i || chars[i] != '^')
             {
                 for _ in 0..pwr.2
                 {
@@ -254,14 +253,6 @@ pub fn input_var(
                 output.push(Str(')'.to_string()));
                 output.push(Str(')'.to_string()));
                 subfact.0 = false;
-            }
-            if i >= chars.len() || chars[i] != '^'
-            {
-                for _ in 0..powertree
-                {
-                    output.push(Str(')'.to_string()));
-                }
-                powertree = 0;
             }
             continue;
         }
@@ -512,6 +503,7 @@ pub fn input_var(
                         output.push(Str("(".to_string()));
                         output.push(Num(n1.clone()));
                         pwr.0 = true;
+                        pwr.1 = *bracket;
                         pwr.2 += 1;
                     }
                     else if i == 0
@@ -550,20 +542,12 @@ pub fn input_var(
                     }
                     else
                     {
-                        if pwr.0
-                        {
-                            powertree += 1;
-                        }
                         output.push(Str("^".to_string()));
                     }
                 }
                 '(' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;
-                    if pwr.0
-                    {
-                        pwr.1 = *bracket;
-                    }
                     if subfact.0
                     {
                         subfact.1 = *bracket;
@@ -580,14 +564,6 @@ pub fn input_var(
                     if piecewise == *bracket as usize
                     {
                         piecewise = 0;
-                    }
-                    if (i + 2 >= chars.len() || chars[i + 1] != '^') && pwr.1 == *bracket
-                    {
-                        for _ in 0..pwr.2
-                        {
-                            output.push(Str(')'.to_string()))
-                        }
-                        *pwr = (false, 0, 0);
                     }
                     if subfact.1 == *bracket
                     {
@@ -622,7 +598,7 @@ pub fn input_var(
                             {
                                 output.push(Str(')'.to_string()))
                             }
-                            *pwr = (false, 0, 0);
+                            pwr = (false, 0, 0);
                         }
                         output.push(Str(")".to_string()));
                         output.push(Str(")".to_string()));
@@ -637,10 +613,6 @@ pub fn input_var(
                     else
                     {
                         *bracket += 1;
-                        if pwr.0
-                        {
-                            pwr.1 = *bracket;
-                        }
                         if subfact.0
                         {
                             subfact.1 = *bracket;
@@ -783,6 +755,26 @@ pub fn input_var(
                             sumrec.remove(i);
                             break;
                         }
+                    }
+                    if scientific
+                    {
+                        output.push(Str(")".to_string()));
+                        scientific = false;
+                    }
+                    if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                    {
+                        for _ in 0..pwr.2
+                        {
+                            output.push(Str(')'.to_string()))
+                        }
+                        pwr.0 = false;
+                        pwr.2 = 0
+                    }
+                    if subfact.0 && subfact.1 == 0
+                    {
+                        subfact.0 = false;
+                        output.push(Str(")".to_string()));
+                        output.push(Str(")".to_string()))
                     }
                     output.push(Str(','.to_string()))
                 }
@@ -973,7 +965,7 @@ pub fn input_var(
                 {
                     output.push(Num(Complex::with_val(options.prec, Infinity)));
                 }
-                if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                 {
                     for _ in 0..pwr.2
                     {
@@ -1053,7 +1045,7 @@ pub fn input_var(
             {
                 output.push(Str(word));
             }
-            if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+            if pwr.0 && pwr.1 == *bracket && chars[i] != '^'
             {
                 for _ in 0..pwr.2
                 {
@@ -1159,7 +1151,7 @@ pub fn input_var(
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
-                            let nobrackets = i != chars.len()
+                            let nobrackets = i + 1 != chars.len()
                                 && j != 0
                                 && chars[j - 1] == ','
                                 && chars[i + 1] == ',';
@@ -1244,7 +1236,6 @@ pub fn input_var(
                                         bracket,
                                         options,
                                         false,
-                                        pwr,
                                         print,
                                         depth + 1,
                                         blacklist.clone(),
@@ -1396,7 +1387,7 @@ pub fn input_var(
                                 {
                                     output.push(Str(')'.to_string()))
                                 }
-                                *pwr = (false, 0, 0);
+                                pwr = (false, 0, 0);
                             }
                             if subfact.1 == *bracket + 1
                             {
@@ -1437,9 +1428,9 @@ pub fn input_var(
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
-                            let nobrackets = i != chars.len()
-                                && j != 0
+                            let nobrackets = j != 0
                                 && chars[j - 1] == ','
+                                && i + 1 != chars.len()
                                 && chars[i + 1] == ',';
                             if !nobrackets
                             {
@@ -1473,7 +1464,6 @@ pub fn input_var(
                                     bracket,
                                     options,
                                     false,
-                                    pwr,
                                     print,
                                     depth + 1,
                                     blacklist.clone(),
@@ -1629,7 +1619,7 @@ pub fn input_var(
                                 {
                                     output.push(Str(')'.to_string()))
                                 }
-                                *pwr = (false, 0, 0);
+                                pwr = (false, 0, 0);
                             }
                             if subfact.1 == *bracket + 1
                             {
@@ -1749,7 +1739,9 @@ pub fn input_var(
                             output.push(Str(")".to_string()));
                             scientific = false;
                         }
-                        if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                        if pwr.0
+                            && pwr.1 == *bracket
+                            && (chars.len() <= i + 1 || chars[i + 1] != '^')
                         {
                             for _ in 0..pwr.2
                             {
@@ -1837,7 +1829,9 @@ pub fn input_var(
                             output.push(Str(")".to_string()));
                             scientific = false;
                         }
-                        if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                        if pwr.0
+                            && pwr.1 == *bracket
+                            && (chars.len() <= i + 1 || chars[i + 1] != '^')
                         {
                             for _ in 0..pwr.2
                             {
@@ -1861,7 +1855,9 @@ pub fn input_var(
                             if print { Some(vars.clone()) } else { None },
                         );
                         output.push(Num(Complex::with_val(options.prec, (0, 1))));
-                        if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                        if pwr.0
+                            && pwr.1 == *bracket
+                            && (chars.len() <= i + 1 || chars[i + 1] != '^')
                         {
                             for _ in 0..pwr.2
                             {
@@ -1902,7 +1898,9 @@ pub fn input_var(
                             output.push(Str(")".to_string()));
                             scientific = false;
                         }
-                        if pwr.0 && pwr.1 == 0 && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                        if pwr.0
+                            && pwr.1 == *bracket
+                            && (chars.len() <= i + 1 || chars[i + 1] != '^')
                         {
                             for _ in 0..pwr.2
                             {
@@ -1924,6 +1922,10 @@ pub fn input_var(
             }
             i += 1;
         }
+    }
+    for _ in 0..pwr.2
+    {
+        output.push(Str(')'.to_string()))
     }
     if !pow.is_empty()
     {

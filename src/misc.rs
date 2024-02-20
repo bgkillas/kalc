@@ -235,7 +235,7 @@ pub fn no_col(input: &str, color: bool) -> Vec<char>
 }
 pub fn write(input: &str, file: &mut File, lines: &mut Vec<String>)
 {
-    if !lines.is_empty() && lines.last().unwrap() != input
+    if !lines.is_empty() && lines.last().unwrap() != input && !input.replace(' ', "").is_empty()
     {
         lines.push(input.to_string());
         writeln!(file, "{}", input).unwrap();

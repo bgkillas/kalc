@@ -526,10 +526,10 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if ((!options.real_time_output && c != '\x14')
-                            || (long && !slow)
-                            || (slow && c != '\x14'))
+                        if (!options.real_time_output || long || slow)
                             && !input.is_empty()
+                            && c != '\x14'
+                            && c != '\x06'
                         {
                             (frac, graphable, _, varcheck) = print_concurrent(
                                 &input,

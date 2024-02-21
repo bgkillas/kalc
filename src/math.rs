@@ -16,7 +16,7 @@ use rug::{
         Special::{Infinity, Nan},
     },
     integer::IsPrime,
-    ops::{DivRounding, Pow},
+    ops::Pow,
     Complex, Float, Integer,
 };
 use std::ops::Rem;
@@ -954,16 +954,16 @@ pub fn do_math(
                                         {
                                             return Err("bad dice data");
                                         }
-                                        let n = i[0].real().to_integer().unwrap();
-                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n.clone());
-                                        let end = i[1].real().to_f64() as usize;
+                                        let n = i[0].real().to_f64() as i32;
+                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n);
+                                        let end = i[1].real().to_f64() as i32;
                                         let mut i = 0;
                                         while i < end
                                         {
                                             let rnd = unsafe { rand() };
                                             if rnd < max
                                             {
-                                                sum += (n.clone() * rnd).div_ceil(libc::RAND_MAX);
+                                                sum += rnd.rem(n) + 1;
                                                 i += 1;
                                             }
                                         }
@@ -1047,20 +1047,16 @@ pub fn do_math(
                             {
                                 "roll" =>
                                 {
-                                    let faces = a
-                                        .iter()
-                                        .map(|c| c.real().to_integer().unwrap())
-                                        .collect::<Vec<Integer>>();
                                     let mut sum: Integer = Integer::new();
                                     let mut i = 0;
-                                    while i < faces.len()
+                                    while i < a.len()
                                     {
-                                        let n = faces[i].clone();
-                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n.clone());
+                                        let n = a[i].real().to_f64() as i32;
+                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n);
                                         let rnd = unsafe { rand() };
                                         if rnd < max
                                         {
-                                            sum += (n * rnd).div_ceil(libc::RAND_MAX);
+                                            sum += rnd.rem(n) + 1;
                                             i += 1;
                                         }
                                     }
@@ -1889,6 +1885,18 @@ pub fn do_math(
                     function[i] = Num(Complex::with_val(options.prec, unsafe { rand() })
                         / Complex::with_val(options.prec, libc::RAND_MAX))
                 }
+                "%" =>
+                {
+                    function[i] = function[i - 1].func(&function[i + 1], rem)?;
+                    function.remove(i + 1);
+                    function.remove(i - 1);
+                }
+                ".." =>
+                {
+                    function[i] = to(&function[i - 1], &function[i + 1])?;
+                    function.remove(i + 1);
+                    function.remove(i - 1);
+                }
                 _ =>
                 {
                     i += 1;
@@ -1901,29 +1909,6 @@ pub fn do_math(
             i += 1;
             continue;
         }
-    }
-    i = 1;
-    while i < function.len() - 1
-    {
-        if let Str(s) = &function[i]
-        {
-            match s.as_str()
-            {
-                ".." => function[i] = to(&function[i - 1], &function[i + 1])?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            }
-        }
-        else
-        {
-            i += 1;
-            continue;
-        }
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     i = function.len().saturating_sub(2);
     while i != 0
@@ -2008,7 +1993,6 @@ pub fn do_math(
         {
             match s.as_str()
             {
-                "%" => function[i] = function[i - 1].func(&function[i + 1], rem)?,
                 "<" => function[i] = function[i - 1].func(&function[i + 1], lt)?,
                 "<=" => function[i] = function[i - 1].func(&function[i + 1], le)?,
                 ">" => function[i] = function[i - 1].func(&function[i + 1], gt)?,

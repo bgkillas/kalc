@@ -1901,29 +1901,35 @@ pub fn do_math(
                     function[i] = Num(Complex::with_val(options.prec, unsafe { rand() })
                         / Complex::with_val(options.prec, libc::RAND_MAX))
                 }
-                "%" =>
-                {
-                    function[i] = function[i - 1].func(&function[i + 1], rem)?;
-                    function.remove(i + 1);
-                    function.remove(i - 1);
-                }
-                ".." =>
-                {
-                    function[i] = to(&function[i - 1], &function[i + 1])?;
-                    function.remove(i + 1);
-                    function.remove(i - 1);
-                }
+                _ => i += 1,
+            }
+        }
+        else
+        {
+            i += 1;
+        }
+    }
+    i = 1;
+    while i < function.len()-1
+    {
+        if let Str(s) = &function[i]
+        {
+            match s.as_str()
+            {
+                "%" => function[i] = function[i - 1].func(&function[i + 1], rem)?,
+                ".." => function[i] = to(&function[i - 1], &function[i + 1])?,
                 _ =>
                 {
                     i += 1;
                     continue;
                 }
             }
+            function.remove(i + 1);
+            function.remove(i - 1);
         }
         else
         {
             i += 1;
-            continue;
         }
     }
     i = function.len().saturating_sub(2);
@@ -1943,15 +1949,14 @@ pub fn do_math(
                     continue;
                 }
             }
-            i -= 1;
+            function.remove(i + 1);
+            function.remove(i - 1);
+            i = i.saturating_sub(2);
         }
         else
         {
             i -= 1;
-            continue;
         }
-        function.remove(i + 2);
-        function.remove(i);
     }
     i = 1;
     while i < function.len() - 1
@@ -1968,14 +1973,13 @@ pub fn do_math(
                     continue;
                 }
             }
+            function.remove(i + 1);
+            function.remove(i - 1);
         }
         else
         {
             i += 1;
-            continue;
         }
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     i = 1;
     while i < function.len() - 1
@@ -1993,14 +1997,13 @@ pub fn do_math(
                     continue;
                 }
             }
+            function.remove(i + 1);
+            function.remove(i - 1);
         }
         else
         {
             i += 1;
-            continue;
         }
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     i = 1;
     while i < function.len() - 1
@@ -2023,14 +2026,13 @@ pub fn do_math(
                     continue;
                 }
             }
+            function.remove(i + 1);
+            function.remove(i - 1);
         }
         else
         {
             i += 1;
-            continue;
         }
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     i = 1;
     while i < function.len() - 1
@@ -2047,14 +2049,13 @@ pub fn do_math(
                     continue;
                 }
             }
+            function.remove(i + 1);
+            function.remove(i - 1);
         }
         else
         {
             i += 1;
-            continue;
         }
-        function.remove(i + 1);
-        function.remove(i - 1);
     }
     if let Str(_) = &function[0]
     {

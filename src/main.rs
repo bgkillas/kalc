@@ -35,6 +35,11 @@ use std::{
 //rpn
 //matrix exponentiation
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
+//maybe assume brackets for say log(10x^(2,4) to log(10x^(2),4) if possible
+//dont use strings in math.rs
+//slope find infinities
+//for length fallback on basic lines
+//limits support parametric
 #[derive(Clone)]
 pub struct Variable
 {

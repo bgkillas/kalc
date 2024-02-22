@@ -742,7 +742,7 @@ pub fn mvec(
                             }
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                             | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
-                            | "slope"|"lim"|"limit"
+                            | "slope" | "lim" | "limit"
                                 if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                             {
                                 sum.push(bracket)
@@ -822,7 +822,7 @@ pub fn mvec(
                             }
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                             | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
-                            | "slope"|"lim"|"limit"
+                            | "slope" | "lim" | "limit"
                                 if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                             {
                                 sum.push(bracket)
@@ -942,7 +942,8 @@ pub fn sum(
                             }
                         }
                         "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
-                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope"|"lim"|"limit"
+                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope" | "lim"
+                        | "limit"
                             if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                         {
                             sum.push(bracket)
@@ -1914,124 +1915,124 @@ pub fn area(
         match (x0, x1, x2, x3, x4.clone())
         {
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
-            {
-                area += 2 * h.clone() * (7 * (nx0 + nx4) + 12 * nx2 + 32 * (nx1 + nx3)) / 45;
-                x0 = x4;
-            }
-            (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
-            {
-                let mut nx1t = Complex::new(options.prec);
-                let mut nx2t = Complex::new(options.prec);
-                let mut nx3t = Complex::new(options.prec);
-                let mut nx4t = Complex::new(options.prec);
-                for i in &funcs
                 {
-                    nx1t += ((do_math(
-                        place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone() + div.clone())),
-                        options,
-                        func_vars.clone(),
-                    )?
-                    .num()?
-                        - do_math(
+                    area += 2 * h.clone() * (7 * (nx0 + nx4) + 12 * nx2 + 32 * (nx1 + nx3)) / 45;
+                    x0 = x4;
+                }
+            (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
+                {
+                    let mut nx1t = Complex::new(options.prec);
+                    let mut nx2t = Complex::new(options.prec);
+                    let mut nx3t = Complex::new(options.prec);
+                    let mut nx4t = Complex::new(options.prec);
+                    for i in &funcs
+                    {
+                        nx1t += ((do_math(
+                            place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone() + div.clone())),
+                            options,
+                            func_vars.clone(),
+                        )?
+                            .num()?
+                            - do_math(
                             place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone())),
                             options,
                             func_vars.clone(),
                         )?
-                        .num()?)
-                        / div.clone())
-                    .pow(2);
-                    nx2t += ((do_math(
-                        place_var(
-                            i.clone(),
-                            &var,
-                            Num(start.clone() - 2 * h.clone() + div.clone()),
-                        ),
-                        options,
-                        func_vars.clone(),
-                    )?
-                    .num()?
-                        - do_math(
+                            .num()?)
+                            / div.clone())
+                            .pow(2);
+                        nx2t += ((do_math(
+                            place_var(
+                                i.clone(),
+                                &var,
+                                Num(start.clone() - 2 * h.clone() + div.clone()),
+                            ),
+                            options,
+                            func_vars.clone(),
+                        )?
+                            .num()?
+                            - do_math(
                             place_var(i.clone(), &var, Num(start.clone() - 2 * h.clone())),
                             options,
                             func_vars.clone(),
                         )?
-                        .num()?)
-                        / div.clone())
-                    .pow(2);
-                    nx3t += ((do_math(
-                        place_var(
-                            i.clone(),
-                            &var,
-                            Num(start.clone() - h.clone() + div.clone()),
-                        ),
-                        options,
-                        func_vars.clone(),
-                    )?
-                    .num()?
-                        - do_math(
+                            .num()?)
+                            / div.clone())
+                            .pow(2);
+                        nx3t += ((do_math(
+                            place_var(
+                                i.clone(),
+                                &var,
+                                Num(start.clone() - h.clone() + div.clone()),
+                            ),
+                            options,
+                            func_vars.clone(),
+                        )?
+                            .num()?
+                            - do_math(
                             place_var(i.clone(), &var, Num(start.clone() - h.clone())),
                             options,
                             func_vars.clone(),
                         )?
-                        .num()?)
-                        / div.clone())
-                    .pow(2);
-                    nx4t += ((do_math(
-                        place_var(
-                            i.clone(),
-                            &var,
-                            Num(start.clone() + div.clone()),
-                        ),
-                        options,
-                        func_vars.clone(),
-                    )?
-                    .num()?
-                        - do_math(
+                            .num()?)
+                            / div.clone())
+                            .pow(2);
+                        nx4t += ((do_math(
+                            place_var(
+                                i.clone(),
+                                &var,
+                                Num(start.clone() + div.clone()),
+                            ),
+                            options,
+                            func_vars.clone(),
+                        )?
+                            .num()?
+                            - do_math(
                             place_var(i.clone(), &var, Num(start.clone())),
                             options,
                             func_vars.clone(),
                         )?
-                        .num()?)
-                        / div.clone())
-                    .pow(2);
-                }
-                let x4 = nx4 * nx4t.sqrt();
-                area += 2
-                    * h.clone()
-                    * (7 * (nx0 + x4.clone())
+                            .num()?)
+                            / div.clone())
+                            .pow(2);
+                    }
+                    let x4 = nx4 * nx4t.sqrt();
+                    area += 2
+                        * h.clone()
+                        * (7 * (nx0 + x4.clone())
                         + 12 * (nx2 * nx2t.sqrt())
                         + 32 * ((nx1 * nx1t.sqrt()) + (nx3 * nx3t.sqrt())))
-                    / 45;
-                x0 = Num(x4);
-            }
+                        / 45;
+                    x0 = Num(x4);
+                }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
-                if areavec.is_empty() && !combine =>
-            {
-                for i in 0..nx0.len()
+            if areavec.is_empty() && !combine =>
                 {
-                    areavec.push(
-                        2 * h.clone()
-                            * (7 * (nx0[i].clone() + nx4[i].clone())
+                    for i in 0..nx0.len()
+                    {
+                        areavec.push(
+                            2 * h.clone()
+                                * (7 * (nx0[i].clone() + nx4[i].clone())
                                 + 12 * nx2[i].clone()
                                 + 32 * (nx1[i].clone() + nx3[i].clone()))
-                            / 45,
-                    )
+                                / 45,
+                        )
+                    }
+                    x0 = x4;
                 }
-                x0 = x4;
-            }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) if !combine =>
-            {
-                for (i, v) in areavec.iter_mut().enumerate()
                 {
-                    *v += 2
-                        * h.clone()
-                        * (7 * (nx0[i].clone() + nx4[i].clone())
+                    for (i, v) in areavec.iter_mut().enumerate()
+                    {
+                        *v += 2
+                            * h.clone()
+                            * (7 * (nx0[i].clone() + nx4[i].clone())
                             + 12 * nx2[i].clone()
                             + 32 * (nx1[i].clone() + nx3[i].clone()))
-                        / 45
+                            / 45
+                    }
+                    x0 = x4;
                 }
-                x0 = x4;
-            }
             (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         }
     }
@@ -2101,16 +2102,17 @@ pub fn limit(
 {
     if point.clone().real().is_infinite()
     {
-        let (h1,h2);
-        if point.real().is_sign_positive()
+        let (h1, h2);
+        let positive = point.real().is_sign_positive();
+        if positive
         {
             h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
-            h2 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 2 + 1);
+            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 0.5) - 3;
         }
         else
         {
             h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
-            h2 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 2 + 1);
+            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 0.5);
         }
         let n1 = do_math(
             place_var(func.clone(), &var, Num(h1)),
@@ -2126,26 +2128,72 @@ pub fn limit(
         {
             (Num(n1), Num(n2)) =>
             {
-                if (n1.clone()-n2).abs().real().clone().ln()<0
+                if (n1.clone() - n2.clone()).abs().real().clone().log10() <= -10
                 {
-                    Ok(Num(Complex::with_val(options.prec,n1)))
+                    Ok(Num(Complex::with_val(options.prec, n1)))
                 }
-                else if n1.real().is_sign_positive()
+                else if n1.real().is_infinite()
                 {
-                    Ok(Num(Complex::with_val(options.prec,Infinity)))
+                    if n2.real().is_sign_positive()
+                    {
+                        Ok(Num(Complex::with_val(options.prec, Infinity)))
+                    }
+                    else
+                    {
+                        Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                    }
                 }
                 else
                 {
-                    Ok(Num(-Complex::with_val(options.prec,Infinity)))
+                    let n3 = do_math(
+                        place_var(
+                            func.clone(),
+                            &var,
+                            Num(
+                                if positive
+                                {
+                                    Complex::with_val(options.prec, 2)
+                                        .pow((options.prec.0 / 2) as f64 + 0.2)
+                                        - 7
+                                }
+                                else
+                                {
+                                    7 - Complex::with_val(options.prec, 2)
+                                        .pow((options.prec.0 / 2) as f64 + 0.2)
+                                },
+                            ),
+                        ),
+                        options,
+                        func_vars.clone(),
+                    )?
+                    .num()?;
+                    let n1 = n1.abs().real().clone();
+                    let n2 = n2.abs().real().clone();
+                    let n3t = n3.clone().abs().real().clone();
+                    if n3t > n2 && n2 > n1
+                    {
+                        if n3.real().is_sign_positive()
+                        {
+                            Ok(Num(Complex::with_val(options.prec, Infinity)))
+                        }
+                        else
+                        {
+                            Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                        }
+                    }
+                    else
+                    {
+                        Ok(Num(Complex::with_val(options.prec, Nan)))
+                    }
                 }
-            },
-            (_, _) =>Err("unsupported lim data")
+            }
+            (_, _) => Err("unsupported lim data"),
         }
     }
     else
     {
         let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2 + 1);
-        let h2 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
+        let h2 = Complex::with_val(options.prec.0, 0.5).pow(options.prec.0 / 2);
         let n1 = do_math(
             place_var(func.clone(), &var, Num(point.clone() - h1.clone())),
             options,
@@ -2170,27 +2218,28 @@ pub fn limit(
         {
             (Num(n1), Num(n2), Num(n3), Num(n4)) =>
             {
-                if (n1.clone()-n3.clone()).abs().real().clone().ln()<0
+                if (n1.clone() - n3.clone()).abs().real().clone().log10() < -10
                 {
-                    if (n2-n1.clone()).abs().real().clone().ln()<0&&(n4-n3).abs().real().clone().ln()<0
+                    if (n2 - n1.clone()).abs().real().clone().log10() < -10
+                        && (n4 - n3).abs().real().clone().log10() < -10
                     {
-                        Ok(Num(Complex::with_val(options.prec,n1)))
+                        Ok(Num(Complex::with_val(options.prec, n1)))
                     }
                     else if n1.real().is_sign_positive()
                     {
-                        Ok(Num(Complex::with_val(options.prec,Infinity)))
+                        Ok(Num(Complex::with_val(options.prec, Infinity)))
                     }
                     else
                     {
-                        Ok(Num(-Complex::with_val(options.prec,Infinity)))
+                        Ok(Num(-Complex::with_val(options.prec, Infinity)))
                     }
                 }
                 else
                 {
-                    Ok(Num(Complex::with_val(options.prec,Nan)))
+                    Ok(Num(Complex::with_val(options.prec, Nan)))
                 }
-            },
-            (_, _, _, _) =>Err("unsupported lim data")
+            }
+            (_, _, _, _) => Err("unsupported lim data"),
         }
     }
 }

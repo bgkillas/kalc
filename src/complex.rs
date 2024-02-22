@@ -2107,12 +2107,12 @@ pub fn limit(
         if positive
         {
             h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
-            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 0.5) - 3;
+            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 5.35) - 3;
         }
         else
         {
             h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
-            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 0.5);
+            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 5.35);
         }
         let n1 = do_math(
             place_var(func.clone(), &var, Num(h1)),
@@ -2132,7 +2132,7 @@ pub fn limit(
                 {
                     Ok(Num(Complex::with_val(options.prec, n1)))
                 }
-                else if n1.real().is_infinite()
+                else if n1.real().is_infinite() || n1.imag().is_infinite()
                 {
                     if n2.real().is_sign_positive()
                     {
@@ -2153,13 +2153,13 @@ pub fn limit(
                                 if positive
                                 {
                                     Complex::with_val(options.prec, 2)
-                                        .pow((options.prec.0 / 2) as f64 + 0.2)
+                                        .pow((options.prec.0 / 2) as f64 + 13.0/7.0)
                                         - 7
                                 }
                                 else
                                 {
                                     7 - Complex::with_val(options.prec, 2)
-                                        .pow((options.prec.0 / 2) as f64 + 0.2)
+                                        .pow((options.prec.0 / 2) as f64 + 13.0/7.0)
                                 },
                             ),
                         ),

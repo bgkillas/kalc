@@ -153,7 +153,7 @@ impl NumStr
                 {
                     Complex::with_val(a.prec(), Nan)
                 }
-                else if b.real().is_sign_negative()
+                else if b.real().is_sign_positive()
                 {
                     Complex::with_val(a.prec(), Infinity)
                 }
@@ -2192,7 +2192,7 @@ pub fn limit(
     }
     else
     {
-        let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2 + 1);
+        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 2) as f64 + 0.5);
         let h2 = Complex::with_val(options.prec.0, 0.5).pow(options.prec.0 / 2);
         let n1 = do_math(
             place_var(func.clone(), &var, Num(point.clone() - h1.clone())),
@@ -2220,18 +2220,26 @@ pub fn limit(
             {
                 if (n1.clone() - n3.clone()).abs().real().clone().log10() < -10
                 {
-                    if (n2 - n1.clone()).abs().real().clone().log10() < -10
-                        && (n4 - n3).abs().real().clone().log10() < -10
+                    if (n2.clone() - n1.clone()).abs().real().clone().log10() < -10
+                        && (n4.clone() - n3.clone()).abs().real().clone().log10() < -10
                     {
                         Ok(Num(Complex::with_val(options.prec, n1)))
                     }
-                    else if n1.real().is_sign_positive()
+                    else if n1.real().clone().abs() > n2.real().clone().abs()
+                        && n3.real().clone().abs() > n4.real().clone().abs()
                     {
-                        Ok(Num(Complex::with_val(options.prec, Infinity)))
+                        if n1.real().is_sign_positive()
+                        {
+                            Ok(Num(Complex::with_val(options.prec, Infinity)))
+                        }
+                        else
+                        {
+                            Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                        }
                     }
                     else
                     {
-                        Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                        Ok(Num(Complex::with_val(options.prec, Nan)))
                     }
                 }
                 else

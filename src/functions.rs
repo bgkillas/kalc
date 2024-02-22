@@ -187,6 +187,8 @@ pub fn functions() -> HashSet<&'static str>
         "betaP",
         "betaC",
         "slope",
+        "lim",
+        "limit",
         "D",
         "area",
         "integrate",

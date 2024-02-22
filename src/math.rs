@@ -20,6 +20,7 @@ use rug::{
     Complex, Float, Integer,
 };
 use std::ops::Rem;
+use crate::complex::limit;
 pub fn do_math(
     mut function: Vec<NumStr>,
     options: Options,
@@ -316,7 +317,7 @@ pub fn do_math(
                                     | "piecewise"
                                     | "D"
                                     | "integrate"
-                                    | "arclength"
+                                    | "arclength"|"lim"|"limit"
                             )
                             {
                                 i = j - 1;
@@ -364,7 +365,7 @@ pub fn do_math(
                         | "piecewise"
                         | "D"
                         | "integrate"
-                        | "arclength"
+                        | "arclength"|"lim"|"limit"
                 )
                 {
                     let mut place = Vec::new();
@@ -404,6 +405,21 @@ pub fn do_math(
                         },
                     )
                     {
+                        ("lim" | "limit", Str(var)) if place.len() == 3 =>{
+                            function[i] = limit(
+                                function[place[0] + 1..place[1]].to_vec(),
+                                func_vars.clone(),
+                                options,
+                                var.to_string(),
+                                do_math(
+                                    function[place[1] + 1..place[2]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?
+                                .num()?
+                            )?;
+                            function.drain(i + 1..=place[2]);
+                        }
                         ("length" | "arclength", Str(var))
                             if place.len() == 4 || place.len() == 5 =>
                         {

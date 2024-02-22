@@ -34,7 +34,6 @@ use std::{
 //surface area of a 3d curve
 //rpn
 //matrix exponentiation
-//limits
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable

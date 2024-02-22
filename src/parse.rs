@@ -842,7 +842,7 @@ pub fn input_var(
                 | "Π"
                 | "D"
                 | "integrate"
-                | "arclength"
+                | "arclength"|"lim"|"limit"
         ) && chars.len() > i + countv + 1
         {
             let mut place = 0;

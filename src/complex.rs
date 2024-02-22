@@ -742,7 +742,7 @@ pub fn mvec(
                             }
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                             | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
-                            | "slope"
+                            | "slope"|"lim"|"limit"
                                 if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                             {
                                 sum.push(bracket)
@@ -822,7 +822,7 @@ pub fn mvec(
                             }
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                             | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
-                            | "slope"
+                            | "slope"|"lim"|"limit"
                                 if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                             {
                                 sum.push(bracket)
@@ -942,7 +942,7 @@ pub fn sum(
                             }
                         }
                         "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
-                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope"
+                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope"|"lim"|"limit"
                             if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                         {
                             sum.push(bracket)
@@ -2089,6 +2089,109 @@ pub fn slope(
             ))
         }
         (_, _) => Err("not supported slope data"),
+    }
+}
+pub fn limit(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    options: Options,
+    var: String,
+    point: Complex,
+) -> Result<NumStr, &'static str>
+{
+    if point.clone().real().is_infinite()
+    {
+        let (h1,h2);
+        if point.real().is_sign_positive()
+        {
+            h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
+            h2 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 2 + 1);
+        }
+        else
+        {
+            h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
+            h2 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 2 + 1);
+        }
+        let n1 = do_math(
+            place_var(func.clone(), &var, Num(h1)),
+            options,
+            func_vars.clone(),
+        )?;
+        let n2 = do_math(
+            place_var(func.clone(), &var, Num(h2)),
+            options,
+            func_vars.clone(),
+        )?;
+        match (n1, n2)
+        {
+            (Num(n1), Num(n2)) =>
+            {
+                if (n1.clone()-n2).abs().real().clone().ln()<0
+                {
+                    Ok(Num(Complex::with_val(options.prec,n1)))
+                }
+                else if n1.real().is_sign_positive()
+                {
+                    Ok(Num(Complex::with_val(options.prec,Infinity)))
+                }
+                else
+                {
+                    Ok(Num(-Complex::with_val(options.prec,Infinity)))
+                }
+            },
+            (_, _) =>Err("unsupported lim data")
+        }
+    }
+    else
+    {
+        let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2 + 1);
+        let h2 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
+        let n1 = do_math(
+            place_var(func.clone(), &var, Num(point.clone() - h1.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let n2 = do_math(
+            place_var(func.clone(), &var, Num(point.clone() - h2.clone())),
+            options,
+            func_vars.clone(),
+        )?;
+        let n3 = do_math(
+            place_var(func.clone(), &var, Num(point.clone() + h1)),
+            options,
+            func_vars.clone(),
+        )?;
+        let n4 = do_math(
+            place_var(func.clone(), &var, Num(point + h2)),
+            options,
+            func_vars.clone(),
+        )?;
+        match (n1, n2, n3, n4)
+        {
+            (Num(n1), Num(n2), Num(n3), Num(n4)) =>
+            {
+                if (n1.clone()-n3.clone()).abs().real().clone().ln()<0
+                {
+                    if (n2-n1.clone()).abs().real().clone().ln()<0&&(n4-n3).abs().real().clone().ln()<0
+                    {
+                        Ok(Num(Complex::with_val(options.prec,n1)))
+                    }
+                    else if n1.real().is_sign_positive()
+                    {
+                        Ok(Num(Complex::with_val(options.prec,Infinity)))
+                    }
+                    else
+                    {
+                        Ok(Num(-Complex::with_val(options.prec,Infinity)))
+                    }
+                }
+                else
+                {
+                    Ok(Num(Complex::with_val(options.prec,Nan)))
+                }
+            },
+            (_, _, _, _) =>Err("unsupported lim data")
+        }
     }
 }
 //https://github.com/IstvanMezo/LambertW-function/blob/master/complex%20Lambert.cpp

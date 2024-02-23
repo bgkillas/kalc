@@ -80,7 +80,7 @@ pub fn graph(
         if d2_or_d3.0 == d2_or_d3.1
         {
             print!(
-                "\x1b[G\x1b[Kcant graph 2d and 3d\n\x1b[G{}",
+                "\x1b[G\x1b[Kcant graph 2d and 3d\x1b[G\n{}",
                 prompt(options, &colors)
             );
             stdout().flush().unwrap();
@@ -903,12 +903,12 @@ pub fn graph(
         }
         if let Some(time) = watch
         {
-            print!("\x1b[G\x1b[K{}ms\n\x1b[G", time.elapsed().as_millis(),);
+            print!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis(),);
             stdout().flush().unwrap();
         }
         if fg.show().is_err()
         {
-            print!("\x1b[G\x1b[Kno gnuplot\n\x1b[G{}", prompt(options, &colors));
+            print!("\x1b[G\x1b[Kno gnuplot\x1b[G\n{}", prompt(options, &colors));
             stdout().flush().unwrap();
         }
     })
@@ -1458,7 +1458,7 @@ pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
 fn fail(options: Options, colors: &Colors)
 {
     print!(
-        "\x1b[G\x1b[KNo data to plot\n\x1b[G{}",
+        "\x1b[G\x1b[KNo data to plot\x1b[G\n{}",
         prompt(options, colors)
     );
     stdout().flush().unwrap();

@@ -82,7 +82,7 @@ pub fn print_concurrent(
                     if long_output
                     {
                         print!(
-                            "\n\x1b[G\x1b[J{}{}",
+                            "\x1b[G\n\x1b[J{}{}",
                             out,
                             if options.color { "\x1b[0m" } else { "" }
                         );
@@ -91,7 +91,7 @@ pub fn print_concurrent(
                     else
                     {
                         print!(
-                            "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                            "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
                             prompt(options, &colors),
                             to_output(&unmodified_input[start..end], options.color, &colors),
                             if options.color { "\x1b[0m" } else { "" },
@@ -102,7 +102,7 @@ pub fn print_concurrent(
                 else
                 {
                     print!(
-                        "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                        "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                         out,
                         "\x1b[A".repeat(wrap),
                         prompt(options, &colors),
@@ -185,7 +185,7 @@ pub fn print_concurrent(
                 if long_output
                 {
                     print!(
-                        "\n\x1b[G\x1b[J{}{}",
+                        "\x1b[G\n\x1b[J{}{}",
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
@@ -194,7 +194,7 @@ pub fn print_concurrent(
                 else
                 {
                     print!(
-                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
                         prompt(options, &colors),
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
@@ -205,7 +205,7 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
                     "\x1b[A".repeat(wrap),
                     prompt(options, &colors),
@@ -227,7 +227,7 @@ pub fn print_concurrent(
                 if split.clone().count() > 6
                 {
                     print!(
-                        "\n\x1b[G\x1b[Jtoo many graphs\x1b[A\x1b[G\x1b[K{}{}{}",
+                        "\x1b[G\n\x1b[Jtoo many graphs\x1b[A\x1b[G\x1b[K{}{}{}",
                         prompt(options, &colors),
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
@@ -308,13 +308,13 @@ pub fn print_concurrent(
                 })
                 .sum();
             let len = no_col.len();
-            let out = out.replace('\n', "\n\x1b[G");
+            let out = out.replace('\n', "\x1b[G\n");
             if len > get_terminal_width() * (get_terminal_height() - 1)
             {
                 if long_output
                 {
                     print!(
-                        "\n\x1b[G\x1b[J{}{}",
+                        "\x1b[G\n\x1b[J{}{}",
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
@@ -323,7 +323,7 @@ pub fn print_concurrent(
                 else
                 {
                     print!(
-                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
                         prompt(options, &colors),
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
@@ -334,7 +334,7 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
                     "\x1b[A".repeat(wrap),
                     prompt(options, &colors),
@@ -361,7 +361,7 @@ pub fn print_concurrent(
                 if long_output
                 {
                     print!(
-                        "\n\x1b[G\x1b[J{}{}",
+                        "\x1b[G\n\x1b[J{}{}",
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
@@ -370,7 +370,7 @@ pub fn print_concurrent(
                 else
                 {
                     print!(
-                        "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                        "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
                         prompt(options, &colors),
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
@@ -381,7 +381,7 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\n\x1b[G\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                    "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
                     "\x1b[A".repeat(wrap),
                     prompt(options, &colors),
@@ -542,10 +542,10 @@ pub fn print_concurrent(
                     }
                     - 1;
                 print!(
-                    "\x1b[J{}\n\x1b[G\x1b[K{}{}{}{}",
+                    "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}",
                     if frac == 1
                     {
-                        format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
+                        format!("\x1b[G\n{}{}", frac_a, frac_b)
                     }
                     else
                     {
@@ -554,7 +554,7 @@ pub fn print_concurrent(
                     output.0,
                     if len1 != 0 && len2 != 0
                     {
-                        "\n\x1b[G"
+                        "\x1b[G\n"
                     }
                     else
                     {
@@ -568,10 +568,10 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\x1b[J{}\n\x1b[Gtoo long, will print on enter{}\x1b[A\x1b[G\x1b[K{}{}{}",
+                    "\x1b[G\x1b[J{}\x1b[G\ntoo long, will print on enter{}\x1b[A\x1b[G{}{}{}",
                     if frac == 1
                     {
-                        format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
+                        format!("\x1b[G\n{}{}", frac_a, frac_b)
                     }
                     else
                     {
@@ -598,10 +598,10 @@ pub fn print_concurrent(
                 }
                 - 1;
             print!(
-                "\x1b[J{}\n\x1b[G\x1b[K{}{}{}{}\x1b[A\x1b[A\x1b[G\x1b[K{}{}{}",
+                "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}\x1b[A\x1b[A\x1b[G{}{}{}",
                 if frac == 1
                 {
-                    format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
+                    format!("\x1b[G\n{}{}", frac_a, frac_b)
                 }
                 else
                 {
@@ -610,7 +610,7 @@ pub fn print_concurrent(
                 output.0,
                 if len1 != 0 && len2 != 0
                 {
-                    "\n\x1b[G"
+                    "\x1b[G\n"
                 }
                 else
                 {
@@ -627,10 +627,10 @@ pub fn print_concurrent(
         else
         {
             print!(
-                "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
+                "\x1b[G\x1b[J{}\x1b[G\n{}{}\x1b[A{}\x1b[G{}{}{}",
                 if frac == 1
                 {
-                    format!("\n\x1b[G\x1b[K{}{}", frac_a, frac_b)
+                    format!("\x1b[G\n{}{}", frac_a, frac_b)
                 }
                 else
                 {
@@ -755,10 +755,10 @@ pub fn print_concurrent(
             {
                 let num = (length - 1) / terlen;
                 print!(
-                    "\x1b[J{}\n\x1b[G\x1b[K{}{}",
+                    "\x1b[G\x1b[J{}\x1b[G\n{}{}",
                     if frac == 1 && options.frac
                     {
-                        format!("\n\x1b[G\x1b[K{}", frac_out)
+                        format!("\x1b[G\n{}", frac_out)
                     }
                     else
                     {
@@ -772,7 +772,7 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                    "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[A\x1b[G{}{}{}",
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" },
@@ -785,10 +785,10 @@ pub fn print_concurrent(
         {
             let num = (length - 1) / terlen;
             print!(
-                "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
+                "\x1b[G\x1b[J{}\x1b[G\n{}{}\x1b[A{}\x1b[G{}{}{}",
                 if frac == 1 && options.frac
                 {
-                    format!("\n\x1b[G\x1b[K{}", frac_out)
+                    format!("\x1b[G\n{}", frac_out)
                 }
                 else
                 {
@@ -908,8 +908,8 @@ pub fn print_concurrent(
                 if options.multi
                 {
                     num += 1;
-                    output += "\n\x1b[G";
-                    frac_out += "\n\x1b[G";
+                    output += "\x1b[G\n";
+                    frac_out += "\x1b[G\n";
                 }
                 else
                 {
@@ -976,7 +976,7 @@ pub fn print_concurrent(
             if long_output
             {
                 print!(
-                    "\x1b[J{}\n\x1b[G\x1b[K{}{}",
+                    "\x1b[G\x1b[J{}\x1b[G\n{}{}",
                     if frac == 1 && options.frac
                     {
                         num *= 2;
@@ -984,7 +984,7 @@ pub fn print_concurrent(
                         {
                             num += 1;
                         }
-                        format!("\n\x1b[G\x1b[K{}", frac_out)
+                        format!("\x1b[G\n{}", frac_out)
                     }
                     else
                     {
@@ -998,7 +998,7 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\x1b[J\n\x1b[Gtoo long, will print on enter\x1b[A\x1b[G\x1b[K{}{}{}",
+                    "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[A\x1b[G{}{}{}",
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" },
@@ -1010,7 +1010,7 @@ pub fn print_concurrent(
         else
         {
             print!(
-                "\x1b[J{}\n\x1b[G\x1b[K{}{}\x1b[A{}\x1b[G\x1b[K{}{}{}",
+                "\x1b[G\x1b[J{}\x1b[G\n{}{}\x1b[A{}\x1b[G{}{}{}",
                 if frac == 1 && options.frac
                 {
                     num *= 2;
@@ -1018,7 +1018,7 @@ pub fn print_concurrent(
                     {
                         num += 1;
                     }
-                    format!("\n\x1b[G\x1b[K{}", frac_out)
+                    format!("\x1b[G\n{}", frac_out)
                 }
                 else
                 {

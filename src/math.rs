@@ -85,7 +85,7 @@ pub fn do_math(
     //         {}
     //     }
     // }
-    // print!("\n\x1b[G");
+    // print!("\x1b[G\n");
     // std::io::stdout().flush().unwrap();
     i = 0;
     'outer: while i < function.len()

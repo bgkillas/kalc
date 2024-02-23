@@ -346,7 +346,7 @@ pub fn handle_err(
 )
 {
     print!(
-        "\x1b[J\n\x1b[G{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
+        "\x1b[J\x1b[G\n{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
         err,
         "\x1b[A".repeat(err.len().div_ceil(get_terminal_width()) - 1),
         prompt(options, colors),

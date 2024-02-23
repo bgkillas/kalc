@@ -563,12 +563,12 @@ fn main()
                             }
                             else
                             {
-                                print!("\n\x1b[G\x1b[J");
+                                print!("\x1b[G\n\x1b[J");
                             }
                             terminal::disable_raw_mode().unwrap();
                             std::process::exit(0);
                         }
-                        print!("\n\x1b[G\x1b[K");
+                        print!("\x1b[G\n\x1b[K");
                         if c == '\x09'
                         {
                             graphable = false;
@@ -616,7 +616,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -679,7 +679,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -733,7 +733,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -765,7 +765,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -797,7 +797,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -831,7 +831,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -865,7 +865,7 @@ fn main()
                                 {
                                     slow = true;
                                     print!(
-                                            "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                            "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                             input.len() + if options.prompt { 2 } else { 0 }
                                         );
                                 }
@@ -896,7 +896,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -937,7 +937,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -985,7 +985,7 @@ fn main()
                             if slow
                             {
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -1036,7 +1036,7 @@ fn main()
                             if slow
                             {
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }
@@ -1210,7 +1210,7 @@ fn main()
                             {
                                 slow = true;
                                 print!(
-                                        "\n\x1b[G\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
+                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
                                         input.len() + if options.prompt { 2 } else { 0 }
                                     );
                             }

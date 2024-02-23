@@ -2509,7 +2509,7 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             for l in lines
             {
-                print!("{}\n\x1b[G", l);
+                print!("{}\x1b[G\n", l);
             }
             stdout.flush().unwrap();
         }
@@ -2521,7 +2521,7 @@ pub fn commands(
                 if !v.unparsed.is_empty()
                 {
                     print!(
-                        "{}={}\n\x1b[G",
+                        "{}={}\x1b[G\n",
                         v.name.iter().collect::<String>(),
                         to_output(
                             &v.unparsed.chars().collect::<Vec<char>>(),
@@ -2538,7 +2538,7 @@ pub fn commands(
                         {
                             let n = get_output(*options, colors, n);
                             print!(
-                                "{}={}{}{}\n\x1b[G",
+                                "{}={}{}{}\x1b[G\n",
                                 v.name.iter().collect::<String>(),
                                 n.0,
                                 n.1,
@@ -2560,7 +2560,7 @@ pub fn commands(
                                 st.push(',');
                             }
                             print!(
-                                "{}={{{}}}\n\x1b[G",
+                                "{}={{{}}}\x1b[G\n",
                                 v.name.iter().collect::<String>(),
                                 st.trim_end_matches(',')
                             )
@@ -2587,7 +2587,7 @@ pub fn commands(
                                 st.push(',');
                             }
                             print!(
-                                "{}={{{}}}\n\x1b[G",
+                                "{}={{{}}}\x1b[G\n",
                                 v.name.iter().collect::<String>(),
                                 st.trim_end_matches(',')
                             )
@@ -2601,7 +2601,7 @@ pub fn commands(
         "version" =>
         {
             print!(
-                "\x1b[A\x1b[G\x1b[K{} {}\n\x1b[G",
+                "\x1b[A\x1b[G\x1b[K{} {}\x1b[G\n",
                 env!("CARGO_PKG_NAME"),
                 env!("CARGO_PKG_VERSION")
             );
@@ -2627,7 +2627,7 @@ pub fn commands(
                 {
                     if i.contains(r)
                     {
-                        print!("{}\n\x1b[G", i);
+                        print!("{}\x1b[G\n", i);
                     }
                 }
                 stdout.flush().unwrap();

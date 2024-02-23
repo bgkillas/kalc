@@ -2153,13 +2153,13 @@ pub fn limit(
                                 if positive
                                 {
                                     Complex::with_val(options.prec, 2)
-                                        .pow((options.prec.0 / 2) as f64 + 13.0/7.0)
+                                        .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
                                         - 7
                                 }
                                 else
                                 {
                                     7 - Complex::with_val(options.prec, 2)
-                                        .pow((options.prec.0 / 2) as f64 + 13.0/7.0)
+                                        .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
                                 },
                             ),
                         ),
@@ -2167,12 +2167,17 @@ pub fn limit(
                         func_vars.clone(),
                     )?
                     .num()?;
+                    let positive = n3.real().is_sign_positive();
+                    let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
+                        && n2.real().is_sign_positive() == n3.real().is_sign_positive()
+                        && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
+                        && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
                     let n1 = n1.abs().real().clone();
                     let n2 = n2.abs().real().clone();
-                    let n3t = n3.clone().abs().real().clone();
-                    if n3t > n2 && n2 > n1
+                    let n3 = n3.abs().real().clone();
+                    if n3 > n2 && n2 > n1 && sign
                     {
-                        if n3.real().is_sign_positive()
+                        if positive
                         {
                             Ok(Num(Complex::with_val(options.prec, Infinity)))
                         }
@@ -2192,8 +2197,8 @@ pub fn limit(
     }
     else
     {
-        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 2) as f64 + 0.5);
-        let h2 = Complex::with_val(options.prec.0, 0.5).pow(options.prec.0 / 2);
+        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 2) as f64 + 5.35);
+        let h2 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
         let n1 = do_math(
             place_var(func.clone(), &var, Num(point.clone() - h1.clone())),
             options,

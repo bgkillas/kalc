@@ -1,4 +1,9 @@
-use crate::{functions::functions, Colors, Options};
+use crate::{
+    complex::{NumStr, NumStr::Str},
+    functions::functions,
+    math::do_math,
+    Colors, Options,
+};
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
@@ -379,4 +384,87 @@ pub fn prompt(options: Options, colors: &Colors) -> String
     {
         String::new()
     }
+}
+pub fn place_funcvarxy(
+    mut funcvar: Vec<(String, Vec<NumStr>)>,
+    num: NumStr,
+) -> Vec<(String, Vec<NumStr>)>
+{
+    for i in funcvar.iter_mut()
+    {
+        for j in i.1.iter_mut()
+        {
+            if let Str(s) = j
+            {
+                if matches!(s.as_str(), "x" | "y")
+                {
+                    *j = num.clone()
+                }
+            }
+        }
+    }
+    funcvar
+}
+pub fn place_funcvar(
+    mut funcvar: Vec<(String, Vec<NumStr>)>,
+    var: &str,
+    num: NumStr,
+) -> Vec<(String, Vec<NumStr>)>
+{
+    for i in funcvar.iter_mut()
+    {
+        for j in i.1.iter_mut()
+        {
+            if let Str(s) = j
+            {
+                if s == var
+                {
+                    *j = num.clone()
+                }
+            }
+        }
+    }
+    funcvar
+}
+pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
+{
+    for i in func.iter_mut()
+    {
+        if let Str(s) = i
+        {
+            if matches!(s.as_str(), "x" | "y")
+            {
+                *i = num.clone()
+            }
+        }
+    }
+    func
+}
+pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
+{
+    for i in func.iter_mut()
+    {
+        if let Str(s) = i
+        {
+            if s == var
+            {
+                *i = num.clone()
+            }
+        }
+    }
+    func
+}
+pub fn do_math_with_var(
+    function: Vec<NumStr>,
+    options: Options,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    var: &str,
+    num: NumStr,
+) -> Result<NumStr, &'static str>
+{
+    do_math(
+        place_var(function, var, num.clone()),
+        options,
+        place_funcvar(func_vars, var, num),
+    )
 }

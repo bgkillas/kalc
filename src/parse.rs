@@ -842,7 +842,9 @@ pub fn input_var(
                 | "Π"
                 | "D"
                 | "integrate"
-                | "arclength"|"lim"|"limit"
+                | "arclength"
+                | "lim"
+                | "limit"
         ) && chars.len() > i + countv + 1
         {
             let mut place = 0;
@@ -1259,6 +1261,16 @@ pub fn input_var(
                                     if (tempgraph && parsed.len() > 1)
                                         || print
                                         || sumrec.iter().any(|c| c.0 == -1)
+                                        || parsed.iter().any(|c| {
+                                            if let Str(s) = c
+                                            {
+                                                sumrec.iter().any(|r| &r.1 == s)
+                                            }
+                                            else
+                                            {
+                                                false
+                                            }
+                                        })
                                     {
                                         let iden =
                                             format!("@{}{}{}{}@", i, func_var, depth, vars.len());
@@ -1487,6 +1499,16 @@ pub fn input_var(
                                 if (tempgraph && parsed.len() > 1)
                                     || print
                                     || sumrec.iter().any(|c| c.0 == -1)
+                                    || parsed.iter().any(|c| {
+                                        if let Str(s) = c
+                                        {
+                                            sumrec.iter().any(|r| &r.1 == s)
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
+                                    })
                                 {
                                     let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
                                     funcvars.extend(func);

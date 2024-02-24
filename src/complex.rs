@@ -1,7 +1,7 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
-    graph::place_var,
     math::do_math,
+    misc::do_math_with_var,
     Options,
 };
 use rug::{
@@ -1861,26 +1861,32 @@ pub fn area(
     let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
     let delta: Complex = (end - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
-    let mut x0 = do_math(
-        place_var(func.clone(), &var, Num(start.clone())),
+    let mut x0 = do_math_with_var(
+        func.clone(),
         options,
         func_vars.clone(),
+        &var,
+        Num(start.clone()),
     )?;
     if !funcs.is_empty()
     {
         let mut nx0t = Complex::new(options.prec);
         for i in &funcs
         {
-            nx0t += ((do_math(
-                place_var(i.clone(), &var, Num(start.clone() + div.clone())),
+            nx0t += ((do_math_with_var(
+                i.clone(),
                 options,
                 func_vars.clone(),
+                &var,
+                Num(start.clone() + div.clone()),
             )?
             .num()?
-                - do_math(
-                    place_var(i.clone(), &var, Num(start.clone())),
+                - do_math_with_var(
+                    i.clone(),
                     options,
                     func_vars.clone(),
+                    &var,
+                    Num(start.clone()),
                 )?
                 .num()?)
                 / div.clone())
@@ -1892,25 +1898,33 @@ pub fn area(
     for _ in 0..points
     {
         start += delta.clone();
-        let x1 = do_math(
-            place_var(func.clone(), &var, Num(start.clone() - 3 * h.clone())),
+        let x1 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(start.clone() - 3 * h.clone()),
         )?;
-        let x2 = do_math(
-            place_var(func.clone(), &var, Num(start.clone() - 2 * h.clone())),
+        let x2 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(start.clone() - 2 * h.clone()),
         )?;
-        let x3 = do_math(
-            place_var(func.clone(), &var, Num(start.clone() - h.clone())),
+        let x3 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(start.clone() - h.clone()),
         )?;
-        let x4 = do_math(
-            place_var(func.clone(), &var, Num(start.clone())),
+        let x4 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(start.clone()),
         )?;
         match (x0, x1, x2, x3, x4.clone())
         {
@@ -1927,71 +1941,65 @@ pub fn area(
                     let mut nx4t = Complex::new(options.prec);
                     for i in &funcs
                     {
-                        nx1t += ((do_math(
-                            place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone() + div.clone())),
+                        nx1t += ((do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
-                        )?
+                            &var, Num(start.clone() - 3 * h.clone() + div.clone()))?
                             .num()?
-                            - do_math(
-                            place_var(i.clone(), &var, Num(start.clone() - 3 * h.clone())),
+                            - do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
-                        )?
+                            &var, Num(start.clone() - 3 * h.clone()))?
                             .num()?)
                             / div.clone())
                             .pow(2);
-                        nx2t += ((do_math(
-                            place_var(
-                                i.clone(),
-                                &var,
-                                Num(start.clone() - 2 * h.clone() + div.clone()),
-                            ),
+                        nx2t += ((do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
+                            &var,
+                            Num(start.clone() - 2 * h.clone() + div.clone()),
                         )?
                             .num()?
-                            - do_math(
-                            place_var(i.clone(), &var, Num(start.clone() - 2 * h.clone())),
+                            - do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
-                        )?
+                            &var, Num(start.clone() - 2 * h.clone()))?
                             .num()?)
                             / div.clone())
                             .pow(2);
-                        nx3t += ((do_math(
-                            place_var(
-                                i.clone(),
-                                &var,
-                                Num(start.clone() - h.clone() + div.clone()),
-                            ),
+                        nx3t += ((do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
+                            &var,
+                            Num(start.clone() - h.clone() + div.clone()),
                         )?
                             .num()?
-                            - do_math(
-                            place_var(i.clone(), &var, Num(start.clone() - h.clone())),
+                            - do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
-                        )?
+                            &var, Num(start.clone() - h.clone()))?
                             .num()?)
                             / div.clone())
                             .pow(2);
-                        nx4t += ((do_math(
-                            place_var(
-                                i.clone(),
-                                &var,
-                                Num(start.clone() + div.clone()),
-                            ),
+                        nx4t += ((do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
+                            &var,
+                            Num(start.clone() + div.clone()),
                         )?
                             .num()?
-                            - do_math(
-                            place_var(i.clone(), &var, Num(start.clone())),
+                            - do_math_with_var(
+                            i.clone(),
                             options,
                             func_vars.clone(),
-                        )?
+                            &var, Num(start.clone()))?
                             .num()?)
                             / div.clone())
                             .pow(2);
@@ -2055,15 +2063,19 @@ pub fn slope(
 ) -> Result<NumStr, &'static str>
 {
     let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 4);
-    let n1 = do_math(
-        place_var(func.clone(), &var, Num(point.clone())),
+    let n1 = do_math_with_var(
+        func.clone(),
         options,
         func_vars.clone(),
+        &var,
+        Num(point.clone()),
     )?;
-    let n2 = do_math(
-        place_var(func.clone(), &var, Num(point + h.clone())),
+    let n2 = do_math_with_var(
+        func.clone(),
         options,
         func_vars.clone(),
+        &var,
+        Num(point + h.clone()),
     )?;
     match (n1, n2)
     {
@@ -2106,24 +2118,16 @@ pub fn limit(
         let positive = point.real().is_sign_positive();
         if positive
         {
-            h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
-            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 5.35) - 3;
+            h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
+            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 4) as f64 + 5.35) - 3;
         }
         else
         {
-            h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 2);
-            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec.0 / 2) as f64 + 5.35);
+            h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
+            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec.0 / 4) as f64 + 5.35);
         }
-        let n1 = do_math(
-            place_var(func.clone(), &var, Num(h1)),
-            options,
-            func_vars.clone(),
-        )?;
-        let n2 = do_math(
-            place_var(func.clone(), &var, Num(h2)),
-            options,
-            func_vars.clone(),
-        )?;
+        let n1 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h1))?;
+        let n2 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h2))?;
         match (n1, n2)
         {
             (Num(n1), Num(n2)) =>
@@ -2145,26 +2149,24 @@ pub fn limit(
                 }
                 else
                 {
-                    let n3 = do_math(
-                        place_var(
-                            func.clone(),
-                            &var,
-                            Num(
-                                if positive
-                                {
-                                    Complex::with_val(options.prec, 2)
-                                        .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
-                                        - 7
-                                }
-                                else
-                                {
-                                    7 - Complex::with_val(options.prec, 2)
-                                        .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
-                                },
-                            ),
-                        ),
+                    let n3 = do_math_with_var(
+                        func.clone(),
                         options,
                         func_vars.clone(),
+                        &var,
+                        Num(
+                            if positive
+                            {
+                                Complex::with_val(options.prec, 2)
+                                    .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                    - 7
+                            }
+                            else
+                            {
+                                7 - Complex::with_val(options.prec, 2)
+                                    .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                            },
+                        ),
                     )?
                     .num()?;
                     let positive = n3.real().is_sign_positive();
@@ -2197,36 +2199,44 @@ pub fn limit(
     }
     else
     {
-        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 2) as f64 + 5.35);
-        let h2 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
-        let n1 = do_math(
-            place_var(func.clone(), &var, Num(point.clone() - h1.clone())),
+        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 4) as f64 + 5.35);
+        let h2 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 4);
+        let n1 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(point.clone() - h1.clone()),
         )?;
-        let n2 = do_math(
-            place_var(func.clone(), &var, Num(point.clone() - h2.clone())),
+        let n2 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(point.clone() - h2.clone()),
         )?;
-        let n3 = do_math(
-            place_var(func.clone(), &var, Num(point.clone() + h1)),
+        let n3 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(point.clone() + h1),
         )?;
-        let n4 = do_math(
-            place_var(func.clone(), &var, Num(point + h2)),
+        let n4 = do_math_with_var(
+            func.clone(),
             options,
             func_vars.clone(),
+            &var,
+            Num(point + h2),
         )?;
         match (n1, n2, n3, n4)
         {
             (Num(n1), Num(n2), Num(n3), Num(n4)) =>
             {
-                if (n1.clone() - n3.clone()).abs().real().clone().log10() < -10
+                if (n1.clone() - n3.clone()).abs().real().clone().log10() <= -10
                 {
-                    if (n2.clone() - n1.clone()).abs().real().clone().log10() < -10
-                        && (n4.clone() - n3.clone()).abs().real().clone().log10() < -10
+                    if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
+                        && (n4.clone() - n3.clone()).abs().real().clone().log10() <= -10
                     {
                         Ok(Num(Complex::with_val(options.prec, n1)))
                     }

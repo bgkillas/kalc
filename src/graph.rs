@@ -4,7 +4,7 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     math::do_math,
-    misc::prompt,
+    misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     Colors, Options,
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
@@ -1385,75 +1385,6 @@ pub fn get_list_3d(
         data[1][2] = Vec::new();
     }
     (data, zero, d2)
-}
-fn place_funcvarxy(
-    mut funcvar: Vec<(String, Vec<NumStr>)>,
-    num: NumStr,
-) -> Vec<(String, Vec<NumStr>)>
-{
-    for i in funcvar.iter_mut()
-    {
-        for j in i.1.iter_mut()
-        {
-            if let Str(s) = j
-            {
-                if matches!(s.as_str(), "x" | "y")
-                {
-                    *j = num.clone()
-                }
-            }
-        }
-    }
-    funcvar
-}
-fn place_funcvar(
-    mut funcvar: Vec<(String, Vec<NumStr>)>,
-    var: &str,
-    num: NumStr,
-) -> Vec<(String, Vec<NumStr>)>
-{
-    for i in funcvar.iter_mut()
-    {
-        for j in i.1.iter_mut()
-        {
-            if let Str(s) = j
-            {
-                if s == var
-                {
-                    *j = num.clone()
-                }
-            }
-        }
-    }
-    funcvar
-}
-fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
-{
-    for i in func.iter_mut()
-    {
-        if let Str(s) = i
-        {
-            if matches!(s.as_str(), "x" | "y")
-            {
-                *i = num.clone()
-            }
-        }
-    }
-    func
-}
-pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
-{
-    for i in func.iter_mut()
-    {
-        if let Str(s) = i
-        {
-            if s == var
-            {
-                *i = num.clone()
-            }
-        }
-    }
-    func
 }
 fn fail(options: Options, colors: &Colors)
 {

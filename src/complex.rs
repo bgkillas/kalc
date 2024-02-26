@@ -2194,6 +2194,81 @@ pub fn limit(
                     }
                 }
             }
+            (Vector(v1), Vector(v2)) =>
+            {
+                let mut v3: Vec<Complex> = Vec::new();
+                let mut vec = Vec::new();
+                for (i, (n1, n2)) in v1.iter().zip(v2).enumerate()
+                {
+                    vec.push(
+                        if (n1.clone() - n2.clone()).abs().real().clone().log10() <= -10
+                        {
+                            Complex::with_val(options.prec, n1)
+                        }
+                        else if n1.real().is_infinite() || n1.imag().is_infinite()
+                        {
+                            if n2.real().is_sign_positive()
+                            {
+                                Complex::with_val(options.prec, Infinity)
+                            }
+                            else
+                            {
+                                -Complex::with_val(options.prec, Infinity)
+                            }
+                        }
+                        else
+                        {
+                            if v3.is_empty()
+                            {
+                                v3 = do_math_with_var(
+                                    func.clone(),
+                                    options,
+                                    func_vars.clone(),
+                                    &var,
+                                    Num(
+                                        if positive
+                                        {
+                                            Complex::with_val(options.prec, 2)
+                                                .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                                - 7
+                                        }
+                                        else
+                                        {
+                                            7 - Complex::with_val(options.prec, 2)
+                                                .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                        },
+                                    ),
+                                )?
+                                .vec()?;
+                            }
+                            let positive = v3[i].real().is_sign_positive();
+                            let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
+                                && n2.real().is_sign_positive() == v3[i].real().is_sign_positive()
+                                && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
+                                && n2.imag().is_sign_positive() == v3[i].imag().is_sign_positive();
+                            let n1 = n1.clone().abs().real().clone();
+                            let n2 = n2.abs().real().clone();
+                            let n3 = v3[i].clone().abs().real().clone();
+                            if n3 > n2 && n2 > n1 && sign
+                            {
+                                if positive
+                                {
+                                    Complex::with_val(options.prec, Infinity)
+                                }
+                                else
+                                {
+                                    -Complex::with_val(options.prec, Infinity)
+                                }
+                            }
+                            else
+                            {
+                                Complex::with_val(options.prec, Nan)
+                            }
+                        },
+                    )
+                }
+                Ok(Vector(vec))
+            }
             (_, _) => Err("unsupported lim data"),
         }
     }
@@ -2229,38 +2304,49 @@ pub fn limit(
             &var,
             Num(point + h2),
         )?;
-        match (n1, n2, n3, n4)
+        fn lim(n1: &Complex, n2: &Complex, n3: &Complex, n4: &Complex, prec: (u32, u32))
+            -> Complex
         {
-            (Num(n1), Num(n2), Num(n3), Num(n4)) =>
+            if (n1.clone() - n3.clone()).abs().real().clone().log10() <= -10
             {
-                if (n1.clone() - n3.clone()).abs().real().clone().log10() <= -10
+                if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
+                    && (n4.clone() - n3.clone()).abs().real().clone().log10() <= -10
                 {
-                    if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
-                        && (n4.clone() - n3.clone()).abs().real().clone().log10() <= -10
+                    Complex::with_val(prec, n1)
+                }
+                else if n1.real().clone().abs() > n2.real().clone().abs()
+                    && n3.real().clone().abs() > n4.real().clone().abs()
+                {
+                    if n1.real().is_sign_positive()
                     {
-                        Ok(Num(Complex::with_val(options.prec, n1)))
-                    }
-                    else if n1.real().clone().abs() > n2.real().clone().abs()
-                        && n3.real().clone().abs() > n4.real().clone().abs()
-                    {
-                        if n1.real().is_sign_positive()
-                        {
-                            Ok(Num(Complex::with_val(options.prec, Infinity)))
-                        }
-                        else
-                        {
-                            Ok(Num(-Complex::with_val(options.prec, Infinity)))
-                        }
+                        Complex::with_val(prec, Infinity)
                     }
                     else
                     {
-                        Ok(Num(Complex::with_val(options.prec, Nan)))
+                        -Complex::with_val(prec, Infinity)
                     }
                 }
                 else
                 {
-                    Ok(Num(Complex::with_val(options.prec, Nan)))
+                    Complex::with_val(prec, Nan)
                 }
+            }
+            else
+            {
+                Complex::with_val(prec, Nan)
+            }
+        }
+        match (n1, n2, n3, n4)
+        {
+            (Num(n1), Num(n2), Num(n3), Num(n4)) => Ok(Num(lim(&n1, &n2, &n3, &n4, options.prec))),
+            (Vector(n1), Vector(n2), Vector(n3), Vector(n4)) =>
+            {
+                let mut vec = Vec::with_capacity(n1.len());
+                for (i, n1) in n1.iter().enumerate()
+                {
+                    vec.push(lim(n1, &n2[i], &n3[i], &n4[i], options.prec))
+                }
+                Ok(Vector(vec))
             }
             (_, _, _, _) => Err("unsupported lim data"),
         }

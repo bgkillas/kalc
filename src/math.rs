@@ -1,9 +1,9 @@
 use crate::{
     complex::{
         add, and, area, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, gcd, ge, gt,
-        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le, length, lt, minors,
-        mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub,
-        subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
+        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le, length, limit, lt,
+        minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope,
+        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -20,7 +20,6 @@ use rug::{
     Complex, Float, Integer,
 };
 use std::ops::Rem;
-use crate::complex::limit;
 pub fn do_math(
     mut function: Vec<NumStr>,
     options: Options,
@@ -317,7 +316,9 @@ pub fn do_math(
                                     | "piecewise"
                                     | "D"
                                     | "integrate"
-                                    | "arclength"|"lim"|"limit"
+                                    | "arclength"
+                                    | "lim"
+                                    | "limit"
                             )
                             {
                                 i = j - 1;
@@ -365,7 +366,9 @@ pub fn do_math(
                         | "piecewise"
                         | "D"
                         | "integrate"
-                        | "arclength"|"lim"|"limit"
+                        | "arclength"
+                        | "lim"
+                        | "limit"
                 )
                 {
                     let mut place = Vec::new();
@@ -405,7 +408,8 @@ pub fn do_math(
                         },
                     )
                     {
-                        ("lim" | "limit", Str(var)) if place.len() == 3 =>{
+                        ("lim" | "limit", Str(var)) if place.len() == 3 =>
+                        {
                             function[i] = limit(
                                 function[place[0] + 1..place[1]].to_vec(),
                                 func_vars.clone(),
@@ -416,7 +420,7 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?
+                                .num()?,
                             )?;
                             function.drain(i + 1..=place[2]);
                         }
@@ -1910,7 +1914,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len()-1
+    while i < function.len() - 1
     {
         if let Str(s) = &function[i]
         {

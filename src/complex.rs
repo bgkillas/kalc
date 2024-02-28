@@ -2146,16 +2146,47 @@ pub fn limit(
                 {
                     Ok(Num(Complex::with_val(options.prec, n1)))
                 }
-                else if n1.real().is_infinite() || n1.imag().is_infinite()
+                else if n2.real().is_infinite() || n2.imag().is_infinite()
                 {
-                    if n2.real().is_sign_positive()
-                    {
-                        Ok(Num(Complex::with_val(options.prec, Infinity)))
-                    }
-                    else
-                    {
-                        Ok(Num(-Complex::with_val(options.prec, Infinity)))
-                    }
+                    Ok(Num(
+                        match (n2.real().is_infinite(), n2.imag().is_infinite())
+                        {
+                            (true, true) =>
+                            {
+                                if n1.real().is_sign_positive()
+                                {
+                                    Complex::with_val(options.prec, (Infinity, Infinity))
+                                }
+                                else
+                                {
+                                    -Complex::with_val(options.prec, (Infinity, Infinity))
+                                }
+                            }
+                            (true, false) =>
+                            {
+                                if n1.real().is_sign_positive()
+                                {
+                                    Complex::with_val(options.prec, Infinity)
+                                }
+                                else
+                                {
+                                    -Complex::with_val(options.prec, Infinity)
+                                }
+                            }
+                            (false, true) =>
+                            {
+                                if n1.imag().is_sign_positive()
+                                {
+                                    Complex::with_val(options.prec, (0, Infinity))
+                                }
+                                else
+                                {
+                                    -Complex::with_val(options.prec, (0, Infinity))
+                                }
+                            }
+                            (false, false) => Complex::with_val(options.prec, Nan),
+                        },
+                    ))
                 }
                 else
                 {
@@ -2179,29 +2210,62 @@ pub fn limit(
                         ),
                     )?
                     .num()?;
-                    let positive = n3.real().is_sign_positive();
                     let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
                         && n2.real().is_sign_positive() == n3.real().is_sign_positive()
                         && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
                         && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
-                    let n1 = n1.abs().real().clone();
-                    let n2 = n2.abs().real().clone();
-                    let n3 = n3.abs().real().clone();
-                    if n3 > n2 && n2 > n1 && sign
-                    {
-                        if positive
+                    let n1r = n1.real().clone().abs();
+                    let n2r = n2.real().clone().abs();
+                    let n3r = n3.real().clone().abs();
+                    let n1i = n1.imag().clone().abs();
+                    let n2i = n2.imag().clone().abs();
+                    let n3i = n3.imag().clone().abs();
+                    Ok(Num(
+                        if !sign
                         {
-                            Ok(Num(Complex::with_val(options.prec, Infinity)))
+                            Complex::with_val(options.prec, Nan)
                         }
                         else
                         {
-                            Ok(Num(-Complex::with_val(options.prec, Infinity)))
-                        }
-                    }
-                    else
-                    {
-                        Ok(Num(Complex::with_val(options.prec, Nan)))
-                    }
+                            match (n3r > n2r && n2r > n1r, n3i > n2i && n2i > n1i)
+                            {
+                                (true, true) =>
+                                {
+                                    if n1.real().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                }
+                                (true, false) =>
+                                {
+                                    if n1.real().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, Infinity)
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, Infinity)
+                                    }
+                                }
+                                (false, true) =>
+                                {
+                                    if n1.imag().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, (0, Infinity))
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, (0, Infinity))
+                                    }
+                                }
+                                (false, false) => Complex::with_val(options.prec, Nan),
+                            }
+                        },
+                    ))
                 }
             }
             (Vector(v1), Vector(v2)) =>
@@ -2215,15 +2279,44 @@ pub fn limit(
                         {
                             Complex::with_val(options.prec, n1)
                         }
-                        else if n1.real().is_infinite() || n1.imag().is_infinite()
+                        else if n2.real().is_infinite() || n2.imag().is_infinite()
                         {
-                            if n2.real().is_sign_positive()
+                            match (n2.real().is_infinite(), n2.imag().is_infinite())
                             {
-                                Complex::with_val(options.prec, Infinity)
-                            }
-                            else
-                            {
-                                -Complex::with_val(options.prec, Infinity)
+                                (true, true) =>
+                                {
+                                    if n1.real().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                }
+                                (true, false) =>
+                                {
+                                    if n1.real().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, Infinity)
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, Infinity)
+                                    }
+                                }
+                                (false, true) =>
+                                {
+                                    if n1.imag().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, (0, Infinity))
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, (0, Infinity))
+                                    }
+                                }
+                                (false, false) => Complex::with_val(options.prec, Nan),
                             }
                         }
                         else
@@ -2251,28 +2344,59 @@ pub fn limit(
                                 )?
                                 .vec()?;
                             }
-                            let positive = v3[i].real().is_sign_positive();
                             let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
                                 && n2.real().is_sign_positive() == v3[i].real().is_sign_positive()
                                 && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
                                 && n2.imag().is_sign_positive() == v3[i].imag().is_sign_positive();
-                            let n1 = n1.clone().abs().real().clone();
-                            let n2 = n2.abs().real().clone();
-                            let n3 = v3[i].clone().abs().real().clone();
-                            if n3 > n2 && n2 > n1 && sign
+                            let n1r = n1.real().clone().abs();
+                            let n2r = n2.real().clone().abs();
+                            let n3r = v3[i].real().clone().abs();
+                            let n1i = n1.imag().clone().abs();
+                            let n2i = n2.imag().clone().abs();
+                            let n3i = v3[i].imag().clone().abs();
+                            if !sign
                             {
-                                if positive
-                                {
-                                    Complex::with_val(options.prec, Infinity)
-                                }
-                                else
-                                {
-                                    -Complex::with_val(options.prec, Infinity)
-                                }
+                                Complex::with_val(options.prec, Nan)
                             }
                             else
                             {
-                                Complex::with_val(options.prec, Nan)
+                                match (n3r > n2r && n2r > n1r, n3i > n2i && n2i > n1i)
+                                {
+                                    (true, true) =>
+                                    {
+                                        if n1.real().is_sign_positive()
+                                        {
+                                            Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
+                                        else
+                                        {
+                                            -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
+                                    }
+                                    (true, false) =>
+                                    {
+                                        if n1.real().is_sign_positive()
+                                        {
+                                            Complex::with_val(options.prec, Infinity)
+                                        }
+                                        else
+                                        {
+                                            -Complex::with_val(options.prec, Infinity)
+                                        }
+                                    }
+                                    (false, true) =>
+                                    {
+                                        if n1.imag().is_sign_positive()
+                                        {
+                                            Complex::with_val(options.prec, (0, Infinity))
+                                        }
+                                        else
+                                        {
+                                            -Complex::with_val(options.prec, (0, Infinity))
+                                        }
+                                    }
+                                    (false, false) => Complex::with_val(options.prec, Nan),
+                                }
                             }
                         },
                     )
@@ -2312,7 +2436,7 @@ pub fn limit(
                         }
                         else if (left.clone() - right.clone()).abs().real().clone().log10() <= -10
                         {
-                            Ok(Num((left - right) / 2))
+                            Ok(Num((left + right) / 2))
                         }
                         else
                         {
@@ -2401,28 +2525,59 @@ fn limsided(
                     Num(point.clone() + if right { h3 } else { -h3 }),
                 )?
                 .num()?;
-                let positive = n1.real().is_sign_positive();
                 let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
                     && n2.real().is_sign_positive() == n3.real().is_sign_positive()
                     && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
                     && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
-                let n1 = n1.abs().real().clone();
-                let n2 = n2.abs().real().clone();
-                let n3 = n3.abs().real().clone();
-                if sign && n3 > n1 && n1 > n2
+                let n1r = n1.real().clone().abs();
+                let n2r = n2.real().clone().abs();
+                let n3r = n3.real().clone().abs();
+                let n1i = n1.imag().clone().abs();
+                let n2i = n2.imag().clone().abs();
+                let n3i = n3.imag().clone().abs();
+                if !sign
                 {
-                    if positive
-                    {
-                        Complex::with_val(options.prec, Infinity)
-                    }
-                    else
-                    {
-                        -Complex::with_val(options.prec, Infinity)
-                    }
+                    Complex::with_val(options.prec, Nan)
                 }
                 else
                 {
-                    Complex::with_val(options.prec, Nan)
+                    match (n3r > n1r && n1r > n2r, n3i > n1i && n1i > n2i)
+                    {
+                        (true, true) =>
+                        {
+                            if n1.real().is_sign_positive()
+                            {
+                                Complex::with_val(options.prec, (Infinity, Infinity))
+                            }
+                            else
+                            {
+                                -Complex::with_val(options.prec, (Infinity, Infinity))
+                            }
+                        }
+                        (true, false) =>
+                        {
+                            if n1.real().is_sign_positive()
+                            {
+                                Complex::with_val(options.prec, Infinity)
+                            }
+                            else
+                            {
+                                -Complex::with_val(options.prec, Infinity)
+                            }
+                        }
+                        (false, true) =>
+                        {
+                            if n1.imag().is_sign_positive()
+                            {
+                                Complex::with_val(options.prec, (0, Infinity))
+                            }
+                            else
+                            {
+                                -Complex::with_val(options.prec, (0, Infinity))
+                            }
+                        }
+                        (false, false) => Complex::with_val(options.prec, Nan),
+                    }
                 }
             },
         )),
@@ -2452,28 +2607,59 @@ fn limsided(
                             )?
                             .vec()?;
                         }
-                        let positive = n1.real().is_sign_positive();
                         let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
                             && n2.real().is_sign_positive() == n3[i].real().is_sign_positive()
                             && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
                             && n2.imag().is_sign_positive() == n3[i].imag().is_sign_positive();
-                        let n1 = n1.clone().abs().real().clone();
-                        let n2 = n2.abs().real().clone();
-                        let n3 = n3[i].clone().abs().real().clone();
-                        if sign && n3 > n1 && n1 > n2
+                        let n1r = n1.real().clone().abs();
+                        let n2r = n2.real().clone().abs();
+                        let n3r = n3[i].real().clone().abs();
+                        let n1i = n1.imag().clone().abs();
+                        let n2i = n2.imag().clone().abs();
+                        let n3i = n3[i].imag().clone().abs();
+                        if !sign
                         {
-                            if positive
-                            {
-                                Complex::with_val(options.prec, Infinity)
-                            }
-                            else
-                            {
-                                -Complex::with_val(options.prec, Infinity)
-                            }
+                            Complex::with_val(options.prec, Nan)
                         }
                         else
                         {
-                            Complex::with_val(options.prec, Nan)
+                            match (n3r > n1r && n1r > n2r, n3i > n1i && n1i > n2i)
+                            {
+                                (true, true) =>
+                                {
+                                    if n1.real().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                }
+                                (true, false) =>
+                                {
+                                    if n1.real().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, Infinity)
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, Infinity)
+                                    }
+                                }
+                                (false, true) =>
+                                {
+                                    if n1.imag().is_sign_positive()
+                                    {
+                                        Complex::with_val(options.prec, (0, Infinity))
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, (0, Infinity))
+                                    }
+                                }
+                                (false, false) => Complex::with_val(options.prec, Nan),
+                            }
                         }
                     },
                 )

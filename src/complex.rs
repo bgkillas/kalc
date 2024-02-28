@@ -2104,12 +2104,20 @@ pub fn slope(
         (_, _) => Err("not supported slope data"),
     }
 }
+#[derive(Copy, Clone, PartialEq)]
+pub enum LimSide
+{
+    Left,
+    Right,
+    Both,
+}
 pub fn limit(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
     point: Complex,
+    side: LimSide,
 ) -> Result<NumStr, &'static str>
 {
     if point.clone().real().is_infinite()
@@ -2119,12 +2127,14 @@ pub fn limit(
         if positive
         {
             h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
-            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 4) as f64 + 5.35) - 3;
+            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 4) as f64 + 7.0 / 0.94)
+                - 3;
         }
         else
         {
             h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
-            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec.0 / 4) as f64 + 5.35);
+            h2 = 3 - Complex::with_val(options.prec, 2)
+                .pow((options.prec.0 / 4) as f64 + 7.0 / 0.94);
         }
         let n1 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h1))?;
         let n2 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h2))?;
@@ -2197,7 +2207,7 @@ pub fn limit(
             (Vector(v1), Vector(v2)) =>
             {
                 let mut v3: Vec<Complex> = Vec::new();
-                let mut vec = Vec::new();
+                let mut vec = Vec::with_capacity(v1.len());
                 for (i, (n1, n2)) in v1.iter().zip(v2).enumerate()
                 {
                     vec.push(
@@ -2274,7 +2284,7 @@ pub fn limit(
     }
     else
     {
-        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 4) as f64 + 5.35);
+        let h1 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 4) as f64 + 7.0 / 0.94);
         let h2 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 4);
         let n1 = do_math_with_var(
             func.clone(),
@@ -2290,61 +2300,176 @@ pub fn limit(
             &var,
             Num(point.clone() - h2.clone()),
         )?;
-        let n3 = do_math_with_var(
+        let n4 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
             Num(point.clone() + h1),
         )?;
-        let n4 = do_math_with_var(
+        let n5 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(point + h2),
+            Num(point.clone() + h2),
         )?;
-        fn lim(n1: &Complex, n2: &Complex, n3: &Complex, n4: &Complex, prec: (u32, u32))
-            -> Complex
+        match (n1, n2, n4, n5)
         {
-            if (n1.clone() - n3.clone()).abs().real().clone().log10() <= -10
-            {
-                if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
-                    && (n4.clone() - n3.clone()).abs().real().clone().log10() <= -10
+            (Num(n1), Num(n2), Num(n4), Num(n5)) => Ok(Num(
+                if (n1.clone() - n4.clone()).abs().real().clone().log10() <= -10
                 {
-                    Complex::with_val(prec, n1)
-                }
-                else if n1.real().clone().abs() > n2.real().clone().abs()
-                    && n3.real().clone().abs() > n4.real().clone().abs()
-                {
-                    if n1.real().is_sign_positive()
+                    if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
+                        && (n5.clone() - n4.clone()).abs().real().clone().log10() <= -10
                     {
-                        Complex::with_val(prec, Infinity)
+                        n1
                     }
                     else
                     {
-                        -Complex::with_val(prec, Infinity)
+                        let h3 = Complex::with_val(options.prec, 0.5)
+                            .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7);
+                        let n3 = do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(point.clone() - h3.clone()),
+                        )?
+                        .num()?;
+                        let n6 = do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(point + h3.clone()),
+                        )?
+                        .num()?;
+                        let positive = n1.real().is_sign_positive();
+                        let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
+                            && n2.real().is_sign_positive() == n3.real().is_sign_positive()
+                            && n3.real().is_sign_positive() == n4.real().is_sign_positive()
+                            && n4.real().is_sign_positive() == n5.real().is_sign_positive()
+                            && n5.real().is_sign_positive() == n6.real().is_sign_positive()
+                            && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
+                            && n2.imag().is_sign_positive() == n3.imag().is_sign_positive()
+                            && n3.imag().is_sign_positive() == n4.imag().is_sign_positive()
+                            && n4.imag().is_sign_positive() == n5.imag().is_sign_positive()
+                            && n5.imag().is_sign_positive() == n6.imag().is_sign_positive();
+                        let n1 = n1.abs().real().clone();
+                        let n2 = n2.abs().real().clone();
+                        let n3 = n3.abs().real().clone();
+                        let n4 = n4.abs().real().clone();
+                        let n5 = n5.abs().real().clone();
+                        let n6 = n6.abs().real().clone();
+                        if sign && n3 > n1 && n1 > n2 && n6 > n4 && n4 > n5
+                        {
+                            if positive
+                            {
+                                Complex::with_val(options.prec, Infinity)
+                            }
+                            else
+                            {
+                                -Complex::with_val(options.prec, Infinity)
+                            }
+                        }
+                        else
+                        {
+                            Complex::with_val(options.prec, Nan)
+                        }
                     }
                 }
                 else
                 {
-                    Complex::with_val(prec, Nan)
-                }
-            }
-            else
+                    Complex::with_val(options.prec, Nan)
+                },
+            )),
+            (Vector(n1), Vector(n2), Vector(n4), Vector(n5)) =>
             {
-                Complex::with_val(prec, Nan)
-            }
-        }
-        match (n1, n2, n3, n4)
-        {
-            (Num(n1), Num(n2), Num(n3), Num(n4)) => Ok(Num(lim(&n1, &n2, &n3, &n4, options.prec))),
-            (Vector(n1), Vector(n2), Vector(n3), Vector(n4)) =>
-            {
+                let mut n3: Vec<Complex> = Vec::new();
+                let mut n6: Vec<Complex> = Vec::new();
                 let mut vec = Vec::with_capacity(n1.len());
-                for (i, n1) in n1.iter().enumerate()
+                for (i, (n1, (n2, (n4, n5)))) in n1
+                    .iter()
+                    .zip(n2.iter().zip(n4.iter().zip(n5.iter())))
+                    .enumerate()
                 {
-                    vec.push(lim(n1, &n2[i], &n3[i], &n4[i], options.prec))
+                    vec.push(
+                        if (n1.clone() - n4.clone()).abs().real().clone().log10() <= -10
+                        {
+                            if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
+                                && (n5.clone() - n4.clone()).abs().real().clone().log10() <= -10
+                            {
+                                n1.clone()
+                            }
+                            else
+                            {
+                                if n3.is_empty()
+                                {
+                                    let h3 = Complex::with_val(options.prec, 0.5)
+                                        .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7);
+                                    n3 = do_math_with_var(
+                                        func.clone(),
+                                        options,
+                                        func_vars.clone(),
+                                        &var,
+                                        Num(point.clone() - h3.clone()),
+                                    )?
+                                    .vec()?;
+                                    n6 = do_math_with_var(
+                                        func.clone(),
+                                        options,
+                                        func_vars.clone(),
+                                        &var,
+                                        Num(point.clone() + h3.clone()),
+                                    )?
+                                    .vec()?;
+                                }
+                                let positive = n1.real().is_sign_positive();
+                                let sign = n1.real().is_sign_positive()
+                                    == n2.real().is_sign_positive()
+                                    && n2.real().is_sign_positive()
+                                        == n3[i].real().is_sign_positive()
+                                    && n3[i].real().is_sign_positive()
+                                        == n4.real().is_sign_positive()
+                                    && n4.real().is_sign_positive() == n5.real().is_sign_positive()
+                                    && n5.real().is_sign_positive()
+                                        == n6[i].real().is_sign_positive()
+                                    && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
+                                    && n2.imag().is_sign_positive()
+                                        == n3[i].imag().is_sign_positive()
+                                    && n3[i].imag().is_sign_positive()
+                                        == n4.imag().is_sign_positive()
+                                    && n4.imag().is_sign_positive() == n5.imag().is_sign_positive()
+                                    && n5.imag().is_sign_positive()
+                                        == n6[i].imag().is_sign_positive();
+                                let n1 = n1.clone().abs().real().clone();
+                                let n2 = n2.clone().abs().real().clone();
+                                let n3 = n3[i].clone().abs().real().clone();
+                                let n4 = n4.clone().abs().real().clone();
+                                let n5 = n5.clone().abs().real().clone();
+                                let n6 = n6[i].clone().abs().real().clone();
+                                if sign && n3 > n1 && n1 > n2 && n6 > n4 && n4 > n5
+                                {
+                                    if positive
+                                    {
+                                        Complex::with_val(options.prec, Infinity)
+                                    }
+                                    else
+                                    {
+                                        -Complex::with_val(options.prec, Infinity)
+                                    }
+                                }
+                                else
+                                {
+                                    Complex::with_val(options.prec, Nan)
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Complex::with_val(options.prec, Nan)
+                        },
+                    )
                 }
                 Ok(Vector(vec))
             }

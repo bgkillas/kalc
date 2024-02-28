@@ -3,7 +3,9 @@ use crate::{
         add, and, area, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, gcd, ge, gt,
         identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le, length, limit, lt,
         minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope,
-        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, NumStr,
+        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
+        LimSide::{Both, Left, Right},
+        NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
@@ -19,7 +21,7 @@ use rug::{
     ops::Pow,
     Complex, Float, Integer,
 };
-use std::ops::Rem;
+use std::{cmp::Ordering, ops::Rem};
 pub fn do_math(
     mut function: Vec<NumStr>,
     options: Options,
@@ -408,7 +410,7 @@ pub fn do_math(
                         },
                     )
                     {
-                        ("lim" | "limit", Str(var)) if place.len() == 3 =>
+                        ("lim" | "limit", Str(var)) if place.len() == 3 || place.len() == 4 =>
                         {
                             function[i] = limit(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -421,8 +423,29 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
+                                if place.len() == 4
+                                {
+                                    match (do_math(
+                                        function[place[2] + 1..place[3]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .real()
+                                    .to_f64() as isize)
+                                        .cmp(&0)
+                                    {
+                                        Ordering::Less => Left,
+                                        Ordering::Greater => Right,
+                                        Ordering::Equal => Both,
+                                    }
+                                }
+                                else
+                                {
+                                    Both
+                                },
                             )?;
-                            function.drain(i + 1..=place[2]);
+                            function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("length" | "arclength", Str(var))
                             if place.len() == 4 || place.len() == 5 =>

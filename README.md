@@ -1,4 +1,5 @@
 # kalc
+
 [![crates.io](https://img.shields.io/crates/v/kalc.svg)](https://crates.io/crates/kalc) [![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/9e8947b0-eef1-4a49-9bec-dbc4d311b9e0)
@@ -9,27 +10,33 @@ history file is stored in ```~/.config/kalc.history```
 
 config file is stored in ```~/.config/kalc.config``` example in repo
 
-you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo, also contains more advanced example usage
+you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo, also contains more
+advanced example usage
 
 parsing tries to comply with wolfram alpha
 
 config defaults listed in kalc.config
 
 # install instructions
+
 use aur or run
 ```cargo install kalc```
 
 # build instructions
+
 windows is not properly supported due to dependencys being weird, just use wsl
 
 dependencys are: rust>=1.73.0, diffutils, gcc, m4, make
+
 ```
 git clone https://github.com/bgkillas/kalc
 cd kalc
 cargo build --release
 ./target/release/kalc
 ```
+
 # usage
+
 ```
 Usage: kalc [FLAGS] function_1 function_2 function_3...
 FLAGS: --help (this message)
@@ -130,7 +137,7 @@ Functions:
 - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)
 - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
 - roll{a,b,c...} rolls die dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{first_dice_face,# of die},{second_dice_face,# of die}...}
-- lim(x,f(x),point)
+- lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right
 - slope(x,f(x),point), can add a 0 to the args to not combine the x and y slopes for parametric equations, and for area
 - area(x,f(x),from,to (,amount of data points) (,0) ), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)
 
@@ -187,7 +194,9 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,
 ==>±, `=>ⁱ _=>∞
 numbers/minus sign convert to superscript acting as exponents
 ```
+
 # example usage
+
 ```
 kalc
 > 1+1
@@ -228,6 +237,7 @@ piecewise({0±sqrt(2^2-x^2),(x<2)&&(x>-2)})
 3*{cos(x),sin(x)}
 exp(1i*x)
 ```
+
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc
 1.7724538509055159
@@ -240,7 +250,9 @@ kalc 'sqrt(pi)' 'pi^2'
 echo -ne 'sin(x)#cos(x)'|kalc // graphs sin(x) and cos(x) in 2D
 kalc 'sin(x)#cos(x)' // graphs sin(x) and cos(x) in 2D
 ```
+
 # graphing
+
 ```
 chars available for point style:
 . - dot

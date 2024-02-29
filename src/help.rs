@@ -87,7 +87,7 @@ pub fn help()
     - re, im, split(x+yi={{x,y}})\x1b[G\n\
     - factors, prime, isprime, gcd, lcm\x1b[G\n\
     - slog(a,b), ssrt(k,a) (k is lambert w branch)\x1b[G\n\
-    - piecewise({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\x1b[G\n\
+    - piecewise/pw({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\x1b[G\n\
     - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\x1b[G\n\
     - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\x1b[G\n\
     - variance/var, standarddeviation/σ (sample-bias corrected)\x1b[G\n\

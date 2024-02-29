@@ -1716,7 +1716,7 @@ pub fn length(
     {
         (start, end) = (end, start)
     }
-    let delta: Complex = (end - start.clone()) / points;
+    let delta: Complex = (end.clone() - start.clone()) / points;
     let mut x0: Complex = match slope(
         func.clone(),
         func_vars.clone(),
@@ -1726,7 +1726,17 @@ pub fn length(
         false,
     )?
     {
-        Num(nx0) => 1 + nx0.pow(2),
+        Num(nx0) =>
+        {
+            if nx0.real().is_infinite()
+            {
+                Complex::new(options.prec)
+            }
+            else
+            {
+                1 + nx0.pow(2)
+            }
+        }
         Vector(nx0) => nx0
             .iter()
             .map(|n| n.clone().pow(2))
@@ -1736,9 +1746,16 @@ pub fn length(
     .sqrt();
     let mut length = Complex::new(options.prec);
     let h: Complex = delta.clone() / 4;
-    for _ in 0..points
+    for i in 0..points
     {
-        start += delta.clone();
+        if i + 1 == points
+        {
+            start = end.clone()
+        }
+        else
+        {
+            start += delta.clone();
+        }
         let x1 = slope(
             func.clone(),
             func_vars.clone(),
@@ -1775,10 +1792,38 @@ pub fn length(
         {
             (Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
-                let nx1: Complex = 1 + nx1.pow(2);
-                let nx2: Complex = 1 + nx2.pow(2);
-                let nx3: Complex = 1 + nx3.pow(2);
-                let nx4: Complex = 1 + nx4.pow(2);
+                let nx1: Complex = if nx1.real().is_infinite()
+                {
+                    Complex::new(options.prec)
+                }
+                else
+                {
+                    1 + nx1.pow(2)
+                };
+                let nx2: Complex = if nx2.real().is_infinite()
+                {
+                    Complex::new(options.prec)
+                }
+                else
+                {
+                    1 + nx2.pow(2)
+                };
+                let nx3: Complex = if nx3.real().is_infinite()
+                {
+                    Complex::new(options.prec)
+                }
+                else
+                {
+                    1 + nx3.pow(2)
+                };
+                let nx4: Complex = if nx4.real().is_infinite()
+                {
+                    Complex::new(options.prec)
+                }
+                else
+                {
+                    1 + nx4.pow(2)
+                };
                 let nx4 = nx4.sqrt();
                 length += 2
                     * h.clone()
@@ -1830,7 +1875,7 @@ pub fn area(
 ) -> Result<NumStr, &'static str>
 {
     let mut funcs = Vec::new();
-    if combine && func[0].str_is("{")
+    if combine && !func.is_empty() && func[0].str_is("{")
     {
         let mut brackets = 0;
         let mut last = 1;
@@ -1859,7 +1904,7 @@ pub fn area(
     }
     let mut areavec: Vec<Complex> = Vec::new();
     let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
-    let delta: Complex = (end - start.clone()) / points;
+    let delta: Complex = (end.clone() - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
     let mut x0 = do_math_with_var(
         func.clone(),
@@ -1895,9 +1940,16 @@ pub fn area(
         x0 = Num(x0.num()? * nx0t.sqrt());
     }
     let h: Complex = delta.clone() / 4;
-    for _ in 0..points
+    for i in 0..points
     {
-        start += delta.clone();
+        if i + 1 == points
+        {
+            start = end.clone()
+        }
+        else
+        {
+            start += delta.clone();
+        }
         let x1 = do_math_with_var(
             func.clone(),
             options,
@@ -2075,11 +2127,33 @@ pub fn slope(
         options,
         func_vars.clone(),
         &var,
-        Num(point + h.clone()),
+        Num(point.clone() + h.clone()),
     )?;
     match (n1, n2)
     {
-        (Num(n1), Num(n2)) => Ok(Num((n2 - n1) / h)),
+        (Num(mut n1), Num(mut n2)) =>
+        {
+            if n2.real().is_nan()
+            {
+                n2 = n1;
+                n1 = do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &var,
+                    Num(point - h.clone()),
+                )?
+                .num()?;
+            }
+            if (n2.clone() - n1.clone()).abs().real().clone().log10() > -30
+            {
+                Ok(Num(Complex::with_val(options.prec, Infinity)))
+            }
+            else
+            {
+                Ok(Num((n2 - n1) / h))
+            }
+        }
         (Vector(n1), Vector(n2)) if !combine => Ok(Vector(
             n2.iter()
                 .zip(n1)

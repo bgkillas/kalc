@@ -823,7 +823,7 @@ pub fn input_var(
             countv -= 1;
             word.pop();
         }
-        if word == "piecewise" && piecewise == 0
+        if (word == "piecewise" || word == "pw") && piecewise == 0
         {
             piecewise = *bracket as usize + 1;
         }

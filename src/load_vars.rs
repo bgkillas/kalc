@@ -808,7 +808,7 @@ pub fn add_var(
                 },
             )
         }
-        if l.contains(&'(') && r.contains("piecewise")
+        if l.contains(&'(') && (r.contains("piecewise") || r.contains("pw"))
         {
             let parsed = vars[i].parsed.clone();
             vars[i]

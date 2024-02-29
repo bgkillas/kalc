@@ -316,6 +316,7 @@ pub fn do_math(
                                     | "vec"
                                     | "mat"
                                     | "piecewise"
+                                    | "pw"
                                     | "D"
                                     | "integrate"
                                     | "arclength"
@@ -366,6 +367,7 @@ pub fn do_math(
                         | "vec"
                         | "mat"
                         | "piecewise"
+                        | "pw"
                         | "D"
                         | "integrate"
                         | "arclength"
@@ -379,7 +381,8 @@ pub fn do_math(
                     {
                         if let Str(w) = n
                         {
-                            if w == "," && (count == 0 || (s == "piecewise" && count == 1))
+                            if w == ","
+                                && (count == 0 || ((s == "piecewise" || s == "pw") && count == 1))
                             {
                                 place.push(f + i + 2);
                             }
@@ -541,7 +544,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("piecewise", _) =>
+                        ("pw" | "piecewise", _) =>
                         {
                             let mut ans = None;
                             let mut start = i + 3;

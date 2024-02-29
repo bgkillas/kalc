@@ -170,6 +170,7 @@ pub fn functions() -> HashSet<&'static str>
         "normD",
         "normP",
         "piecewise",
+        "pw",
         "is_prime",
         "isprime",
         "dice",

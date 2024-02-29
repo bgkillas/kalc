@@ -269,6 +269,11 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
             let c = input[i];
             match c
             {
+                '#' =>
+                {
+                    count = 0;
+                    output.push(c)
+                }
                 '\x1b' =>
                 {
                     ignore = true;

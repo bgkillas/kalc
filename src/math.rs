@@ -2717,10 +2717,16 @@ fn functions(
         "subfact" =>
         {
             if !a.imag().is_zero()
-                || a.real().is_sign_negative()
-                || !a.real().clone().fract().is_zero()
+            {
+                return Err("complex subfactorial not supported");
+            }
+            else if a.real().is_sign_negative() || !a.real().clone().fract().is_zero()
             {
                 subfactorial(a)
+            }
+            else if a.real().is_zero()
+            {
+                Complex::with_val(options.prec, 1)
             }
             else
             {

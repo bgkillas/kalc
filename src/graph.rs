@@ -38,9 +38,9 @@ pub fn graph(
         let mut d2_or_d3 = (false, false);
         let mut lines = false;
         let mut handles = Vec::new();
-        for func in func
+        for (func, input) in func.iter().zip(input.iter())
         {
-            handles.push(get_data(colors.clone(), func));
+            handles.push(get_data(colors.clone(), func.clone(), input.clone()));
         }
         let mut i = 0;
         #[allow(clippy::explicit_counter_loop)]
@@ -903,7 +903,7 @@ pub fn graph(
         }
         if let Some(time) = watch
         {
-            print!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis(),);
+            print!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis());
             stdout().flush().unwrap();
         }
         if fg.show().is_err()
@@ -1132,12 +1132,17 @@ pub fn get_list_2d(
             {}
         }
     }
-    if !zero.0
+    if !zero.0 && zero.1
     {
         data[0][1] = Vec::new();
         data3d[0] = Vec::new();
     }
-    if !zero.1
+    if !zero.1 && zero.0
+    {
+        data[1][1] = Vec::new();
+        data3d[1] = Vec::new();
+    }
+    if !zero.1 && !zero.0
     {
         data[1][1] = Vec::new();
         data3d[1] = Vec::new();
@@ -1376,20 +1381,25 @@ pub fn get_list_3d(
             }
         }
     }
-    if !zero.0
+    if !zero.0 && zero.1
     {
         data[0][2] = Vec::new();
     }
-    if !zero.1
+    if !zero.1 && zero.0
+    {
+        data[1][2] = Vec::new();
+    }
+    if !zero.1 && !zero.0
     {
         data[1][2] = Vec::new();
     }
     (data, zero, d2)
 }
-fn fail(options: Options, colors: &Colors)
+fn fail(options: Options, colors: &Colors, input: String)
 {
     print!(
-        "\x1b[G\x1b[KNo data to plot\x1b[G\n{}",
+        "\x1b[G\x1b[KNo data to plot for {}\x1b[G\n{}",
+        input,
         prompt(options, colors)
     );
     stdout().flush().unwrap();
@@ -1398,6 +1408,7 @@ fn fail(options: Options, colors: &Colors)
 fn get_data(
     colors: Colors,
     func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
+    input: String,
 ) -> JoinHandle<(
     (bool, bool),
     (bool, bool),
@@ -1426,7 +1437,7 @@ fn get_data(
                 Ok(n) => n,
                 _ =>
                 {
-                    fail(func.2, &colors);
+                    fail(func.2, &colors, input);
                     return (
                         (false, false),
                         (false, false),
@@ -1441,10 +1452,29 @@ fn get_data(
                 Num(n) =>
                 {
                     d2_or_d3.0 = true;
-                    (points2d, _, re_or_im) = get_list_2d((vec![Num(n)], Vec::new(), func.2));
+                    let change = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
+                    let im = n.imag().to_f64();
+                    let re = n.real().to_f64();
+                    for i in 0..func.2.samples_2d
+                    {
+                        if re != 0.0
+                        {
+                            points2d[0][0].push(func.2.xr.0 + change * i as f64);
+                            points2d[0][1].push(re);
+                        }
+                        if im != 0.0
+                        {
+                            if re == 0.0
+                            {
+                                points2d[1][0].push(func.2.xr.0 + change * i as f64);
+                            }
+                            points2d[1][1].push(im);
+                        }
+                    }
+                    re_or_im = (re != 0.0, im != 0.0);
                     if points2d[0][1].is_empty() && points2d[1][1].is_empty()
                     {
-                        fail(func.2, &colors);
+                        fail(func.2, &colors, input);
                         return (
                             (false, false),
                             (false, false),
@@ -1495,7 +1525,7 @@ fn get_data(
                             points2d[1][1].extend(points2dtemp[1][1].clone());
                             if points2d[0][1].is_empty() && points2d[1][1].is_empty()
                             {
-                                fail(func.2, &colors);
+                                fail(func.2, &colors, input);
                                 return (
                                     (false, false),
                                     (false, false),
@@ -1660,7 +1690,7 @@ fn get_data(
             }
             else if points2d[0][1].is_empty() && points2d[1][1].is_empty()
             {
-                fail(func.2, &colors);
+                fail(func.2, &colors, input);
                 return (
                     (false, false),
                     (false, false),
@@ -1712,7 +1742,7 @@ fn get_data(
             }
             else if points3d[0][2].is_empty() && points3d[1][2].is_empty()
             {
-                fail(func.2, &colors);
+                fail(func.2, &colors, input);
                 return (
                     (false, false),
                     (false, false),

@@ -406,11 +406,9 @@ pub fn root(a: &Complex, b: &Complex) -> Complex
         && b.real().clone().fract().is_zero()
         && a.imag().is_zero()
     {
-        true => Complex::with_val(
-            a.prec(),
-            a.real() / a.real().clone().abs()
-                * a.real().clone().abs().pow(b.real().clone().recip()),
-        ),
+        true => (a.real() / a.real().clone().abs()
+            * a.real().clone().abs().pow(b.real().clone().recip()))
+        .into(),
         false => a.pow(b.clone().recip()),
     }
 }
@@ -567,7 +565,7 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
                     a[0].clone().abs(),
                     if a[0].real().is_sign_positive()
                     {
-                        Complex::with_val(a[0].prec(), 0)
+                        Complex::new(a[0].prec())
                     }
                     else
                     {
@@ -593,17 +591,17 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
             if a[2].is_zero()
             {
                 vec![
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
+                    Complex::new(a[0].prec()),
+                    Complex::new(a[0].prec()),
+                    Complex::new(a[0].prec()),
                 ]
             }
             else
             {
                 vec![
                     a[2].clone().abs(),
-                    Complex::with_val(a[0].prec(), 0),
-                    Complex::with_val(a[0].prec(), 0),
+                    Complex::new(a[0].prec()),
+                    Complex::new(a[0].prec()),
                 ]
             }
         }
@@ -614,7 +612,7 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
             vec![
                 n.clone(),
                 (&a[2] / n).acos() * to_deg.clone(),
-                Complex::with_val(a[0].prec(), 0),
+                Complex::new(a[0].prec()),
             ]
         }
     }
@@ -724,13 +722,14 @@ pub fn mvec(
             let mut func_vars = func_vars.clone();
             let mut bracket = 0;
             let mut sum: Vec<usize> = Vec::new();
+            let n = Num(Complex::with_val(options.prec, z));
             for (i, k) in func.clone().iter().enumerate()
             {
                 if let Str(s) = k
                 {
                     if s == var && sum.is_empty()
                     {
-                        func[i] = Num(Complex::with_val(options.prec, z));
+                        func[i] = n.clone();
                     }
                     else
                     {
@@ -767,7 +766,7 @@ pub fn mvec(
                     {
                         if f.str_is(var)
                         {
-                            *f = Num(Complex::with_val(options.prec, z));
+                            *f = n.clone();
                             dirty = true
                         }
                     }
@@ -804,13 +803,14 @@ pub fn mvec(
             let mut func_vars = func_vars.clone();
             let mut bracket = 0;
             let mut sum: Vec<usize> = Vec::new();
+            let n = Num(Complex::with_val(options.prec, z));
             for (i, k) in func.clone().iter().enumerate()
             {
                 if let Str(s) = k
                 {
                     if s == var && sum.is_empty()
                     {
-                        func[i] = Num(Complex::with_val(options.prec, z));
+                        func[i] = n.clone();
                     }
                     else
                     {
@@ -847,7 +847,7 @@ pub fn mvec(
                     {
                         if f.str_is(var)
                         {
-                            *f = Num(Complex::with_val(options.prec, z));
+                            *f = n.clone();
                             dirty = true
                         }
                     }
@@ -925,13 +925,14 @@ pub fn sum(
         let mut func_vars = func_vars.clone();
         let mut bracket = 0;
         let mut sum: Vec<usize> = Vec::new();
+        let n = Num(Complex::with_val(options.prec, z));
         for (i, k) in func.clone().iter().enumerate()
         {
             if let Str(s) = k
             {
                 if s == var && sum.is_empty()
                 {
-                    func[i] = Num(Complex::with_val(options.prec, z));
+                    func[i] = n.clone();
                 }
                 else
                 {
@@ -968,7 +969,7 @@ pub fn sum(
                 {
                     if f.str_is(var)
                     {
-                        *f = Num(Complex::with_val(options.prec, z));
+                        *f = n.clone();
                         dirty = true
                     }
                 }
@@ -1778,7 +1779,7 @@ pub fn length(
     {
         Num(nx0) =>
         {
-            if nx0.real().is_infinite()
+            if !nx0.real().is_finite()
             {
                 Complex::new(options.prec)
             }
@@ -1842,7 +1843,7 @@ pub fn length(
         {
             (Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
-                let nx1: Complex = if nx1.real().is_infinite()
+                let nx1: Complex = if !nx1.real().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1850,7 +1851,7 @@ pub fn length(
                 {
                     1 + nx1.pow(2)
                 };
-                let nx2: Complex = if nx2.real().is_infinite()
+                let nx2: Complex = if !nx2.real().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1858,7 +1859,7 @@ pub fn length(
                 {
                     1 + nx2.pow(2)
                 };
-                let nx3: Complex = if nx3.real().is_infinite()
+                let nx3: Complex = if !nx3.real().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1866,7 +1867,7 @@ pub fn length(
                 {
                     1 + nx3.pow(2)
                 };
-                let nx4: Complex = if nx4.real().is_infinite()
+                let nx4: Complex = if !nx4.real().is_finite()
                 {
                     //TODO make for all and slope
                     Complex::new(options.prec)
@@ -1913,6 +1914,7 @@ pub fn length(
     }
     Ok(length)
 }
+//TODO ignore removables
 #[allow(clippy::too_many_arguments)]
 pub fn area(
     mut func: Vec<NumStr>,

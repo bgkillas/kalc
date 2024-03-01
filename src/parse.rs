@@ -159,14 +159,11 @@ pub fn input_var(
             {
                 output.push(Str('^'.to_string()));
             }
-            output.push(Num(Complex::with_val(
-                options.prec,
-                match Complex::parse(pow.as_bytes())
-                {
-                    Ok(n) => n,
-                    _ => return Err("exponent error"),
-                },
-            ) * Complex::with_val(options.prec, (0, 1))
+            output.push(Num(match Complex::parse(pow.as_bytes())
+            {
+                Ok(n) => n.complete(options.prec),
+                _ => return Err("exponent error"),
+            } * Complex::with_val(options.prec, (0, 1))
                 .pow(Complex::with_val(options.prec, i))));
             pow = String::new();
         }
@@ -576,14 +573,11 @@ pub fn input_var(
                     if !exp.0.is_empty() && exp.1 == *bracket
                     {
                         output.push(Str("^".to_string()));
-                        output.push(Num(Complex::with_val(
-                            options.prec,
-                            match Complex::parse(exp.0.as_bytes())
-                            {
-                                Ok(n) => n,
-                                _ => return Err("exponent error"),
-                            },
-                        )));
+                        output.push(Num(match Complex::parse(exp.0.as_bytes())
+                        {
+                            Ok(n) => n.complete(options.prec),
+                            _ => return Err("exponent error"),
+                        }));
                         exp = (String::new(), 0);
                     }
                 }
@@ -1414,14 +1408,11 @@ pub fn input_var(
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
-                                output.push(Num(Complex::with_val(
-                                    options.prec,
-                                    match Complex::parse(exp.0.as_bytes())
-                                    {
-                                        Ok(n) => n,
-                                        _ => return Err("exponent error"),
-                                    },
-                                )));
+                                output.push(Num(match Complex::parse(exp.0.as_bytes())
+                                {
+                                    Ok(n) => n.complete(options.prec),
+                                    _ => return Err("exponent error"),
+                                }));
                                 exp = (String::new(), 0);
                             }
                             i += 1;

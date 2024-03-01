@@ -122,9 +122,9 @@ Functions:
 - root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
 - ceil, floor, round, int, frac
-- fact, doublefact, subfact (real)
+- fact, doublefact, subfact
 - sinc, cis, exp
-- zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r) (all real only)
+- zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r)
 - deg, rad, grad
 - re, im, split(x+yi={x,y})
 - factors, prime, isprime, gcd, lcm

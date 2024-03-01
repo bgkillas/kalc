@@ -341,9 +341,9 @@ pub fn do_math(
     i = 0;
     let to_deg = match options.deg
     {
-        Degrees => Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi),
+        Degrees => 180 / Complex::with_val(options.prec, Pi),
         Radians => Complex::with_val(options.prec, 1),
-        Gradians => Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi),
+        Gradians => 200 / Complex::with_val(options.prec, Pi),
     };
     while i < function.len() - 1
     {
@@ -1250,9 +1250,7 @@ pub fn do_math(
                                             break;
                                         }
                                     }
-                                    Num(100
-                                        * (Complex::with_val(options.prec, cf)
-                                            + (0.5 * Complex::with_val(options.prec, f)))
+                                    Num(100 * (cf + Complex::with_val(options.prec, f) / 2)
                                         / a.len())
                                 }
                                 "tofreq" =>
@@ -2590,31 +2588,19 @@ fn functions(
         "abs" | "norm" => a.abs(),
         "deg" | "degree" => match options.deg
         {
-            Radians =>
-            {
-                a * Complex::with_val(options.prec, 180) / Complex::with_val(options.prec, Pi)
-            }
+            Radians => a * 180 / Complex::with_val(options.prec, Pi),
             Gradians => a * 180.0 / 200.0,
             Degrees => a,
         },
         "rad" | "radian" => match options.deg
         {
             Radians => a,
-            Gradians =>
-            {
-                a * Complex::with_val(options.prec, Pi) / Complex::with_val(options.prec, 200)
-            }
-            Degrees =>
-            {
-                a * Complex::with_val(options.prec, Pi) / Complex::with_val(options.prec, 180)
-            }
+            Gradians => a * Complex::with_val(options.prec, Pi) / 200,
+            Degrees => a * Complex::with_val(options.prec, Pi) / 180,
         },
         "grad" | "gradian" => match options.deg
         {
-            Radians =>
-            {
-                a * Complex::with_val(options.prec, 200) / Complex::with_val(options.prec, Pi)
-            }
+            Radians => a * 200 / Complex::with_val(options.prec, Pi),
             Gradians => a,
             Degrees => a * 200.0 / 180.0,
         },
@@ -2628,7 +2614,7 @@ fn functions(
             }
             else
             {
-                Complex::with_val(options.prec, a.clone() / a.abs())
+                a.clone() / a.abs()
             }
         }
         "arg" => a.arg(),
@@ -2642,14 +2628,12 @@ fn functions(
                 }
                 else
                 {
-                    Complex::with_val(
-                        options.prec,
-                        a.real() / a.real().clone().abs()
-                            * a.real()
-                                .clone()
-                                .abs()
-                                .pow(Float::with_val(a.prec().0, 3).recip()),
-                    )
+                    (a.real() / a.real().clone().abs()
+                        * a.real()
+                            .clone()
+                            .abs()
+                            .pow(Float::with_val(a.prec().0, 3).recip()))
+                    .into()
                 }
             }
             else
@@ -2715,7 +2699,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(options.prec, a.real().clone().erf())
+                a.real().clone().erf().into()
             }
             else
             {
@@ -2726,7 +2710,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(options.prec, a.real().clone().erfc())
+                a.real().clone().erfc().into()
             }
             else
             {
@@ -2737,7 +2721,7 @@ fn functions(
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(options.prec, a.real().clone().ai())
+                a.real().clone().ai().into()
             }
             else
             {
@@ -2754,7 +2738,7 @@ fn functions(
                 }
                 else
                 {
-                    Complex::with_val(options.prec, a.real().clone().digamma())
+                    a.real().clone().digamma().into()
                 }
             }
             else
@@ -2762,11 +2746,12 @@ fn functions(
                 return Err("complex digamma not supported");
             }
         }
+        //TODO get rid of complex not supported
         "zeta" | "ζ" =>
         {
             if a.imag().is_zero()
             {
-                Complex::with_val(options.prec, a.real().clone().zeta())
+                a.real().clone().zeta().into()
             }
             else
             {
@@ -2788,11 +2773,9 @@ fn functions(
         {
             if let Some(b) = c
             {
-                Complex::with_val(options.prec, {
-                    let a = a.real().to_integer().unwrap();
-                    let b = b.real().to_integer().unwrap();
-                    a.clone() * b.clone() / gcd(a, b)
-                })
+                let a = a.real().to_integer().unwrap();
+                let b = b.real().to_integer().unwrap();
+                Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
             }
             else
             {

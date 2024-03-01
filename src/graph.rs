@@ -903,8 +903,7 @@ pub fn graph(
         }
         if let Some(time) = watch
         {
-            print!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis());
-            stdout().flush().unwrap();
+            println!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis());
         }
         if fg.show().is_err()
         {

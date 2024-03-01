@@ -718,74 +718,13 @@ pub fn mvec(
     {
         for z in start..=end
         {
-            let mut func = function.clone();
-            let mut func_vars = func_vars.clone();
-            let mut bracket = 0;
-            let mut sum: Vec<usize> = Vec::new();
-            let n = Num(Complex::with_val(options.prec, z));
-            for (i, k) in func.clone().iter().enumerate()
-            {
-                if let Str(s) = k
-                {
-                    if s == var && sum.is_empty()
-                    {
-                        func[i] = n.clone();
-                    }
-                    else
-                    {
-                        match s.as_str()
-                        {
-                            "(" => bracket += 1,
-                            ")" =>
-                            {
-                                bracket -= 1;
-                                if sum.contains(&bracket)
-                                {
-                                    sum.pop();
-                                }
-                            }
-                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
-                            | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
-                            | "slope" | "lim" | "limit"
-                                if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
-                            {
-                                sum.push(bracket)
-                            }
-                            _ =>
-                            {}
-                        }
-                    }
-                }
-            }
-            for k in func_vars.iter_mut()
-            {
-                let mut dirty = false;
-                if !k.0.contains('(')
-                {
-                    for f in k.1.iter_mut()
-                    {
-                        if f.str_is(var)
-                        {
-                            *f = n.clone();
-                            dirty = true
-                        }
-                    }
-                }
-                if dirty
-                {
-                    let num = do_math(k.1.clone(), options, Vec::new());
-                    for (i, f) in func.clone().iter().enumerate()
-                    {
-                        if f.str_is(&k.0)
-                        {
-                            func.remove(i);
-                            func.splice(i..i, num.clone());
-                        }
-                    }
-                }
-            }
-            let math = do_math(func, options, func_vars.clone())?;
-            match math
+            match do_math_with_var(
+                function.clone(),
+                options,
+                func_vars.clone(),
+                var,
+                Num(Complex::with_val(options.prec, z)),
+            )?
             {
                 Num(n) => vec.push(n),
                 Vector(v) if mvec => vec.extend(v),
@@ -799,74 +738,13 @@ pub fn mvec(
     {
         for z in (end..=start).rev()
         {
-            let mut func = function.clone();
-            let mut func_vars = func_vars.clone();
-            let mut bracket = 0;
-            let mut sum: Vec<usize> = Vec::new();
-            let n = Num(Complex::with_val(options.prec, z));
-            for (i, k) in func.clone().iter().enumerate()
-            {
-                if let Str(s) = k
-                {
-                    if s == var && sum.is_empty()
-                    {
-                        func[i] = n.clone();
-                    }
-                    else
-                    {
-                        match s.as_str()
-                        {
-                            "(" => bracket += 1,
-                            ")" =>
-                            {
-                                bracket -= 1;
-                                if sum.contains(&bracket)
-                                {
-                                    sum.pop();
-                                }
-                            }
-                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
-                            | "mat" | "D" | "integrate" | "arclength" | "area" | "length"
-                            | "slope" | "lim" | "limit"
-                                if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
-                            {
-                                sum.push(bracket)
-                            }
-                            _ =>
-                            {}
-                        }
-                    }
-                }
-            }
-            for k in func_vars.iter_mut()
-            {
-                let mut dirty = false;
-                if !k.0.contains('(')
-                {
-                    for f in k.1.iter_mut()
-                    {
-                        if f.str_is(var)
-                        {
-                            *f = n.clone();
-                            dirty = true
-                        }
-                    }
-                }
-                if dirty
-                {
-                    let num = do_math(k.1.clone(), options, Vec::new());
-                    for (i, f) in func.clone().iter().enumerate()
-                    {
-                        if f.str_is(&k.0)
-                        {
-                            func.remove(i);
-                            func.splice(i..i, num.clone());
-                        }
-                    }
-                }
-            }
-            let math = do_math(func, options, func_vars.clone())?;
-            match math
+            match do_math_with_var(
+                function.clone(),
+                options,
+                func_vars.clone(),
+                var,
+                Num(Complex::with_val(options.prec, z)),
+            )?
             {
                 Num(n) => vec.push(n),
                 Vector(v) if mvec => vec.extend(v),
@@ -921,73 +799,13 @@ pub fn sum(
         end..=start
     }
     {
-        let mut func = function.clone();
-        let mut func_vars = func_vars.clone();
-        let mut bracket = 0;
-        let mut sum: Vec<usize> = Vec::new();
-        let n = Num(Complex::with_val(options.prec, z));
-        for (i, k) in func.clone().iter().enumerate()
-        {
-            if let Str(s) = k
-            {
-                if s == var && sum.is_empty()
-                {
-                    func[i] = n.clone();
-                }
-                else
-                {
-                    match s.as_str()
-                    {
-                        "(" => bracket += 1,
-                        ")" =>
-                        {
-                            bracket -= 1;
-                            if sum.contains(&bracket)
-                            {
-                                sum.pop();
-                            }
-                        }
-                        "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
-                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope" | "lim"
-                        | "limit"
-                            if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
-                        {
-                            sum.push(bracket)
-                        }
-                        _ =>
-                        {}
-                    }
-                }
-            }
-        }
-        for k in func_vars.iter_mut()
-        {
-            let mut dirty = false;
-            if !k.0.contains('(')
-            {
-                for f in k.1.iter_mut()
-                {
-                    if f.str_is(var)
-                    {
-                        *f = n.clone();
-                        dirty = true
-                    }
-                }
-            }
-            if dirty
-            {
-                let num = do_math(k.1.clone(), options, Vec::new());
-                for (i, f) in func.clone().iter().enumerate()
-                {
-                    if f.str_is(&k.0)
-                    {
-                        func.remove(i);
-                        func.splice(i..i, num.clone());
-                    }
-                }
-            }
-        }
-        let math = do_math(func, options, func_vars.clone())?;
+        let math = do_math_with_var(
+            function.clone(),
+            options,
+            func_vars.clone(),
+            var,
+            Num(Complex::with_val(options.prec, z)),
+        )?;
         if product
         {
             value = value.mul(&math)?;

@@ -397,13 +397,16 @@ pub fn place_funcvarxy(
 {
     for i in funcvar.iter_mut()
     {
-        for j in i.1.iter_mut()
+        if !i.0.contains('(')
         {
-            if let Str(s) = j
+            for j in i.1.iter_mut()
             {
-                if matches!(s.as_str(), "x" | "y")
+                if let Str(s) = j
                 {
-                    *j = num.clone()
+                    if matches!(s.as_str(), "x" | "y")
+                    {
+                        *j = num.clone()
+                    }
                 }
             }
         }
@@ -418,13 +421,16 @@ pub fn place_funcvar(
 {
     for i in funcvar.iter_mut()
     {
-        for j in i.1.iter_mut()
+        if !i.0.contains('(')
         {
-            if let Str(s) = j
+            for j in i.1.iter_mut()
             {
-                if s == var
+                if let Str(s) = j
                 {
-                    *j = num.clone()
+                    if s == var
+                    {
+                        *j = num.clone()
+                    }
                 }
             }
         }
@@ -433,29 +439,87 @@ pub fn place_funcvar(
 }
 pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
 {
-    for i in func.iter_mut()
+    let mut sum = Vec::new();
+    let mut bracket = 0;
+    let mut i = 0;
+    while func.len() > i
     {
-        if let Str(s) = i
+        if let Str(s) = &func[i]
         {
-            if matches!(s.as_str(), "x" | "y")
+            if matches!(s.as_str(), "x" | "y") && sum.is_empty()
             {
-                *i = num.clone()
+                func[i] = num.clone();
+            }
+            else
+            {
+                match s.as_str()
+                {
+                    "(" => bracket += 1,
+                    ")" => bracket -= 1,
+                    "," if sum.contains(&bracket) =>
+                    {
+                        sum.remove(0);
+                    }
+                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
+                    | "integrate" | "arclength" | "area" | "length" | "slope" | "lim" | "limit"
+                        if i + 2 < func.len()
+                            && if let Str(s) = &func[i + 2]
+                            {
+                                matches!(s.as_str(), "x" | "y")
+                            }
+                            else
+                            {
+                                false
+                            } =>
+                    {
+                        i += 3;
+                        sum.push(bracket)
+                    }
+                    _ =>
+                    {}
+                }
             }
         }
+        i += 1;
     }
     func
 }
 pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
 {
-    for i in func.iter_mut()
+    let mut sum = Vec::new();
+    let mut bracket = 0;
+    let mut i = 0;
+    while func.len() > i
     {
-        if let Str(s) = i
+        if let Str(s) = &func[i]
         {
-            if s == var
+            if s == var && sum.is_empty()
             {
-                *i = num.clone()
+                func[i] = num.clone();
+            }
+            else
+            {
+                match s.as_str()
+                {
+                    "(" => bracket += 1,
+                    ")" => bracket -= 1,
+                    "," if sum.contains(&bracket) =>
+                    {
+                        sum.remove(0);
+                    }
+                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
+                    | "integrate" | "arclength" | "area" | "length" | "slope" | "lim" | "limit"
+                        if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
+                    {
+                        i += 3;
+                        sum.push(bracket)
+                    }
+                    _ =>
+                    {}
+                }
             }
         }
+        i += 1;
     }
     func
 }

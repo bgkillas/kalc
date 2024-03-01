@@ -471,15 +471,20 @@ pub fn rem(a: &Complex, b: &Complex) -> Complex
     );
     a - b * c
 }
-pub fn gamma(a: &Float) -> Float
+pub fn gamma(a: Complex) -> Complex
 {
-    if a.is_sign_negative() && a.clone().fract().is_zero()
+    if !a.imag().is_zero()
     {
-        Float::with_val(a.prec(), Infinity)
+        let p = a.prec();
+        incomplete_gamma(a, Complex::new(p))
+    }
+    else if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
+    {
+        Complex::with_val(a.prec(), Infinity)
     }
     else
     {
-        a.clone().gamma()
+        a.real().clone().gamma().into()
     }
 }
 pub fn tetration(a: &Complex, b: &Complex) -> Complex
@@ -1597,7 +1602,7 @@ pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
 {
     if x.real() > &((a.real().clone() + 1) / (a.real() + b.real().clone() + 2))
     {
-        (gamma(a.real()) * gamma(b.real()) / gamma(&(a.real() + b.real().clone())))
+        (gamma(a.clone()) * gamma(b.clone()) / gamma(a.clone() + b.clone()))
             - incomplete_beta(1 - x, b, a)
     }
     else
@@ -1628,6 +1633,44 @@ fn incomplete_beta_recursion(x: Complex, a: Complex, b: Complex, iter: usize, ma
             / (1 + incomplete_beta_recursion(x, a, b, iter + 1, max))
     }
 }
+fn gamma0(z: Complex) -> Complex
+{
+    gamma0_recursion_first(z.clone(), 0, 100) + gamma0_recursion_second(z, 0, 100)
+}
+fn gamma0_recursion_first(z: Complex, iter: usize, max: usize) -> Complex
+{
+    if iter == max
+    {
+        Complex::with_val(z.prec(), 1)
+    }
+    else if iter == 0
+    {
+        Float::with_val(z.prec().0, -1).exp() / gamma0_recursion_first(z, 1, max)
+    }
+    else
+    {
+        2 * iter - z.clone() + iter * (z.clone() - iter) / gamma0_recursion_first(z, iter + 1, max)
+    }
+}
+fn gamma0_recursion_second(z: Complex, iter: usize, max: usize) -> Complex
+{
+    if iter == max
+    {
+        Complex::with_val(z.prec(), 1)
+    }
+    else if iter == 0
+    {
+        Float::with_val(z.prec().0, -1).exp() / gamma0_recursion_second(z, 1, max)
+    }
+    else if iter % 2 == 1
+    {
+        (iter - 1) + z.clone() - (z.clone() + iter / 2) / gamma0_recursion_second(z, iter + 1, max)
+    }
+    else
+    {
+        (iter - 1) + z.clone() + (iter / 2) / gamma0_recursion_second(z, iter + 1, max)
+    }
+}
 pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
 {
     // let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
@@ -1645,7 +1688,14 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
     //         break;
     //     }
     // }
-    incomplete_gamma_recursion(s, z, 0, 100)
+    if z.is_zero()
+    {
+        gamma0(s)
+    }
+    else
+    {
+        incomplete_gamma_recursion(s, z, 0, 100)
+    }
 }
 fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -> Complex
 {
@@ -1685,7 +1735,7 @@ pub fn subfactorial(z: Complex) -> Complex
     //     }
     // }
     subfactorial_recursion(z.clone(), 0, 100)
-        + gamma(&(z.real().clone() + 1)) / Complex::with_val(z.prec(), 1).exp()
+        + gamma(z.clone() + 1) / Complex::with_val(z.prec(), 1).exp()
 }
 fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
 {
@@ -1818,6 +1868,7 @@ pub fn length(
                 };
                 let nx4: Complex = if nx4.real().is_infinite()
                 {
+                    //TODO make for all and slope
                     Complex::new(options.prec)
                 }
                 else

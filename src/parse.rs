@@ -1134,7 +1134,7 @@ pub fn input_var(
                             i = j;
                             continue;
                         }
-                        if piecewise != 0
+                        if blacklist == var.name && piecewise != 0
                         {
                             output.push(Str("@".to_owned() + &var.name.iter().collect::<String>()));
                             i = j + var.name.split(|c| c == &'(').next().unwrap().len();

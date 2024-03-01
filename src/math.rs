@@ -1707,12 +1707,8 @@ pub fn do_math(
                                         else if a.imag().is_zero() && b.imag().is_zero()
                                         {
                                             function.drain(i + 2..i + 4);
-                                            let a = a.real();
-                                            let b = b.real();
-                                            Num(Complex::with_val(
-                                                options.prec,
-                                                gamma(a) * gamma(b) / gamma(&(a + b.clone())),
-                                            ))
+                                            Num(gamma(a.clone()) * gamma(b.clone())
+                                                / gamma(a + b.clone()))
                                         }
                                         else
                                         {
@@ -1737,9 +1733,9 @@ pub fn do_math(
                                         let b = function[i + 3].num()?;
                                         let x = function[i + 5].num()?;
                                         function.drain(i + 2..i + 6);
-                                        Num(gamma(&(x.real() + b.real().clone()))
+                                        Num(gamma(x.clone() + b.clone())
                                             * incomplete_beta(a, b.clone(), x.clone())
-                                            / (gamma(x.real()) * gamma(b.real())))
+                                            / (gamma(x) * gamma(b)))
                                     }
                                     else
                                     {
@@ -2545,13 +2541,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if !a.imag().is_zero() || !b.imag().is_zero()
-                {
-                    return Err("pick complex not supported");
-                }
-                let d: Float = a.real().clone() - b.real() + 1;
-                let a: Float = a.real().clone() + 1;
-                (gamma(&a) / gamma(&d)).into()
+                gamma(a.clone() + 1) / gamma(a.clone() - b + 1)
             }
             else
             {
@@ -2562,11 +2552,10 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if !a.imag().is_zero() || !b.imag().is_zero()
-                {
-                    return Err("binomial complex not supported");
-                }
-                else if a.real().clone().fract().is_zero() && b.real().clone().fract().is_zero()
+                if a.imag().is_zero()
+                    && b.imag().is_zero()
+                    && a.real().clone().fract().is_zero()
+                    && b.real().clone().fract().is_zero()
                 {
                     Complex::with_val(
                         options.prec,
@@ -2578,10 +2567,7 @@ fn functions(
                 }
                 else
                 {
-                    let c: Float = a.real().clone() + 1;
-                    let d: Float = b.real().clone() + 1;
-                    let e: Float = a.real().clone() - b.real().clone() + 1;
-                    Complex::with_val(options.prec, gamma(&c) / (gamma(&d) * gamma(&e)))
+                    gamma(a.clone() + 1) / (gamma(b.clone() + 1) * gamma(a.clone() - b.clone() + 1))
                 }
             }
             else
@@ -2595,13 +2581,9 @@ fn functions(
             {
                 incomplete_gamma(a, b)
             }
-            else if a.imag().is_zero()
-            {
-                Complex::with_val(options.prec, gamma(a.real()))
-            }
             else
             {
-                return Err("complex gamma not supported");
+                gamma(a)
             }
         }
         "sqrt" | "asquare" => a.sqrt(),
@@ -2687,40 +2669,18 @@ fn functions(
         "cube" | "acbrt" => a.pow(3),
         "doublefact" =>
         {
-            if !a.imag().is_zero()
-            {
-                return Err("complex factorial not supported");
-            }
-            let a = a.real().clone();
             let two = Complex::with_val(options.prec, 2);
             let pi = Complex::with_val(options.prec, Pi);
-            let gam: Float = a.clone() / 2 + 1;
-            Complex::with_val(
-                options.prec,
-                two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
-                    * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
-                    * gamma(&gam),
-            )
+            two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
+                * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
+                * gamma(a.clone() / 2 + 1)
         }
-        "fact" =>
-        {
-            if a.imag().is_zero()
-            {
-                let b: Float = a.real().clone() + 1;
-                Complex::with_val(options.prec, gamma(&b))
-            }
-            else
-            {
-                return Err("complex factorial not supported");
-            }
-        }
+        "fact" => gamma(a.clone() + 1),
         "subfact" =>
         {
             if !a.imag().is_zero()
-            {
-                return Err("complex subfactorial not supported");
-            }
-            else if a.real().is_sign_negative() || !a.real().clone().fract().is_zero()
+                || a.real().is_sign_negative()
+                || !a.real().clone().fract().is_zero()
             {
                 subfactorial(a)
             }
@@ -2730,11 +2690,11 @@ fn functions(
             }
             else
             {
-                let b: Float = a.real().clone() + 1;
-                Complex::with_val(
-                    options.prec,
-                    (gamma(&b) / Float::with_val(options.prec.0, 1).exp()).round(),
-                )
+                (gamma(a.clone() + 1) / Float::with_val(options.prec.0, 1).exp())
+                    .real()
+                    .clone()
+                    .round()
+                    .into()
             }
         }
         "sinc" => a.clone().sin() / a,

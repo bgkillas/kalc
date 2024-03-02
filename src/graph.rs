@@ -162,7 +162,8 @@ pub fn graph(
             if options.scale_graph
             {
                 let (x, y) = get_terminal_dimensions_pixel();
-                let w = y as f64 / x as f64;
+                let w = y as f64 / x as f64 * (options.xr.1 - options.xr.0)
+                    / (options.yr.1 - options.yr.0);
                 options.yr = (w * options.yr.0, w * options.yr.1);
             }
             if options.lines || lines

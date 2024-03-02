@@ -48,7 +48,8 @@ pub fn help()
     - \"clear\" to clear the screen\x1b[G\n\
     - \"history [arg]\" to see the history, arg indexes it if specified\x1b[G\n\
     - \"vars\" to list all variables\x1b[G\n\
-    - \"option/var;function\" to set a temporal option/var, example: \"a=45;deg;sin(a)\"=sqrt(2)/2\x1b[G\n\
+    - \"option/var;function\" to set a temporal option/var, example: \"a=45;deg;sin(a)\" = sqrt(2)/2\x1b[G\n\
+    - \"f(x)=var;function\" to set a temporal var when defining function, example: \"f(x)=a=2:ax\" = f(x)=2x\x1b[G\n\
     - \"_\" to use the previous answer\x1b[G\n\
     - \"a={{expr}}\" to define a variable\x1b[G\n\
     - \"f(x)=...\" to define a function\x1b[G\n\

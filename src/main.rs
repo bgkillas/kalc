@@ -40,7 +40,6 @@ use std::{
 //dont clear terminal first, write the line, \x1b[K, then on the last line \x1[b[J
 //remove \x1b[A repeats and \x08 and said repeats \x1b[D
 //do as much as you can before graphing
-//make f(x)=a=2;ax work
 #[derive(Clone)]
 pub struct Variable
 {

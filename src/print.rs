@@ -145,7 +145,7 @@ pub fn print_concurrent(
         if input.3
         {
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
-            let input = unparsed[n..].iter().collect::<String>();
+            let mut input = unparsed[n..].iter().collect::<String>();
             let mut func = unparsed[..n].to_vec();
             let mut func_vars: Vec<(isize, String)> = Vec::new();
             if func.contains(&'(')
@@ -158,8 +158,22 @@ pub fn print_concurrent(
                     func_vars.push((-1, i.iter().collect()));
                 }
             }
+            if input.contains(':')
+            {
+                let inp = input;
+                let mut split = inp.split(':').collect::<Vec<&str>>();
+                input = split.pop().unwrap().to_string();
+                for i in split
+                {
+                    if i.contains('=')
+                    {
+                        let mut split = i.splitn(2, '=');
+                        func_vars.push((-1, split.next().unwrap().to_string()));
+                    }
+                }
+            }
             let out = match input_var(
-                &input.replace('_', &format!("({})", last.iter().collect::<String>())),
+                &input,
                 vars.to_vec(),
                 &mut func_vars,
                 &mut 0,

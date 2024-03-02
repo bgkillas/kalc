@@ -2078,7 +2078,8 @@ pub fn slope(
                 )?
                 .num()?;
             }
-            if (n2.clone() - n1.clone()).abs().real().clone().log10() > -30
+            if (n2.clone() - n1.clone()).abs().real().clone().log10()
+                > options.prec.0 as isize / -20
             {
                 if n2.real() > n1.real()
                 {
@@ -2098,7 +2099,8 @@ pub fn slope(
             n1.iter()
                 .zip(n2)
                 .map(|(n1, n2)| {
-                    if (n2.clone() - n1.clone()).abs().real().clone().log10() > -30
+                    if (n2.clone() - n1.clone()).abs().real().clone().log10()
+                        > options.prec.0 as isize / -20
                     {
                         if n2.real() > n1.real()
                         {
@@ -2118,7 +2120,8 @@ pub fn slope(
         )),
         (Vector(n1), Vector(n2)) if n1.len() == 1 =>
         {
-            if (n2[0].clone() - n1[0].clone()).abs().real().clone().log10() > -30
+            if (n2[0].clone() - n1[0].clone()).abs().real().clone().log10()
+                > options.prec.0 as isize / -20
             {
                 if n2[0].real() > n1[0].real()
                 {
@@ -2137,7 +2140,7 @@ pub fn slope(
         (Vector(n1), Vector(n2)) if n1.len() == 2 =>
         {
             let n = (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone());
-            if n.clone().abs().real().clone().log10() > 30
+            if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
             {
                 if n.real().is_sign_positive()
                 {
@@ -2162,7 +2165,7 @@ pub fn slope(
                     .zip(n2[0..n2.len() - 1].to_vec())
                     .map(|(n1, n2)| {
                         let n = num.clone() / (n2 - n1);
-                        if n.clone().abs().real().clone().log10() > 30
+                        if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
                         {
                             if n.real().is_sign_positive()
                             {

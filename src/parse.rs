@@ -1745,7 +1745,7 @@ pub fn input_var(
                         }
                         else
                         {
-                            return Err("bad input");
+                            return Err("bad input2");
                         }
                         if scientific
                         {

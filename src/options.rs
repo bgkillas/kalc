@@ -504,7 +504,7 @@ pub fn file_opts(
             {
                 continue;
             }
-            split = line.split('=');
+            split = line.splitn(2, '=');
             if split.clone().count() == 2
             {
                 match set_commands(
@@ -1014,8 +1014,38 @@ pub fn set_commands(
                                     }
                                 }
                                 redef.push(var.name.clone());
-                                let parsed = match input_var(
-                                    &var.unparsed,
+                                let mut fvs = Vec::new();
+                                let mut unparsed = var.unparsed.clone();
+                                if unparsed.contains(':')
+                                {
+                                    let un = unparsed;
+                                    let mut split = un.split(':').collect::<Vec<&str>>();
+                                    unparsed = split.pop().unwrap().to_string();
+                                    for i in split
+                                    {
+                                        if i.contains('=')
+                                        {
+                                            let mut split = i.splitn(2, '=');
+                                            let s = split.next().unwrap().to_string();
+                                            let parsed = input_var(
+                                                split.next().unwrap(),
+                                                vars.to_vec(),
+                                                &mut func_vars,
+                                                &mut 0,
+                                                *options,
+                                                false,
+                                                false,
+                                                0,
+                                                s.chars().collect::<Vec<char>>(),
+                                            )?;
+                                            func_vars.push((-1, s.clone()));
+                                            fvs.push((s, parsed.0));
+                                            fvs.extend(parsed.1)
+                                        }
+                                    }
+                                }
+                                let mut parsed = match input_var(
+                                    &unparsed,
                                     vars.to_vec(),
                                     &mut func_vars,
                                     &mut 0,
@@ -1023,12 +1053,13 @@ pub fn set_commands(
                                     false,
                                     false,
                                     0,
-                                    Vec::new(),
+                                    var.name.clone(),
                                 )
                                 {
                                     Ok(n) => (n.0, n.1),
                                     _ => return Err("prec crash"),
                                 };
+                                parsed.1.extend(fvs);
                                 vars[i].parsed = if l.contains('(')
                                 {
                                     parsed.0
@@ -1039,6 +1070,18 @@ pub fn set_commands(
                                         .unwrap_or(Num(Complex::new(options.prec)))]
                                 };
                                 vars[i].funcvars = parsed.1;
+                                if var.name.contains(&'(')
+                                    && var
+                                        .unparsed
+                                        .contains(var.name.split(|c| c == &'(').next().unwrap())
+                                    && (var.unparsed.contains("piecewise")
+                                        || var.unparsed.contains("pw"))
+                                {
+                                    let parsed = vars[i].parsed.clone();
+                                    vars[i]
+                                        .funcvars
+                                        .push((var.name.iter().collect::<String>(), parsed))
+                                }
                             }
                         }
                         let mut k = 0;
@@ -1065,8 +1108,38 @@ pub fn set_commands(
                                             func_vars.push((-1, i.iter().collect()));
                                         }
                                     }
-                                    let parsed = match input_var(
-                                        &v.unparsed.clone(),
+                                    let mut fvs = Vec::new();
+                                    let mut unparsed = v.unparsed.clone();
+                                    if unparsed.contains(':')
+                                    {
+                                        let un = unparsed;
+                                        let mut split = un.split(':').collect::<Vec<&str>>();
+                                        unparsed = split.pop().unwrap().to_string();
+                                        for i in split
+                                        {
+                                            if i.contains('=')
+                                            {
+                                                let mut split = i.splitn(2, '=');
+                                                let s = split.next().unwrap().to_string();
+                                                let parsed = input_var(
+                                                    split.next().unwrap(),
+                                                    vars.to_vec(),
+                                                    &mut func_vars,
+                                                    &mut 0,
+                                                    *options,
+                                                    false,
+                                                    false,
+                                                    0,
+                                                    s.chars().collect::<Vec<char>>(),
+                                                )?;
+                                                func_vars.push((-1, s.clone()));
+                                                fvs.push((s, parsed.0));
+                                                fvs.extend(parsed.1)
+                                            }
+                                        }
+                                    }
+                                    let mut parsed = match input_var(
+                                        &unparsed,
                                         vars.to_vec(),
                                         &mut func_vars,
                                         &mut 0,
@@ -1074,12 +1147,13 @@ pub fn set_commands(
                                         false,
                                         false,
                                         0,
-                                        Vec::new(),
+                                        v.name.clone(),
                                     )
                                     {
                                         Ok(n) => (n.0, n.1),
                                         _ => return Err("prec crash"),
                                     };
+                                    parsed.1.extend(fvs);
                                     if v.name.contains(&'(')
                                     {
                                         if vars[j].parsed.clone() != parsed.0
@@ -1098,6 +1172,17 @@ pub fn set_commands(
                                             redef.push(v.name.clone());
                                             vars[j].parsed = vec![n];
                                         }
+                                    }
+                                    if v.name.contains(&'(')
+                                        && v.unparsed
+                                            .contains(v.name.split(|c| c == &'(').next().unwrap())
+                                        && (v.unparsed.contains("piecewise")
+                                            || v.unparsed.contains("pw"))
+                                    {
+                                        let parsed = vars[j].parsed.clone();
+                                        vars[j]
+                                            .funcvars
+                                            .push((v.name.iter().collect::<String>(), parsed))
                                     }
                                 }
                             }

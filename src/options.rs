@@ -504,534 +504,24 @@ pub fn file_opts(
                 continue;
             }
             split = line.split('=');
-            match split.next().unwrap()
+            if split.clone().count() == 2
             {
-                "var_multiply" =>
+                match set_commands(
+                    options,
+                    colors,
+                    &mut Vec::new(),
+                    split.next().unwrap(),
+                    split.next().unwrap(),
+                )
                 {
-                    options.var_multiply = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid var_multiply")
+                    Err(s) if !s.is_empty() => return Err(s),
+                    _ =>
+                    {}
                 }
-                "slowcheck" =>
-                {
-                    options.slowcheck = split
-                        .next()
-                        .unwrap()
-                        .parse::<u128>()
-                        .expect("invalid slowcheck")
-                }
-                "frac_iter" =>
-                {
-                    options.frac_iter = split
-                        .next()
-                        .unwrap()
-                        .parse::<usize>()
-                        .expect("invalid frac_iter")
-                }
-                "re1col" =>
-                {
-                    colors.re1col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "im1col" =>
-                {
-                    colors.im1col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "re2col" =>
-                {
-                    colors.re2col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "im2col" =>
-                {
-                    colors.im2col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "re3col" =>
-                {
-                    colors.re3col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "im3col" =>
-                {
-                    colors.im3col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "re4col" =>
-                {
-                    colors.re4col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "im4col" =>
-                {
-                    colors.im4col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "re5col" =>
-                {
-                    colors.re5col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "im5col" =>
-                {
-                    colors.im5col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "re6col" =>
-                {
-                    colors.re6col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "im6col" =>
-                {
-                    colors.im6col = split
-                        .next()
-                        .unwrap()
-                        .parse::<String>()
-                        .expect("invalid col")
-                }
-                "textc" =>
-                {
-                    colors.text = "\x1b[".to_owned()
-                        + &split
-                            .next()
-                            .unwrap()
-                            .parse::<String>()
-                            .expect("invalid col")
-                }
-                "promptc" =>
-                {
-                    colors.prompt = "\x1b[".to_owned()
-                        + &split
-                            .next()
-                            .unwrap()
-                            .parse::<String>()
-                            .expect("invalid col")
-                }
-                "imagc" =>
-                {
-                    colors.imag = "\x1b[".to_owned()
-                        + &split
-                            .next()
-                            .unwrap()
-                            .parse::<String>()
-                            .expect("invalid col")
-                }
-                "scic" =>
-                {
-                    colors.sci = "\x1b[".to_owned()
-                        + &split
-                            .next()
-                            .unwrap()
-                            .parse::<String>()
-                            .expect("invalid col")
-                }
-                "bracketc" =>
-                {
-                    colors.brackets.clear();
-                    for i in split.next().unwrap().split(',')
-                    {
-                        colors.brackets.push("\x1b[".to_owned() + i)
-                    }
-                }
-                "2d" =>
-                {
-                    options.samples_2d = split.next().unwrap().parse::<usize>().expect("invalid 2d")
-                }
-                "3d" =>
-                {
-                    let mut den = split.next().unwrap().split(',');
-                    if den.clone().count() != 2
-                    {
-                        return Err("invalid 3d");
-                    }
-                    options.samples_3d.0 =
-                        den.next().unwrap().parse::<usize>().expect("invalid 3d");
-                    options.samples_3d.1 = den.next().unwrap().parse::<usize>().expect("invalid 3d")
-                }
-                "range" =>
-                {
-                    let n = split.next().unwrap().parse::<f64>().expect("invalid range");
-                    options.xr.0 = -n;
-                    options.xr.1 = n;
-                    options.yr.0 = -n;
-                    options.yr.1 = n;
-                    options.zr.0 = -n;
-                    options.zr.1 = n;
-                }
-                "xr" =>
-                {
-                    let mut bracket = 0;
-                    let mut comma = 0;
-                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
-                    {
-                        match c
-                        {
-                            '(' | '{' | '[' => bracket += 1,
-                            ')' | '}' | ']' => bracket -= 1,
-                            ',' if bracket == 0 => comma = i,
-                            _ =>
-                            {}
-                        }
-                    }
-                    if comma == 0
-                    {
-                        return Err("invalid x range");
-                    }
-                    let xr = split.next().unwrap().split_at(comma);
-                    options.xr.0 = xr.0.parse::<f64>().expect("invalid xr");
-                    options.xr.1 = xr.1[1..].parse::<f64>().expect("invalid xr")
-                }
-                "yr" =>
-                {
-                    let mut bracket = 0;
-                    let mut comma = 0;
-                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
-                    {
-                        match c
-                        {
-                            '(' | '{' | '[' => bracket += 1,
-                            ')' | '}' | ']' => bracket -= 1,
-                            ',' if bracket == 0 => comma = i,
-                            _ =>
-                            {}
-                        }
-                    }
-                    if comma == 0
-                    {
-                        return Err("invalid y range");
-                    }
-                    let yr = split.next().unwrap().split_at(comma);
-                    options.yr.0 = yr.0.parse::<f64>().expect("invalid yr");
-                    options.yr.1 = yr.1[1..].parse::<f64>().expect("invalid yr")
-                }
-                "zr" =>
-                {
-                    let mut bracket = 0;
-                    let mut comma = 0;
-                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
-                    {
-                        match c
-                        {
-                            '(' | '{' | '[' => bracket += 1,
-                            ')' | '}' | ']' => bracket -= 1,
-                            ',' if bracket == 0 => comma = i,
-                            _ =>
-                            {}
-                        }
-                    }
-                    if comma == 0
-                    {
-                        return Err("invalid z range");
-                    }
-                    let zr = split.next().unwrap().split_at(comma);
-                    options.zr.0 = zr.0.parse::<f64>().expect("invalid zr");
-                    options.zr.1 = zr.1[1..].parse::<f64>().expect("invalid zr")
-                }
-                "vrange" =>
-                {
-                    let n = split.next().unwrap().parse::<f64>().expect("invalid range");
-                    options.vxr.0 = -n;
-                    options.vxr.1 = n;
-                    options.vyr.0 = -n;
-                    options.vyr.1 = n;
-                    options.vzr.0 = -n;
-                    options.vzr.1 = n;
-                }
-                "vxr" =>
-                {
-                    let mut bracket = 0;
-                    let mut comma = 0;
-                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
-                    {
-                        match c
-                        {
-                            '(' | '{' | '[' => bracket += 1,
-                            ')' | '}' | ']' => bracket -= 1,
-                            ',' if bracket == 0 => comma = i,
-                            _ =>
-                            {}
-                        }
-                    }
-                    if comma == 0
-                    {
-                        return Err("invalid x range");
-                    }
-                    let xr = split.next().unwrap().split_at(comma);
-                    options.vxr.0 = xr.0.parse::<f64>().expect("invalid xr");
-                    options.vxr.1 = xr.1[1..].parse::<f64>().expect("invalid xr")
-                }
-                "vyr" =>
-                {
-                    let mut bracket = 0;
-                    let mut comma = 0;
-                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
-                    {
-                        match c
-                        {
-                            '(' | '{' | '[' => bracket += 1,
-                            ')' | '}' | ']' => bracket -= 1,
-                            ',' if bracket == 0 => comma = i,
-                            _ =>
-                            {}
-                        }
-                    }
-                    if comma == 0
-                    {
-                        return Err("invalid y range");
-                    }
-                    let yr = split.next().unwrap().split_at(comma);
-                    options.vyr.0 = yr.0.parse::<f64>().expect("invalid yr");
-                    options.vyr.1 = yr.1[1..].parse::<f64>().expect("invalid yr")
-                }
-                "vzr" =>
-                {
-                    let mut bracket = 0;
-                    let mut comma = 0;
-                    for (i, c) in split.clone().next().unwrap().chars().enumerate()
-                    {
-                        match c
-                        {
-                            '(' | '{' | '[' => bracket += 1,
-                            ')' | '}' | ']' => bracket -= 1,
-                            ',' if bracket == 0 => comma = i,
-                            _ =>
-                            {}
-                        }
-                    }
-                    if comma == 0
-                    {
-                        return Err("invalid z range");
-                    }
-                    let zr = split.next().unwrap().split_at(comma);
-                    options.vzr.0 = zr.0.parse::<f64>().expect("invalid zr");
-                    options.vzr.1 = zr.1[1..].parse::<f64>().expect("invalid zr")
-                }
-                "prec" | "precision" =>
-                {
-                    options.prec = match split.next().unwrap().parse::<u32>()
-                    {
-                        Ok(x) if x != 0 => (x, x),
-                        _ => return Err("invalid prec"),
-                    };
-                }
-                "graphprec" | "graphprecision" =>
-                {
-                    options.graph_prec = match split.next().unwrap().parse::<u32>()
-                    {
-                        Ok(x) if x != 0 => (x, x),
-                        _ => return Err("invalid graphprec"),
-                    };
-                }
-                "decimal" | "deci" | "decimals" =>
-                {
-                    let r = split.next().unwrap();
-                    if r == "-1"
-                    {
-                        options.decimal_places = usize::MAX - 1;
-                    }
-                    else if r == "-2"
-                    {
-                        options.decimal_places = usize::MAX;
-                    }
-                    else
-                    {
-                        options.decimal_places = r.parse::<usize>().expect("invalid deci")
-                    }
-                }
-                "multi" =>
-                {
-                    options.multi = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid multi")
-                }
-                "depth" =>
-                {
-                    options.depth = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid depth")
-                }
-                "surface" =>
-                {
-                    options.surface = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid surface")
-                }
-                "flat" =>
-                {
-                    options.flat = split.next().unwrap().parse::<bool>().expect("invalid flat")
-                }
-                "small_e" =>
-                {
-                    options.small_e = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid small_e")
-                }
-                "tabbed" =>
-                {
-                    options.tabbed = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid tabbed")
-                }
-                "rt" =>
-                {
-                    options.real_time_output =
-                        split.next().unwrap().parse::<bool>().expect("invalid rt")
-                }
-                "line" | "lines" =>
-                {
-                    options.lines = split.next().unwrap().parse::<bool>().expect("invalid line")
-                }
-                "polar" =>
-                {
-                    options.polar = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid polar")
-                }
-                "frac" =>
-                {
-                    options.frac = split.next().unwrap().parse::<bool>().expect("invalid frac")
-                }
-                "prompt" =>
-                {
-                    options.prompt = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid prompt")
-                }
-                "comma" =>
-                {
-                    options.comma = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid comma")
-                }
-                "graph" =>
-                {
-                    options.graph = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid graph")
-                }
-                "color" =>
-                {
-                    options.color = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid color")
-                }
-                "point" =>
-                {
-                    options.point_style = match split.next().unwrap().chars().next()
-                    {
-                        Some(x)
-                            if matches!(
-                                x,
-                                '.' | '+'
-                                    | 'x'
-                                    | '*'
-                                    | 's'
-                                    | 'S'
-                                    | 'o'
-                                    | 'O'
-                                    | 't'
-                                    | 'T'
-                                    | 'd'
-                                    | 'D'
-                                    | 'R'
-                            ) =>
-                        {
-                            x
-                        }
-                        _ => return Err("invalid point"),
-                    }
-                }
-                "sci" | "scientific" =>
-                {
-                    options.sci = split.next().unwrap().parse::<bool>().expect("invalid sci")
-                }
-                "base" =>
-                {
-                    options.base = match split.next().unwrap().parse::<usize>()
-                    {
-                        Ok(n) if (2..=36).contains(&n) => n,
-                        _ => return Err("base out of range"),
-                    }
-                }
-                "ticks" =>
-                {
-                    options.ticks = match split.next().unwrap().parse::<f64>()
-                    {
-                        Ok(n) => n,
-                        _ => return Err("ticks out of range"),
-                    }
-                }
-                "debug" =>
-                {
-                    options.debug = split
-                        .next()
-                        .unwrap()
-                        .parse::<bool>()
-                        .expect("invalid debug")
-                }
-                "rad" => options.deg = Radians,
-                "deg" => options.deg = Degrees,
-                "grad" => options.deg = Gradians,
-                "tau" => options.tau = split.next().unwrap().parse::<bool>().expect("invalid tau"),
-                _ =>
-                {}
+            }
+            else
+            {
+                silent_commands(options, &line.chars().collect::<Vec<char>>())
             }
         }
     }
@@ -1260,101 +750,187 @@ pub fn set_commands(
     r: &str,
 ) -> Result<(), &'static str>
 {
-    match l
+    if r == "true"
     {
-        "re1col" => colors.re1col = r.to_string(),
-        "im1col" => colors.im1col = r.to_string(),
-        "re2col" => colors.re2col = r.to_string(),
-        "im2col" => colors.im2col = r.to_string(),
-        "re3col" => colors.re3col = r.to_string(),
-        "im3col" => colors.im3col = r.to_string(),
-        "re4col" => colors.re4col = r.to_string(),
-        "im4col" => colors.im4col = r.to_string(),
-        "re5col" => colors.re5col = r.to_string(),
-        "im5col" => colors.im5col = r.to_string(),
-        "re6col" => colors.re6col = r.to_string(),
-        "im6col" => colors.im6col = r.to_string(),
-        "textc" =>
+        match l
         {
-            match r.parse::<String>()
-            {
-                Ok(n) => colors.text = "\x1b[".to_owned() + &n,
-                _ => return Err("Invalid col"),
-            };
+            "color" => options.color = true,
+            "prompt" => options.prompt = true,
+            "depth" => options.depth = true,
+            "surface" => options.surface = true,
+            "flat" => options.flat = true,
+            "rt" => options.real_time_output = true,
+            "small_e" => options.small_e = true,
+            "sci" | "scientific" => options.sci = true,
+            "line" | "lines" => options.lines = true,
+            "polar" => options.polar = true,
+            "frac" => options.frac = true,
+            "multi" => options.multi = true,
+            "tabbed" => options.tabbed = true,
+            "comma" => options.comma = true,
+            "graph" => options.graph = true,
+            "var_multiply" => options.var_multiply = true,
+            _ => return Ok(()),
         }
-        "promptc" =>
+    }
+    else if r == "false"
+    {
+        match l
         {
-            match r.parse::<String>()
-            {
-                Ok(n) => colors.prompt = "\x1b[".to_owned() + &n,
-                _ => return Err("Invalid col"),
-            };
+            "color" => options.color = false,
+            "prompt" => options.prompt = false,
+            "depth" => options.depth = false,
+            "surface" => options.surface = false,
+            "flat" => options.flat = false,
+            "rt" => options.real_time_output = false,
+            "small_e" => options.small_e = false,
+            "sci" | "scientific" => options.sci = false,
+            "line" | "lines" => options.lines = false,
+            "polar" => options.polar = false,
+            "frac" => options.frac = false,
+            "multi" => options.multi = false,
+            "tabbed" => options.tabbed = false,
+            "comma" => options.comma = false,
+            "graph" => options.graph = false,
+            "var_multiply" => options.var_multiply = false,
+            _ => return Ok(()),
         }
-        "imagc" =>
+    }
+    else
+    {
+        match l
         {
-            match r.parse::<String>()
+            "re1col" => colors.re1col = r.to_string(),
+            "im1col" => colors.im1col = r.to_string(),
+            "re2col" => colors.re2col = r.to_string(),
+            "im2col" => colors.im2col = r.to_string(),
+            "re3col" => colors.re3col = r.to_string(),
+            "im3col" => colors.im3col = r.to_string(),
+            "re4col" => colors.re4col = r.to_string(),
+            "im4col" => colors.im4col = r.to_string(),
+            "re5col" => colors.re5col = r.to_string(),
+            "im5col" => colors.im5col = r.to_string(),
+            "re6col" => colors.re6col = r.to_string(),
+            "im6col" => colors.im6col = r.to_string(),
+            "textc" =>
             {
-                Ok(n) => colors.imag = "\x1b[".to_owned() + &n,
-                _ => return Err("Invalid col"),
-            };
-        }
-        "scic" =>
-        {
-            match r.parse::<String>()
-            {
-                Ok(n) => colors.sci = "\x1b[".to_owned() + &n,
-                _ => return Err("Invalid col"),
-            };
-        }
-        "bracketc" =>
-        {
-            match r.parse::<String>()
-            {
-                Ok(n) =>
+                match r.parse::<String>()
                 {
-                    colors.brackets.clear();
-                    for i in n.split(',')
+                    Ok(n) => colors.text = "\x1b[".to_owned() + &n,
+                    _ => return Err("Invalid col"),
+                };
+            }
+            "promptc" =>
+            {
+                match r.parse::<String>()
+                {
+                    Ok(n) => colors.prompt = "\x1b[".to_owned() + &n,
+                    _ => return Err("Invalid col"),
+                };
+            }
+            "imagc" =>
+            {
+                match r.parse::<String>()
+                {
+                    Ok(n) => colors.imag = "\x1b[".to_owned() + &n,
+                    _ => return Err("Invalid col"),
+                };
+            }
+            "scic" =>
+            {
+                match r.parse::<String>()
+                {
+                    Ok(n) => colors.sci = "\x1b[".to_owned() + &n,
+                    _ => return Err("Invalid col"),
+                };
+            }
+            "bracketc" =>
+            {
+                match r.parse::<String>()
+                {
+                    Ok(n) =>
                     {
-                        colors.brackets.push("\x1b[".to_owned() + i)
+                        colors.brackets.clear();
+                        for i in n.split(',')
+                        {
+                            colors.brackets.push("\x1b[".to_owned() + i)
+                        }
                     }
+                    _ => return Err("Invalid col"),
+                };
+            }
+            "point" =>
+            {
+                let r = r.chars().next().unwrap();
+                if matches!(
+                    r,
+                    '.' | '+'
+                        | 'x'
+                        | '*'
+                        | 's'
+                        | 'S'
+                        | 'o'
+                        | 'O'
+                        | 't'
+                        | 'T'
+                        | 'd'
+                        | 'D'
+                        | 'r'
+                        | 'R'
+                )
+                {
+                    options.point_style = r;
                 }
-                _ => return Err("Invalid col"),
-            };
-        }
-        "point" =>
-        {
-            let r = r.chars().next().unwrap();
-            if matches!(
-                r,
-                '.' | '+' | 'x' | '*' | 's' | 'S' | 'o' | 'O' | 't' | 'T' | 'd' | 'D' | 'r' | 'R'
-            )
-            {
-                options.point_style = r;
+                else
+                {
+                    return Err("Invalid point type");
+                }
             }
-            else
+            "base" =>
             {
-                return Err("Invalid point type");
+                match r.parse::<usize>()
+                {
+                    Ok(n) if (2..=36).contains(&n) => options.base = n,
+                    _ => return Err("Invalid base"),
+                };
             }
-        }
-        "base" =>
-        {
-            match r.parse::<usize>()
+            "ticks" =>
             {
-                Ok(n) if (2..=36).contains(&n) => options.base = n,
-                _ => return Err("Invalid base"),
-            };
-        }
-        "ticks" =>
-        {
-            match r.parse::<f64>()
+                match r.parse::<f64>()
+                {
+                    Ok(n) => options.ticks = n,
+                    _ => return Err("Invalid base"),
+                };
+            }
+            "decimal" | "deci" | "decimals" =>
             {
-                Ok(n) => options.ticks = n,
-                _ => return Err("Invalid base"),
-            };
-        }
-        "decimal" | "deci" | "decimals" =>
-        {
-            match do_math(
+                options.decimal_places = match do_math(
+                    input_var(
+                        r,
+                        vars.to_vec(),
+                        &mut Vec::new(),
+                        &mut 0,
+                        *options,
+                        false,
+                        false,
+                        0,
+                        Vec::new(),
+                    )?
+                    .0,
+                    *options,
+                    Vec::new(),
+                )?
+                .num()?
+                .real()
+                .to_f64() as isize
+                {
+                    -1 => usize::MAX - 1,
+                    -2 => usize::MAX,
+                    n if n >= 0 => n as usize,
+                    _ => return Err("Invalid decimal"),
+                };
+            }
+            "graphprec" | "graphprecision" => match do_math(
                 input_var(
                     r,
                     vars.to_vec(),
@@ -1372,137 +948,56 @@ pub fn set_commands(
             )?
             .num()?
             .real()
-            .to_f64() as isize
+            .to_f64() as u32
             {
-                n if n == -1 => options.decimal_places = usize::MAX - 1,
-                n if n == -2 => options.decimal_places = usize::MAX,
-                n if n >= 0 => options.decimal_places = n as usize,
-                _ => return Err("Invalid decimal"),
-            };
-        }
-        "graphprec" | "graphprecision" => match do_math(
-            input_var(
-                r,
-                vars.to_vec(),
-                &mut Vec::new(),
-                &mut 0,
+                n if n != 0 => options.graph_prec = (n, n),
+                _ => return Err("Invalid graphprecision"),
+            },
+            "prec" | "precision" => match do_math(
+                input_var(
+                    r,
+                    vars.to_vec(),
+                    &mut Vec::new(),
+                    &mut 0,
+                    *options,
+                    false,
+                    false,
+                    0,
+                    Vec::new(),
+                )?
+                .0,
                 *options,
-                false,
-                false,
-                0,
                 Vec::new(),
             )?
-            .0,
-            *options,
-            Vec::new(),
-        )?
-        .num()?
-        .real()
-        .to_f64() as u32
-        {
-            n if n != 0 =>
+            .num()?
+            .real()
+            .to_f64() as u32
             {
-                options.graph_prec = (n, n);
-            }
-            _ => return Err("Invalid graphprecision"),
-        },
-        "prec" | "precision" => match do_math(
-            input_var(
-                r,
-                vars.to_vec(),
-                &mut Vec::new(),
-                &mut 0,
-                *options,
-                false,
-                false,
-                0,
-                Vec::new(),
-            )?
-            .0,
-            *options,
-            Vec::new(),
-        )?
-        .num()?
-        .real()
-        .to_f64() as u32
-        {
-            n if n != 0 =>
-            {
-                options.prec = (n, n);
-                if !vars.is_empty()
+                n if n != 0 =>
                 {
-                    let v = get_vars(*options);
-                    for var in vars.iter_mut()
+                    options.prec = (n, n);
+                    if !vars.is_empty()
                     {
-                        for i in &v
+                        let v = get_vars(*options);
+                        for var in vars.iter_mut()
                         {
-                            if i.name == var.name && i.unparsed == var.unparsed
+                            for i in &v
                             {
-                                *var = i.clone();
-                            }
-                        }
-                    }
-                    let mut redef = Vec::new();
-                    for (i, var) in vars.to_vec().iter().enumerate()
-                    {
-                        if !var.unparsed.is_empty()
-                        {
-                            let mut func_vars: Vec<(isize, String)> = Vec::new();
-                            if var.name.contains(&'(')
-                            {
-                                let mut l = var.name.clone();
-                                l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
-                                l.pop();
-                                for i in l.split(|c| c == &',')
+                                if i.name == var.name && i.unparsed == var.unparsed
                                 {
-                                    func_vars.push((-1, i.iter().collect()));
+                                    *var = i.clone();
                                 }
                             }
-                            redef.push(var.name.clone());
-                            let parsed = match input_var(
-                                &var.unparsed,
-                                vars.to_vec(),
-                                &mut func_vars,
-                                &mut 0,
-                                *options,
-                                false,
-                                false,
-                                0,
-                                Vec::new(),
-                            )
-                            {
-                                Ok(n) => (n.0, n.1),
-                                _ => return Err("prec crash"),
-                            };
-                            vars[i].parsed = if l.contains('(')
-                            {
-                                parsed.0
-                            }
-                            else
-                            {
-                                vec![do_math(parsed.0, *options, parsed.1.clone())
-                                    .unwrap_or(Num(Complex::new(options.prec)))]
-                            };
-                            vars[i].funcvars = parsed.1;
                         }
-                    }
-                    let mut k = 0;
-                    while k < redef.len()
-                    {
-                        for (j, v) in vars.to_vec().iter().enumerate()
+                        let mut redef = Vec::new();
+                        for (i, var) in vars.to_vec().iter().enumerate()
                         {
-                            if redef[k] != v.name
-                                && v.unparsed.contains(
-                                    &redef[k][0..=redef[k]
-                                        .iter()
-                                        .position(|a| a == &'(')
-                                        .unwrap_or(redef[k].len() - 1)],
-                                )
+                            if !var.unparsed.is_empty()
                             {
                                 let mut func_vars: Vec<(isize, String)> = Vec::new();
-                                if v.name.contains(&'(')
+                                if var.name.contains(&'(')
                                 {
-                                    let mut l = v.name.clone();
+                                    let mut l = var.name.clone();
                                     l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
                                     l.pop();
                                     for i in l.split(|c| c == &',')
@@ -1510,8 +1005,9 @@ pub fn set_commands(
                                         func_vars.push((-1, i.iter().collect()));
                                     }
                                 }
+                                redef.push(var.name.clone());
                                 let parsed = match input_var(
-                                    &v.unparsed.clone(),
+                                    &var.unparsed,
                                     vars.to_vec(),
                                     &mut func_vars,
                                     &mut 0,
@@ -1525,52 +1021,199 @@ pub fn set_commands(
                                     Ok(n) => (n.0, n.1),
                                     _ => return Err("prec crash"),
                                 };
-                                if v.name.contains(&'(')
+                                vars[i].parsed = if l.contains('(')
                                 {
-                                    if vars[j].parsed.clone() != parsed.0
-                                        || vars[j].funcvars.clone() != parsed.1
-                                    {
-                                        redef.push(v.name.clone());
-                                        vars[j].parsed = parsed.0.clone();
-                                        vars[j].funcvars = parsed.1.clone();
-                                    }
+                                    parsed.0
                                 }
-                                else if let Ok(n) =
-                                    do_math(parsed.0.clone(), *options, parsed.1.clone())
+                                else
                                 {
-                                    if n != vars[j].parsed[0]
+                                    vec![do_math(parsed.0, *options, parsed.1.clone())
+                                        .unwrap_or(Num(Complex::new(options.prec)))]
+                                };
+                                vars[i].funcvars = parsed.1;
+                            }
+                        }
+                        let mut k = 0;
+                        while k < redef.len()
+                        {
+                            for (j, v) in vars.to_vec().iter().enumerate()
+                            {
+                                if redef[k] != v.name
+                                    && v.unparsed.contains(
+                                        &redef[k][0..=redef[k]
+                                            .iter()
+                                            .position(|a| a == &'(')
+                                            .unwrap_or(redef[k].len() - 1)],
+                                    )
+                                {
+                                    let mut func_vars: Vec<(isize, String)> = Vec::new();
+                                    if v.name.contains(&'(')
                                     {
-                                        redef.push(v.name.clone());
-                                        vars[j].parsed = vec![n];
+                                        let mut l = v.name.clone();
+                                        l.drain(0..=l.iter().position(|c| c == &'(').unwrap());
+                                        l.pop();
+                                        for i in l.split(|c| c == &',')
+                                        {
+                                            func_vars.push((-1, i.iter().collect()));
+                                        }
+                                    }
+                                    let parsed = match input_var(
+                                        &v.unparsed.clone(),
+                                        vars.to_vec(),
+                                        &mut func_vars,
+                                        &mut 0,
+                                        *options,
+                                        false,
+                                        false,
+                                        0,
+                                        Vec::new(),
+                                    )
+                                    {
+                                        Ok(n) => (n.0, n.1),
+                                        _ => return Err("prec crash"),
+                                    };
+                                    if v.name.contains(&'(')
+                                    {
+                                        if vars[j].parsed.clone() != parsed.0
+                                            || vars[j].funcvars.clone() != parsed.1
+                                        {
+                                            redef.push(v.name.clone());
+                                            vars[j].parsed = parsed.0.clone();
+                                            vars[j].funcvars = parsed.1.clone();
+                                        }
+                                    }
+                                    else if let Ok(n) =
+                                        do_math(parsed.0.clone(), *options, parsed.1.clone())
+                                    {
+                                        if n != vars[j].parsed[0]
+                                        {
+                                            redef.push(v.name.clone());
+                                            vars[j].parsed = vec![n];
+                                        }
                                     }
                                 }
                             }
+                            k += 1;
                         }
-                        k += 1;
                     }
+                }
+                _ => return Err("Invalid precision"),
+            },
+            "range" =>
+            {
+                if r.contains(',')
+                {
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
+                    {
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
+                    }
+                    let (min, max) = (
+                        do_math(
+                            input_var(
+                                r.split_at(comma).0,
+                                vars.to_vec(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                false,
+                                0,
+                                Vec::new(),
+                            )?
+                            .0,
+                            *options,
+                            Vec::new(),
+                        )?
+                        .num()?
+                        .real()
+                        .to_f64(),
+                        do_math(
+                            input_var(
+                                r.split_at(comma).1,
+                                vars.to_vec(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                false,
+                                0,
+                                Vec::new(),
+                            )?
+                            .0,
+                            *options,
+                            Vec::new(),
+                        )?
+                        .num()?
+                        .real()
+                        .to_f64(),
+                    );
+                    (
+                        options.xr.0,
+                        options.xr.1,
+                        options.yr.0,
+                        options.yr.1,
+                        options.zr.0,
+                        options.zr.1,
+                    ) = (min, max, min, max, min, max)
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    (
+                        options.xr.0,
+                        options.xr.1,
+                        options.yr.0,
+                        options.yr.1,
+                        options.zr.0,
+                        options.zr.1,
+                    ) = (-n, n, -n, n, -n, n)
                 }
             }
-            _ => return Err("Invalid precision"),
-        },
-        "range" =>
-        {
-            if r.contains(',')
+            "xr" =>
             {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
+                if r.contains(',')
                 {
-                    match c
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
                     {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
                     }
-                }
-                let (min, max) = (
-                    do_math(
+                    options.xr.0 = do_math(
                         input_var(
                             r.split_at(comma).0,
                             vars.to_vec(),
@@ -1588,8 +1231,8 @@ pub fn set_commands(
                     )?
                     .num()?
                     .real()
-                    .to_f64(),
-                    do_math(
+                    .to_f64();
+                    options.xr.1 = do_math(
                         input_var(
                             r.split_at(comma).1,
                             vars.to_vec(),
@@ -1607,307 +1250,50 @@ pub fn set_commands(
                     )?
                     .num()?
                     .real()
-                    .to_f64(),
-                );
-                (
-                    options.xr.0,
-                    options.xr.1,
-                    options.yr.0,
-                    options.yr.1,
-                    options.zr.0,
-                    options.zr.1,
-                ) = (min, max, min, max, min, max)
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                (
-                    options.xr.0,
-                    options.xr.1,
-                    options.yr.0,
-                    options.yr.1,
-                    options.zr.0,
-                    options.zr.1,
-                ) = (-n, n, -n, n, -n, n)
-            }
-        }
-        "xr" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
-                {
-                    match c
-                    {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
-                    }
+                    .to_f64();
                 }
-                options.xr.0 = do_math(
-                    input_var(
-                        r.split_at(comma).0,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.xr.1 = do_math(
-                    input_var(
-                        r.split_at(comma).1,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.xr = (-n, n)
-            }
-        }
-        "yr" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
+                else
                 {
-                    match c
-                    {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
-                    }
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.xr = (-n, n)
                 }
-                options.yr.0 = do_math(
-                    input_var(
-                        r.split_at(comma).0,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.yr.1 = do_math(
-                    input_var(
-                        r.split_at(comma).1,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
             }
-            else
+            "yr" =>
             {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.yr = (-n, n)
-            }
-        }
-        "zr" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
+                if r.contains(',')
                 {
-                    match c
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
                     {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
                     }
-                }
-                options.zr.0 = do_math(
-                    input_var(
-                        r.split_at(comma).0,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.zr.1 = do_math(
-                    input_var(
-                        r.split_at(comma).1,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.zr = (-n, n)
-            }
-        }
-        "vrange" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
-                {
-                    match c
-                    {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
-                    }
-                }
-                let (min, max) = (
-                    do_math(
+                    options.yr.0 = do_math(
                         input_var(
                             r.split_at(comma).0,
                             vars.to_vec(),
@@ -1925,8 +1311,8 @@ pub fn set_commands(
                     )?
                     .num()?
                     .real()
-                    .to_f64(),
-                    do_math(
+                    .to_f64();
+                    options.yr.1 = do_math(
                         input_var(
                             r.split_at(comma).1,
                             vars.to_vec(),
@@ -1944,326 +1330,13 @@ pub fn set_commands(
                     )?
                     .num()?
                     .real()
-                    .to_f64(),
-                );
-                (
-                    options.vxr.0,
-                    options.vxr.1,
-                    options.vyr.0,
-                    options.vyr.1,
-                    options.vzr.0,
-                    options.vzr.1,
-                ) = (min, max, min, max, min, max)
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                (
-                    options.vxr.0,
-                    options.vxr.1,
-                    options.vyr.0,
-                    options.vyr.1,
-                    options.vzr.0,
-                    options.vzr.1,
-                ) = (-n, n, -n, n, -n, n)
-            }
-        }
-        "vxr" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
-                {
-                    match c
-                    {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
-                    }
+                    .to_f64();
                 }
-                options.vxr.0 = do_math(
-                    input_var(
-                        r.split_at(comma).0,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.vxr.1 = do_math(
-                    input_var(
-                        r.split_at(comma).1,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.vxr = (-n, n)
-            }
-        }
-        "vyr" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
+                else
                 {
-                    match c
-                    {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
-                    }
-                }
-                options.vyr.0 = do_math(
-                    input_var(
-                        r.split_at(comma).0,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.vyr.1 = do_math(
-                    input_var(
-                        r.split_at(comma).1,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.vyr = (-n, n)
-            }
-        }
-        "vzr" =>
-        {
-            if r.contains(',')
-            {
-                let mut bracket = 0;
-                let mut comma = 0;
-                for (i, c) in r.chars().enumerate()
-                {
-                    match c
-                    {
-                        '(' | '{' | '[' => bracket += 1,
-                        ')' | '}' | ']' => bracket -= 1,
-                        ',' if bracket == 0 => comma = i,
-                        _ =>
-                        {}
-                    }
-                }
-                options.vzr.0 = do_math(
-                    input_var(
-                        r.split_at(comma).0,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.vzr.1 = do_math(
-                    input_var(
-                        r.split_at(comma).1,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-            }
-            else
-            {
-                let n = do_math(
-                    input_var(
-                        r,
-                        vars.to_vec(),
-                        &mut Vec::new(),
-                        &mut 0,
-                        *options,
-                        false,
-                        false,
-                        0,
-                        Vec::new(),
-                    )?
-                    .0,
-                    *options,
-                    Vec::new(),
-                )?
-                .num()?
-                .real()
-                .to_f64();
-                options.vzr = (-n, n)
-            }
-        }
-        "frac_iter" =>
-        {
-            match r.parse::<usize>()
-            {
-                Ok(n) => options.frac_iter = n,
-                _ => return Err("Invalid frac_iter"),
-            };
-        }
-        "2d" =>
-        {
-            options.samples_2d = do_math(
-                input_var(
-                    r,
-                    vars.to_vec(),
-                    &mut Vec::new(),
-                    &mut 0,
-                    *options,
-                    false,
-                    false,
-                    0,
-                    Vec::new(),
-                )?
-                .0,
-                *options,
-                Vec::new(),
-            )?
-            .num()?
-            .real()
-            .to_f64() as usize
-        }
-        "3d" =>
-        {
-            if r.contains(',')
-            {
-                options.samples_3d = (
-                    do_math(
+                    let n = do_math(
                         input_var(
-                            r.split(',').next().unwrap(),
+                            r,
                             vars.to_vec(),
                             &mut Vec::new(),
                             &mut 0,
@@ -2279,10 +1352,30 @@ pub fn set_commands(
                     )?
                     .num()?
                     .real()
-                    .to_f64() as usize,
-                    do_math(
+                    .to_f64();
+                    options.yr = (-n, n)
+                }
+            }
+            "zr" =>
+            {
+                if r.contains(',')
+                {
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
+                    {
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
+                    }
+                    options.zr.0 = do_math(
                         input_var(
-                            r.split(',').last().unwrap(),
+                            r.split_at(comma).0,
                             vars.to_vec(),
                             &mut Vec::new(),
                             &mut 0,
@@ -2298,12 +1391,399 @@ pub fn set_commands(
                     )?
                     .num()?
                     .real()
-                    .to_f64() as usize,
-                );
+                    .to_f64();
+                    options.zr.1 = do_math(
+                        input_var(
+                            r.split_at(comma).1,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.zr = (-n, n)
+                }
             }
-            else
+            "vrange" =>
             {
-                let n = do_math(
+                if r.contains(',')
+                {
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
+                    {
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
+                    }
+                    let (min, max) = (
+                        do_math(
+                            input_var(
+                                r.split_at(comma).0,
+                                vars.to_vec(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                false,
+                                0,
+                                Vec::new(),
+                            )?
+                            .0,
+                            *options,
+                            Vec::new(),
+                        )?
+                        .num()?
+                        .real()
+                        .to_f64(),
+                        do_math(
+                            input_var(
+                                r.split_at(comma).1,
+                                vars.to_vec(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                false,
+                                0,
+                                Vec::new(),
+                            )?
+                            .0,
+                            *options,
+                            Vec::new(),
+                        )?
+                        .num()?
+                        .real()
+                        .to_f64(),
+                    );
+                    (
+                        options.vxr.0,
+                        options.vxr.1,
+                        options.vyr.0,
+                        options.vyr.1,
+                        options.vzr.0,
+                        options.vzr.1,
+                    ) = (min, max, min, max, min, max)
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    (
+                        options.vxr.0,
+                        options.vxr.1,
+                        options.vyr.0,
+                        options.vyr.1,
+                        options.vzr.0,
+                        options.vzr.1,
+                    ) = (-n, n, -n, n, -n, n)
+                }
+            }
+            "vxr" =>
+            {
+                if r.contains(',')
+                {
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
+                    {
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
+                    }
+                    options.vxr.0 = do_math(
+                        input_var(
+                            r.split_at(comma).0,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.vxr.1 = do_math(
+                        input_var(
+                            r.split_at(comma).1,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.vxr = (-n, n)
+                }
+            }
+            "vyr" =>
+            {
+                if r.contains(',')
+                {
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
+                    {
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
+                    }
+                    options.vyr.0 = do_math(
+                        input_var(
+                            r.split_at(comma).0,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.vyr.1 = do_math(
+                        input_var(
+                            r.split_at(comma).1,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.vyr = (-n, n)
+                }
+            }
+            "vzr" =>
+            {
+                if r.contains(',')
+                {
+                    let mut bracket = 0;
+                    let mut comma = 0;
+                    for (i, c) in r.chars().enumerate()
+                    {
+                        match c
+                        {
+                            '(' | '{' | '[' => bracket += 1,
+                            ')' | '}' | ']' => bracket -= 1,
+                            ',' if bracket == 0 => comma = i,
+                            _ =>
+                            {}
+                        }
+                    }
+                    options.vzr.0 = do_math(
+                        input_var(
+                            r.split_at(comma).0,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.vzr.1 = do_math(
+                        input_var(
+                            r.split_at(comma).1,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64();
+                    options.vzr = (-n, n)
+                }
+            }
+            "frac_iter" =>
+            {
+                match r.parse::<usize>()
+                {
+                    Ok(n) => options.frac_iter = n,
+                    _ => return Err("Invalid frac_iter"),
+                };
+            }
+            "2d" =>
+            {
+                options.samples_2d = do_math(
                     input_var(
                         r,
                         vars.to_vec(),
@@ -2321,11 +1801,79 @@ pub fn set_commands(
                 )?
                 .num()?
                 .real()
-                .to_f64() as usize;
-                options.samples_3d = (n, n)
+                .to_f64() as usize
             }
+            "3d" =>
+            {
+                if r.contains(',')
+                {
+                    options.samples_3d = (
+                        do_math(
+                            input_var(
+                                r.split(',').next().unwrap(),
+                                vars.to_vec(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                false,
+                                0,
+                                Vec::new(),
+                            )?
+                            .0,
+                            *options,
+                            Vec::new(),
+                        )?
+                        .num()?
+                        .real()
+                        .to_f64() as usize,
+                        do_math(
+                            input_var(
+                                r.split(',').last().unwrap(),
+                                vars.to_vec(),
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                false,
+                                0,
+                                Vec::new(),
+                            )?
+                            .0,
+                            *options,
+                            Vec::new(),
+                        )?
+                        .num()?
+                        .real()
+                        .to_f64() as usize,
+                    );
+                }
+                else
+                {
+                    let n = do_math(
+                        input_var(
+                            r,
+                            vars.to_vec(),
+                            &mut Vec::new(),
+                            &mut 0,
+                            *options,
+                            false,
+                            false,
+                            0,
+                            Vec::new(),
+                        )?
+                        .0,
+                        *options,
+                        Vec::new(),
+                    )?
+                    .num()?
+                    .real()
+                    .to_f64() as usize;
+                    options.samples_3d = (n, n)
+                }
+            }
+            _ => return Ok(()),
         }
-        _ => return Ok(()),
     }
     Err("")
 }
@@ -2598,15 +2146,11 @@ pub fn commands(
             }
             stdout.flush().unwrap();
         }
-        "version" =>
-        {
-            print!(
-                "\x1b[A\x1b[G\x1b[K{} {}\x1b[G\n",
-                env!("CARGO_PKG_NAME"),
-                env!("CARGO_PKG_VERSION")
-            );
-            stdout.flush().unwrap();
-        }
+        "version" => println!(
+            "\x1b[A\x1b[G\x1b[K{} {}\x1b[G",
+            env!("CARGO_PKG_NAME"),
+            env!("CARGO_PKG_VERSION")
+        ),
         "exit" | "quit" | "break" =>
         {
             print!("\x1b[A\x1b[G\x1b[J");

@@ -1687,7 +1687,6 @@ pub fn length(
                 };
                 let nx4: Complex = if !nx4.real().is_finite()
                 {
-                    //TODO make for all and slope
                     Complex::new(options.prec)
                 }
                 else
@@ -1705,22 +1704,58 @@ pub fn length(
             {
                 let nx1: Complex = nx1
                     .iter()
-                    .map(|n| n.clone().pow(2))
+                    .map(|n| {
+                        if n.real().is_finite()
+                        {
+                            n.clone().pow(2)
+                        }
+                        else
+                        {
+                            Complex::new(options.prec)
+                        }
+                    })
                     .fold(Complex::new(options.prec), |total, x| total + x)
                     .sqrt();
                 let nx2: Complex = nx2
                     .iter()
-                    .map(|n| n.clone().pow(2))
+                    .map(|n| {
+                        if n.real().is_finite()
+                        {
+                            n.clone().pow(2)
+                        }
+                        else
+                        {
+                            Complex::new(options.prec)
+                        }
+                    })
                     .fold(Complex::new(options.prec), |total, x| total + x)
                     .sqrt();
                 let nx3: Complex = nx3
                     .iter()
-                    .map(|n| n.clone().pow(2))
+                    .map(|n| {
+                        if n.real().is_finite()
+                        {
+                            n.clone().pow(2)
+                        }
+                        else
+                        {
+                            Complex::new(options.prec)
+                        }
+                    })
                     .fold(Complex::new(options.prec), |total, x| total + x)
                     .sqrt();
                 let nx4 = nx4
                     .iter()
-                    .map(|n| n.clone().pow(2))
+                    .map(|n| {
+                        if n.real().is_finite()
+                        {
+                            n.clone().pow(2)
+                        }
+                        else
+                        {
+                            Complex::new(options.prec)
+                        }
+                    })
                     .fold(Complex::new(options.prec), |total, x| total + x)
                     .sqrt();
                 length +=
@@ -1732,7 +1767,6 @@ pub fn length(
     }
     Ok(length)
 }
-//TODO ignore removables
 #[allow(clippy::too_many_arguments)]
 pub fn area(
     mut func: Vec<NumStr>,
@@ -2018,7 +2052,14 @@ pub fn slope(
             }
             if (n2.clone() - n1.clone()).abs().real().clone().log10() > -30
             {
-                Ok(Num(Complex::with_val(options.prec, Infinity)))
+                if n2.real() > n1.real()
+                {
+                    Ok(Num(Complex::with_val(options.prec, Infinity)))
+                }
+                else
+                {
+                    Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                }
             }
             else
             {
@@ -2026,15 +2067,64 @@ pub fn slope(
             }
         }
         (Vector(n1), Vector(n2)) if !combine => Ok(Vector(
-            n2.iter()
-                .zip(n1)
-                .map(|(f, i)| (f - i) / h.clone())
+            n1.iter()
+                .zip(n2)
+                .map(|(n1, n2)| {
+                    if (n2.clone() - n1.clone()).abs().real().clone().log10() > -30
+                    {
+                        if n2.real() > n1.real()
+                        {
+                            Complex::with_val(options.prec, Infinity)
+                        }
+                        else
+                        {
+                            -Complex::with_val(options.prec, Infinity)
+                        }
+                    }
+                    else
+                    {
+                        (n2 - n1) / h.clone()
+                    }
+                })
                 .collect::<Vec<Complex>>(),
         )),
-        (Vector(n1), Vector(n2)) if n1.len() == 1 => Ok(Num((n2[0].clone() - n1[0].clone()) / h)),
-        (Vector(n1), Vector(n2)) if n1.len() == 2 => Ok(Num(
-            (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone())
-        )),
+        (Vector(n1), Vector(n2)) if n1.len() == 1 =>
+        {
+            if (n2[0].clone() - n1[0].clone()).abs().real().clone().log10() > -30
+            {
+                if n2[0].real() > n1[0].real()
+                {
+                    Ok(Num(Complex::with_val(options.prec, Infinity)))
+                }
+                else
+                {
+                    Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                }
+            }
+            else
+            {
+                Ok(Num((n2[0].clone() - n1[0].clone()) / h))
+            }
+        }
+        (Vector(n1), Vector(n2)) if n1.len() == 2 =>
+        {
+            let n = (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone());
+            if n.clone().abs().real().clone().log10() > 30
+            {
+                if n.real().is_sign_positive()
+                {
+                    Ok(Num(Complex::with_val(options.prec, Infinity)))
+                }
+                else
+                {
+                    Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                }
+            }
+            else
+            {
+                Ok(Num(n))
+            }
+        }
         (Vector(n1), Vector(n2)) =>
         {
             let num = n2.last().unwrap().clone() - n1.last().unwrap().clone();
@@ -2042,7 +2132,24 @@ pub fn slope(
                 n1[0..n1.len() - 1]
                     .iter()
                     .zip(n2[0..n2.len() - 1].to_vec())
-                    .map(|(i, f)| num.clone() / (f - i))
+                    .map(|(n1, n2)| {
+                        let n = num.clone() / (n2 - n1);
+                        if n.clone().abs().real().clone().log10() > 30
+                        {
+                            if n.real().is_sign_positive()
+                            {
+                                Complex::with_val(options.prec, Infinity)
+                            }
+                            else
+                            {
+                                -Complex::with_val(options.prec, Infinity)
+                            }
+                        }
+                        else
+                        {
+                            n
+                        }
+                    })
                     .collect::<Vec<Complex>>(),
             ))
         }

@@ -4,10 +4,9 @@ use crate::{
         NumStr::{Matrix, Num, Vector},
     },
     fraction::fraction,
-    get_terminal_width,
     load_vars::set_commands_or_vars,
     math::do_math,
-    misc::{clearln, get_terminal_height, handle_err, no_col, prompt, to_output},
+    misc::{clearln, get_terminal_dimensions, handle_err, no_col, prompt, to_output},
     options::{equal_to, parsed_to_string, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -75,9 +74,10 @@ pub fn print_concurrent(
             );
             return if !out.is_empty()
             {
+                let (width, height) = get_terminal_dimensions();
                 let len = no_col(&out, options.color).len();
-                let wrap = (len - 1) / get_terminal_width() + 1;
-                if len > get_terminal_width() * (get_terminal_height() - 1)
+                let wrap = (len - 1) / width + 1;
+                if len > width * (height - 1)
                 {
                     if long_output
                     {
@@ -178,9 +178,10 @@ pub fn print_concurrent(
                 clearln(unmodified_input, start, end, options, &colors);
                 return (0, false, false, true);
             }
+            let (width, height) = get_terminal_dimensions();
             let len = no_col(&out, options.color).len();
-            let wrap = (len - 1) / get_terminal_width() + 1;
-            return if len > get_terminal_width() * (get_terminal_height() - 1)
+            let wrap = (len - 1) / width + 1;
+            return if len > width * (height - 1)
             {
                 if long_output
                 {
@@ -293,6 +294,7 @@ pub fn print_concurrent(
                 }
             }
             out.pop();
+            let (width, height) = get_terminal_dimensions();
             let no_col = no_col(&out, options.color);
             let wrap = no_col
                 .split(|c| c == &'\n')
@@ -303,13 +305,13 @@ pub fn print_concurrent(
                     }
                     else
                     {
-                        (i.len() - 1) / get_terminal_width() + 1
+                        (i.len() - 1) / width + 1
                     }
                 })
                 .sum();
             let len = no_col.len();
             let out = out.replace('\n', "\x1b[G\n");
-            if len > get_terminal_width() * (get_terminal_height() - 1)
+            if len > width * (height - 1)
             {
                 if long_output
                 {
@@ -354,9 +356,10 @@ pub fn print_concurrent(
                 &input,
                 &last.iter().collect::<String>(),
             );
+            let (width, height) = get_terminal_dimensions();
             let len = no_col(&out, options.color).len();
-            let wrap = (len - 1) / get_terminal_width() + 1;
-            if len > get_terminal_width() * (get_terminal_height() - 1)
+            let wrap = (len - 1) / width + 1;
+            if len > width * (height - 1)
             {
                 if long_output
                 {
@@ -510,7 +513,7 @@ pub fn print_concurrent(
         {
             (String::new(), String::new())
         };
-        let terlen = get_terminal_width();
+        let (width, height) = get_terminal_dimensions();
         let len1 = no_col(&output.0, options.color).len();
         let len2 = no_col(&output.1, options.color).len();
         if (frac == 1 && !options.frac)
@@ -523,18 +526,18 @@ pub fn print_concurrent(
                 {
                     0
                 })
-                > terlen
+                > width
         {
             frac = 0;
         }
-        if len1 + len2 > terlen * (get_terminal_height() - 1)
+        if len1 + len2 > width * (height - 1)
         {
             if long_output
             {
-                let num = len1.div_ceil(terlen)
+                let num = len1.div_ceil(width)
                     + if len2 != 0
                     {
-                        (len2 - 1).div_ceil(terlen) - 1
+                        (len2 - 1).div_ceil(width) - 1
                     }
                     else
                     {
@@ -585,12 +588,12 @@ pub fn print_concurrent(
                 long = true;
             }
         }
-        else if len1 + len2 > terlen
+        else if len1 + len2 > width
         {
-            let num = len1.div_ceil(terlen)
+            let num = len1.div_ceil(width)
                 + if len2 != 0
                 {
-                    (len2 - 1).div_ceil(terlen) - 1
+                    (len2 - 1).div_ceil(width) - 1
                 }
                 else
                 {
@@ -731,23 +734,23 @@ pub fn print_concurrent(
                 frac_out += ",";
             }
         }
-        let terlen = get_terminal_width();
+        let (width, height) = get_terminal_dimensions();
         let length = no_col(&output, options.color).len();
         if frac_out != output
         {
             frac = 1;
         }
         if (frac == 1 && !options.frac)
-            || no_col(&frac_out, options.color).len() > terlen
-            || length > terlen
+            || no_col(&frac_out, options.color).len() > width
+            || length > width
         {
             frac = 0;
         }
-        if length > terlen * (get_terminal_height() - 1)
+        if length > width * (height - 1)
         {
             if long_output
             {
-                let num = (length - 1) / terlen;
+                let num = (length - 1) / width;
                 print!(
                     "\x1b[G\x1b[J{}\x1b[G\n{}{}",
                     if frac == 1 && options.frac
@@ -777,7 +780,7 @@ pub fn print_concurrent(
         }
         else
         {
-            let num = (length - 1) / terlen;
+            let num = (length - 1) / width;
             print!(
                 "\x1b[G\x1b[J{}\x1b[G\n{}{}\x1b[A{}\x1b[G{}{}{}",
                 if frac == 1 && options.frac
@@ -917,7 +920,7 @@ pub fn print_concurrent(
             output += "}";
             frac_out += "}";
         }
-        let terlen = get_terminal_width();
+        let (width, height) = get_terminal_dimensions();
         let length = no_col(&output, options.color).len() - 1;
         if frac_out != output
         {
@@ -925,10 +928,10 @@ pub fn print_concurrent(
         }
         if !options.multi
         {
-            num += (length - 1) / terlen;
+            num += (length - 1) / width;
             if (frac == 1 && !options.frac)
-                || no_col(&frac_out, options.color).len() > terlen
-                || length > terlen
+                || no_col(&frac_out, options.color).len() > width
+                || length > width
             {
                 frac = 0;
             }
@@ -943,7 +946,7 @@ pub fn print_concurrent(
                 {
                     len = 0
                 }
-                else if len > terlen
+                else if len > width
                 {
                     frac = 0;
                     break;
@@ -957,7 +960,7 @@ pub fn print_concurrent(
                 {
                     len = 0
                 }
-                else if len > terlen
+                else if len > width
                 {
                     len = 0;
                     num += 1;
@@ -965,7 +968,7 @@ pub fn print_concurrent(
             }
             frac_out += "\n";
         }
-        if length > terlen * (get_terminal_height() - 1) || num > (get_terminal_height() - 2)
+        if length > width * (height - 1) || num > (height - 2)
         {
             if long_output
             {
@@ -1407,9 +1410,10 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
         };
     }
     let exp = exp.unwrap();
-    let decimals = if decimals == usize::MAX - 1 && (get_terminal_width() as i32) > (2i32 + exp)
+    let width = get_terminal_dimensions().0;
+    let decimals = if decimals == usize::MAX - 1 && (width as i32) > (2i32 + exp)
     {
-        (get_terminal_width() as i32
+        (width as i32
             - match exp.cmp(&0)
             {
                 Ordering::Equal => 2i32,
@@ -1597,7 +1601,7 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: (u32, u32)) -> String
     };
     let dec = if dec == usize::MAX - 1
     {
-        get_terminal_width()
+        get_terminal_dimensions().0
             - (if &input[pos..] == "e0"
             {
                 2

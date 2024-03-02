@@ -4,7 +4,10 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     math::do_math,
-    misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
+    misc::{
+        get_terminal_dimensions_pixel, place_funcvar, place_funcvarxy, place_var, place_varxy,
+        prompt,
+    },
     Colors, Options,
 };
 use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
@@ -90,7 +93,7 @@ pub fn graph(
         {
             if lines
             {
-                if Options::default().yr == options.yr
+                if Options::default().xr == options.xr
                 {
                     options.xr = (
                         points2d.iter().fold(f64::MAX, |min, x| {
@@ -156,6 +159,12 @@ pub fn graph(
                     Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 1)),
                 )
             };
+            if options.scale_graph
+            {
+                let (x, y) = get_terminal_dimensions_pixel();
+                let w = y as f64 / x as f64;
+                options.yr = (w * options.yr.0, w * options.yr.1);
+            }
             if options.lines || lines
             {
                 fg.axes2d()
@@ -409,7 +418,7 @@ pub fn graph(
         {
             if lines
             {
-                if Options::default().yr == options.yr
+                if Options::default().xr == options.xr
                 {
                     options.xr = (
                         points3d.iter().fold(f64::MAX, |min, x| {

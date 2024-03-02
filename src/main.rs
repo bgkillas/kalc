@@ -16,7 +16,7 @@ use crate::{
     graph::graph,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
-    misc::{clearln, convert, get_terminal_width, prompt, read_single_char, write},
+    misc::{clearln, convert, get_terminal_dimensions, prompt, read_single_char, write},
     options::{arg_opts, commands, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
@@ -41,7 +41,6 @@ use std::{
 //remove \x1b[A repeats and \x08 and said repeats \x1b[D
 //do as much as you can before graphing
 //make f(x)=a=2;ax work
-//consider scaling graph to screen size option
 #[derive(Clone)]
 pub struct Variable
 {
@@ -150,6 +149,7 @@ pub struct Options
     var_multiply: bool,
     interactive: bool,
     surface: bool,
+    scale_graph: bool,
 }
 impl Default for Options
 {
@@ -193,6 +193,7 @@ impl Default for Options
             var_multiply: false,
             interactive: true,
             surface: false,
+            scale_graph: true,
         }
     }
 }
@@ -527,7 +528,8 @@ fn main()
                 {
                     '\n' | '\x14' | '\x09' | '\x06' =>
                     {
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
+                        end = start + get_terminal_dimensions().0
+                            - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -588,7 +590,8 @@ fn main()
                             placement -= 1;
                             input.remove(placement);
                         }
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
+                        end = start + get_terminal_dimensions().0
+                            - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -651,7 +654,8 @@ fn main()
                         {
                             input.remove(placement);
                         }
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
+                        end = start + get_terminal_dimensions().0
+                            - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -708,7 +712,7 @@ fn main()
                         //end
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
+                        start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             0
@@ -716,7 +720,7 @@ fn main()
                         else
                         {
                             input.len()
-                                - (get_terminal_width() - if options.prompt { 3 } else { 1 })
+                                - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
                         if options.real_time_output && !slow
                         {
@@ -913,14 +917,14 @@ fn main()
                         //home
                         placement = 0;
                         start = 0;
-                        end = if get_terminal_width() - if options.prompt { 3 } else { 1 }
+                        end = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             input.len()
                         }
                         else
                         {
-                            get_terminal_width() - if options.prompt { 3 } else { 1 }
+                            get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                         };
                         if options.real_time_output && !slow
                         {
@@ -960,7 +964,7 @@ fn main()
                         input = lines[i].clone().chars().collect::<Vec<char>>();
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
+                        start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             0
@@ -968,7 +972,7 @@ fn main()
                         else
                         {
                             input.len()
-                                - (get_terminal_width() - if options.prompt { 3 } else { 1 })
+                                - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
                         if options.real_time_output
                         {
@@ -1011,7 +1015,7 @@ fn main()
                         }
                         placement = input.len();
                         end = input.len();
-                        start = if get_terminal_width() - if options.prompt { 3 } else { 1 }
+                        start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
                             0
@@ -1019,7 +1023,7 @@ fn main()
                         else
                         {
                             input.len()
-                                - (get_terminal_width() - if options.prompt { 3 } else { 1 })
+                                - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
                         if options.real_time_output
                         {
@@ -1054,7 +1058,8 @@ fn main()
                         {
                             start -= 1;
                             placement -= 1;
-                            end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
+                            end = start + get_terminal_dimensions().0
+                                - if options.prompt { 3 } else { 1 };
                             if end > input.len()
                             {
                                 end = input.len()
@@ -1071,7 +1076,8 @@ fn main()
                     '\x1C' =>
                     {
                         //right
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 };
+                        end = start + get_terminal_dimensions().0
+                            - if options.prompt { 3 } else { 1 };
                         if end > input.len()
                         {
                             end = input.len()
@@ -1174,7 +1180,9 @@ fn main()
                     {
                         input.insert(placement, c);
                         placement += 1;
-                        end = start + get_terminal_width() - if options.prompt { 3 } else { 1 } + 1;
+                        end = start + get_terminal_dimensions().0
+                            - if options.prompt { 3 } else { 1 }
+                            + 1;
                         if end > input.len()
                         {
                             end = input.len()

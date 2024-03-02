@@ -50,6 +50,7 @@ pub fn arg_opts(
                 break;
             }
             "--debug" => options.debug = !options.debug,
+            "--scalegraph" => options.scale_graph = !options.scale_graph,
             "--depth" => options.depth = !options.depth,
             "--surface" => options.surface = !options.surface,
             "--flat" => options.flat = !options.flat,
@@ -605,6 +606,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "rt" => format!("{}", options.real_time_output),
         "sci" | "scientific" => format!("{}", options.sci),
         "debug" => format!("{}", options.debug),
+        "scalegraph" => format!("{}", options.scale_graph),
         "line" => format!("{}", options.lines),
         "polar" => format!("{}", options.polar),
         "frac" => format!("{}", options.frac),
@@ -770,6 +772,9 @@ pub fn set_commands(
             "comma" => options.comma = true,
             "graph" => options.graph = true,
             "var_multiply" => options.var_multiply = true,
+            "scalegraph" => options.scale_graph = true,
+            "debug" => options.debug = true,
+            "vars" => options.allow_vars = true,
             _ => return Ok(()),
         }
     }
@@ -778,6 +783,9 @@ pub fn set_commands(
         match l
         {
             "color" => options.color = false,
+            "vars" => options.allow_vars = false,
+            "debug" => options.debug = false,
+            "scalegraph" => options.scale_graph = false,
             "prompt" => options.prompt = false,
             "depth" => options.depth = false,
             "surface" => options.surface = false,
@@ -1882,6 +1890,9 @@ pub fn silent_commands(options: &mut Options, input: &[char])
     match input.iter().collect::<String>().as_str()
     {
         "default" | "defaults" | "reset" => *options = Options::default(),
+        "var_multiply" => options.var_multiply = !options.var_multiply,
+        "scalegraph" => options.scale_graph = !options.scale_graph,
+        "debug" => options.debug = !options.debug,
         "color" => options.color = !options.color,
         "prompt" => options.prompt = !options.prompt,
         "depth" => options.depth = !options.depth,
@@ -1902,6 +1913,7 @@ pub fn silent_commands(options: &mut Options, input: &[char])
         "tabbed" => options.tabbed = !options.tabbed,
         "comma" => options.comma = !options.comma,
         "graph" => options.graph = !options.graph,
+        "vars" => options.allow_vars = !options.allow_vars,
         _ =>
         {}
     }
@@ -1923,6 +1935,18 @@ pub fn commands(
             print!("\x1b[A\x1b[G\x1b[K");
             stdout.flush().unwrap();
             *options = Options::default();
+        }
+        "var_multiply" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout.flush().unwrap();
+            options.var_multiply = !options.var_multiply
+        }
+        "scalegraph" =>
+        {
+            print!("\x1b[A\x1b[G\x1b[K");
+            stdout.flush().unwrap();
+            options.scale_graph = !options.scale_graph
         }
         "color" =>
         {

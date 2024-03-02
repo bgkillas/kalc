@@ -11,32 +11,32 @@ use std::{fs::File, io::Write};
 #[cfg(not(unix))]
 use term_size::dimensions;
 #[cfg(unix)]
-pub fn get_terminal_width() -> usize
+pub fn get_terminal_dimensions() -> (usize, usize)
 {
     unsafe {
         let mut size: winsize = std::mem::zeroed();
         if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0
         {
-            size.ws_col as usize
+            (size.ws_col as usize, size.ws_row as usize)
         }
         else
         {
-            80
+            (80, 80)
         }
     }
 }
 #[cfg(unix)]
-pub fn get_terminal_height() -> usize
+pub fn get_terminal_dimensions_pixel() -> (usize, usize)
 {
     unsafe {
         let mut size: winsize = std::mem::zeroed();
         if ioctl(STDOUT_FILENO, TIOCGWINSZ, &mut size) == 0 && size.ws_col != 0
         {
-            size.ws_row as usize
+            (size.ws_xpixel as usize, size.ws_ypixel as usize)
         }
         else
         {
-            80
+            (80, 80)
         }
     }
 }
@@ -358,7 +358,7 @@ pub fn handle_err(
     print!(
         "\x1b[J\x1b[G\n{}{}\x1b[A\x1b[G\x1b[K{}{}{}",
         err,
-        "\x1b[A".repeat(err.len().div_ceil(get_terminal_width()) - 1),
+        "\x1b[A".repeat(err.len().div_ceil(get_terminal_dimensions().0) - 1),
         prompt(options, colors),
         to_output(&input[start..end], options.color, colors),
         if options.color { "\x1b[0m" } else { "" },

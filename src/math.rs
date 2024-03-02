@@ -1,9 +1,9 @@
 use crate::{
     complex::{
-        add, and, area, cofactor, cubic, determinant, div, eigenvalues, eq, gamma, gcd, ge, gt,
-        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le, length, limit, lt,
-        minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope,
-        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
+        add, and, area, cofactor, cubic, determinant, div, eigenvalues, eq, erf, erfc, gamma, gcd,
+        ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le, length, limit,
+        lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog,
+        slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -2692,7 +2692,8 @@ fn functions(
             }
             else
             {
-                return Err("complex erf not supported");
+                let two = Float::with_val(options.prec.0, 2);
+                erf(-a / two.clone().sqrt()) / two
             }
         }
         "erf" =>
@@ -2703,7 +2704,7 @@ fn functions(
             }
             else
             {
-                return Err("complex erf not supported");
+                erf(a)
             }
         }
         "erfc" =>
@@ -2714,8 +2715,13 @@ fn functions(
             }
             else
             {
-                return Err("complex erfc not supported");
+                erfc(a)
             }
+        }
+        "erfi" =>
+        {
+            let i = Complex::with_val(options.prec, (0, 1));
+            -i.clone() * erf(i * a)
         }
         "ai" =>
         {
@@ -2746,7 +2752,6 @@ fn functions(
                 return Err("complex digamma not supported");
             }
         }
-        //TODO get rid of complex not supported
         "zeta" | "ζ" =>
         {
             if a.imag().is_zero()
@@ -2755,7 +2760,12 @@ fn functions(
             }
             else
             {
-                return Err("complex zeta not supported");
+                let mut n = Complex::new(options.prec);
+                for i in 1..10000
+                {
+                    n += i.pow(-a.clone())
+                }
+                n
             }
         }
         "prime" =>

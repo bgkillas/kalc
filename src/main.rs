@@ -187,7 +187,7 @@ impl Default for Options
             depth: false,
             flat: false,
             graph: true,
-            slowcheck: 250,
+            slowcheck: 300,
             var_multiply: false,
             interactive: true,
             surface: false,

@@ -1452,6 +1452,34 @@ fn incomplete_beta_recursion(x: Complex, a: Complex, b: Complex, iter: usize, ma
             / (1 + incomplete_beta_recursion(x, a, b, iter + 1, max))
     }
 }
+pub fn erf(z: Complex) -> Complex
+{
+    1 - erfc(z)
+}
+pub fn erfc(z: Complex) -> Complex
+{
+    let p2: Complex = z.clone().pow(2);
+    erfc_recursion(z.clone(), 0, 100) / Complex::with_val(z.prec(), Pi).sqrt() * z / p2.exp()
+}
+fn erfc_recursion(z: Complex, iter: usize, max: usize) -> Complex
+{
+    if iter == max
+    {
+        Complex::with_val(z.prec(), 1)
+    }
+    else if iter == 0
+    {
+        erfc_recursion(z, 1, max).recip()
+    }
+    else if iter % 2 == 1
+    {
+        z.clone().pow(2) + iter / (2 * erfc_recursion(z, iter + 1, max))
+    }
+    else
+    {
+        1 + iter / (2 * erfc_recursion(z, iter + 1, max))
+    }
+}
 fn gamma0(z: Complex) -> Complex
 {
     gamma0_recursion_first(z.clone(), 0, 100) + gamma0_recursion_second(z, 0, 100)
@@ -2737,7 +2765,7 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
     }
     if z.imag().is_zero() && (k == 0 || k == -1)
     {
-        let e: Float = -1 / Float::with_val(z.prec().0, 1).exp();
+        let e: Float = -Float::with_val(z.prec().0, -1).exp();
         if z.real() == &e
         {
             return Complex::with_val(z.prec(), -1);
@@ -2778,7 +2806,7 @@ fn initpoint(z: Complex, k: isize) -> Complex
     let pi = Float::with_val(z.prec().0, Pi);
     let e = Float::with_val(z.prec().0, 1).exp();
     {
-        let test: Complex = z.clone() + (1 / e.clone());
+        let test: Complex = z.clone() + e.clone().recip();
         if test.abs().real() <= &1.0001
         {
             let p1: Complex = 2 * e * z.clone() + 2;

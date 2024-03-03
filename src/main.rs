@@ -546,7 +546,7 @@ fn main()
                                 colors.clone(),
                                 start,
                                 end,
-                                (long || !options.real_time_output) && c == '\n',
+                                c == '\n',
                             );
                         }
                         if !input.is_empty()

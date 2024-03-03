@@ -6,7 +6,7 @@ use crate::{
     fraction::fraction,
     load_vars::set_commands_or_vars,
     math::do_math,
-    misc::{clearln, get_terminal_dimensions, handle_err, no_col, prompt, to_output},
+    misc::{clear, clearln, get_terminal_dimensions, handle_err, no_col, prompt, to_output},
     options::{equal_to, parsed_to_string, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -26,10 +26,9 @@ pub fn print_concurrent(
     long_output: bool,
 ) -> (usize, bool, bool, bool)
 {
-    if unmodified_input.starts_with(&['#'])
+    if unmodified_input.starts_with(&['#']) || unmodified_input.is_empty()
     {
-        print!("\x1b[J");
-        clearln(unmodified_input, start, end, options, &colors);
+        clear(unmodified_input, start, end, options, &colors);
         return (0, false, false, false);
     }
     let mut unparsed = unmodified_input;
@@ -414,7 +413,14 @@ pub fn print_concurrent(
         Ok(n) => n,
         Err(s) =>
         {
-            handle_err(s, unmodified_input, options, &colors, start, end);
+            if s == " "
+            {
+                clear(unmodified_input, start, end, options, &colors)
+            }
+            else
+            {
+                handle_err(s, unmodified_input, options, &colors, start, end);
+            }
             return (0, false, false, false);
         }
     };

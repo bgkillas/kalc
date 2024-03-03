@@ -255,6 +255,15 @@ pub fn clearln(input: &[char], start: usize, end: usize, options: Options, color
         if options.color { "\x1b[0m" } else { "" }
     );
 }
+pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
+{
+    print!(
+        "\x1b[G\x1b[J{}{}{}",
+        prompt(options, colors),
+        to_output(&input[start..end], options.color, colors),
+        if options.color { "\x1b[0m" } else { "" }
+    );
+}
 pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
 {
     if color

@@ -1810,11 +1810,19 @@ pub fn do_math(
                                         let b = function[i + 3].num()?;
                                         let c = function[i + 5].num()?;
                                         let d = function[i + 7].num()?;
-                                        let real = function[i + 9].num()?.real() == &1;
+                                        let real = !function[i + 9].num()?.is_zero();
                                         function.drain(i + 2..i + 10);
-                                        Vector(cubic(a, b, c, d, real))
+                                        let n = cubic(a, b, c, d, real);
+                                        if n.len() == 1
+                                        {
+                                            Num(n[0].clone())
+                                        }
+                                        else
+                                        {
+                                            Vector(n)
+                                        }
                                     }
-                                    else if i + 7 < function.len()
+                                    else if i + 7 < function.len() && function[i + 6].str_is(",")
                                     {
                                         let a = function[i + 1].num()?;
                                         let b = function[i + 3].num()?;
@@ -1822,6 +1830,20 @@ pub fn do_math(
                                         let d = function[i + 7].num()?;
                                         function.drain(i + 2..i + 8);
                                         Vector(cubic(a, b, c, d, false))
+                                    }
+                                    else if i + 5 < function.len()
+                                    {
+                                        let b = function[i + 1].num()?;
+                                        let c = function[i + 3].num()?;
+                                        let d = function[i + 5].num()?;
+                                        function.drain(i + 2..i + 6);
+                                        Vector(cubic(
+                                            Complex::with_val(options.prec, 1),
+                                            b,
+                                            c,
+                                            d,
+                                            false,
+                                        ))
                                     }
                                     else
                                     {
@@ -1835,17 +1857,41 @@ pub fn do_math(
                                         let a = function[i + 1].num()?;
                                         let b = function[i + 3].num()?;
                                         let c = function[i + 5].num()?;
-                                        let real = function[i + 7].num()?.real() == &1;
+                                        let real = !function[i + 7].num()?.is_zero();
                                         function.drain(i + 2..i + 8);
-                                        Vector(quadratic(a, b, c, real))
+                                        let n = quadratic(a, b, c, real);
+                                        if n.is_empty()
+                                        {
+                                            Num(Complex::with_val(options.prec, Nan))
+                                        }
+                                        else if n.len() == 1
+                                        {
+                                            Num(n[0].clone())
+                                        }
+                                        else
+                                        {
+                                            Vector(n)
+                                        }
                                     }
-                                    else if i + 5 < function.len()
+                                    else if i + 5 < function.len() && function[i + 4].str_is(",")
                                     {
                                         let a = function[i + 1].num()?;
                                         let b = function[i + 3].num()?;
                                         let c = function[i + 5].num()?;
                                         function.drain(i + 2..i + 6);
                                         Vector(quadratic(a, b, c, false))
+                                    }
+                                    else if i + 3 < function.len()
+                                    {
+                                        let b = function[i + 1].num()?;
+                                        let c = function[i + 3].num()?;
+                                        function.drain(i + 2..i + 4);
+                                        Vector(quadratic(
+                                            Complex::with_val(options.prec, 1),
+                                            b,
+                                            c,
+                                            false,
+                                        ))
                                     }
                                     else
                                     {

@@ -35,10 +35,7 @@ use std::{
 //rpn
 //matrix exponentiation
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
-//maybe assume brackets for say log(10x^(2,4) to log(10x^(2),4) if possible
 //dont use strings in math.rs
-//dont clear terminal first, write the line, \x1b[K, then on the last line \x1[b[J
-//remove \x1b[A repeats and \x08 and said repeats \x1b[D
 //do as much as you can before graphing
 #[derive(Clone)]
 pub struct Variable

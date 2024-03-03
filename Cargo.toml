@@ -1,28 +1,28 @@
 [package]
-name         = "kalc"
-description  = "a complex numbers, 2d/3d graphing, arbitrary precision, vector, cli calculator with real-time output"
-license      = "GPL-3.0-only"
-authors      = ["bgkillas <mswalhelm@gmail.com>"]
-readme       = "README.md"
-keywords     = ["cli","calculator"]
-categories   = ["command-line-interface","command-line-utilities","mathematics"]
-repository   = "https://github.com/bgkillas/kalc"
-version      = "1.0.2"
-edition      = "2021"
+name = "kalc"
+description = "a complex numbers, 2d/3d graphing, arbitrary precision, vector, cli calculator with real-time output"
+license = "GPL-3.0-only"
+authors = ["bgkillas <mswalhelm@gmail.com>"]
+readme = "README.md"
+keywords = ["cli", "calculator"]
+categories = ["command-line-interface", "command-line-utilities", "mathematics"]
+repository = "https://github.com/bgkillas/kalc"
+version = "1.0.3"
+edition = "2021"
 
 [profile.release]
 codegen-units = 1
-lto   = true
+lto = true
 strip = true
 panic = "abort"
 
 [dependencies]
-rug          = "1.24.0"
-gnuplot      = "0.0.42"
-crossterm    = "0.27.0"
+rug = "1.24.0"
+gnuplot = "0.0.42"
+crossterm = "0.27.0"
 
 [target.'cfg(not(unix))'.dependencies]
-term_size    = "0.3.2"
+term_size = "0.3.2"
 
 [target.'cfg(unix)'.dependencies]
-libc         = "0.2.152"
+libc = "0.2.152"

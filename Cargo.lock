@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "kalc"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "crossterm",
  "gnuplot",

@@ -11,11 +11,11 @@ history file is stored in ```~/.config/kalc.history```
 config file is stored in ```~/.config/kalc.config``` example in repo
 
 you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo, also contains more
-advanced example usage
-
-parsing tries to comply with wolfram alpha
+advanced example usage, suggested not to use entire kalc.vars example on lower end systems as it may cause lag
 
 config defaults listed in kalc.config
+
+parsing tries to comply with wolfram alpha
 
 # install instructions
 

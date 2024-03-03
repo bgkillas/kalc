@@ -924,9 +924,19 @@ pub fn graph(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_2d(
-    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
+    mut func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
 ) -> ([[Vec<f64>; 2]; 2], [Vec<f64>; 2], (bool, bool))
 {
+    {
+        let temp = func.1.clone();
+        for i in func.1.iter_mut()
+        {
+            if let Ok(n) = do_math(i.1.clone(), func.2, temp.clone())
+            {
+                i.1 = vec![n];
+            }
+        }
+    }
     if let Num(n) = &func.0[0]
     {
         if func.0.len() == 1 && n.is_zero()
@@ -1160,9 +1170,19 @@ pub fn get_list_2d(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_3d(
-    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
+    mut func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
 ) -> ([[Vec<f64>; 3]; 2], (bool, bool), bool)
 {
+    {
+        let temp = func.1.clone();
+        for i in func.1.iter_mut()
+        {
+            if let Ok(n) = do_math(i.1.clone(), func.2, temp.clone())
+            {
+                i.1 = vec![n];
+            }
+        }
+    }
     if let Num(n) = &func.0[0]
     {
         if func.0.len() == 1 && n.is_zero()

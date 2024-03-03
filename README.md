@@ -255,8 +255,17 @@ kalc 'sin(x)#cos(x)' // graphs sin(x) and cos(x) in 2D
 
 # graphing
 
+my gnuplot config in ~/.gnuplot
+
 ```
+set terminal x11
+set xyplane 0
+set grid x y z
+```
+
 chars available for point style:
+
+```
 . - dot
 + - plus
 x - cross

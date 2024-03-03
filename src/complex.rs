@@ -469,6 +469,24 @@ pub fn rem(a: &Complex, b: &Complex) -> Complex
     );
     a - b * c
 }
+pub fn digamma(z: Complex, m: usize) -> Complex
+{
+    let h = Complex::with_val(z.prec(), 0.5).pow(z.prec().0 / 8);
+    digamma_recursive(z, m, h)
+}
+fn digamma_recursive(z: Complex, m: usize, h: Complex) -> Complex
+{
+    if m == 0
+    {
+        (gamma(z.clone() + h.clone()).ln() - gamma(z).ln()) / h
+    }
+    else
+    {
+        (digamma_recursive(z.clone() + h.clone(), m - 1, h.clone())
+            - digamma_recursive(z, m - 1, h.clone()))
+            / h
+    }
+}
 pub fn gamma(a: Complex) -> Complex
 {
     if !a.imag().is_zero()

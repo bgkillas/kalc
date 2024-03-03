@@ -1,9 +1,10 @@
 use crate::{
     complex::{
-        add, and, area, cofactor, cubic, determinant, div, eigenvalues, eq, erf, erfc, gamma, gcd,
-        ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le, length, limit,
-        lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog,
-        slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
+        add, and, area, cofactor, cubic, determinant, digamma, div, eigenvalues, eq, erf, erfc,
+        gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le,
+        length, limit, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl,
+        shr, slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
+        variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -211,6 +212,9 @@ pub fn do_math(
                             if matches!(
                                 k.as_str(),
                                 "log"
+                                    | "zeta"
+                                    | "polygamma"
+                                    | "digamma"
                                     | "multinomial"
                                     | "gcd"
                                     | "gcf"
@@ -2734,9 +2738,14 @@ fn functions(
                 return Err("complex ai not supported");
             }
         }
-        "digamma" =>
+        "trigamma" => digamma(a, 1),
+        "digamma" | "polygamma" =>
         {
-            if a.imag().is_zero()
+            if let Some(b) = c
+            {
+                digamma(b, a.real().to_f64() as usize)
+            }
+            else if a.imag().is_zero()
             {
                 if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
                 {
@@ -2749,12 +2758,22 @@ fn functions(
             }
             else
             {
-                return Err("complex digamma not supported");
+                digamma(a, 0)
             }
         }
         "zeta" | "ζ" =>
         {
-            if a.imag().is_zero()
+            if let Some(b) = c
+            {
+                let mut n = Complex::new(options.prec);
+                for i in 0..10000usize
+                {
+                    let base: Complex = i + b.clone();
+                    n += base.pow(-a.clone())
+                }
+                n
+            }
+            else if a.imag().is_zero()
             {
                 a.real().clone().zeta().into()
             }

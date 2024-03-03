@@ -35,7 +35,6 @@ use std::{
 //rpn
 //matrix exponentiation
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
-//dont use strings in math.rs
 //do as much as you can before graphing
 #[derive(Clone)]
 pub struct Variable

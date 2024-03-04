@@ -36,11 +36,9 @@ use std::{
 //surface area of a 3d curve
 //rpn
 //matrix exponentiation
-//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 //do as much as you can before graphing
+//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 //nth slope, maybe nth area
-//digamma(x+yi,x+yi)
-//support domain coloring
 #[derive(Clone)]
 pub struct Variable
 {

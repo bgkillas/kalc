@@ -15,8 +15,6 @@ advanced example usage, suggested not to use entire kalc.vars example on lower e
 
 config defaults listed in kalc.config
 
-parsing tries to comply with wolfram alpha
-
 # install instructions
 
 use aur or run

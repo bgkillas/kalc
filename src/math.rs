@@ -512,7 +512,11 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                if place.len() >= 5
+                                if place.len() == 4
+                                {
+                                    100
+                                }
+                                else
                                 {
                                     do_math(
                                         function[place[3] + 1..place[4]].to_vec(),
@@ -522,16 +526,13 @@ pub fn do_math(
                                     .num()?
                                     .real()
                                     .to_f64() as usize
-                                }
-                                else
-                                {
-                                    100
                                 },
                                 place.len() != 6,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("slope" | "D", Str(var)) if place.len() == 3 || place.len() == 4 =>
+                        ("slope" | "D", Str(var))
+                            if place.len() == 3 || place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = slope(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -544,7 +545,22 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                place.len() != 4,
+                                place.len() != 5,
+                                if place.len() == 3
+                                {
+                                    1
+                                }
+                                else
+                                {
+                                    do_math(
+                                        function[place[2] + 1..place[3]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .real()
+                                    .to_f64() as u32
+                                },
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }

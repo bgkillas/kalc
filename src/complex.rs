@@ -472,22 +472,24 @@ pub fn rem(a: &Complex, b: &Complex) -> Complex
 pub fn digamma(mut z: Complex, mut n: u32) -> Complex
 {
     n += 1;
-    let prec = n * 128;
+    let op = z.prec().0 / 2;
+    let prec = n * op;
     z.set_prec(prec);
-    let h: Complex = Complex::with_val(prec, 0.5).pow(100);
+    let h: Complex = Complex::with_val(prec, 0.5).pow(op / 2);
+    let num = Integer::from(n);
     let mut sum = Complex::new(prec);
     for k in 0..=n
     {
         if k % 2 == 0
         {
-            sum += Integer::from(n).binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
+            sum += num.clone().binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
         }
         else
         {
-            sum -= Integer::from(n).binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
+            sum -= num.clone().binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
         }
     }
-    sum / Complex::with_val(prec, 0.5).pow(100 * n)
+    sum * Complex::with_val(prec, 2).pow(op / 2 * n)
 }
 // pub fn digamma(z: Complex, m: usize) -> Complex
 // {
@@ -1659,6 +1661,7 @@ pub fn length(
         var.clone(),
         start.clone(),
         false,
+        1,
     )?
     {
         Num(nx0) =>
@@ -1698,6 +1701,7 @@ pub fn length(
             var.clone(),
             start.clone() - 3 * h.clone(),
             false,
+            1,
         )?;
         let x2 = slope(
             func.clone(),
@@ -1706,6 +1710,7 @@ pub fn length(
             var.clone(),
             start.clone() - 2 * h.clone(),
             false,
+            1,
         )?;
         let x3 = slope(
             func.clone(),
@@ -1714,6 +1719,7 @@ pub fn length(
             var.clone(),
             start.clone() - h.clone(),
             false,
+            1,
         )?;
         let x4 = slope(
             func.clone(),
@@ -1722,6 +1728,7 @@ pub fn length(
             var.clone(),
             start.clone(),
             false,
+            1,
         )?;
         match (x1, x2, x3, x4)
         {
@@ -2081,148 +2088,182 @@ pub fn slope(
     func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
-    point: Complex,
-    combine: bool,
+    mut point: Complex,
+    _combine: bool,
+    nth: u32,
 ) -> Result<NumStr, &'static str>
 {
-    let h = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 4);
-    let n1 = do_math_with_var(
+    let prec = nth * options.prec.0 / 2;
+    point.set_prec(prec);
+    let h: Complex = Complex::with_val(prec, 0.5).pow(options.prec.0 / 4);
+    let n = do_math_with_var(
         func.clone(),
         options,
         func_vars.clone(),
         &var,
         Num(point.clone()),
     )?;
-    let n2 = do_math_with_var(
-        func.clone(),
-        options,
-        func_vars.clone(),
-        &var,
-        Num(point.clone() + h.clone()),
-    )?;
-    match (n1, n2)
+    let num = Integer::from(nth);
+    match n
     {
-        (Num(mut n1), Num(mut n2)) =>
+        Num(mut sum) =>
         {
-            if n2.real().is_nan()
+            if nth % 2 == 1
             {
-                n2 = n1;
-                n1 = do_math_with_var(
-                    func.clone(),
-                    options,
-                    func_vars.clone(),
-                    &var,
-                    Num(point - h.clone()),
-                )?
-                .num()?;
+                sum *= -1;
             }
-            if (n2.clone() - n1.clone()).abs().real().clone().log10()
-                > options.prec.0 as isize / -20
+            for k in 0..nth
             {
-                if n2.real() > n1.real()
+                if k % 2 == 0
                 {
-                    Ok(Num(Complex::with_val(options.prec, Infinity)))
+                    sum += num.clone().binomial(k)
+                        * do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(point.clone() + h.clone() * (nth - k)),
+                        )?
+                        .num()?;
                 }
                 else
                 {
-                    Ok(Num(-Complex::with_val(options.prec, Infinity)))
+                    sum -= num.clone().binomial(k)
+                        * do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(point.clone() + h.clone() * (nth - k)),
+                        )?
+                        .num()?;
                 }
             }
-            else
-            {
-                Ok(Num((n2 - n1) / h))
-            }
-        }
-        (Vector(n1), Vector(n2)) if !combine => Ok(Vector(
-            n1.iter()
-                .zip(n2)
-                .map(|(n1, n2)| {
-                    if (n2.clone() - n1.clone()).abs().real().clone().log10()
-                        > options.prec.0 as isize / -20
-                    {
-                        if n2.real() > n1.real()
-                        {
-                            Complex::with_val(options.prec, Infinity)
-                        }
-                        else
-                        {
-                            -Complex::with_val(options.prec, Infinity)
-                        }
-                    }
-                    else
-                    {
-                        (n2 - n1) / h.clone()
-                    }
-                })
-                .collect::<Vec<Complex>>(),
-        )),
-        (Vector(n1), Vector(n2)) if n1.len() == 1 =>
-        {
-            if (n2[0].clone() - n1[0].clone()).abs().real().clone().log10()
-                > options.prec.0 as isize / -20
-            {
-                if n2[0].real() > n1[0].real()
-                {
-                    Ok(Num(Complex::with_val(options.prec, Infinity)))
-                }
-                else
-                {
-                    Ok(Num(-Complex::with_val(options.prec, Infinity)))
-                }
-            }
-            else
-            {
-                Ok(Num((n2[0].clone() - n1[0].clone()) / h))
-            }
-        }
-        (Vector(n1), Vector(n2)) if n1.len() == 2 =>
-        {
-            let n = (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone());
-            if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
-            {
-                if n.real().is_sign_positive()
-                {
-                    Ok(Num(Complex::with_val(options.prec, Infinity)))
-                }
-                else
-                {
-                    Ok(Num(-Complex::with_val(options.prec, Infinity)))
-                }
-            }
-            else
-            {
-                Ok(Num(n))
-            }
-        }
-        (Vector(n1), Vector(n2)) =>
-        {
-            let num = n2.last().unwrap().clone() - n1.last().unwrap().clone();
-            Ok(Vector(
-                n1[0..n1.len() - 1]
-                    .iter()
-                    .zip(n2[0..n2.len() - 1].to_vec())
-                    .map(|(n1, n2)| {
-                        let n = num.clone() / (n2 - n1);
-                        if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
-                        {
-                            if n.real().is_sign_positive()
-                            {
-                                Complex::with_val(options.prec, Infinity)
-                            }
-                            else
-                            {
-                                -Complex::with_val(options.prec, Infinity)
-                            }
-                        }
-                        else
-                        {
-                            n
-                        }
-                    })
-                    .collect::<Vec<Complex>>(),
+            Ok(Num(
+                sum * Complex::with_val(prec, 2).pow(options.prec.0 / 4 * nth)
             ))
         }
-        (_, _) => Err("not supported slope data"),
+        // (Num(mut n1), Num(mut n2)) =>
+        // {
+        //     if n2.real().is_nan()
+        //     {
+        //         n2 = n1;
+        //         n1 = do_math_with_var(
+        //             func.clone(),
+        //             options,
+        //             func_vars.clone(),
+        //             &var,
+        //             Num(point - h.clone()),
+        //         )?
+        //         .num()?;
+        //     }
+        //     if (n2.clone() - n1.clone()).abs().real().clone().log10()
+        //         > options.prec.0 as isize / -20
+        //     {
+        //         if n2.real() > n1.real()
+        //         {
+        //             Ok(Num(Complex::with_val(options.prec, Infinity)))
+        //         }
+        //         else
+        //         {
+        //             Ok(Num(-Complex::with_val(options.prec, Infinity)))
+        //         }
+        //     }
+        //     else
+        //     {
+        //         Ok(Num((n2 - n1) / h))
+        //     }
+        // }
+        // (Vector(n1), Vector(n2)) if !combine => Ok(Vector(
+        //     n1.iter()
+        //         .zip(n2)
+        //         .map(|(n1, n2)| {
+        //             if (n2.clone() - n1.clone()).abs().real().clone().log10()
+        //                 > options.prec.0 as isize / -20
+        //             {
+        //                 if n2.real() > n1.real()
+        //                 {
+        //                     Complex::with_val(options.prec, Infinity)
+        //                 }
+        //                 else
+        //                 {
+        //                     -Complex::with_val(options.prec, Infinity)
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 (n2 - n1) / h.clone()
+        //             }
+        //         })
+        //         .collect::<Vec<Complex>>(),
+        // )),
+        // (Vector(n1), Vector(n2)) if n1.len() == 1 =>
+        // {
+        //     if (n2[0].clone() - n1[0].clone()).abs().real().clone().log10()
+        //         > options.prec.0 as isize / -20
+        //     {
+        //         if n2[0].real() > n1[0].real()
+        //         {
+        //             Ok(Num(Complex::with_val(options.prec, Infinity)))
+        //         }
+        //         else
+        //         {
+        //             Ok(Num(-Complex::with_val(options.prec, Infinity)))
+        //         }
+        //     }
+        //     else
+        //     {
+        //         Ok(Num((n2[0].clone() - n1[0].clone()) / h))
+        //     }
+        // }
+        // (Vector(n1), Vector(n2)) if n1.len() == 2 =>
+        // {
+        //     let n = (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone());
+        //     if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
+        //     {
+        //         if n.real().is_sign_positive()
+        //         {
+        //             Ok(Num(Complex::with_val(options.prec, Infinity)))
+        //         }
+        //         else
+        //         {
+        //             Ok(Num(-Complex::with_val(options.prec, Infinity)))
+        //         }
+        //     }
+        //     else
+        //     {
+        //         Ok(Num(n))
+        //     }
+        // }
+        // (Vector(n1), Vector(n2)) =>
+        // {
+        //     let num = n2.last().unwrap().clone() - n1.last().unwrap().clone();
+        //     Ok(Vector(
+        //         n1[0..n1.len() - 1]
+        //             .iter()
+        //             .zip(n2[0..n2.len() - 1].to_vec())
+        //             .map(|(n1, n2)| {
+        //                 let n = num.clone() / (n2 - n1);
+        //                 if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
+        //                 {
+        //                     if n.real().is_sign_positive()
+        //                     {
+        //                         Complex::with_val(options.prec, Infinity)
+        //                     }
+        //                     else
+        //                     {
+        //                         -Complex::with_val(options.prec, Infinity)
+        //                     }
+        //                 }
+        //                 else
+        //                 {
+        //                     n
+        //                 }
+        //             })
+        //             .collect::<Vec<Complex>>(),
+        //     ))
+        // }
+        _ => Err("not supported slope data"),
     }
 }
 #[derive(Copy, Clone, PartialEq)]

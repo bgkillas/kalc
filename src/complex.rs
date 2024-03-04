@@ -469,24 +469,44 @@ pub fn rem(a: &Complex, b: &Complex) -> Complex
     );
     a - b * c
 }
-pub fn digamma(z: Complex, m: usize) -> Complex
+pub fn digamma(mut z: Complex, mut n: u32) -> Complex
 {
-    let h = Complex::with_val(z.prec(), 0.5).pow(z.prec().0 / 8);
-    digamma_recursive(z, m, h)
-}
-fn digamma_recursive(z: Complex, m: usize, h: Complex) -> Complex
-{
-    if m == 0
+    n += 1;
+    let prec = n * 128;
+    z.set_prec(prec);
+    let h: Complex = Complex::with_val(prec, 0.5).pow(100);
+    let mut sum = Complex::new(prec);
+    for k in 0..=n
     {
-        (gamma(z.clone() + h.clone()).ln() - gamma(z).ln()) / h
+        if k % 2 == 0
+        {
+            sum += Integer::from(n).binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
+        }
+        else
+        {
+            sum -= Integer::from(n).binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
+        }
     }
-    else
-    {
-        (digamma_recursive(z.clone() + h.clone(), m - 1, h.clone())
-            - digamma_recursive(z, m - 1, h.clone()))
-            / h
-    }
+    sum / Complex::with_val(prec, 0.5).pow(100 * n)
 }
+// pub fn digamma(z: Complex, m: usize) -> Complex
+// {
+//     let h = Complex::with_val(z.prec(), 0.5).pow(z.prec().0 / 8);
+//     digamma_recursive(z, m, h)
+// }
+// fn digamma_recursive(z: Complex, m: usize, h: Complex) -> Complex
+// {
+//     if m == 0
+//     {
+//         (gamma(z.clone() + h.clone()).ln() - gamma(z).ln()) / h
+//     }
+//     else
+//     {
+//         (digamma_recursive(z.clone() + h.clone(), m - 1, h.clone())
+//             - digamma_recursive(z, m - 1, h.clone()))
+//             / h
+//     }
+// }
 pub fn gamma(a: Complex) -> Complex
 {
     if !a.imag().is_zero()

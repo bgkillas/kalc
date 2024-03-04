@@ -1911,73 +1911,73 @@ pub fn commands(
     {
         "default" | "defaults" | "reset" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             *options = Options::default();
         }
         "var_multiply" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.var_multiply = !options.var_multiply
         }
         "scalegraph" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.scale_graph = !options.scale_graph
         }
         "color" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.color = !options.color;
         }
         "prompt" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.prompt = !options.prompt;
         }
         "depth" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.depth = !options.depth;
         }
         "surface" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.surface = !options.surface;
         }
         "flat" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.flat = !options.flat;
         }
         "deg" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.deg = Degrees;
         }
         "rad" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.deg = Radians;
         }
         "grad" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.deg = Gradians;
         }
         "rt" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.real_time_output = !options.real_time_output;
         }
@@ -1985,13 +1985,13 @@ pub fn commands(
         "pi" => options.tau = false,
         "small_e" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.small_e = !options.small_e;
         }
         "sci" | "scientific" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.sci = !options.sci;
         }
@@ -2003,61 +2003,61 @@ pub fn commands(
         }
         "debug" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.debug = !options.debug;
         }
         "help" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             help();
         }
         "line" | "lines" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.lines = !options.lines;
         }
         "polar" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.polar = !options.polar;
         }
         "frac" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.frac = !options.frac;
         }
         "multi" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.multi = !options.multi;
         }
         "tabbed" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.tabbed = !options.tabbed;
         }
         "comma" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.comma = !options.comma;
         }
         "graph" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.graph = !options.graph;
         }
         "history" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             for l in lines
             {
                 print!("{}\x1b[G\n", l);
@@ -2066,7 +2066,7 @@ pub fn commands(
         }
         "vars" | "variables" =>
         {
-            print!("\x1b[A\x1b[G\x1b[K");
+            print!("\x1b[G\x1b[A\x1b[K");
             for v in vars.iter()
             {
                 if !v.unparsed.is_empty()
@@ -2150,13 +2150,13 @@ pub fn commands(
             stdout.flush().unwrap();
         }
         "version" => println!(
-            "\x1b[A\x1b[G\x1b[K{} {}\x1b[G",
+            "\x1b[G\x1b[A\x1b[K{} {}\x1b[G",
             env!("CARGO_PKG_NAME"),
             env!("CARGO_PKG_VERSION")
         ),
         "exit" | "quit" | "break" =>
         {
-            print!("\x1b[A\x1b[G\x1b[J");
+            print!("\x1b[G\x1b[A\x1b[J");
             stdout.flush().unwrap();
             terminal::disable_raw_mode().unwrap();
             std::process::exit(0);
@@ -2168,7 +2168,7 @@ pub fn commands(
             let next = split.next().unwrap();
             if next == "history"
             {
-                print!("\x1b[A\x1b[G\x1b[K");
+                print!("\x1b[G\x1b[A\x1b[K");
                 let r = split.next().unwrap();
                 for i in lines
                 {

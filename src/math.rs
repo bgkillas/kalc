@@ -2789,7 +2789,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                digamma(b, a.real().to_f64() as usize)
+                digamma(b, a.real().to_f64() as u32)
             }
             else if a.imag().is_zero()
             {

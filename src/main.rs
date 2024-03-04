@@ -16,7 +16,9 @@ use crate::{
     graph::graph,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
-    misc::{clearln, convert, get_terminal_dimensions, prompt, read_single_char, write},
+    misc::{
+        clearln, convert, get_terminal_dimensions, handle_err, prompt, read_single_char, write,
+    },
     options::{arg_opts, commands, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
@@ -515,6 +517,7 @@ fn main()
             let mut start = 0;
             let mut end = 0;
             let mut slow = false;
+            let mut firstslow = false;
             loop
             {
                 let c = read_single_char();
@@ -613,12 +616,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -677,12 +689,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -731,12 +752,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -763,12 +793,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -795,12 +834,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -829,12 +877,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -863,12 +920,21 @@ fn main()
                                 );
                                 if watch.elapsed().as_millis() > options.slowcheck
                                 {
+                                    firstslow = true;
                                     slow = true;
-                                    print!(
-                                            "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                            input.len() + if options.prompt { 2 } else { 0 }
-                                        );
                                 }
+                            }
+                            else if firstslow
+                            {
+                                firstslow = false;
+                                handle_err(
+                                    "too slow, will print on enter",
+                                    &input,
+                                    options,
+                                    &colors,
+                                    start,
+                                    end,
+                                )
                             }
                             else
                             {
@@ -894,12 +960,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -935,12 +1010,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -982,13 +1066,7 @@ fn main()
                                 false,
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
-                            if slow
-                            {
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
-                            }
+                            firstslow = slow
                         }
                         else
                         {
@@ -1033,13 +1111,7 @@ fn main()
                                 false,
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
-                            if slow
-                            {
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
-                            }
+                            firstslow = slow;
                         }
                         else
                         {
@@ -1212,12 +1284,21 @@ fn main()
                             );
                             if watch.elapsed().as_millis() > options.slowcheck
                             {
+                                firstslow = true;
                                 slow = true;
-                                print!(
-                                        "\x1b[G\n\x1b[Jtoo slow, will print on enter\x1b[A\x1b[G\x1b[{}C",
-                                        input.len() + if options.prompt { 2 } else { 0 }
-                                    );
                             }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
                         }
                         else
                         {
@@ -1353,7 +1434,7 @@ fn main()
                                     )
                                     {
                                         print!(
-                                            "\x1b[A\x1b[G\x1b[K{}\n\x1b[G{}",
+                                            "\x1b[G\x1b[A\x1b[K{}\n\x1b[G{}",
                                             s,
                                             prompt(options, &colors)
                                         );

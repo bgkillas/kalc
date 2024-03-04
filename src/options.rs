@@ -500,7 +500,7 @@ pub fn file_opts(
         let mut split;
         for line in reader.lines().map(|l| l.unwrap())
         {
-            if line.starts_with('#')
+            if line.starts_with('#') || line.is_empty()
             {
                 continue;
             }

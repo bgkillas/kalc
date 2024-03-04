@@ -226,7 +226,7 @@ fn main()
             {
                 if let Ok(line) = line
                 {
-                    if !line.starts_with('#')
+                    if !line.starts_with('#') && !line.is_empty()
                     {
                         args.push(line);
                     }
@@ -480,13 +480,16 @@ fn main()
                         }
                     }
                 }
-                if let Some(time) = watch
+                if !graphable && !varcheck
                 {
-                    println!(" {}", time.elapsed().as_nanos());
-                }
-                else if !graphable && !varcheck
-                {
-                    println!();
+                    if let Some(time) = watch
+                    {
+                        println!(" {}", time.elapsed().as_nanos());
+                    }
+                    else
+                    {
+                        println!();
+                    }
                 }
             }
         }

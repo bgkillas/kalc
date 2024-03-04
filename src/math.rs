@@ -2811,8 +2811,8 @@ fn functions(
         {
             if let Some(b) = c
             {
-                let mut n = Complex::new(options.prec);
-                for i in 0..10000usize
+                let mut n = b.clone().pow(-a.clone());
+                for i in 1..10000
                 {
                     let base: Complex = i + b.clone();
                     n += base.pow(-a.clone())

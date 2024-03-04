@@ -103,7 +103,14 @@ pub fn print_concurrent(
                     print!(
                         "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                         out,
-                        "\x1b[A".repeat(wrap),
+                        if wrap == 0
+                        {
+                            String::new()
+                        }
+                        else
+                        {
+                            format!("\x1b[{}A", wrap)
+                        },
                         prompt(options, &colors),
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
@@ -221,7 +228,14 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
-                    "\x1b[A".repeat(wrap),
+                    if wrap == 0
+                    {
+                        String::new()
+                    }
+                    else
+                    {
+                        format!("\x1b[{}A", wrap)
+                    },
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
@@ -351,7 +365,14 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
-                    "\x1b[A".repeat(wrap),
+                    if wrap == 0
+                    {
+                        String::new()
+                    }
+                    else
+                    {
+                        format!("\x1b[{}A", wrap)
+                    },
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
@@ -399,7 +420,14 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
                     out,
-                    "\x1b[A".repeat(wrap),
+                    if wrap == 0
+                    {
+                        String::new()
+                    }
+                    else
+                    {
+                        format!("\x1b[{}A", wrap)
+                    },
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
@@ -604,6 +632,7 @@ pub fn print_concurrent(
         {
             let num = len1.div_ceil(width).saturating_sub(1)
                 + len2.saturating_sub(1).div_ceil(width).saturating_sub(1);
+            let temp = (num + frac).saturating_sub(if len1 == 0 || len2 == 0 { 1 } else { 0 });
             print!(
                 "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}\x1b[A\x1b[G\x1b[A{}{}{}",
                 if frac == 1
@@ -624,9 +653,14 @@ pub fn print_concurrent(
                     ""
                 },
                 &output.1.replace('+', ""),
-                "\x1b[A".repeat(
-                    (num + frac).saturating_sub(if len1 == 0 || len2 == 0 { 1 } else { 0 })
-                ),
+                if temp == 0
+                {
+                    String::new()
+                }
+                else
+                {
+                    format!("\x1b[{}A", temp)
+                },
                 prompt(options, &colors),
                 to_output(&unmodified_input[start..end], options.color, &colors),
                 if options.color { "\x1b[0m" } else { "" },
@@ -636,7 +670,7 @@ pub fn print_concurrent(
         else
         {
             print!(
-                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{}\x1b[J{}\x1b[G\x1b[A{}{}",
+                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{}\x1b[J{}\x1b[G\x1b[A\x1b[{}C{}",
                 prompt(options, &colors),
                 to_output(&unmodified_input[start..end], options.color, &colors),
                 if frac == 1
@@ -650,7 +684,7 @@ pub fn print_concurrent(
                 output.0,
                 output.1,
                 if frac == 1 { "\x1b[A" } else { "" },
-                "\x1b[C".repeat(if options.prompt { 2 } else { 0 } + (end - start)),
+                if options.prompt { 2 } else { 0 } + (end - start),
                 if options.color { "\x1b[0m" } else { "" }
             )
         }
@@ -789,7 +823,7 @@ pub fn print_concurrent(
         {
             let num = (length - 1) / width;
             print!(
-                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A{}{}",
+                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
                 prompt(options, &colors),
                 to_output(&unmodified_input[start..end], options.color, &colors),
                 if frac == 1
@@ -801,9 +835,16 @@ pub fn print_concurrent(
                     String::new()
                 },
                 output,
-                "\x1b[A".repeat(num),
+                if num == 0
+                {
+                    String::new()
+                }
+                else
+                {
+                    format!("\x1b[{}A", num)
+                },
                 if frac == 1 { "\x1b[A" } else { "" },
-                "\x1b[C".repeat(if options.prompt { 2 } else { 0 } + (end - start)),
+                if options.prompt { 2 } else { 0 } + (end - start),
                 if options.color { "\x1b[0m" } else { "" }
             );
             frac += num;
@@ -1008,7 +1049,7 @@ pub fn print_concurrent(
         else
         {
             print!(
-                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A{}{}",
+                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
                 prompt(options, &colors),
                 to_output(&unmodified_input[start..end], options.color, &colors),
                 if frac == 1
@@ -1025,9 +1066,16 @@ pub fn print_concurrent(
                     String::new()
                 },
                 output,
-                "\x1b[A".repeat(num),
+                if num == 0
+                {
+                    String::new()
+                }
+                else
+                {
+                    format!("\x1b[{}A", num)
+                },
                 if frac == 1 { "\x1b[A" } else { "" },
-                "\x1b[C".repeat(if options.prompt { 2 } else { 0 } + (end - start)),
+                if options.prompt { 2 } else { 0 } + (end - start),
                 if options.color { "\x1b[0m" } else { "" }
             );
             frac += num;

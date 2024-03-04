@@ -409,7 +409,7 @@ pub fn do_math(
                         s.as_str(),
                         if place.is_empty()
                         {
-                            Str("".to_string())
+                            Str(String::new())
                         }
                         else
                         {

@@ -39,6 +39,7 @@ pub fn help()
     --multi toggles multi line display for matrixes\x1b[G\n\
     --tabbed toggles tabbed display for matrixes\x1b[G\n\
     --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\x1b[G\n\
+    --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph\x1b[G\n\
     --flat display 2d complex graphs like they are on the 2d number line\x1b[G\n\
     --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\x1b[G\n\
     --scalegraph scales the y part of a 2d graph to the users screen size\x1b[G\n\x1b[G\n\

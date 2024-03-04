@@ -38,6 +38,9 @@ use std::{
 //matrix exponentiation
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 //do as much as you can before graphing
+//nth slope, maybe nth area
+//digamma(x+yi,x+yi)
+//support domain coloring
 #[derive(Clone)]
 pub struct Variable
 {
@@ -643,14 +646,14 @@ fn main()
                         {
                             let time = watch.elapsed().as_nanos();
                             print!(
-                                " {}{}",
+                                " {}\x1b[{}D",
                                 time,
-                                "\x08".repeat(time.to_string().len() + 1 + end - placement)
+                                time.to_string().len() + 1 + end - placement
                             );
                         }
-                        else
+                        else if end - placement != 0
                         {
-                            print!("{}", "\x08".repeat(end - placement));
+                            print!("\x1b[{}D", end - placement)
                         }
                     }
                     '\x7F' =>
@@ -716,14 +719,14 @@ fn main()
                         {
                             let time = watch.elapsed().as_nanos();
                             print!(
-                                " {}{}",
+                                " {}\x1b[{}D",
                                 time,
-                                "\x08".repeat(time.to_string().len() + 1 + end - placement)
+                                time.to_string().len() + 1 + end - placement
                             );
                         }
-                        else
+                        else if end - placement != 0
                         {
-                            print!("{}", "\x08".repeat(end - placement));
+                            print!("\x1b[{}D", end - placement)
                         }
                     }
                     '\x11' =>
@@ -816,7 +819,10 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - placement));
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
                     }
                     '\x19' =>
                     {
@@ -857,7 +863,10 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - placement));
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
                     }
                     '\x17' =>
                     {
@@ -900,7 +909,10 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - placement));
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
                     }
                     '\x16' =>
                     {
@@ -943,7 +955,10 @@ fn main()
                             {
                                 clearln(&input, start, end, options, &colors);
                             }
-                            print!("{}", "\x08".repeat(end - placement));
+                            if end - placement != 0
+                            {
+                                print!("\x1b[{}D", end - placement)
+                            }
                         }
                     }
                     '\x15' =>
@@ -983,7 +998,10 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - placement));
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
                     }
                     '\x10' =>
                     {
@@ -1033,7 +1051,10 @@ fn main()
                         {
                             clearln(&input, start, end, options, &colors);
                         }
-                        print!("{}", "\x08".repeat(end - placement));
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
                     }
                     '\x1D' | '\x05' =>
                     {
@@ -1135,7 +1156,7 @@ fn main()
                                 end = input.len()
                             }
                             clearln(&input, start, end, options, &colors);
-                            print!("{}", "\x08".repeat(end - placement))
+                            print!("\x1b[{}D", end - placement)
                         }
                         else if placement != 0
                         {
@@ -1192,7 +1213,10 @@ fn main()
                                 end -= start - placement;
                                 start = start - (start - placement);
                                 clearln(&input, start, end, options, &colors);
-                                print!("{}", "\x08".repeat(end - placement));
+                                if end - placement != 0
+                                {
+                                    print!("\x1b[{}D", end - placement)
+                                }
                             }
                             else if placement == s
                             {
@@ -1311,14 +1335,14 @@ fn main()
                         {
                             let time = watch.elapsed().as_nanos();
                             print!(
-                                " {}{}",
+                                " {}\x1b[{}D",
                                 time,
-                                "\x08".repeat(time.to_string().len() + 1 + end - placement)
+                                time.to_string().len() + 1 + end - placement
                             );
                         }
-                        else if placement != input.len()
+                        else if end - placement != 0
                         {
-                            print!("{}", "\x08".repeat(end - placement));
+                            print!("\x1b[{}D", end - placement)
                         }
                     }
                 }

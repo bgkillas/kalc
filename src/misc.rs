@@ -364,10 +364,18 @@ pub fn handle_err(
     end: usize,
 )
 {
+    let num = err.len().div_ceil(get_terminal_dimensions().0) - 1;
     print!(
         "\x1b[J\x1b[G\n{}{}\x1b[G\x1b[A\x1b[K{}{}{}",
         err,
-        "\x1b[A".repeat(err.len().div_ceil(get_terminal_dimensions().0) - 1),
+        if num == 0
+        {
+            String::new()
+        }
+        else
+        {
+            format!("\x1b[{}A", num)
+        },
         prompt(options, colors),
         to_output(&input[start..end], options.color, colors),
         if options.color { "\x1b[0m" } else { "" },

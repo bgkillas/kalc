@@ -2827,13 +2827,25 @@ fn functions(
         {
             if let Some(b) = c
             {
-                let mut n = b.clone().pow(-a.clone());
-                for i in 1..10000
+                let mut sum = Complex::new(options.prec);
+                for n in 0..=100
                 {
-                    let base: Complex = i + b.clone();
-                    n += base.pow(-a.clone())
+                    let nb = Integer::from(n);
+                    let mut subsum = Complex::new(options.prec);
+                    for k in 0..=n
+                    {
+                        if k % 2 == 0
+                        {
+                            subsum += nb.clone().binomial(k) * (b.clone() + k).pow(1 - a.clone())
+                        }
+                        else
+                        {
+                            subsum -= nb.clone().binomial(k) * (b.clone() + k).pow(1 - a.clone())
+                        }
+                    }
+                    sum += subsum / (n + 1)
                 }
-                n
+                sum / (a - 1)
             }
             else if a.imag().is_zero()
             {
@@ -2841,12 +2853,26 @@ fn functions(
             }
             else
             {
-                let mut n = Complex::new(options.prec);
-                for i in 1..10000
+                let b = Complex::with_val(options.prec, 1);
+                let mut sum = Complex::new(options.prec);
+                for n in 0..=100
                 {
-                    n += i.pow(-a.clone())
+                    let nb = Integer::from(n);
+                    let mut subsum = Complex::new(options.prec);
+                    for k in 0..=n
+                    {
+                        if k % 2 == 0
+                        {
+                            subsum += nb.clone().binomial(k) * (b.clone() + k).pow(1 - a.clone())
+                        }
+                        else
+                        {
+                            subsum -= nb.clone().binomial(k) * (b.clone() + k).pow(1 - a.clone())
+                        }
+                    }
+                    sum += subsum / (n + 1)
                 }
-                n
+                sum / (a - 1)
             }
         }
         "prime" =>

@@ -1432,6 +1432,7 @@ fn main()
                         continue;
                     }
                     {
+                        options.prec = options.graph_prec;
                         let split = s.split(|c| c == ';');
                         let count = split.clone().count();
                         if count != 1
@@ -1469,6 +1470,7 @@ fn main()
                             }
                         }
                     }
+                    options.prec = options.graph_prec;
                     funcs.push(
                         match input_var(
                             &inputs[i],

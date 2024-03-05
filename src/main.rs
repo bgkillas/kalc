@@ -39,6 +39,9 @@ use std::{
 //do as much as you can before graphing
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 //nth slope, maybe nth area
+//general shortest distance between 2 function
+//stop vectors or matrixes disipearing graphically
+//dice any dice recursive function
 #[derive(Clone)]
 pub struct Variable
 {

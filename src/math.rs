@@ -243,6 +243,8 @@ pub fn do_math(
                                     | "C"
                                     | "P"
                                     | "gamma"
+                                    | "ph"
+                                    | "pochhammer"
                                     | "Β"
                                     | "B"
                                     | "beta"
@@ -2605,7 +2607,25 @@ fn functions(
         {
             if let Some(b) = c
             {
-                gamma(a.clone() + 1) / gamma(a.clone() - b + 1)
+                if !a.real().is_sign_positive()
+                    && a.real().clone().fract().is_zero()
+                    && b.real().clone().fract().is_zero()
+                    && a.imag().is_zero()
+                    && b.imag().is_zero()
+                {
+                    if b.real().clone() % 2 == 1
+                    {
+                        gamma(b.clone() + 2)
+                    }
+                    else
+                    {
+                        -gamma(b.clone() + 2)
+                    }
+                }
+                else
+                {
+                    gamma(a.clone() + 1) / gamma(a.clone() - b + 1)
+                }
             }
             else
             {
@@ -2637,6 +2657,25 @@ fn functions(
             else
             {
                 return Err("no args");
+            }
+        }
+        "pochhammer" | "ph" =>
+        {
+            if let Some(b) = c
+            {
+                if !a.real().is_sign_positive() && a.imag().is_zero() && b.imag().is_zero()
+                {
+                    Complex::with_val(options.prec, -1).pow(b.clone()) * gamma(1 - a.clone())
+                        / gamma(1 - a - b)
+                }
+                else
+                {
+                    gamma(b.clone() + a.clone()) / gamma(a.clone())
+                }
+            }
+            else
+            {
+                return Err("not enough args");
             }
         }
         "gamma" | "Γ" =>

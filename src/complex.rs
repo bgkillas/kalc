@@ -2140,7 +2140,7 @@ pub fn slope(
                 }
             }
             Ok(Num(
-                sum * Complex::with_val(prec, 2).pow(options.prec.0 / 4 * nth)
+                sum * Complex::with_val(prec, 2).pow(nth * options.prec.0 / 4)
             ))
         }
         // (Num(mut n1), Num(mut n2)) =>
@@ -2276,12 +2276,20 @@ pub enum LimSide
 pub fn limit(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
-    options: Options,
+    mut options: Options,
     var: String,
     point: Complex,
     side: LimSide,
 ) -> Result<NumStr, &'static str>
 {
+    if options.prec.0 < 256
+    {
+        options.prec = (256, 256);
+    }
+    else if options.prec.0 > 1024
+    {
+        options.prec = (1024, 1024);
+    }
     if point.clone().real().is_infinite()
     {
         let (h1, h2);

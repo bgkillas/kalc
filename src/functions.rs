@@ -199,6 +199,8 @@ pub fn functions() -> HashSet<&'static str>
         "erfi",
         "polygamma",
         "trigamma",
+        "pochhammer",
+        "ph",
     ]
     .iter()
     .cloned()

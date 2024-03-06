@@ -2071,6 +2071,7 @@ pub fn area(
                     }
                     x0 = x4;
                 }
+            //TODO support below just accept performance loss
             (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         }
     }
@@ -2086,16 +2087,28 @@ pub fn area(
 pub fn slope(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
-    options: Options,
+    mut options: Options,
     var: String,
     mut point: Complex,
     _combine: bool,
     nth: u32,
 ) -> Result<NumStr, &'static str>
 {
-    let prec = nth * options.prec.0 / 2;
-    point.set_prec(prec);
-    let h: Complex = Complex::with_val(prec, 0.5).pow(options.prec.0 / 4);
+    if options.prec.0 < 256
+    {
+        options.prec = (256, 256);
+    }
+    else if options.prec.0 > 1024
+    {
+        options.prec = (1024, 1024);
+    }
+    let prec = options.prec.0 / 8;
+    options.prec = (
+        nth.max(1) * options.prec.0 / 2,
+        nth.max(1) * options.prec.0 / 2,
+    );
+    point.set_prec(options.prec);
+    let h: Complex = Complex::with_val(options.prec, 0.5).pow(prec);
     let n = do_math_with_var(
         func.clone(),
         options,
@@ -2139,9 +2152,7 @@ pub fn slope(
                         .num()?;
                 }
             }
-            Ok(Num(
-                sum * Complex::with_val(prec, 2).pow(nth * options.prec.0 / 4)
-            ))
+            Ok(Num(sum * Complex::with_val(options.prec, 2).pow(nth * prec)))
         }
         // (Num(mut n1), Num(mut n2)) =>
         // {
@@ -2278,17 +2289,19 @@ pub fn limit(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    point: Complex,
+    mut point: Complex,
     side: LimSide,
 ) -> Result<NumStr, &'static str>
 {
     if options.prec.0 < 256
     {
         options.prec = (256, 256);
+        point.set_prec(options.prec);
     }
     else if options.prec.0 > 1024
     {
         options.prec = (1024, 1024);
+        point.set_prec(options.prec);
     }
     if point.clone().real().is_infinite()
     {

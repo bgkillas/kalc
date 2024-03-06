@@ -42,7 +42,9 @@ use std::{
 //general shortest distance between 2 function
 //stop vectors or matrixes disipearing graphically
 //dice any dice recursive function
-//g(n,p,b)=(-1)^n b^(p-n) ph(-p,n)      lim(a,g(-1+a,-1,x)+1/a,0)#lnx    lim(a,g(-2+a,-1,x)+x/a,0)     lim(a,g(-3+a,-1,x)+1/2*x^2/a,0)          a=0.000001;g(-4+a,-1,x)+1/6 x^3/a
+//g(n,p,b)=(-1)^n b^(p-n) ph(-p,n)      lim(a,g(-1+a,-1,x)+1/a,0)#lnx    lim(a,g(-2+a,-1,x)+x/a,0)     lim(a,g(-3+a,-1,x)+1/2*x^2/a,0)          a=0.000001;g(-4+a,-1,x)+1/6 x^3/a       b=5;lim(a,g(a,-1,1)+1^(-1-a)/((-1-a)!/(a+b)!),-1-b,1)
+//origin
+//3d reflection
 #[derive(Clone)]
 pub struct Variable
 {
@@ -555,6 +557,7 @@ fn main()
                                 end,
                                 c == '\n',
                             );
+                            slow = watch.elapsed().as_millis() > options.slowcheck;
                         }
                         if !input.is_empty()
                         {
@@ -1067,8 +1070,27 @@ fn main()
                             continue;
                         }
                         input = lines[i].clone().chars().collect::<Vec<char>>();
-                        placement = input.len();
-                        end = input.len();
+                        slow = input.starts_with(&['\0']);
+                        if slow
+                        {
+                            input.remove(0);
+                            firstslow = false;
+                            placement = input.len();
+                            end = input.len();
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            placement = input.len();
+                            end = input.len();
+                        }
                         start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
@@ -1079,7 +1101,7 @@ fn main()
                             input.len()
                                 - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1112,8 +1134,27 @@ fn main()
                         {
                             input = lines[i].clone().chars().collect::<Vec<char>>();
                         }
-                        placement = input.len();
-                        end = input.len();
+                        slow = input.starts_with(&['\0']);
+                        if slow
+                        {
+                            input.remove(0);
+                            firstslow = false;
+                            placement = input.len();
+                            end = input.len();
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            placement = input.len();
+                            end = input.len();
+                        }
                         start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                             > input.len()
                         {
@@ -1124,7 +1165,7 @@ fn main()
                             input.len()
                                 - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
-                        if options.real_time_output
+                        if options.real_time_output && !slow
                         {
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1376,7 +1417,7 @@ fn main()
                 continue;
             }
             write(
-                &input
+                input
                     .iter()
                     .collect::<String>()
                     .replace("small_e", "smalle")
@@ -1386,6 +1427,7 @@ fn main()
                     .replace("fraciter", "frac_iter"),
                 file.as_mut().unwrap(),
                 unmod_lines.as_mut().unwrap(),
+                slow,
             );
         }
         if varcheck

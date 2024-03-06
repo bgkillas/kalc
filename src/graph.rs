@@ -10,7 +10,7 @@ use crate::{
     },
     Colors, Options,
 };
-use gnuplot::{AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
+use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
 use rug::Complex;
 use std::{
     io::{stdout, Write},
@@ -144,9 +144,13 @@ pub fn graph(
             {
                 options.yr = options.vyr;
             }
-            let (xticks, yticks) = if options.ticks == -1.0
+            let (xticks, yticks) = if options.ticks == -2.0
             {
-                (Some((Fix(1.0), 1)), Some((Fix(1.0), 1)))
+                (Some((Auto, 3)), Some((Auto, 3)))
+            }
+            else if options.ticks == -1.0
+            {
+                (Some((Fix(1.0), 3)), Some((Fix(1.0), 3)))
             }
             else if options.ticks == 0.0
             {
@@ -155,8 +159,8 @@ pub fn graph(
             else
             {
                 (
-                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 1)),
-                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 1)),
+                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 3)),
+                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 3)),
                 )
             };
             if options.scale_graph
@@ -495,12 +499,16 @@ pub fn graph(
             {
                 options.zr = options.vzr;
             }
-            let (xticks, yticks, zticks) = if options.ticks == -1.0
+            let (xticks, yticks, zticks) = if options.ticks == -2.0
+            {
+                (Some((Auto, 3)), Some((Auto, 3)), Some((Auto, 3)))
+            }
+            else if options.ticks == -1.0
             {
                 (
-                    Some((Fix(1.0), 1)),
-                    Some((Fix(1.0), 1)),
-                    Some((Fix(1.0), 1)),
+                    Some((Fix(1.0), 3)),
+                    Some((Fix(1.0), 3)),
+                    Some((Fix(1.0), 3)),
                 )
             }
             else if options.ticks == 0.0
@@ -510,9 +518,9 @@ pub fn graph(
             else
             {
                 (
-                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 1)),
-                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 1)),
-                    Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 1)),
+                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 3)),
+                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 3)),
+                    Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 3)),
                 )
             };
             if options.surface
@@ -998,10 +1006,10 @@ pub fn get_list_2d(
                 let complex = !num.real().is_infinite();
                 if complex
                 {
+                    nan = false;
                     let f = num.real().to_f64();
                     if (f * 1e8).round() / 1e8 != 0.0
                     {
-                        nan = false;
                         zero.0 = true
                     }
                     data[0][0].push(n);
@@ -1009,10 +1017,10 @@ pub fn get_list_2d(
                 }
                 if !num.imag().is_infinite()
                 {
+                    nan = false;
                     let f = num.imag().to_f64();
                     if (f * 1e8).round() / 1e8 != 0.0
                     {
-                        nan = false;
                         zero.1 = true
                     }
                     if !complex
@@ -1045,10 +1053,10 @@ pub fn get_list_2d(
                         let complex = !num.real().is_infinite();
                         if complex
                         {
+                            nan = false;
                             let f = num.real().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
-                                nan = false;
                                 zero.0 = true
                             }
                             data[0][0].push(n);
@@ -1056,10 +1064,10 @@ pub fn get_list_2d(
                         }
                         if !num.imag().is_infinite()
                         {
+                            nan = false;
                             let f = num.imag().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
-                                nan = false;
                                 zero.1 = true
                             }
                             if !complex
@@ -1082,6 +1090,7 @@ pub fn get_list_2d(
                 }
                 else if v.len() == 3
                 {
+                    nan = false;
                     let xr = v[0].real().to_f64();
                     let yr = v[1].real().to_f64();
                     let zr = v[2].real().to_f64();
@@ -1109,6 +1118,7 @@ pub fn get_list_2d(
                 }
                 else if v.len() == 2
                 {
+                    nan = false;
                     let xr = v[0].real().to_f64();
                     let yr = v[1].real().to_f64();
                     let xi = v[0].imag().to_f64();
@@ -1140,10 +1150,10 @@ pub fn get_list_2d(
                         let complex = !num.real().is_infinite();
                         if complex
                         {
+                            nan = false;
                             let f = num.real().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
-                                nan = false;
                                 zero.0 = true
                             }
                             data[0][0].push(n);
@@ -1151,10 +1161,10 @@ pub fn get_list_2d(
                         }
                         if !num.imag().is_infinite()
                         {
+                            nan = false;
                             let f = num.imag().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
-                                nan = false;
                                 zero.1 = true
                             }
                             if !complex
@@ -1206,7 +1216,7 @@ pub fn get_list_2d(
         && data3d[1].is_empty())
         || nan
     {
-        println!("graph is all nan or infinity");
+        println!("\x1b[G\ngraph is all 0, nan or infinity");
         return Default::default();
     }
     (data, data3d, zero)
@@ -1298,10 +1308,10 @@ pub fn get_list_3d(
                     let complex = !num.real().is_infinite();
                     if complex
                     {
+                        nan = false;
                         let g = num.real().to_f64();
                         if (g * 1e8).round() / 1e8 != 0.0
                         {
-                            nan = false;
                             zero.0 = true
                         }
                         data[0][0].push(n);
@@ -1310,10 +1320,10 @@ pub fn get_list_3d(
                     }
                     if !num.imag().is_infinite()
                     {
+                        nan = false;
                         let g = num.imag().to_f64();
                         if (g * 1e8).round() / 1e8 != 0.0
                         {
-                            nan = false;
                             zero.1 = true
                         }
                         if !complex
@@ -1348,10 +1358,10 @@ pub fn get_list_3d(
                             let complex = !num.real().is_infinite();
                             if complex
                             {
+                                nan = false;
                                 let g = num.real().to_f64();
                                 if (g * 1e8).round() / 1e8 != 0.0
                                 {
-                                    nan = false;
                                     zero.0 = true
                                 }
                                 data[0][0].push(n);
@@ -1360,10 +1370,10 @@ pub fn get_list_3d(
                             }
                             if !num.imag().is_infinite()
                             {
+                                nan = false;
                                 let g = num.imag().to_f64();
                                 if (g * 1e8).round() / 1e8 != 0.0
                                 {
-                                    nan = false;
                                     zero.1 = true
                                 }
                                 if !complex
@@ -1388,6 +1398,7 @@ pub fn get_list_3d(
                     }
                     else if v.len() == 3
                     {
+                        nan = false;
                         let xr = v[0].real().to_f64();
                         let yr = v[1].real().to_f64();
                         let zr = v[2].real().to_f64();
@@ -1415,6 +1426,7 @@ pub fn get_list_3d(
                     }
                     else if v.len() == 2
                     {
+                        nan = false;
                         d2 = true;
                         let xr = v[0].real().to_f64();
                         let yr = v[1].real().to_f64();
@@ -1447,10 +1459,10 @@ pub fn get_list_3d(
                             let complex = !num.real().is_infinite();
                             if complex
                             {
+                                nan = false;
                                 let g = num.real().to_f64();
                                 if (g * 1e8).round() / 1e8 != 0.0
                                 {
-                                    nan = false;
                                     zero.0 = true
                                 }
                                 data[0][0].push(n);
@@ -1459,10 +1471,10 @@ pub fn get_list_3d(
                             }
                             if !num.imag().is_infinite()
                             {
+                                nan = false;
                                 let g = num.imag().to_f64();
                                 if (g * 1e8).round() / 1e8 != 0.0
                                 {
-                                    nan = false;
                                     zero.1 = true
                                 }
                                 if !complex
@@ -1510,7 +1522,7 @@ pub fn get_list_3d(
     }
     if (data[0][0].is_empty() && data[1][0].is_empty()) || nan
     {
-        println!("graph is all nan or infinity");
+        println!("\x1b[G\ngraph is all 0, nan or infinity");
         return Default::default();
     }
     (data, zero, d2)
@@ -1577,7 +1589,7 @@ fn get_data(
                     let re = n.real().to_f64();
                     for i in 0..func.2.samples_2d
                     {
-                        if re != 0.0
+                        if re != 0.0 || im == 0.0
                         {
                             points2d[0][0].push(func.2.xr.0 + change * i as f64);
                             points2d[0][1].push(re);
@@ -1607,6 +1619,7 @@ fn get_data(
                 }
                 Vector(v) =>
                 {
+                    //TODO dont have just 2 points to stop from disipearing
                     lines = true;
                     match v.len()
                     {

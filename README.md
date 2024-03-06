@@ -55,7 +55,7 @@ FLAGS: --help (this message)
 --point [char] point style for graphing
 --sci toggles scientific notation
 --base=[num] sets the number base (2,8,16)
---ticks=[num] sets amount of ticks, -1 will be at every whole number, 0 will be none(effects gnuplot performance)
+--ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
 --prompt toggles the prompt
 --color toggles color output, toggled by default when running from arguments
 --comma toggles comma seperation

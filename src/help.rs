@@ -20,7 +20,7 @@ pub fn help()
     --point [char] point style for graphing\x1b[G\n\
     --sci toggles scientific notation\x1b[G\n\
     --base=[num] sets the number base (2,8,16)\x1b[G\n\
-    --ticks=[num] sets amount of ticks, -1 will be at every whole number, 0 will be none\x1b[G\n\
+    --ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none\x1b[G\n\
     --prompt toggles the prompt\x1b[G\n\
     --color toggles color output, toggled by default when running from arguments\x1b[G\n\
     --comma toggles comma seperation\x1b[G\n\

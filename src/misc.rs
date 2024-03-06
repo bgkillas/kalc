@@ -238,11 +238,15 @@ pub fn no_col(input: &str, color: bool) -> Vec<char>
         input.chars().collect::<Vec<char>>()
     }
 }
-pub fn write(input: &str, file: &mut File, lines: &mut Vec<String>)
+pub fn write(mut input: String, file: &mut File, lines: &mut Vec<String>, slow: bool)
 {
-    if !lines.is_empty() && lines.last().unwrap() != input && !input.replace(' ', "").is_empty()
+    if !lines.is_empty() && lines.last().unwrap() != &input && !input.replace(' ', "").is_empty()
     {
-        lines.push(input.to_string());
+        if slow
+        {
+            input.insert(0, '\0');
+        }
+        lines.push(input.clone());
         writeln!(file, "{}", input).unwrap();
     }
 }

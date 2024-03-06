@@ -955,6 +955,7 @@ pub fn get_list_2d(
         Vec::with_capacity(func.2.samples_2d + 1),
         Vec::with_capacity(func.2.samples_2d + 1),
     ];
+    let mut nan = true;
     let den_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
     let mut zero = (false, false);
     let list = func.0.iter().any(|c| {
@@ -990,26 +991,28 @@ pub fn get_list_2d(
         {
             Ok(Num(num)) =>
             {
-                if num.real().is_nan()
+                if num.real().is_nan() || num.imag().is_nan()
                 {
                     continue;
                 }
-                let complex = num.real().is_finite();
+                let complex = !num.real().is_infinite();
                 if complex
                 {
                     let f = num.real().to_f64();
                     if (f * 1e8).round() / 1e8 != 0.0
                     {
+                        nan = false;
                         zero.0 = true
                     }
                     data[0][0].push(n);
                     data[0][1].push(f);
                 }
-                if num.imag().is_finite()
+                if !num.imag().is_infinite()
                 {
                     let f = num.imag().to_f64();
                     if (f * 1e8).round() / 1e8 != 0.0
                     {
+                        nan = false;
                         zero.1 = true
                     }
                     if !complex
@@ -1019,6 +1022,15 @@ pub fn get_list_2d(
                     }
                     data[1][1].push(f);
                 }
+                else
+                {
+                    if !complex
+                    {
+                        data[0][0].push(n);
+                        data[0][1].push(f64::NAN);
+                    }
+                    data[1][1].push(f64::NAN);
+                }
             }
             Ok(Vector(v)) =>
             {
@@ -1026,26 +1038,28 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
-                        if num.real().is_nan()
+                        if num.real().is_nan() || num.imag().is_nan()
                         {
                             continue;
                         }
-                        let complex = num.real().is_finite();
+                        let complex = !num.real().is_infinite();
                         if complex
                         {
                             let f = num.real().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
+                                nan = false;
                                 zero.0 = true
                             }
                             data[0][0].push(n);
                             data[0][1].push(f);
                         }
-                        if num.imag().is_finite()
+                        if !num.imag().is_infinite()
                         {
                             let f = num.imag().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
+                                nan = false;
                                 zero.1 = true
                             }
                             if !complex
@@ -1054,6 +1068,15 @@ pub fn get_list_2d(
                                 data[0][1].push(f64::NAN);
                             }
                             data[1][1].push(f);
+                        }
+                        else
+                        {
+                            if !complex
+                            {
+                                data[0][0].push(n);
+                                data[0][1].push(f64::NAN);
+                            }
+                            data[1][1].push(f64::NAN);
                         }
                     }
                 }
@@ -1110,26 +1133,28 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
-                        if num.real().is_nan()
+                        if num.real().is_nan() || num.imag().is_nan()
                         {
                             continue;
                         }
-                        let complex = num.real().is_finite();
+                        let complex = !num.real().is_infinite();
                         if complex
                         {
                             let f = num.real().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
+                                nan = false;
                                 zero.0 = true
                             }
                             data[0][0].push(n);
                             data[0][1].push(f);
                         }
-                        if num.imag().is_finite()
+                        if !num.imag().is_infinite()
                         {
                             let f = num.imag().to_f64();
                             if (f * 1e8).round() / 1e8 != 0.0
                             {
+                                nan = false;
                                 zero.1 = true
                             }
                             if !complex
@@ -1139,13 +1164,22 @@ pub fn get_list_2d(
                             }
                             data[1][1].push(f);
                         }
+                        else
+                        {
+                            if !complex
+                            {
+                                data[0][0].push(n);
+                                data[0][1].push(f64::NAN);
+                            }
+                            data[1][1].push(f64::NAN);
+                        }
                     }
                 }
             }
             Err(s) =>
             {
                 println!("{}", s);
-                return (Default::default(), Default::default(), (false, false));
+                return Default::default();
             }
             _ =>
             {}
@@ -1165,6 +1199,15 @@ pub fn get_list_2d(
     {
         data[1][1] = Vec::new();
         data3d[1] = Vec::new();
+    }
+    if (data[0][0].is_empty()
+        && data[1][0].is_empty()
+        && data3d[0].is_empty()
+        && data3d[1].is_empty())
+        || nan
+    {
+        println!("graph is all nan or infinity");
+        return Default::default();
     }
     (data, data3d, zero)
 }
@@ -1207,6 +1250,7 @@ pub fn get_list_3d(
     let mut modified: Vec<NumStr>;
     let mut modifiedvars: Vec<(String, Vec<NumStr>)>;
     let mut zero = (false, false);
+    let mut nan = true;
     let list = func.0.iter().any(|c| {
         if let Str(s) = c
         {
@@ -1247,25 +1291,29 @@ pub fn get_list_3d(
             {
                 Ok(Num(num)) =>
                 {
-                    if num.real().is_nan()
+                    if num.real().is_nan() || num.imag().is_nan()
                     {
                         continue;
                     }
-                    let complex = num.real().is_finite();
+                    let complex = !num.real().is_infinite();
                     if complex
                     {
-                        if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                        let g = num.real().to_f64();
+                        if (g * 1e8).round() / 1e8 != 0.0
                         {
+                            nan = false;
                             zero.0 = true
                         }
                         data[0][0].push(n);
                         data[0][1].push(f);
-                        data[0][2].push(num.real().to_f64());
+                        data[0][2].push(g);
                     }
-                    if num.imag().is_finite()
+                    if !num.imag().is_infinite()
                     {
-                        if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                        let g = num.imag().to_f64();
+                        if (g * 1e8).round() / 1e8 != 0.0
                         {
+                            nan = false;
                             zero.1 = true
                         }
                         if !complex
@@ -1274,7 +1322,17 @@ pub fn get_list_3d(
                             data[0][1].push(f);
                             data[0][2].push(f64::NAN);
                         }
-                        data[1][2].push(num.imag().to_f64());
+                        data[1][2].push(g);
+                    }
+                    else
+                    {
+                        if !complex
+                        {
+                            data[0][0].push(n);
+                            data[0][1].push(f);
+                            data[0][2].push(f64::NAN);
+                        }
+                        data[1][2].push(f64::NAN);
                     }
                 }
                 Ok(Vector(v)) =>
@@ -1283,25 +1341,29 @@ pub fn get_list_3d(
                     {
                         for num in v
                         {
-                            if num.real().is_nan()
+                            if num.real().is_nan() || num.imag().is_nan()
                             {
                                 continue;
                             }
-                            let complex = num.real().is_finite();
+                            let complex = !num.real().is_infinite();
                             if complex
                             {
-                                if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                                let g = num.real().to_f64();
+                                if (g * 1e8).round() / 1e8 != 0.0
                                 {
+                                    nan = false;
                                     zero.0 = true
                                 }
                                 data[0][0].push(n);
                                 data[0][1].push(f);
-                                data[0][2].push(num.real().to_f64());
+                                data[0][2].push(g);
                             }
-                            if num.imag().is_finite()
+                            if !num.imag().is_infinite()
                             {
-                                if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                                let g = num.imag().to_f64();
+                                if (g * 1e8).round() / 1e8 != 0.0
                                 {
+                                    nan = false;
                                     zero.1 = true
                                 }
                                 if !complex
@@ -1310,7 +1372,17 @@ pub fn get_list_3d(
                                     data[0][1].push(f);
                                     data[0][2].push(f64::NAN);
                                 }
-                                data[1][2].push(num.imag().to_f64());
+                                data[1][2].push(g);
+                            }
+                            else
+                            {
+                                if !complex
+                                {
+                                    data[0][0].push(n);
+                                    data[0][1].push(f);
+                                    data[0][2].push(f64::NAN);
+                                }
+                                data[1][2].push(f64::NAN);
                             }
                         }
                     }
@@ -1368,25 +1440,29 @@ pub fn get_list_3d(
                     {
                         for num in v
                         {
-                            if num.real().is_nan()
+                            if num.real().is_nan() || num.imag().is_nan()
                             {
                                 continue;
                             }
-                            let complex = num.real().is_finite();
+                            let complex = !num.real().is_infinite();
                             if complex
                             {
-                                if (num.real().to_f64() * 1e8).round() / 1e8 != 0.0
+                                let g = num.real().to_f64();
+                                if (g * 1e8).round() / 1e8 != 0.0
                                 {
+                                    nan = false;
                                     zero.0 = true
                                 }
                                 data[0][0].push(n);
                                 data[0][1].push(f);
-                                data[0][2].push(num.real().to_f64());
+                                data[0][2].push(g);
                             }
-                            if num.imag().is_finite()
+                            if !num.imag().is_infinite()
                             {
-                                if (num.imag().to_f64() * 1e8).round() / 1e8 != 0.0
+                                let g = num.imag().to_f64();
+                                if (g * 1e8).round() / 1e8 != 0.0
                                 {
+                                    nan = false;
                                     zero.1 = true
                                 }
                                 if !complex
@@ -1395,7 +1471,17 @@ pub fn get_list_3d(
                                     data[0][1].push(f);
                                     data[0][2].push(f64::NAN);
                                 }
-                                data[1][2].push(num.imag().to_f64());
+                                data[1][2].push(g);
+                            }
+                            else
+                            {
+                                if !complex
+                                {
+                                    data[0][0].push(n);
+                                    data[0][1].push(f);
+                                    data[0][2].push(f64::NAN);
+                                }
+                                data[1][2].push(f64::NAN);
                             }
                         }
                     }
@@ -1403,7 +1489,7 @@ pub fn get_list_3d(
                 Err(s) =>
                 {
                     println!("{}", s);
-                    return (Default::default(), Default::default(), false);
+                    return Default::default();
                 }
                 _ =>
                 {}
@@ -1421,6 +1507,11 @@ pub fn get_list_3d(
     if !zero.1 && !zero.0
     {
         data[1][2] = Vec::new();
+    }
+    if (data[0][0].is_empty() && data[1][0].is_empty()) || nan
+    {
+        println!("graph is all nan or infinity");
+        return Default::default();
     }
     (data, zero, d2)
 }

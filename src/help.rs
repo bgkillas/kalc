@@ -85,7 +85,7 @@ pub fn help()
     - ceil, floor, round, int, frac\x1b[G\n\
     - fact, doublefact, subfact\x1b[G\n\
     - sinc, cis, exp\x1b[G\n\
-    - zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r)\x1b[G\n\
+    - zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\
     - deg, rad, grad\x1b[G\n\
     - re, im, split(x+yi={{x,y}})\x1b[G\n\
     - factors, prime, isprime, gcd, lcm\x1b[G\n\

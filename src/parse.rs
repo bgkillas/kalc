@@ -1214,7 +1214,7 @@ pub fn input_var(
                             let mut var = var;
                             for (varf, func_var) in split.iter().zip(func_vars)
                             {
-                                let num = if let Ok(n) =
+                                let mut num = if let Ok(n) =
                                     Complex::parse(varf.iter().collect::<String>())
                                 {
                                     vec![Num(n.complete(options.prec))]
@@ -1268,13 +1268,13 @@ pub fn input_var(
                                     {
                                         let iden =
                                             format!("@{}{}{}{}@", i, func_var, depth, vars.len());
-                                        funcvars.extend(func);
                                         if parsed.len() == 1
                                         {
                                             parsed
                                         }
                                         else
                                         {
+                                            funcvars.extend(func);
                                             funcvars.push((iden.clone(), parsed));
                                             vec![Str(iden)]
                                         }
@@ -1292,6 +1292,11 @@ pub fn input_var(
                                         }]
                                     }
                                 };
+                                if print && num.len() == 1
+                                {
+                                    num.insert(0, Str("(".to_string()));
+                                    num.push(Str(")".to_string()));
+                                }
                                 let mut k = 0;
                                 for (x, fv) in var.funcvars.clone().iter().enumerate()
                                 {
@@ -1450,7 +1455,8 @@ pub fn input_var(
                                 .collect::<String>();
                             let mut var = var;
                             let mut k = 0;
-                            let num = if let Ok(n) = Complex::parse(temp.iter().collect::<String>())
+                            let mut num = if let Ok(n) =
+                                Complex::parse(temp.iter().collect::<String>())
                             {
                                 vec![Num(n.complete(options.prec))]
                             }
@@ -1502,13 +1508,13 @@ pub fn input_var(
                                     })
                                 {
                                     let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
-                                    funcvars.extend(func);
                                     if parsed.len() == 1
                                     {
                                         parsed
                                     }
                                     else
                                     {
+                                        funcvars.extend(func);
                                         funcvars.push((iden.clone(), parsed));
                                         vec![Str(iden)]
                                     }
@@ -1526,6 +1532,11 @@ pub fn input_var(
                                     }]
                                 }
                             };
+                            if print && num.len() == 1
+                            {
+                                num.insert(0, Str("(".to_string()));
+                                num.push(Str(")".to_string()));
+                            }
                             while k < var.parsed.len()
                             {
                                 if var.parsed[k].str_is(&l)
@@ -1737,15 +1748,19 @@ pub fn input_var(
                         }
                         if print
                         {
-                            output.push(Str(var.name.iter().collect::<String>()));
+                            output.push(Str("(".to_string()));
                         }
-                        else if !var.parsed.is_empty()
+                        if !var.parsed.is_empty()
                         {
                             output.push(var.parsed[0].clone());
                         }
                         else
                         {
                             return Err("bad input2");
+                        }
+                        if print
+                        {
+                            output.push(Str(")".to_string()));
                         }
                         if scientific
                         {

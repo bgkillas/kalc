@@ -124,7 +124,7 @@ Functions:
 - ceil, floor, round, int, frac
 - fact, doublefact, subfact
 - sinc, cis, exp
-- zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C, P(n,r)
+- zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
 - deg, rad, grad
 - re, im, split(x+yi={x,y})
 - factors, prime, isprime, gcd, lcm

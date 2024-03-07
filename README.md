@@ -259,7 +259,6 @@ my gnuplot config in ~/.gnuplot
 ```
 set terminal x11
 set xyplane 0
-set grid x y z
 ```
 
 chars available for point style:

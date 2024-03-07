@@ -432,6 +432,7 @@ pub fn arg_opts(
                     args.remove(i);
                 }
             }
+            "--onaxis" => options.onaxis = !options.onaxis,
             "--comma" => options.comma = !options.comma,
             "--graph" => options.graph = !options.graph,
             "--sci" | "--scientific" => options.sci = !options.sci,
@@ -617,6 +618,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "point" => format!("{}", options.point_style),
         "base" => format!("{}", options.base),
         "ticks" => format!("{}", options.ticks),
+        "onaxis" => format!("{}", options.onaxis),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
         "prec" | "precision" => format!("{}", options.prec.0),
         "graphprec" | "graphprecision" => format!("{}", options.graph_prec.0),
@@ -775,6 +777,7 @@ pub fn set_commands(
             "scalegraph" => options.scale_graph = true,
             "debug" => options.debug = true,
             "vars" => options.allow_vars = true,
+            "onaxis" => options.onaxis = true,
             _ => return Ok(()),
         }
     }
@@ -801,6 +804,7 @@ pub fn set_commands(
             "comma" => options.comma = false,
             "graph" => options.graph = false,
             "var_multiply" => options.var_multiply = false,
+            "onaxis" => options.onaxis = false,
             _ => return Ok(()),
         }
     }
@@ -1875,6 +1879,7 @@ pub fn silent_commands(options: &mut Options, input: &[char])
         "color" => options.color = !options.color,
         "prompt" => options.prompt = !options.prompt,
         "depth" => options.depth = !options.depth,
+        "onaxis" => options.onaxis = !options.onaxis,
         "surface" => options.surface = !options.surface,
         "flat" => options.flat = !options.flat,
         "deg" => options.deg = Degrees,
@@ -1944,6 +1949,12 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.depth = !options.depth;
+        }
+        "onaxis" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.onaxis = !options.onaxis;
         }
         "surface" =>
         {

@@ -10,7 +10,7 @@ use crate::{
     },
     Colors, Options,
 };
-use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol};
+use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol, TickOption};
 use rug::Complex;
 use std::{
     io::{stdout, Write},
@@ -146,11 +146,11 @@ pub fn graph(
             }
             let (xticks, yticks) = if options.ticks == -2.0
             {
-                (Some((Auto, 3)), Some((Auto, 3)))
+                (Some((Auto, 0)), Some((Auto, 0)))
             }
             else if options.ticks == -1.0
             {
-                (Some((Fix(1.0), 3)), Some((Fix(1.0), 3)))
+                (Some((Fix(1.0), 0)), Some((Fix(1.0), 0)))
             }
             else if options.ticks == 0.0
             {
@@ -159,8 +159,8 @@ pub fn graph(
             else
             {
                 (
-                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 3)),
-                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 3)),
+                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 0)),
+                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 0)),
                 )
             };
             if options.scale_graph
@@ -173,8 +173,8 @@ pub fn graph(
             if options.lines || lines
             {
                 fg.axes2d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_x_label("x", &[])
@@ -297,8 +297,8 @@ pub fn graph(
             else
             {
                 fg.axes2d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_x_label("x", &[])
@@ -501,14 +501,14 @@ pub fn graph(
             }
             let (xticks, yticks, zticks) = if options.ticks == -2.0
             {
-                (Some((Auto, 3)), Some((Auto, 3)), Some((Auto, 3)))
+                (Some((Auto, 0)), Some((Auto, 0)), Some((Auto, 0)))
             }
             else if options.ticks == -1.0
             {
                 (
-                    Some((Fix(1.0), 3)),
-                    Some((Fix(1.0), 3)),
-                    Some((Fix(1.0), 3)),
+                    Some((Fix(1.0), 0)),
+                    Some((Fix(1.0), 0)),
+                    Some((Fix(1.0), 0)),
                 )
             }
             else if options.ticks == 0.0
@@ -518,9 +518,9 @@ pub fn graph(
             else
             {
                 (
-                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 3)),
-                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 3)),
-                    Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 3)),
+                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 0)),
+                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 0)),
+                    Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 0)),
                 )
             };
             if options.surface
@@ -530,9 +530,9 @@ pub fn graph(
                 && (points3d[0][0][2].is_empty() || points3d[0][1][2].is_empty())
             {
                 fg.axes3d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
-                    .set_z_ticks(zticks, &[], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_z_ticks(zticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
@@ -559,9 +559,9 @@ pub fn graph(
             else if options.lines || lines
             {
                 fg.axes3d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
-                    .set_z_ticks(zticks, &[], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_z_ticks(zticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
@@ -740,9 +740,9 @@ pub fn graph(
             else
             {
                 fg.axes3d()
-                    .set_x_ticks(xticks, &[], &[])
-                    .set_y_ticks(yticks, &[], &[])
-                    .set_z_ticks(zticks, &[], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
+                    .set_z_ticks(zticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))

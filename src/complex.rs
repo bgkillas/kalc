@@ -2071,7 +2071,6 @@ pub fn area(
                     }
                     x0 = x4;
                 }
-            //TODO support below just accept performance loss
             (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         }
     }
@@ -2090,7 +2089,7 @@ pub fn slope(
     mut options: Options,
     var: String,
     mut point: Complex,
-    _combine: bool,
+    combine: bool,
     nth: u32,
 ) -> Result<NumStr, &'static str>
 {
@@ -2154,126 +2153,134 @@ pub fn slope(
             }
             Ok(Num(sum * Complex::with_val(options.prec, 2).pow(nth * prec)))
         }
-        // (Num(mut n1), Num(mut n2)) =>
-        // {
-        //     if n2.real().is_nan()
-        //     {
-        //         n2 = n1;
-        //         n1 = do_math_with_var(
-        //             func.clone(),
-        //             options,
-        //             func_vars.clone(),
-        //             &var,
-        //             Num(point - h.clone()),
-        //         )?
-        //         .num()?;
-        //     }
-        //     if (n2.clone() - n1.clone()).abs().real().clone().log10()
-        //         > options.prec.0 as isize / -20
-        //     {
-        //         if n2.real() > n1.real()
-        //         {
-        //             Ok(Num(Complex::with_val(options.prec, Infinity)))
-        //         }
-        //         else
-        //         {
-        //             Ok(Num(-Complex::with_val(options.prec, Infinity)))
-        //         }
-        //     }
-        //     else
-        //     {
-        //         Ok(Num((n2 - n1) / h))
-        //     }
-        // }
-        // (Vector(n1), Vector(n2)) if !combine => Ok(Vector(
-        //     n1.iter()
-        //         .zip(n2)
-        //         .map(|(n1, n2)| {
-        //             if (n2.clone() - n1.clone()).abs().real().clone().log10()
-        //                 > options.prec.0 as isize / -20
-        //             {
-        //                 if n2.real() > n1.real()
-        //                 {
-        //                     Complex::with_val(options.prec, Infinity)
-        //                 }
-        //                 else
-        //                 {
-        //                     -Complex::with_val(options.prec, Infinity)
-        //                 }
-        //             }
-        //             else
-        //             {
-        //                 (n2 - n1) / h.clone()
-        //             }
-        //         })
-        //         .collect::<Vec<Complex>>(),
-        // )),
-        // (Vector(n1), Vector(n2)) if n1.len() == 1 =>
-        // {
-        //     if (n2[0].clone() - n1[0].clone()).abs().real().clone().log10()
-        //         > options.prec.0 as isize / -20
-        //     {
-        //         if n2[0].real() > n1[0].real()
-        //         {
-        //             Ok(Num(Complex::with_val(options.prec, Infinity)))
-        //         }
-        //         else
-        //         {
-        //             Ok(Num(-Complex::with_val(options.prec, Infinity)))
-        //         }
-        //     }
-        //     else
-        //     {
-        //         Ok(Num((n2[0].clone() - n1[0].clone()) / h))
-        //     }
-        // }
-        // (Vector(n1), Vector(n2)) if n1.len() == 2 =>
-        // {
-        //     let n = (n2[1].clone() - n1[1].clone()) / (n2[0].clone() - n1[0].clone());
-        //     if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
-        //     {
-        //         if n.real().is_sign_positive()
-        //         {
-        //             Ok(Num(Complex::with_val(options.prec, Infinity)))
-        //         }
-        //         else
-        //         {
-        //             Ok(Num(-Complex::with_val(options.prec, Infinity)))
-        //         }
-        //     }
-        //     else
-        //     {
-        //         Ok(Num(n))
-        //     }
-        // }
-        // (Vector(n1), Vector(n2)) =>
-        // {
-        //     let num = n2.last().unwrap().clone() - n1.last().unwrap().clone();
-        //     Ok(Vector(
-        //         n1[0..n1.len() - 1]
-        //             .iter()
-        //             .zip(n2[0..n2.len() - 1].to_vec())
-        //             .map(|(n1, n2)| {
-        //                 let n = num.clone() / (n2 - n1);
-        //                 if n.clone().abs().real().clone().log10() > options.prec.0 as isize / 20
-        //                 {
-        //                     if n.real().is_sign_positive()
-        //                     {
-        //                         Complex::with_val(options.prec, Infinity)
-        //                     }
-        //                     else
-        //                     {
-        //                         -Complex::with_val(options.prec, Infinity)
-        //                     }
-        //                 }
-        //                 else
-        //                 {
-        //                     n
-        //                 }
-        //             })
-        //             .collect::<Vec<Complex>>(),
-        //     ))
-        // }
+        Vector(mut sum) if !combine =>
+        {
+            if nth % 2 == 1
+            {
+                for n in sum.iter_mut()
+                {
+                    *n *= -1;
+                }
+            }
+            for k in 0..nth
+            {
+                let b = num.clone().binomial(k);
+                let vec = do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &var,
+                    Num(point.clone() + h.clone() * (nth - k)),
+                )?
+                .vec()?;
+                if k % 2 == 0
+                {
+                    for (n, a) in sum.iter_mut().zip(vec)
+                    {
+                        *n += a * b.clone()
+                    }
+                }
+                else
+                {
+                    for (n, a) in sum.iter_mut().zip(vec)
+                    {
+                        *n -= a * b.clone()
+                    }
+                }
+            }
+            Ok(Vector(
+                sum.iter()
+                    .map(|n| n * Complex::with_val(options.prec, 2).pow(nth * prec))
+                    .collect::<Vec<Complex>>(),
+            ))
+        }
+        Vector(mut sum) if sum.len() == 1 =>
+        {
+            if nth % 2 == 1
+            {
+                sum[0] *= -1;
+            }
+            for k in 0..nth
+            {
+                if k % 2 == 0
+                {
+                    sum[0] += num.clone().binomial(k)
+                        * do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(point.clone() + h.clone() * (nth - k)),
+                        )?
+                        .num()?;
+                }
+                else
+                {
+                    sum[0] -= num.clone().binomial(k)
+                        * do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(point.clone() + h.clone() * (nth - k)),
+                        )?
+                        .num()?;
+                }
+            }
+            Ok(Num(
+                sum[0].clone() * Complex::with_val(options.prec, 2).pow(nth * prec)
+            ))
+        }
+        Vector(mut sum) =>
+        {
+            if nth % 2 == 1
+            {
+                for n in sum.iter_mut()
+                {
+                    *n *= -1;
+                }
+            }
+            for k in 0..nth
+            {
+                let b = num.clone().binomial(k);
+                let vec = do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &var,
+                    Num(point.clone() + h.clone() * (nth - k)),
+                )?
+                .vec()?;
+                if k % 2 == 0
+                {
+                    for (n, a) in sum.iter_mut().zip(vec)
+                    {
+                        *n += a * b.clone()
+                    }
+                }
+                else
+                {
+                    for (n, a) in sum.iter_mut().zip(vec)
+                    {
+                        *n -= a * b.clone()
+                    }
+                }
+            }
+            if sum.len() == 2
+            {
+                Ok(Num(sum[1].clone() / sum[0].clone()))
+            }
+            else
+            {
+                let nf = sum.last().unwrap();
+                Ok(Vector(
+                    sum[0..sum.len() - 1]
+                        .iter()
+                        .map(|n| nf.clone() / n)
+                        .collect::<Vec<Complex>>(),
+                ))
+            }
+        }
         _ => Err("not supported slope data"),
     }
 }
@@ -2284,6 +2291,7 @@ pub enum LimSide
     Right,
     Both,
 }
+//TODO display imag numbers along with infinities
 pub fn limit(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
@@ -2310,14 +2318,14 @@ pub fn limit(
         if positive
         {
             h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
-            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 4) as f64 + 7.0 / 0.94)
+            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 3) as f64 + 7.0 / 0.94)
                 - 3;
         }
         else
         {
             h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
             h2 = 3 - Complex::with_val(options.prec, 2)
-                .pow((options.prec.0 / 4) as f64 + 7.0 / 0.94);
+                .pow((options.prec.0 / 3) as f64 + 7.0 / 0.94);
         }
         let n1 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h1))?;
         let n2 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h2))?;
@@ -2327,7 +2335,7 @@ pub fn limit(
             {
                 if (n1.clone() - n2.clone()).abs().real().clone().log10() <= -10
                 {
-                    Ok(Num(Complex::with_val(options.prec, n1)))
+                    Ok(Num(n2))
                 }
                 else if n2.real().is_infinite() || n2.imag().is_infinite()
                 {
@@ -2382,13 +2390,13 @@ pub fn limit(
                             if positive
                             {
                                 Complex::with_val(options.prec, 2)
-                                    .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                    .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
                                     - 7
                             }
                             else
                             {
                                 7 - Complex::with_val(options.prec, 2)
-                                    .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                    .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
                             },
                         ),
                     )?
@@ -2460,7 +2468,7 @@ pub fn limit(
                     vec.push(
                         if (n1.clone() - n2.clone()).abs().real().clone().log10() <= -10
                         {
-                            Complex::with_val(options.prec, n1)
+                            n2
                         }
                         else if n2.real().is_infinite() || n2.imag().is_infinite()
                         {
@@ -2515,13 +2523,13 @@ pub fn limit(
                                         if positive
                                         {
                                             Complex::with_val(options.prec, 2)
-                                                .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                                .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
                                                 - 7
                                         }
                                         else
                                         {
                                             7 - Complex::with_val(options.prec, 2)
-                                                .pow((options.prec.0 / 4) as f64 + 13.0 / 0.7)
+                                                .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
                                         },
                                     ),
                                 )?

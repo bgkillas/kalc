@@ -36,15 +36,10 @@ use std::{
 //surface area of a 3d curve
 //rpn
 //matrix exponentiation
-//do as much as you can before graphing, make = show unsimplified, and no = show simplififed
-//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
-//nth slope, maybe nth area
-//general shortest distance between 2 function
+//do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //stop vectors or matrixes disipearing graphically
-//dice any dice recursive function
-//g(n,p,b)=(-1)^n b^(p-n) ph(-p,n)      lim(a,g(-1+a,-1,x)+1/a,0)#lnx    lim(a,g(-2+a,-1,x)+x/a,0)     lim(a,g(-3+a,-1,x)+1/2*x^2/a,0)          a=0.000001;g(-4+a,-1,x)+1/6 x^3/a       b=5;lim(a,g(a,-1,1)+1^(-1-a)/((-1-a)!/(a+b)!),-1-b,1)
-//origin
-//3d reflection
+//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
+//maybe nth area
 #[derive(Clone)]
 pub struct Variable
 {

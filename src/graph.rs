@@ -163,16 +163,22 @@ pub fn graph(
                     Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 0)),
                 )
             };
-            if options.scale_graph
+            let ratio = if options.scale_graph
             {
                 let (x, y) = get_terminal_dimensions_pixel();
-                let w = y as f64 / x as f64 * (options.xr.1 - options.xr.0)
-                    / (options.yr.1 - options.yr.0);
+                let rt = y as f64 / x as f64;
+                let w = rt * (options.xr.1 - options.xr.0) / (options.yr.1 - options.yr.0);
                 options.yr = (w * options.yr.0, w * options.yr.1);
+                Fix(rt)
             }
+            else
+            {
+                Auto
+            };
             if options.lines || lines
             {
                 fg.axes2d()
+                    .set_aspect_ratio(ratio)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
@@ -297,6 +303,7 @@ pub fn graph(
             else
             {
                 fg.axes2d()
+                    .set_aspect_ratio(ratio)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))

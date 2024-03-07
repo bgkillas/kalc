@@ -56,7 +56,7 @@ FLAGS: --help (this message)
 --sci toggles scientific notation
 --base=[num] sets the number base (2,8,16)
 --ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
---onaxis toggles showing the ticks on the x/y/z axis
+--onaxis toggles showing the ticks on the x/y/z axis on by default for 2d, off by default for 3d
 --prompt toggles the prompt
 --color toggles color output, toggled by default when running from arguments
 --comma toggles comma seperation

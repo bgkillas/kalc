@@ -1635,7 +1635,6 @@ fn get_data(
                 }
                 Vector(v) =>
                 {
-                    //TODO dont have just 2 points to stop from disipearing
                     lines = true;
                     match v.len()
                     {

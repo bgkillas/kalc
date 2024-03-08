@@ -38,8 +38,8 @@ use std::{
 //matrix exponentiation
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //stop vectors or matrixes disipearing graphically
-//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 //maybe nth area
+//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable
 {

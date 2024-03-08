@@ -991,7 +991,7 @@ pub fn input_var(
             if wordv == a.1
             {
                 num = a.0;
-                word = a.1.clone();
+                word.clone_from(&a.1);
                 true
             }
             else
@@ -1005,7 +1005,7 @@ pub fn input_var(
                 if wordv.starts_with(&a.1) && !a.1.is_empty()
                 {
                     num = a.0;
-                    word = a.1.clone();
+                    word.clone_from(&a.1);
                     true
                 }
                 else

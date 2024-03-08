@@ -952,7 +952,7 @@ pub fn transpose(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
         {
             for (j, n) in l.iter().enumerate()
             {
-                b[j][i] = n.clone();
+                b[j][i].clone_from(n);
             }
         }
         Ok(b)
@@ -1688,7 +1688,7 @@ pub fn length(
     {
         if i + 1 == points
         {
-            start = end.clone()
+            start.clone_from(&end)
         }
         else
         {
@@ -1922,7 +1922,7 @@ pub fn area(
     {
         if i + 1 == points
         {
-            start = end.clone()
+            start.clone_from(&end)
         }
         else
         {
@@ -3243,7 +3243,7 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
     {
         if (w.clone() - wprev.clone()).abs().real() > &prec
         {
-            wprev = w.clone();
+            wprev.clone_from(&w);
             let zexp = w.clone().exp();
             let zexpz = w.clone() * zexp.clone();
             let zexpz_d = zexp.clone() + zexpz.clone();

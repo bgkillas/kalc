@@ -923,8 +923,8 @@ pub fn add_var(
                             || vars[j].funcvars.clone() != parsed.1
                         {
                             redef.push(v.name.clone());
-                            vars[j].parsed = parsed.0.clone();
-                            vars[j].funcvars = parsed.1.clone();
+                            vars[j].parsed.clone_from(&parsed.0);
+                            vars[j].funcvars.clone_from(&parsed.1);
                         }
                     }
                     else if let Ok(n) = do_math(parsed.0.clone(), options, parsed.1.clone())

@@ -78,7 +78,7 @@ pub fn fraction(value: Float, options: Options) -> String
                 let mut last = Float::with_val(options.prec.0, 1);
                 for j in (0..nums.len()).rev()
                 {
-                    last = recip.clone();
+                    last.clone_from(&recip);
                     recip *= &nums[j];
                 }
                 let recip = recip.to_integer().unwrap();

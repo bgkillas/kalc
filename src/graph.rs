@@ -1828,12 +1828,12 @@ fn get_data(
             if !data3d[0].is_empty() || !data3d[1].is_empty()
             {
                 d2_or_d3 = (false, true);
-                points3d[0][0] = points2d[0][0].clone();
-                points3d[0][1] = points2d[0][1].clone();
-                points3d[0][2] = data3d[0].clone();
-                points3d[1][0] = points2d[1][0].clone();
-                points3d[1][1] = points2d[1][1].clone();
-                points3d[1][2] = data3d[1].clone();
+                points3d[0][0].clone_from(&points2d[0][0]);
+                points3d[0][1].clone_from(&points2d[0][1]);
+                points3d[0][2].clone_from(&data3d[0]);
+                points3d[1][0].clone_from(&points2d[1][0]);
+                points3d[1][1].clone_from(&points2d[1][1]);
+                points3d[1][2].clone_from(&data3d[1]);
                 points2d = Default::default();
             }
             else if points2d[0][1].is_empty() && points2d[1][1].is_empty()
@@ -1868,9 +1868,9 @@ fn get_data(
             {
                 re_or_im.1 = false;
                 d2_or_d3 = (false, true);
-                points3d[0][0] = points2d[0][0].clone();
-                points3d[0][1] = points2d[0][1].clone();
-                points3d[0][2] = points2d[1][1].clone();
+                points3d[0][0].clone_from(&points2d[0][0]);
+                points3d[0][1].clone_from(&points2d[0][1]);
+                points3d[0][2].clone_from(&points2d[1][1]);
                 points2d = Default::default();
             }
         }
@@ -1882,10 +1882,10 @@ fn get_data(
             if d2
             {
                 d2_or_d3 = (true, false);
-                points2d[0][0] = points3d[0][0].clone();
-                points2d[0][1] = points3d[0][1].clone();
-                points2d[1][0] = points3d[1][0].clone();
-                points2d[1][1] = points3d[1][1].clone();
+                points2d[0][0].clone_from(&points3d[0][0]);
+                points2d[0][1].clone_from(&points3d[0][1]);
+                points2d[1][0].clone_from(&points3d[1][0]);
+                points2d[1][1].clone_from(&points3d[1][1]);
                 points3d = Default::default();
             }
             else if points3d[0][2].is_empty() && points3d[1][2].is_empty()

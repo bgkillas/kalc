@@ -604,7 +604,7 @@ fn main()
                         }
                         if i == lines.len()
                         {
-                            current = input.clone();
+                            current.clone_from(&input);
                         }
                         else
                         {
@@ -677,7 +677,7 @@ fn main()
                         }
                         if i == lines.len()
                         {
-                            current = input.clone();
+                            current.clone_from(&input);
                         }
                         else
                         {
@@ -1125,7 +1125,7 @@ fn main()
                         if i >= lines.len()
                         {
                             i = lines.len();
-                            input = current.clone();
+                            input.clone_from(&current);
                         }
                         else
                         {
@@ -1331,7 +1331,7 @@ fn main()
                         }
                         if i == lines.len()
                         {
-                            current = input.clone();
+                            current.clone_from(&input);
                         }
                         else
                         {

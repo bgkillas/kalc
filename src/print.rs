@@ -1332,6 +1332,28 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             {
                 String::new()
             }
+            else if num.imag() == &1
+            {
+                sign + &if options.color
+                {
+                    format!("{}i", &colors.imag)
+                }
+                else
+                {
+                    "i".to_string()
+                }
+            }
+            else if num.imag() == &-1
+            {
+                sign + &if options.color
+                {
+                    format!("-{}i", &colors.imag)
+                }
+                else
+                {
+                    "i".to_string()
+                }
+            }
             else
             {
                 if options.comma
@@ -1421,6 +1443,28 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             if im == "0"
             {
                 String::new()
+            }
+            else if im == "1"
+            {
+                sign + &if options.color
+                {
+                    format!("{}i", &colors.imag)
+                }
+                else
+                {
+                    "i".to_string()
+                }
+            }
+            else if im == "-1"
+            {
+                sign + &if options.color
+                {
+                    format!("-{}i", &colors.imag)
+                }
+                else
+                {
+                    "i".to_string()
+                }
             }
             else
             {

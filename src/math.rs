@@ -1697,20 +1697,19 @@ pub fn do_math(
                             {
                                 "multinomial" =>
                                 {
-                                    let mut numerator: Float =
-                                        function[i + 1].num()?.real().clone() + 1;
-                                    let mut divisor = numerator.clone().gamma();
+                                    let mut numerator: Complex = function[i + 1].num()? + 1;
+                                    let mut divisor = gamma(numerator.clone());
                                     let mut j = i + 1;
                                     while j + 1 < function.len() && function[j + 1].str_is(",")
                                     {
                                         j += 2;
-                                        let temp = function[j].num()?.real().clone();
+                                        let temp = function[j].num()?;
                                         numerator += temp.clone();
-                                        let temp: Float = temp.clone() + 1;
-                                        divisor *= temp.gamma();
+                                        let temp = temp.clone() + 1;
+                                        divisor *= gamma(temp);
                                     }
                                     function.drain(i + 2..=j);
-                                    Num((numerator.gamma() / divisor).into())
+                                    Num(gamma(numerator) / divisor)
                                 }
                                 "Β" | "B" | "beta" =>
                                 {
@@ -1769,33 +1768,12 @@ pub fn do_math(
                                         let alpha = function[i + 1].num()?;
                                         let beta = function[i + 3].num()?;
                                         let x = function[i + 5].num()?;
-                                        if alpha.imag().is_zero()
-                                            && beta.imag().is_zero()
-                                            && x.imag().is_zero()
-                                        {
-                                            let alpha = alpha.real();
-                                            let beta = beta.real();
-                                            let x = x.real();
-                                            function.drain(i + 2..i + 6);
-                                            if x > &0 && x < &1
-                                            {
-                                                let c: Float = 1 - x.clone();
-                                                let num: Float = (alpha + beta.clone()).gamma()
-                                                    * x.pow(alpha.clone() - 1)
-                                                    * c.pow(beta.clone() - 1)
-                                                    / (alpha.clone().gamma()
-                                                        * beta.clone().gamma());
-                                                Num(num.into())
-                                            }
-                                            else
-                                            {
-                                                Num(Complex::new(options.prec))
-                                            }
-                                        }
-                                        else
-                                        {
-                                            return Err("betaP does not support imag");
-                                        }
+                                        function.drain(i + 2..i + 6);
+                                        let c: Complex = 1 - x.clone();
+                                        Num(gamma(alpha.clone() + beta.clone())
+                                            * x.pow(alpha.clone() - 1)
+                                            * c.pow(beta.clone() - 1)
+                                            / (gamma(alpha) * gamma(beta)))
                                     }
                                     else
                                     {
@@ -2373,7 +2351,6 @@ fn functions(
     options: Options,
 ) -> Result<Complex, &'static str>
 {
-    let b;
     let n = match s
     {
         "sin" => (a / to_deg).sin(),
@@ -2382,54 +2359,10 @@ fn functions(
         "sec" => (a / to_deg).cos().recip(),
         "tan" => (a / to_deg).tan(),
         "cot" => (a / to_deg).tan().recip(),
-        "asin" | "arcsin" =>
-        {
-            b = a.clone().asin() * to_deg;
-            if a.imag().is_zero() && a.real() >= &1
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
-        "acsc" | "arccsc" =>
-        {
-            b = a.clone().recip().asin() * to_deg;
-            if a.imag().is_zero()
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
-        "acos" | "arccos" =>
-        {
-            b = a.clone().acos() * to_deg;
-            if a.imag().is_zero() && a.real() >= &1
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
-        "asec" | "arcsec" =>
-        {
-            b = a.clone().recip().acos() * to_deg;
-            if a.imag().is_zero()
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
+        "asin" | "arcsin" => a.clone().asin() * to_deg,
+        "acsc" | "arccsc" => a.clone().recip().asin() * to_deg,
+        "acos" | "arccos" => a.clone().acos() * to_deg,
+        "asec" | "arcsec" => a.clone().recip().acos() * to_deg,
         "atan" | "arctan" | "atan2" =>
         {
             if let Some(b) = c
@@ -2451,46 +2384,13 @@ fn functions(
         "asinh" | "arcsinh" => a.asinh(),
         "acsch" | "arccsch" => a.recip().asinh(),
         "acosh" | "arccosh" => a.acosh(),
-        "asech" | "arcsech" =>
-        {
-            b = a.clone().recip().acosh();
-            if a.imag().is_zero() && a.real().is_sign_negative()
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
-        "atanh" | "arctanh" =>
-        {
-            b = a.clone().atanh();
-            if a.imag().is_zero() && a.real() >= &1
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
-        "acoth" | "arccoth" =>
-        {
-            b = a.clone().recip().atanh();
-            if a.imag().is_zero()
-            {
-                Complex::with_val(options.prec, (b.real(), -b.imag()))
-            }
-            else
-            {
-                b
-            }
-        }
+        "asech" | "arcsech" => a.clone().recip().acosh(),
+        "atanh" | "arctanh" => a.clone().atanh(),
+        "acoth" | "arccoth" => a.clone().recip().atanh(),
         "cis" =>
         {
-            (a.clone() / to_deg.clone()).cos()
-                + (a / to_deg).sin() * Complex::with_val(options.prec, (0.0, 1.0))
+            let b = a / to_deg.clone();
+            b.clone().cos() + b.sin() * Complex::with_val(options.prec, (0.0, 1.0))
         }
         "ln" | "aexp" => a.ln(),
         "ceil" => Complex::with_val(

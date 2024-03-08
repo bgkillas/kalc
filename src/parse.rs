@@ -644,10 +644,7 @@ pub fn input_var(
                             if a.real().is_sign_negative()
                             {
                                 output.pop();
-                                output.push(Num(Complex::with_val(
-                                    options.prec,
-                                    (-a.real(), a.imag()),
-                                )));
+                                output.push(Num(-a.clone()));
                                 output.insert(output.len() - 1, Num(n1.clone()));
                                 output.insert(output.len() - 1, Str("*".to_string()));
                             }

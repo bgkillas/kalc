@@ -91,51 +91,51 @@ pub fn graph(
         }
         if d2_or_d3.0
         {
-            if lines
-            {
-                if Options::default().xr == options.xr
-                {
-                    options.xr = (
-                        points2d.iter().fold(f64::MAX, |min, x| {
-                            min.min(
-                                x[0][0]
-                                    .iter()
-                                    .chain(&x[1][0])
-                                    .fold(f64::MAX, |min, x| min.min(*x)),
-                            )
-                        }),
-                        points2d.iter().fold(f64::MIN, |max, x| {
-                            max.max(
-                                x[0][0]
-                                    .iter()
-                                    .chain(&x[1][0])
-                                    .fold(f64::MIN, |max, x| max.max(*x)),
-                            )
-                        }),
-                    )
-                }
-                if Options::default().yr == options.yr
-                {
-                    options.yr = (
-                        points2d.iter().fold(f64::MAX, |min, x| {
-                            min.min(
-                                x[0][1]
-                                    .iter()
-                                    .chain(&x[1][1])
-                                    .fold(f64::MAX, |min, x| min.min(*x)),
-                            )
-                        }),
-                        points2d.iter().fold(f64::MIN, |max, x| {
-                            max.max(
-                                x[0][1]
-                                    .iter()
-                                    .chain(&x[1][1])
-                                    .fold(f64::MIN, |max, x| max.max(*x)),
-                            )
-                        }),
-                    )
-                }
-            }
+            // if lines
+            // {
+            //     if Options::default().xr == options.xr
+            //     {
+            //         options.xr = (
+            //             points2d.iter().fold(f64::MAX, |min, x| {
+            //                 min.min(
+            //                     x[0][0]
+            //                         .iter()
+            //                         .chain(&x[1][0])
+            //                         .fold(f64::MAX, |min, x| min.min(*x)),
+            //                 )
+            //             }),
+            //             points2d.iter().fold(f64::MIN, |max, x| {
+            //                 max.max(
+            //                     x[0][0]
+            //                         .iter()
+            //                         .chain(&x[1][0])
+            //                         .fold(f64::MIN, |max, x| max.max(*x)),
+            //                 )
+            //             }),
+            //         )
+            //     }
+            //     if Options::default().yr == options.yr
+            //     {
+            //         options.yr = (
+            //             points2d.iter().fold(f64::MAX, |min, x| {
+            //                 min.min(
+            //                     x[0][1]
+            //                         .iter()
+            //                         .chain(&x[1][1])
+            //                         .fold(f64::MAX, |min, x| min.min(*x)),
+            //                 )
+            //             }),
+            //             points2d.iter().fold(f64::MIN, |max, x| {
+            //                 max.max(
+            //                     x[0][1]
+            //                         .iter()
+            //                         .chain(&x[1][1])
+            //                         .fold(f64::MIN, |max, x| max.max(*x)),
+            //                 )
+            //             }),
+            //         )
+            //     }
+            // }
             if options.vxr.0 != 0.0 || options.vxr.1 != 0.0
             {
                 options.xr = options.vxr;
@@ -428,72 +428,72 @@ pub fn graph(
         }
         if d2_or_d3.1
         {
-            if lines
-            {
-                if Options::default().xr == options.xr
-                {
-                    options.xr = (
-                        points3d.iter().fold(f64::MAX, |min, x| {
-                            min.min(
-                                x[0][0]
-                                    .iter()
-                                    .chain(&x[1][0])
-                                    .fold(f64::MAX, |min, x| min.min(*x)),
-                            )
-                        }),
-                        points3d.iter().fold(f64::MIN, |max, x| {
-                            max.max(
-                                x[0][0]
-                                    .iter()
-                                    .chain(&x[1][0])
-                                    .fold(f64::MIN, |max, x| max.max(*x)),
-                            )
-                        }),
-                    )
-                }
-                if Options::default().yr == options.yr
-                {
-                    options.yr = (
-                        points3d.iter().fold(f64::MAX, |min, x| {
-                            min.min(
-                                x[0][1]
-                                    .iter()
-                                    .chain(&x[1][1])
-                                    .fold(f64::MAX, |min, x| min.min(*x)),
-                            )
-                        }),
-                        points3d.iter().fold(f64::MIN, |max, x| {
-                            max.max(
-                                x[0][1]
-                                    .iter()
-                                    .chain(&x[1][1])
-                                    .fold(f64::MIN, |max, x| max.max(*x)),
-                            )
-                        }),
-                    )
-                }
-                if Options::default().zr == options.zr
-                {
-                    options.zr = (
-                        points3d.iter().fold(f64::MAX, |min, x| {
-                            min.min(
-                                x[0][2]
-                                    .iter()
-                                    .chain(&x[1][2])
-                                    .fold(f64::MAX, |min, x| min.min(*x)),
-                            )
-                        }),
-                        points3d.iter().fold(f64::MIN, |max, x| {
-                            max.max(
-                                x[0][2]
-                                    .iter()
-                                    .chain(&x[1][2])
-                                    .fold(f64::MIN, |max, x| max.max(*x)),
-                            )
-                        }),
-                    )
-                }
-            }
+            // if lines
+            // {
+            //     if Options::default().xr == options.xr
+            //     {
+            //         options.xr = (
+            //             points3d.iter().fold(f64::MAX, |min, x| {
+            //                 min.min(
+            //                     x[0][0]
+            //                         .iter()
+            //                         .chain(&x[1][0])
+            //                         .fold(f64::MAX, |min, x| min.min(*x)),
+            //                 )
+            //             }),
+            //             points3d.iter().fold(f64::MIN, |max, x| {
+            //                 max.max(
+            //                     x[0][0]
+            //                         .iter()
+            //                         .chain(&x[1][0])
+            //                         .fold(f64::MIN, |max, x| max.max(*x)),
+            //                 )
+            //             }),
+            //         )
+            //     }
+            //     if Options::default().yr == options.yr
+            //     {
+            //         options.yr = (
+            //             points3d.iter().fold(f64::MAX, |min, x| {
+            //                 min.min(
+            //                     x[0][1]
+            //                         .iter()
+            //                         .chain(&x[1][1])
+            //                         .fold(f64::MAX, |min, x| min.min(*x)),
+            //                 )
+            //             }),
+            //             points3d.iter().fold(f64::MIN, |max, x| {
+            //                 max.max(
+            //                     x[0][1]
+            //                         .iter()
+            //                         .chain(&x[1][1])
+            //                         .fold(f64::MIN, |max, x| max.max(*x)),
+            //                 )
+            //             }),
+            //         )
+            //     }
+            //     if Options::default().zr == options.zr
+            //     {
+            //         options.zr = (
+            //             points3d.iter().fold(f64::MAX, |min, x| {
+            //                 min.min(
+            //                     x[0][2]
+            //                         .iter()
+            //                         .chain(&x[1][2])
+            //                         .fold(f64::MAX, |min, x| min.min(*x)),
+            //                 )
+            //             }),
+            //             points3d.iter().fold(f64::MIN, |max, x| {
+            //                 max.max(
+            //                     x[0][2]
+            //                         .iter()
+            //                         .chain(&x[1][2])
+            //                         .fold(f64::MIN, |max, x| max.max(*x)),
+            //                 )
+            //             }),
+            //         )
+            //     }
+            // }
             if options.vxr.0 != 0.0 || options.vxr.1 != 0.0
             {
                 options.xr = options.vxr;

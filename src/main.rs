@@ -224,6 +224,7 @@ fn main()
     }
     if !stdin().is_terminal()
     {
+        let mut lines = Vec::new();
         for line in stdin().lock().lines()
         {
             if !line.as_ref().unwrap().is_empty()
@@ -232,11 +233,12 @@ fn main()
                 {
                     if !line.starts_with('#') && !line.is_empty()
                     {
-                        args.push(line);
+                        lines.push(line);
                     }
                 }
             }
         }
+        args.splice(0..0, lines);
     }
     options.interactive = args.is_empty();
     let mut stdout = stdout();

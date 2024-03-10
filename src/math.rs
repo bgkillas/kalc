@@ -2509,17 +2509,28 @@ fn functions(
             {
                 if !a.real().is_sign_positive()
                     && a.real().clone().fract().is_zero()
-                    && b.real().clone().fract().is_zero()
                     && a.imag().is_zero()
                     && b.imag().is_zero()
                 {
-                    if b.real().clone() % 2 == 1
+                    if b.real().clone().fract().is_zero()
                     {
-                        gamma(b.clone() + 2)
+                        if b.real().clone() % 2 == 1
+                        {
+                            gamma(b.clone() + 2)
+                        }
+                        else
+                        {
+                            -gamma(b.clone() + 2)
+                        }
                     }
                     else
                     {
-                        -gamma(b.clone() + 2)
+                        let a = a + Complex::with_val(options.prec, (0, 1))
+                            * Float::with_val(options.prec.0, 0.5).pow(options.prec.0 / 2);
+                        (gamma(a.clone() + 1) / gamma(a.clone() - b + 1))
+                            .real()
+                            .clone()
+                            .into()
                     }
                 }
                 else

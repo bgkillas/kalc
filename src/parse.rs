@@ -209,11 +209,7 @@ pub fn input_var(
             {
                 num.insert(0, '0')
             }
-            place_multiplier(
-                &mut output,
-                sumrec,
-                if print { Some(vars.clone()) } else { None },
-            );
+            place_multiplier(&mut output, sumrec);
             if neg
             {
                 if chars.len() > i + 1
@@ -376,11 +372,7 @@ pub fn input_var(
                 '{' =>
                 {
                     *bracket += 1;
-                    place_multiplier(
-                        &mut output,
-                        sumrec,
-                        if print { Some(vars.clone()) } else { None },
-                    );
+                    place_multiplier(&mut output, sumrec);
                     output.push(Str("{".to_string()));
                 }
                 '}' =>
@@ -549,11 +541,7 @@ pub fn input_var(
                     {
                         subfact.1 = *bracket;
                     }
-                    place_multiplier(
-                        &mut output,
-                        sumrec,
-                        if print { Some(vars.clone()) } else { None },
-                    );
+                    place_multiplier(&mut output, sumrec);
                     output.push(Str("(".to_string()))
                 }
                 ')' if i != 0 =>
@@ -611,11 +599,7 @@ pub fn input_var(
                         {
                             subfact.1 = *bracket;
                         }
-                        place_multiplier(
-                            &mut output,
-                            sumrec,
-                            if print { Some(vars.clone()) } else { None },
-                        );
+                        place_multiplier(&mut output, sumrec);
                         output.push(Str("(".to_string()));
                         output.push(Str("norm".to_string()));
                         output.push(Str("(".to_string()));
@@ -893,11 +877,7 @@ pub fn input_var(
                             }
                         }
                     }
-                    place_multiplier(
-                        &mut output,
-                        sumrec,
-                        if print { Some(vars.clone()) } else { None },
-                    );
+                    place_multiplier(&mut output, sumrec);
                     output.push(Str(word.clone()));
                     output.push(Str("(".to_string()));
                     if sumrec.iter().any(|c| c.0 == -1)
@@ -936,11 +916,7 @@ pub fn input_var(
             ))
             || matches!(word.as_str(), "rnd" | "inf" | "nan" | "NaN"))
         {
-            place_multiplier(
-                &mut output,
-                sumrec,
-                if print { Some(vars.clone()) } else { None },
-            );
+            place_multiplier(&mut output, sumrec);
             if neg
             {
                 output.push(Num(n1.clone()));
@@ -1011,11 +987,7 @@ pub fn input_var(
                 }
             }))
         {
-            place_multiplier(
-                &mut output,
-                sumrec,
-                if print { Some(vars.clone()) } else { None },
-            );
+            place_multiplier(&mut output, sumrec);
             if neg
             {
                 output.push(Num(n1.clone()));
@@ -1133,11 +1105,7 @@ pub fn input_var(
                         }
                         if var.name.contains(&',') && chars.len() > 4
                         {
-                            place_multiplier(
-                                &mut output,
-                                sumrec,
-                                if print { Some(vars.clone()) } else { None },
-                            );
+                            place_multiplier(&mut output, sumrec);
                             if neg
                             {
                                 output.push(Num(n1.clone()));
@@ -1422,11 +1390,7 @@ pub fn input_var(
                         }
                         else
                         {
-                            place_multiplier(
-                                &mut output,
-                                sumrec,
-                                if print { Some(vars.clone()) } else { None },
-                            );
+                            place_multiplier(&mut output, sumrec);
                             if neg
                             {
                                 output.push(Num(n1.clone()));
@@ -1732,11 +1696,7 @@ pub fn input_var(
                         {
                             var.name.len()
                         };
-                        place_multiplier(
-                            &mut output,
-                            sumrec,
-                            if print { Some(vars.clone()) } else { None },
-                        );
+                        place_multiplier(&mut output, sumrec);
                         if neg
                         {
                             output.push(Num(n1.clone()));
@@ -1822,11 +1782,7 @@ pub fn input_var(
                                 }
                             }
                         }
-                        place_multiplier(
-                            &mut output,
-                            sumrec,
-                            if print { Some(vars.clone()) } else { None },
-                        );
+                        place_multiplier(&mut output, sumrec);
                         output.push(Num(Complex::with_val(options.prec, 10)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
@@ -1843,11 +1799,7 @@ pub fn input_var(
                     'x' | 'y' =>
                     {
                         graph = true;
-                        place_multiplier(
-                            &mut output,
-                            sumrec,
-                            if print { Some(vars.clone()) } else { None },
-                        );
+                        place_multiplier(&mut output, sumrec);
                         output.push(Str(c.to_string()));
                         if scientific
                         {
@@ -1874,11 +1826,7 @@ pub fn input_var(
                     }
                     'i' =>
                     {
-                        place_multiplier(
-                            &mut output,
-                            sumrec,
-                            if print { Some(vars.clone()) } else { None },
-                        );
+                        place_multiplier(&mut output, sumrec);
                         output.push(Num(Complex::with_val(options.prec, (0, 1))));
                         if pwr.0
                             && pwr.1 == *bracket
@@ -1906,11 +1854,7 @@ pub fn input_var(
                     'z' =>
                     {
                         graph = true;
-                        place_multiplier(
-                            &mut output,
-                            sumrec,
-                            if print { Some(vars.clone()) } else { None },
-                        );
+                        place_multiplier(&mut output, sumrec);
                         output.push(Str('('.to_string()));
                         output.push(Str('x'.to_string()));
                         output.push(Str('+'.to_string()));
@@ -2128,40 +2072,31 @@ pub fn input_var(
     }
     Ok((output, funcvars, graph, false))
 }
-fn place_multiplier(
-    output: &mut Vec<NumStr>,
-    sumrec: &[(isize, String)],
-    vars: Option<Vec<Variable>>,
-)
+fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
 {
-    if let Some(Str(s)) = output.last()
+    match output.last()
     {
-        if matches!(s.as_str(), ")" | "x" | "y" | "]" | "}" | "rnd" | "@")
-            || sumrec
-                .iter()
-                .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s)
-            || (if let Some(n) = vars
-            {
-                n.iter().any(|a| a.name.iter().collect::<String>() == *s)
-            }
-            else
-            {
-                false
-            })
+        Some(Str(s))
+            if matches!(s.as_str(), ")" | "x" | "y" | "]" | "}" | "rnd" | "@")
+                || sumrec
+                    .iter()
+                    .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s) =>
         {
             output.push(Str('*'.to_string()))
         }
-    }
-    else if let Num(_) = output.last().unwrap_or(&Str(String::new()))
-    {
-        output.push(Str('*'.to_string()))
+        Some(Num(_)) => output.push(Str('*'.to_string())),
+        _ =>
+        {}
     }
 }
 fn can_abs(output: &[NumStr]) -> bool
 {
     if let Some(Str(s)) = output.last()
     {
-        return !functions().contains(s.as_str());
+        !functions().contains(s.as_str())
     }
-    true
+    else
+    {
+        true
+    }
 }

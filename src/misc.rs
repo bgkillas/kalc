@@ -348,6 +348,8 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                         colors.text
                     ))
                 }
+                '@' =>
+                {}
                 _ => output.push(c),
             }
             i += 1;

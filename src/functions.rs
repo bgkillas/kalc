@@ -201,6 +201,7 @@ pub fn functions() -> HashSet<&'static str>
         "trigamma",
         "pochhammer",
         "ph",
+        "ψ",
     ]
     .iter()
     .cloned()

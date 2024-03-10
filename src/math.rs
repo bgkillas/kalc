@@ -214,6 +214,7 @@ pub fn do_math(
                                     | "zeta"
                                     | "polygamma"
                                     | "digamma"
+                                    | "ψ"
                                     | "multinomial"
                                     | "gcd"
                                     | "gcf"
@@ -2750,7 +2751,7 @@ fn functions(
             }
         }
         "trigamma" => digamma(a, 1),
-        "digamma" | "polygamma" =>
+        "digamma" | "polygamma" | "ψ" =>
         {
             if let Some(b) = c
             {

@@ -58,7 +58,7 @@ pub fn graph(
             {
                 return;
             }
-            if re_or_im.0
+            if re_or_im.0 || !re_or_im.1
             {
                 re_cap[i] = input[i].clone() + if re_or_im.1 { ":re" } else { "" }
             }

@@ -12,7 +12,6 @@ use crate::{
     AngleType::{Degrees, Gradians, Radians},
     Options,
 };
-use libc::rand;
 use rug::{
     float::{
         Constant::Pi,
@@ -1022,13 +1021,13 @@ pub fn do_math(
                                         {
                                             return Err("bad dice data");
                                         }
-                                        let n = i[0].real().to_f64() as i32;
-                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n);
-                                        let end = i[1].real().to_f64() as i32;
+                                        let n = i[0].real().to_f64() as u64;
+                                        let max = u64::MAX - u64::MAX.rem(n);
+                                        let end = i[1].real().to_f64() as u64;
                                         let mut i = 0;
                                         while i < end
                                         {
-                                            let rnd = unsafe { rand() };
+                                            let rnd = fastrand::u64(..);
                                             if rnd < max
                                             {
                                                 sum += rnd.rem(n) + 1;
@@ -1119,9 +1118,9 @@ pub fn do_math(
                                     let mut i = 0;
                                     while i < a.len()
                                     {
-                                        let n = a[i].real().to_f64() as i32;
-                                        let max = libc::RAND_MAX - libc::RAND_MAX.rem(n);
-                                        let rnd = unsafe { rand() };
+                                        let n = a[i].real().to_f64() as u64;
+                                        let max = u64::MAX - u64::MAX.rem(n);
+                                        let rnd = fastrand::u64(..);
                                         if rnd < max
                                         {
                                             sum += rnd.rem(n) + 1;
@@ -1968,8 +1967,8 @@ pub fn do_math(
             {
                 "rnd" =>
                 {
-                    function[i] = Num(Complex::with_val(options.prec, unsafe { rand() })
-                        / Complex::with_val(options.prec, libc::RAND_MAX))
+                    function[i] = Num(Complex::with_val(options.prec, fastrand::u64(..))
+                        / Complex::with_val(options.prec, u64::MAX))
                 }
                 _ => i += 1,
             }

@@ -454,138 +454,189 @@ pub fn print_concurrent(
     };
     let mut frac = 0;
     let mut long = false;
-    if let Num(n) = num
+    match num
     {
-        let output = get_output(options, &colors, &n);
-        let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
+        Num(n) =>
         {
-            let fa = fraction(n.real().clone(), options);
-            let fb = fraction(n.imag().clone(), options);
-            let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
+            let output = get_output(options, &colors, &n);
+            let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
             {
-                "+"
-            }
-            else
-            {
-                ""
-            }
-            .to_string();
-            match (!fa.is_empty(), !fb.is_empty())
-            {
-                (true, true) =>
+                let fa = fraction(n.real().clone(), options);
+                let fb = fraction(n.imag().clone(), options);
+                let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
                 {
-                    frac = 1;
-                    (
-                        if n.real().is_zero() && !n.imag().is_zero()
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            fa
-                        },
-                        if n.imag().is_zero()
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            sign + fb.as_str()
-                                + &if options.color
-                                {
-                                    format!("{}i\x1b[0m", &colors.imag)
-                                }
-                                else
-                                {
-                                    "i".to_string()
-                                }
-                        },
-                    )
-                }
-                (true, _) =>
-                {
-                    frac = 1;
-                    (
-                        if n.real().is_zero() && !n.imag().is_zero()
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            fa
-                        },
-                        if n.imag().is_zero()
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            output.1.clone() + if options.color { "\x1b[0m" } else { "" }
-                        },
-                    )
-                }
-                (_, true) =>
-                {
-                    frac = 1;
-                    (
-                        if n.real().is_zero() && !n.imag().is_zero()
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            output.0.clone()
-                        },
-                        if n.imag().is_zero()
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            sign + fb.as_str()
-                                + &if options.color
-                                {
-                                    format!("{}i\x1b[0m", &colors.imag)
-                                }
-                                else
-                                {
-                                    "i".to_string()
-                                }
-                        },
-                    )
-                }
-                _ => (String::new(), String::new()),
-            }
-        }
-        else
-        {
-            (String::new(), String::new())
-        };
-        let (width, height) = get_terminal_dimensions();
-        let len1 = no_col(&output.0, options.color).len();
-        let len2 = no_col(&output.1, options.color).len();
-        if (frac == 1 && !options.frac)
-            || (frac_a.len() + frac_b.len()
-                - if options.color && !frac_b.is_empty()
-                {
-                    5
+                    "+"
                 }
                 else
                 {
-                    0
-                })
-                > width
-        {
-            frac = 0;
-        }
-        if len1 + len2 > width * (height - 1)
-        {
-            if long_output
+                    ""
+                }
+                .to_string();
+                match (!fa.is_empty(), !fb.is_empty())
+                {
+                    (true, true) =>
+                    {
+                        frac = 1;
+                        (
+                            if n.real().is_zero() && !n.imag().is_zero()
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                fa
+                            },
+                            if n.imag().is_zero()
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                sign + fb.as_str()
+                                    + &if options.color
+                                    {
+                                        format!("{}i\x1b[0m", &colors.imag)
+                                    }
+                                    else
+                                    {
+                                        "i".to_string()
+                                    }
+                            },
+                        )
+                    }
+                    (true, _) =>
+                    {
+                        frac = 1;
+                        (
+                            if n.real().is_zero() && !n.imag().is_zero()
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                fa
+                            },
+                            if n.imag().is_zero()
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                output.1.clone() + if options.color { "\x1b[0m" } else { "" }
+                            },
+                        )
+                    }
+                    (_, true) =>
+                    {
+                        frac = 1;
+                        (
+                            if n.real().is_zero() && !n.imag().is_zero()
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                output.0.clone()
+                            },
+                            if n.imag().is_zero()
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                sign + fb.as_str()
+                                    + &if options.color
+                                    {
+                                        format!("{}i\x1b[0m", &colors.imag)
+                                    }
+                                    else
+                                    {
+                                        "i".to_string()
+                                    }
+                            },
+                        )
+                    }
+                    _ => (String::new(), String::new()),
+                }
+            }
+            else
+            {
+                (String::new(), String::new())
+            };
+            let (width, height) = get_terminal_dimensions();
+            let len1 = no_col(&output.0, options.color).len();
+            let len2 = no_col(&output.1, options.color).len();
+            if (frac == 1 && !options.frac)
+                || (frac_a.len() + frac_b.len()
+                    - if options.color && !frac_b.is_empty()
+                    {
+                        5
+                    }
+                    else
+                    {
+                        0
+                    })
+                    > width
+            {
+                frac = 0;
+            }
+            if len1 + len2 > width * (height - 1)
+            {
+                if long_output
+                {
+                    let num = len1.div_ceil(width).saturating_sub(1)
+                        + len2.saturating_sub(1).div_ceil(width).saturating_sub(1);
+                    print!(
+                        "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}",
+                        if frac == 1
+                        {
+                            format!("\x1b[G\n{}{}", frac_a, frac_b)
+                        }
+                        else
+                        {
+                            String::new()
+                        },
+                        output.0,
+                        if len1 != 0 && len2 != 0
+                        {
+                            "\x1b[G\n"
+                        }
+                        else
+                        {
+                            ""
+                        },
+                        &output.1.replace('+', ""),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
+                }
+                else
+                {
+                    print!(
+                        "\x1b[G\x1b[J{}\x1b[G\ntoo long, will print on enter{}\x1b[G\x1b[A{}{}{}",
+                        if frac == 1
+                        {
+                            format!("\x1b[G\n{}{}", frac_a, frac_b)
+                        }
+                        else
+                        {
+                            String::new()
+                        },
+                        if frac == 1 { "\x1b[A" } else { "" },
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    long = true;
+                }
+            }
+            else if len1 + len2 > width
             {
                 let num = len1.div_ceil(width).saturating_sub(1)
                     + len2.saturating_sub(1).div_ceil(width).saturating_sub(1);
+                let temp = (num + frac).saturating_sub(if len1 == 0 || len2 == 0 { 1 } else { 0 });
                 print!(
-                    "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}",
+                    "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}\x1b[A\x1b[G\x1b[A{}{}{}",
                     if frac == 1
                     {
                         format!("\x1b[G\n{}{}", frac_a, frac_b)
@@ -604,6 +655,16 @@ pub fn print_concurrent(
                         ""
                     },
                     &output.1.replace('+', ""),
+                    if temp == 0
+                    {
+                        String::new()
+                    }
+                    else
+                    {
+                        format!("\x1b[{}A", temp)
+                    },
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" },
                 );
                 frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
@@ -611,260 +672,44 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\x1b[G\x1b[J{}\x1b[G\ntoo long, will print on enter{}\x1b[G\x1b[A{}{}{}",
+                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{}\x1b[J{}\x1b[G\x1b[A\x1b[{}C{}",
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
                     if frac == 1
                     {
-                        format!("\x1b[G\n{}{}", frac_a, frac_b)
+                        format!("\x1b[G\n{}{}\x1b[K", frac_a, frac_b)
                     }
                     else
                     {
                         String::new()
                     },
+                    output.0,
+                    output.1,
                     if frac == 1 { "\x1b[A" } else { "" },
-                    prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" },
-                );
-                long = true;
-            }
-        }
-        else if len1 + len2 > width
-        {
-            let num = len1.div_ceil(width).saturating_sub(1)
-                + len2.saturating_sub(1).div_ceil(width).saturating_sub(1);
-            let temp = (num + frac).saturating_sub(if len1 == 0 || len2 == 0 { 1 } else { 0 });
-            print!(
-                "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}\x1b[A\x1b[G\x1b[A{}{}{}",
-                if frac == 1
-                {
-                    format!("\x1b[G\n{}{}", frac_a, frac_b)
-                }
-                else
-                {
-                    String::new()
-                },
-                output.0,
-                if len1 != 0 && len2 != 0
-                {
-                    "\x1b[G\n"
-                }
-                else
-                {
-                    ""
-                },
-                &output.1.replace('+', ""),
-                if temp == 0
-                {
-                    String::new()
-                }
-                else
-                {
-                    format!("\x1b[{}A", temp)
-                },
-                prompt(options, &colors),
-                to_output(&unmodified_input[start..end], options.color, &colors),
-                if options.color { "\x1b[0m" } else { "" },
-            );
-            frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
-        }
-        else
-        {
-            print!(
-                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{}\x1b[J{}\x1b[G\x1b[A\x1b[{}C{}",
-                prompt(options, &colors),
-                to_output(&unmodified_input[start..end], options.color, &colors),
-                if frac == 1
-                {
-                    format!("\x1b[G\n{}{}\x1b[K", frac_a, frac_b)
-                }
-                else
-                {
-                    String::new()
-                },
-                output.0,
-                output.1,
-                if frac == 1 { "\x1b[A" } else { "" },
-                if options.prompt { 2 } else { 0 } + (end - start),
-                if options.color { "\x1b[0m" } else { "" }
-            )
-        }
-    }
-    else if let Vector(mut v) = num
-    {
-        if options.polar
-        {
-            v = to_polar(
-                v,
-                match options.deg
-                {
-                    Degrees => 180 / Complex::with_val(options.prec, Pi),
-                    Radians => Complex::with_val(options.prec, 1),
-                    Gradians => 200 / Complex::with_val(options.prec, Pi),
-                },
-            );
-        }
-        let mut output = if options.polar { "[" } else { "{" }.to_string();
-        let mut frac_out = if options.polar { "[" } else { "{" }.to_string();
-        let mut out;
-        let mut frac_temp;
-        for (k, i) in v.iter().enumerate()
-        {
-            out = get_output(options, &colors, i);
-            if options.frac || options.frac_iter == 0
-            {
-                frac_temp = fraction(i.real().clone(), options);
-                frac_out += if !frac_temp.is_empty()
-                {
-                    &frac_temp
-                }
-                else
-                {
-                    &out.0
-                };
-                frac_temp = fraction(i.imag().clone(), options);
-                frac_out += &if !frac_temp.is_empty()
-                {
-                    format!(
-                        "{}{}{}",
-                        if !out.0.is_empty() && !i.imag().is_zero() && i.imag().is_sign_positive()
-                        {
-                            "+"
-                        }
-                        else
-                        {
-                            ""
-                        },
-                        frac_temp,
-                        if !i.imag().is_zero()
-                        {
-                            if options.color
-                            {
-                                format!("{}i", &colors.imag)
-                            }
-                            else
-                            {
-                                "i".to_string()
-                            }
-                        }
-                        else
-                        {
-                            String::new()
-                        }
-                    )
-                }
-                else
-                {
-                    out.clone().1
-                };
-            }
-            output += &out.0;
-            output += &out.1;
-            if options.color
-            {
-                output += "\x1b[0m";
-                frac_out += "\x1b[0m";
-            }
-            if k == v.len() - 1
-            {
-                output += if options.polar { "]" } else { "}" };
-                frac_out += if options.polar { "]" } else { "}" };
-            }
-            else
-            {
-                output += ",";
-                frac_out += ",";
-            }
-        }
-        let (width, height) = get_terminal_dimensions();
-        let length = no_col(&output, options.color).len();
-        if frac_out != output
-        {
-            frac = 1;
-        }
-        if (frac == 1 && !options.frac)
-            || no_col(&frac_out, options.color).len() > width
-            || length > width
-        {
-            frac = 0;
-        }
-        if length > width * (height - 1)
-        {
-            if long_output
-            {
-                let num = (length - 1) / width;
-                print!(
-                    "\x1b[G\x1b[J{}\x1b[G\n{}{}",
-                    if frac == 1 && options.frac
-                    {
-                        format!("\x1b[G\n{}", frac_out)
-                    }
-                    else
-                    {
-                        String::new()
-                    },
-                    output,
+                    if options.prompt { 2 } else { 0 } + (end - start),
                     if options.color { "\x1b[0m" } else { "" }
-                );
-                frac += num;
-            }
-            else
-            {
-                print!(
-                    "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[G\x1b[A{}{}{}",
-                    prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" },
-                );
-                long = true;
-                frac = 0;
+                )
             }
         }
-        else
+        Vector(mut v) =>
         {
-            let num = (length - 1) / width;
-            print!(
-                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
-                prompt(options, &colors),
-                to_output(&unmodified_input[start..end], options.color, &colors),
-                if frac == 1
-                {
-                    format!("\x1b[G\n{}\x1b[K", frac_out)
-                }
-                else
-                {
-                    String::new()
-                },
-                output,
-                if num == 0
-                {
-                    String::new()
-                }
-                else
-                {
-                    format!("\x1b[{}A", num)
-                },
-                if frac == 1 { "\x1b[A" } else { "" },
-                if options.prompt { 2 } else { 0 } + (end - start),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            frac += num;
-        }
-    }
-    else if let Matrix(v) = num
-    {
-        let mut output = if !options.multi { "{" } else { "" }.to_string();
-        let mut frac_out = if !options.multi { "{" } else { "" }.to_string();
-        let mut out;
-        let mut frac_temp;
-        let mut num = 0;
-        for (l, j) in v.iter().enumerate()
-        {
-            if !options.multi
+            if options.polar
             {
-                output += "{";
-                frac_out += "{";
+                v = to_polar(
+                    v,
+                    match options.deg
+                    {
+                        Degrees => 180 / Complex::with_val(options.prec, Pi),
+                        Radians => Complex::with_val(options.prec, 1),
+                        Gradians => 200 / Complex::with_val(options.prec, Pi),
+                    },
+                );
             }
-            for (k, i) in j.iter().enumerate()
+            let mut output = if options.polar { "[" } else { "{" }.to_string();
+            let mut frac_out = if options.polar { "[" } else { "{" }.to_string();
+            let mut out;
+            let mut frac_temp;
+            for (k, i) in v.iter().enumerate()
             {
                 out = get_output(options, &colors, i);
                 if options.frac || options.frac_iter == 0
@@ -923,18 +768,10 @@ pub fn print_concurrent(
                     output += "\x1b[0m";
                     frac_out += "\x1b[0m";
                 }
-                if k == j.len() - 1
+                if k == v.len() - 1
                 {
-                    if !options.multi
-                    {
-                        output += "}";
-                        frac_out += "}";
-                    }
-                }
-                else if options.tabbed
-                {
-                    output += "\t";
-                    frac_out += "\t";
+                    output += if options.polar { "]" } else { "}" };
+                    frac_out += if options.polar { "]" } else { "}" };
                 }
                 else
                 {
@@ -942,228 +779,351 @@ pub fn print_concurrent(
                     frac_out += ",";
                 }
             }
-            if l != v.len() - 1
+            let (width, height) = get_terminal_dimensions();
+            let length = no_col(&output, options.color).len();
+            if frac_out != output
             {
-                if options.multi
-                {
-                    num += 1;
-                    output += "\x1b[K\x1b[G\n";
-                    frac_out += "\x1b[K\x1b[G\n";
-                }
-                else
-                {
-                    output += ",";
-                    frac_out += ",";
-                }
+                frac = 1;
             }
-        }
-        if !options.multi
-        {
-            output += "}";
-            frac_out += "}";
-        }
-        let (width, height) = get_terminal_dimensions();
-        let length = no_col(&output, options.color).len() - 1;
-        if frac_out != output
-        {
-            frac = 1;
-        }
-        if !options.multi
-        {
-            num += (length - 1) / width;
             if (frac == 1 && !options.frac)
                 || no_col(&frac_out, options.color).len() > width
                 || length > width
             {
                 frac = 0;
             }
-        }
-        else
-        {
-            let mut len = 0;
-            for i in no_col(&frac_out, options.color)
+            if length > width * (height - 1)
             {
-                len += 1;
-                if i == '\n'
+                if long_output
                 {
-                    len = 0
-                }
-                else if len > width
-                {
-                    frac = 0;
-                    break;
-                }
-            }
-            len = 0;
-            for i in no_col(&output, options.color)
-            {
-                len += 1;
-                if i == '\n'
-                {
-                    len = 0
-                }
-                else if len > width
-                {
-                    len = 0;
-                    num += 1;
-                }
-            }
-            frac_out += "\x1b[K\n";
-        }
-        if length > width * (height - 1) || num > (height - 2)
-        {
-            if long_output
-            {
-                print!(
-                    "\x1b[G\x1b[J{}\x1b[G\n{}{}",
-                    if frac == 1 && options.frac
-                    {
-                        num *= 2;
-                        if options.multi
+                    let num = (length - 1) / width;
+                    print!(
+                        "\x1b[G\x1b[J{}\x1b[G\n{}{}",
+                        if frac == 1 && options.frac
                         {
-                            num += 1;
+                            format!("\x1b[G\n{}", frac_out)
                         }
-                        format!("\x1b[G\n{}", frac_out)
+                        else
+                        {
+                            String::new()
+                        },
+                        output,
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    frac += num;
+                }
+                else
+                {
+                    print!(
+                        "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[G\x1b[A{}{}{}",
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    long = true;
+                    frac = 0;
+                }
+            }
+            else
+            {
+                let num = (length - 1) / width;
+                print!(
+                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
+                    if frac == 1
+                    {
+                        format!("\x1b[G\n{}\x1b[K", frac_out)
                     }
                     else
                     {
                         String::new()
                     },
                     output,
+                    if num == 0
+                    {
+                        String::new()
+                    }
+                    else
+                    {
+                        format!("\x1b[{}A", num)
+                    },
+                    if frac == 1 { "\x1b[A" } else { "" },
+                    if options.prompt { 2 } else { 0 } + (end - start),
                     if options.color { "\x1b[0m" } else { "" }
                 );
                 frac += num;
             }
-            else
-            {
-                print!(
-                    "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[G\x1b[A{}{}{}",
-                    prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" },
-                );
-                long = true;
-                frac = 0;
-            }
         }
-        else
+        Matrix(v) =>
         {
-            print!(
-                "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
-                prompt(options, &colors),
-                to_output(&unmodified_input[start..end], options.color, &colors),
-                if frac == 1
+            let mut output = if !options.multi { "{" } else { "" }.to_string();
+            let mut frac_out = if !options.multi { "{" } else { "" }.to_string();
+            let mut out;
+            let mut frac_temp;
+            let mut num = 0;
+            for (l, j) in v.iter().enumerate()
+            {
+                if !options.multi
                 {
-                    num *= 2;
+                    output += "{";
+                    frac_out += "{";
+                }
+                for (k, i) in j.iter().enumerate()
+                {
+                    out = get_output(options, &colors, i);
+                    if options.frac || options.frac_iter == 0
+                    {
+                        frac_temp = fraction(i.real().clone(), options);
+                        frac_out += if !frac_temp.is_empty()
+                        {
+                            &frac_temp
+                        }
+                        else
+                        {
+                            &out.0
+                        };
+                        frac_temp = fraction(i.imag().clone(), options);
+                        frac_out += &if !frac_temp.is_empty()
+                        {
+                            format!(
+                                "{}{}{}",
+                                if !out.0.is_empty()
+                                    && !i.imag().is_zero()
+                                    && i.imag().is_sign_positive()
+                                {
+                                    "+"
+                                }
+                                else
+                                {
+                                    ""
+                                },
+                                frac_temp,
+                                if !i.imag().is_zero()
+                                {
+                                    if options.color
+                                    {
+                                        format!("{}i", &colors.imag)
+                                    }
+                                    else
+                                    {
+                                        "i".to_string()
+                                    }
+                                }
+                                else
+                                {
+                                    String::new()
+                                }
+                            )
+                        }
+                        else
+                        {
+                            out.clone().1
+                        };
+                    }
+                    output += &out.0;
+                    output += &out.1;
+                    if options.color
+                    {
+                        output += "\x1b[0m";
+                        frac_out += "\x1b[0m";
+                    }
+                    if k == j.len() - 1
+                    {
+                        if !options.multi
+                        {
+                            output += "}";
+                            frac_out += "}";
+                        }
+                    }
+                    else if options.tabbed
+                    {
+                        output += "\t";
+                        frac_out += "\t";
+                    }
+                    else
+                    {
+                        output += ",";
+                        frac_out += ",";
+                    }
+                }
+                if l != v.len() - 1
+                {
                     if options.multi
                     {
                         num += 1;
+                        output += "\x1b[K\x1b[G\n";
+                        frac_out += "\x1b[K\x1b[G\n";
                     }
-                    format!("\x1b[G\n{}\x1b[K", frac_out)
+                    else
+                    {
+                        output += ",";
+                        frac_out += ",";
+                    }
                 }
-                else
-                {
-                    String::new()
-                },
-                output,
-                if num == 0
-                {
-                    String::new()
-                }
-                else
-                {
-                    format!("\x1b[{}A", num)
-                },
-                if frac == 1 { "\x1b[A" } else { "" },
-                if options.prompt { 2 } else { 0 } + (end - start),
-                if options.color { "\x1b[0m" } else { "" }
-            );
-            frac += num;
-            if !options.frac
+            }
+            if !options.multi
             {
-                frac -= 1;
+                output += "}";
+                frac_out += "}";
+            }
+            let (width, height) = get_terminal_dimensions();
+            let length = no_col(&output, options.color).len() - 1;
+            if frac_out != output
+            {
+                frac = 1;
+            }
+            if !options.multi
+            {
+                num += (length - 1) / width;
+                if (frac == 1 && !options.frac)
+                    || no_col(&frac_out, options.color).len() > width
+                    || length > width
+                {
+                    frac = 0;
+                }
+            }
+            else
+            {
+                let mut len = 0;
+                for i in no_col(&frac_out, options.color)
+                {
+                    len += 1;
+                    if i == '\n'
+                    {
+                        len = 0
+                    }
+                    else if len > width
+                    {
+                        frac = 0;
+                        break;
+                    }
+                }
+                len = 0;
+                for i in no_col(&output, options.color)
+                {
+                    len += 1;
+                    if i == '\n'
+                    {
+                        len = 0
+                    }
+                    else if len > width
+                    {
+                        len = 0;
+                        num += 1;
+                    }
+                }
+                frac_out += "\x1b[K\n";
+            }
+            if length > width * (height - 1) || num > (height - 2)
+            {
+                if long_output
+                {
+                    print!(
+                        "\x1b[G\x1b[J{}\x1b[G\n{}{}",
+                        if frac == 1 && options.frac
+                        {
+                            num *= 2;
+                            if options.multi
+                            {
+                                num += 1;
+                            }
+                            format!("\x1b[G\n{}", frac_out)
+                        }
+                        else
+                        {
+                            String::new()
+                        },
+                        output,
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    frac += num;
+                }
+                else
+                {
+                    print!(
+                        "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[G\x1b[A{}{}{}",
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
+                        if options.color { "\x1b[0m" } else { "" },
+                    );
+                    long = true;
+                    frac = 0;
+                }
+            }
+            else
+            {
+                print!(
+                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color, &colors),
+                    if frac == 1
+                    {
+                        num *= 2;
+                        if options.multi
+                        {
+                            num += 1;
+                        }
+                        format!("\x1b[G\n{}\x1b[K", frac_out)
+                    }
+                    else
+                    {
+                        String::new()
+                    },
+                    output,
+                    if num == 0
+                    {
+                        String::new()
+                    }
+                    else
+                    {
+                        format!("\x1b[{}A", num)
+                    },
+                    if frac == 1 { "\x1b[A" } else { "" },
+                    if options.prompt { 2 } else { 0 } + (end - start),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                frac += num;
+                if !options.frac
+                {
+                    frac -= 1;
+                }
             }
         }
-    }
-    else
-    {
-        handle_err("str err", unmodified_input, options, &colors, start, end);
+        _ => handle_err("str err", unmodified_input, options, &colors, start, end),
     }
     (frac, false, long, false)
 }
 pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
 {
-    if let Num(n) = num
+    match num
     {
-        let a = get_output(options, colors, &n);
-        print!(
-            "{}{}{}",
-            a.0,
-            a.1,
-            if options.color { "\x1b[0m" } else { "" }
-        );
-    }
-    else if let Vector(mut v) = num
-    {
-        if options.polar
+        Num(n) =>
         {
-            v = to_polar(
-                v,
-                match options.deg
-                {
-                    Degrees => 180 / Complex::with_val(options.prec, Pi),
-                    Radians => Complex::with_val(options.prec, 1),
-                    Gradians => 200 / Complex::with_val(options.prec, Pi),
-                },
+            let a = get_output(options, colors, &n);
+            print!(
+                "{}{}{}",
+                a.0,
+                a.1,
+                if options.color { "\x1b[0m" } else { "" }
             );
         }
-        let mut output = if options.polar { "[" } else { "{" }.to_string();
-        let mut out;
-        for (k, i) in v.iter().enumerate()
+        Vector(mut v) =>
         {
-            out = get_output(options, colors, i);
-            output += out.0.as_str();
-            output += out.1.as_str();
-            if options.color
+            if options.polar
             {
-                output += "\x1b[0m";
+                v = to_polar(
+                    v,
+                    match options.deg
+                    {
+                        Degrees => 180 / Complex::with_val(options.prec, Pi),
+                        Radians => Complex::with_val(options.prec, 1),
+                        Gradians => 200 / Complex::with_val(options.prec, Pi),
+                    },
+                );
             }
-            output += if k == v.len() - 1
-            {
-                if options.polar
-                {
-                    "]"
-                }
-                else
-                {
-                    "}"
-                }
-            }
-            else
-            {
-                ","
-            }
-        }
-        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
-    }
-    else if let Matrix(v) = num
-    {
-        let mut output = if options.multi
-        {
-            String::new()
-        }
-        else
-        {
-            "{".to_string()
-        };
-        let mut out;
-        for (l, j) in v.iter().enumerate()
-        {
-            if !options.multi
-            {
-                output += "{";
-            }
-            for (k, i) in j.iter().enumerate()
+            let mut output = if options.polar { "[" } else { "{" }.to_string();
+            let mut out;
+            for (k, i) in v.iter().enumerate()
             {
                 out = get_output(options, colors, i);
                 output += out.0.as_str();
@@ -1172,39 +1132,86 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 {
                     output += "\x1b[0m";
                 }
-                if k == j.len() - 1
+                output += if k == v.len() - 1
                 {
-                    if !options.multi
+                    if options.polar
                     {
-                        output += "}";
+                        "]"
+                    }
+                    else
+                    {
+                        "}"
                     }
                 }
-                else if options.tabbed
-                {
-                    output += "\t";
-                }
                 else
                 {
-                    output += ",";
+                    ","
                 }
             }
-            if l != v.len() - 1
-            {
-                if options.multi
-                {
-                    output += "\n";
-                }
-                else
-                {
-                    output += ",";
-                }
-            }
+            print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
         }
-        if !options.multi
+        Matrix(v) =>
         {
-            output += "}";
+            let mut output = if options.multi
+            {
+                String::new()
+            }
+            else
+            {
+                "{".to_string()
+            };
+            let mut out;
+            for (l, j) in v.iter().enumerate()
+            {
+                if !options.multi
+                {
+                    output += "{";
+                }
+                for (k, i) in j.iter().enumerate()
+                {
+                    out = get_output(options, colors, i);
+                    output += out.0.as_str();
+                    output += out.1.as_str();
+                    if options.color
+                    {
+                        output += "\x1b[0m";
+                    }
+                    if k == j.len() - 1
+                    {
+                        if !options.multi
+                        {
+                            output += "}";
+                        }
+                    }
+                    else if options.tabbed
+                    {
+                        output += "\t";
+                    }
+                    else
+                    {
+                        output += ",";
+                    }
+                }
+                if l != v.len() - 1
+                {
+                    if options.multi
+                    {
+                        output += "\n";
+                    }
+                    else
+                    {
+                        output += ",";
+                    }
+                }
+            }
+            if !options.multi
+            {
+                output += "}";
+            }
+            print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
         }
-        print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+        _ =>
+        {}
     }
 }
 pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, String)

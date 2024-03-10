@@ -2127,14 +2127,6 @@ pub fn do_math(
             i += 1;
         }
     }
-    if let Str(_) = &function[0]
-    {
-        function.remove(0);
-    }
-    if let Some(Str(_)) = &function.last()
-    {
-        function.pop();
-    }
     if function.len() == 1
     {
         Ok(function[0].clone())

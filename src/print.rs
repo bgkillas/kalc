@@ -1056,7 +1056,7 @@ pub fn print_concurrent(
                     "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
-                    if frac == 1
+                    if frac == 1 && options.frac
                     {
                         num *= 2;
                         if options.multi
@@ -1078,7 +1078,14 @@ pub fn print_concurrent(
                     {
                         format!("\x1b[{}A", num)
                     },
-                    if frac == 1 { "\x1b[A" } else { "" },
+                    if frac == 1 && options.frac
+                    {
+                        "\x1b[A"
+                    }
+                    else
+                    {
+                        ""
+                    },
                     if options.prompt { 2 } else { 0 } + (end - start),
                     if options.color { "\x1b[0m" } else { "" }
                 );

@@ -587,10 +587,10 @@ pub fn print_concurrent(
                     let num = len1.div_ceil(width).saturating_sub(1)
                         + len2.saturating_sub(1).div_ceil(width).saturating_sub(1);
                     print!(
-                        "\x1b[G\x1b[J{}\x1b[G\n{}{}{}{}",
+                        "\x1b[G\n\x1b[J{}\x1b[G{}{}{}{}",
                         if frac == 1
                         {
-                            format!("\x1b[G\n{}{}", frac_a, frac_b)
+                            format!("{}{}\x1b[G\n", frac_a, frac_b)
                         }
                         else
                         {
@@ -797,10 +797,10 @@ pub fn print_concurrent(
                 {
                     let num = (length - 1) / width;
                     print!(
-                        "\x1b[G\x1b[J{}\x1b[G\n{}{}",
+                        "\x1b[G\n\x1b[J{}\x1b[G{}{}",
                         if frac == 1 && options.frac
                         {
-                            format!("\x1b[G\n{}", frac_out)
+                            format!("{}\x1b[G\n", frac_out)
                         }
                         else
                         {
@@ -1019,7 +1019,7 @@ pub fn print_concurrent(
                 if long_output
                 {
                     print!(
-                        "\x1b[G\x1b[J{}\x1b[G\n{}{}",
+                        "\x1b[G\n\x1b[J{}\x1b[G{}{}",
                         if frac == 1 && options.frac
                         {
                             num *= 2;
@@ -1027,7 +1027,7 @@ pub fn print_concurrent(
                             {
                                 num += 1;
                             }
-                            format!("\x1b[G\n{}", frac_out)
+                            format!("{}\x1b[G\n", frac_out)
                         }
                         else
                         {
@@ -1563,7 +1563,14 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
     }
     if r.len() > decimals
     {
-        r.insert(decimals, '.');
+        if !zeros.is_empty()
+        {
+            r.insert(decimals.saturating_sub(1), '.');
+        }
+        else
+        {
+            r.insert(decimals, '.');
+        }
     }
     let mut d = Float::with_val(num.prec(), Float::parse(&r).unwrap())
         .to_integer()

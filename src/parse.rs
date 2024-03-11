@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Str},
+        NumStr::{Args, Num, Str},
     },
     functions::functions,
     math::do_math,
@@ -154,10 +154,17 @@ pub fn input_var(
             {
                 pow = '1'.to_string();
             }
-            if !output.is_empty()
-                && (output.last().unwrap().num().is_ok() || output.last().unwrap().str_is(")"))
+            match output.last()
             {
-                output.push(Str('^'.to_string()));
+                Some(Num(_)) => output.push(Str('^'.to_string())),
+                Some(Str(s))
+                    if matches!(s.as_str(), "x" | "y" | "rnd")
+                        || sumrec.iter().any(|v| &v.1 == s) =>
+                {
+                    output.push(Str('^'.to_string()))
+                }
+                _ =>
+                {}
             }
             output.push(Num(match Complex::parse(pow.as_bytes())
             {
@@ -275,6 +282,12 @@ pub fn input_var(
                         {
                             s.insert(0, 'a');
                             i += 3;
+                            continue;
+                        }
+                        if i + 1 < chars.len() && chars[i] == '⁻' && chars[i + 1] == '¹'
+                        {
+                            s.insert(0, 'a');
+                            i += 2;
                             continue;
                         }
                         if i + 1 < chars.len()
@@ -912,7 +925,7 @@ pub fn input_var(
             && i + countv < chars.len()
             && matches!(
                 chars[i + countv],
-                'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^'
+                'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^' | '⁻'
             ))
             || matches!(word.as_str(), "rnd" | "inf" | "nan" | "NaN"))
         {
@@ -1904,10 +1917,16 @@ pub fn input_var(
         {
             pow = "1".to_string();
         }
-        if !output.is_empty()
-            && (output.last().unwrap().num().is_ok() || output.last().unwrap().str_is(")"))
+        match output.last()
         {
-            output.push(Str("^".to_string()));
+            Some(Num(_)) => output.push(Str('^'.to_string())),
+            Some(Str(s))
+                if matches!(s.as_str(), "x" | "y" | "rnd") || sumrec.iter().any(|v| &v.1 == s) =>
+            {
+                output.push(Str('^'.to_string()))
+            }
+            _ =>
+            {}
         }
         output.push(Num(Complex::with_val(
             options.prec,

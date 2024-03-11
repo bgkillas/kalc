@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Args, Num, Str},
+        NumStr::{Num, Str},
     },
     functions::functions,
     math::do_math,

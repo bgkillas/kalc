@@ -38,7 +38,7 @@ use std::{
 //matrix exponentiation
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //stop vectors or matrixes disipearing graphically
-//maybe nth area
+//maybe nth area, make -nth go into the other function
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable
@@ -68,6 +68,7 @@ pub struct Colors
     im4col: String,
     im5col: String,
     im6col: String,
+    label: (String, String, String),
 }
 impl Default for Colors
 {
@@ -98,6 +99,7 @@ impl Default for Colors
             im4col: "#00aa00".to_string(),
             im5col: "#00aaaa".to_string(),
             im6col: "#aaaa00".to_string(),
+            label: ("x".to_string(), "y".to_string(), "z".to_string()),
         }
     }
 }
@@ -150,6 +152,7 @@ pub struct Options
     interactive: bool,
     surface: bool,
     scale_graph: bool,
+    stay_interactive: bool,
 }
 impl Default for Options
 {
@@ -195,6 +198,7 @@ impl Default for Options
             interactive: true,
             surface: false,
             scale_graph: true,
+            stay_interactive: false,
         }
     }
 }
@@ -268,7 +272,7 @@ fn main()
         "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
         var("USERNAME").unwrap()
     );
-    let mut vars: Vec<Variable> = if options.allow_vars && options.interactive
+    let mut vars: Vec<Variable> = if options.allow_vars || options.interactive
     {
         get_vars(options)
     }
@@ -276,7 +280,7 @@ fn main()
     {
         Vec::new()
     };
-    if !options.interactive && options.allow_vars
+    if !options.interactive && options.allow_vars && !options.stay_interactive
     {
         get_cli_vars(options, args.concat(), &mut vars)
     }
@@ -301,7 +305,7 @@ fn main()
                     .collect::<Vec<String>>();
                 let mut split;
                 let args = args.concat();
-                let mut blacklist = if options.interactive
+                let mut blacklist = if options.interactive || options.stay_interactive
                 {
                     Vec::new()
                 }
@@ -324,6 +328,7 @@ fn main()
                         l.clone()
                     };
                     if options.interactive
+                        || options.stay_interactive
                         || (!blacklist.contains(&l)
                             && if l.contains('(')
                             {
@@ -339,7 +344,7 @@ fn main()
                         if let Some(r) = split.next()
                         {
                             let le = l.chars().collect::<Vec<char>>();
-                            if !options.interactive
+                            if !options.interactive && !options.stay_interactive
                             {
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                                 if blacklist.contains(&l)
@@ -395,7 +400,7 @@ fn main()
             }
         }
     }
-    let (mut file, mut unmod_lines) = if options.interactive
+    let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive
     {
         #[cfg(unix)]
         let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
@@ -497,6 +502,17 @@ fn main()
                         println!();
                     }
                 }
+            }
+            if args.is_empty() && options.stay_interactive
+            {
+                options.interactive = true;
+                terminal::enable_raw_mode().unwrap();
+                print!(
+                    "\x1b[G\x1b[K{}{}",
+                    prompt(options, &colors),
+                    if options.color { "\x1b[0m" } else { "" }
+                );
+                stdout.flush().unwrap();
             }
         }
         else

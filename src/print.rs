@@ -6,8 +6,11 @@ use crate::{
     fraction::fraction,
     load_vars::set_commands_or_vars,
     math::do_math,
-    misc::{clear, clearln, get_terminal_dimensions, handle_err, no_col, prompt, to_output},
-    options::{equal_to, parsed_to_string, silent_commands},
+    misc::{
+        clear, clearln, get_terminal_dimensions, handle_err, no_col, parsed_to_string, prompt,
+        to_output,
+    },
+    options::{equal_to, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Colors, Options, Variable,

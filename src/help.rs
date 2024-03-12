@@ -1,8 +1,10 @@
 pub fn help()
 {
     print!(
-             "Usage: kalc [FLAGS] function_1 function_2 function_3...\x1b[G\n\
+             "Usage: kalc [FLAGS] equation_1 equation_2 equation_3...\x1b[G\n\
     FLAGS: --help (this message)\x1b[G\n\
+    --interactive/-i allows interaction after finishing the equations given\x1b[G\n\
+    --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
     --tau fractions are shown in tau instead of pi\x1b[G\n\
     --deg compute in degrees\x1b[G\n\
     --rad compute in radians\x1b[G\n\

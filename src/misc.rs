@@ -1,7 +1,11 @@
 use crate::{
-    complex::{NumStr, NumStr::Str},
+    complex::{
+        NumStr,
+        NumStr::{Args, Matrix, Num, Str, Vector},
+    },
     functions::functions,
     math::do_math,
+    print::get_output,
     Colors, Options,
 };
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
@@ -467,41 +471,48 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
     let mut i = 0;
     while func.len() > i
     {
-        if let Str(s) = &func[i]
+        match &func[i]
         {
-            if matches!(s.as_str(), "x" | "y") && sum.is_empty()
+            Str(s) =>
             {
-                func[i] = num.clone();
-            }
-            else
-            {
-                match s.as_str()
+                if matches!(s.as_str(), "x" | "y") && sum.is_empty()
                 {
-                    "(" => bracket += 1,
-                    ")" => bracket -= 1,
-                    "," if sum.contains(&bracket) =>
+                    func[i] = num.clone();
+                }
+                else
+                {
+                    match s.as_str()
                     {
-                        sum.remove(0);
+                        "(" => bracket += 1,
+                        ")" => bracket -= 1,
+                        "," if sum.contains(&bracket) =>
+                        {
+                            sum.remove(0);
+                        }
+                        "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
+                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope" | "lim"
+                        | "limit"
+                            if i + 2 < func.len()
+                                && if let Str(s) = &func[i + 2]
+                                {
+                                    matches!(s.as_str(), "x" | "y")
+                                }
+                                else
+                                {
+                                    false
+                                } =>
+                        {
+                            i += 3;
+                            sum.push(bracket)
+                        }
+                        _ =>
+                        {}
                     }
-                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
-                    | "integrate" | "arclength" | "area" | "length" | "slope" | "lim" | "limit"
-                        if i + 2 < func.len()
-                            && if let Str(s) = &func[i + 2]
-                            {
-                                matches!(s.as_str(), "x" | "y")
-                            }
-                            else
-                            {
-                                false
-                            } =>
-                    {
-                        i += 3;
-                        sum.push(bracket)
-                    }
-                    _ =>
-                    {}
                 }
             }
+            Args(a) => func[i] = Args(place_varxy(a.clone(), num.clone())),
+            _ =>
+            {}
         }
         i += 1;
     }
@@ -514,33 +525,40 @@ pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
     let mut i = 0;
     while func.len() > i
     {
-        if let Str(s) = &func[i]
+        match &func[i]
         {
-            if s == var && sum.is_empty()
+            Str(s) =>
             {
-                func[i] = num.clone();
-            }
-            else
-            {
-                match s.as_str()
+                if s == var && sum.is_empty()
                 {
-                    "(" => bracket += 1,
-                    ")" => bracket -= 1,
-                    "," if sum.contains(&bracket) =>
+                    func[i] = num.clone();
+                }
+                else
+                {
+                    match s.as_str()
                     {
-                        sum.remove(0);
+                        "(" => bracket += 1,
+                        ")" => bracket -= 1,
+                        "," if sum.contains(&bracket) =>
+                        {
+                            sum.remove(0);
+                        }
+                        "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
+                        | "D" | "integrate" | "arclength" | "area" | "length" | "slope" | "lim"
+                        | "limit"
+                            if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
+                        {
+                            i += 3;
+                            sum.push(bracket)
+                        }
+                        _ =>
+                        {}
                     }
-                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
-                    | "integrate" | "arclength" | "area" | "length" | "slope" | "lim" | "limit"
-                        if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
-                    {
-                        i += 3;
-                        sum.push(bracket)
-                    }
-                    _ =>
-                    {}
                 }
             }
+            Args(a) => func[i] = Args(place_var(a.clone(), var, num.clone())),
+            _ =>
+            {}
         }
         i += 1;
     }
@@ -559,4 +577,106 @@ pub fn do_math_with_var(
         options,
         place_funcvar(func_vars, var, num),
     )
+}
+pub fn parsed_to_string(
+    mut input: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    options: &Options,
+    colors: &Colors,
+) -> String
+{
+    let mut i = 0;
+    'main: while i < input.len()
+    {
+        if let Str(s) = &input[i]
+        {
+            for v in &func_vars
+            {
+                if *s == v.0 && !v.0.ends_with(')')
+                {
+                    input[i] = Str('('.to_string());
+                    input.splice(i + 1..i + 1, v.1.clone());
+                    input.insert(i + v.1.len() + 1, Str(')'.to_string()));
+                    continue 'main;
+                }
+            }
+        }
+        i += 1;
+    }
+    fn to_str(n: &NumStr, options: &Options, colors: &Colors) -> String
+    {
+        match n
+        {
+            Num(n) =>
+            {
+                let n = get_output(*options, colors, n);
+                format!(
+                    "{}{}{}",
+                    n.0,
+                    n.1,
+                    if options.color { "\x1b[0m" } else { "" }
+                )
+            }
+            Vector(n) =>
+            {
+                let mut str = String::new();
+                let mut num;
+                for i in n
+                {
+                    num = get_output(*options, colors, i);
+                    str.push_str(&format!(
+                        "{}{}{},",
+                        num.0,
+                        num.1,
+                        if options.color { "\x1b[0m" } else { "" }
+                    ));
+                }
+                str.pop();
+                format!("{{{}}}", str)
+            }
+            Matrix(n) =>
+            {
+                let mut str = String::new();
+                let mut num;
+                for i in n
+                {
+                    for j in i
+                    {
+                        num = get_output(*options, colors, j);
+                        str.push_str(&format!(
+                            "{}{}{},",
+                            num.0,
+                            num.1,
+                            if options.color { "\x1b[0m" } else { "" }
+                        ));
+                    }
+                }
+                str.pop();
+                format!("{{{}}}", str)
+            }
+            Str(n) if n.starts_with('@') && n.contains('(') =>
+            {
+                n.split('(').next().unwrap().replace('@', "")
+            }
+            Str(n) => n.replace('@', ""),
+            Args(v) =>
+            {
+                let mut out = "(".to_string();
+                out.push_str(&to_str(&v[0], options, colors));
+                for i in v[1..].iter()
+                {
+                    out.push(',');
+                    out.push_str(&to_str(i, options, colors));
+                }
+                out.push(')');
+                out
+            }
+        }
+    }
+    let mut out = String::new();
+    for i in input
+    {
+        out.push_str(&to_str(&i, options, colors))
+    }
+    to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
 }

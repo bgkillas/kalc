@@ -36,8 +36,10 @@ cargo build --release
 # usage
 
 ```
-Usage: kalc [FLAGS] function_1 function_2 function_3...
+Usage: kalc [FLAGS] equation_1 equation_2 equation_3...
 FLAGS: --help (this message)
+--interactive/-i allows interaction after finishing the equations given
+--label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --tau fractions are shown in tau instead of pi
 --deg compute in degrees
 --rad compute in radians

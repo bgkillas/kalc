@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Str},
+        NumStr::{Args, Num, Str},
     },
     functions::functions,
     math::do_math,
@@ -927,7 +927,10 @@ pub fn input_var(
                 chars[i + countv],
                 'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^' | '⁻'
             ))
-            || matches!(word.as_str(), "rnd" | "inf" | "nan" | "NaN"))
+            || matches!(
+                word.as_str(),
+                "rnd" | "inf" | "true" | "false" | "nan" | "NaN"
+            ))
         {
             place_multiplier(&mut output, sumrec);
             if neg
@@ -937,11 +940,19 @@ pub fn input_var(
                 neg = false;
             }
             i += countv;
-            if matches!(word.as_str(), "inf" | "nan" | "NaN")
+            if matches!(word.as_str(), "inf" | "nan" | "NaN" | "true" | "false")
             {
                 if matches!(word.as_str(), "nan" | "NaN")
                 {
                     output.push(Num(Complex::with_val(options.prec, Nan)));
+                }
+                else if word == "true"
+                {
+                    output.push(Num(Complex::with_val(options.prec, 1)));
+                }
+                else if word == "false"
+                {
+                    output.push(Num(Complex::new(options.prec)));
                 }
                 else
                 {
@@ -2103,7 +2114,7 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
         {
             output.push(Str('*'.to_string()))
         }
-        Some(Num(_)) => output.push(Str('*'.to_string())),
+        Some(Num(_)) | Some(Args(_)) => output.push(Str('*'.to_string())),
         _ =>
         {}
     }

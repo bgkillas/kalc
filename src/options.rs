@@ -427,6 +427,10 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         (
                             options.xr.0,
                             options.xr.1,
@@ -440,6 +444,10 @@ pub fn set_commands(
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         (
                             options.xr.0,
                             options.xr.1,
@@ -455,12 +463,20 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         options.xr = (-range, range)
                     }
                     else
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         options.xr = (min, max)
                     }
                 }
@@ -469,12 +485,20 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         options.yr = (-range, range)
                     }
                     else
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         options.yr = (min, max)
                     }
                 }
@@ -483,12 +507,20 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         options.zr = (-range, range)
                     }
                     else
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         options.zr = (min, max)
                     }
                 }
@@ -497,6 +529,10 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         (
                             options.vxr.0,
                             options.vxr.1,
@@ -510,6 +546,10 @@ pub fn set_commands(
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         (
                             options.vxr.0,
                             options.vxr.1,
@@ -525,12 +565,20 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         options.vxr = (-range, range)
                     }
                     else
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         options.vxr = (min, max)
                     }
                 }
@@ -539,12 +587,20 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         options.vyr = (-range, range)
                     }
                     else
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         options.vyr = (min, max)
                     }
                 }
@@ -553,12 +609,20 @@ pub fn set_commands(
                     if args.len() == 1
                     {
                         let range = args[0];
+                        if range == 0.0
+                        {
+                            return Err("bad range");
+                        }
                         options.vzr = (-range, range)
                     }
                     else
                     {
                         let min = args[0];
                         let max = args[1];
+                        if min == max
+                        {
+                            return Err("bad range");
+                        }
                         options.vzr = (min, max)
                     }
                 }
@@ -981,6 +1045,8 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             u8::from_str_radix(&colors.im6col[5..7], 16).unwrap(),
             colors.im6col,
         ),
+        "var_multiply" => format!("{}",options.var_multiply),
+        "slowcheck" => format!("{}",options.slowcheck),
         "label"=>format!("{},{},{}",colors.label.0,colors.label.1,colors.label.2),
         "color" => format!("{}", options.color),
         "depth" => format!("{}", options.depth),

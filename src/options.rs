@@ -70,13 +70,19 @@ pub fn arg_opts(
                     )
                     {
                         Err(s) if !s.is_empty() => return Err(s),
+                        Ok(()) =>
+                        {
+                            println!("{} failed", arg);
+                            process::exit(1);
+                        }
                         _ =>
                         {}
                     }
                 }
-                else
+                else if !silent_commands(options, &arg.chars().collect::<Vec<char>>())
                 {
-                    silent_commands(options, &arg.chars().collect::<Vec<char>>())
+                    println!("{} failed", args[i]);
+                    process::exit(1);
                 }
                 args.remove(i);
                 i += 1;
@@ -113,13 +119,19 @@ pub fn file_opts(
                 )
                 {
                     Err(s) if !s.is_empty() => return Err(s),
+                    Ok(()) =>
+                    {
+                        println!("{} failed", line);
+                        process::exit(1);
+                    }
                     _ =>
                     {}
                 }
             }
-            else
+            else if !silent_commands(options, &line.chars().collect::<Vec<char>>())
             {
-                silent_commands(options, &line.chars().collect::<Vec<char>>())
+                println!("{} failed", line);
+                process::exit(1);
             }
         }
     }
@@ -190,12 +202,12 @@ pub fn set_commands(
                 return Err("Invalid point type");
             }
         }
-        "interactive" | "color" | "prompt" | "depth" | "surface" | "flat" | "rt" | "small_e"
-        | "sci" | "scientific" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed"
-        | "comma" | "graph" | "var_multiply" | "scalegraph" | "debug" | "vars" | "onaxis"
-        | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision"
-        | "prec" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
-        | "vzr" | "frac_iter" | "2d" | "3d" =>
+        "slowcheck" | "tau" | "interactive" | "color" | "prompt" | "depth" | "surface" | "flat"
+        | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines" | "polar" | "frac"
+        | "multi" | "tabbed" | "comma" | "graph" | "var_multiply" | "scalegraph" | "debug"
+        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
+        | "graphprecision" | "prec" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange"
+        | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -252,6 +264,7 @@ pub fn set_commands(
             }
             match l
             {
+                "tau" => options.tau = args[0] != 0.0,
                 "color" => options.color = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
                 "prompt" => options.prompt = args[0] != 0.0,
@@ -286,6 +299,7 @@ pub fn set_commands(
                     }
                 }
                 "ticks" => options.ticks = args[0],
+                "slowcheck" => options.slowcheck = args[0] as u128,
                 "decimal" | "deci" | "decimals" =>
                 {
                     options.decimal_places = match args[0] as isize
@@ -571,7 +585,7 @@ pub fn set_commands(
     }
     Err("")
 }
-pub fn silent_commands(options: &mut Options, input: &[char])
+pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
 {
     match input.iter().collect::<String>().as_str()
     {
@@ -602,9 +616,9 @@ pub fn silent_commands(options: &mut Options, input: &[char])
         "comma" => options.comma = !options.comma,
         "graph" => options.graph = !options.graph,
         "vars" => options.allow_vars = !options.allow_vars,
-        _ =>
-        {}
+        _ => return false,
     }
+    true
 }
 #[allow(clippy::too_many_arguments)]
 pub fn commands(
@@ -874,7 +888,7 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[J");
             stdout.flush().unwrap();
             terminal::disable_raw_mode().unwrap();
-            std::process::exit(0);
+            process::exit(0);
         }
         _ =>
         {

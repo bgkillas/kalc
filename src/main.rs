@@ -413,12 +413,6 @@ fn main()
         if File::open(file_path).is_err()
         {
             File::create(file_path).unwrap();
-            OpenOptions::new()
-                .append(true)
-                .open(file_path)
-                .unwrap()
-                .write_all(b"\n")
-                .unwrap();
         }
         (
             Some(OpenOptions::new().append(true).open(file_path).unwrap()),
@@ -535,6 +529,10 @@ fn main()
             let last = if i == 0
             {
                 Vec::new()
+            }
+            else if lines[i - 1].starts_with('\0')
+            {
+                lines[i - 1][1..].chars().collect::<Vec<char>>()
             }
             else
             {
@@ -1090,8 +1088,8 @@ fn main()
                     '\x1D' | '\x05' =>
                     {
                         //up history
-                        i -= if i > 1 { 1 } else { 0 };
-                        if lines.len() == 1
+                        i -= if i > 0 { 1 } else { 0 };
+                        if lines.is_empty()
                         {
                             continue;
                         }
@@ -1454,6 +1452,7 @@ fn main()
                 file.as_mut().unwrap(),
                 unmod_lines.as_mut().unwrap(),
                 slow,
+                last.iter().collect::<String>(),
             );
         }
         if varcheck

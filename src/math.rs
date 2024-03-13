@@ -534,7 +534,10 @@ pub fn do_math(
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("slope" | "D", Str(var))
-                            if place.len() == 3 || place.len() == 4 || place.len() == 5 =>
+                            if place.len() == 3
+                                || place.len() == 4
+                                || place.len() == 5
+                                || place.len() == 6 =>
                         {
                             function[i] = slope(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -547,21 +550,42 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                place.len() != 5,
-                                if place.len() == 3
-                                {
-                                    1
-                                }
-                                else
+                                place.len() != 6,
+                                if place.len() >= 5
                                 {
                                     do_math(
-                                        function[place[2] + 1..place[3]].to_vec(),
+                                        function[place[3] + 1..place[4]].to_vec(),
                                         options,
                                         func_vars.clone(),
                                     )?
                                     .num()?
                                     .real()
                                     .to_f64() as u32
+                                }
+                                else
+                                {
+                                    1
+                                },
+                                if place.len() >= 4
+                                {
+                                    match (do_math(
+                                        function[place[2] + 1..place[3]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .real()
+                                    .to_f64() as isize)
+                                        .cmp(&0)
+                                    {
+                                        Ordering::Less => Left,
+                                        Ordering::Greater => Right,
+                                        Ordering::Equal => Both,
+                                    }
+                                }
+                                else
+                                {
+                                    Both
                                 },
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());

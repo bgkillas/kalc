@@ -428,6 +428,13 @@ pub fn input_var(
                         output.push(Str("//".to_string()));
                         i += 1;
                     }
+                    else if chars[i + 1] == '-'
+                    {
+                        place_multiplier(&mut output, sumrec);
+                        output.push(Num(n1.clone()));
+                        output.push(Str('/'.to_string()));
+                        i += 1;
+                    }
                     else
                     {
                         output.push(Str('/'.to_string()));

@@ -23,7 +23,7 @@ pub enum NumStr
     Str(String),
     Vector(Vec<Complex>),
     Matrix(Vec<Vec<Complex>>),
-    Args(Vec<NumStr>),
+    Args(Vec<Vec<NumStr>>),
 }
 impl NumStr
 {
@@ -433,7 +433,17 @@ pub fn ne(a: &Complex, b: &Complex) -> Complex
     let re: Float = re.round() / int.clone();
     let im: Float = c.imag().clone() * int.clone();
     let im: Float = im.round() / int;
-    Complex::with_val(a.prec(), (!re.is_zero() || !im.is_zero()) as u8)
+    Complex::with_val(
+        a.prec(),
+        (!(re.is_zero()
+            || (a.real().is_infinite()
+                && b.real().is_infinite()
+                && a.real().is_sign_positive() == b.real().is_sign_positive()))
+            || !(im.is_zero()
+                || (a.imag().is_infinite()
+                    && b.imag().is_infinite()
+                    && a.imag().is_sign_positive() == b.imag().is_sign_positive()))) as u8,
+    )
 }
 pub fn eq(a: &Complex, b: &Complex) -> Complex
 {
@@ -443,7 +453,17 @@ pub fn eq(a: &Complex, b: &Complex) -> Complex
     let re: Float = re.round() / int.clone();
     let im: Float = c.imag().clone() * int.clone();
     let im: Float = im.round() / int;
-    Complex::with_val(a.prec(), (re.is_zero() && im.is_zero()) as u8)
+    Complex::with_val(
+        a.prec(),
+        (re.is_zero()
+            || (a.real().is_infinite()
+                && b.real().is_infinite()
+                && a.real().is_sign_positive() == b.real().is_sign_positive())
+                && im.is_zero()
+            || (a.imag().is_infinite()
+                && b.imag().is_infinite()
+                && a.imag().is_sign_positive() == b.imag().is_sign_positive())) as u8,
+    )
 }
 pub fn ge(a: &Complex, b: &Complex) -> Complex
 {
@@ -1655,7 +1675,7 @@ pub fn length(
         (start, end) = (end, start)
     }
     let delta: Complex = (end.clone() - start.clone()) / points;
-    let mut x0: Complex = match slope(
+    let mut x0: Complex = match slopesided(
         func.clone(),
         func_vars.clone(),
         options,
@@ -1663,6 +1683,7 @@ pub fn length(
         start.clone(),
         false,
         1,
+        true,
     )?
     {
         Num(nx0) =>
@@ -1695,7 +1716,7 @@ pub fn length(
         {
             start += delta.clone();
         }
-        let x1 = slope(
+        let x1 = slopesided(
             func.clone(),
             func_vars.clone(),
             options,
@@ -1703,8 +1724,9 @@ pub fn length(
             start.clone() - 3 * h.clone(),
             false,
             1,
+            false,
         )?;
-        let x2 = slope(
+        let x2 = slopesided(
             func.clone(),
             func_vars.clone(),
             options,
@@ -1712,8 +1734,9 @@ pub fn length(
             start.clone() - 2 * h.clone(),
             false,
             1,
+            false,
         )?;
-        let x3 = slope(
+        let x3 = slopesided(
             func.clone(),
             func_vars.clone(),
             options,
@@ -1721,8 +1744,9 @@ pub fn length(
             start.clone() - h.clone(),
             false,
             1,
+            false,
         )?;
-        let x4 = slope(
+        let x4 = slopesided(
             func.clone(),
             func_vars.clone(),
             options,
@@ -1730,6 +1754,7 @@ pub fn length(
             start.clone(),
             false,
             1,
+            false,
         )?;
         match (x1, x2, x3, x4)
         {
@@ -2084,7 +2109,117 @@ pub fn area(
         Ok(Vector(areavec))
     }
 }
+#[allow(clippy::too_many_arguments)]
 pub fn slope(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut options: Options,
+    var: String,
+    point: Complex,
+    combine: bool,
+    nth: u32,
+    side: LimSide,
+) -> Result<NumStr, &'static str>
+{
+    match side
+    {
+        LimSide::Left => slopesided(func, func_vars, options, var, point, combine, nth, false),
+        LimSide::Right => slopesided(func, func_vars, options, var, point, combine, nth, true),
+        LimSide::Both =>
+        {
+            if options.prec.0 < 512
+            {
+                options.prec = (512, 512);
+            }
+            else if options.prec.0 > 1024
+            {
+                options.prec = (1024, 1024);
+            }
+            let left = slopesided(
+                func.clone(),
+                func_vars.clone(),
+                options,
+                var.clone(),
+                point.clone(),
+                combine,
+                nth,
+                false,
+            )?;
+            let right = slopesided(func, func_vars, options, var, point, combine, nth, true)?;
+            match (left, right)
+            {
+                (Num(left), Num(right)) =>
+                {
+                    if (((left.real().is_infinite()
+                        && right.real().is_infinite()
+                        && (left.imag().clone() - right.imag().clone())
+                            .abs()
+                            .clone()
+                            .log2()
+                            < options.prec.0 as i32 / -16)
+                        || (left.imag().is_infinite()
+                            && right.imag().is_infinite()
+                            && (left.real().clone() - right.real().clone())
+                                .abs()
+                                .clone()
+                                .log2()
+                                < options.prec.0 as i32 / -16))
+                        && left.real().is_sign_positive() == right.real().is_sign_positive()
+                        && left.imag().is_sign_positive() == right.imag().is_sign_positive())
+                        || (left.clone() - right.clone()).abs().real().clone().log2()
+                            < options.prec.0 as i32 / -16
+                    {
+                        Ok(Num((left + right) / 2))
+                    }
+                    else
+                    {
+                        Ok(Num(Complex::with_val(options.prec, Nan)))
+                    }
+                }
+                (Vector(left), Vector(right)) =>
+                {
+                    let mut vec = Vec::with_capacity(left.len());
+                    for (left, right) in left.iter().zip(right)
+                    {
+                        vec.push(
+                            if (((left.real().is_infinite()
+                                && right.real().is_infinite()
+                                && (left.imag().clone() - right.imag().clone())
+                                    .abs()
+                                    .clone()
+                                    .log2()
+                                    < options.prec.0 as i32 / -16)
+                                || (left.imag().is_infinite()
+                                    && right.imag().is_infinite()
+                                    && (left.real().clone() - right.real().clone())
+                                        .abs()
+                                        .clone()
+                                        .log2()
+                                        < options.prec.0 as i32 / -16))
+                                && left.real().is_sign_positive()
+                                    == right.real().is_sign_positive()
+                                && left.imag().is_sign_positive()
+                                    == right.imag().is_sign_positive())
+                                || (left.clone() - right.clone()).abs().real().clone().log2()
+                                    < options.prec.0 as i32 / -16
+                            {
+                                (left + right) / 2
+                            }
+                            else
+                            {
+                                Complex::with_val(options.prec, Nan)
+                            },
+                        )
+                    }
+                    Ok(Vector(vec))
+                }
+                (_, _) => Err("lim err"),
+            }
+        }
+    }
+}
+#[allow(clippy::too_many_arguments)]
+pub fn slopesided(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
@@ -2092,6 +2227,7 @@ pub fn slope(
     mut point: Complex,
     combine: bool,
     nth: u32,
+    right: bool,
 ) -> Result<NumStr, &'static str>
 {
     if options.prec.0 < 256
@@ -2108,7 +2244,14 @@ pub fn slope(
         nth.max(1) * options.prec.0 / 2,
     );
     point.set_prec(options.prec);
-    let h: Complex = Complex::with_val(options.prec, 0.5).pow(prec);
+    let h: Complex = if right
+    {
+        Complex::with_val(options.prec, 0.5).pow(prec)
+    }
+    else
+    {
+        -Complex::with_val(options.prec, 0.5).pow(prec)
+    };
     let n = do_math_with_var(
         func.clone(),
         options,
@@ -2183,7 +2326,7 @@ pub fn slope(
                     )
                 }
             }
-            (false, false) => n * Complex::with_val(optionsprec, 2).pow(nth * prec),
+            (false, false) => n * Float::with_val(optionsprec, 2).pow(nth * prec),
         }
     }
     match n
@@ -2221,7 +2364,14 @@ pub fn slope(
                         .num()?;
                 }
             }
-            Ok(Num(get_infinities(sum, prec, options.prec.0, nth)))
+            if right || nth % 2 == 0
+            {
+                Ok(Num(get_infinities(sum, prec, options.prec.0, nth)))
+            }
+            else
+            {
+                Ok(Num(-get_infinities(sum, prec, options.prec.0, nth)))
+            }
         }
         Vector(mut sum) if !combine =>
         {
@@ -2260,7 +2410,16 @@ pub fn slope(
             }
             Ok(Vector(
                 sum.iter()
-                    .map(|n| get_infinities(n.clone(), prec, options.prec.0, nth))
+                    .map(|n| {
+                        if right || nth % 2 == 0
+                        {
+                            get_infinities(n.clone(), prec, options.prec.0, nth)
+                        }
+                        else
+                        {
+                            -get_infinities(n.clone(), prec, options.prec.0, nth)
+                        }
+                    })
                     .collect::<Vec<Complex>>(),
             ))
         }
@@ -2297,12 +2456,24 @@ pub fn slope(
                         .num()?;
                 }
             }
-            Ok(Num(get_infinities(
-                sum[0].clone(),
-                prec,
-                options.prec.0,
-                nth,
-            )))
+            if right || nth % 2 == 0
+            {
+                Ok(Num(get_infinities(
+                    sum[0].clone(),
+                    prec,
+                    options.prec.0,
+                    nth,
+                )))
+            }
+            else
+            {
+                Ok(Num(-get_infinities(
+                    sum[0].clone(),
+                    prec,
+                    options.prec.0,
+                    nth,
+                )))
+            }
         }
         Vector(mut sum) =>
         {
@@ -2383,7 +2554,7 @@ pub fn limit(
         options.prec = (1024, 1024);
         point.set_prec(options.prec);
     }
-    if point.clone().real().is_infinite()
+    if point.clone().real().is_infinite() || point.clone().imag().is_infinite()
     {
         let (h1, h2);
         let positive = point.real().is_sign_positive();
@@ -2405,7 +2576,8 @@ pub fn limit(
         {
             (Num(n1), Num(n2)) =>
             {
-                if (n1.clone() - n2.clone()).abs().real().clone().log10() <= -10
+                if (n1.clone() - n2.clone()).abs().real().clone().log2()
+                    < options.prec.0 as i32 / -16
                 {
                     Ok(Num(n2))
                 }
@@ -2449,7 +2621,8 @@ pub fn limit(
                                         options.prec,
                                         (
                                             Infinity,
-                                            if (n1.imag() - n2.imag().clone()).abs().log10() <= -10
+                                            if (n1.imag() - n2.imag().clone()).abs().log2()
+                                                < options.prec.0 as i32 / -16
                                             {
                                                 n2.imag().clone()
                                             }
@@ -2466,7 +2639,8 @@ pub fn limit(
                                         options.prec,
                                         (
                                             Infinity,
-                                            if (n1.imag() - n2.imag().clone()).abs().log10() <= -10
+                                            if (n1.imag() - n2.imag().clone()).abs().log2()
+                                                < options.prec.0 as i32 / -16
                                             {
                                                 -n2.imag().clone()
                                             }
@@ -2485,7 +2659,8 @@ pub fn limit(
                                     Complex::with_val(
                                         options.prec,
                                         (
-                                            if (n1.real() - n2.real().clone()).abs().log10() <= -10
+                                            if (n1.real() - n2.real().clone()).abs().log2()
+                                                < options.prec.0 as i32 / -16
                                             {
                                                 n2.real().clone()
                                             }
@@ -2502,7 +2677,8 @@ pub fn limit(
                                     -Complex::with_val(
                                         options.prec,
                                         (
-                                            if (n1.real() - n2.real().clone()).abs().log10() <= -10
+                                            if (n1.real() - n2.real().clone()).abs().log2()
+                                                < options.prec.0 as i32 / -16
                                             {
                                                 -n2.real().clone()
                                             }
@@ -2591,7 +2767,8 @@ pub fn limit(
                                             options.prec,
                                             (
                                                 Infinity,
-                                                if (n2i - n3i.clone()).abs().log10() <= -10
+                                                if (n2i - n3i.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     n3i
                                                 }
@@ -2608,7 +2785,8 @@ pub fn limit(
                                             options.prec,
                                             (
                                                 Infinity,
-                                                if (n2i - n3i.clone()).abs().log10() <= -10
+                                                if (n2i - n3i.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     -n3i
                                                 }
@@ -2627,7 +2805,8 @@ pub fn limit(
                                         Complex::with_val(
                                             options.prec,
                                             (
-                                                if (n2r - n3r.clone()).abs().log10() <= -10
+                                                if (n2r - n3r.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     n3r
                                                 }
@@ -2644,7 +2823,8 @@ pub fn limit(
                                         -Complex::with_val(
                                             options.prec,
                                             (
-                                                if (n2r - n3r.clone()).abs().log10() <= -10
+                                                if (n2r - n3r.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     -n3r
                                                 }
@@ -2670,7 +2850,8 @@ pub fn limit(
                 for (i, (n1, n2)) in v1.iter().zip(v2).enumerate()
                 {
                     vec.push(
-                        if (n1.clone() - n2.clone()).abs().real().clone().log10() <= -10
+                        if (n1.clone() - n2.clone()).abs().real().clone().log2()
+                            < options.prec.0 as i32 / -16
                         {
                             n2
                         }
@@ -2870,7 +3051,8 @@ pub fn limit(
                                                 options.prec,
                                                 (
                                                     Infinity,
-                                                    if (n2i - n3i.clone()).abs().log10() <= -10
+                                                    if (n2i - n3i.clone()).abs().log2()
+                                                        < options.prec.0 as i32 / -16
                                                     {
                                                         n3i
                                                     }
@@ -2887,7 +3069,8 @@ pub fn limit(
                                                 options.prec,
                                                 (
                                                     Infinity,
-                                                    if (n2i - n3i.clone()).abs().log10() <= -10
+                                                    if (n2i - n3i.clone()).abs().log2()
+                                                        < options.prec.0 as i32 / -16
                                                     {
                                                         -n3i
                                                     }
@@ -2906,7 +3089,8 @@ pub fn limit(
                                             Complex::with_val(
                                                 options.prec,
                                                 (
-                                                    if (n2r - n3r.clone()).abs().log10() <= -10
+                                                    if (n2r - n3r.clone()).abs().log2()
+                                                        < options.prec.0 as i32 / -16
                                                     {
                                                         n3r
                                                     }
@@ -2923,7 +3107,8 @@ pub fn limit(
                                             -Complex::with_val(
                                                 options.prec,
                                                 (
-                                                    if (n2r - n3r.clone()).abs().log10() <= -10
+                                                    if (n2r - n3r.clone()).abs().log2()
+                                                        < options.prec.0 as i32 / -16
                                                     {
                                                         -n3r
                                                     }
@@ -2968,26 +3153,24 @@ pub fn limit(
                 {
                     (Num(left), Num(right)) =>
                     {
-                        if ((left.real().is_infinite()
+                        if (((left.real().is_infinite()
                             && right.real().is_infinite()
                             && (left.imag().clone() - right.imag().clone())
                                 .abs()
                                 .clone()
-                                .log10()
-                                <= -10)
+                                .log2()
+                                < options.prec.0 as i32 / -16)
                             || (left.imag().is_infinite()
                                 && right.imag().is_infinite()
                                 && (left.real().clone() - right.real().clone())
                                     .abs()
                                     .clone()
-                                    .log10()
-                                    <= -10))
+                                    .log2()
+                                    < options.prec.0 as i32 / -16))
                             && left.real().is_sign_positive() == right.real().is_sign_positive()
-                            && left.imag().is_sign_positive() == right.imag().is_sign_positive()
-                        {
-                            Ok(Num(left))
-                        }
-                        else if (left.clone() - right.clone()).abs().real().clone().log10() <= -10
+                            && left.imag().is_sign_positive() == right.imag().is_sign_positive())
+                            || (left.clone() - right.clone()).abs().real().clone().log2()
+                                < options.prec.0 as i32 / -16
                         {
                             Ok(Num((left + right) / 2))
                         }
@@ -3002,35 +3185,28 @@ pub fn limit(
                         for (left, right) in left.iter().zip(right)
                         {
                             vec.push(
-                                if ((left.real().is_infinite()
+                                if (((left.real().is_infinite()
                                     && right.real().is_infinite()
                                     && (left.imag().clone() - right.imag().clone())
                                         .abs()
                                         .clone()
-                                        .log10()
-                                        <= -10)
+                                        .log2()
+                                        < options.prec.0 as i32 / -16)
                                     || (left.imag().is_infinite()
                                         && right.imag().is_infinite()
                                         && (left.real().clone() - right.real().clone())
                                             .abs()
                                             .clone()
-                                            .log10()
-                                            <= -10))
+                                            .log2()
+                                            < options.prec.0 as i32 / -16))
                                     && left.real().is_sign_positive()
                                         == right.real().is_sign_positive()
                                     && left.imag().is_sign_positive()
-                                        == right.imag().is_sign_positive()
+                                        == right.imag().is_sign_positive())
+                                    || (left.clone() - right.clone()).abs().real().clone().log2()
+                                        < options.prec.0 as i32 / -16
                                 {
-                                    left.clone()
-                                }
-                                else if (left.clone() - right.clone())
-                                    .abs()
-                                    .real()
-                                    .clone()
-                                    .log10()
-                                    <= -10
-                                {
-                                    (left - right) / 2
+                                    (left + right) / 2
                                 }
                                 else
                                 {
@@ -3074,7 +3250,7 @@ fn limsided(
     match (n1, n2)
     {
         (Num(n1), Num(n2)) => Ok(Num(
-            if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
+            if (n2.clone() - n1.clone()).abs().real().clone().log2() < options.prec.0 as i32 / -16
             {
                 n1
             }
@@ -3138,7 +3314,8 @@ fn limsided(
                                     options.prec,
                                     (
                                         Infinity,
-                                        if (n1.imag() - n2.imag().clone()).abs().log10() <= -10
+                                        if (n1.imag() - n2.imag().clone()).abs().log2()
+                                            < options.prec.0 as i32 / -16
                                         {
                                             n2.imag().clone()
                                         }
@@ -3155,7 +3332,8 @@ fn limsided(
                                     options.prec,
                                     (
                                         Infinity,
-                                        if (n1.imag() - n2.imag().clone()).abs().log10() <= -10
+                                        if (n1.imag() - n2.imag().clone()).abs().log2()
+                                            < options.prec.0 as i32 / -16
                                         {
                                             -n2.imag().clone()
                                         }
@@ -3174,7 +3352,8 @@ fn limsided(
                                 Complex::with_val(
                                     options.prec,
                                     (
-                                        if (n1.real() - n2.real().clone()).abs().log10() <= -10
+                                        if (n1.real() - n2.real().clone()).abs().log2()
+                                            < options.prec.0 as i32 / -16
                                         {
                                             n2.real().clone()
                                         }
@@ -3191,7 +3370,8 @@ fn limsided(
                                 -Complex::with_val(
                                     options.prec,
                                     (
-                                        if (n1.real() - n2.real().clone()).abs().log10() <= -10
+                                        if (n1.real() - n2.real().clone()).abs().log2()
+                                            < options.prec.0 as i32 / -16
                                         {
                                             -n2.real().clone()
                                         }
@@ -3216,7 +3396,8 @@ fn limsided(
             for (i, (n1, n2)) in n1.iter().zip(n2).enumerate()
             {
                 vec.push(
-                    if (n2.clone() - n1.clone()).abs().real().clone().log10() <= -10
+                    if (n2.clone() - n1.clone()).abs().real().clone().log2()
+                        < options.prec.0 as i32 / -16
                     {
                         n1.clone()
                     }
@@ -3286,7 +3467,8 @@ fn limsided(
                                             options.prec,
                                             (
                                                 Infinity,
-                                                if (n2i - n3i.clone()).abs().log10() <= -10
+                                                if (n2i - n3i.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     n3i
                                                 }
@@ -3303,7 +3485,8 @@ fn limsided(
                                             options.prec,
                                             (
                                                 Infinity,
-                                                if (n2i - n3i.clone()).abs().log10() <= -10
+                                                if (n2i - n3i.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     -n3i
                                                 }
@@ -3322,7 +3505,8 @@ fn limsided(
                                         Complex::with_val(
                                             options.prec,
                                             (
-                                                if (n2r - n3r.clone()).abs().log10() <= -10
+                                                if (n2r - n3r.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     n3r
                                                 }
@@ -3339,7 +3523,8 @@ fn limsided(
                                         -Complex::with_val(
                                             options.prec,
                                             (
-                                                if (n2r - n3r.clone()).abs().log10() <= -10
+                                                if (n2r - n3r.clone()).abs().log2()
+                                                    < options.prec.0 as i32 / -16
                                                 {
                                                     -n3r
                                                 }

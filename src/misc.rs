@@ -510,7 +510,14 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                     }
                 }
             }
-            Args(a) => func[i] = Args(place_varxy(a.clone(), num.clone())),
+            Args(a) =>
+            {
+                func[i] = Args(
+                    a.iter()
+                        .map(|a| place_varxy(a.clone(), num.clone()))
+                        .collect::<Vec<Vec<NumStr>>>(),
+                )
+            }
             _ =>
             {}
         }
@@ -556,7 +563,14 @@ pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
                     }
                 }
             }
-            Args(a) => func[i] = Args(place_var(a.clone(), var, num.clone())),
+            Args(a) =>
+            {
+                func[i] = Args(
+                    a.iter()
+                        .map(|a| place_var(a.clone(), var, num.clone()))
+                        .collect::<Vec<Vec<NumStr>>>(),
+                )
+            }
             _ =>
             {}
         }
@@ -603,13 +617,14 @@ pub fn parsed_to_string(
         }
         i += 1;
     }
-    fn to_str(n: &NumStr, options: &Options, colors: &Colors) -> String
+    let mut out = String::new();
+    for i in input
     {
-        match n
+        out.push_str(&match i
         {
             Num(n) =>
             {
-                let n = get_output(*options, colors, n);
+                let n = get_output(*options, colors, &n);
                 format!(
                     "{}{}{}",
                     n.0,
@@ -623,7 +638,7 @@ pub fn parsed_to_string(
                 let mut num;
                 for i in n
                 {
-                    num = get_output(*options, colors, i);
+                    num = get_output(*options, colors, &i);
                     str.push_str(&format!(
                         "{}{}{},",
                         num.0,
@@ -642,7 +657,7 @@ pub fn parsed_to_string(
                 {
                     for j in i
                     {
-                        num = get_output(*options, colors, j);
+                        num = get_output(*options, colors, &j);
                         str.push_str(&format!(
                             "{}{}{},",
                             num.0,
@@ -662,21 +677,26 @@ pub fn parsed_to_string(
             Args(v) =>
             {
                 let mut out = "(".to_string();
-                out.push_str(&to_str(&v[0], options, colors));
+                out.push_str(&parsed_to_string(
+                    v[0].clone(),
+                    func_vars.clone(),
+                    options,
+                    colors,
+                ));
                 for i in v[1..].iter()
                 {
                     out.push(',');
-                    out.push_str(&to_str(i, options, colors));
+                    out.push_str(&parsed_to_string(
+                        i.clone(),
+                        func_vars.clone(),
+                        options,
+                        colors,
+                    ));
                 }
                 out.push(')');
                 out
             }
-        }
-    }
-    let mut out = String::new();
-    for i in input
-    {
-        out.push_str(&to_str(&i, options, colors))
+        })
     }
     to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
 }

@@ -1667,7 +1667,7 @@ pub fn length(
     {
         Num(nx0) =>
         {
-            if !nx0.real().is_finite()
+            if !nx0.real().is_finite() || !nx0.imag().is_finite()
             {
                 Complex::new(options.prec)
             }
@@ -1735,7 +1735,7 @@ pub fn length(
         {
             (Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
-                let nx1: Complex = if !nx1.real().is_finite()
+                let nx1: Complex = if !nx1.real().is_finite() || !nx1.imag().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1743,7 +1743,7 @@ pub fn length(
                 {
                     1 + nx1.pow(2)
                 };
-                let nx2: Complex = if !nx2.real().is_finite()
+                let nx2: Complex = if !nx2.real().is_finite() || !nx2.imag().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1751,7 +1751,7 @@ pub fn length(
                 {
                     1 + nx2.pow(2)
                 };
-                let nx3: Complex = if !nx3.real().is_finite()
+                let nx3: Complex = if !nx3.real().is_finite() || !nx3.imag().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1759,7 +1759,7 @@ pub fn length(
                 {
                     1 + nx3.pow(2)
                 };
-                let nx4: Complex = if !nx4.real().is_finite()
+                let nx4: Complex = if !nx4.real().is_finite() || !nx4.imag().is_finite()
                 {
                     Complex::new(options.prec)
                 }
@@ -1779,7 +1779,7 @@ pub fn length(
                 let nx1: Complex = nx1
                     .iter()
                     .map(|n| {
-                        if n.real().is_finite()
+                        if n.real().is_finite() || n.imag().is_finite()
                         {
                             n.clone().pow(2)
                         }
@@ -1793,7 +1793,7 @@ pub fn length(
                 let nx2: Complex = nx2
                     .iter()
                     .map(|n| {
-                        if n.real().is_finite()
+                        if n.real().is_finite() || n.imag().is_finite()
                         {
                             n.clone().pow(2)
                         }
@@ -1807,7 +1807,7 @@ pub fn length(
                 let nx3: Complex = nx3
                     .iter()
                     .map(|n| {
-                        if n.real().is_finite()
+                        if n.real().is_finite() || n.imag().is_finite()
                         {
                             n.clone().pow(2)
                         }
@@ -1821,7 +1821,7 @@ pub fn length(
                 let nx4 = nx4
                     .iter()
                     .map(|n| {
-                        if n.real().is_finite()
+                        if n.real().is_finite() || n.imag().is_finite()
                         {
                             n.clone().pow(2)
                         }
@@ -2117,6 +2117,75 @@ pub fn slope(
         Num(point.clone()),
     )?;
     let num = Integer::from(nth);
+    fn get_infinities(n: Complex, prec: u32, optionsprec: u32, nth: u32) -> Complex
+    {
+        match (
+            n.real().clone().abs().log2() > -1 - prec as i32 / 2,
+            n.imag().clone().abs().log2() > -1 - prec as i32 / 2,
+        )
+        {
+            (true, true) => match (n.real().is_sign_positive(), n.imag().is_sign_positive())
+            {
+                (true, true) => Complex::with_val(optionsprec, (Infinity, Infinity)),
+                (true, false) => Complex::with_val(
+                    optionsprec,
+                    (Infinity, -Float::with_val(optionsprec, Infinity)),
+                ),
+                (false, true) => Complex::with_val(
+                    optionsprec,
+                    (-Float::with_val(optionsprec, Infinity), Infinity),
+                ),
+                (false, false) => -Complex::with_val(optionsprec, (Infinity, Infinity)),
+            },
+            (true, false) =>
+            {
+                if n.real().is_sign_positive()
+                {
+                    Complex::with_val(
+                        optionsprec,
+                        (
+                            Infinity,
+                            n.imag() * Float::with_val(optionsprec, 2).pow(nth * prec),
+                        ),
+                    )
+                }
+                else
+                {
+                    -Complex::with_val(
+                        optionsprec,
+                        (
+                            Infinity,
+                            n.imag() * -Float::with_val(optionsprec, 2).pow(nth * prec),
+                        ),
+                    )
+                }
+            }
+            (false, true) =>
+            {
+                if n.imag().is_sign_positive()
+                {
+                    Complex::with_val(
+                        optionsprec,
+                        (
+                            n.real() * Float::with_val(optionsprec, 2).pow(nth * prec),
+                            Infinity,
+                        ),
+                    )
+                }
+                else
+                {
+                    -Complex::with_val(
+                        optionsprec,
+                        (
+                            n.real() * -Float::with_val(optionsprec, 2).pow(nth * prec),
+                            Infinity,
+                        ),
+                    )
+                }
+            }
+            (false, false) => n * Complex::with_val(optionsprec, 2).pow(nth * prec),
+        }
+    }
     match n
     {
         Num(mut sum) =>
@@ -2152,7 +2221,7 @@ pub fn slope(
                         .num()?;
                 }
             }
-            Ok(Num(sum * Complex::with_val(options.prec, 2).pow(nth * prec)))
+            Ok(Num(get_infinities(sum, prec, options.prec.0, nth)))
         }
         Vector(mut sum) if !combine =>
         {
@@ -2191,7 +2260,7 @@ pub fn slope(
             }
             Ok(Vector(
                 sum.iter()
-                    .map(|n| n * Complex::with_val(options.prec, 2).pow(nth * prec))
+                    .map(|n| get_infinities(n.clone(), prec, options.prec.0, nth))
                     .collect::<Vec<Complex>>(),
             ))
         }
@@ -2228,9 +2297,12 @@ pub fn slope(
                         .num()?;
                 }
             }
-            Ok(Num(
-                sum[0].clone() * Complex::with_val(options.prec, 2).pow(nth * prec)
-            ))
+            Ok(Num(get_infinities(
+                sum[0].clone(),
+                prec,
+                options.prec.0,
+                nth,
+            )))
         }
         Vector(mut sum) =>
         {
@@ -2349,13 +2421,24 @@ pub fn limit(
                         {
                             (true, true) =>
                             {
-                                if n1.real().is_sign_positive()
+                                match (n1.real().is_sign_positive(), n1.imag().is_sign_positive())
                                 {
-                                    Complex::with_val(options.prec, (Infinity, Infinity))
-                                }
-                                else
-                                {
-                                    -Complex::with_val(options.prec, (Infinity, Infinity))
+                                    (true, true) =>
+                                    {
+                                        Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                    (true, false) => Complex::with_val(
+                                        options.prec,
+                                        (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                    ),
+                                    (false, true) => Complex::with_val(
+                                        options.prec,
+                                        (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                    ),
+                                    (false, false) =>
+                                    {
+                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
                                 }
                             }
                             (true, false) =>
@@ -2477,13 +2560,27 @@ pub fn limit(
                             {
                                 (true, true) =>
                                 {
-                                    if n1.real().is_sign_positive()
+                                    match (
+                                        n1.real().is_sign_positive(),
+                                        n1.imag().is_sign_positive(),
+                                    )
                                     {
-                                        Complex::with_val(options.prec, (Infinity, Infinity))
-                                    }
-                                    else
-                                    {
-                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        (true, true) =>
+                                        {
+                                            Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
+                                        (true, false) => Complex::with_val(
+                                            options.prec,
+                                            (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                        ),
+                                        (false, true) => Complex::with_val(
+                                            options.prec,
+                                            (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                        ),
+                                        (false, false) =>
+                                        {
+                                            -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
                                     }
                                 }
                                 (true, false) =>
@@ -2588,13 +2685,27 @@ pub fn limit(
                             {
                                 (true, true) =>
                                 {
-                                    if n1.real().is_sign_positive()
+                                    match (
+                                        n1.real().is_sign_positive(),
+                                        n1.imag().is_sign_positive(),
+                                    )
                                     {
-                                        Complex::with_val(options.prec, (Infinity, Infinity))
-                                    }
-                                    else
-                                    {
-                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        (true, true) =>
+                                        {
+                                            Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
+                                        (true, false) => Complex::with_val(
+                                            options.prec,
+                                            (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                        ),
+                                        (false, true) => Complex::with_val(
+                                            options.prec,
+                                            (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                        ),
+                                        (false, false) =>
+                                        {
+                                            -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
                                     }
                                 }
                                 (true, false) =>
@@ -2722,13 +2833,33 @@ pub fn limit(
                                 {
                                     (true, true) =>
                                     {
-                                        if n1.real().is_sign_positive()
+                                        match (
+                                            n1.real().is_sign_positive(),
+                                            n1.imag().is_sign_positive(),
+                                        )
                                         {
-                                            Complex::with_val(options.prec, (Infinity, Infinity))
-                                        }
-                                        else
-                                        {
-                                            -Complex::with_val(options.prec, (Infinity, Infinity))
+                                            (true, true) => Complex::with_val(
+                                                options.prec,
+                                                (Infinity, Infinity),
+                                            ),
+                                            (true, false) => Complex::with_val(
+                                                options.prec,
+                                                (
+                                                    Infinity,
+                                                    -Float::with_val(options.prec.0, Infinity),
+                                                ),
+                                            ),
+                                            (false, true) => Complex::with_val(
+                                                options.prec,
+                                                (
+                                                    -Float::with_val(options.prec.0, Infinity),
+                                                    Infinity,
+                                                ),
+                                            ),
+                                            (false, false) => -Complex::with_val(
+                                                options.prec,
+                                                (Infinity, Infinity),
+                                            ),
                                         }
                                     }
                                     (true, false) =>
@@ -2979,13 +3110,24 @@ fn limsided(
                     {
                         (true, true) =>
                         {
-                            if n1.real().is_sign_positive()
+                            match (n1.real().is_sign_positive(), n1.imag().is_sign_positive())
                             {
-                                Complex::with_val(options.prec, (Infinity, Infinity))
-                            }
-                            else
-                            {
-                                -Complex::with_val(options.prec, (Infinity, Infinity))
+                                (true, true) =>
+                                {
+                                    Complex::with_val(options.prec, (Infinity, Infinity))
+                                }
+                                (true, false) => Complex::with_val(
+                                    options.prec,
+                                    (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                ),
+                                (false, true) => Complex::with_val(
+                                    options.prec,
+                                    (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                ),
+                                (false, false) =>
+                                {
+                                    -Complex::with_val(options.prec, (Infinity, Infinity))
+                                }
                             }
                         }
                         (true, false) =>
@@ -3113,13 +3255,27 @@ fn limsided(
                             {
                                 (true, true) =>
                                 {
-                                    if n1.real().is_sign_positive()
+                                    match (
+                                        n1.real().is_sign_positive(),
+                                        n1.imag().is_sign_positive(),
+                                    )
                                     {
-                                        Complex::with_val(options.prec, (Infinity, Infinity))
-                                    }
-                                    else
-                                    {
-                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        (true, true) =>
+                                        {
+                                            Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
+                                        (true, false) => Complex::with_val(
+                                            options.prec,
+                                            (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                        ),
+                                        (false, true) => Complex::with_val(
+                                            options.prec,
+                                            (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                        ),
+                                        (false, false) =>
+                                        {
+                                            -Complex::with_val(options.prec, (Infinity, Infinity))
+                                        }
                                     }
                                 }
                                 (true, false) =>

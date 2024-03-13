@@ -17,7 +17,8 @@ use crate::{
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
     misc::{
-        clearln, convert, get_terminal_dimensions, handle_err, prompt, read_single_char, write,
+        clear, clearln, convert, get_terminal_dimensions, handle_err, prompt, read_single_char,
+        write,
     },
     options::{arg_opts, commands, file_opts, silent_commands},
     parse::input_var,
@@ -557,7 +558,7 @@ fn main()
                         {
                             end = input.len()
                         }
-                        if (!options.real_time_output || long || slow)
+                        if (!options.real_time_output || long || (slow && !firstslow))
                             && !input.is_empty()
                             && c != '\x14'
                             && c != '\x06'
@@ -675,6 +676,11 @@ fn main()
                         {
                             print!("\x1b[{}D", end - placement)
                         }
+                        if input.is_empty()
+                        {
+                            slow = false;
+                            clear(&input, start, end, options, &colors);
+                        }
                     }
                     '\x7F' =>
                     {
@@ -747,6 +753,11 @@ fn main()
                         else if end - placement != 0
                         {
                             print!("\x1b[{}D", end - placement)
+                        }
+                        if input.is_empty()
+                        {
+                            slow = false;
+                            clear(&input, start, end, options, &colors);
                         }
                     }
                     '\x11' =>

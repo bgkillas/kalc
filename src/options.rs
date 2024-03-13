@@ -26,15 +26,14 @@ pub fn arg_opts(
 ) -> Result<(), &'static str>
 {
     args.remove(0);
-    let mut i = 0;
-    while i < args.len()
+    loop
     {
-        match args[i].as_str()
+        match args[0].as_str()
         {
             "-i" =>
             {
                 options.stay_interactive = !options.stay_interactive;
-                args.remove(i);
+                args.remove(0);
             }
             "-v" =>
             {
@@ -48,16 +47,16 @@ pub fn arg_opts(
             }
             "--" =>
             {
-                args.remove(i);
+                args.remove(0);
                 break;
             }
-            _ if !args[i].starts_with('-') =>
+            _ if !args[0].starts_with('-') =>
             {
                 break;
             }
             _ =>
             {
-                let arg = args[i].trim_start_matches('-');
+                let arg = args[0].trim_start_matches('-');
                 let mut split = arg.splitn(2, '=');
                 if split.clone().count() == 2
                 {
@@ -81,11 +80,10 @@ pub fn arg_opts(
                 }
                 else if !silent_commands(options, &arg.chars().collect::<Vec<char>>())
                 {
-                    println!("{} failed", args[i]);
+                    println!("{} failed", args[0]);
                     process::exit(1);
                 }
-                args.remove(i);
-                i += 1;
+                args.remove(0);
             }
         }
     }

@@ -28,6 +28,10 @@ pub fn arg_opts(
     args.remove(0);
     loop
     {
+        if args.is_empty()
+        {
+            break;
+        }
         match args[0].as_str()
         {
             "-i" =>

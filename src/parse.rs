@@ -231,6 +231,11 @@ pub fn input_var(
                 }
                 neg = false;
             }
+            if num == "0" && i != chars.len() && chars[i] == '⁻'
+            {
+                num.insert(0, '-');
+                i += 1;
+            }
             output.push(Num(Complex::parse(num.clone())
                 .unwrap()
                 .complete(options.prec)));

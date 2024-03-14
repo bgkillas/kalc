@@ -385,7 +385,7 @@ pub fn div(a: &Complex, b: &Complex) -> Complex
         {
             Complex::with_val(a.prec(), Nan)
         }
-        else if a.real().is_sign_positive()
+        else if a.real().is_sign_positive() == b.real().is_sign_positive()
         {
             Complex::with_val(a.prec(), Infinity)
         }

@@ -25,7 +25,10 @@ use crate::{
     print::{print_answer, print_concurrent},
     AngleType::Radians,
 };
-use crossterm::terminal;
+use crossterm::{
+    cursor::{DisableBlinking, EnableBlinking},
+    execute, terminal,
+};
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -551,6 +554,10 @@ fn main()
                 {
                     '\n' | '\x14' | '\x09' | '\x06' =>
                     {
+                        if c != '\x14' && c != '\x06'
+                        {
+                            execute!(stdout, DisableBlinking).unwrap();
+                        }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
                         if end > input.len()
@@ -679,6 +686,7 @@ fn main()
                         }
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -758,6 +766,7 @@ fn main()
                         }
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -836,6 +845,7 @@ fn main()
                         }
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -902,40 +912,7 @@ fn main()
                             input.len()
                                 - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
-                        if options.real_time_output && !slow
-                        {
-                            (frac, graphable, long, varcheck) = print_concurrent(
-                                &input,
-                                &last,
-                                vars.clone(),
-                                options,
-                                colors.clone(),
-                                start,
-                                end,
-                                false,
-                            );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
-                                firstslow = true;
-                                slow = true;
-                            }
-                        }
-                        else if firstslow
-                        {
-                            firstslow = false;
-                            handle_err(
-                                "too slow, will print on enter",
-                                &input,
-                                options,
-                                &colors,
-                                start,
-                                end,
-                            )
-                        }
-                        else
-                        {
-                            clearln(&input, start, end, options, &colors);
-                        }
+                        clearln(&input, start, end, options, &colors);
                     }
                     '\x18' =>
                     {
@@ -945,6 +922,7 @@ fn main()
                         placement = 0;
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -989,6 +967,7 @@ fn main()
                         end = input.len();
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1035,6 +1014,7 @@ fn main()
                         input.extend(cut);
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1081,6 +1061,7 @@ fn main()
                             input.insert(placement + 1, char);
                             if options.real_time_output && !slow
                             {
+                                execute!(stdout, DisableBlinking).unwrap();
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input,
                                     &last,
@@ -1124,6 +1105,7 @@ fn main()
                         //ctrl+l
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1175,40 +1157,7 @@ fn main()
                         {
                             get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                         };
-                        if options.real_time_output && !slow
-                        {
-                            (frac, graphable, long, varcheck) = print_concurrent(
-                                &input,
-                                &last,
-                                vars.clone(),
-                                options,
-                                colors.clone(),
-                                start,
-                                end,
-                                false,
-                            );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
-                                firstslow = true;
-                                slow = true;
-                            }
-                        }
-                        else if firstslow
-                        {
-                            firstslow = false;
-                            handle_err(
-                                "too slow, will print on enter",
-                                &input,
-                                options,
-                                &colors,
-                                start,
-                                end,
-                            )
-                        }
-                        else
-                        {
-                            clearln(&input, start, end, options, &colors);
-                        }
+                        clearln(&input, start, end, options, &colors);
                         if end - placement != 0
                         {
                             print!("\x1b[{}D", end - placement)
@@ -1256,6 +1205,7 @@ fn main()
                         };
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1320,6 +1270,7 @@ fn main()
                         };
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1495,6 +1446,7 @@ fn main()
                         }
                         if options.real_time_output && !slow
                         {
+                            execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1565,6 +1517,7 @@ fn main()
                 );
             }
             stdout.flush().unwrap();
+            execute!(stdout, EnableBlinking).unwrap();
             if input.is_empty() && !varcheck
             {
                 continue;

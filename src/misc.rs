@@ -199,6 +199,7 @@ pub fn read_single_char() -> char
                 (KeyCode::Esc, _) => digraph(),
                 (KeyCode::Enter, KeyModifiers::NONE) => '\n',
                 (KeyCode::Enter, KeyModifiers::ALT) => '\x09',
+                (KeyCode::Char('h'), KeyModifiers::CONTROL) => '\x03',
                 (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
                 (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
                 (KeyCode::Left, KeyModifiers::NONE) => '\x1B',

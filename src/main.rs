@@ -40,6 +40,7 @@ use std::{
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //stop vectors or matrixes disipearing graphically
 //maybe nth area, make -nth go into the other function
+//use lines if an infinity slope is detected for length
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable
@@ -600,6 +601,134 @@ fn main()
                             graphable = false;
                         }
                         break;
+                    }
+                    '\x03' =>
+                    {
+                        //ctrl+backspace
+                        if placement != 0
+                            && matches!(
+                                input[placement - 1],
+                                '(' | '{'
+                                    | '['
+                                    | ')'
+                                    | '}'
+                                    | ']'
+                                    | '+'
+                                    | '-'
+                                    | '*'
+                                    | '/'
+                                    | '^'
+                                    | '<'
+                                    | '='
+                                    | '>'
+                                    | '|'
+                                    | '&'
+                                    | '!'
+                            )
+                        {
+                            placement -= 1;
+                            input.remove(placement);
+                        }
+                        else
+                        {
+                            for (i, c) in input[..placement].iter().rev().enumerate()
+                            {
+                                if c.is_whitespace() || i + 1 == placement
+                                {
+                                    input.drain(placement - i - 1..placement);
+                                    placement -= i + 1;
+                                    break;
+                                }
+                                if matches!(
+                                    c,
+                                    '(' | '{'
+                                        | '['
+                                        | ')'
+                                        | '}'
+                                        | ']'
+                                        | '+'
+                                        | '-'
+                                        | '*'
+                                        | '/'
+                                        | '^'
+                                        | '<'
+                                        | '='
+                                        | '>'
+                                        | '|'
+                                        | '&'
+                                        | '!'
+                                )
+                                {
+                                    input.drain(placement - i..placement);
+                                    placement -= i;
+                                    break;
+                                }
+                            }
+                        }
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
+                        if i == lines.len()
+                        {
+                            current.clone_from(&input);
+                        }
+                        else
+                        {
+                            lines[i] = input.clone().iter().collect::<String>();
+                        }
+                        if options.real_time_output && !slow
+                        {
+                            (frac, graphable, long, varcheck) = print_concurrent(
+                                &input,
+                                &last,
+                                vars.clone(),
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                firstslow = true;
+                                slow = true;
+                            }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            clearln(&input, start, end, options, &colors);
+                        }
+                        if options.debug
+                        {
+                            let time = watch.elapsed().as_nanos();
+                            print!(
+                                " {}\x1b[{}D",
+                                time,
+                                time.to_string().len() + 1 + end - placement
+                            );
+                        }
+                        else if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
+                        if input.is_empty()
+                        {
+                            slow = false;
+                            clear(&input, start, end, options, &colors);
+                        }
                     }
                     '\x08' =>
                     {

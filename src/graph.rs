@@ -1716,7 +1716,7 @@ fn get_data(
                         {
                             d2_or_d3.0 = true;
                             let mut vec = Vec::with_capacity(v.len());
-                            for i in 0..v.len()
+                            for i in 1..=v.len()
                             {
                                 vec.push(i as f64);
                             }

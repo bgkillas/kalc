@@ -1055,7 +1055,7 @@ pub fn do_math(
                                     return Err("bad face value");
                                 }
                                 let mut last = vec![Integer::from(1); faces[0]];
-                                let mut current = Vec::new();
+                                let mut current = last.clone();
                                 if faces.len() != 1
                                 {
                                     for i in 1..faces.len()
@@ -1143,7 +1143,7 @@ pub fn do_math(
                                     return Err("bad face value");
                                 }
                                 let mut last = vec![Integer::from(1); faces[0]];
-                                let mut current = Vec::new();
+                                let mut current = last.clone();
                                 if faces.len() != 1
                                 {
                                     for i in 1..faces.len()

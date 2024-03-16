@@ -749,7 +749,8 @@ pub fn add_var(
                 break;
             }
         }
-        vars.insert(
+        let mut tempvars = vars.clone();
+        tempvars.insert(
             k,
             Variable {
                 name: l.clone(),
@@ -771,7 +772,7 @@ pub fn add_var(
                     let s = split.next().unwrap().to_string();
                     let parsed = input_var(
                         split.next().unwrap(),
-                        vars.clone(),
+                        tempvars.clone(),
                         &mut func_vars,
                         &mut 0,
                         options,
@@ -788,7 +789,7 @@ pub fn add_var(
         }
         let mut parsed = input_var(
             r,
-            vars.clone(),
+            tempvars.clone(),
             &mut func_vars,
             &mut 0,
             options,
@@ -798,7 +799,6 @@ pub fn add_var(
             l.clone(),
         )?;
         parsed.1.extend(fvs);
-        vars.remove(k);
         if parsed.0.is_empty()
         {
             return Err("bad input");

@@ -272,8 +272,21 @@ pub fn do_math(
                                         )?);
                                     }
                                     function[i - 1] = do_math(func, options, func_vars.clone())?;
-                                    continue;
                                 }
+                                else
+                                {
+                                    let v = vec![
+                                        function[i - 1].clone(),
+                                        do_math(
+                                            function[i + 1..j - 1].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?,
+                                    ];
+                                    function[i - 1] = do_math(v, options, func_vars.clone())?;
+                                    function.drain(i..j);
+                                }
+                                continue;
                             }
                             else if matches!(
                                 k.as_str(),
@@ -897,7 +910,7 @@ pub fn do_math(
                                 }
                                 Num(n.sqrt())
                             }
-                            "mean" => Num(a
+                            "mean" | "μ" => Num(a
                                 .iter()
                                 .flatten()
                                 .fold(Complex::new(options.prec), |sum, val| sum + val)
@@ -1314,7 +1327,7 @@ pub fn do_math(
                                 Num(Complex::with_val(options.prec, res as u8))
                             }
                             "sort" => Vector(sort(a)),
-                            "mean" => Num(a
+                            "mean" | "μ" => Num(a
                                 .iter()
                                 .fold(Complex::new(options.prec), |sum, val| sum + val)
                                 / a.len()),

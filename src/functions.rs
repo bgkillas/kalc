@@ -174,6 +174,7 @@ pub fn functions() -> HashSet<&'static str>
         "is_prime",
         "isprime",
         "dice",
+        "μ",
         "W",
         "productlog",
         "lambertw",

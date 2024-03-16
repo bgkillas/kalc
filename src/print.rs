@@ -1055,11 +1055,15 @@ pub fn print_concurrent(
             }
             else
             {
+                if !options.frac
+                {
+                    frac = 0;
+                }
                 print!(
-                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
+                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}\x1b[G\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
-                    if frac == 1 && options.frac
+                    if frac == 1
                     {
                         num *= 2;
                         if options.multi
@@ -1073,30 +1077,18 @@ pub fn print_concurrent(
                         String::new()
                     },
                     output,
-                    if num == 0
+                    if num + frac == 0
                     {
                         String::new()
                     }
                     else
                     {
-                        format!("\x1b[{}A", num)
-                    },
-                    if frac == 1 && options.frac
-                    {
-                        "\x1b[A"
-                    }
-                    else
-                    {
-                        ""
+                        format!("\x1b[{}A", num + frac)
                     },
                     if options.prompt { 2 } else { 0 } + (end - start),
                     if options.color { "\x1b[0m" } else { "" }
                 );
                 frac += num;
-                if !options.frac
-                {
-                    frac -= 1;
-                }
             }
         }
         _ => handle_err("str err", unmodified_input, options, &colors, start, end),

@@ -222,7 +222,7 @@ pub fn no_col(input: &str, color: bool) -> Vec<char>
         {
             if skip
             {
-                if c == 'm'
+                if c == 'm' || c == 'G' || c == 'K'
                 {
                     skip = false
                 }

@@ -2039,7 +2039,7 @@ pub fn input_var(
             {
                 match s.as_str()
                 {
-                    "x" | "y" =>
+                    "x" | "y" | "roll" | "rnd" =>
                     {
                         to = 0;
                     }

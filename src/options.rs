@@ -1074,6 +1074,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "tabbed" => format!("{}", options.tabbed),
         "comma" => format!("{}", options.comma),
         "graph" => format!("{}", options.graph),
+        "graphcli" => format!("{}", options.graph_cli),
         "point" => format!("{}", options.point_style),
         "base" => format!("{}", options.base),
         "ticks" => format!("{}", options.ticks),

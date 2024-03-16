@@ -158,6 +158,7 @@ pub struct Options
     surface: bool,
     scale_graph: bool,
     stay_interactive: bool,
+    graph_cli: bool,
 }
 impl Default for Options
 {
@@ -204,6 +205,7 @@ impl Default for Options
             surface: false,
             scale_graph: true,
             stay_interactive: false,
+            graph_cli: false,
         }
     }
 }
@@ -1650,7 +1652,24 @@ fn main()
                 {
                     None
                 };
-                handles.push(graph(inputs, funcs, watch, colors.clone()));
+                if options.graph_cli
+                {
+                    if options.interactive
+                    {
+                        terminal::disable_raw_mode().unwrap();
+                    }
+                    graph(inputs, funcs, watch, colors.clone(), true)
+                        .join()
+                        .unwrap();
+                    if options.interactive
+                    {
+                        terminal::enable_raw_mode().unwrap();
+                    }
+                }
+                else
+                {
+                    handles.push(graph(inputs, funcs, watch, colors.clone(), false));
+                }
             }
         }
     }

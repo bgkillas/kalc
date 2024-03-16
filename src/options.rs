@@ -39,12 +39,12 @@ pub fn arg_opts(
                 options.stay_interactive = !options.stay_interactive;
                 args.remove(0);
             }
-            "-v" =>
+            "-v" | "--version" =>
             {
                 println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
                 process::exit(0)
             }
-            "-h" =>
+            "-h" | "--help" =>
             {
                 help();
                 process::exit(0)
@@ -204,12 +204,12 @@ pub fn set_commands(
                 return Err("Invalid point type");
             }
         }
-        "slowcheck" | "tau" | "interactive" | "color" | "prompt" | "depth" | "surface" | "flat"
-        | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines" | "polar" | "frac"
-        | "multi" | "tabbed" | "comma" | "graph" | "var_multiply" | "scalegraph" | "debug"
-        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
-        | "graphprecision" | "prec" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange"
-        | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
+        "graphcli" | "slowcheck" | "tau" | "interactive" | "color" | "prompt" | "depth"
+        | "surface" | "flat" | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines"
+        | "polar" | "frac" | "multi" | "tabbed" | "comma" | "graph" | "var_multiply"
+        | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci"
+        | "decimals" | "graphprec" | "graphprecision" | "prec" | "precision" | "range" | "xr"
+        | "yr" | "zr" | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -266,6 +266,7 @@ pub fn set_commands(
             }
             match l
             {
+                "graphcli" => options.graph_cli = args[0] != 0.0,
                 "tau" => options.tau = args[0] != 0.0,
                 "color" => options.color = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
@@ -682,6 +683,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "comma" => options.comma = !options.comma,
         "graph" => options.graph = !options.graph,
         "vars" => options.allow_vars = !options.allow_vars,
+        "graphcli" => options.graph_cli = !options.graph_cli,
         _ => return false,
     }
     true
@@ -698,6 +700,12 @@ pub fn commands(
 {
     match input.iter().collect::<String>().as_str()
     {
+        "graphcli" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.graph_cli = !options.graph_cli
+        }
         "default" | "defaults" | "reset" =>
         {
             print!("\x1b[G\x1b[A\x1b[K");

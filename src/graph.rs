@@ -24,6 +24,7 @@ pub fn graph(
     func: Vec<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options)>,
     watch: Option<Instant>,
     colors: Colors,
+    cli: bool,
 ) -> JoinHandle<()>
 {
     thread::spawn(move || {
@@ -33,6 +34,11 @@ pub fn graph(
         }
         let mut options = func[0].2;
         let mut fg = Figure::new();
+        if cli
+        {
+            options.scale_graph = false;
+            fg.set_terminal("dumb size 100,50 aspect 1,1", "");
+        }
         fg.set_enhanced_text(false);
         let mut re_cap: [String; 6] = Default::default();
         let mut im_cap: [String; 6] = Default::default();

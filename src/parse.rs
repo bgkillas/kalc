@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Args, Num, Str},
+        NumStr::{Num, Str},
     },
     functions::functions,
     math::do_math,
@@ -617,7 +617,7 @@ pub fn input_var(
                         i += 2;
                         continue;
                     }
-                    else
+                    else if i + 1 != chars.len()
                     {
                         *bracket += 1;
                         if subfact.0
@@ -2023,47 +2023,6 @@ pub fn input_var(
         }
         i += 1;
     }
-    while let Some(Str(c)) = output.last()
-    {
-        if print && vars.iter().any(|a| a.name.iter().collect::<String>() == *c)
-        {
-            break;
-        }
-        else if !matches!(c.as_str(), "rnd" | ")" | "}" | "x" | "y")
-            && !sumrec.iter().any(|s| &s.1 == c)
-            && !c.starts_with('@')
-        {
-            output.pop();
-        }
-        else if output.len() > 1
-            && output[output.len() - 2].str_is("norm")
-            && output[output.len() - 1].str_is(")")
-        {
-            output.pop();
-            output.pop();
-            output.pop();
-        }
-        else
-        {
-            break;
-        }
-    }
-    i = 1;
-    while i + 1 < output.len()
-    {
-        if Str("*".to_string()) == output[i]
-        {
-            if let Str(c) = &output[i + 1]
-            {
-                if matches!(c.as_str(), "+" | "-" | "*" | "/" | "//" | "^" | "^^" | "%")
-                {
-                    output.remove(i);
-                    continue;
-                }
-            }
-        }
-        i += 1;
-    }
     if !err.is_empty()
     {
         return Err(err);
@@ -2126,7 +2085,7 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
         {
             output.push(Str('*'.to_string()))
         }
-        Some(Num(_)) | Some(Args(_)) => output.push(Str('*'.to_string())),
+        Some(Num(_)) => output.push(Str('*'.to_string())),
         _ =>
         {}
     }

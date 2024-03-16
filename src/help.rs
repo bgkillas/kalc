@@ -95,12 +95,12 @@ pub fn help()
     - slog(a,b), ssrt(k,a) (k is lambert w branch)\x1b[G\n\
     - piecewise/pw({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\x1b[G\n\
     - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\x1b[G\n\
-    - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\x1b[G\n\
+    - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}}, tolist{{a,b,c}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\x1b[G\n\
     - variance/var, standarddeviation/σ (sample-bias corrected)\x1b[G\n\
     - percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\x1b[G\n\
-    - normP(μ,σ,x) (normal distribution pdf) normD(z) (area under curve to the left of z score cdf)\x1b[G\n\
+    - normP(μ,σ,x) (normal distribution pdf) normD(z)/normD(x,μ,σ) (area under curve to the left of z score cdf)\x1b[G\n\
     - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\x1b[G\n\
-    - roll{{a,b,c...}} rolls die dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{{{first_dice_face,# of die}},{{second_dice_face,# of die}}...}}\x1b[G\n\
+    - roll{{a,b,c...}} rolls die, dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{{{first_dice_face,# of die}},{{second_dice_face,# of die}}...}}\x1b[G\n\
     - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
     - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, and for area\n\x1b[G\n\
     - area(x,f(x),from,to (,amount of data points) (,0) ), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)\n\x1b[G\n\

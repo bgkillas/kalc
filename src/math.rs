@@ -47,49 +47,21 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            for v in &func_vars
+            if s == "rnd"
             {
-                if *s == v.0 && !v.0.ends_with(')')
-                {
-                    if v.1.len() == 1
-                    {
-                        if let Str(s) = &v.1[0]
-                        {
-                            recursively_get_var(&mut function, &func_vars, &i, s);
-                        }
-                        else
-                        {
-                            function[i] = v.1[0].clone();
-                        }
-                    }
-                    break;
-                }
+                function[i] = Num(Complex::with_val(options.prec, fastrand::u64(..))
+                    / Complex::with_val(options.prec, u64::MAX))
+            }
+            else
+            {
+                let s = s.clone();
+                recursively_get_var(&mut function, &func_vars, &i, &s);
             }
         }
         i += 1;
     }
-    if function.len() == 1 && !function[0].str_is("rnd")
-    {
-        return Ok(function[0].clone());
-    }
-    // use std::io::Write;
-    // for i in &function
-    // {
-    //     match i
-    //     {
-    //         Num(n) => print!(
-    //             "{}",
-    //             crate::print::get_output(options, &crate::Colors::default(), n).0
-    //         ),
-    //         Str(s) => print!("{}", s),
-    //         _ =>
-    //         {}
-    //     }
-    // }
-    // print!("\x1b[G\n");
-    // std::io::stdout().flush().unwrap();
     i = 0;
-    'outer: while i < function.len()
+    while i < function.len()
     {
         if let Str(s) = &function[i]
         {
@@ -203,7 +175,6 @@ pub fn do_math(
                     {
                         return Err("no interior bracket");
                     }
-                    let v = function[i + 1..j - 1].to_vec();
                     if i != 0
                     {
                         if let Str(k) = &function[i - 1]
@@ -229,6 +200,7 @@ pub fn do_math(
                                     | "arctan"
                                     | "atan2"
                                     | "normP"
+                                    | "normD"
                                     | "betaP"
                                     | "betaC"
                                     | "bi"
@@ -256,6 +228,7 @@ pub fn do_math(
                                     | "percentile"
                             )
                             {
+                                let v = function[i + 1..j - 1].to_vec();
                                 count = 0;
                                 let mut place = Vec::new();
                                 for (f, n) in v.iter().enumerate()
@@ -274,38 +247,32 @@ pub fn do_math(
                                 }
                                 if !place.is_empty()
                                 {
+                                    let mut func = vec![function[i - 1].clone()];
                                     function.drain(i..j);
-                                    function.insert(
-                                        i,
-                                        do_math(
-                                            v[..place[0]].to_vec(),
-                                            options,
-                                            func_vars.clone(),
-                                        )?,
-                                    );
+                                    func.push(do_math(
+                                        v[..place[0]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?);
                                     for (k, l) in place.iter().enumerate()
                                     {
-                                        function.insert(i + k + 1, Str(','.to_string()));
-                                        function.insert(
-                                            i + k + 2,
-                                            do_math(
-                                                v[l + 1
-                                                    ..if k + 1 != place.len()
-                                                    {
-                                                        place[k + 1]
-                                                    }
-                                                    else
-                                                    {
-                                                        v.len()
-                                                    }]
-                                                    .to_vec(),
-                                                options,
-                                                func_vars.clone(),
-                                            )?,
-                                        );
-                                        i += 1;
+                                        func.push(do_math(
+                                            v[l + 1
+                                                ..if k + 1 != place.len()
+                                                {
+                                                    place[k + 1]
+                                                }
+                                                else
+                                                {
+                                                    v.len()
+                                                }]
+                                                .to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?);
                                     }
-                                    continue 'outer;
+                                    function[i - 1] = do_math(func, options, func_vars.clone())?;
+                                    continue;
                                 }
                             }
                             else if matches!(
@@ -333,8 +300,24 @@ pub fn do_math(
                                 i = j - 1;
                                 continue;
                             }
+                            else if k.len() > 1 && k.chars().next().unwrap().is_alphabetic()
+                                || matches!(k.as_str(), "C" | "B" | "P" | "I" | "W" | "D")
+                            {
+                                let v = vec![
+                                    function[i - 1].clone(),
+                                    do_math(
+                                        function[i + 1..j - 1].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?,
+                                ];
+                                function[i - 1] = do_math(v, options, func_vars.clone())?;
+                                function.drain(i..j);
+                                continue;
+                            }
                         }
                     }
+                    let v = function[i + 1..j - 1].to_vec();
                     function[i] = do_math(v, options, func_vars.clone())?;
                     function.drain(i + 1..j);
                 }
@@ -343,6 +326,10 @@ pub fn do_math(
             }
         }
         i += 1;
+    }
+    if function.len() == 1
+    {
+        return Ok(function[0].clone());
     }
     i = 0;
     let to_deg = match options.deg
@@ -355,9 +342,8 @@ pub fn do_math(
     {
         if let Str(s) = &function[i].clone()
         {
-            if s != "rnd"
-                && ((s.len() > 1 && s.chars().next().unwrap().is_alphabetic())
-                    || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D"))
+            if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
+                || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D")
             {
                 if matches!(
                     s.as_str(),
@@ -683,12 +669,12 @@ pub fn do_math(
                         {
                             function[i] = match if place.is_empty()
                             {
-                                Ok(function[i + 1].clone())
+                                Ok(function.remove(i + 1).clone())
                             }
                             else
                             {
                                 do_math(
-                                    function[i + 2..place[0]].to_vec(),
+                                    function.drain(i + 1..=place[0]).collect::<Vec<NumStr>>(),
                                     options,
                                     func_vars.clone(),
                                 )
@@ -704,25 +690,17 @@ pub fn do_math(
                                     .fold(Complex::new(options.prec), |sum, val| sum + val)),
                                 _ => return Err("sum err"),
                             };
-                            if place.is_empty()
-                            {
-                                function.remove(i + 1);
-                            }
-                            else
-                            {
-                                function.drain(i + 1..=place[0]);
-                            }
                         }
                         ("product" | "prod" | "Π", _) if place.len() <= 1 =>
                         {
                             function[i] = match if place.is_empty()
                             {
-                                Ok(function[i + 1].clone())
+                                Ok(function.remove(i + 1).clone())
                             }
                             else
                             {
                                 do_math(
-                                    function[i + 2..place[0]].to_vec(),
+                                    function.drain(i + 1..=place[0]).collect::<Vec<NumStr>>(),
                                     options,
                                     func_vars.clone(),
                                 )
@@ -742,409 +720,295 @@ pub fn do_math(
                                     })),
                                 _ => return Err("prod err"),
                             };
-                            if place.is_empty()
-                            {
-                                function.remove(i + 1);
-                            }
-                            else
-                            {
-                                function.drain(i + 1..=place[0]);
-                            }
                         }
                         (_, _) => return Err("arg/var err with sum/prod/vec/slope or similar"),
                     }
                 }
                 else
                 {
-                    match function[i + 1].clone()
+                    let arg = function.remove(i + 1);
+                    function[i] = match arg.clone()
                     {
-                        Matrix(a) =>
+                        Matrix(a) => match s.as_str()
                         {
-                            function[i] = match s.as_str()
+                            "max" =>
                             {
-                                "max" =>
+                                let mut vec = Vec::new();
+                                for j in a
                                 {
-                                    let mut vec = Vec::new();
-                                    for j in a
+                                    let mut max = j[0].clone();
+                                    for i in j
                                     {
-                                        let mut max = j[0].clone();
-                                        for i in j
+                                        if i.real() > max.real()
                                         {
-                                            if i.real() > max.real()
+                                            max = i
+                                        }
+                                    }
+                                    vec.push(max)
+                                }
+                                Vector(vec)
+                            }
+                            "min" =>
+                            {
+                                let mut vec = Vec::new();
+                                for j in a
+                                {
+                                    let mut min = j[0].clone();
+                                    for i in j
+                                    {
+                                        if i.real() < min.real()
+                                        {
+                                            min = i
+                                        }
+                                    }
+                                    vec.push(min)
+                                }
+                                Vector(vec)
+                            }
+                            "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Complex>>()),
+                            "cofactor" | "cofactors" | "cof" => Matrix(cofactor(&a)?),
+                            "minor" | "minors" => Matrix(minors(&a)?),
+                            "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
+                            "inverse" | "inv" => Matrix(inverse(&a)?),
+                            "transpose" | "trans" => Matrix(transpose(&a)?),
+                            "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
+                            "wid" | "width" => Num(Complex::with_val(options.prec, a[0].len())),
+                            "tr" | "trace" => Num(trace(&a)),
+                            "det" | "determinant" => Num(determinant(&a)?),
+                            "part" =>
+                            {
+                                if function.len() > i + 2
+                                {
+                                    match (function.remove(i + 1), function.remove(i + 1))
+                                    {
+                                        (Num(b), Num(c)) =>
+                                        {
+                                            let n1 = b.clone().real().to_f64() as usize;
+                                            let n2 = c.clone().real().to_f64() as usize;
+                                            if n1 <= a.len()
+                                                && n1 != 0
+                                                && n2 <= a[0].len()
+                                                && n2 != 0
                                             {
-                                                max = i
+                                                Num(a[n1 - 1][n2 - 1].clone())
+                                            }
+                                            else
+                                            {
+                                                return Err("not in matrix");
                                             }
                                         }
-                                        vec.push(max)
-                                    }
-                                    Vector(vec)
-                                }
-                                "min" =>
-                                {
-                                    let mut vec = Vec::new();
-                                    for j in a
-                                    {
-                                        let mut min = j[0].clone();
-                                        for i in j
+                                        (Vector(b), Num(c)) | (Num(c), Vector(b)) =>
                                         {
-                                            if i.real() < min.real()
+                                            let n2 = c.clone().real().to_f64() as usize;
+                                            let mut vec = Vec::new();
+                                            for n in b
                                             {
-                                                min = i
-                                            }
-                                        }
-                                        vec.push(min)
-                                    }
-                                    Vector(vec)
-                                }
-                                "flatten" =>
-                                {
-                                    Vector(a.into_iter().flatten().collect::<Vec<Complex>>())
-                                }
-                                "cofactor" | "cofactors" | "cof" => Matrix(cofactor(&a)?),
-                                "minor" | "minors" => Matrix(minors(&a)?),
-                                "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
-                                "inverse" | "inv" => Matrix(inverse(&a)?),
-                                "transpose" | "trans" => Matrix(transpose(&a)?),
-                                "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
-                                "wid" | "width" => Num(Complex::with_val(options.prec, a[0].len())),
-                                "tr" | "trace" => Num(trace(&a)),
-                                "det" | "determinant" => Num(determinant(&a)?),
-                                "part" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
-                                    {
-                                        if function.len() > i + 5 && function[i + 4].str_is(",")
-                                        {
-                                            match (function[i + 3].clone(), function[i + 5].clone())
-                                            {
-                                                (Num(b), Num(c)) =>
+                                                let n1 = n.clone().real().to_f64() as usize;
+                                                if n1 <= a.len()
+                                                    && n1 != 0
+                                                    && n2 <= a[0].len()
+                                                    && n2 != 0
                                                 {
-                                                    function.drain(i + 2..i + 6);
-                                                    let n1 = b.clone().real().to_f64() as usize;
-                                                    let n2 = c.clone().real().to_f64() as usize;
+                                                    vec.push(a[n1 - 1][n2 - 1].clone())
+                                                }
+                                                else
+                                                {
+                                                    return Err("not in matrix");
+                                                }
+                                            }
+                                            Vector(vec)
+                                        }
+                                        (Vector(b), Vector(c)) =>
+                                        {
+                                            let mut mat = Vec::new();
+                                            for g in b
+                                            {
+                                                let mut vec = Vec::new();
+                                                let n1 = g.clone().real().to_f64() as usize;
+                                                for n in c.clone()
+                                                {
+                                                    let n2 = n.clone().real().to_f64() as usize;
                                                     if n1 <= a.len()
                                                         && n1 != 0
                                                         && n2 <= a[0].len()
                                                         && n2 != 0
                                                     {
-                                                        Num(a[n1 - 1][n2 - 1].clone())
+                                                        vec.push(a[n1 - 1][n2 - 1].clone())
                                                     }
                                                     else
                                                     {
                                                         return Err("not in matrix");
                                                     }
                                                 }
-                                                (Vector(b), Num(c)) | (Num(c), Vector(b)) =>
-                                                {
-                                                    function.drain(i + 2..i + 6);
-                                                    let n2 = c.clone().real().to_f64() as usize;
-                                                    let mut vec = Vec::new();
-                                                    for n in b
-                                                    {
-                                                        let n1 = n.clone().real().to_f64() as usize;
-                                                        if n1 <= a.len()
-                                                            && n1 != 0
-                                                            && n2 <= a[0].len()
-                                                            && n2 != 0
-                                                        {
-                                                            vec.push(a[n1 - 1][n2 - 1].clone())
-                                                        }
-                                                        else
-                                                        {
-                                                            return Err("not in matrix");
-                                                        }
-                                                    }
-                                                    Vector(vec)
-                                                }
-                                                (Vector(b), Vector(c)) =>
-                                                {
-                                                    function.drain(i + 2..i + 6);
-                                                    let mut mat = Vec::new();
-                                                    for g in b
-                                                    {
-                                                        let mut vec = Vec::new();
-                                                        let n1 = g.clone().real().to_f64() as usize;
-                                                        for n in c.clone()
-                                                        {
-                                                            let n2 =
-                                                                n.clone().real().to_f64() as usize;
-                                                            if n1 <= a.len()
-                                                                && n1 != 0
-                                                                && n2 <= a[0].len()
-                                                                && n2 != 0
-                                                            {
-                                                                vec.push(a[n1 - 1][n2 - 1].clone())
-                                                            }
-                                                            else
-                                                            {
-                                                                return Err("not in matrix");
-                                                            }
-                                                        }
-                                                        mat.push(vec);
-                                                    }
-                                                    Matrix(mat)
-                                                }
-                                                _ => return Err("wrong part num"),
+                                                mat.push(vec);
+                                            }
+                                            Matrix(mat)
+                                        }
+                                        _ => return Err("wrong part num"),
+                                    }
+                                }
+                                else if function.len() > i + 1
+                                {
+                                    match function.remove(i + 1)
+                                    {
+                                        Num(b) =>
+                                        {
+                                            let n = b.clone().real().to_f64() as usize;
+                                            if n <= a.len() && n != 0
+                                            {
+                                                Vector(a[n - 1].clone())
+                                            }
+                                            else
+                                            {
+                                                return Err("out of range");
                                             }
                                         }
-                                        else
+                                        Vector(b) =>
                                         {
-                                            match function[i + 3].clone()
+                                            let mut vec = Vec::new();
+                                            for i in b
                                             {
-                                                Num(b) =>
+                                                let n = i.clone().real().to_f64() as usize;
+                                                if n <= a.len() && n != 0
                                                 {
-                                                    function.drain(i + 2..i + 4);
-                                                    let n = b.clone().real().to_f64() as usize;
-                                                    if n <= a.len() && n != 0
-                                                    {
-                                                        Vector(a[n - 1].clone())
-                                                    }
-                                                    else
-                                                    {
-                                                        return Err("out of range");
-                                                    }
-                                                }
-                                                Vector(b) =>
-                                                {
-                                                    function.drain(i + 2..i + 4);
-                                                    let mut vec = Vec::new();
-                                                    for i in b
-                                                    {
-                                                        let n = i.clone().real().to_f64() as usize;
-                                                        if n <= a.len() && n != 0
-                                                        {
-                                                            vec.push(a[n - 1].clone());
-                                                        }
-                                                        else
-                                                        {
-                                                            return Err("out of range");
-                                                        }
-                                                    }
-                                                    Matrix(vec)
-                                                }
-                                                _ => return Err("non num/vec"),
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        return Err("no arg");
-                                    }
-                                }
-                                "norm" =>
-                                {
-                                    let mut n = Complex::new(options.prec);
-                                    for j in a.iter().flatten()
-                                    {
-                                        n += j.clone().abs().pow(2);
-                                    }
-                                    Num(n.sqrt())
-                                }
-                                "mean" => Num(a
-                                    .iter()
-                                    .flatten()
-                                    .fold(Complex::new(options.prec), |sum, val| sum + val)
-                                    / (a.len() * a[0].len())),
-                                "mode" =>
-                                {
-                                    let mut most = (Vec::new(), 0);
-                                    for i in a.iter().flatten()
-                                    {
-                                        let mut count = 0;
-                                        for j in a.iter().flatten()
-                                        {
-                                            if i == j
-                                            {
-                                                count += 1;
-                                            }
-                                        }
-                                        if count > most.1
-                                        {
-                                            most = (vec![i.clone()], count);
-                                        }
-                                        if count == most.1 && !most.0.iter().any(|j| i == j)
-                                        {
-                                            most.0.push(i.clone())
-                                        }
-                                    }
-                                    if most.0.len() == 1
-                                    {
-                                        Num(most.0[0].clone())
-                                    }
-                                    else
-                                    {
-                                        Vector(most.0)
-                                    }
-                                }
-                                "median" =>
-                                {
-                                    let a =
-                                        sort(a.iter().flatten().cloned().collect::<Vec<Complex>>());
-                                    if a.len() % 2 == 0
-                                    {
-                                        Vector(vec![
-                                            a[a.len() / 2 - 1].clone(),
-                                            a[a.len() / 2].clone(),
-                                        ])
-                                    }
-                                    else
-                                    {
-                                        Num(a[a.len() / 2].clone())
-                                    }
-                                }
-                                "all" =>
-                                {
-                                    let mut res = true;
-                                    for a in a.iter().flatten()
-                                    {
-                                        if !(a.imag().is_zero() && a.real() == &1)
-                                        {
-                                            res = false
-                                        }
-                                    }
-                                    Num(Complex::with_val(options.prec, res as u8))
-                                }
-                                "any" =>
-                                {
-                                    let mut res = false;
-                                    for a in a.iter().flatten()
-                                    {
-                                        if a.imag().is_zero() && a.real() == &1
-                                        {
-                                            res = true
-                                        }
-                                    }
-                                    Num(Complex::with_val(options.prec, res as u8))
-                                }
-                                "eigenvalues" => Vector(eigenvalues(&a)?),
-                                "tolist" =>
-                                {
-                                    let mut vec = Vec::new();
-                                    for a in a
-                                    {
-                                        if a.len() != 2
-                                        {
-                                            return Err("bad list");
-                                        }
-                                        for _ in 0..a[1].real().to_f64() as usize
-                                        {
-                                            vec.push(a[0].clone())
-                                        }
-                                    }
-                                    if vec.is_empty()
-                                    {
-                                        return Err("bad list");
-                                    }
-                                    Vector(sort(vec))
-                                }
-                                "roll" =>
-                                {
-                                    let mut sum: Integer = Integer::new();
-                                    for i in a
-                                    {
-                                        if i.len() != 2
-                                        {
-                                            return Err("bad dice data");
-                                        }
-                                        let n = i[0].real().to_f64() as u64;
-                                        let max = u64::MAX - u64::MAX.rem(n);
-                                        let end = i[1].real().to_f64() as u64;
-                                        let mut i = 0;
-                                        while i < end
-                                        {
-                                            let rnd = fastrand::u64(..);
-                                            if rnd < max
-                                            {
-                                                sum += rnd.rem(n) + 1;
-                                                i += 1;
-                                            }
-                                        }
-                                    }
-                                    Num(Complex::with_val(options.prec, sum))
-                                }
-                                "dice" =>
-                                {
-                                    let mut faces = Vec::new();
-                                    for a in a
-                                    {
-                                        if a.len() != 2
-                                        {
-                                            return Err("bad list");
-                                        }
-                                        for _ in 0..a[1].real().to_f64() as usize
-                                        {
-                                            faces.push(a[0].real().to_f64() as usize)
-                                        }
-                                    }
-                                    if faces.is_empty()
-                                    {
-                                        return Err("bad list");
-                                    }
-                                    if faces.iter().any(|c| c == &0)
-                                    {
-                                        return Err("bad face value");
-                                    }
-                                    let mut distribution = vec![vec![Integer::from(1); faces[0]]];
-                                    if faces.len() != 1
-                                    {
-                                        for i in 1..faces.len()
-                                        {
-                                            distribution.push(Vec::new());
-                                            for p in 0..=(faces[0..=i].iter().sum::<Integer>()
-                                                - (i + 1))
-                                                .to_usize()
-                                                .unwrap()
-                                            {
-                                                let value = distribution[i - 1][if (p + 1)
-                                                    > faces[i]
-                                                {
-                                                    p + 1 - faces[i]
+                                                    vec.push(a[n - 1].clone());
                                                 }
                                                 else
                                                 {
-                                                    0
+                                                    return Err("out of range");
                                                 }
-                                                    ..=p.min(
-                                                        faces[0..i].iter().sum::<usize>() - i,
-                                                    )]
-                                                    .iter()
-                                                    .sum::<Integer>();
-                                                distribution[i].push(value)
                                             }
+                                            Matrix(vec)
+                                        }
+                                        _ => return Err("non num/vec"),
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("no arg");
+                                }
+                            }
+                            "norm" =>
+                            {
+                                let mut n = Complex::new(options.prec);
+                                for j in a.iter().flatten()
+                                {
+                                    n += j.clone().abs().pow(2);
+                                }
+                                Num(n.sqrt())
+                            }
+                            "mean" => Num(a
+                                .iter()
+                                .flatten()
+                                .fold(Complex::new(options.prec), |sum, val| sum + val)
+                                / (a.len() * a[0].len())),
+                            "mode" =>
+                            {
+                                let mut most = (Vec::new(), 0);
+                                for i in a.iter().flatten()
+                                {
+                                    let mut count = 0;
+                                    for j in a.iter().flatten()
+                                    {
+                                        if i == j
+                                        {
+                                            count += 1;
                                         }
                                     }
-                                    Vector(
-                                        distribution
-                                            .last()
-                                            .unwrap()
-                                            .iter()
-                                            .map(|a| Complex::with_val(options.prec, a))
-                                            .collect::<Vec<Complex>>(),
-                                    )
-                                }
-                                _ => do_functions(
-                                    function[i + 1].clone(),
-                                    options,
-                                    &mut function,
-                                    i,
-                                    &to_deg,
-                                    s,
-                                )?,
-                            };
-                            function.remove(i + 1);
-                        }
-                        Vector(a) =>
-                        {
-                            function[i] = match s.as_str()
-                            {
-                                "roll" =>
-                                {
-                                    let mut sum: Integer = Integer::new();
-                                    let mut i = 0;
-                                    while i < a.len()
+                                    if count > most.1
                                     {
-                                        let n = a[i].real().to_f64() as u64;
-                                        let max = u64::MAX - u64::MAX.rem(n);
+                                        most = (vec![i.clone()], count);
+                                    }
+                                    if count == most.1 && !most.0.iter().any(|j| i == j)
+                                    {
+                                        most.0.push(i.clone())
+                                    }
+                                }
+                                if most.0.len() == 1
+                                {
+                                    Num(most.0[0].clone())
+                                }
+                                else
+                                {
+                                    Vector(most.0)
+                                }
+                            }
+                            "median" =>
+                            {
+                                let a = sort(a.iter().flatten().cloned().collect::<Vec<Complex>>());
+                                if a.len() % 2 == 0
+                                {
+                                    Vector(vec![a[a.len() / 2 - 1].clone(), a[a.len() / 2].clone()])
+                                }
+                                else
+                                {
+                                    Num(a[a.len() / 2].clone())
+                                }
+                            }
+                            "all" =>
+                            {
+                                let mut res = true;
+                                for a in a.iter().flatten()
+                                {
+                                    if !(a.imag().is_zero() && a.real() == &1)
+                                    {
+                                        res = false
+                                    }
+                                }
+                                Num(Complex::with_val(options.prec, res as u8))
+                            }
+                            "any" =>
+                            {
+                                let mut res = false;
+                                for a in a.iter().flatten()
+                                {
+                                    if a.imag().is_zero() && a.real() == &1
+                                    {
+                                        res = true
+                                    }
+                                }
+                                Num(Complex::with_val(options.prec, res as u8))
+                            }
+                            "eigenvalues" => Vector(eigenvalues(&a)?),
+                            "tolist" =>
+                            {
+                                let mut vec = Vec::new();
+                                for a in a
+                                {
+                                    if a.len() != 2
+                                    {
+                                        return Err("bad list");
+                                    }
+                                    for _ in 0..a[1].real().to_f64() as usize
+                                    {
+                                        vec.push(a[0].clone())
+                                    }
+                                }
+                                if vec.is_empty()
+                                {
+                                    return Err("bad list");
+                                }
+                                Vector(sort(vec))
+                            }
+                            "roll" =>
+                            {
+                                let mut sum: Integer = Integer::new();
+                                for i in a
+                                {
+                                    if i.len() != 2
+                                    {
+                                        return Err("bad dice data");
+                                    }
+                                    let n = i[0].real().to_f64() as u64;
+                                    if n == 0
+                                    {
+                                        return Err("bad dice data");
+                                    }
+                                    let max = u64::MAX - u64::MAX.rem(n);
+                                    let end = i[1].real().to_f64() as u64;
+                                    let mut i = 0;
+                                    while i < end
+                                    {
                                         let rnd = fastrand::u64(..);
                                         if rnd < max
                                         {
@@ -1152,801 +1016,611 @@ pub fn do_math(
                                             i += 1;
                                         }
                                     }
-                                    Num(Complex::with_val(options.prec, sum))
                                 }
-                                "dice" =>
+                                Num(Complex::with_val(options.prec, sum))
+                            }
+                            "dice" =>
+                            {
+                                let mut faces = Vec::new();
+                                for a in a
                                 {
-                                    let faces = a
-                                        .iter()
-                                        .map(|c| c.real().to_f64() as usize)
-                                        .collect::<Vec<usize>>();
-                                    if faces.iter().any(|c| c == &0)
-                                    {
-                                        return Err("bad face value");
-                                    }
-                                    let mut distribution = vec![vec![Integer::from(1); faces[0]]];
-                                    if faces.len() != 1
-                                    {
-                                        for i in 1..faces.len()
-                                        {
-                                            distribution.push(Vec::new());
-                                            for p in 0..=(faces[0..=i].iter().sum::<Integer>()
-                                                - (i + 1))
-                                                .to_usize()
-                                                .unwrap()
-                                            {
-                                                let value = distribution[i - 1][if (p + 1)
-                                                    > faces[i]
-                                                {
-                                                    p + 1 - faces[i]
-                                                }
-                                                else
-                                                {
-                                                    0
-                                                }
-                                                    ..=p.min(
-                                                        faces[0..i].iter().sum::<usize>() - i,
-                                                    )]
-                                                    .iter()
-                                                    .sum::<Integer>();
-                                                distribution[i].push(value)
-                                            }
-                                        }
-                                    }
-                                    Vector(
-                                        distribution
-                                            .last()
-                                            .unwrap()
-                                            .iter()
-                                            .map(|a| Complex::with_val(options.prec, a))
-                                            .collect::<Vec<Complex>>(),
-                                    )
-                                }
-                                "quartiles" =>
-                                {
-                                    if a.len() < 2
-                                    {
-                                        return Err("not enough data");
-                                    }
-                                    let a = sort(a);
-                                    let half1 = &a[0..a.len() / 2];
-                                    let half2 = if a.len() % 2 == 0
-                                    {
-                                        &a[a.len() / 2..a.len()]
-                                    }
-                                    else
-                                    {
-                                        &a[a.len() / 2 + 1..a.len()]
-                                    };
-                                    if half1.len() % 2 == 0
-                                    {
-                                        Vector(vec![
-                                            (half1[half1.len() / 2 - 1].clone()
-                                                + half1[half1.len() / 2].clone())
-                                                / 2,
-                                            if a.len() % 2 == 0
-                                            {
-                                                (half1[half1.len() - 1].clone() + half2[0].clone())
-                                                    / 2
-                                            }
-                                            else
-                                            {
-                                                a[a.len() / 2].clone()
-                                            },
-                                            (half2[half2.len() / 2 - 1].clone()
-                                                + half2[half2.len() / 2].clone())
-                                                / 2,
-                                        ])
-                                    }
-                                    else
-                                    {
-                                        Vector(vec![
-                                            half1[half1.len() / 2].clone(),
-                                            if a.len() % 2 == 0
-                                            {
-                                                (half1[half1.len() - 1].clone() + half2[0].clone())
-                                                    / 2
-                                            }
-                                            else
-                                            {
-                                                a[a.len() / 2].clone()
-                                            },
-                                            half2[half2.len() / 2].clone(),
-                                        ])
-                                    }
-                                }
-                                "percentile" =>
-                                {
-                                    if function.len() < i + 3
-                                    {
-                                        return Err("not enough input");
-                                    }
-                                    let b = function[i + 3].num()?;
-                                    function.drain(i + 2..=i + 3);
-                                    let r: Float = (b.real().clone() / 100) * a.len();
-                                    let r = r.ceil().to_f64() as usize;
-                                    if r > a.len()
-                                    {
-                                        return Err("bad input");
-                                    }
-                                    Num(sort(a)[r.saturating_sub(1)].clone())
-                                }
-                                "percentilerank" =>
-                                {
-                                    if function.len() < i + 3
-                                    {
-                                        return Err("not enough input");
-                                    }
-                                    let mut cf = 0;
-                                    let mut f = 0;
-                                    let b = function[i + 3].num()?;
-                                    function.drain(i + 2..=i + 3);
-                                    for a in sort(a.clone())
-                                    {
-                                        if a.real() < b.real()
-                                        {
-                                            cf += 1;
-                                        }
-                                        else if a == b
-                                        {
-                                            f += 1;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    }
-                                    Num(100 * (cf + Complex::with_val(options.prec, f) / 2)
-                                        / a.len())
-                                }
-                                "tofreq" =>
-                                {
-                                    if a.is_empty()
+                                    if a.len() != 2
                                     {
                                         return Err("bad list");
                                     }
-                                    let mut a = sort(a);
-                                    let mut last = a[0].clone();
-                                    let mut count = 1;
-                                    a.remove(0);
-                                    let mut mat = Vec::new();
-                                    for a in a
+                                    for _ in 0..a[1].real().to_f64() as usize
                                     {
-                                        if a != last
-                                        {
-                                            mat.push(vec![
-                                                last.clone(),
-                                                Complex::with_val(options.prec, count),
-                                            ]);
-                                            last = a;
-                                            count = 0;
-                                        }
-                                        count += 1;
+                                        faces.push(a[0].real().to_f64() as usize)
                                     }
-                                    mat.push(vec![
-                                        last.clone(),
-                                        Complex::with_val(options.prec, count),
-                                    ]);
-                                    Matrix(mat)
                                 }
-                                "standarddeviation" | "σ" =>
+                                if faces.is_empty()
                                 {
-                                    Num(variance(&a, options.prec).sqrt())
+                                    return Err("bad list");
                                 }
-                                "variance" | "var" => Num(variance(&a, options.prec)),
-                                "all" =>
+                                if faces.iter().any(|c| c == &0)
                                 {
-                                    let mut res = true;
-                                    for a in a
+                                    return Err("bad face value");
+                                }
+                                let mut last = vec![Integer::from(1); faces[0]];
+                                let mut current = Vec::new();
+                                if faces.len() != 1
+                                {
+                                    for i in 1..faces.len()
                                     {
-                                        if !(a.imag().is_zero() && a.real() == &1)
+                                        current = Vec::new();
+                                        for p in 0..=(faces[0..=i].iter().sum::<Integer>()
+                                            - (i + 1))
+                                            .to_usize()
+                                            .unwrap()
                                         {
-                                            res = false
+                                            let value = last[if (p + 1) > faces[i]
+                                            {
+                                                p + 1 - faces[i]
+                                            }
+                                            else
+                                            {
+                                                0
+                                            }
+                                                ..=p.min(faces[0..i].iter().sum::<usize>() - i)]
+                                                .iter()
+                                                .sum::<Integer>();
+                                            current.push(value)
                                         }
+                                        last.clone_from(&current)
                                     }
-                                    Num(Complex::with_val(options.prec, res as u8))
                                 }
-                                "any" =>
+                                current.splice(0..0, vec![Integer::new(); faces.len() - 1]);
+                                Vector(
+                                    current
+                                        .iter()
+                                        .map(|a| Complex::with_val(options.prec, a))
+                                        .collect::<Vec<Complex>>(),
+                                )
+                            }
+                            _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
+                        },
+                        Vector(a) => match s.as_str()
+                        {
+                            "tolist" =>
+                            {
+                                let mut vec = Vec::new();
+                                for (i, a) in a.iter().enumerate()
                                 {
-                                    let mut res = false;
-                                    for a in a
+                                    let num = Complex::with_val(options.prec, i + 1);
+                                    for _ in 1..=a.real().to_f64() as usize
                                     {
-                                        if a.imag().is_zero() && a.real() == &1
-                                        {
-                                            res = true
-                                        }
+                                        vec.push(num.clone())
                                     }
-                                    Num(Complex::with_val(options.prec, res as u8))
                                 }
-                                "sort" => Vector(sort(a)),
-                                "mean" => Num(a
+                                if vec.is_empty()
+                                {
+                                    return Err("bad list");
+                                }
+                                Vector(sort(vec))
+                            }
+                            "roll" =>
+                            {
+                                let mut sum: Integer = Integer::new();
+                                let mut i = 0;
+                                while i < a.len()
+                                {
+                                    let n = a[i].real().to_f64() as u64;
+                                    if n == 0
+                                    {
+                                        return Err("bad dice data");
+                                    }
+                                    let max = u64::MAX - u64::MAX.rem(n);
+                                    let rnd = fastrand::u64(..);
+                                    if rnd < max
+                                    {
+                                        sum += rnd.rem(n) + 1;
+                                        i += 1;
+                                    }
+                                }
+                                Num(Complex::with_val(options.prec, sum))
+                            }
+                            "dice" =>
+                            {
+                                let faces = a
                                     .iter()
-                                    .fold(Complex::new(options.prec), |sum, val| sum + val)
-                                    / a.len()),
-                                "median" =>
+                                    .map(|c| c.real().to_f64() as usize)
+                                    .collect::<Vec<usize>>();
+                                if faces.iter().any(|c| c == &0)
                                 {
-                                    let a = sort(a);
-                                    if a.len() % 2 == 0
-                                    {
-                                        Num((a[a.len() / 2 - 1].clone() + a[a.len() / 2].clone())
-                                            / 2)
-                                    }
-                                    else
-                                    {
-                                        Num(a[a.len() / 2].clone())
-                                    }
+                                    return Err("bad face value");
                                 }
-                                "mode" =>
+                                let mut last = vec![Integer::from(1); faces[0]];
+                                let mut current = Vec::new();
+                                if faces.len() != 1
                                 {
-                                    let mut most = (Vec::new(), 0);
-                                    for i in &a
+                                    for i in 1..faces.len()
                                     {
-                                        let mut count = 0;
-                                        for j in &a
+                                        current = Vec::new();
+                                        for p in 0..=(faces[0..=i].iter().sum::<Integer>()
+                                            - (i + 1))
+                                            .to_usize()
+                                            .unwrap()
                                         {
-                                            if i == j
+                                            let value = last[if (p + 1) > faces[i]
                                             {
-                                                count += 1;
+                                                p + 1 - faces[i]
                                             }
+                                            else
+                                            {
+                                                0
+                                            }
+                                                ..=p.min(faces[0..i].iter().sum::<usize>() - i)]
+                                                .iter()
+                                                .sum::<Integer>();
+                                            current.push(value)
                                         }
-                                        if count > most.1
-                                        {
-                                            most = (vec![i.clone()], count);
-                                        }
-                                        if count == most.1 && !most.0.iter().any(|j| i == j)
-                                        {
-                                            most.0.push(i.clone())
-                                        }
+                                        last.clone_from(&current);
                                     }
-                                    if most.0.len() == 1
+                                }
+                                current.splice(0..0, vec![Integer::new(); a.len() - 1]);
+                                Vector(
+                                    current
+                                        .iter()
+                                        .map(|a| Complex::with_val(options.prec, a))
+                                        .collect::<Vec<Complex>>(),
+                                )
+                            }
+                            "quartiles" =>
+                            {
+                                if a.len() < 2
+                                {
+                                    return Err("not enough data");
+                                }
+                                let a = sort(a);
+                                let half1 = &a[0..a.len() / 2];
+                                let half2 = if a.len() % 2 == 0
+                                {
+                                    &a[a.len() / 2..a.len()]
+                                }
+                                else
+                                {
+                                    &a[a.len() / 2 + 1..a.len()]
+                                };
+                                if half1.len() % 2 == 0
+                                {
+                                    Vector(vec![
+                                        (half1[half1.len() / 2 - 1].clone()
+                                            + half1[half1.len() / 2].clone())
+                                            / 2,
+                                        if a.len() % 2 == 0
+                                        {
+                                            (half1[half1.len() - 1].clone() + half2[0].clone()) / 2
+                                        }
+                                        else
+                                        {
+                                            a[a.len() / 2].clone()
+                                        },
+                                        (half2[half2.len() / 2 - 1].clone()
+                                            + half2[half2.len() / 2].clone())
+                                            / 2,
+                                    ])
+                                }
+                                else
+                                {
+                                    Vector(vec![
+                                        half1[half1.len() / 2].clone(),
+                                        if a.len() % 2 == 0
+                                        {
+                                            (half1[half1.len() - 1].clone() + half2[0].clone()) / 2
+                                        }
+                                        else
+                                        {
+                                            a[a.len() / 2].clone()
+                                        },
+                                        half2[half2.len() / 2].clone(),
+                                    ])
+                                }
+                            }
+                            "percentile" =>
+                            {
+                                if function.len() < i + 1
+                                {
+                                    return Err("not enough input");
+                                }
+                                let b = function.remove(i + 1).num()?;
+                                let r: Float = (b.real().clone() / 100) * a.len();
+                                let r = r.ceil().to_f64() as usize;
+                                if r > a.len()
+                                {
+                                    return Err("bad input");
+                                }
+                                Num(sort(a)[r.saturating_sub(1)].clone())
+                            }
+                            "percentilerank" =>
+                            {
+                                if function.len() < i + 1
+                                {
+                                    return Err("not enough input");
+                                }
+                                let mut cf = 0;
+                                let mut f = 0;
+                                let b = function.remove(i + 1).num()?;
+                                for a in sort(a.clone())
+                                {
+                                    if a.real() < b.real()
                                     {
-                                        Num(most.0[0].clone())
+                                        cf += 1;
+                                    }
+                                    else if a == b
+                                    {
+                                        f += 1;
                                     }
                                     else
                                     {
-                                        Vector(most.0)
+                                        break;
                                     }
                                 }
-                                "max" =>
+                                Num(100 * (cf + Complex::with_val(options.prec, f) / 2) / a.len())
+                            }
+                            "tofreq" =>
+                            {
+                                if a.is_empty()
                                 {
-                                    let mut max = a[0].clone();
-                                    for i in a
+                                    return Err("bad list");
+                                }
+                                let mut a = sort(a);
+                                let mut last = a[0].clone();
+                                let mut count = 1;
+                                a.remove(0);
+                                let mut mat = Vec::new();
+                                for a in a
+                                {
+                                    if a != last
                                     {
-                                        if i.real() > max.real()
+                                        mat.push(vec![
+                                            last.clone(),
+                                            Complex::with_val(options.prec, count),
+                                        ]);
+                                        last = a;
+                                        count = 0;
+                                    }
+                                    count += 1;
+                                }
+                                mat.push(vec![
+                                    last.clone(),
+                                    Complex::with_val(options.prec, count),
+                                ]);
+                                Matrix(mat)
+                            }
+                            "standarddeviation" | "σ" => Num(variance(&a, options.prec).sqrt()),
+                            "variance" | "var" => Num(variance(&a, options.prec)),
+                            "all" =>
+                            {
+                                let mut res = true;
+                                for a in a
+                                {
+                                    if !(a.imag().is_zero() && a.real() == &1)
+                                    {
+                                        res = false
+                                    }
+                                }
+                                Num(Complex::with_val(options.prec, res as u8))
+                            }
+                            "any" =>
+                            {
+                                let mut res = false;
+                                for a in a
+                                {
+                                    if a.imag().is_zero() && a.real() == &1
+                                    {
+                                        res = true
+                                    }
+                                }
+                                Num(Complex::with_val(options.prec, res as u8))
+                            }
+                            "sort" => Vector(sort(a)),
+                            "mean" => Num(a
+                                .iter()
+                                .fold(Complex::new(options.prec), |sum, val| sum + val)
+                                / a.len()),
+                            "median" =>
+                            {
+                                let a = sort(a);
+                                if a.len() % 2 == 0
+                                {
+                                    Num((a[a.len() / 2 - 1].clone() + a[a.len() / 2].clone()) / 2)
+                                }
+                                else
+                                {
+                                    Num(a[a.len() / 2].clone())
+                                }
+                            }
+                            "mode" =>
+                            {
+                                let mut most = (Vec::new(), 0);
+                                for i in &a
+                                {
+                                    let mut count = 0;
+                                    for j in &a
+                                    {
+                                        if i == j
                                         {
-                                            max = i
+                                            count += 1;
                                         }
                                     }
-                                    Num(max)
-                                }
-                                "min" =>
-                                {
-                                    let mut min = a[0].clone();
-                                    for i in a
+                                    if count > most.1
                                     {
-                                        if i.real() < min.real()
-                                        {
-                                            min = i
-                                        }
+                                        most = (vec![i.clone()], count);
                                     }
-                                    Num(min)
-                                }
-                                "reverse" => Vector(a.iter().rev().cloned().collect()),
-                                "link" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
+                                    if count == most.1 && !most.0.iter().any(|j| i == j)
                                     {
-                                        let b = function[i + 3].vec()?;
-                                        function.drain(i + 2..i + 4);
-                                        let mut a = a;
-                                        a.extend(b);
-                                        Vector(a)
+                                        most.0.push(i.clone())
+                                    }
+                                }
+                                if most.0.len() == 1
+                                {
+                                    Num(most.0[0].clone())
+                                }
+                                else
+                                {
+                                    Vector(most.0)
+                                }
+                            }
+                            "max" =>
+                            {
+                                let mut max = a[0].clone();
+                                for i in a
+                                {
+                                    if i.real() > max.real()
+                                    {
+                                        max = i
+                                    }
+                                }
+                                Num(max)
+                            }
+                            "min" =>
+                            {
+                                let mut min = a[0].clone();
+                                for i in a
+                                {
+                                    if i.real() < min.real()
+                                    {
+                                        min = i
+                                    }
+                                }
+                                Num(min)
+                            }
+                            "reverse" => Vector(a.iter().rev().cloned().collect()),
+                            "link" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    let b = function.remove(i + 1).vec()?;
+                                    let mut a = a;
+                                    a.extend(b);
+                                    Vector(a)
+                                }
+                                else
+                                {
+                                    return Err("no args");
+                                }
+                            }
+                            "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
+                            "norm" =>
+                            {
+                                let mut n = Complex::new(options.prec);
+                                for i in a
+                                {
+                                    n += i.abs().pow(2);
+                                }
+                                Num(n.sqrt())
+                            }
+                            "normalize" =>
+                            {
+                                let mut n = Complex::new(options.prec);
+                                for i in a.clone()
+                                {
+                                    n += i.pow(2);
+                                }
+                                Vector(a.iter().map(|x| x / n.clone().sqrt()).collect())
+                            }
+                            "car" | "cartesian" =>
+                            {
+                                if a.len() == 2
+                                {
+                                    let t = a[1].clone() / to_deg.clone();
+                                    Vector(vec![
+                                        a[0].clone() * t.clone().cos(),
+                                        a[0].clone() * t.clone().sin(),
+                                    ])
+                                }
+                                else if a.len() == 3
+                                {
+                                    let t1 = a[1].clone() / to_deg.clone();
+                                    let t2 = a[2].clone() / to_deg.clone();
+                                    Vector(vec![
+                                        a[0].clone() * t1.clone().sin() * t2.clone().cos(),
+                                        a[0].clone() * t1.clone().sin() * t2.clone().sin(),
+                                        a[0].clone() * t1.clone().cos(),
+                                    ])
+                                }
+                                else
+                                {
+                                    return Err("incorrect polar form");
+                                }
+                            }
+                            "polar" | "pol" => Vector(to_polar(a.clone(), to_deg.clone())),
+                            "angle" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    let b = function.remove(i + 1).vec()?;
+                                    if a.len() == 3 && b.len() == 3
+                                    {
+                                        let c: Complex = a[0].clone().pow(2)
+                                            + a[1].clone().pow(2)
+                                            + a[2].clone().pow(2);
+                                        let d: Complex = b[0].clone().pow(2)
+                                            + b[1].clone().pow(2)
+                                            + b[2].clone().pow(2);
+                                        Num(((a[0].clone() * b[0].clone()
+                                            + a[1].clone() * b[1].clone()
+                                            + a[2].clone() * b[2].clone())
+                                            / (c.sqrt() * d.sqrt()))
+                                        .acos()
+                                            * to_deg.clone())
+                                    }
+                                    else if a.len() == 2 && b.len() == 2
+                                    {
+                                        let c: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+                                        let d: Complex = b[0].clone().pow(2) + b[1].clone().pow(2);
+                                        Num(((a[0].clone() * b[0].clone()
+                                            + a[1].clone() * b[1].clone())
+                                            / (c.sqrt() * d.sqrt()))
+                                        .acos()
+                                            * to_deg.clone())
                                     }
                                     else
                                     {
-                                        return Err("no args");
+                                        return Err("cant decern angles");
                                     }
                                 }
-                                "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
-                                "norm" =>
+                                else
+                                {
+                                    return Err("no args");
+                                }
+                            }
+                            "cross" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    let b = function.remove(i + 1).vec()?;
+                                    if a.len() == 3 && b.len() == 3
+                                    {
+                                        Vector(vec![
+                                            a[1].clone() * &b[2] - a[2].clone() * &b[1],
+                                            a[2].clone() * &b[0] - a[0].clone() * &b[2],
+                                            a[0].clone() * &b[1] - a[1].clone() * &b[0],
+                                        ])
+                                    }
+                                    else if a.len() == 2 && b.len() == 2
+                                    {
+                                        Num(a[0].clone() * &b[1] - a[1].clone() * &b[0])
+                                    }
+                                    else
+                                    {
+                                        return Err("cant cross");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("no args");
+                                }
+                            }
+                            "project" | "proj" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    let b = function.remove(i + 1).clone();
+                                    if b.vec()?.len() == a.len()
+                                    {
+                                        let mut dot = Complex::new(options.prec);
+                                        for i in a.iter().zip(b.vec()?.iter()).map(|(a, b)| a * b)
+                                        {
+                                            dot += i;
+                                        }
+                                        let mut norm = Complex::new(options.prec);
+                                        for i in b.vec()?
+                                        {
+                                            norm += i.abs().pow(2);
+                                        }
+                                        Num(dot / norm).mul(&b)?
+                                    }
+                                    else
+                                    {
+                                        return Err("cant project");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("no args");
+                                }
+                            }
+                            "dot" =>
+                            {
+                                if function.len() > i + 1
                                 {
                                     let mut n = Complex::new(options.prec);
                                     for i in a
+                                        .iter()
+                                        .zip(function.remove(i + 1).vec()?.iter())
+                                        .map(|(a, b)| a * b)
                                     {
-                                        n += i.abs().pow(2);
+                                        n += i;
                                     }
-                                    Num(n.sqrt())
+                                    Num(n)
                                 }
-                                "normalize" =>
+                                else
                                 {
-                                    let mut n = Complex::new(options.prec);
-                                    for i in a.clone()
-                                    {
-                                        n += i.pow(2);
-                                    }
-                                    Vector(a.iter().map(|x| x / n.clone().sqrt()).collect())
+                                    return Err("no args");
                                 }
-                                "car" | "cartesian" =>
+                            }
+                            "part" =>
+                            {
+                                if function.len() > i + 1
                                 {
-                                    if a.len() == 2
+                                    match function.remove(i + 1)
                                     {
-                                        let t = a[1].clone() / to_deg.clone();
-                                        Vector(vec![
-                                            a[0].clone() * t.clone().cos(),
-                                            a[0].clone() * t.clone().sin(),
-                                        ])
-                                    }
-                                    else if a.len() == 3
-                                    {
-                                        let t1 = a[1].clone() / to_deg.clone();
-                                        let t2 = a[2].clone() / to_deg.clone();
-                                        Vector(vec![
-                                            a[0].clone() * t1.clone().sin() * t2.clone().cos(),
-                                            a[0].clone() * t1.clone().sin() * t2.clone().sin(),
-                                            a[0].clone() * t1.clone().cos(),
-                                        ])
-                                    }
-                                    else
-                                    {
-                                        return Err("incorrect polar form");
-                                    }
-                                }
-                                "polar" | "pol" => Vector(to_polar(a.clone(), to_deg.clone())),
-                                "angle" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
-                                    {
-                                        let b = function[i + 3].vec()?;
-                                        function.drain(i + 2..i + 4);
-                                        if a.len() == 3 && b.len() == 3
+                                        Num(b) =>
                                         {
-                                            let c: Complex = a[0].clone().pow(2)
-                                                + a[1].clone().pow(2)
-                                                + a[2].clone().pow(2);
-                                            let d: Complex = b[0].clone().pow(2)
-                                                + b[1].clone().pow(2)
-                                                + b[2].clone().pow(2);
-                                            Num(((a[0].clone() * b[0].clone()
-                                                + a[1].clone() * b[1].clone()
-                                                + a[2].clone() * b[2].clone())
-                                                / (c.sqrt() * d.sqrt()))
-                                            .acos()
-                                                * to_deg.clone())
-                                        }
-                                        else if a.len() == 2 && b.len() == 2
-                                        {
-                                            let c: Complex =
-                                                a[0].clone().pow(2) + a[1].clone().pow(2);
-                                            let d: Complex =
-                                                b[0].clone().pow(2) + b[1].clone().pow(2);
-                                            Num(((a[0].clone() * b[0].clone()
-                                                + a[1].clone() * b[1].clone())
-                                                / (c.sqrt() * d.sqrt()))
-                                            .acos()
-                                                * to_deg.clone())
-                                        }
-                                        else
-                                        {
-                                            return Err("cant decern angles");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        return Err("no args");
-                                    }
-                                }
-                                "cross" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
-                                    {
-                                        let b = function[i + 3].vec()?;
-                                        function.drain(i + 2..i + 4);
-                                        if a.len() == 3 && b.len() == 3
-                                        {
-                                            Vector(vec![
-                                                a[1].clone() * &b[2] - a[2].clone() * &b[1],
-                                                a[2].clone() * &b[0] - a[0].clone() * &b[2],
-                                                a[0].clone() * &b[1] - a[1].clone() * &b[0],
-                                            ])
-                                        }
-                                        else if a.len() == 2 && b.len() == 2
-                                        {
-                                            Num(a[0].clone() * &b[1] - a[1].clone() * &b[0])
-                                        }
-                                        else
-                                        {
-                                            return Err("cant cross");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        return Err("no args");
-                                    }
-                                }
-                                "project" | "proj" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
-                                    {
-                                        let b = function[i + 3].clone();
-                                        if b.vec()?.len() == a.len()
-                                        {
-                                            let mut dot = Complex::new(options.prec);
-                                            for i in
-                                                a.iter().zip(b.vec()?.iter()).map(|(a, b)| a * b)
+                                            let n = b.clone().real().to_f64() as usize;
+                                            if n <= a.len() && n != 0
                                             {
-                                                dot += i;
+                                                Num(a[n - 1].clone())
                                             }
-                                            let mut norm = Complex::new(options.prec);
-                                            for i in b.vec()?
+                                            else
                                             {
-                                                norm += i.abs().pow(2);
+                                                return Err("out of range");
                                             }
-                                            function.drain(i + 2..i + 4);
-                                            Num(dot / norm).mul(&b)?
                                         }
-                                        else
+                                        Vector(b) =>
                                         {
-                                            return Err("cant project");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        return Err("no args");
-                                    }
-                                }
-                                "dot" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
-                                    {
-                                        let mut n = Complex::new(options.prec);
-                                        for i in a
-                                            .iter()
-                                            .zip(function[i + 3].vec()?.iter())
-                                            .map(|(a, b)| a * b)
-                                        {
-                                            n += i;
-                                        }
-                                        function.drain(i + 2..i + 4);
-                                        Num(n)
-                                    }
-                                    else
-                                    {
-                                        return Err("no args");
-                                    }
-                                }
-                                "part" =>
-                                {
-                                    if function.len() > i + 3 && function[i + 2].str_is(",")
-                                    {
-                                        match function[i + 3].clone()
-                                        {
-                                            Num(b) =>
+                                            let mut vec = Vec::new();
+                                            for i in b
                                             {
-                                                function.drain(i + 2..i + 4);
-                                                let n = b.clone().real().to_f64() as usize;
+                                                let n = i.clone().real().to_f64() as usize;
                                                 if n <= a.len() && n != 0
                                                 {
-                                                    Num(a[n - 1].clone())
+                                                    vec.push(a[n - 1].clone());
                                                 }
                                                 else
                                                 {
                                                     return Err("out of range");
                                                 }
                                             }
-                                            Vector(b) =>
-                                            {
-                                                function.drain(i + 2..i + 4);
-                                                let mut vec = Vec::new();
-                                                for i in b
-                                                {
-                                                    let n = i.clone().real().to_f64() as usize;
-                                                    if n <= a.len() && n != 0
-                                                    {
-                                                        vec.push(a[n - 1].clone());
-                                                    }
-                                                    else
-                                                    {
-                                                        return Err("out of range");
-                                                    }
-                                                }
-                                                Vector(vec)
-                                            }
-                                            _ => return Err("non num/vec"),
+                                            Vector(vec)
                                         }
-                                    }
-                                    else
-                                    {
-                                        return Err("no args");
+                                        _ => return Err("non num/vec"),
                                     }
                                 }
-                                "split" => Matrix(
-                                    a.iter()
-                                        .map(|a| {
-                                            vec![
-                                                (*a.real()).clone().into(),
-                                                (*a.imag()).clone().into(),
-                                            ]
-                                        })
-                                        .collect::<Vec<Vec<Complex>>>(),
-                                ),
-                                "factors" | "factor" =>
+                                else
                                 {
-                                    let mut mat = Vec::new();
-                                    for num in a
-                                    {
-                                        if num.imag().clone().is_zero()
-                                        {
-                                            if num.real().clone().fract().is_zero()
-                                            {
-                                                let mut vec = Vec::new();
-                                                let n = num.real().to_f64() as usize;
-                                                for i in 1..=n
-                                                {
-                                                    if n % i == 0
-                                                    {
-                                                        vec.push(Complex::with_val(
-                                                            options.prec,
-                                                            i,
-                                                        ));
-                                                    }
-                                                }
-                                                mat.push(vec);
-                                            }
-                                            else
-                                            {
-                                                return Err("fractional factors not supported");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            return Err("complex factors not supported");
-                                        }
-                                    }
-                                    Matrix(mat)
+                                    return Err("no args");
                                 }
-                                _ => do_functions(
-                                    function[i + 1].clone(),
-                                    options,
-                                    &mut function,
-                                    i,
-                                    &to_deg,
-                                    s,
-                                )?,
-                            };
-                            function.remove(i + 1);
-                        }
-                        _ =>
-                        {
-                            function[i] = match s.as_str()
+                            }
+                            "split" => Matrix(
+                                a.iter()
+                                    .map(|a| {
+                                        vec![(*a.real()).clone().into(), (*a.imag()).clone().into()]
+                                    })
+                                    .collect::<Vec<Vec<Complex>>>(),
+                            ),
+                            "factors" | "factor" =>
                             {
-                                "multinomial" =>
+                                let mut mat = Vec::new();
+                                for num in a
                                 {
-                                    let mut numerator: Complex = function[i + 1].num()? + 1;
-                                    let mut divisor = gamma(numerator.clone());
-                                    let mut j = i + 1;
-                                    while j + 1 < function.len() && function[j + 1].str_is(",")
+                                    if num.imag().clone().is_zero()
                                     {
-                                        j += 2;
-                                        let temp = function[j].num()?;
-                                        numerator += temp.clone();
-                                        let temp = temp.clone() + 1;
-                                        divisor *= gamma(temp);
-                                    }
-                                    function.drain(i + 2..=j);
-                                    Num(gamma(numerator) / divisor)
-                                }
-                                "Β" | "B" | "beta" =>
-                                {
-                                    if i + 3 < function.len()
-                                    {
-                                        let a = function[i + 1].num()?;
-                                        let b = function[i + 3].num()?;
-                                        if i + 4 < function.len() && function[i + 4].str_is(",")
-                                        {
-                                            let x = function[i + 5].num()?;
-                                            function.drain(i + 2..i + 6);
-                                            Num(incomplete_beta(a, b, x))
-                                        }
-                                        else if a.imag().is_zero() && b.imag().is_zero()
-                                        {
-                                            function.drain(i + 2..i + 4);
-                                            Num(gamma(a.clone()) * gamma(b.clone())
-                                                / gamma(a + b.clone()))
-                                        }
-                                        else
-                                        {
-                                            function.drain(i + 2..i + 4);
-                                            Num(incomplete_beta(
-                                                Complex::with_val(options.prec, 1),
-                                                a,
-                                                b,
-                                            ))
-                                        }
-                                    }
-                                    else
-                                    {
-                                        return Err("not enough args");
-                                    }
-                                }
-                                "I" | "betaC" =>
-                                {
-                                    if i + 5 < function.len()
-                                    {
-                                        let a = function[i + 1].num()?;
-                                        let b = function[i + 3].num()?;
-                                        let x = function[i + 5].num()?;
-                                        function.drain(i + 2..i + 6);
-                                        Num(gamma(x.clone() + b.clone())
-                                            * incomplete_beta(a, b.clone(), x.clone())
-                                            / (gamma(x) * gamma(b)))
-                                    }
-                                    else
-                                    {
-                                        return Err("not enough args");
-                                    }
-                                }
-                                "betaP" =>
-                                {
-                                    if i + 5 < function.len()
-                                    {
-                                        let alpha = function[i + 1].num()?;
-                                        let beta = function[i + 3].num()?;
-                                        let x = function[i + 5].num()?;
-                                        function.drain(i + 2..i + 6);
-                                        let c: Complex = 1 - x.clone();
-                                        Num(gamma(alpha.clone() + beta.clone())
-                                            * x.pow(alpha.clone() - 1)
-                                            * c.pow(beta.clone() - 1)
-                                            / (gamma(alpha) * gamma(beta)))
-                                    }
-                                    else
-                                    {
-                                        return Err("not enough args");
-                                    }
-                                }
-                                "normP" =>
-                                {
-                                    if i + 5 < function.len()
-                                    {
-                                        let mu = function[i + 1].num()?;
-                                        let sigma = function[i + 3].num()?;
-                                        let x = function[i + 5].num()?;
-                                        function.drain(i + 2..i + 6);
-                                        let n: Complex = (x - mu).pow(2);
-                                        let n: Complex = -n / (2 * sigma.clone().pow(2));
-                                        let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
-                                        Num(n.exp() / (sigma * tau.sqrt()))
-                                    }
-                                    else
-                                    {
-                                        return Err("not enough args");
-                                    }
-                                }
-                                "cubic" =>
-                                {
-                                    if i + 9 < function.len() && function[i + 8].str_is(",")
-                                    {
-                                        let a = function[i + 1].num()?;
-                                        let b = function[i + 3].num()?;
-                                        let c = function[i + 5].num()?;
-                                        let d = function[i + 7].num()?;
-                                        let real = !function[i + 9].num()?.is_zero();
-                                        function.drain(i + 2..i + 10);
-                                        let n = cubic(a, b, c, d, real);
-                                        if n.len() == 1
-                                        {
-                                            Num(n[0].clone())
-                                        }
-                                        else
-                                        {
-                                            Vector(n)
-                                        }
-                                    }
-                                    else if i + 7 < function.len() && function[i + 6].str_is(",")
-                                    {
-                                        let a = function[i + 1].num()?;
-                                        let b = function[i + 3].num()?;
-                                        let c = function[i + 5].num()?;
-                                        let d = function[i + 7].num()?;
-                                        function.drain(i + 2..i + 8);
-                                        Vector(cubic(a, b, c, d, false))
-                                    }
-                                    else if i + 5 < function.len()
-                                    {
-                                        let b = function[i + 1].num()?;
-                                        let c = function[i + 3].num()?;
-                                        let d = function[i + 5].num()?;
-                                        function.drain(i + 2..i + 6);
-                                        Vector(cubic(
-                                            Complex::with_val(options.prec, 1),
-                                            b,
-                                            c,
-                                            d,
-                                            false,
-                                        ))
-                                    }
-                                    else
-                                    {
-                                        return Err("not enough args");
-                                    }
-                                }
-                                "quad" | "quadratic" =>
-                                {
-                                    if i + 7 < function.len() && function[i + 6].str_is(",")
-                                    {
-                                        let a = function[i + 1].num()?;
-                                        let b = function[i + 3].num()?;
-                                        let c = function[i + 5].num()?;
-                                        let real = !function[i + 7].num()?.is_zero();
-                                        function.drain(i + 2..i + 8);
-                                        let n = quadratic(a, b, c, real);
-                                        if n.is_empty()
-                                        {
-                                            Num(Complex::with_val(options.prec, Nan))
-                                        }
-                                        else if n.len() == 1
-                                        {
-                                            Num(n[0].clone())
-                                        }
-                                        else
-                                        {
-                                            Vector(n)
-                                        }
-                                    }
-                                    else if i + 5 < function.len() && function[i + 4].str_is(",")
-                                    {
-                                        let a = function[i + 1].num()?;
-                                        let b = function[i + 3].num()?;
-                                        let c = function[i + 5].num()?;
-                                        function.drain(i + 2..i + 6);
-                                        Vector(quadratic(a, b, c, false))
-                                    }
-                                    else if i + 3 < function.len()
-                                    {
-                                        let b = function[i + 1].num()?;
-                                        let c = function[i + 3].num()?;
-                                        function.drain(i + 2..i + 4);
-                                        Vector(quadratic(
-                                            Complex::with_val(options.prec, 1),
-                                            b,
-                                            c,
-                                            false,
-                                        ))
-                                    }
-                                    else
-                                    {
-                                        return Err("not enough args");
-                                    }
-                                }
-                                "split" =>
-                                {
-                                    let a = function[i + 1].num()?;
-                                    Vector(vec![
-                                        (*a.real()).clone().into(),
-                                        (*a.imag()).clone().into(),
-                                    ])
-                                }
-                                "iden" | "identity" => Matrix(identity(
-                                    function[i + 1].num()?.real().to_f64() as usize,
-                                    options.prec,
-                                )),
-                                "rotate" =>
-                                {
-                                    let a = function[i + 1].num()? / to_deg.clone();
-                                    Matrix(vec![
-                                        vec![a.clone().cos(), -a.clone().sin()],
-                                        vec![a.clone().sin(), a.cos()],
-                                    ])
-                                }
-                                "factors" | "factor" =>
-                                {
-                                    let a = function[i + 1].num()?;
-                                    if a.imag().clone().is_zero()
-                                    {
-                                        if a.real().clone().fract().is_zero()
+                                        if num.real().clone().fract().is_zero()
                                         {
                                             let mut vec = Vec::new();
-                                            let n = a.real().to_f64() as usize;
+                                            let n = num.real().to_f64() as usize;
                                             for i in 1..=n
                                             {
                                                 if n % i == 0
@@ -1954,7 +1628,7 @@ pub fn do_math(
                                                     vec.push(Complex::with_val(options.prec, i));
                                                 }
                                             }
-                                            Vector(vec)
+                                            mat.push(vec);
                                         }
                                         else
                                         {
@@ -1966,42 +1640,268 @@ pub fn do_math(
                                         return Err("complex factors not supported");
                                     }
                                 }
-                                _ => do_functions(
-                                    function[i + 1].clone(),
-                                    options,
-                                    &mut function,
-                                    i,
-                                    &to_deg,
-                                    s,
-                                )?,
-                            };
-                            function.remove(i + 1);
-                        }
+                                Matrix(mat)
+                            }
+                            _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
+                        },
+                        _ => match s.as_str()
+                        {
+                            "multinomial" =>
+                            {
+                                let mut numerator: Complex = arg.num()? + 1;
+                                let mut divisor = gamma(numerator.clone());
+                                while i + 1 < function.len()
+                                {
+                                    let temp = function.remove(i + 1).num()?;
+                                    numerator += temp.clone();
+                                    let temp = temp.clone() + 1;
+                                    divisor *= gamma(temp);
+                                }
+                                Num(gamma(numerator) / divisor)
+                            }
+                            "Β" | "B" | "beta" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    let a = arg.num()?;
+                                    let b = function.remove(i + 1).num()?;
+                                    if i + 1 < function.len()
+                                    {
+                                        let x = function.remove(i + 1).num()?;
+                                        Num(incomplete_beta(a, b, x))
+                                    }
+                                    else if a.imag().is_zero() && b.imag().is_zero()
+                                    {
+                                        Num(gamma(a.clone()) * gamma(b.clone())
+                                            / gamma(a + b.clone()))
+                                    }
+                                    else
+                                    {
+                                        Num(incomplete_beta(
+                                            Complex::with_val(options.prec, 1),
+                                            a,
+                                            b,
+                                        ))
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "I" | "betaC" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let a = arg.num()?;
+                                    let b = function.remove(i + 1).num()?;
+                                    let x = function.remove(i + 1).num()?;
+                                    Num(gamma(x.clone() + b.clone())
+                                        * incomplete_beta(a, b.clone(), x.clone())
+                                        / (gamma(x) * gamma(b)))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "betaP" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let alpha = arg.num()?;
+                                    let beta = function.remove(i + 1).num()?;
+                                    let x = function.remove(i + 1).num()?;
+                                    let c: Complex = 1 - x.clone();
+                                    Num(gamma(alpha.clone() + beta.clone())
+                                        * x.pow(alpha.clone() - 1)
+                                        * c.pow(beta.clone() - 1)
+                                        / (gamma(alpha) * gamma(beta)))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "normP" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let mu = arg.num()?;
+                                    let sigma = function.remove(i + 1).num()?;
+                                    let x = function.remove(i + 1).num()?;
+                                    let n: Complex = (x - mu).pow(2);
+                                    let n: Complex = -n / (2 * sigma.clone().pow(2));
+                                    let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
+                                    Num(n.exp() / (sigma * tau.sqrt()))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "normD" =>
+                            {
+                                let mut a = arg.num()?;
+                                if i + 2 < function.len()
+                                {
+                                    a -= function.remove(i + 1).num()?;
+                                    a /= function.remove(i + 1).num()?;
+                                }
+                                if a.imag().is_zero()
+                                {
+                                    let two = Float::with_val(options.prec.0, 2);
+                                    Num(((-a / two.clone().sqrt()).real().clone().erfc() / two)
+                                        .into())
+                                }
+                                else
+                                {
+                                    let two = Float::with_val(options.prec.0, 2);
+                                    Num(erf(-a / two.clone().sqrt()) / two)
+                                }
+                            }
+                            "cubic" =>
+                            {
+                                if i + 4 < function.len()
+                                {
+                                    let a = arg.num()?;
+                                    let b = function.remove(i + 1).num()?;
+                                    let c = function.remove(i + 1).num()?;
+                                    let d = function.remove(i + 1).num()?;
+                                    let real = !function.remove(i + 1).num()?.is_zero();
+                                    let n = cubic(a, b, c, d, real);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
+                                }
+                                else if i + 3 < function.len()
+                                {
+                                    let a = arg.num()?;
+                                    let b = function.remove(i + 1).num()?;
+                                    let c = function.remove(i + 1).num()?;
+                                    let d = function.remove(i + 1).num()?;
+                                    Vector(cubic(a, b, c, d, false))
+                                }
+                                else if i + 2 < function.len()
+                                {
+                                    let b = arg.num()?;
+                                    let c = function.remove(i + 1).num()?;
+                                    let d = function.remove(i + 1).num()?;
+                                    Vector(cubic(
+                                        Complex::with_val(options.prec, 1),
+                                        b,
+                                        c,
+                                        d,
+                                        false,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "quad" | "quadratic" =>
+                            {
+                                if i + 3 < function.len()
+                                {
+                                    let a = arg.num()?;
+                                    let b = function.remove(i + 1).num()?;
+                                    let c = function.remove(i + 1).num()?;
+                                    let real = !function.remove(i + 1).num()?.is_zero();
+                                    let n = quadratic(a, b, c, real);
+                                    if n.is_empty()
+                                    {
+                                        Num(Complex::with_val(options.prec, Nan))
+                                    }
+                                    else if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
+                                }
+                                else if i + 2 < function.len()
+                                {
+                                    let a = arg.num()?;
+                                    let b = function.remove(i + 1).num()?;
+                                    let c = function.remove(i + 1).num()?;
+                                    Vector(quadratic(a, b, c, false))
+                                }
+                                else if i + 1 < function.len()
+                                {
+                                    let b = arg.num()?;
+                                    let c = function.remove(i + 1).num()?;
+                                    Vector(quadratic(
+                                        Complex::with_val(options.prec, 1),
+                                        b,
+                                        c,
+                                        false,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "split" =>
+                            {
+                                let a = arg.num()?;
+                                Vector(vec![(*a.real()).clone().into(), (*a.imag()).clone().into()])
+                            }
+                            "iden" | "identity" =>
+                            {
+                                Matrix(identity(arg.num()?.real().to_f64() as usize, options.prec))
+                            }
+                            "rotate" =>
+                            {
+                                let a = arg.num()? / to_deg.clone();
+                                Matrix(vec![
+                                    vec![a.clone().cos(), -a.clone().sin()],
+                                    vec![a.clone().sin(), a.cos()],
+                                ])
+                            }
+                            "factors" | "factor" =>
+                            {
+                                let a = arg.num()?;
+                                if a.imag().clone().is_zero()
+                                {
+                                    if a.real().clone().fract().is_zero()
+                                    {
+                                        let mut vec = Vec::new();
+                                        let n = a.real().to_f64() as usize;
+                                        for i in 1..=n
+                                        {
+                                            if n % i == 0
+                                            {
+                                                vec.push(Complex::with_val(options.prec, i));
+                                            }
+                                        }
+                                        Vector(vec)
+                                    }
+                                    else
+                                    {
+                                        return Err("fractional factors not supported");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("complex factors not supported");
+                                }
+                            }
+                            _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
+                        },
                     }
                 }
             }
         }
         i += 1;
-    }
-    i = 0;
-    while i < function.len()
-    {
-        if let Str(s) = &function[i]
-        {
-            match s.as_str()
-            {
-                "rnd" =>
-                {
-                    function[i] = Num(Complex::with_val(options.prec, fastrand::u64(..))
-                        / Complex::with_val(options.prec, u64::MAX))
-                }
-                _ => i += 1,
-            }
-        }
-        else
-        {
-            i += 1;
-        }
     }
     i = 1;
     while i < function.len() - 1
@@ -2191,15 +2091,18 @@ fn do_functions(
     s: &str,
 ) -> Result<NumStr, &'static str>
 {
-    if function.len() > k + 3 && function[k + 2].str_is(",")
+    if function.len() > k + 1
     {
-        let b = function[k + 3].clone();
-        function.drain(k + 2..k + 4);
-        match (a, b)
+        match (a.clone(), function[k + 1].clone())
         {
-            (Num(a), Num(b)) => Ok(Num(functions(a, Some(b), to_deg.clone(), s, options)?)),
+            (Num(a), Num(b)) =>
+            {
+                function.remove(k + 1);
+                return Ok(Num(functions(a, Some(b), to_deg.clone(), s, options)?));
+            }
             (Vector(a), Vector(b)) =>
             {
+                function.remove(k + 1);
                 let mut mat = Vec::new();
                 for a in a
                 {
@@ -2216,10 +2119,11 @@ fn do_functions(
                     }
                     mat.push(vec);
                 }
-                Ok(Matrix(mat))
+                return Ok(Matrix(mat));
             }
             (Matrix(a), Matrix(b)) if a.len() == b.len() && a[0].len() == b[0].len() =>
             {
+                function.remove(k + 1);
                 let mut mat = Vec::new();
                 for i in 0..a.len()
                 {
@@ -2236,28 +2140,31 @@ fn do_functions(
                     }
                     mat.push(vec.clone());
                 }
-                Ok(Matrix(mat))
+                return Ok(Matrix(mat));
             }
             (Num(a), Vector(b)) =>
             {
+                function.remove(k + 1);
                 let mut vec = Vec::new();
                 for i in b
                 {
                     vec.push(functions(a.clone(), Some(i), to_deg.clone(), s, options)?)
                 }
-                Ok(Vector(vec))
+                return Ok(Vector(vec));
             }
             (Vector(a), Num(b)) =>
             {
+                function.remove(k + 1);
                 let mut vec = Vec::new();
                 for i in a
                 {
                     vec.push(functions(i, Some(b.clone()), to_deg.clone(), s, options)?)
                 }
-                Ok(Vector(vec))
+                return Ok(Vector(vec));
             }
             (Num(a), Matrix(b)) =>
             {
+                function.remove(k + 1);
                 let mut mat = Vec::new();
                 for i in b
                 {
@@ -2268,10 +2175,11 @@ fn do_functions(
                     }
                     mat.push(vec.clone());
                 }
-                Ok(Matrix(mat))
+                return Ok(Matrix(mat));
             }
             (Matrix(a), Num(b)) =>
             {
+                function.remove(k + 1);
                 let mut mat = Vec::new();
                 for i in a
                 {
@@ -2282,10 +2190,11 @@ fn do_functions(
                     }
                     mat.push(vec.clone());
                 }
-                Ok(Matrix(mat))
+                return Ok(Matrix(mat));
             }
             (Matrix(a), Vector(b)) if a.len() == b.len() =>
             {
+                function.remove(k + 1);
                 let mut mat = Vec::new();
                 for i in 0..a.len()
                 {
@@ -2302,10 +2211,11 @@ fn do_functions(
                     }
                     mat.push(vec.clone());
                 }
-                Ok(Matrix(mat))
+                return Ok(Matrix(mat));
             }
             (Vector(a), Matrix(b)) if a.len() == b.len() =>
             {
+                function.remove(k + 1);
                 let mut mat = Vec::new();
                 for i in 0..b.len()
                 {
@@ -2322,41 +2232,39 @@ fn do_functions(
                     }
                     mat.push(vec.clone());
                 }
-                Ok(Matrix(mat))
+                return Ok(Matrix(mat));
             }
-            _ => Err("str err2"),
+            _ =>
+            {}
         }
     }
-    else
+    match a
     {
-        match a
+        Matrix(a) =>
         {
-            Matrix(a) =>
-            {
-                let mut mat = Vec::new();
-                for i in a
-                {
-                    let mut vec = Vec::new();
-                    for j in i
-                    {
-                        vec.push(functions(j, None, to_deg.clone(), s, options)?)
-                    }
-                    mat.push(vec.clone());
-                }
-                Ok(Matrix(mat))
-            }
-            Vector(a) =>
+            let mut mat = Vec::new();
+            for i in a
             {
                 let mut vec = Vec::new();
-                for i in a
+                for j in i
                 {
-                    vec.push(functions(i, None, to_deg.clone(), s, options)?)
+                    vec.push(functions(j, None, to_deg.clone(), s, options)?)
                 }
-                Ok(Vector(vec))
+                mat.push(vec.clone());
             }
-            Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, options)?)),
-            _ => Err("str err1"),
+            Ok(Matrix(mat))
         }
+        Vector(a) =>
+        {
+            let mut vec = Vec::new();
+            for i in a
+            {
+                vec.push(functions(i, None, to_deg.clone(), s, options)?)
+            }
+            Ok(Vector(vec))
+        }
+        Num(a) => Ok(Num(functions(a, None, to_deg.clone(), s, options)?)),
+        _ => Err("str err1"),
     }
 }
 fn functions(
@@ -2715,19 +2623,6 @@ fn functions(
         }
         "sinc" => a.clone().sin() / a,
         "conj" | "conjugate" => a.conj(),
-        "normD" =>
-        {
-            if a.imag().is_zero()
-            {
-                let two = Float::with_val(options.prec.0, 2);
-                ((-a / two.clone().sqrt()).real().clone().erfc() / two).into()
-            }
-            else
-            {
-                let two = Float::with_val(options.prec.0, 2);
-                erf(-a / two.clone().sqrt()) / two
-            }
-        }
         "erf" =>
         {
             if a.imag().is_zero()

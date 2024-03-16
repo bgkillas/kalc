@@ -43,8 +43,11 @@ use std::{
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //stop vectors or matrixes disipearing graphically
 //maybe nth area, make -nth go into the other function
+//allow setting x and y window dimensions of gnuplot, defaulting to what happens now
+//setting to disable default vars by default, in config
 //use lines if an infinity slope is detected for length
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
+//support 'dumb' gnuplot terminal
 #[derive(Clone)]
 pub struct Variable
 {
@@ -279,7 +282,8 @@ fn main()
         "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
         var("USERNAME").unwrap()
     );
-    let mut vars: Vec<Variable> = if options.allow_vars || options.interactive
+    let mut vars: Vec<Variable> = if options.allow_vars
+        && (options.interactive || options.stay_interactive)
     {
         get_vars(options)
     }

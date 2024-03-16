@@ -181,11 +181,11 @@ pub fn graph(
             {
                 Auto
             };
-            if options.lines || lines
+            if (options.lines || lines) && lines ^ options.lines
             {
                 fg.axes2d()
-                    .set_x_grid(true)
-                    .set_y_grid(true)
+                    .set_x_grid(!cli)
+                    .set_y_grid(!cli)
                     .set_aspect_ratio(ratio)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
@@ -311,8 +311,8 @@ pub fn graph(
             else
             {
                 fg.axes2d()
-                    .set_x_grid(true)
-                    .set_y_grid(true)
+                    .set_x_grid(!cli)
+                    .set_y_grid(!cli)
                     .set_aspect_ratio(ratio)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
@@ -547,9 +547,9 @@ pub fn graph(
                 && (points3d[0][0][2].is_empty() || points3d[0][1][2].is_empty())
             {
                 fg.axes3d()
-                    .set_x_grid(true)
-                    .set_y_grid(true)
-                    .set_z_grid(true)
+                    .set_x_grid(!cli)
+                    .set_y_grid(!cli)
+                    .set_z_grid(!cli)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis)], &[])
                     .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis)], &[])
@@ -579,9 +579,9 @@ pub fn graph(
             else if options.lines || lines
             {
                 fg.axes3d()
-                    .set_x_grid(true)
-                    .set_y_grid(true)
-                    .set_z_grid(true)
+                    .set_x_grid(!cli)
+                    .set_y_grid(!cli)
+                    .set_z_grid(!cli)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis)], &[])
                     .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis)], &[])
@@ -763,9 +763,9 @@ pub fn graph(
             else
             {
                 fg.axes3d()
-                    .set_x_grid(true)
-                    .set_y_grid(true)
-                    .set_z_grid(true)
+                    .set_x_grid(!cli)
+                    .set_y_grid(!cli)
+                    .set_z_grid(!cli)
                     .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis)], &[])
                     .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis)], &[])
                     .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis)], &[])

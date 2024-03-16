@@ -23,7 +23,6 @@ pub enum NumStr
     Str(String),
     Vector(Vec<Complex>),
     Matrix(Vec<Vec<Complex>>),
-    Args(Vec<Vec<NumStr>>),
 }
 impl NumStr
 {

@@ -198,7 +198,7 @@ pub fn print_concurrent(
             };
             if out.is_empty()
             {
-                clearln(unmodified_input, start, end, options, &colors);
+                clear(unmodified_input, start, end, options, &colors);
                 return (0, false, false, true);
             }
             let (width, height) = get_terminal_dimensions();

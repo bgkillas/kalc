@@ -1012,7 +1012,12 @@ pub fn do_math(
                                     {
                                         return Err("bad dice data");
                                     }
-                                    let n = i[0].real().to_f64() as u64;
+                                    let a = i[0].real().to_f64();
+                                    if a > u64::MAX as f64
+                                    {
+                                        return Err("dice too large");
+                                    }
+                                    let n = a as u64;
                                     if n == 0
                                     {
                                         return Err("bad dice data");
@@ -1055,16 +1060,21 @@ pub fn do_math(
                                     return Err("bad face value");
                                 }
                                 let mut last = vec![Integer::from(1); faces[0]];
-                                let mut current = last.clone();
-                                if faces.len() != 1
+                                if faces.len() == 1
                                 {
+                                    Vector(
+                                        last.iter()
+                                            .map(|a| Complex::with_val(options.prec, a))
+                                            .collect::<Vec<Complex>>(),
+                                    )
+                                }
+                                else
+                                {
+                                    let mut current = last.clone();
                                     for i in 1..faces.len()
                                     {
                                         current = Vec::new();
-                                        for p in 0..=(faces[0..=i].iter().sum::<Integer>()
-                                            - (i + 1))
-                                            .to_usize()
-                                            .unwrap()
+                                        for p in 0..=faces[0..=i].iter().sum::<usize>() - i - 1
                                         {
                                             let value = last[if (p + 1) > faces[i]
                                             {
@@ -1081,14 +1091,14 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current)
                                     }
+                                    current.splice(0..0, vec![Integer::new(); faces.len() - 1]);
+                                    Vector(
+                                        current
+                                            .iter()
+                                            .map(|a| Complex::with_val(options.prec, a))
+                                            .collect::<Vec<Complex>>(),
+                                    )
                                 }
-                                current.splice(0..0, vec![Integer::new(); faces.len() - 1]);
-                                Vector(
-                                    current
-                                        .iter()
-                                        .map(|a| Complex::with_val(options.prec, a))
-                                        .collect::<Vec<Complex>>(),
-                                )
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },
@@ -1117,7 +1127,12 @@ pub fn do_math(
                                 let mut i = 0;
                                 while i < a.len()
                                 {
-                                    let n = a[i].real().to_f64() as u64;
+                                    let a = a[i].real().to_f64();
+                                    if a > u64::MAX as f64
+                                    {
+                                        return Err("dice too large");
+                                    }
+                                    let n = a as u64;
                                     if n == 0
                                     {
                                         return Err("bad dice data");
@@ -1143,16 +1158,21 @@ pub fn do_math(
                                     return Err("bad face value");
                                 }
                                 let mut last = vec![Integer::from(1); faces[0]];
-                                let mut current = last.clone();
-                                if faces.len() != 1
+                                if faces.len() == 1
                                 {
+                                    Vector(
+                                        last.iter()
+                                            .map(|a| Complex::with_val(options.prec, a))
+                                            .collect::<Vec<Complex>>(),
+                                    )
+                                }
+                                else
+                                {
+                                    let mut current = Vec::new();
                                     for i in 1..faces.len()
                                     {
                                         current = Vec::new();
-                                        for p in 0..=(faces[0..=i].iter().sum::<Integer>()
-                                            - (i + 1))
-                                            .to_usize()
-                                            .unwrap()
+                                        for p in 0..=faces[0..=i].iter().sum::<usize>() - i - 1
                                         {
                                             let value = last[if (p + 1) > faces[i]
                                             {
@@ -1169,14 +1189,14 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current);
                                     }
+                                    current.splice(0..0, vec![Integer::new(); a.len() - 1]);
+                                    Vector(
+                                        current
+                                            .iter()
+                                            .map(|a| Complex::with_val(options.prec, a))
+                                            .collect::<Vec<Complex>>(),
+                                    )
                                 }
-                                current.splice(0..0, vec![Integer::new(); a.len() - 1]);
-                                Vector(
-                                    current
-                                        .iter()
-                                        .map(|a| Complex::with_val(options.prec, a))
-                                        .collect::<Vec<Complex>>(),
-                                )
                             }
                             "quartiles" =>
                             {

@@ -31,7 +31,7 @@ pub fn input_var(
     //     return Err("debugfail");
     // }
     let mut funcvars = Vec::new();
-    if input.starts_with("history") || input.is_empty()
+    if input.starts_with("history") || input.starts_with("onaxis") || input.is_empty()
     {
         return Err(" ");
     }

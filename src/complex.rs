@@ -629,7 +629,7 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
                     }
                     else
                     {
-                        to_deg * Complex::with_val(a[0].prec(), Pi)
+                        to_deg * Float::with_val(a[0].prec().0, Pi)
                     },
                 ]
             }
@@ -1642,7 +1642,7 @@ pub fn subfactorial(z: Complex) -> Complex
     //     }
     // }
     subfactorial_recursion(z.clone(), 0, 100)
-        + gamma(z.clone() + 1) / Complex::with_val(z.prec(), 1).exp()
+        + gamma(z.clone() + 1) / Float::with_val(z.prec().0, 1).exp()
 }
 fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
 {

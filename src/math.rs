@@ -49,8 +49,7 @@ pub fn do_math(
         {
             if s == "rnd"
             {
-                function[i] = Num(Complex::with_val(options.prec, fastrand::u64(..))
-                    / Complex::with_val(options.prec, u64::MAX))
+                function[i] = Num(Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX)
             }
             else
             {

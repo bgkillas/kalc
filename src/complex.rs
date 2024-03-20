@@ -1673,6 +1673,7 @@ pub fn length(
     {
         (start, end) = (end, start)
     }
+    let mut fail = false;
     let delta: Complex = (end.clone() - start.clone()) / points;
     let mut x0: Complex = match slopesided(
         func.clone(),
@@ -1689,6 +1690,7 @@ pub fn length(
         {
             if !nx0.real().is_finite() || !nx0.imag().is_finite()
             {
+                fail = true;
                 Complex::new(options.prec)
             }
             else
@@ -1757,6 +1759,39 @@ pub fn length(
         )?;
         match (x1, x2, x3, x4)
         {
+            (Num(_), Num(_), Num(_), Num(nx4)) if fail =>
+            {
+                fail = false;
+                let nl: Complex = do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &var.clone(),
+                    Num(start.clone()),
+                )?
+                .num()?
+                .pow(2)
+                    + do_math_with_var(
+                        func.clone(),
+                        options,
+                        func_vars.clone(),
+                        &var.clone(),
+                        Num(start.clone() - delta.clone()),
+                    )?
+                    .num()?
+                    .pow(2);
+                length += nl.sqrt();
+                let nx4: Complex = if !nx4.real().is_finite() || !nx4.imag().is_finite()
+                {
+                    fail = true;
+                    Complex::new(options.prec)
+                }
+                else
+                {
+                    1 + nx4.pow(2)
+                };
+                x0 = nx4.sqrt();
+            }
             (Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
                 let nx1: Complex = if !nx1.real().is_finite() || !nx1.imag().is_finite()
@@ -1785,18 +1820,46 @@ pub fn length(
                 };
                 let nx4: Complex = if !nx4.real().is_finite() || !nx4.imag().is_finite()
                 {
+                    fail = true;
                     Complex::new(options.prec)
                 }
                 else
                 {
                     1 + nx4.pow(2)
                 };
-                let nx4 = nx4.sqrt();
-                length += 2
-                    * h.clone()
-                    * (7 * (x0 + nx4.clone()) + (12 * nx2.sqrt()) + 32 * (nx1.sqrt() + nx3.sqrt()))
-                    / 45;
-                x0 = nx4
+                if fail
+                {
+                    let nl: Complex = do_math_with_var(
+                        func.clone(),
+                        options,
+                        func_vars.clone(),
+                        &var.clone(),
+                        Num(start.clone()),
+                    )?
+                    .num()?
+                    .pow(2)
+                        + do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var.clone(),
+                            Num(start.clone() - delta.clone()),
+                        )?
+                        .num()?
+                        .pow(2);
+                    length += nl.sqrt()
+                }
+                else
+                {
+                    let nx4 = nx4.sqrt();
+                    length += 2
+                        * h.clone()
+                        * (7 * (x0 + nx4.clone())
+                            + (12 * nx2.sqrt())
+                            + 32 * (nx1.sqrt() + nx3.sqrt()))
+                        / 45;
+                    x0 = nx4
+                }
             }
             (Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) =>
             {

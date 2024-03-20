@@ -1762,7 +1762,7 @@ pub fn length(
             (Num(_), Num(_), Num(_), Num(nx4)) if fail =>
             {
                 fail = false;
-                let nl: Complex = do_math_with_var(
+                let nl: Complex = (do_math_with_var(
                     func.clone(),
                     options,
                     func_vars.clone(),
@@ -1770,16 +1770,16 @@ pub fn length(
                     Num(start.clone()),
                 )?
                 .num()?
-                .pow(2)
-                    + do_math_with_var(
+                    - do_math_with_var(
                         func.clone(),
                         options,
                         func_vars.clone(),
                         &var.clone(),
                         Num(start.clone() - delta.clone()),
                     )?
-                    .num()?
-                    .pow(2);
+                    .num()?)
+                .pow(2)
+                    + delta.clone().pow(2);
                 length += nl.sqrt();
                 let nx4: Complex = if !nx4.real().is_finite() || !nx4.imag().is_finite()
                 {
@@ -1794,8 +1794,10 @@ pub fn length(
             }
             (Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
             {
+                let mut faillast = false;
                 let nx1: Complex = if !nx1.real().is_finite() || !nx1.imag().is_finite()
                 {
+                    fail = true;
                     Complex::new(options.prec)
                 }
                 else
@@ -1804,6 +1806,7 @@ pub fn length(
                 };
                 let nx2: Complex = if !nx2.real().is_finite() || !nx2.imag().is_finite()
                 {
+                    fail = true;
                     Complex::new(options.prec)
                 }
                 else
@@ -1812,6 +1815,7 @@ pub fn length(
                 };
                 let nx3: Complex = if !nx3.real().is_finite() || !nx3.imag().is_finite()
                 {
+                    fail = true;
                     Complex::new(options.prec)
                 }
                 else
@@ -1821,6 +1825,7 @@ pub fn length(
                 let nx4: Complex = if !nx4.real().is_finite() || !nx4.imag().is_finite()
                 {
                     fail = true;
+                    faillast = true;
                     Complex::new(options.prec)
                 }
                 else
@@ -1829,7 +1834,7 @@ pub fn length(
                 };
                 if fail
                 {
-                    let nl: Complex = do_math_with_var(
+                    let nl: Complex = (do_math_with_var(
                         func.clone(),
                         options,
                         func_vars.clone(),
@@ -1837,17 +1842,22 @@ pub fn length(
                         Num(start.clone()),
                     )?
                     .num()?
-                    .pow(2)
-                        + do_math_with_var(
+                        - do_math_with_var(
                             func.clone(),
                             options,
                             func_vars.clone(),
                             &var.clone(),
                             Num(start.clone() - delta.clone()),
                         )?
-                        .num()?
-                        .pow(2);
-                    length += nl.sqrt()
+                        .num()?)
+                    .pow(2)
+                        + delta.clone().pow(2);
+                    length += nl.sqrt();
+                    if faillast
+                    {
+                        fail = false;
+                        x0 = nx4.sqrt()
+                    }
                 }
                 else
                 {

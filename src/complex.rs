@@ -511,24 +511,6 @@ pub fn digamma(mut z: Complex, mut n: u32) -> Complex
     }
     sum * Complex::with_val(prec, 2).pow(op / 2 * n)
 }
-// pub fn digamma(z: Complex, m: usize) -> Complex
-// {
-//     let h = Complex::with_val(z.prec(), 0.5).pow(z.prec().0 / 8);
-//     digamma_recursive(z, m, h)
-// }
-// fn digamma_recursive(z: Complex, m: usize, h: Complex) -> Complex
-// {
-//     if m == 0
-//     {
-//         (gamma(z.clone() + h.clone()).ln() - gamma(z).ln()) / h
-//     }
-//     else
-//     {
-//         (digamma_recursive(z.clone() + h.clone(), m - 1, h.clone())
-//             - digamma_recursive(z, m - 1, h.clone()))
-//             / h
-//     }
-// }
 pub fn gamma(a: Complex) -> Complex
 {
     if !a.imag().is_zero()
@@ -1457,26 +1439,6 @@ pub fn gcd(mut x: Integer, mut y: Integer) -> Integer
     }
     x
 }
-//simpsons rule
-// pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
-// {
-//     let mut last = Complex::new(a.prec());
-//     let i = 12u32;
-//     let mut area = Complex::new(a.prec());
-//     let n: Complex = x.clone() / 2.pow(i);
-//     for k in 1..=2.pow(i)
-//     {
-//         let g: Complex = k * n.clone();
-//         let f: Complex = 1 - g.clone();
-//         let num: Complex = g.pow(a.clone()) * f.pow(b.clone());
-//         let g: Complex = (k * 2 - 1) * n.clone() / 2;
-//         let f: Complex = 1 - g.clone();
-//         let mid: Complex = g.pow(a.clone()) * f.pow(b.clone());
-//         area += (last + 4 * mid + num.clone()) * x.clone() / (3 * 2.pow(i + 1));
-//         last = num;
-//     }
-//     area
-// }
 pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
 {
     if x.real() > &((a.real().clone() + 1) / (a.real() + b.real().clone() + 2))
@@ -1580,21 +1542,6 @@ fn gamma0_recursion_second(z: Complex, iter: usize, max: usize) -> Complex
 }
 pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
 {
-    // let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
-    // let mut last: Complex = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 1);
-    // let mut num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, 2);
-    // for m in 3..100
-    // {
-    //     if (num.clone() - last.clone()).abs().real() > &prec
-    //     {
-    //         last = num.clone();
-    //         num = incomplete_gamma_recursion(s.clone(), z.clone(), 0, m);
-    //     }
-    //     else
-    //     {
-    //         break;
-    //     }
-    // }
     if z.is_zero()
     {
         gamma0(s)
@@ -1626,21 +1573,6 @@ fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -
 }
 pub fn subfactorial(z: Complex) -> Complex
 {
-    //let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
-    // let mut last: Complex = subfactorial_recursion(z.clone(), 0, 1);
-    // let mut num = subfactorial_recursion(z.clone(), 0, 2);
-    // for m in 3..100
-    // {
-    //     if (num.clone() - last.clone()).abs().real() > &prec
-    //     {
-    //         last = num.clone();
-    //         num = subfactorial_recursion(z.clone(), 0, m);
-    //     }
-    //     else
-    //     {
-    //         break;
-    //     }
-    // }
     subfactorial_recursion(z.clone(), 0, 100)
         + gamma(z.clone() + 1) / Float::with_val(z.prec().0, 1).exp()
 }
@@ -2123,75 +2055,6 @@ pub fn slopesided(
         Num(point.clone()),
     )?;
     let num = Integer::from(nth);
-    fn get_infinities(n: Complex, prec: u32, optionsprec: u32, nth: u32) -> Complex
-    {
-        match (
-            n.real().clone().abs().log2() > -1 - prec as i32 / 2,
-            n.imag().clone().abs().log2() > -1 - prec as i32 / 2,
-        )
-        {
-            (true, true) => match (n.real().is_sign_positive(), n.imag().is_sign_positive())
-            {
-                (true, true) => Complex::with_val(optionsprec, (Infinity, Infinity)),
-                (true, false) => Complex::with_val(
-                    optionsprec,
-                    (Infinity, -Float::with_val(optionsprec, Infinity)),
-                ),
-                (false, true) => Complex::with_val(
-                    optionsprec,
-                    (-Float::with_val(optionsprec, Infinity), Infinity),
-                ),
-                (false, false) => -Complex::with_val(optionsprec, (Infinity, Infinity)),
-            },
-            (true, false) =>
-            {
-                if n.real().is_sign_positive()
-                {
-                    Complex::with_val(
-                        optionsprec,
-                        (
-                            Infinity,
-                            n.imag() * Float::with_val(optionsprec, 2).pow(nth * prec),
-                        ),
-                    )
-                }
-                else
-                {
-                    -Complex::with_val(
-                        optionsprec,
-                        (
-                            Infinity,
-                            n.imag() * -Float::with_val(optionsprec, 2).pow(nth * prec),
-                        ),
-                    )
-                }
-            }
-            (false, true) =>
-            {
-                if n.imag().is_sign_positive()
-                {
-                    Complex::with_val(
-                        optionsprec,
-                        (
-                            n.real() * Float::with_val(optionsprec, 2).pow(nth * prec),
-                            Infinity,
-                        ),
-                    )
-                }
-                else
-                {
-                    -Complex::with_val(
-                        optionsprec,
-                        (
-                            n.real() * -Float::with_val(optionsprec, 2).pow(nth * prec),
-                            Infinity,
-                        ),
-                    )
-                }
-            }
-            (false, false) => n * Float::with_val(optionsprec, 2).pow(nth * prec),
-        }
-    }
     match n
     {
         Num(mut sum) =>
@@ -2229,11 +2092,19 @@ pub fn slopesided(
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(get_infinities(sum, prec, options.prec.0, nth)))
+                Ok(Num(get_infinities(
+                    sum * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                    prec,
+                    options.prec.0,
+                )))
             }
             else
             {
-                Ok(Num(-get_infinities(sum, prec, options.prec.0, nth)))
+                Ok(Num(-get_infinities(
+                    sum * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                    prec,
+                    options.prec.0,
+                )))
             }
         }
         Vector(mut sum) if !combine =>
@@ -2276,11 +2147,19 @@ pub fn slopesided(
                     .map(|n| {
                         if right || nth % 2 == 0
                         {
-                            get_infinities(n.clone(), prec, options.prec.0, nth)
+                            get_infinities(
+                                n.clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                                prec,
+                                options.prec.0,
+                            )
                         }
                         else
                         {
-                            -get_infinities(n.clone(), prec, options.prec.0, nth)
+                            -get_infinities(
+                                n.clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                                prec,
+                                options.prec.0,
+                            )
                         }
                     })
                     .collect::<Vec<Complex>>(),
@@ -2322,19 +2201,17 @@ pub fn slopesided(
             if right || nth % 2 == 0
             {
                 Ok(Num(get_infinities(
-                    sum[0].clone(),
+                    sum[0].clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
                     prec,
                     options.prec.0,
-                    nth,
                 )))
             }
             else
             {
                 Ok(Num(-get_infinities(
-                    sum[0].clone(),
+                    sum[0].clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
                     prec,
                     options.prec.0,
-                    nth,
                 )))
             }
         }
@@ -2375,7 +2252,11 @@ pub fn slopesided(
             }
             if sum.len() == 2
             {
-                Ok(Num(sum[1].clone() / sum[0].clone()))
+                Ok(Num(get_infinities(
+                    sum[1].clone() / sum[0].clone(),
+                    prec,
+                    options.prec.0,
+                )))
             }
             else
             {
@@ -2383,12 +2264,57 @@ pub fn slopesided(
                 Ok(Vector(
                     sum[0..sum.len() - 1]
                         .iter()
-                        .map(|n| nf.clone() / n)
+                        .map(|n| get_infinities(nf.clone() / n, prec, options.prec.0))
                         .collect::<Vec<Complex>>(),
                 ))
             }
         }
         _ => Err("not supported slope data"),
+    }
+}
+fn get_infinities(n: Complex, prec: u32, optionsprec: u32) -> Complex
+{
+    match (
+        n.real().clone().abs().log2() > prec as i32 / 2 - 1,
+        n.imag().clone().abs().log2() > prec as i32 / 2 - 1,
+    )
+    {
+        (true, true) => match (n.real().is_sign_positive(), n.imag().is_sign_positive())
+        {
+            (true, true) => Complex::with_val(optionsprec, (Infinity, Infinity)),
+            (true, false) => Complex::with_val(
+                optionsprec,
+                (Infinity, -Float::with_val(optionsprec, Infinity)),
+            ),
+            (false, true) => Complex::with_val(
+                optionsprec,
+                (-Float::with_val(optionsprec, Infinity), Infinity),
+            ),
+            (false, false) => -Complex::with_val(optionsprec, (Infinity, Infinity)),
+        },
+        (true, false) =>
+        {
+            if n.real().is_sign_positive()
+            {
+                Complex::with_val(optionsprec, (Infinity, n.imag()))
+            }
+            else
+            {
+                -Complex::with_val(optionsprec, (Infinity, -n.imag()))
+            }
+        }
+        (false, true) =>
+        {
+            if n.imag().is_sign_positive()
+            {
+                Complex::with_val(optionsprec, (n.real(), Infinity))
+            }
+            else
+            {
+                -Complex::with_val(optionsprec, (-n.real(), Infinity))
+            }
+        }
+        (false, false) => n,
     }
 }
 #[derive(Copy, Clone, PartialEq)]

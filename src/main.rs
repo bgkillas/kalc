@@ -45,10 +45,7 @@ use std::{
 //maybe nth area, make -nth go into the other function
 //allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //setting to disable default vars by default, in config
-//use lines if an infinity slope is detected for length
-//use minicomplex/float
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
-//support 'dumb' gnuplot terminal
 #[derive(Clone)]
 pub struct Variable
 {
@@ -183,7 +180,7 @@ impl Default for Options
             prompt: true,
             comma: false,
             prec: (512, 512),
-            graph_prec: (64, 64),
+            graph_prec: (128, 128),
             frac_iter: 50,
             xr: (-10.0, 10.0),
             yr: (-10.0, 10.0),
@@ -191,8 +188,8 @@ impl Default for Options
             vxr: (0.0, 0.0),
             vyr: (0.0, 0.0),
             vzr: (0.0, 0.0),
-            samples_2d: 20000,
-            samples_3d: (300, 300),
+            samples_2d: 10000,
+            samples_3d: (250, 250),
             point_style: '.',
             lines: false,
             multi: true,

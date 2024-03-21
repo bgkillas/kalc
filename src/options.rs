@@ -991,9 +991,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
     match l.replace(' ', "").as_str()
     {
         "colors" => format!(
-            "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[38;2;{};{};{}mre1col={} \x1b[38;2;{};{};{}mim1col={} \x1b[38;2;{};{};{}mre2col={} \
-             \x1b[38;2;{};{};{}mim2col={} \x1b[38;2;{};{};{}mre3col={} \x1b[38;2;{};{};{}mim3col={} \x1b[38;2;{};{};{}mre4col={} \x1b[38;2;{};{};{}mim4col={} \x1b[38;2;{};{};{}mre5col={} \
-              \x1b[38;2;{};{};{}mim5col={} \x1b[38;2;{};{};{}mre6col={} \x1b[38;2;{};{};{}mim6col={}\x1b[0m",
+            "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[0mre1col={} re2col={} re3col={} re4col={} re5col={} re6col={} im1col={} im2col={} im3col={} im4col={} im5col={} im6col={}",
             colors.text,
             &colors.text[2..],
             colors.prompt,
@@ -1002,62 +1000,23 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             &colors.imag[2..],
             colors.sci,
             &colors.sci[2..],
-            colors
-                .brackets
-                .iter()
-                .fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..])).trim_end_matches(','),
-            u8::from_str_radix(&colors.re1col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.re1col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.re1col[5..7], 16).unwrap(),
-            colors.re1col,
-            u8::from_str_radix(&colors.im1col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.im1col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.im1col[5..7], 16).unwrap(),
-            colors.im1col,
-            u8::from_str_radix(&colors.re2col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.re2col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.re2col[5..7], 16).unwrap(),
-            colors.re2col,
-            u8::from_str_radix(&colors.im2col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.im2col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.im2col[5..7], 16).unwrap(),
-            colors.im2col,
-            u8::from_str_radix(&colors.re3col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.re3col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.re3col[5..7], 16).unwrap(),
-            colors.re3col,
-            u8::from_str_radix(&colors.im3col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.im3col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.im3col[5..7], 16).unwrap(),
-            colors.im3col,
-            u8::from_str_radix(&colors.re4col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.re4col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.re4col[5..7], 16).unwrap(),
-            colors.re4col,
-            u8::from_str_radix(&colors.im4col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.im4col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.im4col[5..7], 16).unwrap(),
-            colors.im4col,
-            u8::from_str_radix(&colors.re5col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.re5col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.re5col[5..7], 16).unwrap(),
-            colors.re5col,
-            u8::from_str_radix(&colors.im5col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.im5col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.im5col[5..7], 16).unwrap(),
-            colors.im5col,
-            u8::from_str_radix(&colors.re6col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.re6col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.re6col[5..7], 16).unwrap(),
-            colors.re6col,
-            u8::from_str_radix(&colors.im6col[1..3], 16).unwrap(),
-            u8::from_str_radix(&colors.im6col[3..5], 16).unwrap(),
-            u8::from_str_radix(&colors.im6col[5..7], 16).unwrap(),
-            colors.im6col,
+            colors.brackets.iter().fold(String::new(), |out, a| out + a+ &a[2..]+",").trim_end_matches(','),
+            formatcol(&colors.re1col),
+            formatcol(&colors.re2col),
+            formatcol(&colors.re3col),
+            formatcol(&colors.re4col),
+            formatcol(&colors.re5col),
+            formatcol(&colors.re6col),
+            formatcol(&colors.im1col),
+            formatcol(&colors.im2col),
+            formatcol(&colors.im3col),
+            formatcol(&colors.im4col),
+            formatcol(&colors.im5col),
+            formatcol(&colors.im6col),
         ),
-        "var_multiply" => format!("{}",options.var_multiply),
-        "slowcheck" => format!("{}",options.slowcheck),
-        "label"=>format!("{},{},{}",colors.label.0,colors.label.1,colors.label.2),
+        "var_multiply" => format!("{}", options.var_multiply),
+        "slowcheck" => format!("{}", options.slowcheck),
+        "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),
         "color" => format!("{}", options.color),
         "depth" => format!("{}", options.depth),
         "surface" => format!("{}", options.surface),
@@ -1094,50 +1053,73 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "vzr" => format!("{},{}", options.vzr.0, options.vzr.1),
         "vrange" => format!(
             "x:{},{} y:{},{} z:{},{}",
-            options.vxr.0, options.vxr.1, options.vyr.0, options.vyr.1, options.vzr.0, options.vzr.1
+            options.vxr.0,
+            options.vxr.1,
+            options.vyr.0,
+            options.vyr.1,
+            options.vzr.0,
+            options.vzr.1
         ),
         "frac_iter" => format!("{}", options.frac_iter),
         "2d" => format!("{}", options.samples_2d),
         "3d" => format!("{} {}", options.samples_3d.0, options.samples_3d.1),
-        "deg"=>format!("{}", options.deg==Degrees),
-        "grad"=>format!("{}", options.deg==Gradians),
-        "rad"=>format!("{}", options.deg==Radians),
-        "interactive"=>format!("{}", options.interactive),
-        "textc"=>colors.text.to_string(),
-        "promptc"=>colors.prompt.to_string(),
-        "imagc"=>colors.imag.to_string(),
-        "scic"=>colors.sci.to_string(),
-        "bracketc"=>colors.brackets.iter().fold(String::new(), |out, a| out + &format!("{}{},", a, &a[2..])).trim_end_matches(',').to_string(),
-        "re1col"=>colors.re1col.to_string(),
-        "re2col"=>colors.re2col.to_string(),
-        "re3col"=>colors.re3col.to_string(),
-        "re4col"=>colors.re4col.to_string(),
-        "re5col"=>colors.re5col.to_string(),
-        "re6col"=>colors.re6col.to_string(),
-        "im1col"=>colors.im1col.to_string(),
-        "im2col"=>colors.im2col.to_string(),
-        "im3col"=>colors.im3col.to_string(),
-        "im4col"=>colors.im4col.to_string(),
-        "im5col"=>colors.im5col.to_string(),
-        "im6col"=>colors.im6col.to_string(),
+        "deg" => format!("{}", options.deg == Degrees),
+        "grad" => format!("{}", options.deg == Gradians),
+        "rad" => format!("{}", options.deg == Radians),
+        "interactive" => format!("{}", options.interactive),
+        "textc" => colors.text.to_string(),
+        "promptc" => colors.prompt.to_string(),
+        "imagc" => colors.imag.to_string(),
+        "scic" => colors.sci.to_string(),
+        "bracketc" => colors
+            .brackets
+            .iter()
+            .fold(String::new(), |out, a| out + a+ &a[2..]+",")
+            .trim_end_matches(',')
+            .to_string(),
+        "re1col" => formatcol(&colors.re1col),
+        "re2col" => formatcol(&colors.re2col),
+        "re3col" => formatcol(&colors.re3col),
+        "re4col" => formatcol(&colors.re4col),
+        "re5col" => formatcol(&colors.re5col),
+        "re6col" => formatcol(&colors.re6col),
+        "im1col" => formatcol(&colors.im1col),
+        "im2col" => formatcol(&colors.im2col),
+        "im3col" => formatcol(&colors.im3col),
+        "im4col" => formatcol(&colors.im4col),
+        "im5col" => formatcol(&colors.im5col),
+        "im6col" => formatcol(&colors.im6col),
         _ =>
+        {
+            let input = input_var(
+                &l.replace('_', &format!("({})", last)),
+                vars.to_vec(),
+                &mut Vec::new(),
+                &mut 0,
+                options,
+                false,
+                true,
+                0,
+                Vec::new(),
+            );
+            if let Ok(f) = input
             {
-                let input = input_var(
-                    &l.replace('_', &format!("({})", last)),
-                    vars.to_vec(),
-                    &mut Vec::new(),
-                    &mut 0,
-                    options, false,
-                    true,
-                    0,
-                    Vec::new(),
-                );
-                if let Ok(f) = input
-                {
-                    parsed_to_string(f.0, f.1, &options, colors)
-                } else {
-                    String::new()
-                }
+                parsed_to_string(f.0, f.1, &options, colors)
             }
+            else
+            {
+                String::new()
+            }
+        }
     }
+}
+fn formatcol(color: &str) -> String
+{
+    format!(
+        "\x1b[38;2;{};{};{}m{}\x1b[0m",
+        u8::from_str_radix(&color[1..3], 16).unwrap(),
+        u8::from_str_radix(&color[3..5], 16).unwrap(),
+        u8::from_str_radix(&color[5..7], 16).unwrap(),
+        color
+    )
 }

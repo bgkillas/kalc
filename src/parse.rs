@@ -805,7 +805,7 @@ pub fn input_var(
             {
                 depthcheck = !depthcheck;
             }
-            else if c.is_alphabetic() || c == &'\'' || c == &'`'
+            else if c.is_alphabetic() || c == &'\'' || c == &'`' || (c == &'2' && word == "atan")
             {
                 word.push(*c);
             }

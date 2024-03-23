@@ -2319,7 +2319,18 @@ fn functions(
         "acsc" | "arccsc" => a.clone().recip().asin() * to_deg,
         "acos" | "arccos" => a.clone().acos() * to_deg,
         "asec" | "arcsec" => a.clone().recip().acos() * to_deg,
-        "atan" | "arctan" | "atan2" =>
+        "atan2" =>
+        {
+            if let Some(b) = c
+            {
+                (b + (a * Complex::with_val(options.prec, (0, 1)))).arg() * to_deg
+            }
+            else
+            {
+                return Err("not enough args");
+            }
+        }
+        "atan" | "arctan" =>
         {
             if let Some(b) = c
             {

@@ -91,9 +91,9 @@ dependencies = [
 
 [[package]]
 name = "gnuplot"
-version = "0.0.42"
+version = "0.0.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3278d56116b6f348df0d2344950f41150129e8f4afd8aded1bf6f2e756dcaa92"
+checksum = "9ce70b22788c02857a6436b96744f9030dd89e17c8482ddf674523c0a1f8ab6c"
 dependencies = [
  "byteorder",
  "tempfile",
@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "kalc"
-version = "1.1.0"
+version = "1.0.5"
 dependencies = [
  "crossterm",
  "fastrand",

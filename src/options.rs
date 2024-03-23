@@ -965,24 +965,7 @@ pub fn commands(
             process::exit(0);
         }
         _ =>
-        {
-            let n = (*input).iter().collect::<String>();
-            let mut split = n.splitn(2, ' ');
-            let next = split.next().unwrap();
-            if next == "history"
-            {
-                print!("\x1b[G\x1b[A\x1b[K");
-                let r = split.next().unwrap();
-                for i in lines
-                {
-                    if i.contains(r)
-                    {
-                        print!("{}\x1b[G\n", i);
-                    }
-                }
-                stdout.flush().unwrap();
-            }
-        }
+        {}
     }
 }
 pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, last: &str)

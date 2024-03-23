@@ -3,12 +3,15 @@ use crate::{
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
+    load_vars::set_commands_or_vars,
     math::do_math,
     misc::{
         get_terminal_dimensions_pixel, place_funcvar, place_funcvarxy, place_var, place_varxy,
         prompt,
     },
-    Colors, Options,
+    options::silent_commands,
+    parse::input_var,
+    Colors, Options, Variable,
 };
 use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol, TickOption};
 use rug::Complex;
@@ -20,14 +23,85 @@ use std::{
 };
 #[allow(clippy::type_complexity)]
 pub fn graph(
-    input: Vec<String>,
-    func: Vec<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options)>,
+    mut input: Vec<String>,
+    mut vars: Vec<Variable>,
+    mut options: Options,
     watch: Option<Instant>,
-    colors: Colors,
+    mut colors: Colors,
     cli: bool,
 ) -> JoinHandle<()>
 {
     thread::spawn(move || {
+        let mut func = Vec::new();
+        for (i, s) in input.clone().iter().enumerate()
+        {
+            if s.is_empty()
+            {
+                continue;
+            }
+            {
+                options.prec = options.graph_prec;
+                let split = s.split(|c| c == ';');
+                let count = split.clone().count();
+                if count != 1
+                {
+                    input[i] = split.clone().last().unwrap().to_string();
+                    for (i, s) in split.enumerate()
+                    {
+                        if i == count - 1
+                        {
+                            break;
+                        }
+                        silent_commands(
+                            &mut options,
+                            &s.chars()
+                                .filter(|c| !c.is_whitespace())
+                                .collect::<Vec<char>>(),
+                        );
+                        if s.contains('=')
+                        {
+                            if let Err(s) = set_commands_or_vars(
+                                &mut colors,
+                                &mut options,
+                                &mut vars,
+                                &s.chars().collect::<Vec<char>>(),
+                            )
+                            {
+                                print!(
+                                    "\x1b[G\x1b[A\x1b[K{}\n\x1b[G{}",
+                                    s,
+                                    prompt(options, &colors)
+                                );
+                                stdout().flush().unwrap()
+                            }
+                        }
+                    }
+                }
+            }
+            options.prec = options.graph_prec;
+            func.push(
+                match input_var(
+                    &input[i],
+                    vars.clone(),
+                    &mut Vec::new(),
+                    &mut 0,
+                    options,
+                    false,
+                    false,
+                    0,
+                    Vec::new(),
+                )
+                {
+                    Ok(f) => (f.0, f.1, options),
+                    _ =>
+                    {
+                        print!("\x1b[G\x1b[Kbad input\x1b[G\n{}", prompt(options, &colors));
+                        stdout().flush().unwrap();
+                        return;
+                    }
+                },
+            );
+        }
         if input.iter().all(|i| i.is_empty())
         {
             return;
@@ -547,6 +621,7 @@ pub fn graph(
                 && (points3d[0][0][2].is_empty() || points3d[0][1][2].is_empty())
             {
                 fg.axes3d()
+                    //.set_palette(Custom(&[(0.0, 0.0, 0.0, 0.0), (1.0, 1.0, 1.0, 1.0)]))
                     .set_x_grid(!cli)
                     .set_y_grid(!cli)
                     .set_z_grid(!cli)

@@ -20,7 +20,7 @@ use crate::{
         clear, clearln, convert, get_terminal_dimensions, handle_err, prompt, read_single_char,
         write,
     },
-    options::{arg_opts, commands, file_opts, silent_commands},
+    options::{arg_opts, commands, file_opts},
     parse::input_var,
     print::{print_answer, print_concurrent},
     AngleType::Radians,
@@ -41,10 +41,11 @@ use std::{
 //rpn
 //matrix exponentiation
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
-//stop vectors or matrixes disipearing graphically
+//stop vectors or matrixes disipearing graphically by making them have points instead of lines
 //maybe nth area, make -nth go into the other function
 //allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //setting to disable default vars by default, in config
+//domain coloring
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable
@@ -80,7 +81,7 @@ impl Default for Colors
 {
     fn default() -> Self
     {
-        Colors {
+        Self {
             text: "\x1b[0m".to_string(),
             prompt: "\x1b[94m".to_string(),
             imag: "\x1b[93m".to_string(),
@@ -165,7 +166,7 @@ impl Default for Options
 {
     fn default() -> Self
     {
-        Options {
+        Self {
             sci: false,
             deg: Radians,
             base: 10,
@@ -439,7 +440,7 @@ fn main()
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
-    'main: loop
+    loop
     {
         let mut input = Vec::new();
         let mut graphable = false;
@@ -1522,7 +1523,7 @@ fn main()
             }
             stdout.flush().unwrap();
             execute!(stdout, EnableBlinking).unwrap();
-            if input.is_empty() && !varcheck
+            if input.is_empty()
             {
                 continue;
             }
@@ -1570,7 +1571,7 @@ fn main()
         }
         else if options.graph && graphable
         {
-            let mut inputs: Vec<String> = input
+            let inputs: Vec<String> = input
                 .iter()
                 .collect::<String>()
                 .split('#')
@@ -1578,74 +1579,6 @@ fn main()
                 .collect();
             if inputs.len() < 7
             {
-                let mut funcs = Vec::new();
-                let mut vars = vars.clone();
-                let mut options = options;
-                let mut colors = colors.clone();
-                for (i, s) in inputs.clone().iter().enumerate()
-                {
-                    if s.is_empty()
-                    {
-                        continue;
-                    }
-                    {
-                        options.prec = options.graph_prec;
-                        let split = s.split(|c| c == ';');
-                        let count = split.clone().count();
-                        if count != 1
-                        {
-                            inputs[i] = split.clone().last().unwrap().to_string();
-                            for (i, s) in split.enumerate()
-                            {
-                                if i == count - 1
-                                {
-                                    break;
-                                }
-                                silent_commands(
-                                    &mut options,
-                                    &s.chars()
-                                        .filter(|c| !c.is_whitespace())
-                                        .collect::<Vec<char>>(),
-                                );
-                                if s.contains('=')
-                                {
-                                    if let Err(s) = set_commands_or_vars(
-                                        &mut colors,
-                                        &mut options,
-                                        &mut vars,
-                                        &s.chars().collect::<Vec<char>>(),
-                                    )
-                                    {
-                                        print!(
-                                            "\x1b[G\x1b[A\x1b[K{}\n\x1b[G{}",
-                                            s,
-                                            prompt(options, &colors)
-                                        );
-                                        stdout.flush().unwrap()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    options.prec = options.graph_prec;
-                    funcs.push(
-                        match input_var(
-                            &inputs[i],
-                            vars.clone(),
-                            &mut Vec::new(),
-                            &mut 0,
-                            options,
-                            false,
-                            false,
-                            0,
-                            Vec::new(),
-                        )
-                        {
-                            Ok(f) => (f.0, f.1, options),
-                            _ => continue 'main,
-                        },
-                    );
-                }
                 let watch = if options.debug
                 {
                     Some(Instant::now())
@@ -1660,7 +1593,7 @@ fn main()
                     {
                         terminal::disable_raw_mode().unwrap();
                     }
-                    graph(inputs, funcs, watch, colors.clone(), true)
+                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
                         .join()
                         .unwrap();
                     if options.interactive
@@ -1670,7 +1603,14 @@ fn main()
                 }
                 else
                 {
-                    handles.push(graph(inputs, funcs, watch, colors.clone(), false));
+                    handles.push(graph(
+                        inputs,
+                        vars.clone(),
+                        options,
+                        watch,
+                        colors.clone(),
+                        false,
+                    ));
                 }
             }
         }

@@ -180,7 +180,8 @@ pub fn do_math(
                         {
                             if matches!(
                                 k.as_str(),
-                                "log"
+                                "next"
+                                    | "log"
                                     | "zeta"
                                     | "polygamma"
                                     | "digamma"
@@ -2385,6 +2386,37 @@ fn functions(
                 lambertw(a, 0)
             }
         }
+        "next" =>
+        {
+            if let Some(b) = c
+            {
+                let mut real: Float = a.real().clone();
+                let imag: Float = a.imag().clone();
+                if b.real().is_infinite()
+                {
+                    if b.real().is_sign_positive()
+                    {
+                        real.next_up()
+                    }
+                    else
+                    {
+                        real.next_down()
+                    }
+                }
+                else
+                {
+                    real.next_toward(b.real());
+                }
+                Complex::with_val(options.prec, (real, imag))
+            }
+            else
+            {
+                let mut real: Float = a.real().clone();
+                let imag: Float = a.imag().clone();
+                real.next_up();
+                Complex::with_val(options.prec, (real, imag))
+            }
+        }
         "log" =>
         {
             let a = a.ln();
@@ -2518,6 +2550,7 @@ fn functions(
                     && b.imag().is_zero()
                     && a.real().clone().fract().is_zero()
                     && b.real().clone().fract().is_zero()
+                    && a.real().is_finite()
                 {
                     Complex::with_val(
                         options.prec,
@@ -2794,6 +2827,10 @@ fn functions(
         {
             if let Some(b) = c
             {
+                if !a.real().is_finite() || !b.real().is_finite()
+                {
+                    return Err("non finite lcm");
+                }
                 let a = a.real().to_integer().unwrap();
                 let b = b.real().to_integer().unwrap();
                 Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
@@ -2807,6 +2844,10 @@ fn functions(
         {
             if let Some(b) = c
             {
+                if !a.real().is_finite() || !b.real().is_finite()
+                {
+                    return Err("non finite gcf");
+                }
                 Complex::with_val(
                     options.prec,
                     gcd(
@@ -2822,7 +2863,7 @@ fn functions(
         }
         "isprime" | "is_prime" =>
         {
-            if a.imag().is_zero() && a.real().clone().fract() == 0.0
+            if a.imag().is_zero() && a.real().clone().fract() == 0.0 && a.real().is_finite()
             {
                 Complex::with_val(
                     options.prec,

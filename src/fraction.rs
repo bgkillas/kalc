@@ -3,7 +3,7 @@ use crate::Options;
 use rug::{float::Constant::Pi, Float};
 pub fn fraction(value: Float, options: Options) -> String
 {
-    if value.clone().fract().is_zero()
+    if value.clone().fract().is_zero() || !value.is_finite()
     {
         return String::new();
     }
@@ -81,7 +81,11 @@ pub fn fraction(value: Float, options: Options) -> String
                     last.clone_from(&recip);
                     recip *= &nums[j];
                 }
-                let recip = recip.to_integer().unwrap();
+                let recip = match recip.to_integer()
+                {
+                    Some(n) => n,
+                    None => return String::new(),
+                };
                 let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
                 return if (recip == 1 && i == 0)
                     || recip.to_string().len() > options.decimal_places

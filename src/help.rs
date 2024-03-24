@@ -90,7 +90,7 @@ pub fn help()
     - sinc, cis, exp\x1b[G\n\
     - zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\
     - deg, rad, grad\x1b[G\n\
-    - re, im, split(x+yi={{x,y}})\x1b[G\n\
+    - re, im, split(x+yi), next(n,to)\x1b[G\n\
     - factors, prime, isprime, gcd, lcm\x1b[G\n\
     - slog(a,b), ssrt(k,a) (k is lambert w branch)\x1b[G\n\
     - piecewise/pw({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\x1b[G\n\

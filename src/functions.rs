@@ -203,6 +203,7 @@ pub fn functions() -> HashSet<&'static str>
         "pochhammer",
         "ph",
         "ψ",
+        "next",
     ]
     .iter()
     .cloned()

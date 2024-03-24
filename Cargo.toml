@@ -16,7 +16,7 @@ strip = true
 panic = "abort"
 
 [dependencies]
-fastrand = "2.0.1"
+fastrand = "2.0.2"
 rug = "1.24.0"
 gnuplot = "0.0.43"
 crossterm = "0.27.0"

@@ -110,8 +110,9 @@ pub fn graph(
         let mut fg = Figure::new();
         if cli
         {
+            options.onaxis = false;
             options.scale_graph = false;
-            fg.set_terminal("dumb size 100,50 aspect 1,1", "");
+            fg.set_terminal("dumb size 125,60 aspect 1,1", "");
         }
         fg.set_enhanced_text(false);
         let mut re_cap: [String; 6] = Default::default();
@@ -625,9 +626,9 @@ pub fn graph(
                     .set_x_grid(!cli)
                     .set_y_grid(!cli)
                     .set_z_grid(!cli)
-                    .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis)], &[])
-                    .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis)], &[])
-                    .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis)], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
+                    .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
@@ -657,9 +658,9 @@ pub fn graph(
                     .set_x_grid(!cli)
                     .set_y_grid(!cli)
                     .set_z_grid(!cli)
-                    .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis)], &[])
-                    .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis)], &[])
-                    .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis)], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
+                    .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
@@ -841,9 +842,9 @@ pub fn graph(
                     .set_x_grid(!cli)
                     .set_y_grid(!cli)
                     .set_z_grid(!cli)
-                    .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis)], &[])
-                    .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis)], &[])
-                    .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis)], &[])
+                    .set_x_ticks(xticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
+                    .set_y_ticks(yticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
+                    .set_z_ticks(zticks, &[TickOption::OnAxis(!options.onaxis && !cli)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))

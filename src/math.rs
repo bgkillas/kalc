@@ -183,6 +183,7 @@ pub fn do_math(
                                 "next"
                                     | "log"
                                     | "zeta"
+                                    | "ζ"
                                     | "polygamma"
                                     | "digamma"
                                     | "ψ"
@@ -2765,7 +2766,7 @@ fn functions(
             if let Some(b) = c
             {
                 let mut sum = Complex::new(options.prec);
-                for n in 0..=100
+                for n in 0..=options.prec.0 / 8
                 {
                     let nb = Integer::from(n);
                     let mut subsum = Complex::new(options.prec);
@@ -2792,7 +2793,7 @@ fn functions(
             {
                 let b = Complex::with_val(options.prec, 1);
                 let mut sum = Complex::new(options.prec);
-                for n in 0..=100
+                for n in 0..=options.prec.0 / 8
                 {
                     let nb = Integer::from(n);
                     let mut subsum = Complex::new(options.prec);

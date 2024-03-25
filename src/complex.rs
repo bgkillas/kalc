@@ -1481,7 +1481,9 @@ pub fn erf(z: Complex) -> Complex
 pub fn erfc(z: Complex) -> Complex
 {
     let p2: Complex = z.clone().pow(2);
-    erfc_recursion(z.clone(), 0, 100) / Complex::with_val(z.prec(), Pi).sqrt() * z / p2.exp()
+    erfc_recursion(z.clone(), 0, z.prec().0 as usize / 4) / Complex::with_val(z.prec(), Pi).sqrt()
+        * z
+        / p2.exp()
 }
 fn erfc_recursion(z: Complex, iter: usize, max: usize) -> Complex
 {
@@ -1504,7 +1506,8 @@ fn erfc_recursion(z: Complex, iter: usize, max: usize) -> Complex
 }
 fn gamma0(z: Complex) -> Complex
 {
-    gamma0_recursion_first(z.clone(), 0, 100) + gamma0_recursion_second(z, 0, 100)
+    let p = z.prec().0 as usize / 4;
+    gamma0_recursion_first(z.clone(), 0, p) + gamma0_recursion_second(z, 0, p)
 }
 fn gamma0_recursion_first(z: Complex, iter: usize, max: usize) -> Complex
 {
@@ -1548,7 +1551,8 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
     }
     else
     {
-        incomplete_gamma_recursion(s, z, 0, 100)
+        let p = z.prec().0 as usize / 4;
+        incomplete_gamma_recursion(s, z, 0, p)
     }
 }
 fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -> Complex
@@ -1573,7 +1577,7 @@ fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -
 }
 pub fn subfactorial(z: Complex) -> Complex
 {
-    subfactorial_recursion(z.clone(), 0, 100)
+    subfactorial_recursion(z.clone(), 0, z.prec().0 as usize / 4)
         + gamma(z.clone() + 1) / Float::with_val(z.prec().0, 1).exp()
 }
 fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
@@ -3359,9 +3363,8 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
             return Complex::with_val(z.prec(), -1);
         }
     }
-    let prec = Float::with_val(z.prec().0, 0.1).pow(z.prec().0 / 2);
     let mut w = initpoint(z.clone(), k);
-    let mut wprev = w.clone();
+    for _ in 0..z.prec().0 / 32
     {
         let zexp = w.clone().exp();
         let zexpz = w.clone() * zexp.clone();
@@ -3369,23 +3372,6 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
         let zexpz_dd = (2 * zexp) + zexpz.clone();
         w -= 2 * ((zexpz.clone() - z.clone()) * zexpz_d.clone())
             / ((2 * zexpz_d.pow(2)) - ((zexpz - z.clone()) * zexpz_dd))
-    }
-    for _ in 0..50
-    {
-        if (w.clone() - wprev.clone()).abs().real() > &prec
-        {
-            wprev.clone_from(&w);
-            let zexp = w.clone().exp();
-            let zexpz = w.clone() * zexp.clone();
-            let zexpz_d = zexp.clone() + zexpz.clone();
-            let zexpz_dd = (2 * zexp) + zexpz.clone();
-            w -= 2 * ((zexpz.clone() - z.clone()) * zexpz_d.clone())
-                / ((2 * zexpz_d.pow(2)) - ((zexpz - z.clone()) * zexpz_dd))
-        }
-        else
-        {
-            break;
-        }
     }
     w
 }

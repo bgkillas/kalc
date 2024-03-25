@@ -596,7 +596,7 @@ pub fn input_var(
                 }
                 '|' =>
                 {
-                    if !abs.is_empty() && abs[0] == *bracket && can_abs(&output)
+                    if !abs.is_empty() && abs[0] == *bracket && can_abs(&output, &vars)
                     {
                         *bracket -= 1;
                         if (i + 2 >= chars.len() || chars[i + 1] != '^') && pwr.1 == *bracket
@@ -734,11 +734,7 @@ pub fn input_var(
                     }
                     else if i != chars.len() - 1
                         && (chars[i + 1].is_alphanumeric()
-                            || chars[i + 1] == '('
-                            || chars[i + 1] == '{'
-                            || chars[i + 1] == '|'
-                            || chars[i + 1] == '-'
-                            || chars[i + 1] == '!')
+                            || matches!(chars[i + 1], '(' | '{' | '|' | '-' | '!'))
                     {
                         output.push(Str("(".to_string()));
                         output.push(Str("subfact".to_string()));
@@ -1079,21 +1075,37 @@ pub fn input_var(
                             && (chars[i + 1].is_numeric() || chars[i + 1] == '-')))
                 {
                     let j = i;
-                    let vn = var.name.split(|c| matches!(c, '(' | '{')).next().unwrap();
+                    let vn = var
+                        .name
+                        .split(|c| matches!(c, '(' | '{' | '[' | '|'))
+                        .next()
+                        .unwrap();
                     if var.name.contains(&'(')
                         && i + vn.len() < chars.len()
                         && chars[i..i + vn.len()] == *vn
-                        && matches!(chars[i + vn.len()], '(' | '{')
+                        && matches!(chars[i + vn.len()], '(' | '{' | '[' | '|')
                     {
+                        let abs = chars[i + vn.len()] == '|';
                         let countj = vn.len();
                         let mut count = 0;
+                        let mut abstest = false;
                         for (f, c) in chars[i..].iter().enumerate()
                         {
-                            if *c == '('
+                            if abs && *c == '|' && (count == 0 || (abstest && count == 1))
+                            {
+                                if abstest
+                                {
+                                    i += f;
+                                    break;
+                                }
+                                count += 1;
+                                abstest = true
+                            }
+                            else if matches!(c, '(' | '{' | '[')
                             {
                                 count += 1;
                             }
-                            else if *c == ')'
+                            else if matches!(c, ')' | '}' | ']')
                             {
                                 count -= 1;
                                 if count == 0
@@ -1115,15 +1127,24 @@ pub fn input_var(
                         let mut ccount = 0;
                         for c in &chars[j..i]
                         {
-                            if *c == ',' && count == if chars[j + 1] == '{' { 0 } else { 1 }
+                            if *c == ','
+                                && count
+                                    == if matches!(chars[j + 1], '{' | '[')
+                                    {
+                                        0
+                                    }
+                                    else
+                                    {
+                                        1
+                                    }
                             {
                                 ccount += 1;
                             }
-                            else if *c == '(' || c == &'{'
+                            else if matches!(c, '(' | '{' | '[')
                             {
                                 count += 1;
                             }
-                            else if *c == ')' || c == &'}' || c == &']'
+                            else if matches!(c, ')' | '}' | ']')
                             {
                                 count -= 1;
                             }
@@ -1165,11 +1186,11 @@ pub fn input_var(
                             count = 0;
                             for (f, c) in temp.iter().enumerate()
                             {
-                                if c == &'(' || c == &'{'
+                                if matches!(c, '(' | '{' | '[')
                                 {
                                     count += 1;
                                 }
-                                else if c == &')' || c == &'}' || c == &']'
+                                else if matches!(c, ')' | '}' | ']')
                                 {
                                     count -= 1;
                                 }
@@ -1190,7 +1211,7 @@ pub fn input_var(
                             start = 0;
                             for (f, c) in var.name.iter().enumerate()
                             {
-                                if c == &'(' || c == &'{'
+                                if matches!(c, '(' | '{' | '[')
                                 {
                                     if count == 0
                                     {
@@ -1198,7 +1219,7 @@ pub fn input_var(
                                     }
                                     count += 1;
                                 }
-                                else if c == &')' || c == &'}' || c == &']'
+                                else if matches!(c, ')' | '}' | ']')
                                 {
                                     count -= 1;
                                     if count == 0
@@ -1529,6 +1550,14 @@ pub fn input_var(
                                     }]
                                 }
                             };
+                            if abs
+                            {
+                                num.insert(0, Str("(".to_string()));
+                                num.insert(0, Str("norm".to_string()));
+                                num.insert(0, Str("(".to_string()));
+                                num.push(Str(")".to_string()));
+                                num.push(Str(")".to_string()))
+                            }
                             if print && num.len() == 1
                             {
                                 num.insert(0, Str("(".to_string()));
@@ -2090,11 +2119,12 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
         {}
     }
 }
-fn can_abs(output: &[NumStr]) -> bool
+fn can_abs(output: &[NumStr], vars: &[Variable]) -> bool
 {
     if let Some(Str(s)) = output.last()
     {
-        !functions().contains(s.as_str())
+        !(functions().contains(s.as_str())
+            || vars.iter().any(|c| c.name.iter().collect::<String>() == *s))
     }
     else
     {

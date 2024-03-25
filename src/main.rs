@@ -345,6 +345,7 @@ fn main()
                                 args.contains(&(left.clone() + "("))
                                     || args.contains(&(left.clone() + "{"))
                                     || args.contains(&(left.clone() + "["))
+                                    || args.contains(&(left.clone() + "|"))
                             }
                             else
                             {

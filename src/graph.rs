@@ -68,7 +68,7 @@ pub fn graph(
                             )
                             {
                                 print!(
-                                    "\x1b[G\x1b[A\x1b[K{}\n\x1b[G{}",
+                                    "\x1b[G\x1b[A\x1b[K{}\x1b[G\n{}",
                                     s,
                                     prompt(options, &colors)
                                 );

@@ -47,6 +47,8 @@ use std::{
 //setting to disable default vars by default, in config
 //domain coloring
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
+//fix zeta function
+//document functions and options properly, help $function
 #[derive(Clone)]
 pub struct Variable
 {
@@ -122,7 +124,7 @@ pub struct Options
 {
     sci: bool,
     deg: AngleType,
-    base: usize,
+    base: i32,
     ticks: f64,
     onaxis: bool,
     tau: bool,
@@ -133,8 +135,8 @@ pub struct Options
     color: bool,
     prompt: bool,
     comma: bool,
-    prec: (u32, u32),
-    graph_prec: (u32, u32),
+    prec: u32,
+    graph_prec: u32,
     frac_iter: usize,
     xr: (f64, f64),
     yr: (f64, f64),
@@ -180,8 +182,8 @@ impl Default for Options
             color: true,
             prompt: true,
             comma: false,
-            prec: (512, 512),
-            graph_prec: (128, 128),
+            prec: 512,
+            graph_prec: 128,
             frac_iter: 50,
             xr: (-10.0, 10.0),
             yr: (-10.0, 10.0),
@@ -1507,11 +1509,7 @@ fn main()
                 &colors,
                 &mut vars,
                 &lines,
-                &input
-                    .clone()
-                    .into_iter()
-                    .filter(|&c| !c.is_whitespace())
-                    .collect::<Vec<char>>(),
+                &input,
                 &mut stdout,
             );
             if !varcheck
@@ -1549,7 +1547,7 @@ fn main()
             {
                 if !s.is_empty()
                 {
-                    print!("\x1b[G\x1b[K{}\n\x1b[G{}", s, prompt(options, &colors));
+                    print!("\x1b[G\x1b[K{}\x1b[G\n{}", s, prompt(options, &colors));
                 }
                 else
                 {

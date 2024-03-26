@@ -1784,13 +1784,13 @@ pub fn do_math(
                                 }
                                 if a.imag().is_zero()
                                 {
-                                    let two = Float::with_val(options.prec.0, 2);
+                                    let two = Float::with_val(options.prec, 2);
                                     Num(((-a / two.clone().sqrt()).real().clone().erfc() / two)
                                         .into())
                                 }
                                 else
                                 {
-                                    let two = Float::with_val(options.prec.0, 2);
+                                    let two = Float::with_val(options.prec, 2);
                                     Num(erf(-a / two.clone().sqrt()) / two)
                                 }
                             }
@@ -2526,7 +2526,7 @@ fn functions(
                     else
                     {
                         let a = a + Complex::with_val(options.prec, (0, 1))
-                            * Float::with_val(options.prec.0, 0.5).pow(options.prec.0 / 2);
+                            * Float::with_val(options.prec, 0.5).pow(options.prec / 2);
                         (gamma(a.clone() + 1) / gamma(a.clone() - b + 1))
                             .real()
                             .clone()
@@ -2691,7 +2691,7 @@ fn functions(
             }
             else
             {
-                (gamma(a.clone() + 1) / Float::with_val(options.prec.0, 1).exp())
+                (gamma(a.clone() + 1) / Float::with_val(options.prec, 1).exp())
                     .real()
                     .clone()
                     .round()
@@ -2763,10 +2763,11 @@ fn functions(
         }
         "zeta" | "ζ" =>
         {
+            //TODO
             if let Some(b) = c
             {
                 let mut sum = Complex::new(options.prec);
-                for n in 0..=options.prec.0 / 8
+                for n in 0..=options.prec / 8
                 {
                     let nb = Integer::from(n);
                     let mut subsum = Complex::new(options.prec);
@@ -2793,7 +2794,7 @@ fn functions(
             {
                 let b = Complex::with_val(options.prec, 1);
                 let mut sum = Complex::new(options.prec);
-                for n in 0..=options.prec.0 / 8
+                for n in 0..=options.prec / 8
                 {
                     let nb = Integer::from(n);
                     let mut subsum = Complex::new(options.prec);

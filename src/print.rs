@@ -1226,210 +1226,228 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
     {
         options.decimal_places
     };
-    if options.base != 10
+    if options.sci
     {
-        let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
+        //TODO
+        if options.base != 10
         {
-            "+"
-        }
-        else
-        {
-            ""
-        }
-        .to_string();
-        (
-            if !num.real().is_zero()
+            let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
             {
-                let n = num.real().to_string_radix(options.base as i32, None);
-                if n.contains('e')
-                {
-                    n
-                }
-                else
-                {
-                    n.trim_end_matches('0').trim_end_matches('.').to_string()
-                }
-            }
-            else if num.imag().is_zero()
-            {
-                "0".to_string()
+                "+"
             }
             else
             {
-                String::new()
-            },
-            if !num.imag().is_zero()
-            {
-                let n = num.imag().to_string_radix(options.base as i32, None);
-                sign + &if n.contains('e')
-                {
-                    n
-                }
-                else
-                {
-                    n.trim_end_matches('0').trim_end_matches('.').to_string()
-                } + &if options.color
-                {
-                    format!("{}i", &colors.imag)
-                }
-                else
-                {
-                    "i".to_string()
-                }
+                ""
             }
-            else
-            {
-                String::new()
-            },
-        )
-    }
-    else if options.sci
-    {
-        let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
-        {
-            "+"
-        }
-        else
-        {
-            ""
-        }
-        .to_string();
-        (
-            if num.real().is_zero() && !num.imag().is_zero()
-            {
-                String::new()
-            }
-            else
-            {
-                if options.comma
+            .to_string();
+            (
+                if !num.real().is_zero()
                 {
-                    add_commas(&remove_trailing_zeros(
-                        &format!("{:e}", num.real()),
-                        dec,
-                        options.prec,
-                    ))
-                }
-                else
-                {
-                    remove_trailing_zeros(&format!("{:e}", num.real()), dec, options.prec)
-                }
-                .replace("e0", "")
-                .replace(
-                    'e',
-                    &if options.small_e
+                    let n = num.real().to_string_radix(options.base, None);
+                    if n.contains('e')
                     {
-                        if options.color
-                        {
-                            format!("{}e", &colors.sci)
-                        }
-                        else
-                        {
-                            "e".to_string()
-                        }
-                    }
-                    else if options.color
-                    {
-                        format!("{}E", &colors.sci)
+                        n
                     }
                     else
                     {
-                        "E".to_string()
-                    },
-                ) + if options.color { "\x1b[0m" } else { "" }
-            },
-            if num.imag().is_zero()
-            {
-                String::new()
-            }
-            else if num.imag() == &1
-            {
-                sign + &if options.color
-                {
-                    format!("{}i", &colors.imag)
-                }
-                else
-                {
-                    "i".to_string()
-                }
-            }
-            else if num.imag() == &-1
-            {
-                sign + &if options.color
-                {
-                    format!("-{}i", &colors.imag)
-                }
-                else
-                {
-                    "i".to_string()
-                }
-            }
-            else
-            {
-                if options.comma
-                {
-                    add_commas(
-                        &(sign
-                            + &remove_trailing_zeros(
-                                &format!("{:e}", num.imag(),),
-                                dec,
-                                options.prec,
-                            )),
-                    )
-                }
-                else
-                {
-                    sign + &remove_trailing_zeros(&format!("{:e}", num.imag(),), dec, options.prec)
-                }
-                .replace("e0", "")
-                .replace(
-                    'e',
-                    &if options.small_e
-                    {
-                        if options.color
-                        {
-                            format!("{}e", &colors.sci)
-                        }
-                        else
-                        {
-                            "e".to_string()
-                        }
+                        n.trim_end_matches('0').trim_end_matches('.').to_string()
                     }
-                    else if options.color
+                }
+                else if num.imag().is_zero()
+                {
+                    "0".to_string()
+                }
+                else
+                {
+                    String::new()
+                },
+                if !num.imag().is_zero()
+                {
+                    let n = num.imag().to_string_radix(options.base, None);
+                    sign + &if n.contains('e')
                     {
-                        format!("{}E", &colors.sci)
+                        n
                     }
                     else
                     {
-                        "E".to_string()
-                    },
-                ) + &if options.color
-                {
-                    format!("{}i", &colors.imag)
+                        n.trim_end_matches('0').trim_end_matches('.').to_string()
+                    } + &if options.color
+                    {
+                        format!("{}i", &colors.imag)
+                    }
+                    else
+                    {
+                        "i".to_string()
+                    }
                 }
                 else
                 {
-                    "i".to_string()
+                    String::new()
+                },
+            )
+        }
+        else
+        {
+            let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
+            {
+                "+"
+            }
+            else
+            {
+                ""
+            }
+            .to_string();
+            (
+                if num.real().is_zero() && !num.imag().is_zero()
+                {
+                    String::new()
                 }
-            },
-        )
+                else
+                {
+                    if options.comma
+                    {
+                        add_commas(&remove_trailing_zeros(
+                            &format!("{:e}", num.real()),
+                            dec,
+                            options.prec,
+                        ))
+                    }
+                    else
+                    {
+                        remove_trailing_zeros(&format!("{:e}", num.real()), dec, options.prec)
+                    }
+                    .replace("e0", "")
+                    .replace(
+                        'e',
+                        &if options.small_e
+                        {
+                            if options.color
+                            {
+                                format!("{}e", &colors.sci)
+                            }
+                            else
+                            {
+                                "e".to_string()
+                            }
+                        }
+                        else if options.color
+                        {
+                            format!("{}E", &colors.sci)
+                        }
+                        else
+                        {
+                            "E".to_string()
+                        },
+                    ) + if options.color { "\x1b[0m" } else { "" }
+                },
+                if num.imag().is_zero()
+                {
+                    String::new()
+                }
+                else if num.imag() == &1
+                {
+                    sign + &if options.color
+                    {
+                        format!("{}i", &colors.imag)
+                    }
+                    else
+                    {
+                        "i".to_string()
+                    }
+                }
+                else if num.imag() == &-1
+                {
+                    sign + &if options.color
+                    {
+                        format!("-{}i", &colors.imag)
+                    }
+                    else
+                    {
+                        "i".to_string()
+                    }
+                }
+                else
+                {
+                    if options.comma
+                    {
+                        add_commas(
+                            &(sign
+                                + &remove_trailing_zeros(
+                                    &format!("{:e}", num.imag()),
+                                    dec,
+                                    options.prec,
+                                )),
+                        )
+                    }
+                    else
+                    {
+                        sign + &remove_trailing_zeros(
+                            &format!("{:e}", num.imag()),
+                            dec,
+                            options.prec,
+                        )
+                    }
+                    .replace("e0", "")
+                    .replace(
+                        'e',
+                        &if options.small_e
+                        {
+                            if options.color
+                            {
+                                format!("{}e", &colors.sci)
+                            }
+                            else
+                            {
+                                "e".to_string()
+                            }
+                        }
+                        else if options.color
+                        {
+                            format!("{}E", &colors.sci)
+                        }
+                        else
+                        {
+                            "E".to_string()
+                        },
+                    ) + &if options.color
+                    {
+                        format!("{}i", &colors.imag)
+                    }
+                    else
+                    {
+                        "i".to_string()
+                    }
+                },
+            )
+        }
     }
     else
     {
         let re = if options.comma
         {
-            add_commas(&to_string(num.real(), options.decimal_places, false))
+            add_commas(&to_string(
+                num.real(),
+                options.decimal_places,
+                false,
+                options.base,
+            ))
         }
         else
         {
-            to_string(num.real(), options.decimal_places, false)
+            to_string(num.real(), options.decimal_places, false, options.base)
         };
         let im = if options.comma
         {
-            add_commas(&to_string(num.imag(), options.decimal_places, true))
+            add_commas(&to_string(
+                num.imag(),
+                options.decimal_places,
+                true,
+                options.base,
+            ))
         }
         else
         {
-            to_string(num.imag(), options.decimal_places, true)
+            to_string(num.imag(), options.decimal_places, true, options.base)
         };
         let sign = if num.imag().is_sign_positive() && re != "0"
         {
@@ -1490,15 +1508,15 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
         )
     }
 }
-fn to_string(num: &Float, decimals: usize, imag: bool) -> String
+fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
 {
-    let (neg, mut str, exp) = num.to_sign_string_exp(10, None);
+    let (neg, mut str, exp) = num.to_sign_string_exp(radix, None);
     let mut neg = if neg { "-" } else { "" };
     if exp.is_none()
     {
         return if str == "0"
         {
-            "0".to_string()
+            neg.to_owned() + "0"
         }
         else
         {
@@ -1527,7 +1545,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
     {
         return if str == "0"
         {
-            "0".to_string()
+            neg.to_owned() + "0"
         }
         else
         {
@@ -1539,6 +1557,10 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
         str.push_str(&"0".repeat(exp as usize - str.len()));
     }
     let mut zeros = String::new();
+    if -exp > decimals as i32
+    {
+        return neg.to_owned() + "0";
+    }
     if exp < 0
     {
         zeros = "0".repeat(-exp as usize);
@@ -1556,7 +1578,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
     {
         return if str == "0"
         {
-            "0".to_string()
+            neg.to_owned() + "0"
         }
         else
         {
@@ -1580,7 +1602,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool) -> String
     if exp > 0
     {
         zeros = "0".repeat(r.to_string().len() - r.to_string().trim_start_matches('0').len());
-        if d.to_string() == 10.0f64.powi(decimals as i32 - 1).to_string()
+        if d.to_string() == (radix as f64).powi(decimals as i32 - 1).to_string()
         {
             zeros.pop();
         }
@@ -1688,7 +1710,7 @@ fn add_commas(input: &str) -> String
     }
     result.chars().rev().collect::<String>()
 }
-fn remove_trailing_zeros(input: &str, dec: usize, prec: (u32, u32)) -> String
+fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
 {
     let pos = match input.find('e')
     {
@@ -1699,7 +1721,18 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: (u32, u32)) -> String
                 .trim_end_matches('0')
                 .trim_end_matches('.')
                 .to_string();
-            return if s.is_empty() { "0".to_string() } else { s };
+            return if s.is_empty()
+            {
+                "0".to_string()
+            }
+            else if s == "-"
+            {
+                "-0".to_string()
+            }
+            else
+            {
+                s
+            };
         }
     };
     let dec = if dec == usize::MAX - 1
@@ -1753,7 +1786,7 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: (u32, u32)) -> String
             num.insert(dec, '.');
             num = Float::parse(num)
                 .unwrap()
-                .complete(prec.0)
+                .complete(prec)
                 .to_integer()
                 .unwrap()
                 .to_string();

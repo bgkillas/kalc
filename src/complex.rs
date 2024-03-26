@@ -886,7 +886,7 @@ pub fn trace(a: &[Vec<Complex>]) -> Complex
     }
     n
 }
-pub fn identity(a: usize, prec: (u32, u32)) -> Vec<Vec<Complex>>
+pub fn identity(a: usize, prec: u32) -> Vec<Vec<Complex>>
 {
     let mut mat = Vec::with_capacity(a);
     for i in 0..a
@@ -1217,7 +1217,7 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
         ]
     }
 }
-pub fn variance(a: &[Complex], prec: (u32, u32)) -> Complex
+pub fn variance(a: &[Complex], prec: u32) -> Complex
 {
     let mean = a.iter().fold(Complex::new(prec), |sum, val| sum + val) / a.len();
     let mut variance = Complex::new(prec);
@@ -1706,7 +1706,7 @@ pub fn area(
         }
     }
     let mut areavec: Vec<Complex> = Vec::new();
-    let div = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 2);
+    let div = Complex::with_val(options.prec, 0.5).pow(options.prec / 2);
     let delta: Complex = (end.clone() - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
     let mut x0 = do_math_with_var(
@@ -1926,13 +1926,13 @@ pub fn slope(
         LimSide::Right => slopesided(func, func_vars, options, var, point, combine, nth, true),
         LimSide::Both =>
         {
-            if options.prec.0 < 512
+            if options.prec < 512
             {
-                options.prec = (512, 512);
+                options.prec = 512;
             }
-            else if options.prec.0 > 1024
+            else if options.prec > 1024
             {
-                options.prec = (1024, 1024);
+                options.prec = 1024;
             }
             let left = slopesided(
                 func.clone(),
@@ -1955,18 +1955,18 @@ pub fn slope(
                             .abs()
                             .clone()
                             .log2()
-                            < options.prec.0 as i32 / -16)
+                            < options.prec as i32 / -16)
                         || (left.imag().is_infinite()
                             && right.imag().is_infinite()
                             && (left.real().clone() - right.real().clone())
                                 .abs()
                                 .clone()
                                 .log2()
-                                < options.prec.0 as i32 / -16))
+                                < options.prec as i32 / -16))
                         && left.real().is_sign_positive() == right.real().is_sign_positive()
                         && left.imag().is_sign_positive() == right.imag().is_sign_positive())
                         || (left.clone() - right.clone()).abs().real().clone().log2()
-                            < options.prec.0 as i32 / -16
+                            < options.prec as i32 / -16
                     {
                         Ok(Num((left + right) / 2))
                     }
@@ -1987,20 +1987,20 @@ pub fn slope(
                                     .abs()
                                     .clone()
                                     .log2()
-                                    < options.prec.0 as i32 / -16)
+                                    < options.prec as i32 / -16)
                                 || (left.imag().is_infinite()
                                     && right.imag().is_infinite()
                                     && (left.real().clone() - right.real().clone())
                                         .abs()
                                         .clone()
                                         .log2()
-                                        < options.prec.0 as i32 / -16))
+                                        < options.prec as i32 / -16))
                                 && left.real().is_sign_positive()
                                     == right.real().is_sign_positive()
                                 && left.imag().is_sign_positive()
                                     == right.imag().is_sign_positive())
                                 || (left.clone() - right.clone()).abs().real().clone().log2()
-                                    < options.prec.0 as i32 / -16
+                                    < options.prec as i32 / -16
                             {
                                 (left + right) / 2
                             }
@@ -2029,19 +2029,16 @@ pub fn slopesided(
     right: bool,
 ) -> Result<NumStr, &'static str>
 {
-    if options.prec.0 < 256
+    if options.prec < 256
     {
-        options.prec = (256, 256);
+        options.prec = 256;
     }
-    else if options.prec.0 > 1024
+    else if options.prec > 1024
     {
-        options.prec = (1024, 1024);
+        options.prec = 1024;
     }
-    let prec = options.prec.0 / 8;
-    options.prec = (
-        nth.max(1) * options.prec.0 / 2,
-        nth.max(1) * options.prec.0 / 2,
-    );
+    let prec = options.prec / 8;
+    options.prec = nth.max(1) * options.prec / 2;
     point.set_prec(options.prec);
     let h: Complex = if right
     {
@@ -2097,17 +2094,17 @@ pub fn slopesided(
             if right || nth % 2 == 0
             {
                 Ok(Num(get_infinities(
-                    sum * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                    sum * Float::with_val(options.prec, 2).pow(nth * prec),
                     prec,
-                    options.prec.0,
+                    options.prec,
                 )))
             }
             else
             {
                 Ok(Num(-get_infinities(
-                    sum * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                    sum * Float::with_val(options.prec, 2).pow(nth * prec),
                     prec,
-                    options.prec.0,
+                    options.prec,
                 )))
             }
         }
@@ -2152,17 +2149,17 @@ pub fn slopesided(
                         if right || nth % 2 == 0
                         {
                             get_infinities(
-                                n.clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                                n.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                                 prec,
-                                options.prec.0,
+                                options.prec,
                             )
                         }
                         else
                         {
                             -get_infinities(
-                                n.clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                                n.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                                 prec,
-                                options.prec.0,
+                                options.prec,
                             )
                         }
                     })
@@ -2205,17 +2202,17 @@ pub fn slopesided(
             if right || nth % 2 == 0
             {
                 Ok(Num(get_infinities(
-                    sum[0].clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                    sum[0].clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                     prec,
-                    options.prec.0,
+                    options.prec,
                 )))
             }
             else
             {
                 Ok(Num(-get_infinities(
-                    sum[0].clone() * Float::with_val(options.prec.0, 2).pow(nth * prec),
+                    sum[0].clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                     prec,
-                    options.prec.0,
+                    options.prec,
                 )))
             }
         }
@@ -2259,7 +2256,7 @@ pub fn slopesided(
                 Ok(Num(get_infinities(
                     sum[1].clone() / sum[0].clone(),
                     prec,
-                    options.prec.0,
+                    options.prec,
                 )))
             }
             else
@@ -2268,7 +2265,7 @@ pub fn slopesided(
                 Ok(Vector(
                     sum[0..sum.len() - 1]
                         .iter()
-                        .map(|n| get_infinities(nf.clone() / n, prec, options.prec.0))
+                        .map(|n| get_infinities(nf.clone() / n, prec, options.prec))
                         .collect::<Vec<Complex>>(),
                 ))
             }
@@ -2337,14 +2334,14 @@ pub fn limit(
     side: LimSide,
 ) -> Result<NumStr, &'static str>
 {
-    if options.prec.0 < 256
+    if options.prec < 256
     {
-        options.prec = (256, 256);
+        options.prec = 256;
         point.set_prec(options.prec);
     }
-    else if options.prec.0 > 1024
+    else if options.prec > 1024
     {
-        options.prec = (1024, 1024);
+        options.prec = 1024;
         point.set_prec(options.prec);
     }
     if point.clone().real().is_infinite() || point.clone().imag().is_infinite()
@@ -2353,15 +2350,13 @@ pub fn limit(
         let positive = point.real().is_sign_positive();
         if positive
         {
-            h1 = Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
-            h2 = Complex::with_val(options.prec, 2).pow((options.prec.0 / 3) as f64 + 7.0 / 0.94)
-                - 3;
+            h1 = Complex::with_val(options.prec, 2).pow(options.prec / 4);
+            h2 = Complex::with_val(options.prec, 2).pow((options.prec / 3) as f64 + 7.0 / 0.94) - 3;
         }
         else
         {
-            h1 = -Complex::with_val(options.prec, 2).pow(options.prec.0 / 4);
-            h2 = 3 - Complex::with_val(options.prec, 2)
-                .pow((options.prec.0 / 3) as f64 + 7.0 / 0.94);
+            h1 = -Complex::with_val(options.prec, 2).pow(options.prec / 4);
+            h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec / 3) as f64 + 7.0 / 0.94);
         }
         let n1 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h1))?;
         let n2 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h2))?;
@@ -2369,8 +2364,7 @@ pub fn limit(
         {
             (Num(n1), Num(n2)) =>
             {
-                if (n1.clone() - n2.clone()).abs().real().clone().log2()
-                    < options.prec.0 as i32 / -16
+                if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
                     Ok(Num(n2))
                 }
@@ -2394,11 +2388,11 @@ pub fn limit(
                                     }
                                     (true, false) => Complex::with_val(
                                         options.prec,
-                                        (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                        (Infinity, -Float::with_val(options.prec, Infinity)),
                                     ),
                                     (false, true) => Complex::with_val(
                                         options.prec,
-                                        (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                        (-Float::with_val(options.prec, Infinity), Infinity),
                                     ),
                                     (false, false) =>
                                     {
@@ -2415,13 +2409,13 @@ pub fn limit(
                                         (
                                             Infinity,
                                             if (n1.imag() - n2.imag().clone()).abs().log2()
-                                                < options.prec.0 as i32 / -16
+                                                < options.prec as i32 / -16
                                             {
                                                 n2.imag().clone()
                                             }
                                             else
                                             {
-                                                Float::new(options.prec.0)
+                                                Float::new(options.prec)
                                             },
                                         ),
                                     )
@@ -2433,13 +2427,13 @@ pub fn limit(
                                         (
                                             Infinity,
                                             if (n1.imag() - n2.imag().clone()).abs().log2()
-                                                < options.prec.0 as i32 / -16
+                                                < options.prec as i32 / -16
                                             {
                                                 -n2.imag().clone()
                                             }
                                             else
                                             {
-                                                Float::new(options.prec.0)
+                                                Float::new(options.prec)
                                             },
                                         ),
                                     )
@@ -2453,13 +2447,13 @@ pub fn limit(
                                         options.prec,
                                         (
                                             if (n1.real() - n2.real().clone()).abs().log2()
-                                                < options.prec.0 as i32 / -16
+                                                < options.prec as i32 / -16
                                             {
                                                 n2.real().clone()
                                             }
                                             else
                                             {
-                                                Float::new(options.prec.0)
+                                                Float::new(options.prec)
                                             },
                                             Infinity,
                                         ),
@@ -2471,13 +2465,13 @@ pub fn limit(
                                         options.prec,
                                         (
                                             if (n1.real() - n2.real().clone()).abs().log2()
-                                                < options.prec.0 as i32 / -16
+                                                < options.prec as i32 / -16
                                             {
                                                 -n2.real().clone()
                                             }
                                             else
                                             {
-                                                Float::new(options.prec.0)
+                                                Float::new(options.prec)
                                             },
                                             Infinity,
                                         ),
@@ -2499,13 +2493,13 @@ pub fn limit(
                             if positive
                             {
                                 Complex::with_val(options.prec, 2)
-                                    .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
+                                    .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                                     - 7
                             }
                             else
                             {
                                 7 - Complex::with_val(options.prec, 2)
-                                    .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
+                                    .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                             },
                         ),
                     )?
@@ -2540,11 +2534,11 @@ pub fn limit(
                                         }
                                         (true, false) => Complex::with_val(
                                             options.prec,
-                                            (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                            (Infinity, -Float::with_val(options.prec, Infinity)),
                                         ),
                                         (false, true) => Complex::with_val(
                                             options.prec,
-                                            (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                            (-Float::with_val(options.prec, Infinity), Infinity),
                                         ),
                                         (false, false) =>
                                         {
@@ -2561,13 +2555,13 @@ pub fn limit(
                                             (
                                                 Infinity,
                                                 if (n2i - n3i.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     n3i
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                             ),
                                         )
@@ -2579,13 +2573,13 @@ pub fn limit(
                                             (
                                                 Infinity,
                                                 if (n2i - n3i.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     -n3i
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                             ),
                                         )
@@ -2599,13 +2593,13 @@ pub fn limit(
                                             options.prec,
                                             (
                                                 if (n2r - n3r.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     n3r
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                                 Infinity,
                                             ),
@@ -2617,13 +2611,13 @@ pub fn limit(
                                             options.prec,
                                             (
                                                 if (n2r - n3r.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     -n3r
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                                 Infinity,
                                             ),
@@ -2644,7 +2638,7 @@ pub fn limit(
                 {
                     vec.push(
                         if (n1.clone() - n2.clone()).abs().real().clone().log2()
-                            < options.prec.0 as i32 / -16
+                            < options.prec as i32 / -16
                         {
                             n2
                         }
@@ -2670,11 +2664,11 @@ pub fn limit(
                                         }
                                         (true, false) => Complex::with_val(
                                             options.prec,
-                                            (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                            (Infinity, -Float::with_val(options.prec, Infinity)),
                                         ),
                                         (false, true) => Complex::with_val(
                                             options.prec,
-                                            (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                            (-Float::with_val(options.prec, Infinity), Infinity),
                                         ),
                                         (false, false) =>
                                         {
@@ -2697,7 +2691,7 @@ pub fn limit(
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                             ),
                                         )
@@ -2715,7 +2709,7 @@ pub fn limit(
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                             ),
                                         )
@@ -2735,7 +2729,7 @@ pub fn limit(
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                                 Infinity,
                                             ),
@@ -2753,7 +2747,7 @@ pub fn limit(
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                                 Infinity,
                                             ),
@@ -2776,13 +2770,13 @@ pub fn limit(
                                         if positive
                                         {
                                             Complex::with_val(options.prec, 2)
-                                                .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
+                                                .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                                                 - 7
                                         }
                                         else
                                         {
                                             7 - Complex::with_val(options.prec, 2)
-                                                .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7)
+                                                .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                                         },
                                     ),
                                 )?
@@ -2820,13 +2814,13 @@ pub fn limit(
                                                 options.prec,
                                                 (
                                                     Infinity,
-                                                    -Float::with_val(options.prec.0, Infinity),
+                                                    -Float::with_val(options.prec, Infinity),
                                                 ),
                                             ),
                                             (false, true) => Complex::with_val(
                                                 options.prec,
                                                 (
-                                                    -Float::with_val(options.prec.0, Infinity),
+                                                    -Float::with_val(options.prec, Infinity),
                                                     Infinity,
                                                 ),
                                             ),
@@ -2845,13 +2839,13 @@ pub fn limit(
                                                 (
                                                     Infinity,
                                                     if (n2i - n3i.clone()).abs().log2()
-                                                        < options.prec.0 as i32 / -16
+                                                        < options.prec as i32 / -16
                                                     {
                                                         n3i
                                                     }
                                                     else
                                                     {
-                                                        Float::new(options.prec.0)
+                                                        Float::new(options.prec)
                                                     },
                                                 ),
                                             )
@@ -2863,13 +2857,13 @@ pub fn limit(
                                                 (
                                                     Infinity,
                                                     if (n2i - n3i.clone()).abs().log2()
-                                                        < options.prec.0 as i32 / -16
+                                                        < options.prec as i32 / -16
                                                     {
                                                         -n3i
                                                     }
                                                     else
                                                     {
-                                                        Float::new(options.prec.0)
+                                                        Float::new(options.prec)
                                                     },
                                                 ),
                                             )
@@ -2883,13 +2877,13 @@ pub fn limit(
                                                 options.prec,
                                                 (
                                                     if (n2r - n3r.clone()).abs().log2()
-                                                        < options.prec.0 as i32 / -16
+                                                        < options.prec as i32 / -16
                                                     {
                                                         n3r
                                                     }
                                                     else
                                                     {
-                                                        Float::new(options.prec.0)
+                                                        Float::new(options.prec)
                                                     },
                                                     Infinity,
                                                 ),
@@ -2901,13 +2895,13 @@ pub fn limit(
                                                 options.prec,
                                                 (
                                                     if (n2r - n3r.clone()).abs().log2()
-                                                        < options.prec.0 as i32 / -16
+                                                        < options.prec as i32 / -16
                                                     {
                                                         -n3r
                                                     }
                                                     else
                                                     {
-                                                        Float::new(options.prec.0)
+                                                        Float::new(options.prec)
                                                     },
                                                     Infinity,
                                                 ),
@@ -2952,18 +2946,18 @@ pub fn limit(
                                 .abs()
                                 .clone()
                                 .log2()
-                                < options.prec.0 as i32 / -16)
+                                < options.prec as i32 / -16)
                             || (left.imag().is_infinite()
                                 && right.imag().is_infinite()
                                 && (left.real().clone() - right.real().clone())
                                     .abs()
                                     .clone()
                                     .log2()
-                                    < options.prec.0 as i32 / -16))
+                                    < options.prec as i32 / -16))
                             && left.real().is_sign_positive() == right.real().is_sign_positive()
                             && left.imag().is_sign_positive() == right.imag().is_sign_positive())
                             || (left.clone() - right.clone()).abs().real().clone().log2()
-                                < options.prec.0 as i32 / -16
+                                < options.prec as i32 / -16
                         {
                             Ok(Num((left + right) / 2))
                         }
@@ -2984,20 +2978,20 @@ pub fn limit(
                                         .abs()
                                         .clone()
                                         .log2()
-                                        < options.prec.0 as i32 / -16)
+                                        < options.prec as i32 / -16)
                                     || (left.imag().is_infinite()
                                         && right.imag().is_infinite()
                                         && (left.real().clone() - right.real().clone())
                                             .abs()
                                             .clone()
                                             .log2()
-                                            < options.prec.0 as i32 / -16))
+                                            < options.prec as i32 / -16))
                                     && left.real().is_sign_positive()
                                         == right.real().is_sign_positive()
                                     && left.imag().is_sign_positive()
                                         == right.imag().is_sign_positive())
                                     || (left.clone() - right.clone()).abs().real().clone().log2()
-                                        < options.prec.0 as i32 / -16
+                                        < options.prec as i32 / -16
                                 {
                                     (left + right) / 2
                                 }
@@ -3024,8 +3018,8 @@ fn limsided(
     right: bool,
 ) -> Result<NumStr, &'static str>
 {
-    let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec.0 / 4);
-    let h2 = Complex::with_val(options.prec, 0.5).pow((options.prec.0 / 3) as f64 + 7.0 / 0.94);
+    let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec / 4);
+    let h2 = Complex::with_val(options.prec, 0.5).pow((options.prec / 3) as f64 + 7.0 / 0.94);
     let n1 = do_math_with_var(
         func.clone(),
         options,
@@ -3043,14 +3037,14 @@ fn limsided(
     match (n1, n2)
     {
         (Num(n1), Num(n2)) => Ok(Num(
-            if (n2.clone() - n1.clone()).abs().real().clone().log2() < options.prec.0 as i32 / -16
+            if (n2.clone() - n1.clone()).abs().real().clone().log2() < options.prec as i32 / -16
             {
                 n1
             }
             else
             {
                 let h3 = Complex::with_val(options.prec, 0.5)
-                    .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7);
+                    .pow((options.prec / 2) as f64 + 13.0 / 0.7);
                 let n3 = do_math_with_var(
                     func.clone(),
                     options,
@@ -3087,11 +3081,11 @@ fn limsided(
                                 }
                                 (true, false) => Complex::with_val(
                                     options.prec,
-                                    (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                    (Infinity, -Float::with_val(options.prec, Infinity)),
                                 ),
                                 (false, true) => Complex::with_val(
                                     options.prec,
-                                    (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                    (-Float::with_val(options.prec, Infinity), Infinity),
                                 ),
                                 (false, false) =>
                                 {
@@ -3108,13 +3102,13 @@ fn limsided(
                                     (
                                         Infinity,
                                         if (n1.imag() - n2.imag().clone()).abs().log2()
-                                            < options.prec.0 as i32 / -16
+                                            < options.prec as i32 / -16
                                         {
                                             n2.imag().clone()
                                         }
                                         else
                                         {
-                                            Float::new(options.prec.0)
+                                            Float::new(options.prec)
                                         },
                                     ),
                                 )
@@ -3126,13 +3120,13 @@ fn limsided(
                                     (
                                         Infinity,
                                         if (n1.imag() - n2.imag().clone()).abs().log2()
-                                            < options.prec.0 as i32 / -16
+                                            < options.prec as i32 / -16
                                         {
                                             -n2.imag().clone()
                                         }
                                         else
                                         {
-                                            Float::new(options.prec.0)
+                                            Float::new(options.prec)
                                         },
                                     ),
                                 )
@@ -3146,13 +3140,13 @@ fn limsided(
                                     options.prec,
                                     (
                                         if (n1.real() - n2.real().clone()).abs().log2()
-                                            < options.prec.0 as i32 / -16
+                                            < options.prec as i32 / -16
                                         {
                                             n2.real().clone()
                                         }
                                         else
                                         {
-                                            Float::new(options.prec.0)
+                                            Float::new(options.prec)
                                         },
                                         Infinity,
                                     ),
@@ -3164,13 +3158,13 @@ fn limsided(
                                     options.prec,
                                     (
                                         if (n1.real() - n2.real().clone()).abs().log2()
-                                            < options.prec.0 as i32 / -16
+                                            < options.prec as i32 / -16
                                         {
                                             -n2.real().clone()
                                         }
                                         else
                                         {
-                                            Float::new(options.prec.0)
+                                            Float::new(options.prec)
                                         },
                                         Infinity,
                                     ),
@@ -3190,7 +3184,7 @@ fn limsided(
             {
                 vec.push(
                     if (n2.clone() - n1.clone()).abs().real().clone().log2()
-                        < options.prec.0 as i32 / -16
+                        < options.prec as i32 / -16
                     {
                         n1.clone()
                     }
@@ -3199,7 +3193,7 @@ fn limsided(
                         if n3.is_empty()
                         {
                             let h3 = Complex::with_val(options.prec, 0.5)
-                                .pow((options.prec.0 / 2) as f64 + 13.0 / 0.7);
+                                .pow((options.prec / 2) as f64 + 13.0 / 0.7);
                             n3 = do_math_with_var(
                                 func.clone(),
                                 options,
@@ -3240,11 +3234,11 @@ fn limsided(
                                         }
                                         (true, false) => Complex::with_val(
                                             options.prec,
-                                            (Infinity, -Float::with_val(options.prec.0, Infinity)),
+                                            (Infinity, -Float::with_val(options.prec, Infinity)),
                                         ),
                                         (false, true) => Complex::with_val(
                                             options.prec,
-                                            (-Float::with_val(options.prec.0, Infinity), Infinity),
+                                            (-Float::with_val(options.prec, Infinity), Infinity),
                                         ),
                                         (false, false) =>
                                         {
@@ -3261,13 +3255,13 @@ fn limsided(
                                             (
                                                 Infinity,
                                                 if (n2i - n3i.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     n3i
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                             ),
                                         )
@@ -3279,13 +3273,13 @@ fn limsided(
                                             (
                                                 Infinity,
                                                 if (n2i - n3i.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     -n3i
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                             ),
                                         )
@@ -3299,13 +3293,13 @@ fn limsided(
                                             options.prec,
                                             (
                                                 if (n2r - n3r.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     n3r
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                                 Infinity,
                                             ),
@@ -3317,13 +3311,13 @@ fn limsided(
                                             options.prec,
                                             (
                                                 if (n2r - n3r.clone()).abs().log2()
-                                                    < options.prec.0 as i32 / -16
+                                                    < options.prec as i32 / -16
                                                 {
                                                     -n3r
                                                 }
                                                 else
                                                 {
-                                                    Float::new(options.prec.0)
+                                                    Float::new(options.prec)
                                                 },
                                                 Infinity,
                                             ),

@@ -155,3 +155,13 @@ pub fn help()
     numbers/minus sign convert to superscript acting as exponents\x1b[G\n"
     );
 }
+//TODO
+pub fn help_for(thing: &str) -> String
+{
+    match thing
+    {
+        "W" => "lambertW function\x1b[G\ntest",
+        _ => "not in database",
+    }
+    .to_string()
+}

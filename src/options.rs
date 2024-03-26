@@ -1,6 +1,6 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Vector},
-    help::help,
+    help::{help, help_for},
     load_vars::get_vars,
     math::do_math,
     misc::{parsed_to_string, to_output},
@@ -291,7 +291,7 @@ pub fn set_commands(
                 "onaxis" => options.onaxis = args[0] != 0.0,
                 "base" =>
                 {
-                    let n = args[0] as usize;
+                    let n = args[0] as i32;
                     if (2..=36).contains(&n)
                     {
                         options.base = n
@@ -315,14 +315,14 @@ pub fn set_commands(
                 }
                 "graphprec" | "graphprecision" => match args[0] as u32
                 {
-                    n if n != 0 => options.graph_prec = (n, n),
+                    n if n != 0 => options.graph_prec = n,
                     _ => return Err("Invalid graphprecision"),
                 },
                 "prec" | "precision" => match args[0] as u32
                 {
                     n if n != 0 =>
                     {
-                        options.prec = (n, n);
+                        options.prec = n;
                         if !vars.is_empty()
                         {
                             let v = get_vars(*options);
@@ -698,7 +698,7 @@ pub fn commands(
     stdout: &mut Stdout,
 )
 {
-    match input.iter().collect::<String>().as_str()
+    match input.iter().collect::<String>().trim_start().trim_end()
     {
         "graphcli" =>
         {
@@ -965,7 +965,37 @@ pub fn commands(
             process::exit(0);
         }
         _ =>
-        {}
+        {
+            let n = input.iter().collect::<String>();
+            let mut split = n.splitn(2, ' ');
+            match split.next().unwrap()
+            {
+                "history" | "his" =>
+                {
+                    print!("\x1b[A\x1b[G\x1b[K");
+                    let r = split.next().unwrap();
+                    for i in lines
+                    {
+                        if i.contains(r)
+                        {
+                            print!("{}\x1b[G\n", i);
+                        }
+                    }
+                    stdout.flush().unwrap();
+                }
+                //TODO make concurrent
+                "help" =>
+                {
+                    print!(
+                        "\x1b[A\x1b[G\x1b[K{}\x1b[G\n",
+                        help_for(split.next().unwrap())
+                    );
+                    stdout.flush().unwrap();
+                }
+                _ =>
+                {}
+            }
+        }
     }
 }
 pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, last: &str)
@@ -973,7 +1003,9 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
 {
     match l.replace(' ', "").as_str()
     {
-        "colors" => format!(
+        "colors" =>
+        {
+            format!(
             "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[0mre1col={} re2col={} re3col={} re4col={} re5col={} re6col={} im1col={} im2col={} im3col={} im4col={} im5col={} im6col={}",
             colors.text,
             &colors.text[2..],
@@ -983,7 +1015,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             &colors.imag[2..],
             colors.sci,
             &colors.sci[2..],
-            colors.brackets.iter().fold(String::new(), |out, a| out + a+ &a[2..]+",").trim_end_matches(','),
+            bracketcol(&colors.brackets),
             formatcol(&colors.re1col),
             formatcol(&colors.re2col),
             formatcol(&colors.re3col),
@@ -996,7 +1028,8 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             formatcol(&colors.im4col),
             formatcol(&colors.im5col),
             formatcol(&colors.im6col),
-        ),
+        )
+        }
         "var_multiply" => format!("{}", options.var_multiply),
         "slowcheck" => format!("{}", options.slowcheck),
         "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),
@@ -1022,8 +1055,8 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "ticks" => format!("{}", options.ticks),
         "onaxis" => format!("{}", options.onaxis),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
-        "prec" | "precision" => format!("{}", options.prec.0),
-        "graphprec" | "graphprecision" => format!("{}", options.graph_prec.0),
+        "prec" | "precision" => format!("{}", options.prec),
+        "graphprec" | "graphprecision" => format!("{}", options.graph_prec),
         "xr" => format!("{},{}", options.xr.0, options.xr.1),
         "yr" => format!("{},{}", options.yr.0, options.yr.1),
         "zr" => format!("{},{}", options.zr.0, options.zr.1),
@@ -1054,12 +1087,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "promptc" => colors.prompt.to_string(),
         "imagc" => colors.imag.to_string(),
         "scic" => colors.sci.to_string(),
-        "bracketc" => colors
-            .brackets
-            .iter()
-            .fold(String::new(), |out, a| out + a+ &a[2..]+",")
-            .trim_end_matches(',')
-            .to_string(),
+        "bracketc" => bracketcol(&colors.brackets),
         "re1col" => formatcol(&colors.re1col),
         "re2col" => formatcol(&colors.re2col),
         "re3col" => formatcol(&colors.re3col),
@@ -1105,4 +1133,12 @@ fn formatcol(color: &str) -> String
         u8::from_str_radix(&color[5..7], 16).unwrap(),
         color
     )
+}
+fn bracketcol(bracket: &[String]) -> String
+{
+    bracket
+        .iter()
+        .fold(String::new(), |out, a| out + a + &a[2..] + ",")
+        .trim_end_matches(',')
+        .to_string()
 }

@@ -30,6 +30,7 @@ pub fn input_var(
     // {
     //     return Err("debugfail");
     // }
+    let prec = (options.prec, options.prec);
     let mut funcvars = Vec::new();
     if input.starts_with("history") || input.starts_with("onaxis") || input.is_empty()
     {
@@ -168,7 +169,7 @@ pub fn input_var(
             }
             output.push(Num(match Complex::parse(pow.as_bytes())
             {
-                Ok(n) => n.complete(options.prec),
+                Ok(n) => n.complete(prec),
                 _ => return Err("exponent error"),
             } * Complex::with_val(options.prec, (0, 1))
                 .pow(Complex::with_val(options.prec, i))));
@@ -236,9 +237,7 @@ pub fn input_var(
                 num.insert(0, '-');
                 i += 1;
             }
-            output.push(Num(Complex::parse(num.clone())
-                .unwrap()
-                .complete(options.prec)));
+            output.push(Num(Complex::parse(num.clone()).unwrap().complete(prec)));
             if scientific
             {
                 output.push(Str(")".to_string()));
@@ -588,7 +587,7 @@ pub fn input_var(
                         output.push(Str("^".to_string()));
                         output.push(Num(match Complex::parse(exp.0.as_bytes())
                         {
-                            Ok(n) => n.complete(options.prec),
+                            Ok(n) => n.complete(prec),
                             _ => return Err("exponent error"),
                         }));
                         exp = (String::new(), 0);
@@ -1239,7 +1238,7 @@ pub fn input_var(
                                 let mut num = if let Ok(n) =
                                     Complex::parse(varf.iter().collect::<String>())
                                 {
-                                    vec![Num(n.complete(options.prec))]
+                                    vec![Num(n.complete(prec))]
                                 }
                                 else
                                 {
@@ -1437,7 +1436,7 @@ pub fn input_var(
                                 output.push(Str("^".to_string()));
                                 output.push(Num(match Complex::parse(exp.0.as_bytes())
                                 {
-                                    Ok(n) => n.complete(options.prec),
+                                    Ok(n) => n.complete(prec),
                                     _ => return Err("exponent error"),
                                 }));
                                 exp = (String::new(), 0);
@@ -1476,7 +1475,7 @@ pub fn input_var(
                             let mut num = if let Ok(n) =
                                 Complex::parse(temp.iter().collect::<String>())
                             {
-                                vec![Num(n.complete(options.prec))]
+                                vec![Num(n.complete(prec))]
                             }
                             else
                             {

@@ -7,21 +7,21 @@ pub fn fraction(value: Float, options: Options) -> String
     {
         return String::new();
     }
-    let rt3 = Float::with_val(options.prec.0, 3).sqrt();
+    let rt3 = Float::with_val(options.prec, 3).sqrt();
     let values = [
-        Float::with_val(options.prec.0, 1.0),
+        Float::with_val(options.prec, 1.0),
         if options.tau
         {
-            2 * Float::with_val(options.prec.0, Pi)
+            2 * Float::with_val(options.prec, Pi)
         }
         else
         {
-            Float::with_val(options.prec.0, Pi)
+            Float::with_val(options.prec, Pi)
         },
-        Float::with_val(options.prec.0, 2).sqrt(),
+        Float::with_val(options.prec, 2).sqrt(),
         rt3.clone(),
-        Float::with_val(options.prec.0, 2 + rt3.clone()).sqrt(),
-        Float::with_val(options.prec.0, 2 - rt3).sqrt(),
+        Float::with_val(options.prec, 2 + rt3.clone()).sqrt(),
+        Float::with_val(options.prec, 2 - rt3).sqrt(),
     ];
     let sign: String = if value < 0.0
     {
@@ -75,7 +75,7 @@ pub fn fraction(value: Float, options: Options) -> String
             let fract = recip.clone().fract();
             if fract < 1e-36
             {
-                let mut last = Float::with_val(options.prec.0, 1);
+                let mut last = Float::with_val(options.prec, 1);
                 for j in (0..nums.len()).rev()
                 {
                     last.clone_from(&recip);

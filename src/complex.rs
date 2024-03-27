@@ -480,6 +480,33 @@ pub fn lt(a: &Complex, b: &Complex) -> Complex
 {
     Complex::with_val(a.prec(), (a.real() < b.real()) as u8)
 }
+pub fn between(
+    left: &Complex,
+    center: &Complex,
+    right: &Complex,
+    equalleft: bool,
+    equalright: bool,
+) -> Complex
+{
+    Complex::with_val(
+        left.prec(),
+        (if equalleft
+        {
+            left.real() <= center.real()
+        }
+        else
+        {
+            left.real() < center.real()
+        } && if equalright
+        {
+            right.real() >= center.real()
+        }
+        else
+        {
+            right.real() > center.real()
+        }) as u8,
+    )
+}
 pub fn rem(a: &Complex, b: &Complex) -> Complex
 {
     let c = a / b.clone();

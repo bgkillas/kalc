@@ -1,10 +1,10 @@
 use crate::{
     complex::{
-        add, and, area, cofactor, cubic, determinant, digamma, div, eigenvalues, eq, erf, erfc,
-        gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, le,
-        length, limit, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl,
-        shr, slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
-        variance,
+        add, and, area, between, cofactor, cubic, determinant, digamma, div, eigenvalues, eq, erf,
+        erfc, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw,
+        le, length, limit, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root,
+        shl, shr, slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace,
+        transpose, variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -1943,16 +1943,16 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            match s.as_str()
+            function[i] = match s.as_str()
             {
-                "%" => function[i] = function[i - 1].func(&function[i + 1], rem)?,
-                ".." => function[i] = to(&function[i - 1], &function[i + 1])?,
+                "%" => function[i - 1].func(&function[i + 1], rem)?,
+                ".." => to(&function[i - 1], &function[i + 1])?,
                 _ =>
                 {
                     i += 1;
                     continue;
                 }
-            }
+            };
             function.remove(i + 1);
             function.remove(i - 1);
         }
@@ -1966,18 +1966,18 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            match s.as_str()
+            function[i] = match s.as_str()
             {
-                "×" => function[i] = function[i - 1].mul(&function[i + 1])?,
-                "^" => function[i] = function[i - 1].pow(&function[i + 1])?,
-                "^^" => function[i] = function[i - 1].func(&function[i + 1], tetration)?,
-                "//" => function[i] = function[i - 1].func(&function[i + 1], root)?,
+                "×" => function[i - 1].mul(&function[i + 1])?,
+                "^" => function[i - 1].pow(&function[i + 1])?,
+                "^^" => function[i - 1].func(&function[i + 1], tetration)?,
+                "//" => function[i - 1].func(&function[i + 1], root)?,
                 _ =>
                 {
                     i -= 1;
                     continue;
                 }
-            }
+            };
             function.remove(i + 1);
             function.remove(i - 1);
             i = i.saturating_sub(2);
@@ -1992,16 +1992,40 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            match s.as_str()
+            function[i] = match s.as_str()
             {
-                "*" => function[i] = function[i - 1].mul(&function[i + 1])?,
-                "/" => function[i] = function[i - 1].func(&function[i + 1], div)?,
+                "*" => function[i - 1].mul(&function[i + 1])?,
+                "/" => function[i - 1].func(&function[i + 1], div)?,
                 _ =>
                 {
                     i += 1;
                     continue;
                 }
-            }
+            };
+            function.remove(i + 1);
+            function.remove(i - 1);
+        }
+        else
+        {
+            i += 1;
+        }
+    }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            function[i] = match s.as_str()
+            {
+                "±" => function[i - 1].pm(&function[i + 1])?,
+                "+" => function[i - 1].func(&function[i + 1], add)?,
+                "-" => function[i - 1].func(&function[i + 1], sub)?,
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            };
             function.remove(i + 1);
             function.remove(i - 1);
         }
@@ -2017,34 +2041,142 @@ pub fn do_math(
         {
             match s.as_str()
             {
-                "±" => function[i] = function[i - 1].pm(&function[i + 1])?,
-                "+" => function[i] = function[i - 1].func(&function[i + 1], add)?,
-                "-" => function[i] = function[i - 1].func(&function[i + 1], sub)?,
-                _ =>
+                "<" =>
                 {
-                    i += 1;
-                    continue;
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            match (
+                                s.as_str(),
+                                &function[i - 1],
+                                &function[i + 1],
+                                &function[i + 3],
+                            )
+                            {
+                                ("<", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(left, center, right, false, false));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                ("<=", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(left, center, right, false, true));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                _ =>
+                                {}
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], lt)?
                 }
-            }
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
-    }
-    i = 1;
-    while i < function.len() - 1
-    {
-        if let Str(s) = &function[i]
-        {
-            match s.as_str()
-            {
-                "<" => function[i] = function[i - 1].func(&function[i + 1], lt)?,
-                "<=" => function[i] = function[i - 1].func(&function[i + 1], le)?,
-                ">" => function[i] = function[i - 1].func(&function[i + 1], gt)?,
-                ">=" => function[i] = function[i - 1].func(&function[i + 1], ge)?,
+                "<=" =>
+                {
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            match (
+                                s.as_str(),
+                                &function[i - 1],
+                                &function[i + 1],
+                                &function[i + 3],
+                            )
+                            {
+                                ("<", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(left, center, right, true, false));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                ("<=", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(left, center, right, true, true));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                _ =>
+                                {}
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], le)?
+                }
+                ">" =>
+                {
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            match (
+                                s.as_str(),
+                                &function[i - 1],
+                                &function[i + 1],
+                                &function[i + 3],
+                            )
+                            {
+                                (">", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(right, center, left, false, false));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                (">=", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(right, center, left, true, false));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                _ =>
+                                {}
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], gt)?
+                }
+                ">=" =>
+                {
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            match (
+                                s.as_str(),
+                                &function[i - 1],
+                                &function[i + 1],
+                                &function[i + 3],
+                            )
+                            {
+                                (">", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(right, center, left, false, true));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                (">=", Num(left), Num(center), Num(right)) =>
+                                {
+                                    function[i] = Num(between(right, center, left, true, true));
+                                    function.drain(i + 1..=i + 3);
+                                    function.remove(i - 1);
+                                    continue;
+                                }
+                                _ =>
+                                {}
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], ge)?
+                }
                 "==" => function[i] = function[i - 1].func(&function[i + 1], eq)?,
                 "!=" => function[i] = function[i - 1].func(&function[i + 1], ne)?,
                 ">>" => function[i] = function[i - 1].func(&function[i + 1], shr)?,
@@ -2054,7 +2186,7 @@ pub fn do_math(
                     i += 1;
                     continue;
                 }
-            }
+            };
             function.remove(i + 1);
             function.remove(i - 1);
         }
@@ -2068,16 +2200,16 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            match s.as_str()
+            function[i] = match s.as_str()
             {
-                "&&" => function[i] = function[i - 1].func(&function[i + 1], and)?,
-                "||" => function[i] = function[i - 1].func(&function[i + 1], or)?,
+                "&&" => function[i - 1].func(&function[i + 1], and)?,
+                "||" => function[i - 1].func(&function[i + 1], or)?,
                 _ =>
                 {
                     i += 1;
                     continue;
                 }
-            }
+            };
             function.remove(i + 1);
             function.remove(i - 1);
         }

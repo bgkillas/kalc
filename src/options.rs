@@ -46,7 +46,14 @@ pub fn arg_opts(
             }
             "-h" | "--help" =>
             {
-                help();
+                if args.len() == 2
+                {
+                    println!("{}", help_for(&args[1]));
+                }
+                else
+                {
+                    help();
+                }
                 process::exit(0)
             }
             "--" =>
@@ -981,15 +988,6 @@ pub fn commands(
                             print!("{}\x1b[G\n", i);
                         }
                     }
-                    stdout.flush().unwrap();
-                }
-                //TODO make concurrent
-                "help" =>
-                {
-                    print!(
-                        "\x1b[A\x1b[G\x1b[K{}\x1b[G\n",
-                        help_for(split.next().unwrap())
-                    );
                     stdout.flush().unwrap();
                 }
                 _ =>

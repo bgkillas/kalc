@@ -3,6 +3,7 @@ pub fn help()
     print!(
              "Usage: kalc [FLAGS] equation_1 equation_2 equation_3...\x1b[G\n\
     FLAGS: --help (this message)\x1b[G\n\
+    --help {{thing}} to get more detail on a function/option/feature, --help help to list all \"things\"\x1b[G\n\
     --interactive/-i allows interaction after finishing the equations given\x1b[G\n\
     --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
     --tau fractions are shown in tau instead of pi\x1b[G\n\
@@ -45,12 +46,12 @@ pub fn help()
     --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph\x1b[G\n\
     --flat display 2d complex graphs like they are on the 2d number line\x1b[G\n\
     --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\x1b[G\n\
-    --scalegraph scales the y part of a 2d graph to the users screen size\x1b[G\n\x1b[G\n\
+    --scalegraph scales the y part of a 2d graph to the users screen size\x1b[G\x1b[G\n\n\
     - flags can be executed in runtime just without the dashes\x1b[G\n\
     - \"colors=\" to see color settings\x1b[G\n\
     - \"exit\" to exit the program\x1b[G\n\
     - \"clear\" to clear the screen\x1b[G\n\
-    - \"history [arg]\" to see the history, arg indexes it if specified\x1b[G\n\
+    - \"history [arg]\" to see the history, arg searches for the arg it if specified\x1b[G\n\
     - \"vars\" to list all variables\x1b[G\n\
     - \"option/var;function\" to set a temporal option/var, example: \"a=45;deg;sin(a)\" = sqrt(2)/2\x1b[G\n\
     - \"f(x)=var;function\" to set a temporal var when defining function, example: \"f(x)=a=2:ax\" = f(x)=2x\x1b[G\n\
@@ -70,12 +71,14 @@ pub fn help()
     - \"{{x,y,z}}\" to graph a parametric equation in 3d, example: {{cos(x),sin(x),x}} helix, {{sin(x)cos(y),sin(x)sin(y),cos(x)}} sphere\x1b[G\n\
     - \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\x1b[G\n\
     - \"rnd\" to generate a random number\x1b[G\n\
-    - Alt+Enter will not graph whatever is present\n\x1b[G\n\
+    - Alt+Enter will not graph whatever is present\x1b[G\n\
+    - \"help {{thing}}\" to get more detail on a function/option/feature\x1b[G\n\
+    - \"help help\" to list all things to query\x1b[G\n\n\
     Operators:\x1b[G\n\
     - +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-\x1b[G\n\
     - !x (subfact), x! (fact), x!! (doublefact)\x1b[G\n\
     - && (and), || (or), == (equals), != (not equals)\x1b[G\n\
-    - >> (right shift), << (left shift)\n\x1b[G\n\
+    - >> (right shift), << (left shift)\x1b[G\n\n\
     Functions:\x1b[G\n\
     - sin, cos, tan, asin, acos, atan, atan(x,y)\x1b[G\n\
     - csc, sec, cot, acsc, asec, acot\x1b[G\n\
@@ -102,8 +105,8 @@ pub fn help()
     - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\x1b[G\n\
     - roll{{a,b,c...}} rolls die, dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{{{first_dice_face,# of die}},{{second_dice_face,# of die}}...}}\x1b[G\n\
     - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
-    - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, and for area\n\x1b[G\n\
-    - area(x,f(x),from,to (,amount of data points) (,0) ), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)\n\x1b[G\n\
+    - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, and for area\x1b[G\n\n\
+    - area(x,f(x),from,to (,amount of data points) (,0) ), length(x,f(x),from,to (,amount of data points) ) (bracketed means optional)\x1b[G\n\n\
     Vector operations/functions:\x1b[G\n\
     - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\x1b[G\n\
     - angle({{vec1}},{{vec2}})\x1b[G\n\
@@ -114,7 +117,7 @@ pub fn help()
     - part({{vec}},col), sum, prod\x1b[G\n\
     - convert to polar: pol{{vec}} outputs (radius, theta, phi)\x1b[G\n\
     - convert to cartesian: car{{vec}} outputs (x, y, z)\x1b[G\n\
-    - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\n\x1b[G\n\
+    - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\x1b[G\n\n\
     Matrix operations/functions:\x1b[G\n\
     - eigenvalues\x1b[G\n\
     - trace/tr, determinant/det, inverse/inv\x1b[G\n\
@@ -125,7 +128,7 @@ pub fn help()
     - max, min, mean, mode\x1b[G\n\
     - iden(n) produces an n dimension identity matrix\x1b[G\n\
     - rotate(theta) produces a rotational matrix\x1b[G\n\
-    - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\n\x1b[G\n\
+    - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\x1b[G\n\n\
     Constants:\x1b[G\n\
     - c: speed of light, 299792458 m/s\x1b[G\n\
     - g: gravity, 9.80665 m/s^2\x1b[G\n\
@@ -160,7 +163,16 @@ pub fn help_for(thing: &str) -> String
 {
     match thing
     {
-        "W" => "lambertW function\x1b[G\ntest",
+        "W" | "productlog" | "lambertw" =>
+        {
+            "W(k,z), productlog(k,z), lambertw(k,z)\x1b[G\nkth branch of the inverse of z*e^z\x1b[G\ngiven one argument assumes k=0"
+        }
+        "atan" | "arctan" | "atan2" =>
+        {
+            "atan(x,y), arctan(x,y), atan2(y,x)\x1b[G\ninverse of tan(z)"
+        }
+        "help"=>"W, atan",
+        ""=>"",
         _ => "not in database",
     }
     .to_string()

@@ -47,8 +47,6 @@ use std::{
 //setting to disable default vars by default, in config
 //domain coloring
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
-//fix zeta function
-//document functions and options properly, help $function
 #[derive(Clone)]
 pub struct Variable
 {

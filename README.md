@@ -38,6 +38,7 @@ cargo build --release
 ```
 Usage: kalc [FLAGS] equation_1 equation_2 equation_3...
 FLAGS: --help (this message)
+--help {thing} to get more detail on a function/option/feature, --help help to list all "things"
 --interactive/-i allows interaction after finishing the equations given
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --tau fractions are shown in tau instead of pi
@@ -86,7 +87,7 @@ FLAGS: --help (this message)
 - "colors=" to see color settings
 - "exit" to exit the program
 - "clear" to clear the screen
-- "history [arg]" to see the history, arg indexes it if specified
+- "history [arg]" to see the history, arg searches for the arg it if specified
 - "vars" to list all variables
 - "option/var;function" to set a temporal option/var, example: "a=45;deg;sin(a)" = sqrt(2)/2
 - "f(x)=var;function" to set a temporal var when defining function, example: "f(x)=a=2:ax" = f(x)=2x
@@ -108,6 +109,8 @@ FLAGS: --help (this message)
 - "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 - "rnd" to generate a random number
 - Alt+Enter will not graph whatever is present
+- "help {thing}" to get more detail on a function/option/feature
+- "help help" to list all things to query
 
 Operators:
 - +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-

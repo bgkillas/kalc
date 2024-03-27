@@ -4,6 +4,7 @@ use crate::{
         NumStr::{Matrix, Num, Vector},
     },
     fraction::fraction,
+    help::help_for,
     load_vars::set_commands_or_vars,
     math::do_math,
     misc::{
@@ -16,7 +17,7 @@ use crate::{
     Colors, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
-use std::{cmp::Ordering, str::FromStr};
+use std::cmp::Ordering;
 #[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
@@ -65,7 +66,22 @@ pub fn print_concurrent(
             }
         }
         let tempinput = unparsed.iter().collect::<String>();
-        if tempinput.ends_with('=')
+        if tempinput.starts_with("help ")
+        {
+            //TODO wrap
+            let message = help_for(tempinput.splitn(2, ' ').last().unwrap());
+            let num = message.chars().filter(|c| c == &'\n').count();
+            print!(
+                "\x1b[G\x1b[J\n{}\x1b[G\x1b[{}A{}{}{}",
+                message,
+                num + 1,
+                prompt(options, &colors),
+                to_output(&unmodified_input[start..end], options.color, &colors),
+                if options.color { "\x1b[0m" } else { "" },
+            );
+            return (num, false, false, false);
+        }
+        else if tempinput.ends_with('=')
         {
             let out = equal_to(
                 options,
@@ -1015,7 +1031,7 @@ pub fn print_concurrent(
                         num += 1;
                     }
                 }
-                frac_out += "\x1b[K\n";
+                frac_out += "\x1b[K\x1b[G\n\x1b[K";
             }
             if length > width * (height - 1) || num > (height - 2)
             {
@@ -1228,7 +1244,6 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
     };
     if options.sci
     {
-        //TODO
         if options.base != 10
         {
             let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
@@ -1243,7 +1258,9 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             (
                 if !num.real().is_zero()
                 {
-                    let n = num.real().to_string_radix(options.base, None);
+                    let n = num
+                        .real()
+                        .to_string_radix(options.base, Some(options.decimal_places));
                     if n.contains('e')
                     {
                         n
@@ -1263,7 +1280,9 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                 },
                 if !num.imag().is_zero()
                 {
-                    let n = num.imag().to_string_radix(options.base, None);
+                    let n = num
+                        .imag()
+                        .to_string_radix(options.base, Some(options.decimal_places));
                     sign + &if n.contains('e')
                     {
                         n
@@ -1557,7 +1576,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
         str.push_str(&"0".repeat(exp as usize - str.len()));
     }
     let mut zeros = String::new();
-    if -exp > decimals as i32
+    if -exp as i128 > decimals as i128
     {
         return neg.to_owned() + "0";
     }
@@ -1596,7 +1615,9 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
             r.insert(decimals, '.');
         }
     }
-    let mut d = Float::with_val(num.prec(), Float::parse(&r).unwrap())
+    let mut d = Float::parse_radix(&r, radix)
+        .unwrap()
+        .complete(num.prec())
         .to_integer()
         .unwrap();
     if exp > 0
@@ -1607,17 +1628,18 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
             zeros.pop();
         }
     }
-    if d.to_string().trim_end_matches('0') == "1"
+    if radix == 10
+        && d.to_string().trim_end_matches('0') == "1"
         && r.trim_start_matches('0')
             .trim_start_matches('.')
             .starts_with('9')
     {
         if zeros.is_empty()
         {
-            let t: Float = Float::with_val(
-                num.prec(),
-                Float::parse(if l.is_empty() { "0" } else { &l }).unwrap(),
-            ) + 1;
+            let t: Float = Float::parse_radix(if l.is_empty() { "0" } else { &l }, radix)
+                .unwrap()
+                .complete(num.prec())
+                + 1;
             l = t.to_integer().unwrap().to_string();
             d = Integer::new();
         }
@@ -1632,12 +1654,19 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     }
     if decimals == 0
     {
-        if zeros.is_empty() && d.to_string().chars().next().unwrap().to_digit(10).unwrap() == 1
+        if zeros.is_empty()
+            && d.to_string_radix(radix)
+                .chars()
+                .next()
+                .unwrap()
+                .to_digit(radix as u32)
+                .unwrap()
+                == 1
         {
             format!(
                 "{}{}",
                 neg,
-                Integer::from_str(&l).unwrap_or(Integer::new()) + 1
+                Integer::from_str_radix(&l, radix).unwrap_or_default() + 1
             )
         }
         else
@@ -1652,7 +1681,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
             neg,
             if l.is_empty() { "0" } else { &l },
             zeros,
-            d
+            d.to_string_radix(radix)
         )
         .trim_end_matches('0')
         .trim_end_matches('.')

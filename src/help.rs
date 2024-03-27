@@ -22,7 +22,7 @@ pub fn help()
     --range=[num] sets all ranges to [-num],[num]\x1b[G\n\
     --point [char] point style for graphing\x1b[G\n\
     --sci toggles scientific notation\x1b[G\n\
-    --base=[num] sets the number base (2,8,16)\x1b[G\n\
+    --base=[input],[output] sets the numbers base from 2 to 36\x1b[G\n\
     --ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none\x1b[G\n\
     --onaxis toggles showing the ticks on the x/y/z axis\x1b[G\n\
     --prompt toggles the prompt\x1b[G\n\

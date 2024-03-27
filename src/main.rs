@@ -122,7 +122,7 @@ pub struct Options
 {
     sci: bool,
     deg: AngleType,
-    base: i32,
+    base: (i32, i32),
     ticks: f64,
     onaxis: bool,
     tau: bool,
@@ -169,7 +169,7 @@ impl Default for Options
         Self {
             sci: false,
             deg: Radians,
-            base: 10,
+            base: (10, 10),
             ticks: 20.0,
             onaxis: true,
             tau: false,

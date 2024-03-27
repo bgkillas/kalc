@@ -182,6 +182,7 @@ pub fn do_math(
                                 k.as_str(),
                                 "next"
                                     | "log"
+                                    | "exp"
                                     | "zeta"
                                     | "ζ"
                                     | "polygamma"
@@ -2393,7 +2394,17 @@ fn functions(
             (a.real().clone().round(), a.imag().clone().round()),
         ),
         "recip" => a.recip(),
-        "exp" | "aln" => a.exp(),
+        "exp" | "aln" =>
+        {
+            if let Some(b) = c
+            {
+                a.pow(b)
+            }
+            else
+            {
+                a.exp()
+            }
+        }
         "W" | "productlog" | "lambertw" =>
         {
             if let Some(b) = c

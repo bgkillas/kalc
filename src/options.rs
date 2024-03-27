@@ -298,14 +298,30 @@ pub fn set_commands(
                 "onaxis" => options.onaxis = args[0] != 0.0,
                 "base" =>
                 {
-                    let n = args[0] as i32;
-                    if (2..=36).contains(&n)
+                    if args.len() == 2
                     {
-                        options.base = n
+                        let n1 = args[0] as i32;
+                        let n2 = args[1] as i32;
+                        if (2..=36).contains(&n1) && (2..=36).contains(&n2)
+                        {
+                            options.base = (n1, n2)
+                        }
+                        else
+                        {
+                            return Err("out of range of 2..=36");
+                        }
                     }
                     else
                     {
-                        return Err("out of range of 2..=36");
+                        let n = args[0] as i32;
+                        if (2..=36).contains(&n)
+                        {
+                            options.base = (n, n)
+                        }
+                        else
+                        {
+                            return Err("out of range of 2..=36");
+                        }
                     }
                 }
                 "ticks" => options.ticks = args[0],
@@ -1049,7 +1065,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "graph" => format!("{}", options.graph),
         "graphcli" => format!("{}", options.graph_cli),
         "point" => format!("{}", options.point_style),
-        "base" => format!("{}", options.base),
+        "base" => format!("{} {}", options.base.0, options.base.1),
         "ticks" => format!("{}", options.ticks),
         "onaxis" => format!("{}", options.onaxis),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),

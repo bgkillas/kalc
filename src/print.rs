@@ -1244,7 +1244,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
     };
     if options.sci
     {
-        if options.base != 10
+        if options.base.1 != 10
         {
             let sign = if num.imag().is_sign_positive() && !num.real().is_zero()
             {
@@ -1260,7 +1260,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                 {
                     let n = num
                         .real()
-                        .to_string_radix(options.base, Some(options.decimal_places));
+                        .to_string_radix(options.base.1, Some(options.decimal_places));
                     if n.contains('e')
                     {
                         n
@@ -1282,7 +1282,7 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                 {
                     let n = num
                         .imag()
-                        .to_string_radix(options.base, Some(options.decimal_places));
+                        .to_string_radix(options.base.1, Some(options.decimal_places));
                     sign + &if n.contains('e')
                     {
                         n
@@ -1448,12 +1448,12 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                 num.real(),
                 options.decimal_places,
                 false,
-                options.base,
+                options.base.1,
             ))
         }
         else
         {
-            to_string(num.real(), options.decimal_places, false, options.base)
+            to_string(num.real(), options.decimal_places, false, options.base.1)
         };
         let im = if options.comma
         {
@@ -1461,12 +1461,12 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
                 num.imag(),
                 options.decimal_places,
                 true,
-                options.base,
+                options.base.1,
             ))
         }
         else
         {
-            to_string(num.imag(), options.decimal_places, true, options.base)
+            to_string(num.imag(), options.decimal_places, true, options.base.1)
         };
         let sign = if num.imag().is_sign_positive() && re != "0"
         {

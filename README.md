@@ -57,7 +57,7 @@ FLAGS: --help (this message)
 --vrange=[num] sets all ranges to [-num],[num], graph view override, useful for parametric
 --point [char] point style for graphing
 --sci toggles scientific notation
---base=[num] sets the number base (2,8,16)
+--base=[input],[output] sets the numbers base from 2 to 36
 --ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
 --onaxis toggles showing the ticks on the x/y/z axis on by default for 2d, off by default for 3d
 --prompt toggles the prompt

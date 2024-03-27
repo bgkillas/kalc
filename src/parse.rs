@@ -167,12 +167,13 @@ pub fn input_var(
                 _ =>
                 {}
             }
-            output.push(Num(match Complex::parse(pow.as_bytes())
-            {
-                Ok(n) => n.complete(prec),
-                _ => return Err("exponent error"),
-            } * Complex::with_val(options.prec, (0, 1))
-                .pow(Complex::with_val(options.prec, i))));
+            output.push(Num(
+                match Complex::parse_radix(pow.as_bytes(), options.base.0)
+                {
+                    Ok(n) => n.complete(prec),
+                    _ => return Err("exponent error"),
+                } * Complex::with_val(options.prec, (0, 1)).pow(Complex::with_val(options.prec, i)),
+            ));
             pow = String::new();
         }
         if c == '.' && i + 1 < chars.len() && chars[i + 1] == '.'
@@ -181,13 +182,18 @@ pub fn input_var(
             i += 2;
             continue;
         }
-        if c.is_ascii_digit() || c == '.'
+        if c.is_ascii_digit()
+            || c == '.'
+            || (options.base.0 > 10
+                && (97..=97 + (options.base.0 as u8 - 11)).contains(&(chars[i] as u8)))
         {
             let mut num = String::new();
             let mut dot = false;
             while i < chars.len()
             {
                 if chars[i].is_ascii_digit()
+                    || (options.base.0 > 10
+                        && (97..=97 + (options.base.0 as u8 - 11)).contains(&(chars[i] as u8)))
                 {
                     num.push(chars[i]);
                 }
@@ -237,7 +243,13 @@ pub fn input_var(
                 num.insert(0, '-');
                 i += 1;
             }
-            output.push(Num(Complex::parse(num.clone()).unwrap().complete(prec)));
+            output.push(Num(
+                match Complex::parse_radix(num.clone(), options.base.0)
+                {
+                    Ok(n) => n.complete(prec),
+                    Err(_) => return Err("probably radix error"),
+                },
+            ));
             if scientific
             {
                 output.push(Str(")".to_string()));
@@ -585,11 +597,13 @@ pub fn input_var(
                     if !exp.0.is_empty() && exp.1 == *bracket
                     {
                         output.push(Str("^".to_string()));
-                        output.push(Num(match Complex::parse(exp.0.as_bytes())
-                        {
-                            Ok(n) => n.complete(prec),
-                            _ => return Err("exponent error"),
-                        }));
+                        output.push(Num(
+                            match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
+                            {
+                                Ok(n) => n.complete(prec),
+                                _ => return Err("exponent error"),
+                            },
+                        ));
                         exp = (String::new(), 0);
                     }
                 }
@@ -1235,8 +1249,10 @@ pub fn input_var(
                             let mut var = var;
                             for (varf, func_var) in split.iter().zip(func_vars)
                             {
-                                let mut num = if let Ok(n) =
-                                    Complex::parse(varf.iter().collect::<String>())
+                                let mut num = if let Ok(n) = Complex::parse_radix(
+                                    varf.iter().collect::<String>(),
+                                    options.base.0,
+                                )
                                 {
                                     vec![Num(n.complete(prec))]
                                 }
@@ -1434,11 +1450,13 @@ pub fn input_var(
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
-                                output.push(Num(match Complex::parse(exp.0.as_bytes())
-                                {
-                                    Ok(n) => n.complete(prec),
-                                    _ => return Err("exponent error"),
-                                }));
+                                output.push(Num(
+                                    match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
+                                    {
+                                        Ok(n) => n.complete(prec),
+                                        _ => return Err("exponent error"),
+                                    },
+                                ));
                                 exp = (String::new(), 0);
                             }
                             i += 1;
@@ -1472,8 +1490,10 @@ pub fn input_var(
                                 .collect::<String>();
                             let mut var = var;
                             let mut k = 0;
-                            let mut num = if let Ok(n) =
-                                Complex::parse(temp.iter().collect::<String>())
+                            let mut num = if let Ok(n) = Complex::parse_radix(
+                                temp.iter().collect::<String>(),
+                                options.base.0,
+                            )
                             {
                                 vec![Num(n.complete(prec))]
                             }
@@ -1683,14 +1703,13 @@ pub fn input_var(
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
-                                output.push(Num(Complex::with_val(
-                                    options.prec,
-                                    match Complex::parse(exp.0.as_bytes())
+                                output.push(Num(
+                                    match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                                     {
-                                        Ok(n) => n,
+                                        Ok(n) => n.complete(prec),
                                         _ => return Err("exponent error"),
                                     },
-                                )));
+                                ));
                                 exp = (String::new(), 0);
                             }
                             i += 1;
@@ -1847,7 +1866,7 @@ pub fn input_var(
                             }
                         }
                         place_multiplier(&mut output, sumrec);
-                        output.push(Num(Complex::with_val(options.prec, 10)));
+                        output.push(Num(Complex::with_val(options.prec, options.base.0)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
                                 || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '|'))
@@ -1979,27 +1998,24 @@ pub fn input_var(
             _ =>
             {}
         }
-        output.push(Num(Complex::with_val(
-            options.prec,
-            match Complex::parse(pow.as_bytes())
+        output.push(Num(
+            match Complex::parse_radix(pow.as_bytes(), options.base.0)
             {
-                Ok(n) => n,
+                Ok(n) => n.complete(prec),
                 _ => return Err("exponent error"),
-            },
-        ) * Complex::with_val(options.prec, (0, 1))
-            .pow(Complex::with_val(options.prec, i))));
+            } * Complex::with_val(options.prec, (0, 1)).pow(Complex::with_val(options.prec, i)),
+        ));
     }
     if !exp.0.is_empty()
     {
         output.push(Str("^".to_string()));
-        output.push(Num(Complex::with_val(
-            options.prec,
-            match Complex::parse(exp.0.as_bytes())
+        output.push(Num(
+            match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
             {
-                Ok(n) => n,
+                Ok(n) => n.complete(prec),
                 _ => return Err("exponent error"),
             },
-        )));
+        ));
     }
     if neg
     {

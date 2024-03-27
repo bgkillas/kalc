@@ -12,10 +12,7 @@ use rug::{
     ops::Pow,
     Complex, Float, Integer,
 };
-use std::{
-    cmp::Ordering,
-    ops::{Shl, Shr},
-};
+use std::cmp::Ordering;
 #[derive(Clone, PartialEq)]
 pub enum NumStr
 {
@@ -418,11 +415,11 @@ pub fn add(a: &Complex, b: &Complex) -> Complex
 }
 pub fn shl(a: &Complex, b: &Complex) -> Complex
 {
-    a.clone().shl(b.real().to_u32_saturating().unwrap_or(0))
+    a * Complex::with_val(a.prec(), 2).pow(b)
 }
 pub fn shr(a: &Complex, b: &Complex) -> Complex
 {
-    a.clone().shr(b.real().to_u32_saturating().unwrap_or(0))
+    a * Complex::with_val(a.prec(), 2).pow(-b.clone())
 }
 pub fn ne(a: &Complex, b: &Complex) -> Complex
 {

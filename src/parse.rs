@@ -121,6 +121,7 @@ pub fn input_var(
     i = 0;
     let mut sum = (0, String::new());
     let functions = functions();
+    let mut ceilfoor = 0;
     'main: while i < chars.len()
     {
         let c = chars[i];
@@ -498,8 +499,11 @@ pub fn input_var(
                 {
                     if chars[i + 1] == '<'
                     {
-                        output.push(Str("<<".to_string()));
-                        i += 1;
+                        if i + 2 < chars.len()
+                        {
+                            output.push(Str("<<".to_string()));
+                            i += 1;
+                        }
                     }
                     else
                     {
@@ -513,8 +517,11 @@ pub fn input_var(
                 {
                     if chars[i + 1] == '>'
                     {
-                        output.push(Str(">>".to_string()));
-                        i += 1;
+                        if i + 2 < chars.len()
+                        {
+                            output.push(Str(">>".to_string()));
+                            i += 1;
+                        }
                     }
                     else
                     {
@@ -570,29 +577,33 @@ pub fn input_var(
                         output.push(Str("^".to_string()));
                     }
                 }
-                '⌈' =>
+                '⌈' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;
+                    ceilfoor += 2;
                     output.push(Str("(".to_string()));
                     output.push(Str("ceil".to_string()));
                     output.push(Str("(".to_string()));
                 }
-                '⌊' =>
+                '⌊' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;
+                    ceilfoor += 2;
                     output.push(Str("(".to_string()));
                     output.push(Str("floor".to_string()));
                     output.push(Str("(".to_string()));
                 }
-                '⌉' =>
+                '⌉' if i != 0 =>
                 {
                     *bracket -= 1;
+                    ceilfoor -= 2;
                     output.push(Str(")".to_string()));
                     output.push(Str(")".to_string()));
                 }
-                '⌋' =>
+                '⌋' if i != 0 =>
                 {
                     *bracket -= 1;
+                    ceilfoor -= 2;
                     output.push(Str(")".to_string()));
                     output.push(Str(")".to_string()));
                 }
@@ -2001,7 +2012,7 @@ pub fn input_var(
             i += 1;
         }
     }
-    for _ in 0..pwr.2
+    for _ in 0..pwr.2 + ceilfoor
     {
         output.push(Str(')'.to_string()))
     }

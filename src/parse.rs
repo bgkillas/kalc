@@ -570,6 +570,32 @@ pub fn input_var(
                         output.push(Str("^".to_string()));
                     }
                 }
+                '⌈' =>
+                {
+                    *bracket += 1;
+                    output.push(Str("(".to_string()));
+                    output.push(Str("ceil".to_string()));
+                    output.push(Str("(".to_string()));
+                }
+                '⌊' =>
+                {
+                    *bracket += 1;
+                    output.push(Str("(".to_string()));
+                    output.push(Str("floor".to_string()));
+                    output.push(Str("(".to_string()));
+                }
+                '⌉' =>
+                {
+                    *bracket -= 1;
+                    output.push(Str(")".to_string()));
+                    output.push(Str(")".to_string()));
+                }
+                '⌋' =>
+                {
+                    *bracket -= 1;
+                    output.push(Str(")".to_string()));
+                    output.push(Str(")".to_string()));
+                }
                 '(' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;

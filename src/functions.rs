@@ -205,6 +205,9 @@ pub fn functions() -> HashSet<&'static str>
         "ph",
         "ψ",
         "next",
+        "factorial",
+        "doublefactorial",
+        "subfactorial",
     ]
     .iter()
     .cloned()

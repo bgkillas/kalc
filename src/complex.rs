@@ -16,11 +16,18 @@ use std::cmp::Ordering;
 #[derive(Clone, PartialEq)]
 pub enum NumStr
 {
+    //Num((Complex, Option<Units>)),
     Num(Complex),
     Str(String),
     Vector(Vec<Complex>),
     Matrix(Vec<Vec<Complex>>),
 }
+// #[derive(Clone, PartialEq)]
+// pub struct Units
+// {
+//     meters: f64,
+//     seconds: f64,
+// }
 impl NumStr
 {
     pub fn mul(&self, b: &Self) -> Result<Self, &'static str>
@@ -555,8 +562,7 @@ pub fn tetration(a: &Complex, b: &Complex) -> Complex
 {
     if b.real().clone().fract().is_zero() && b.real().is_sign_positive()
     {
-        (0..=b.real().to_f64() as usize)
-            .fold(Complex::new(b.prec()), |tetration, _| a.pow(tetration))
+        (1..b.real().to_f64() as usize).fold(a.clone(), |tetration, _| a.pow(tetration))
     }
     else if b.real().is_sign_positive()
     {

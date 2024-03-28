@@ -2831,7 +2831,7 @@ fn functions(
         ),
         "square" | "asqrt" => a.pow(2),
         "cube" | "acbrt" => a.pow(3),
-        "doublefact" =>
+        "doublefact" | "doublefactorial" =>
         {
             let two = Complex::with_val(options.prec, 2);
             let pi = Complex::with_val(options.prec, Pi);
@@ -2839,8 +2839,8 @@ fn functions(
                 * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
                 * gamma(a.clone() / 2 + 1)
         }
-        "fact" => gamma(a.clone() + 1),
-        "subfact" =>
+        "fact" | "factorial" => gamma(a.clone() + 1),
+        "subfact" | "subfactorial" =>
         {
             if !a.imag().is_zero()
                 || a.real().is_sign_negative()

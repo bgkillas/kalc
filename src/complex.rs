@@ -476,14 +476,6 @@ pub fn gt(a: &Complex, b: &Complex) -> Complex
 {
     Complex::with_val(a.prec(), (a.real() > b.real()) as u8)
 }
-pub fn le(a: &Complex, b: &Complex) -> Complex
-{
-    Complex::with_val(a.prec(), (a.real() <= b.real()) as u8)
-}
-pub fn lt(a: &Complex, b: &Complex) -> Complex
-{
-    Complex::with_val(a.prec(), (a.real() < b.real()) as u8)
-}
 pub fn between(
     left: &Complex,
     center: &Complex,
@@ -560,23 +552,40 @@ pub fn gamma(a: Complex) -> Complex
 }
 pub fn tetration(a: &Complex, b: &Complex) -> Complex
 {
-    if b.real().clone().fract().is_zero() && b.real().is_sign_positive()
+    if b.real().clone().fract().is_zero()
     {
-        (1..b.real().to_f64() as usize).fold(a.clone(), |tetration, _| a.pow(tetration))
-    }
-    else if b.real().is_sign_positive()
-    {
-        a.pow(tetration(a, &(b.clone() - 1)))
-    }
-    else if b.real() <= &-1
-    {
-        tetration(a, &(b.clone() + 1)).ln() / a.clone().ln()
+        if b.real().is_sign_positive()
+        {
+            (1..b.real().to_f64() as usize).fold(a.clone(), |tetration, _| a.pow(tetration))
+        }
+        else if *b == -1
+        {
+            Complex::with_val(a.prec(), 0)
+        }
+        else
+        {
+            Complex::with_val(a.prec(), (Infinity, Nan))
+        }
     }
     else
     {
-        let a = a.clone().ln();
-        1 + (2 * b.clone() * a.clone() / (1 + a.clone()))
-            - (b.clone().pow(2) * (1 - a.clone()) / (1 + a))
+        tetration_recursion(a.clone(), b.clone())
+    }
+}
+fn tetration_recursion(a: Complex, b: Complex) -> Complex
+{
+    if b.real().is_sign_positive()
+    {
+        a.clone().pow(tetration_recursion(a, b - 1))
+    }
+    else if b.real() <= &-1
+    {
+        tetration_recursion(a.clone(), b + 1).ln() / a.ln()
+    }
+    else
+    {
+        let aln = a.clone().ln();
+        1 + b.clone() * (aln.clone() * (2 + b.clone()) - b) / (1 + aln)
     }
 }
 pub fn slog(a: &Complex, b: &Complex) -> Complex

@@ -2,9 +2,9 @@ use crate::{
     complex::{
         add, and, area, between, cofactor, cubic, determinant, digamma, div, eigenvalues, eq, erf,
         erfc, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw,
-        le, length, limit, lt, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root,
-        shl, shr, slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace,
-        transpose, variance,
+        length, limit, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr,
+        slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
+        variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -1649,6 +1649,7 @@ pub fn do_math(
                             ),
                             "factors" | "factor" =>
                             {
+                                let mut fail = false;
                                 let mut mat = Vec::new();
                                 for num in a
                                 {
@@ -1669,15 +1670,24 @@ pub fn do_math(
                                         }
                                         else
                                         {
-                                            return Err("fractional factors not supported");
+                                            fail = true;
+                                            break;
                                         }
                                     }
                                     else
                                     {
-                                        return Err("complex factors not supported");
+                                        fail = true;
+                                        break;
                                     }
                                 }
-                                Matrix(mat)
+                                if fail
+                                {
+                                    Num(Complex::with_val(options.prec, Nan))
+                                }
+                                else
+                                {
+                                    Matrix(mat)
+                                }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },
@@ -1924,12 +1934,12 @@ pub fn do_math(
                                     }
                                     else
                                     {
-                                        return Err("fractional factors not supported");
+                                        Num(Complex::with_val(options.prec, Nan))
                                     }
                                 }
                                 else
                                 {
-                                    return Err("complex factors not supported");
+                                    Num(Complex::with_val(options.prec, Nan))
                                 }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
@@ -2075,7 +2085,7 @@ pub fn do_math(
                             }
                         }
                     }
-                    function[i] = function[i - 1].func(&function[i + 1], lt)?
+                    function[i] = function[i + 1].func(&function[i - 1], gt)?
                 }
                 "<=" =>
                 {
@@ -2109,7 +2119,7 @@ pub fn do_math(
                             }
                         }
                     }
-                    function[i] = function[i - 1].func(&function[i + 1], le)?
+                    function[i] = function[i + 1].func(&function[i - 1], ge)?
                 }
                 ">" =>
                 {
@@ -2628,7 +2638,7 @@ fn functions(
                 }
                 else
                 {
-                    return Err("slog undefined <=1");
+                    Complex::with_val(options.prec, Nan)
                 }
             }
             else
@@ -2898,7 +2908,7 @@ fn functions(
             }
             else
             {
-                return Err("complex ai not supported");
+                Complex::with_val(options.prec, Nan)
             }
         }
         "trigamma" => digamma(a, 1),
@@ -2958,7 +2968,7 @@ fn functions(
             }
             else
             {
-                return Err("cant get a complex prime");
+                Complex::with_val(options.prec, Nan)
             }
         }
         "lcm" =>
@@ -2967,11 +2977,14 @@ fn functions(
             {
                 if !a.real().is_finite() || !b.real().is_finite()
                 {
-                    return Err("non finite lcm");
+                    Complex::with_val(options.prec, Nan)
                 }
-                let a = a.real().to_integer().unwrap();
-                let b = b.real().to_integer().unwrap();
-                Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
+                else
+                {
+                    let a = a.real().to_integer().unwrap();
+                    let b = b.real().to_integer().unwrap();
+                    Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
+                }
             }
             else
             {
@@ -2984,15 +2997,18 @@ fn functions(
             {
                 if !a.real().is_finite() || !b.real().is_finite()
                 {
-                    return Err("non finite gcf");
+                    Complex::with_val(options.prec, Nan)
                 }
-                Complex::with_val(
-                    options.prec,
-                    gcd(
-                        a.real().to_integer().unwrap(),
-                        b.real().to_integer().unwrap(),
-                    ),
-                )
+                else
+                {
+                    Complex::with_val(
+                        options.prec,
+                        gcd(
+                            a.real().to_integer().unwrap(),
+                            b.real().to_integer().unwrap(),
+                        ),
+                    )
+                }
             }
             else
             {
@@ -3010,7 +3026,7 @@ fn functions(
             }
             else
             {
-                return Err("cant get a complex prime");
+                Complex::with_val(options.prec, Nan)
             }
         }
         _ =>

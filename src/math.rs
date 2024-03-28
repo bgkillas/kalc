@@ -294,6 +294,7 @@ pub fn do_math(
                                 k.as_str(),
                                 "sum"
                                     | "area"
+                                    | "∫"
                                     | "length"
                                     | "slope"
                                     | "summation"
@@ -358,12 +359,13 @@ pub fn do_math(
         if let Str(s) = &function[i].clone()
         {
             if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
-                || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D")
+                || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D" | "∫")
             {
                 if matches!(
                     s.as_str(),
                     "sum"
                         | "area"
+                        | "∫"
                         | "length"
                         | "slope"
                         | "product"
@@ -495,7 +497,7 @@ pub fn do_math(
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("area" | "integrate", Str(var))
+                        ("∫" | "area" | "integrate", Str(var))
                             if place.len() == 4 || place.len() == 5 || place.len() == 6 =>
                         {
                             function[i] = area(

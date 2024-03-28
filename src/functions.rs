@@ -193,6 +193,7 @@ pub fn functions() -> HashSet<&'static str>
         "limit",
         "D",
         "area",
+        "∫",
         "integrate",
         "length",
         "arclength",

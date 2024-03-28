@@ -273,7 +273,7 @@ pub fn input_var(
             }
             continue;
         }
-        if !c.is_alphabetic() && c != '@'
+        if !c.is_alphabetic() && c != '@' && c != '∫'
         {
             if !output.is_empty()
             {
@@ -851,7 +851,11 @@ pub fn input_var(
             {
                 depthcheck = !depthcheck;
             }
-            else if c.is_alphabetic() || c == &'\'' || c == &'`' || (c == &'2' && word == "atan")
+            else if c.is_alphabetic()
+                || c == &'\''
+                || c == &'`'
+                || (c == &'2' && word == "atan")
+                || c == &'∫'
             {
                 word.push(*c);
             }
@@ -875,7 +879,7 @@ pub fn input_var(
         }
         else if matches!(
             word.as_str(),
-            "area"
+            "∫" | "area"
                 | "length"
                 | "slope"
                 | "sum"

@@ -46,6 +46,7 @@ use std::{
 //allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //setting to disable default vars by default, in config
 //domain coloring
+//infinitely long greater/lesser than chains
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable

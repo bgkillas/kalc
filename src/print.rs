@@ -1551,7 +1551,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     {
         return if str == "0"
         {
-            neg.to_owned() + "0"
+            "0".to_string()
         }
         else
         {

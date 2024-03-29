@@ -2447,13 +2447,24 @@ fn do_functions(
     }
 }
 fn functions(
-    a: Complex,
-    c: Option<Complex>,
+    mut a: Complex,
+    mut c: Option<Complex>,
     to_deg: Complex,
     s: &str,
     options: Options,
 ) -> Result<Complex, &'static str>
 {
+    if a.imag().is_zero() && !a.imag().is_sign_positive()
+    {
+        a = Complex::with_val(a.prec(), a.real())
+    }
+    if let Some(ref b) = c
+    {
+        if b.imag().is_zero() && !b.imag().is_sign_positive()
+        {
+            c = Some(Complex::with_val(b.prec(), b.real()))
+        }
+    }
     let n = match s
     {
         "sin" => (a / to_deg).sin(),
@@ -3016,7 +3027,7 @@ fn functions(
             return Err("wrong input type");
         }
     };
-    if n.imag().is_zero()
+    if n.imag().is_zero() && !n.imag().is_sign_positive()
     {
         Ok(Complex::with_val(n.prec(), n.real()))
     }

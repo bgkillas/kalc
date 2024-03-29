@@ -1,10 +1,10 @@
 use crate::{
     complex::{
-        add, and, area, between, cofactor, cubic, determinant, digamma, div, eigenvalues, eq, erf,
-        erfc, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw,
-        length, limit, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr,
-        slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
-        variance,
+        add, and, area, atan, between, cofactor, cubic, determinant, digamma, div, eigenvalues, eq,
+        erf, erfc, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse,
+        lambertw, length, limit, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root,
+        shl, shr, slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace,
+        transpose, variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -2470,16 +2470,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if a.imag().is_zero() && b.imag().is_zero()
-                {
-                    Complex::with_val(options.prec, (b.real(), a.real())).arg() * to_deg
-                }
-                else
-                {
-                    let i = Complex::with_val(options.prec, (0, 1));
-                    let abs: Complex = a.clone().pow(2) + b.clone().pow(2);
-                    -i.clone() * ((b + a * i) / abs.sqrt()).ln() * to_deg
-                }
+                atan(b, a) * to_deg
             }
             else
             {
@@ -2490,16 +2481,7 @@ fn functions(
         {
             if let Some(b) = c
             {
-                if a.imag().is_zero() && b.imag().is_zero()
-                {
-                    Complex::with_val(options.prec, (a.real(), b.real())).arg() * to_deg
-                }
-                else
-                {
-                    let i = Complex::with_val(options.prec, (0, 1));
-                    let abs: Complex = a.clone().pow(2) + b.clone().pow(2);
-                    -i.clone() * ((a + b * i) / abs.sqrt()).ln() * to_deg
-                }
+                atan(a, b) * to_deg
             }
             else
             {

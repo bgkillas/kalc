@@ -622,6 +622,19 @@ pub fn slog(a: &Complex, b: &Complex) -> Complex
             - 1
     }
 }
+pub fn atan(a: Complex, b: Complex) -> Complex
+{
+    if a.imag().is_zero() && b.imag().is_zero()
+    {
+        Complex::with_val(a.prec(), (a.real(), b.real())).arg()
+    }
+    else
+    {
+        let i = Complex::with_val(a.prec(), (0, 1));
+        let abs: Complex = a.clone().pow(2) + b.clone().pow(2);
+        -i.clone() * ((a + b * i) / abs.sqrt()).ln()
+    }
+}
 pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
 {
     if a.len() == 1
@@ -659,10 +672,7 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
         {
             let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
             n = n.sqrt();
-            vec![
-                n.clone(),
-                a[1].clone() / a[1].clone().abs() * (&a[0] / n).acos() * to_deg,
-            ]
+            vec![n.clone(), atan(a[0].clone(), a[1].clone()) * to_deg]
         }
     }
     else if a[1].is_zero()
@@ -688,24 +698,25 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
         }
         else
         {
-            let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+            let nxy: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+            let mut n: Complex = nxy.clone() + a[2].clone().pow(2);
             n = n.sqrt();
             vec![
                 n.clone(),
-                (&a[2] / n).acos() * to_deg.clone(),
+                atan(a[2].clone(), nxy.sqrt()) * to_deg.clone(),
                 Complex::new(a[0].prec()),
             ]
         }
     }
     else
     {
-        let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2) + a[2].clone().pow(2);
+        let nxy: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
+        let mut n: Complex = nxy.clone() + a[2].clone().pow(2);
         n = n.sqrt();
-        let t: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
         vec![
             n.clone(),
-            (&a[2] / n).acos() * to_deg.clone(),
-            a[1].clone() / a[1].clone().abs() * (&a[0] / t.sqrt()).acos() * to_deg,
+            atan(a[2].clone(), nxy.sqrt()) * to_deg.clone(),
+            atan(a[0].clone(), a[1].clone()) * to_deg.clone(),
         ]
     }
 }

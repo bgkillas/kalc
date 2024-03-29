@@ -274,7 +274,7 @@ pub fn input_var(
             }
             continue;
         }
-        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫')
+        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫' | '\'')
         {
             if !output.is_empty()
             {

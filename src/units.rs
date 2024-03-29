@@ -217,34 +217,37 @@ pub fn prefixes(mut unit: String) -> (String, isize)
     while !unit.is_empty() && word.len() < 7
     {
         word.push(unit.remove(0));
-        match word.as_str()
+        if unit != *"\'"
         {
-            "quetta" | "Q" if units().contains(unit.as_str()) => return (unit, 30),
-            "ronna" | "R" if units().contains(unit.as_str()) => return (unit, 27),
-            "yotta" | "Y" if units().contains(unit.as_str()) => return (unit, 24),
-            "zetta" | "Z" if units().contains(unit.as_str()) => return (unit, 21),
-            "exa" | "E" if units().contains(unit.as_str()) => return (unit, 18),
-            "peta" | "P" if units().contains(unit.as_str()) => return (unit, 15),
-            "tera" | "T" if units().contains(unit.as_str()) => return (unit, 12),
-            "giga" | "G" if units().contains(unit.as_str()) => return (unit, 9),
-            "mega" | "M" if units().contains(unit.as_str()) => return (unit, 6),
-            "kilo" | "k" if units().contains(unit.as_str()) => return (unit, 3),
-            "hecto" | "h" if units().contains(unit.as_str()) => return (unit, 2),
-            "deca" | "da" if units().contains(unit.as_str()) => return (unit, 1),
-            "deci" | "d" if units().contains(unit.as_str()) => return (unit, -1),
-            "centi" | "c" if units().contains(unit.as_str()) => return (unit, -2),
-            "milli" | "m" if units().contains(unit.as_str()) => return (unit, -3),
-            "micro" | "μ" if units().contains(unit.as_str()) => return (unit, -6),
-            "nano" | "n" if units().contains(unit.as_str()) => return (unit, -9),
-            "pico" | "p" if units().contains(unit.as_str()) => return (unit, -12),
-            "femto" | "f" if units().contains(unit.as_str()) => return (unit, -15),
-            "atto" | "a" if units().contains(unit.as_str()) => return (unit, -18),
-            "zepto" | "z" if units().contains(unit.as_str()) => return (unit, -21),
-            "yocto" | "y" if units().contains(unit.as_str()) => return (unit, -24),
-            "ronto" | "r" if units().contains(unit.as_str()) => return (unit, -27),
-            "qecto" | "q" if units().contains(unit.as_str()) => return (unit, -30),
-            _ =>
-            {}
+            match word.as_str()
+            {
+                "quetta" | "Q" if units().contains(unit.as_str()) => return (unit, 30),
+                "ronna" | "R" if units().contains(unit.as_str()) => return (unit, 27),
+                "yotta" | "Y" if units().contains(unit.as_str()) => return (unit, 24),
+                "zetta" | "Z" if units().contains(unit.as_str()) => return (unit, 21),
+                "exa" | "E" if units().contains(unit.as_str()) => return (unit, 18),
+                "peta" | "P" if units().contains(unit.as_str()) => return (unit, 15),
+                "tera" | "T" if units().contains(unit.as_str()) => return (unit, 12),
+                "giga" | "G" if units().contains(unit.as_str()) => return (unit, 9),
+                "mega" | "M" if units().contains(unit.as_str()) => return (unit, 6),
+                "kilo" | "k" if units().contains(unit.as_str()) => return (unit, 3),
+                "hecto" | "h" if units().contains(unit.as_str()) => return (unit, 2),
+                "deca" | "da" if units().contains(unit.as_str()) => return (unit, 1),
+                "deci" | "d" if units().contains(unit.as_str()) => return (unit, -1),
+                "centi" | "c" if units().contains(unit.as_str()) => return (unit, -2),
+                "milli" | "m" if units().contains(unit.as_str()) => return (unit, -3),
+                "micro" | "μ" if units().contains(unit.as_str()) => return (unit, -6),
+                "nano" | "n" if units().contains(unit.as_str()) => return (unit, -9),
+                "pico" | "p" if units().contains(unit.as_str()) => return (unit, -12),
+                "femto" | "f" if units().contains(unit.as_str()) => return (unit, -15),
+                "atto" | "a" if units().contains(unit.as_str()) => return (unit, -18),
+                "zepto" | "z" if units().contains(unit.as_str()) => return (unit, -21),
+                "yocto" | "y" if units().contains(unit.as_str()) => return (unit, -24),
+                "ronto" | "r" if units().contains(unit.as_str()) => return (unit, -27),
+                "qecto" | "q" if units().contains(unit.as_str()) => return (unit, -30),
+                _ =>
+                {}
+            }
         }
     }
     (bak, 0)
@@ -310,6 +313,19 @@ pub fn units() -> HashSet<&'static str>
         "kWh",
         "celsius",
         "fahrenheit",
+        "litre",
+        "L",
+        "lb",
+        "pound",
+        "inch",
+        "in",
+        "ft",
+        "\'",
+        "yd",
+        "yard",
+        "mi",
+        "mile",
+        "mph",
     ]
     .iter()
     .cloned()
@@ -339,6 +355,45 @@ pub fn to_unit(
             units.kilogram = 1.0;
             units.meter = 2.0;
             units.second = -2.0;
+        }
+        "mph" =>
+        {
+            num *= 201168;
+            num /= 125;
+            num /= 3600;
+            units.meter = 1.0;
+            units.second = -1.0;
+        }
+        "mi" | "mile" =>
+        {
+            num *= 201168;
+            num /= 125;
+            units.meter = 1.0;
+        }
+        "yd" | "yard" =>
+        {
+            num *= 0.9144;
+            units.meter = 1.0;
+        }
+        "ft" | "\'" | "foot" =>
+        {
+            units.meter = 1.0;
+            num *= 0.3048;
+        }
+        "in" | "inch" =>
+        {
+            units.meter = 1.0;
+            num *= 0.0254;
+        }
+        "lb" | "pound" =>
+        {
+            units.kilogram = 1.0;
+            num *= 0.45359237;
+        }
+        "L" | "litre" =>
+        {
+            num *= 0.001;
+            units.meter = 3.0;
         }
         "Hz" | "hertz" => units.second = -1.0,
         "V" | "volt" | "voltage" =>

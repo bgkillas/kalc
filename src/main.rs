@@ -36,16 +36,14 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//derivitives and integrals
-//surface area of a 3d curve
 //rpn
-//matrix exponentiation
-//do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
-//stop vectors or matrixes disipearing graphically by making them have points instead of lines
-//maybe nth area, make -nth go into the other function
-//allow setting x and y window dimensions of gnuplot, defaulting to what happens now
-//setting to disable default vars by default, in config
 //domain coloring
+//matrix exponentiation
+//surface area of a 3d curve
+//maybe nth area, make -nth go into the other function
+//stop vectors or matrixes disipearing graphically by making them have points instead of lines
+//do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
+//allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //infinitely long greater/lesser than chains
 //support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
@@ -291,6 +289,7 @@ fn main()
     {
         Vec::new()
     };
+    let base = options.base;
     if !options.interactive && options.allow_vars && !options.stay_interactive
     {
         get_cli_vars(options, args.concat(), &mut vars)
@@ -298,6 +297,7 @@ fn main()
     {
         if options.allow_vars
         {
+            options.base = (10, 10);
             if let Ok(file) = File::open(file_path)
             {
                 let lines = BufReader::new(file)
@@ -412,6 +412,7 @@ fn main()
             }
         }
     }
+    options.base = base;
     let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive
     {
         #[cfg(unix)]

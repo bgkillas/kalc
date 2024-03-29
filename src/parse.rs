@@ -192,9 +192,7 @@ pub fn input_var(
             let mut dot = false;
             while i < chars.len()
             {
-                if chars[i].is_ascii_digit()
-                    || (options.base.0 > 10
-                        && (97..=97 + (options.base.0 as u8 - 11)).contains(&(chars[i] as u8)))
+                if is_digit(chars[i], options.base.0)
                 {
                     num.push(chars[i]);
                 }
@@ -309,7 +307,7 @@ pub fn input_var(
                         }
                         if i + 1 < chars.len()
                             && chars[i] == '^'
-                            && (chars[i + 1].is_ascii_digit() || chars[i + 1] == '-')
+                            && (is_digit(chars[i + 1], options.base.0) || chars[i + 1] == '-')
                         {
                             let pos = chars
                                 .iter()
@@ -1897,10 +1895,8 @@ pub fn input_var(
                             {
                                 output.insert(output.len() - 1, Str("(".to_string()));
                                 if i + 1 != chars.len()
-                                    && matches!(
-                                        chars[i + 1],
-                                        '0'..='9' | '-' | '+' | 'x' | 'y' | 'i'
-                                    )
+                                    && (matches!(chars[i + 1], '-' | '+' | 'x' | 'y' | 'z' | 'i')
+                                        || is_digit(chars[i + 1], options.base.0))
                                 {
                                     scientific = true;
                                 }
@@ -1910,12 +1906,14 @@ pub fn input_var(
                         output.push(Num(Complex::with_val(options.prec, options.base.0)));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
+                                || is_digit(chars[i + 1], options.base.0)
                                 || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '|'))
                         {
                             output.push(Str('^'.to_string()));
                         }
                         if !(i + 1 != chars.len()
-                            && matches!(chars[i + 1], '0'..='9' | '-' | '+' | 'x' | 'y' | 'i'))
+                            && (matches!(chars[i + 1], '-' | '+' | 'x' | 'y' | 'z' | 'i')
+                                || is_digit(chars[i + 1], options.base.0)))
                         {
                             output.push(Str(")".to_string()));
                         }
@@ -2186,4 +2184,8 @@ fn can_abs(output: &[NumStr], vars: &[Variable]) -> bool
     {
         true
     }
+}
+fn is_digit(char: char, base: i32) -> bool
+{
+    char.is_ascii_digit() || (base > 10 && (97..=97 + (base as u8 - 11)).contains(&(char as u8)))
 }

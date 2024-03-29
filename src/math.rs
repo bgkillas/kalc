@@ -492,7 +492,7 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    100
+                                    options.prec as usize / 4
                                 },
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
@@ -519,7 +519,7 @@ pub fn do_math(
                                 .num()?,
                                 if place.len() == 4
                                 {
-                                    100
+                                    options.prec as usize / 4
                                 }
                                 else
                                 {

@@ -972,44 +972,29 @@ pub fn input_var(
             }
         }
         let mut num = 0;
-        if units().contains(prefixes(word.clone()).0.as_str())
+        if if i + countv < chars.len() && chars[i + countv] == '('
         {
-            i += countv;
-            place_multiplier(&mut output, sumrec);
-            if let Some(Str(s)) = output.last_mut()
-            {
-                if s == "*"
+            !vars.clone().iter().any(|a| {
+                if a.name.contains(&'(')
                 {
-                    *s = '×'.to_string()
+                    a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
+                        .iter()
+                        .collect::<String>()
+                        == word
                 }
-            }
-            else if !output.is_empty()
-            {
-                output.push(Str('×'.to_string()))
-            }
-            let (num, add) = to_unit(word, prec);
-            output.push(Num(num));
-            if let Some(num) = add
-            {
-                output.insert(output.len() - 3, Str('('.to_string()));
-                output.push(Str('+'.to_string()));
-                output.push(Num(num));
-                output.push(Str(')'.to_string()));
-            }
+                else
+                {
+                    a.name.iter().collect::<String>() == word
+                }
+            })
         }
-        else if !vars.clone().iter().any(|a| {
-            if a.name.contains(&'(')
-            {
-                a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
-                    .iter()
-                    .collect::<String>()
-                    == word
-            }
-            else
-            {
-                a.name.iter().collect::<String>() == word
-            }
-        }) && ((functions.contains(word.as_str())
+        else
+        {
+            !vars
+                .clone()
+                .iter()
+                .any(|a| a.name.iter().collect::<String>() == word)
+        } && ((functions.contains(word.as_str())
             && i + countv < chars.len()
             && matches!(
                 chars[i + countv],
@@ -1070,6 +1055,54 @@ pub fn input_var(
             else
             {
                 output.push(Str(word))
+            }
+        }
+        else if units().contains(prefixes(word.clone()).0.as_str())
+            && if i + countv < chars.len() && chars[i + countv] == '('
+            {
+                !vars.clone().iter().any(|a| {
+                    if a.name.contains(&'(')
+                    {
+                        a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
+                            .iter()
+                            .collect::<String>()
+                            == word
+                    }
+                    else
+                    {
+                        a.name.iter().collect::<String>() == word
+                    }
+                })
+            }
+            else
+            {
+                !vars
+                    .clone()
+                    .iter()
+                    .any(|a| a.name.iter().collect::<String>() == word)
+            }
+        {
+            i += countv;
+            place_multiplier(&mut output, sumrec);
+            if let Some(Str(s)) = output.last_mut()
+            {
+                if s == "*"
+                {
+                    *s = '×'.to_string()
+                }
+            }
+            else if !output.is_empty()
+            {
+                output.push(Str('×'.to_string()))
+            }
+            let (num, add) = to_unit(word, prec);
+            output.push(Num(num));
+            if let Some(num) = add
+            {
+                output.insert(output.len().saturating_sub(3), Str('('.to_string()));
+                output.push(Str('+'.to_string()));
+                output.push(Num(num));
+                output.push(Str(')'.to_string()));
             }
         }
         else if sumrec.iter().any(|a| {

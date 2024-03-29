@@ -72,6 +72,7 @@ pub fn digraph() -> char
 {
     match read_single_char()
     {
+        ';' => '°',
         'a' => 'α',
         'A' => 'Α',
         'b' => 'β',

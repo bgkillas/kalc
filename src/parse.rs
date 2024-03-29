@@ -5,7 +5,7 @@ use crate::{
     },
     functions::functions,
     math::do_math,
-    units::{to_unit, units},
+    units::{prefixes, to_unit, units},
     Options, Variable,
 };
 use rug::{
@@ -274,7 +274,7 @@ pub fn input_var(
             }
             continue;
         }
-        if !c.is_alphabetic() && c != '@' && c != '∫'
+        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫')
         {
             if !output.is_empty()
             {
@@ -855,10 +855,8 @@ pub fn input_var(
                 depthcheck = !depthcheck;
             }
             else if c.is_alphabetic()
-                || c == &'\''
-                || c == &'`'
+                || matches!(*c, '\'' | '°' | '`' | '∫')
                 || (c == &'2' && word == "atan")
-                || c == &'∫'
             {
                 word.push(*c);
             }
@@ -870,7 +868,7 @@ pub fn input_var(
         }
         let wordv = word.clone();
         if (word.ends_with('x') && word != "max")
-            || (word.ends_with('y') && word != "any")
+            || (word.ends_with('y') && word != "any" && word != "day")
             || word.ends_with('z')
         {
             countv -= 1;
@@ -974,9 +972,10 @@ pub fn input_var(
             }
         }
         let mut num = 0;
-        if units().contains(word.as_str())
+        if units().contains(prefixes(word.clone()).0.as_str())
         {
             i += countv;
+            place_multiplier(&mut output, sumrec);
             if let Some(Str(s)) = output.last_mut()
             {
                 if s == "*"
@@ -988,7 +987,15 @@ pub fn input_var(
             {
                 output.push(Str('×'.to_string()))
             }
-            output.push(Num(to_unit(word, prec)))
+            let (num, add) = to_unit(word, prec);
+            output.push(Num(num));
+            if let Some(num) = add
+            {
+                output.insert(output.len() - 3, Str('('.to_string()));
+                output.push(Str('+'.to_string()));
+                output.push(Num(num));
+                output.push(Str(')'.to_string()));
+            }
         }
         else if !vars.clone().iter().any(|a| {
             if a.name.contains(&'(')

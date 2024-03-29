@@ -65,6 +65,7 @@ pub struct Units
     kelvin: f64,
     mole: f64,
     candela: f64,
+    radian: f64,
 }
 #[derive(Clone)]
 pub struct Colors

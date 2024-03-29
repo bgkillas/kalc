@@ -195,7 +195,6 @@ pub fn functions() -> HashSet<&'static str>
         "area",
         "∫",
         "integrate",
-        "length",
         "arclength",
         "roll",
         "erfi",

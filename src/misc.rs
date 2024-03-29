@@ -597,7 +597,7 @@ pub fn parsed_to_string(
         {
             Num(n) =>
             {
-                let n = get_output(*options, colors, &n);
+                let n = get_output(*options, colors, &n.0, n.1);
                 format!(
                     "{}{}{}",
                     n.0,
@@ -611,7 +611,7 @@ pub fn parsed_to_string(
                 let mut num;
                 for i in n
                 {
-                    num = get_output(*options, colors, &i);
+                    num = get_output(*options, colors, &i.0, i.1);
                     str.push_str(&format!(
                         "{}{}{},",
                         num.0,
@@ -630,7 +630,7 @@ pub fn parsed_to_string(
                 {
                     for j in i
                     {
-                        num = get_output(*options, colors, &j);
+                        num = get_output(*options, colors, &j.0, j.1);
                         str.push_str(&format!(
                             "{}{}{},",
                             num.0,

@@ -10,7 +10,7 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
-    Options,
+    Options, Units,
 };
 use rug::{
     float::{
@@ -49,7 +49,10 @@ pub fn do_math(
         {
             if s == "rnd"
             {
-                function[i] = Num(Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX)
+                function[i] = Num((
+                    Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
+                    None,
+                ))
             }
             else
             {
@@ -95,7 +98,7 @@ pub fn do_math(
                     let mut single = 0;
                     let v = function[i + 1..j - 1].to_vec();
                     let mut vec = Vec::new();
-                    let mut mat = Vec::<Vec<Complex>>::new();
+                    let mut mat = Vec::<Vec<(Complex, Option<Units>)>>::new();
                     for (f, n) in v.iter().enumerate()
                     {
                         if let Str(s) = n
@@ -434,7 +437,8 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?,
+                                .num()?
+                                .0,
                                 if place.len() == 4
                                 {
                                     match (do_math(
@@ -443,6 +447,7 @@ pub fn do_math(
                                         func_vars.clone(),
                                     )?
                                     .num()?
+                                    .0
                                     .real()
                                     .to_f64() as isize)
                                         .cmp(&0)
@@ -462,39 +467,45 @@ pub fn do_math(
                         ("length" | "arclength", Str(var))
                             if place.len() == 4 || place.len() == 5 =>
                         {
-                            function[i] = Num(length(
-                                function[place[0] + 1..place[1]].to_vec(),
-                                func_vars.clone(),
-                                options,
-                                var.to_string(),
-                                do_math(
-                                    function[place[1] + 1..place[2]].to_vec(),
-                                    options,
+                            function[i] = Num((
+                                length(
+                                    function[place[0] + 1..place[1]].to_vec(),
                                     func_vars.clone(),
-                                )?
-                                .num()?,
-                                do_math(
-                                    function[place[2] + 1..place[3]].to_vec(),
                                     options,
-                                    func_vars.clone(),
-                                )?
-                                .num()?,
-                                if place.len() == 5
-                                {
+                                    var.to_string(),
                                     do_math(
-                                        function[place[3] + 1..place[4]].to_vec(),
+                                        function[place[1] + 1..place[2]].to_vec(),
                                         options,
                                         func_vars.clone(),
                                     )?
                                     .num()?
-                                    .real()
-                                    .to_f64() as usize
-                                }
-                                else
-                                {
-                                    options.prec as usize / 4
-                                },
-                            )?);
+                                    .0,
+                                    do_math(
+                                        function[place[2] + 1..place[3]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .0,
+                                    if place.len() == 5
+                                    {
+                                        do_math(
+                                            function[place[3] + 1..place[4]].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?
+                                        .num()?
+                                        .0
+                                        .real()
+                                        .to_f64() as usize
+                                    }
+                                    else
+                                    {
+                                        options.prec as usize / 4
+                                    },
+                                )?,
+                                None,
+                            ));
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("∫" | "area" | "integrate", Str(var))
@@ -510,13 +521,15 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?,
+                                .num()?
+                                .0,
                                 do_math(
                                     function[place[2] + 1..place[3]].to_vec(),
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?,
+                                .num()?
+                                .0,
                                 if place.len() == 4
                                 {
                                     options.prec as usize / 4
@@ -529,6 +542,7 @@ pub fn do_math(
                                         func_vars.clone(),
                                     )?
                                     .num()?
+                                    .0
                                     .real()
                                     .to_f64() as usize
                                 },
@@ -552,7 +566,8 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?,
+                                .num()?
+                                .0,
                                 place.len() != 6,
                                 if place.len() >= 5
                                 {
@@ -562,6 +577,7 @@ pub fn do_math(
                                         func_vars.clone(),
                                     )?
                                     .num()?
+                                    .0
                                     .real()
                                     .to_f64() as u32
                                 }
@@ -577,6 +593,7 @@ pub fn do_math(
                                         func_vars.clone(),
                                     )?
                                     .num()?
+                                    .0
                                     .real()
                                     .to_f64() as isize)
                                         .cmp(&0)
@@ -606,6 +623,7 @@ pub fn do_math(
                                         func_vars.clone(),
                                     )?
                                     .num()?
+                                    .0
                                     .real()
                                         == &1.0
                                 {
@@ -627,7 +645,7 @@ pub fn do_math(
                             }
                             else
                             {
-                                Num(Complex::with_val(options.prec, Nan))
+                                Num((Complex::with_val(options.prec, Nan), None))
                             };
                             function.drain(i + 1..=*place.last().unwrap());
                         }
@@ -641,13 +659,15 @@ pub fn do_math(
                                 options,
                                 func_vars.clone(),
                             )?
-                            .num()?;
+                            .num()?
+                            .0;
                             let end = do_math(
                                 function[place[2] + 1..place[3]].to_vec(),
                                 options,
                                 func_vars.clone(),
                             )?
-                            .num()?;
+                            .num()?
+                            .0;
                             if !start.imag().is_zero() || !end.imag().is_zero()
                             {
                                 return Err("imag start/end");
@@ -698,13 +718,20 @@ pub fn do_math(
                             }
                             {
                                 Ok(Num(a)) => Num(a.clone()),
-                                Ok(Vector(a)) => Num(a
-                                    .iter()
-                                    .fold(Complex::new(options.prec), |sum, val| sum + val)),
-                                Ok(Matrix(a)) => Num(a
-                                    .iter()
-                                    .flatten()
-                                    .fold(Complex::new(options.prec), |sum, val| sum + val)),
+                                Ok(Vector(a)) => Num((
+                                    a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                        sum + val.0.clone()
+                                    }),
+                                    None,
+                                )),
+                                Ok(Matrix(a)) => Num((
+                                    a.iter()
+                                        .flatten()
+                                        .fold(Complex::new(options.prec), |sum, val| {
+                                            sum + val.0.clone()
+                                        }),
+                                    None,
+                                )),
                                 _ => return Err("sum err"),
                             };
                         }
@@ -724,17 +751,21 @@ pub fn do_math(
                             }
                             {
                                 Ok(Num(a)) => Num(a.clone()),
-                                Ok(Vector(a)) => Num(a
-                                    .iter()
-                                    .fold(Complex::with_val(options.prec, 1), |sum, val| {
-                                        sum * val
-                                    })),
-                                Ok(Matrix(a)) => Num(a
-                                    .iter()
-                                    .flatten()
-                                    .fold(Complex::with_val(options.prec, 1), |sum, val| {
-                                        sum * val
-                                    })),
+                                Ok(Vector(a)) => Num((
+                                    a.iter()
+                                        .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                            sum * val.0.clone()
+                                        }),
+                                    None,
+                                )),
+                                Ok(Matrix(a)) => Num((
+                                    a.iter()
+                                        .flatten()
+                                        .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                            sum * val.0.clone()
+                                        }),
+                                    None,
+                                )),
                                 _ => return Err("prod err"),
                             };
                         }
@@ -756,7 +787,7 @@ pub fn do_math(
                                     let mut max = j[0].clone();
                                     for i in j
                                     {
-                                        if i.real() > max.real()
+                                        if i.0.real() > max.0.real()
                                         {
                                             max = i
                                         }
@@ -773,7 +804,7 @@ pub fn do_math(
                                     let mut min = j[0].clone();
                                     for i in j
                                     {
-                                        if i.real() < min.real()
+                                        if i.0.real() < min.0.real()
                                         {
                                             min = i
                                         }
@@ -782,15 +813,22 @@ pub fn do_math(
                                 }
                                 Vector(vec)
                             }
-                            "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Complex>>()),
+                            "flatten" => Vector(a.into_iter().flatten().collect::<Vec<(
+                                Complex,
+                                Option<Units>,
+                            )>>(
+                            )),
                             "cofactor" | "cofactors" | "cof" => Matrix(cofactor(&a)?),
                             "minor" | "minors" => Matrix(minors(&a)?),
                             "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
                             "inverse" | "inv" => Matrix(inverse(&a)?),
                             "transpose" | "trans" => Matrix(transpose(&a)?),
-                            "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
-                            "wid" | "width" => Num(Complex::with_val(options.prec, a[0].len())),
-                            "tr" | "trace" => Num(trace(&a)),
+                            "len" => Num((Complex::with_val(options.prec, a.len()), None)),
+                            "wid" | "width" =>
+                            {
+                                Num((Complex::with_val(options.prec, a[0].len()), None))
+                            }
+                            "tr" | "trace" => Num((trace(&a), None)),
                             "det" | "determinant" => Num(determinant(&a)?),
                             "part" =>
                             {
@@ -800,6 +838,8 @@ pub fn do_math(
                                     {
                                         (Num(b), Num(c)) =>
                                         {
+                                            let b = b.0;
+                                            let c = c.0;
                                             let n1 = b.clone().real().to_f64() as usize;
                                             let n2 = c.clone().real().to_f64() as usize;
                                             if n1 <= a.len()
@@ -816,11 +856,12 @@ pub fn do_math(
                                         }
                                         (Vector(b), Num(c)) | (Num(c), Vector(b)) =>
                                         {
+                                            let c = c.0;
                                             let n2 = c.clone().real().to_f64() as usize;
                                             let mut vec = Vec::new();
                                             for n in b
                                             {
-                                                let n1 = n.clone().real().to_f64() as usize;
+                                                let n1 = n.0.clone().real().to_f64() as usize;
                                                 if n1 <= a.len()
                                                     && n1 != 0
                                                     && n2 <= a[0].len()
@@ -841,10 +882,10 @@ pub fn do_math(
                                             for g in b
                                             {
                                                 let mut vec = Vec::new();
-                                                let n1 = g.clone().real().to_f64() as usize;
+                                                let n1 = g.0.clone().real().to_f64() as usize;
                                                 for n in c.clone()
                                                 {
-                                                    let n2 = n.clone().real().to_f64() as usize;
+                                                    let n2 = n.0.clone().real().to_f64() as usize;
                                                     if n1 <= a.len()
                                                         && n1 != 0
                                                         && n2 <= a[0].len()
@@ -870,6 +911,7 @@ pub fn do_math(
                                     {
                                         Num(b) =>
                                         {
+                                            let b = b.0;
                                             let n = b.clone().real().to_f64() as usize;
                                             if n <= a.len() && n != 0
                                             {
@@ -885,7 +927,7 @@ pub fn do_math(
                                             let mut vec = Vec::new();
                                             for i in b
                                             {
-                                                let n = i.clone().real().to_f64() as usize;
+                                                let n = i.0.clone().real().to_f64() as usize;
                                                 if n <= a.len() && n != 0
                                                 {
                                                     vec.push(a[n - 1].clone());
@@ -910,15 +952,19 @@ pub fn do_math(
                                 let mut n = Complex::new(options.prec);
                                 for j in a.iter().flatten()
                                 {
-                                    n += j.clone().abs().pow(2);
+                                    n += j.0.clone().abs().pow(2);
                                 }
-                                Num(n.sqrt())
+                                Num((n.sqrt(), None))
                             }
-                            "mean" | "μ" => Num(a
-                                .iter()
-                                .flatten()
-                                .fold(Complex::new(options.prec), |sum, val| sum + val)
-                                / (a.len() * a[0].len())),
+                            "mean" | "μ" => Num((
+                                a.iter()
+                                    .flatten()
+                                    .fold(Complex::new(options.prec), |sum, val| {
+                                        sum + val.0.clone()
+                                    })
+                                    / (a.len() * a[0].len()),
+                                None,
+                            )),
                             "mode" =>
                             {
                                 let mut most = (Vec::new(), 0);
@@ -952,7 +998,11 @@ pub fn do_math(
                             }
                             "median" =>
                             {
-                                let a = sort(a.iter().flatten().cloned().collect::<Vec<Complex>>());
+                                let a = sort(a.iter().flatten().cloned().collect::<Vec<(
+                                    Complex,
+                                    Option<Units>,
+                                )>>(
+                                ));
                                 if a.len() % 2 == 0
                                 {
                                     Vector(vec![a[a.len() / 2 - 1].clone(), a[a.len() / 2].clone()])
@@ -967,24 +1017,24 @@ pub fn do_math(
                                 let mut res = true;
                                 for a in a.iter().flatten()
                                 {
-                                    if !(a.imag().is_zero() && a.real() == &1)
+                                    if !(a.0.imag().is_zero() && a.0.real() == &1)
                                     {
                                         res = false
                                     }
                                 }
-                                Num(Complex::with_val(options.prec, res as u8))
+                                Num((Complex::with_val(options.prec, res as u8), None))
                             }
                             "any" =>
                             {
                                 let mut res = false;
                                 for a in a.iter().flatten()
                                 {
-                                    if a.imag().is_zero() && a.real() == &1
+                                    if a.0.imag().is_zero() && a.0.real() == &1
                                     {
                                         res = true
                                     }
                                 }
-                                Num(Complex::with_val(options.prec, res as u8))
+                                Num((Complex::with_val(options.prec, res as u8), None))
                             }
                             "eigenvalues" => Vector(eigenvalues(&a)?),
                             "tolist" =>
@@ -996,7 +1046,7 @@ pub fn do_math(
                                     {
                                         return Err("bad list");
                                     }
-                                    for _ in 0..a[1].real().to_f64() as usize
+                                    for _ in 0..a[1].0.real().to_f64() as usize
                                     {
                                         vec.push(a[0].clone())
                                     }
@@ -1016,7 +1066,7 @@ pub fn do_math(
                                     {
                                         return Err("bad dice data");
                                     }
-                                    let a = i[0].real().to_f64();
+                                    let a = i[0].0.real().to_f64();
                                     if a > u64::MAX as f64
                                     {
                                         return Err("dice too large");
@@ -1027,7 +1077,7 @@ pub fn do_math(
                                         return Err("bad dice data");
                                     }
                                     let max = u64::MAX - u64::MAX.rem(n);
-                                    let end = i[1].real().to_f64() as u64;
+                                    let end = i[1].0.real().to_f64() as u64;
                                     let mut i = 0;
                                     while i < end
                                     {
@@ -1039,7 +1089,7 @@ pub fn do_math(
                                         }
                                     }
                                 }
-                                Num(Complex::with_val(options.prec, sum))
+                                Num((Complex::with_val(options.prec, sum), None))
                             }
                             "dice" =>
                             {
@@ -1050,9 +1100,9 @@ pub fn do_math(
                                     {
                                         return Err("bad list");
                                     }
-                                    for _ in 0..a[1].real().to_f64() as usize
+                                    for _ in 0..a[1].0.real().to_f64() as usize
                                     {
-                                        faces.push(a[0].real().to_f64() as usize)
+                                        faces.push(a[0].0.real().to_f64() as usize)
                                     }
                                 }
                                 if faces.is_empty()
@@ -1068,8 +1118,8 @@ pub fn do_math(
                                 {
                                     Vector(
                                         last.iter()
-                                            .map(|a| Complex::with_val(options.prec, a))
-                                            .collect::<Vec<Complex>>(),
+                                            .map(|a| (Complex::with_val(options.prec, a), None))
+                                            .collect::<Vec<(Complex, Option<Units>)>>(),
                                     )
                                 }
                                 else
@@ -1099,8 +1149,8 @@ pub fn do_math(
                                     Vector(
                                         current
                                             .iter()
-                                            .map(|a| Complex::with_val(options.prec, a))
-                                            .collect::<Vec<Complex>>(),
+                                            .map(|a| (Complex::with_val(options.prec, a), None))
+                                            .collect::<Vec<(Complex, Option<Units>)>>(),
                                     )
                                 }
                             }
@@ -1113,8 +1163,8 @@ pub fn do_math(
                                 let mut vec = Vec::new();
                                 for (i, a) in a.iter().enumerate()
                                 {
-                                    let num = Complex::with_val(options.prec, i + 1);
-                                    for _ in 1..=a.real().to_f64() as usize
+                                    let num = (Complex::with_val(options.prec, i + 1), None);
+                                    for _ in 1..=a.0.real().to_f64() as usize
                                     {
                                         vec.push(num.clone())
                                     }
@@ -1131,7 +1181,7 @@ pub fn do_math(
                                 let mut i = 0;
                                 while i < a.len()
                                 {
-                                    let a = a[i].real().to_f64();
+                                    let a = a[i].0.real().to_f64();
                                     if a > u64::MAX as f64
                                     {
                                         return Err("dice too large");
@@ -1149,13 +1199,13 @@ pub fn do_math(
                                         i += 1;
                                     }
                                 }
-                                Num(Complex::with_val(options.prec, sum))
+                                Num((Complex::with_val(options.prec, sum), None))
                             }
                             "dice" =>
                             {
                                 let faces = a
                                     .iter()
-                                    .map(|c| c.real().to_f64() as usize)
+                                    .map(|c| c.0.real().to_f64() as usize)
                                     .collect::<Vec<usize>>();
                                 if faces.iter().any(|c| c == &0)
                                 {
@@ -1166,8 +1216,8 @@ pub fn do_math(
                                 {
                                     Vector(
                                         last.iter()
-                                            .map(|a| Complex::with_val(options.prec, a))
-                                            .collect::<Vec<Complex>>(),
+                                            .map(|a| (Complex::with_val(options.prec, a), None))
+                                            .collect::<Vec<(Complex, Option<Units>)>>(),
                                     )
                                 }
                                 else
@@ -1197,8 +1247,8 @@ pub fn do_math(
                                     Vector(
                                         current
                                             .iter()
-                                            .map(|a| Complex::with_val(options.prec, a))
-                                            .collect::<Vec<Complex>>(),
+                                            .map(|a| (Complex::with_val(options.prec, a), None))
+                                            .collect::<Vec<(Complex, Option<Units>)>>(),
                                     )
                                 }
                             }
@@ -1221,35 +1271,51 @@ pub fn do_math(
                                 if half1.len() % 2 == 0
                                 {
                                     Vector(vec![
-                                        (half1[half1.len() / 2 - 1].clone()
-                                            + half1[half1.len() / 2].clone())
-                                            / 2,
-                                        if a.len() % 2 == 0
-                                        {
-                                            (half1[half1.len() - 1].clone() + half2[0].clone()) / 2
-                                        }
-                                        else
-                                        {
-                                            a[a.len() / 2].clone()
-                                        },
-                                        (half2[half2.len() / 2 - 1].clone()
-                                            + half2[half2.len() / 2].clone())
-                                            / 2,
+                                        (
+                                            (half1[half1.len() / 2 - 1].0.clone()
+                                                + half1[half1.len() / 2].0.clone())
+                                                / 2,
+                                            None,
+                                        ),
+                                        (
+                                            if a.len() % 2 == 0
+                                            {
+                                                (half1[half1.len() - 1].0.clone()
+                                                    + half2[0].0.clone())
+                                                    / 2
+                                            }
+                                            else
+                                            {
+                                                a[a.len() / 2].0.clone()
+                                            },
+                                            None,
+                                        ),
+                                        (
+                                            (half2[half2.len() / 2 - 1].0.clone()
+                                                + half2[half2.len() / 2].0.clone())
+                                                / 2,
+                                            None,
+                                        ),
                                     ])
                                 }
                                 else
                                 {
                                     Vector(vec![
-                                        half1[half1.len() / 2].clone(),
-                                        if a.len() % 2 == 0
-                                        {
-                                            (half1[half1.len() - 1].clone() + half2[0].clone()) / 2
-                                        }
-                                        else
-                                        {
-                                            a[a.len() / 2].clone()
-                                        },
-                                        half2[half2.len() / 2].clone(),
+                                        (half1[half1.len() / 2].0.clone(), None),
+                                        (
+                                            if a.len() % 2 == 0
+                                            {
+                                                (half1[half1.len() - 1].0.clone()
+                                                    + half2[0].0.clone())
+                                                    / 2
+                                            }
+                                            else
+                                            {
+                                                a[a.len() / 2].0.clone()
+                                            },
+                                            None,
+                                        ),
+                                        (half2[half2.len() / 2].0.clone(), None),
                                     ])
                                 }
                             }
@@ -1259,7 +1325,7 @@ pub fn do_math(
                                 {
                                     return Err("not enough input");
                                 }
-                                let b = function.remove(i + 1).num()?;
+                                let b = function.remove(i + 1).num()?.0;
                                 let r: Float = (b.real().clone() / 100) * a.len();
                                 let r = r.ceil().to_f64() as usize;
                                 if r > a.len()
@@ -1276,14 +1342,14 @@ pub fn do_math(
                                 }
                                 let mut cf = 0;
                                 let mut f = 0;
-                                let b = function.remove(i + 1).num()?;
+                                let b = function.remove(i + 1).num()?.0;
                                 for a in sort(a.clone())
                                 {
-                                    if a.real() < b.real()
+                                    if a.0.real() < b.real()
                                     {
                                         cf += 1;
                                     }
-                                    else if a == b
+                                    else if a.0 == b
                                     {
                                         f += 1;
                                     }
@@ -1292,7 +1358,10 @@ pub fn do_math(
                                         break;
                                     }
                                 }
-                                Num(100 * (cf + Complex::with_val(options.prec, f) / 2) / a.len())
+                                Num((
+                                    100 * (cf + Complex::with_val(options.prec, f) / 2) / a.len(),
+                                    None,
+                                ))
                             }
                             "tofreq" =>
                             {
@@ -1311,7 +1380,7 @@ pub fn do_math(
                                     {
                                         mat.push(vec![
                                             last.clone(),
-                                            Complex::with_val(options.prec, count),
+                                            (Complex::with_val(options.prec, count), None),
                                         ]);
                                         last = a;
                                         count = 0;
@@ -1320,51 +1389,60 @@ pub fn do_math(
                                 }
                                 mat.push(vec![
                                     last.clone(),
-                                    Complex::with_val(options.prec, count),
+                                    (Complex::with_val(options.prec, count), None),
                                 ]);
                                 Matrix(mat)
                             }
-                            "standarddeviation" | "σ" => Num(variance(&a, options.prec).sqrt()),
+                            "standarddeviation" | "σ" =>
+                            {
+                                Num((variance(&a, options.prec).0.sqrt(), None))
+                            }
                             "variance" | "var" => Num(variance(&a, options.prec)),
                             "all" =>
                             {
                                 let mut res = true;
                                 for a in a
                                 {
-                                    if !(a.imag().is_zero() && a.real() == &1)
+                                    if !(a.0.imag().is_zero() && a.0.real() == &1)
                                     {
                                         res = false
                                     }
                                 }
-                                Num(Complex::with_val(options.prec, res as u8))
+                                Num((Complex::with_val(options.prec, res as u8), None))
                             }
                             "any" =>
                             {
                                 let mut res = false;
                                 for a in a
                                 {
-                                    if a.imag().is_zero() && a.real() == &1
+                                    if a.0.imag().is_zero() && a.0.real() == &1
                                     {
                                         res = true
                                     }
                                 }
-                                Num(Complex::with_val(options.prec, res as u8))
+                                Num((Complex::with_val(options.prec, res as u8), None))
                             }
                             "sort" => Vector(sort(a)),
-                            "mean" | "μ" => Num(a
-                                .iter()
-                                .fold(Complex::new(options.prec), |sum, val| sum + val)
-                                / a.len()),
+                            "mean" | "μ" => Num((
+                                a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                    sum + val.0.clone()
+                                }) / a.len(),
+                                None,
+                            )),
                             "median" =>
                             {
                                 let a = sort(a);
                                 if a.len() % 2 == 0
                                 {
-                                    Num((a[a.len() / 2 - 1].clone() + a[a.len() / 2].clone()) / 2)
+                                    Num((
+                                        (a[a.len() / 2 - 1].0.clone() + a[a.len() / 2].0.clone())
+                                            / 2,
+                                        None,
+                                    ))
                                 }
                                 else
                                 {
-                                    Num(a[a.len() / 2].clone())
+                                    Num((a[a.len() / 2].0.clone(), None))
                                 }
                             }
                             "mode" =>
@@ -1403,7 +1481,7 @@ pub fn do_math(
                                 let mut max = a[0].clone();
                                 for i in a
                                 {
-                                    if i.real() > max.real()
+                                    if i.0.real() > max.0.real()
                                     {
                                         max = i
                                     }
@@ -1415,7 +1493,7 @@ pub fn do_math(
                                 let mut min = a[0].clone();
                                 for i in a
                                 {
-                                    if i.real() < min.real()
+                                    if i.0.real() < min.0.real()
                                     {
                                         min = i
                                     }
@@ -1437,43 +1515,53 @@ pub fn do_math(
                                     return Err("no args");
                                 }
                             }
-                            "len" | "length" => Num(Complex::with_val(options.prec, a.len())),
+                            "len" => Num((Complex::with_val(options.prec, a.len()), None)),
                             "norm" =>
                             {
                                 let mut n = Complex::new(options.prec);
                                 for i in a
                                 {
-                                    n += i.abs().pow(2);
+                                    n += i.0.abs().pow(2);
                                 }
-                                Num(n.sqrt())
+                                Num((n.sqrt(), None))
                             }
                             "normalize" =>
                             {
                                 let mut n = Complex::new(options.prec);
                                 for i in a.clone()
                                 {
-                                    n += i.pow(2);
+                                    n += i.0.pow(2);
                                 }
-                                Vector(a.iter().map(|x| x / n.clone().sqrt()).collect())
+                                Vector(
+                                    a.iter()
+                                        .map(|x| (x.0.clone() / n.clone().sqrt(), None))
+                                        .collect(),
+                                )
                             }
                             "car" | "cartesian" =>
                             {
                                 if a.len() == 2
                                 {
-                                    let t = a[1].clone() / to_deg.clone();
+                                    let t = a[1].0.clone() / to_deg.clone();
                                     Vector(vec![
-                                        a[0].clone() * t.clone().cos(),
-                                        a[0].clone() * t.clone().sin(),
+                                        (a[0].0.clone() * t.clone().cos(), a[0].1),
+                                        (a[0].0.clone() * t.clone().sin(), a[0].1),
                                     ])
                                 }
                                 else if a.len() == 3
                                 {
-                                    let t1 = a[1].clone() / to_deg.clone();
-                                    let t2 = a[2].clone() / to_deg.clone();
+                                    let t1 = a[1].0.clone() / to_deg.clone();
+                                    let t2 = a[2].0.clone() / to_deg.clone();
                                     Vector(vec![
-                                        a[0].clone() * t1.clone().sin() * t2.clone().cos(),
-                                        a[0].clone() * t1.clone().sin() * t2.clone().sin(),
-                                        a[0].clone() * t1.clone().cos(),
+                                        (
+                                            a[0].0.clone() * t1.clone().sin() * t2.clone().cos(),
+                                            a[0].1,
+                                        ),
+                                        (
+                                            a[0].0.clone() * t1.clone().sin() * t2.clone().sin(),
+                                            a[0].1,
+                                        ),
+                                        (a[0].0.clone() * t1.clone().cos(), a[0].1),
                                     ])
                                 }
                                 else
@@ -1489,28 +1577,36 @@ pub fn do_math(
                                     let b = function.remove(i + 1).vec()?;
                                     if a.len() == 3 && b.len() == 3
                                     {
-                                        let c: Complex = a[0].clone().pow(2)
-                                            + a[1].clone().pow(2)
-                                            + a[2].clone().pow(2);
-                                        let d: Complex = b[0].clone().pow(2)
-                                            + b[1].clone().pow(2)
-                                            + b[2].clone().pow(2);
-                                        Num(((a[0].clone() * b[0].clone()
-                                            + a[1].clone() * b[1].clone()
-                                            + a[2].clone() * b[2].clone())
-                                            / (c.sqrt() * d.sqrt()))
-                                        .acos()
-                                            * to_deg.clone())
+                                        let c: Complex = a[0].0.clone().pow(2)
+                                            + a[1].0.clone().pow(2)
+                                            + a[2].0.clone().pow(2);
+                                        let d: Complex = b[0].0.clone().pow(2)
+                                            + b[1].0.clone().pow(2)
+                                            + b[2].0.clone().pow(2);
+                                        Num((
+                                            ((a[0].0.clone() * b[0].0.clone()
+                                                + a[1].0.clone() * b[1].0.clone()
+                                                + a[2].0.clone() * b[2].0.clone())
+                                                / (c.sqrt() * d.sqrt()))
+                                            .acos()
+                                                * to_deg.clone(),
+                                            None,
+                                        ))
                                     }
                                     else if a.len() == 2 && b.len() == 2
                                     {
-                                        let c: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-                                        let d: Complex = b[0].clone().pow(2) + b[1].clone().pow(2);
-                                        Num(((a[0].clone() * b[0].clone()
-                                            + a[1].clone() * b[1].clone())
-                                            / (c.sqrt() * d.sqrt()))
-                                        .acos()
-                                            * to_deg.clone())
+                                        let c: Complex =
+                                            a[0].0.clone().pow(2) + a[1].0.clone().pow(2);
+                                        let d: Complex =
+                                            b[0].0.clone().pow(2) + b[1].0.clone().pow(2);
+                                        Num((
+                                            ((a[0].0.clone() * b[0].0.clone()
+                                                + a[1].0.clone() * b[1].0.clone())
+                                                / (c.sqrt() * d.sqrt()))
+                                            .acos()
+                                                * to_deg.clone(),
+                                            None,
+                                        ))
                                     }
                                     else
                                     {
@@ -1530,14 +1626,26 @@ pub fn do_math(
                                     if a.len() == 3 && b.len() == 3
                                     {
                                         Vector(vec![
-                                            a[1].clone() * &b[2] - a[2].clone() * &b[1],
-                                            a[2].clone() * &b[0] - a[0].clone() * &b[2],
-                                            a[0].clone() * &b[1] - a[1].clone() * &b[0],
+                                            (
+                                                a[1].0.clone() * &b[2].0 - a[2].0.clone() * &b[1].0,
+                                                None,
+                                            ),
+                                            (
+                                                a[2].0.clone() * &b[0].0 - a[0].0.clone() * &b[2].0,
+                                                None,
+                                            ),
+                                            (
+                                                a[0].0.clone() * &b[1].0 - a[1].0.clone() * &b[0].0,
+                                                None,
+                                            ),
                                         ])
                                     }
                                     else if a.len() == 2 && b.len() == 2
                                     {
-                                        Num(a[0].clone() * &b[1] - a[1].clone() * &b[0])
+                                        Num((
+                                            a[0].0.clone() * &b[1].0 - a[1].0.clone() * &b[0].0,
+                                            None,
+                                        ))
                                     }
                                     else
                                     {
@@ -1557,16 +1665,19 @@ pub fn do_math(
                                     if b.vec()?.len() == a.len()
                                     {
                                         let mut dot = Complex::new(options.prec);
-                                        for i in a.iter().zip(b.vec()?.iter()).map(|(a, b)| a * b)
+                                        for i in a
+                                            .iter()
+                                            .zip(b.vec()?.iter())
+                                            .map(|(a, b)| a.0.clone() * b.0.clone())
                                         {
                                             dot += i;
                                         }
                                         let mut norm = Complex::new(options.prec);
                                         for i in b.vec()?
                                         {
-                                            norm += i.abs().pow(2);
+                                            norm += i.0.abs().pow(2);
                                         }
-                                        Num(dot / norm).mul(&b)?
+                                        Num((dot / norm, None)).mul(&b)?
                                     }
                                     else
                                     {
@@ -1586,11 +1697,11 @@ pub fn do_math(
                                     for i in a
                                         .iter()
                                         .zip(function.remove(i + 1).vec()?.iter())
-                                        .map(|(a, b)| a * b)
+                                        .map(|(a, b)| a.0.clone() * b.0.clone())
                                     {
                                         n += i;
                                     }
-                                    Num(n)
+                                    Num((n, None))
                                 }
                                 else
                                 {
@@ -1605,6 +1716,7 @@ pub fn do_math(
                                     {
                                         Num(b) =>
                                         {
+                                            let b = b.0;
                                             let n = b.clone().real().to_f64() as usize;
                                             if n <= a.len() && n != 0
                                             {
@@ -1620,7 +1732,7 @@ pub fn do_math(
                                             let mut vec = Vec::new();
                                             for i in b
                                             {
-                                                let n = i.clone().real().to_f64() as usize;
+                                                let n = i.0.clone().real().to_f64() as usize;
                                                 if n <= a.len() && n != 0
                                                 {
                                                     vec.push(a[n - 1].clone());
@@ -1643,9 +1755,12 @@ pub fn do_math(
                             "split" => Matrix(
                                 a.iter()
                                     .map(|a| {
-                                        vec![(*a.real()).clone().into(), (*a.imag()).clone().into()]
+                                        vec![
+                                            (a.0.real().clone().into(), None),
+                                            (a.0.imag().clone().into(), None),
+                                        ]
                                     })
-                                    .collect::<Vec<Vec<Complex>>>(),
+                                    .collect::<Vec<Vec<(Complex, Option<Units>)>>>(),
                             ),
                             "factors" | "factor" =>
                             {
@@ -1653,6 +1768,7 @@ pub fn do_math(
                                 let mut mat = Vec::new();
                                 for num in a
                                 {
+                                    let num = num.0;
                                     if num.imag().clone().is_zero()
                                     {
                                         if num.real().clone().fract().is_zero()
@@ -1663,7 +1779,10 @@ pub fn do_math(
                                             {
                                                 if n % i == 0
                                                 {
-                                                    vec.push(Complex::with_val(options.prec, i));
+                                                    vec.push((
+                                                        Complex::with_val(options.prec, i),
+                                                        None,
+                                                    ));
                                                 }
                                             }
                                             mat.push(vec);
@@ -1682,7 +1801,7 @@ pub fn do_math(
                                 }
                                 if fail
                                 {
-                                    Num(Complex::with_val(options.prec, Nan))
+                                    Num((Complex::with_val(options.prec, Nan), None))
                                 }
                                 else
                                 {
@@ -1695,39 +1814,45 @@ pub fn do_math(
                         {
                             "multinomial" =>
                             {
-                                let mut numerator: Complex = arg.num()? + 1;
+                                let mut numerator: Complex = arg.num()?.0 + 1;
                                 let mut divisor = gamma(numerator.clone());
                                 while i + 1 < function.len()
                                 {
-                                    let temp = function.remove(i + 1).num()?;
+                                    let temp = function.remove(i + 1).num()?.0;
                                     numerator += temp.clone();
                                     let temp = temp.clone() + 1;
                                     divisor *= gamma(temp);
                                 }
-                                Num(gamma(numerator) / divisor)
+                                Num((gamma(numerator) / divisor, None))
                             }
                             "Β" | "B" | "beta" =>
                             {
                                 if i + 1 < function.len()
                                 {
-                                    let a = arg.num()?;
-                                    let b = function.remove(i + 1).num()?;
+                                    let a = arg.num()?.0;
+                                    let b = function.remove(i + 1).num()?.0;
                                     if i + 1 < function.len()
                                     {
-                                        let x = function.remove(i + 1).num()?;
-                                        Num(incomplete_beta(a, b, x))
+                                        let x = function.remove(i + 1).num()?.0;
+                                        Num((incomplete_beta(a, b, x), None))
                                     }
                                     else if a.imag().is_zero() && b.imag().is_zero()
                                     {
-                                        Num(gamma(a.clone()) * gamma(b.clone())
-                                            / gamma(a + b.clone()))
+                                        Num((
+                                            gamma(a.clone()) * gamma(b.clone())
+                                                / gamma(a + b.clone()),
+                                            None,
+                                        ))
                                     }
                                     else
                                     {
-                                        Num(incomplete_beta(
-                                            Complex::with_val(options.prec, 1),
-                                            a,
-                                            b,
+                                        Num((
+                                            incomplete_beta(
+                                                Complex::with_val(options.prec, 1),
+                                                a,
+                                                b,
+                                            ),
+                                            None,
                                         ))
                                     }
                                 }
@@ -1740,12 +1865,15 @@ pub fn do_math(
                             {
                                 if i + 2 < function.len()
                                 {
-                                    let a = arg.num()?;
-                                    let b = function.remove(i + 1).num()?;
-                                    let x = function.remove(i + 1).num()?;
-                                    Num(gamma(x.clone() + b.clone())
-                                        * incomplete_beta(a, b.clone(), x.clone())
-                                        / (gamma(x) * gamma(b)))
+                                    let a = arg.num()?.0;
+                                    let b = function.remove(i + 1).num()?.0;
+                                    let x = function.remove(i + 1).num()?.0;
+                                    Num((
+                                        gamma(x.clone() + b.clone())
+                                            * incomplete_beta(a, b.clone(), x.clone())
+                                            / (gamma(x) * gamma(b)),
+                                        None,
+                                    ))
                                 }
                                 else
                                 {
@@ -1756,14 +1884,17 @@ pub fn do_math(
                             {
                                 if i + 2 < function.len()
                                 {
-                                    let alpha = arg.num()?;
-                                    let beta = function.remove(i + 1).num()?;
-                                    let x = function.remove(i + 1).num()?;
+                                    let alpha = arg.num()?.0;
+                                    let beta = function.remove(i + 1).num()?.0;
+                                    let x = function.remove(i + 1).num()?.0;
                                     let c: Complex = 1 - x.clone();
-                                    Num(gamma(alpha.clone() + beta.clone())
-                                        * x.pow(alpha.clone() - 1)
-                                        * c.pow(beta.clone() - 1)
-                                        / (gamma(alpha) * gamma(beta)))
+                                    Num((
+                                        gamma(alpha.clone() + beta.clone())
+                                            * x.pow(alpha.clone() - 1)
+                                            * c.pow(beta.clone() - 1)
+                                            / (gamma(alpha) * gamma(beta)),
+                                        None,
+                                    ))
                                 }
                                 else
                                 {
@@ -1774,13 +1905,13 @@ pub fn do_math(
                             {
                                 if i + 2 < function.len()
                                 {
-                                    let mu = arg.num()?;
-                                    let sigma = function.remove(i + 1).num()?;
-                                    let x = function.remove(i + 1).num()?;
+                                    let mu = arg.num()?.0;
+                                    let sigma = function.remove(i + 1).num()?.0;
+                                    let x = function.remove(i + 1).num()?.0;
                                     let n: Complex = (x - mu).pow(2);
                                     let n: Complex = -n / (2 * sigma.clone().pow(2));
                                     let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
-                                    Num(n.exp() / (sigma * tau.sqrt()))
+                                    Num((n.exp() / (sigma * tau.sqrt()), None))
                                 }
                                 else
                                 {
@@ -1789,33 +1920,36 @@ pub fn do_math(
                             }
                             "normD" =>
                             {
-                                let mut a = arg.num()?;
+                                let mut a = arg.num()?.0;
                                 if i + 2 < function.len()
                                 {
-                                    a -= function.remove(i + 1).num()?;
-                                    a /= function.remove(i + 1).num()?;
+                                    a -= function.remove(i + 1).num()?.0;
+                                    a /= function.remove(i + 1).num()?.0;
                                 }
                                 if a.imag().is_zero()
                                 {
                                     let two = Float::with_val(options.prec, 2);
-                                    Num(((-a / two.clone().sqrt()).real().clone().erfc() / two)
-                                        .into())
+                                    Num((
+                                        ((-a / two.clone().sqrt()).real().clone().erfc() / two)
+                                            .into(),
+                                        None,
+                                    ))
                                 }
                                 else
                                 {
                                     let two = Float::with_val(options.prec, 2);
-                                    Num(erf(-a / two.clone().sqrt()) / two)
+                                    Num((erf(-a / two.clone().sqrt()) / two, None))
                                 }
                             }
                             "cubic" =>
                             {
                                 if i + 4 < function.len()
                                 {
-                                    let a = arg.num()?;
-                                    let b = function.remove(i + 1).num()?;
-                                    let c = function.remove(i + 1).num()?;
-                                    let d = function.remove(i + 1).num()?;
-                                    let real = !function.remove(i + 1).num()?.is_zero();
+                                    let a = arg.num()?.0;
+                                    let b = function.remove(i + 1).num()?.0;
+                                    let c = function.remove(i + 1).num()?.0;
+                                    let d = function.remove(i + 1).num()?.0;
+                                    let real = !function.remove(i + 1).num()?.0.is_zero();
                                     let n = cubic(a, b, c, d, real);
                                     if n.len() == 1
                                     {
@@ -1828,17 +1962,17 @@ pub fn do_math(
                                 }
                                 else if i + 3 < function.len()
                                 {
-                                    let a = arg.num()?;
-                                    let b = function.remove(i + 1).num()?;
-                                    let c = function.remove(i + 1).num()?;
-                                    let d = function.remove(i + 1).num()?;
+                                    let a = arg.num()?.0;
+                                    let b = function.remove(i + 1).num()?.0;
+                                    let c = function.remove(i + 1).num()?.0;
+                                    let d = function.remove(i + 1).num()?.0;
                                     Vector(cubic(a, b, c, d, false))
                                 }
                                 else if i + 2 < function.len()
                                 {
-                                    let b = arg.num()?;
-                                    let c = function.remove(i + 1).num()?;
-                                    let d = function.remove(i + 1).num()?;
+                                    let b = arg.num()?.0;
+                                    let c = function.remove(i + 1).num()?.0;
+                                    let d = function.remove(i + 1).num()?.0;
                                     Vector(cubic(
                                         Complex::with_val(options.prec, 1),
                                         b,
@@ -1856,14 +1990,14 @@ pub fn do_math(
                             {
                                 if i + 3 < function.len()
                                 {
-                                    let a = arg.num()?;
-                                    let b = function.remove(i + 1).num()?;
-                                    let c = function.remove(i + 1).num()?;
-                                    let real = !function.remove(i + 1).num()?.is_zero();
+                                    let a = arg.num()?.0;
+                                    let b = function.remove(i + 1).num()?.0;
+                                    let c = function.remove(i + 1).num()?.0;
+                                    let real = !function.remove(i + 1).num()?.0.is_zero();
                                     let n = quadratic(a, b, c, real);
                                     if n.is_empty()
                                     {
-                                        Num(Complex::with_val(options.prec, Nan))
+                                        Num((Complex::with_val(options.prec, Nan), None))
                                     }
                                     else if n.len() == 1
                                     {
@@ -1876,15 +2010,15 @@ pub fn do_math(
                                 }
                                 else if i + 2 < function.len()
                                 {
-                                    let a = arg.num()?;
-                                    let b = function.remove(i + 1).num()?;
-                                    let c = function.remove(i + 1).num()?;
+                                    let a = arg.num()?.0;
+                                    let b = function.remove(i + 1).num()?.0;
+                                    let c = function.remove(i + 1).num()?.0;
                                     Vector(quadratic(a, b, c, false))
                                 }
                                 else if i + 1 < function.len()
                                 {
-                                    let b = arg.num()?;
-                                    let c = function.remove(i + 1).num()?;
+                                    let b = arg.num()?.0;
+                                    let c = function.remove(i + 1).num()?.0;
                                     Vector(quadratic(
                                         Complex::with_val(options.prec, 1),
                                         b,
@@ -1899,24 +2033,27 @@ pub fn do_math(
                             }
                             "split" =>
                             {
-                                let a = arg.num()?;
-                                Vector(vec![(*a.real()).clone().into(), (*a.imag()).clone().into()])
+                                let a = arg.num()?.0;
+                                Vector(vec![
+                                    (a.real().clone().into(), None),
+                                    (a.imag().clone().into(), None),
+                                ])
                             }
-                            "iden" | "identity" =>
-                            {
-                                Matrix(identity(arg.num()?.real().to_f64() as usize, options.prec))
-                            }
+                            "iden" | "identity" => Matrix(identity(
+                                arg.num()?.0.real().to_f64() as usize,
+                                options.prec,
+                            )),
                             "rotate" =>
                             {
-                                let a = arg.num()? / to_deg.clone();
+                                let a = arg.num()?.0 / to_deg.clone();
                                 Matrix(vec![
-                                    vec![a.clone().cos(), -a.clone().sin()],
-                                    vec![a.clone().sin(), a.cos()],
+                                    vec![(a.clone().cos(), None), (-a.clone().sin(), None)],
+                                    vec![(a.clone().sin(), None), (a.cos(), None)],
                                 ])
                             }
                             "factors" | "factor" =>
                             {
-                                let a = arg.num()?;
+                                let a = arg.num()?.0;
                                 if a.imag().clone().is_zero()
                                 {
                                     if a.real().clone().fract().is_zero()
@@ -1927,19 +2064,22 @@ pub fn do_math(
                                         {
                                             if n % i == 0
                                             {
-                                                vec.push(Complex::with_val(options.prec, i));
+                                                vec.push((
+                                                    Complex::with_val(options.prec, i),
+                                                    None,
+                                                ));
                                             }
                                         }
                                         Vector(vec)
                                     }
                                     else
                                     {
-                                        Num(Complex::with_val(options.prec, Nan))
+                                        Num((Complex::with_val(options.prec, Nan), None))
                                     }
                                 }
                                 else
                                 {
-                                    Num(Complex::with_val(options.prec, Nan))
+                                    Num((Complex::with_val(options.prec, Nan), None))
                                 }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
@@ -2068,14 +2208,32 @@ pub fn do_math(
                             {
                                 ("<", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(left, center, right, false, false));
+                                    function[i] = Num((
+                                        between(
+                                            left.0.clone(),
+                                            center.0.clone(),
+                                            right.0.clone(),
+                                            false,
+                                            false,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
                                 }
                                 ("<=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(left, center, right, false, true));
+                                    function[i] = Num((
+                                        between(
+                                            left.0.clone(),
+                                            center.0.clone(),
+                                            right.0.clone(),
+                                            false,
+                                            true,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
@@ -2102,14 +2260,32 @@ pub fn do_math(
                             {
                                 ("<", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(left, center, right, true, false));
+                                    function[i] = Num((
+                                        between(
+                                            left.0.clone(),
+                                            center.0.clone(),
+                                            right.0.clone(),
+                                            true,
+                                            false,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
                                 }
                                 ("<=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(left, center, right, true, true));
+                                    function[i] = Num((
+                                        between(
+                                            left.0.clone(),
+                                            center.0.clone(),
+                                            right.0.clone(),
+                                            true,
+                                            true,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
@@ -2136,14 +2312,32 @@ pub fn do_math(
                             {
                                 (">", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(right, center, left, false, false));
+                                    function[i] = Num((
+                                        between(
+                                            right.0.clone(),
+                                            center.0.clone(),
+                                            left.0.clone(),
+                                            false,
+                                            false,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
                                 }
                                 (">=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(right, center, left, true, false));
+                                    function[i] = Num((
+                                        between(
+                                            right.0.clone(),
+                                            center.0.clone(),
+                                            left.0.clone(),
+                                            true,
+                                            false,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
@@ -2170,14 +2364,32 @@ pub fn do_math(
                             {
                                 (">", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(right, center, left, false, true));
+                                    function[i] = Num((
+                                        between(
+                                            right.0.clone(),
+                                            center.0.clone(),
+                                            left.0.clone(),
+                                            false,
+                                            true,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
                                 }
                                 (">=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(between(right, center, left, true, true));
+                                    function[i] = Num((
+                                        between(
+                                            right.0.clone(),
+                                            center.0.clone(),
+                                            left.0.clone(),
+                                            true,
+                                            true,
+                                        ),
+                                        None,
+                                    ));
                                     function.drain(i + 1..=i + 3);
                                     function.remove(i - 1);
                                     continue;
@@ -2447,589 +2659,662 @@ fn do_functions(
     }
 }
 fn functions(
-    mut a: Complex,
-    mut c: Option<Complex>,
+    mut a: (Complex, Option<Units>),
+    mut c: Option<(Complex, Option<Units>)>,
     to_deg: Complex,
     s: &str,
     options: Options,
-) -> Result<Complex, &'static str>
+) -> Result<(Complex, Option<Units>), &'static str>
 {
-    if a.imag().is_zero() && !a.imag().is_sign_positive()
+    if a.0.imag().is_zero() && !a.0.imag().is_sign_positive()
     {
-        a = Complex::with_val(a.prec(), a.real())
+        a.0 = Complex::with_val(a.0.prec(), a.0.real())
     }
-    if let Some(ref b) = c
+    let n = if matches!(s, "root" | "sqrt" | "asquare")
     {
-        if b.imag().is_zero() && !b.imag().is_sign_positive()
+        if let Some(ref b) = c
         {
-            c = Some(Complex::with_val(b.prec(), b.real()))
-        }
-    }
-    let n = match s
-    {
-        "sin" => (a / to_deg).sin(),
-        "csc" => (a / to_deg).sin().recip(),
-        "cos" => (a / to_deg).cos(),
-        "sec" => (a / to_deg).cos().recip(),
-        "tan" => (a / to_deg).tan(),
-        "cot" => (a / to_deg).tan().recip(),
-        "asin" | "arcsin" => a.clone().asin() * to_deg,
-        "acsc" | "arccsc" => a.clone().recip().asin() * to_deg,
-        "acos" | "arccos" => a.clone().acos() * to_deg,
-        "asec" | "arcsec" => a.clone().recip().acos() * to_deg,
-        "atan2" =>
-        {
-            if let Some(b) = c
+            if b.0.imag().is_zero() && !b.0.imag().is_sign_positive()
             {
-                atan(b, a) * to_deg
-            }
-            else
-            {
-                return Err("not enough args");
+                c = Some((Complex::with_val(b.0.prec(), b.0.real()), b.1))
             }
         }
-        "atan" | "arctan" =>
+        match s
         {
-            if let Some(b) = c
-            {
-                atan(a, b) * to_deg
-            }
-            else
-            {
-                a.atan() * to_deg
-            }
-        }
-        "acot" | "arccot" => a.recip().atan() * to_deg,
-        "sinh" => a.sinh(),
-        "csch" => a.sinh().recip(),
-        "cosh" => a.cosh(),
-        "sech" => a.cosh().recip(),
-        "tanh" => a.tanh(),
-        "coth" => a.tanh().recip(),
-        "asinh" | "arcsinh" => a.asinh(),
-        "acsch" | "arccsch" => a.recip().asinh(),
-        "acosh" | "arccosh" => a.acosh(),
-        "asech" | "arcsech" => a.clone().recip().acosh(),
-        "atanh" | "arctanh" => a.clone().atanh(),
-        "acoth" | "arccoth" => a.clone().recip().atanh(),
-        "cis" =>
-        {
-            let b = a / to_deg.clone();
-            b.clone().cos() + b.sin() * Complex::with_val(options.prec, (0.0, 1.0))
-        }
-        "ln" | "aexp" => a.ln(),
-        "ceil" => Complex::with_val(
-            options.prec,
-            (a.real().clone().ceil(), a.imag().clone().ceil()),
-        ),
-        "floor" => Complex::with_val(
-            options.prec,
-            (a.real().clone().floor(), a.imag().clone().floor()),
-        ),
-        "round" => Complex::with_val(
-            options.prec,
-            (a.real().clone().round(), a.imag().clone().round()),
-        ),
-        "recip" => a.recip(),
-        "exp" | "aln" =>
-        {
-            if let Some(b) = c
-            {
-                a.pow(b)
-            }
-            else
-            {
-                a.exp()
-            }
-        }
-        "W" | "productlog" | "lambertw" =>
-        {
-            if let Some(b) = c
-            {
-                lambertw(b, a.real().to_f64() as isize)
-            }
-            else
-            {
-                lambertw(a, 0)
-            }
-        }
-        "next" =>
-        {
-            if let Some(b) = c
-            {
-                let mut real: Float = a.real().clone();
-                let imag: Float = a.imag().clone();
-                if b.real().is_infinite()
+            "sqrt" | "asquare" => (
+                a.0.sqrt(),
+                if let Some(a) = a.1
                 {
-                    if b.real().is_sign_positive()
+                    Some(a.root(2.0))
+                }
+                else
+                {
+                    None
+                },
+            ),
+            "root" =>
+            {
+                if let Some(b) = c
+                {
+                    let b = b.0;
+                    let c: Float = b.real().clone() / 2;
+                    if b.is_zero() && !a.0.is_zero()
                     {
-                        real.next_up()
+                        (Complex::with_val(a.0.prec(), Nan), None)
+                    }
+                    else if b.imag().is_zero()
+                        && !c.fract().is_zero()
+                        && b.real().clone().fract().is_zero()
+                        && a.0.imag().is_zero()
+                    {
+                        (
+                            {
+                                let a = a.0.real();
+                                let ab = a.clone().abs();
+                                Complex::with_val(
+                                    options.prec,
+                                    a / ab.clone() * ab.pow(b.real().clone().recip()),
+                                )
+                            },
+                            if let Some(a) = a.1
+                            {
+                                Some(a.root(b.real().to_f64()))
+                            }
+                            else
+                            {
+                                None
+                            },
+                        )
                     }
                     else
                     {
-                        real.next_down()
+                        (
+                            a.0.pow(b.clone().recip()),
+                            if let Some(a) = a.1
+                            {
+                                Some(a.root(b.real().to_f64()))
+                            }
+                            else
+                            {
+                                None
+                            },
+                        )
                     }
                 }
                 else
                 {
-                    real.next_toward(b.real());
-                }
-                Complex::with_val(options.prec, (real, imag))
-            }
-            else
-            {
-                let mut real: Float = a.real().clone();
-                let imag: Float = a.imag().clone();
-                real.next_up();
-                Complex::with_val(options.prec, (real, imag))
-            }
-        }
-        "log" =>
-        {
-            let a = a.ln();
-            if let Some(b) = c
-            {
-                let b = b.ln();
-                if a.is_zero()
-                {
-                    Complex::with_val(options.prec, Infinity)
-                }
-                else if b.real().is_infinite()
-                {
-                    -Complex::with_val(options.prec, Infinity)
-                }
-                else
-                {
-                    b / a
-                }
-            }
-            else
-            {
-                a
-            }
-        }
-        "ssrt" =>
-        {
-            if let Some(b) = c
-            {
-                let b = b.ln();
-                b.clone() / lambertw(b, a.real().to_f64() as isize)
-            }
-            else
-            {
-                let a = a.ln();
-                a.clone() / lambertw(a, 0)
-            }
-        }
-        "slog" =>
-        {
-            if let Some(b) = c
-            {
-                if a.real() > &1
-                {
-                    slog(&a, &b)
-                }
-                else
-                {
-                    Complex::with_val(options.prec, Nan)
-                }
-            }
-            else
-            {
-                return Err("no args");
-            }
-        }
-        "root" =>
-        {
-            if let Some(b) = c
-            {
-                let c: Float = b.real().clone() / 2;
-                if b.is_zero() && !a.is_zero()
-                {
-                    Complex::with_val(a.prec(), Nan)
-                }
-                else if b.imag().is_zero()
-                    && !c.fract().is_zero()
-                    && b.real().clone().fract().is_zero()
-                    && a.imag().is_zero()
-                {
-                    Complex::with_val(
-                        options.prec,
-                        a.real() / a.real().clone().abs()
-                            * a.real().clone().abs().pow(b.real().clone().recip()),
-                    )
-                }
-                else
-                {
-                    a.pow(b.recip())
-                }
-            }
-            else
-            {
-                a.sqrt()
-            }
-        }
-        "P" =>
-        {
-            if let Some(b) = c
-            {
-                if !a.real().is_sign_positive()
-                    && a.real().clone().fract().is_zero()
-                    && a.imag().is_zero()
-                    && b.imag().is_zero()
-                {
-                    if b.real().clone().fract().is_zero()
-                    {
-                        if b.real().clone() % 2 == 1
+                    (
+                        a.0.sqrt(),
+                        if let Some(a) = a.1
                         {
-                            gamma(b.clone() + 2)
+                            Some(a.root(2.0))
                         }
                         else
                         {
-                            -gamma(b.clone() + 2)
+                            None
+                        },
+                    )
+                }
+            }
+            _ => return Err("unreachable"),
+        }
+    }
+    else
+    {
+        let a = a.0;
+        let mut d = None;
+        if let Some(ref b) = c
+        {
+            if b.0.imag().is_zero() && !b.0.imag().is_sign_positive()
+            {
+                d = Some(Complex::with_val(b.0.prec(), b.0.real()))
+            }
+            else
+            {
+                d = Some(b.0.clone())
+            }
+        }
+        (
+            match s
+            {
+                "sin" => (a / to_deg).sin(),
+                "csc" => (a / to_deg).sin().recip(),
+                "cos" => (a / to_deg).cos(),
+                "sec" => (a / to_deg).cos().recip(),
+                "tan" => (a / to_deg).tan(),
+                "cot" => (a / to_deg).tan().recip(),
+                "asin" | "arcsin" => a.clone().asin() * to_deg,
+                "acsc" | "arccsc" => a.clone().recip().asin() * to_deg,
+                "acos" | "arccos" => a.clone().acos() * to_deg,
+                "asec" | "arcsec" => a.clone().recip().acos() * to_deg,
+                "atan2" =>
+                {
+                    if let Some(b) = d
+                    {
+                        atan(b, a) * to_deg
+                    }
+                    else
+                    {
+                        return Err("not enough args");
+                    }
+                }
+                "atan" | "arctan" =>
+                {
+                    if let Some(b) = d
+                    {
+                        atan(a, b) * to_deg
+                    }
+                    else
+                    {
+                        a.atan() * to_deg
+                    }
+                }
+                "acot" | "arccot" => a.recip().atan() * to_deg,
+                "sinh" => a.sinh(),
+                "csch" => a.sinh().recip(),
+                "cosh" => a.cosh(),
+                "sech" => a.cosh().recip(),
+                "tanh" => a.tanh(),
+                "coth" => a.tanh().recip(),
+                "asinh" | "arcsinh" => a.asinh(),
+                "acsch" | "arccsch" => a.recip().asinh(),
+                "acosh" | "arccosh" => a.acosh(),
+                "asech" | "arcsech" => a.clone().recip().acosh(),
+                "atanh" | "arctanh" => a.clone().atanh(),
+                "acoth" | "arccoth" => a.clone().recip().atanh(),
+                "cis" =>
+                {
+                    let b = a / to_deg.clone();
+                    b.clone().cos() + b.sin() * Complex::with_val(options.prec, (0.0, 1.0))
+                }
+                "ln" | "aexp" => a.ln(),
+                "ceil" => Complex::with_val(
+                    options.prec,
+                    (a.real().clone().ceil(), a.imag().clone().ceil()),
+                ),
+                "floor" => Complex::with_val(
+                    options.prec,
+                    (a.real().clone().floor(), a.imag().clone().floor()),
+                ),
+                "round" => Complex::with_val(
+                    options.prec,
+                    (a.real().clone().round(), a.imag().clone().round()),
+                ),
+                "recip" => a.recip(),
+                "exp" | "aln" =>
+                {
+                    if let Some(b) = d
+                    {
+                        a.pow(b)
+                    }
+                    else
+                    {
+                        a.exp()
+                    }
+                }
+                "W" | "productlog" | "lambertw" =>
+                {
+                    if let Some(b) = d
+                    {
+                        lambertw(b, a.real().to_f64() as isize)
+                    }
+                    else
+                    {
+                        lambertw(a, 0)
+                    }
+                }
+                "next" =>
+                {
+                    if let Some(b) = d
+                    {
+                        let mut real: Float = a.real().clone();
+                        let imag: Float = a.imag().clone();
+                        if b.real().is_infinite()
+                        {
+                            if b.real().is_sign_positive()
+                            {
+                                real.next_up()
+                            }
+                            else
+                            {
+                                real.next_down()
+                            }
+                        }
+                        else
+                        {
+                            real.next_toward(b.real());
+                        }
+                        Complex::with_val(options.prec, (real, imag))
+                    }
+                    else
+                    {
+                        let mut real: Float = a.real().clone();
+                        let imag: Float = a.imag().clone();
+                        real.next_up();
+                        Complex::with_val(options.prec, (real, imag))
+                    }
+                }
+                "log" =>
+                {
+                    let a = a.ln();
+                    if let Some(b) = d
+                    {
+                        let b = b.ln();
+                        if a.is_zero()
+                        {
+                            Complex::with_val(options.prec, Infinity)
+                        }
+                        else if b.real().is_infinite()
+                        {
+                            -Complex::with_val(options.prec, Infinity)
+                        }
+                        else
+                        {
+                            b / a
                         }
                     }
                     else
                     {
-                        let a = a + Complex::with_val(options.prec, (0, 1))
-                            * Float::with_val(options.prec, 0.5).pow(options.prec / 2);
-                        (gamma(a.clone() + 1) / gamma(a.clone() - b + 1))
+                        a
+                    }
+                }
+                "ssrt" =>
+                {
+                    if let Some(b) = d
+                    {
+                        let b = b.ln();
+                        b.clone() / lambertw(b, a.real().to_f64() as isize)
+                    }
+                    else
+                    {
+                        let a = a.ln();
+                        a.clone() / lambertw(a, 0)
+                    }
+                }
+                "slog" =>
+                {
+                    if let Some(b) = d
+                    {
+                        if a.real() > &1
+                        {
+                            slog(&a, &b)
+                        }
+                        else
+                        {
+                            Complex::with_val(options.prec, Nan)
+                        }
+                    }
+                    else
+                    {
+                        return Err("no args");
+                    }
+                }
+                "P" =>
+                {
+                    if let Some(b) = d
+                    {
+                        if !a.real().is_sign_positive()
+                            && a.real().clone().fract().is_zero()
+                            && a.imag().is_zero()
+                            && b.imag().is_zero()
+                        {
+                            if b.real().clone().fract().is_zero()
+                            {
+                                if b.real().clone() % 2 == 1
+                                {
+                                    gamma(b.clone() + 2)
+                                }
+                                else
+                                {
+                                    -gamma(b.clone() + 2)
+                                }
+                            }
+                            else
+                            {
+                                let a = a + Complex::with_val(options.prec, (0, 1))
+                                    * Float::with_val(options.prec, 0.5).pow(options.prec / 2);
+                                (gamma(a.clone() + 1) / gamma(a.clone() - b + 1))
+                                    .real()
+                                    .clone()
+                                    .into()
+                            }
+                        }
+                        else
+                        {
+                            gamma(a.clone() + 1) / gamma(a.clone() - b + 1)
+                        }
+                    }
+                    else
+                    {
+                        return Err("no args");
+                    }
+                }
+                "C" | "bi" | "binomial" =>
+                {
+                    if let Some(b) = d
+                    {
+                        if a.imag().is_zero()
+                            && b.imag().is_zero()
+                            && a.real().clone().fract().is_zero()
+                            && b.real().clone().fract().is_zero()
+                            && a.real().is_finite()
+                        {
+                            Complex::with_val(
+                                options.prec,
+                                a.real()
+                                    .to_integer()
+                                    .unwrap()
+                                    .binomial(b.real().to_f64() as u32),
+                            )
+                        }
+                        else
+                        {
+                            gamma(a.clone() + 1)
+                                / (gamma(b.clone() + 1) * gamma(a.clone() - b.clone() + 1))
+                        }
+                    }
+                    else
+                    {
+                        return Err("no args");
+                    }
+                }
+                "pochhammer" | "ph" =>
+                {
+                    if let Some(b) = d
+                    {
+                        if !a.real().is_sign_positive() && a.imag().is_zero() && b.imag().is_zero()
+                        {
+                            Complex::with_val(options.prec, -1).pow(b.clone())
+                                * gamma(1 - a.clone())
+                                / gamma(1 - a - b)
+                        }
+                        else
+                        {
+                            gamma(b.clone() + a.clone()) / gamma(a.clone())
+                        }
+                    }
+                    else
+                    {
+                        return Err("not enough args");
+                    }
+                }
+                "gamma" | "Γ" =>
+                {
+                    if let Some(b) = d
+                    {
+                        incomplete_gamma(a, b)
+                    }
+                    else
+                    {
+                        gamma(a)
+                    }
+                }
+                "abs" | "norm" => a.abs(),
+                "deg" | "degree" => match options.deg
+                {
+                    Radians => a * 180 / Complex::with_val(options.prec, Pi),
+                    Gradians => a * 180.0 / 200.0,
+                    Degrees => a,
+                },
+                "rad" | "radian" => match options.deg
+                {
+                    Radians => a,
+                    Gradians => a * Complex::with_val(options.prec, Pi) / 200,
+                    Degrees => a * Complex::with_val(options.prec, Pi) / 180,
+                },
+                "grad" | "gradian" => match options.deg
+                {
+                    Radians => a * 200 / Complex::with_val(options.prec, Pi),
+                    Gradians => a,
+                    Degrees => a * 200.0 / 180.0,
+                },
+                "re" | "real" => Complex::with_val(options.prec, a.real()),
+                "im" | "imag" => Complex::with_val(options.prec, a.imag()),
+                "sgn" | "sign" =>
+                {
+                    if a.is_zero()
+                    {
+                        Complex::new(options.prec)
+                    }
+                    else
+                    {
+                        a.clone() / a.abs()
+                    }
+                }
+                "arg" => a.arg(),
+                "cbrt" | "acube" =>
+                {
+                    if a.imag().is_zero()
+                    {
+                        if a.real().is_zero()
+                        {
+                            Complex::new(options.prec)
+                        }
+                        else
+                        {
+                            (a.real() / a.real().clone().abs()
+                                * a.real()
+                                    .clone()
+                                    .abs()
+                                    .pow(Float::with_val(a.prec().0, 3).recip()))
+                            .into()
+                        }
+                    }
+                    else
+                    {
+                        a.clone().pow(Float::with_val(a.prec().0, 3).recip())
+                    }
+                }
+                "frac" | "fract" => Complex::with_val(
+                    options.prec,
+                    (a.real().clone().fract(), a.imag().clone().fract()),
+                ),
+                "int" | "trunc" => Complex::with_val(
+                    options.prec,
+                    (a.real().clone().trunc(), a.imag().clone().trunc()),
+                ),
+                "square" | "asqrt" => a.pow(2),
+                "cube" | "acbrt" => a.pow(3),
+                "doublefact" | "doublefactorial" =>
+                {
+                    let two = Complex::with_val(options.prec, 2);
+                    let pi = Complex::with_val(options.prec, Pi);
+                    two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
+                        * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
+                        * gamma(a.clone() / 2 + 1)
+                }
+                "fact" | "factorial" => gamma(a.clone() + 1),
+                "subfact" | "subfactorial" =>
+                {
+                    if !a.imag().is_zero()
+                        || a.real().is_sign_negative()
+                        || !a.real().clone().fract().is_zero()
+                    {
+                        subfactorial(a)
+                    }
+                    else if a.real().is_zero()
+                    {
+                        Complex::with_val(options.prec, 1)
+                    }
+                    else
+                    {
+                        (gamma(a.clone() + 1) / Float::with_val(options.prec, 1).exp())
                             .real()
                             .clone()
+                            .round()
                             .into()
                     }
                 }
-                else
+                "sinc" => a.clone().sin() / a,
+                "conj" | "conjugate" => a.conj(),
+                "erf" =>
                 {
-                    gamma(a.clone() + 1) / gamma(a.clone() - b + 1)
+                    if a.imag().is_zero()
+                    {
+                        a.real().clone().erf().into()
+                    }
+                    else
+                    {
+                        erf(a)
+                    }
                 }
-            }
-            else
-            {
-                return Err("no args");
-            }
-        }
-        "C" | "bi" | "binomial" =>
-        {
-            if let Some(b) = c
-            {
-                if a.imag().is_zero()
-                    && b.imag().is_zero()
-                    && a.real().clone().fract().is_zero()
-                    && b.real().clone().fract().is_zero()
-                    && a.real().is_finite()
+                "erfc" =>
                 {
-                    Complex::with_val(
-                        options.prec,
-                        a.real()
-                            .to_integer()
-                            .unwrap()
-                            .binomial(b.real().to_f64() as u32),
-                    )
+                    if a.imag().is_zero()
+                    {
+                        a.real().clone().erfc().into()
+                    }
+                    else
+                    {
+                        erfc(a)
+                    }
                 }
-                else
+                "erfi" =>
                 {
-                    gamma(a.clone() + 1) / (gamma(b.clone() + 1) * gamma(a.clone() - b.clone() + 1))
+                    let i = Complex::with_val(options.prec, (0, 1));
+                    -i.clone() * erf(i * a)
                 }
-            }
-            else
-            {
-                return Err("no args");
-            }
-        }
-        "pochhammer" | "ph" =>
-        {
-            if let Some(b) = c
-            {
-                if !a.real().is_sign_positive() && a.imag().is_zero() && b.imag().is_zero()
+                "ai" =>
                 {
-                    Complex::with_val(options.prec, -1).pow(b.clone()) * gamma(1 - a.clone())
-                        / gamma(1 - a - b)
+                    if a.imag().is_zero()
+                    {
+                        a.real().clone().ai().into()
+                    }
+                    else
+                    {
+                        Complex::with_val(options.prec, Nan)
+                    }
                 }
-                else
+                "trigamma" => digamma(a, 1),
+                "digamma" | "polygamma" | "ψ" =>
                 {
-                    gamma(b.clone() + a.clone()) / gamma(a.clone())
+                    if let Some(b) = d
+                    {
+                        digamma(b, a.real().to_f64() as u32)
+                    }
+                    else if a.imag().is_zero()
+                    {
+                        if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
+                        {
+                            Complex::with_val(options.prec, Infinity)
+                        }
+                        else
+                        {
+                            a.real().clone().digamma().into()
+                        }
+                    }
+                    else
+                    {
+                        digamma(a, 0)
+                    }
                 }
-            }
-            else
-            {
-                return Err("not enough args");
-            }
-        }
-        "gamma" | "Γ" =>
-        {
-            if let Some(b) = c
-            {
-                incomplete_gamma(a, b)
-            }
-            else
-            {
-                gamma(a)
-            }
-        }
-        "sqrt" | "asquare" => a.sqrt(),
-        "abs" | "norm" => a.abs(),
-        "deg" | "degree" => match options.deg
-        {
-            Radians => a * 180 / Complex::with_val(options.prec, Pi),
-            Gradians => a * 180.0 / 200.0,
-            Degrees => a,
-        },
-        "rad" | "radian" => match options.deg
-        {
-            Radians => a,
-            Gradians => a * Complex::with_val(options.prec, Pi) / 200,
-            Degrees => a * Complex::with_val(options.prec, Pi) / 180,
-        },
-        "grad" | "gradian" => match options.deg
-        {
-            Radians => a * 200 / Complex::with_val(options.prec, Pi),
-            Gradians => a,
-            Degrees => a * 200.0 / 180.0,
-        },
-        "re" | "real" => Complex::with_val(options.prec, a.real()),
-        "im" | "imag" => Complex::with_val(options.prec, a.imag()),
-        "sgn" | "sign" =>
-        {
-            if a.is_zero()
-            {
-                Complex::new(options.prec)
-            }
-            else
-            {
-                a.clone() / a.abs()
-            }
-        }
-        "arg" => a.arg(),
-        "cbrt" | "acube" =>
-        {
-            if a.imag().is_zero()
-            {
-                if a.real().is_zero()
+                "zeta" | "ζ" =>
                 {
-                    Complex::new(options.prec)
+                    if let Some(b) = d
+                    {
+                        let mut sum = Complex::new(options.prec);
+                        for n in 0..=options.prec / 8
+                        {
+                            sum += 1 / (n + b.clone()).pow(a.clone())
+                        }
+                        sum
+                    }
+                    else if a.imag().is_zero()
+                    {
+                        a.real().clone().zeta().into()
+                    }
+                    else
+                    {
+                        let b = Complex::with_val(options.prec, 1);
+                        let mut sum = Complex::new(options.prec);
+                        for n in 0..=options.prec / 8
+                        {
+                            sum += 1 / (n + b.clone()).pow(a.clone())
+                        }
+                        sum
+                    }
                 }
-                else
+                "prime" =>
                 {
-                    (a.real() / a.real().clone().abs()
-                        * a.real()
-                            .clone()
-                            .abs()
-                            .pow(Float::with_val(a.prec().0, 3).recip()))
-                    .into()
+                    if a.imag().is_zero() && a.real().clone().fract() == 0.0
+                    {
+                        Complex::with_val(options.prec, nth_prime(a.real().to_f64() as usize))
+                    }
+                    else
+                    {
+                        Complex::with_val(options.prec, Nan)
+                    }
                 }
-            }
-            else
-            {
-                a.clone().pow(Float::with_val(a.prec().0, 3).recip())
-            }
-        }
-        "frac" | "fract" => Complex::with_val(
-            options.prec,
-            (a.real().clone().fract(), a.imag().clone().fract()),
-        ),
-        "int" | "trunc" => Complex::with_val(
-            options.prec,
-            (a.real().clone().trunc(), a.imag().clone().trunc()),
-        ),
-        "square" | "asqrt" => a.pow(2),
-        "cube" | "acbrt" => a.pow(3),
-        "doublefact" | "doublefactorial" =>
-        {
-            let two = Complex::with_val(options.prec, 2);
-            let pi = Complex::with_val(options.prec, Pi);
-            two.pow(a.clone() / 2 + (1 - (pi.clone() * a.clone()).cos()) / 4)
-                * pi.clone().pow(((pi * a.clone()).cos() - 1) / 4)
-                * gamma(a.clone() / 2 + 1)
-        }
-        "fact" | "factorial" => gamma(a.clone() + 1),
-        "subfact" | "subfactorial" =>
-        {
-            if !a.imag().is_zero()
-                || a.real().is_sign_negative()
-                || !a.real().clone().fract().is_zero()
-            {
-                subfactorial(a)
-            }
-            else if a.real().is_zero()
-            {
-                Complex::with_val(options.prec, 1)
-            }
-            else
-            {
-                (gamma(a.clone() + 1) / Float::with_val(options.prec, 1).exp())
-                    .real()
-                    .clone()
-                    .round()
-                    .into()
-            }
-        }
-        "sinc" => a.clone().sin() / a,
-        "conj" | "conjugate" => a.conj(),
-        "erf" =>
-        {
-            if a.imag().is_zero()
-            {
-                a.real().clone().erf().into()
-            }
-            else
-            {
-                erf(a)
-            }
-        }
-        "erfc" =>
-        {
-            if a.imag().is_zero()
-            {
-                a.real().clone().erfc().into()
-            }
-            else
-            {
-                erfc(a)
-            }
-        }
-        "erfi" =>
-        {
-            let i = Complex::with_val(options.prec, (0, 1));
-            -i.clone() * erf(i * a)
-        }
-        "ai" =>
-        {
-            if a.imag().is_zero()
-            {
-                a.real().clone().ai().into()
-            }
-            else
-            {
-                Complex::with_val(options.prec, Nan)
-            }
-        }
-        "trigamma" => digamma(a, 1),
-        "digamma" | "polygamma" | "ψ" =>
-        {
-            if let Some(b) = c
-            {
-                digamma(b, a.real().to_f64() as u32)
-            }
-            else if a.imag().is_zero()
-            {
-                if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
+                "lcm" =>
                 {
-                    Complex::with_val(options.prec, Infinity)
+                    if let Some(b) = d
+                    {
+                        if !a.real().is_finite() || !b.real().is_finite()
+                        {
+                            Complex::with_val(options.prec, Nan)
+                        }
+                        else
+                        {
+                            let a = a.real().to_integer().unwrap();
+                            let b = b.real().to_integer().unwrap();
+                            Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
+                        }
+                    }
+                    else
+                    {
+                        return Err("not enough args");
+                    }
                 }
-                else
+                "gcd" | "gcf" =>
                 {
-                    a.real().clone().digamma().into()
+                    if let Some(b) = d
+                    {
+                        if !a.real().is_finite() || !b.real().is_finite()
+                        {
+                            Complex::with_val(options.prec, Nan)
+                        }
+                        else
+                        {
+                            Complex::with_val(
+                                options.prec,
+                                gcd(
+                                    a.real().to_integer().unwrap(),
+                                    b.real().to_integer().unwrap(),
+                                ),
+                            )
+                        }
+                    }
+                    else
+                    {
+                        return Err("not enough args");
+                    }
                 }
-            }
-            else
-            {
-                digamma(a, 0)
-            }
-        }
-        "zeta" | "ζ" =>
-        {
-            if let Some(b) = c
-            {
-                let mut sum = Complex::new(options.prec);
-                for n in 0..=options.prec / 8
+                "isprime" | "is_prime" =>
                 {
-                    sum += 1 / (n + b.clone()).pow(a.clone())
+                    if a.imag().is_zero() && a.real().clone().fract() == 0.0 && a.real().is_finite()
+                    {
+                        Complex::with_val(
+                            options.prec,
+                            (a.real().to_integer().unwrap().is_probably_prime(100) != IsPrime::No)
+                                as u8,
+                        )
+                    }
+                    else
+                    {
+                        Complex::with_val(options.prec, Nan)
+                    }
                 }
-                sum
-            }
-            else if a.imag().is_zero()
-            {
-                a.real().clone().zeta().into()
-            }
-            else
-            {
-                let b = Complex::with_val(options.prec, 1);
-                let mut sum = Complex::new(options.prec);
-                for n in 0..=options.prec / 8
+                _ =>
                 {
-                    sum += 1 / (n + b.clone()).pow(a.clone())
+                    return Err("wrong input type");
                 }
-                sum
-            }
-        }
-        "prime" =>
-        {
-            if a.imag().is_zero() && a.real().clone().fract() == 0.0
-            {
-                Complex::with_val(options.prec, nth_prime(a.real().to_f64() as usize))
-            }
-            else
-            {
-                Complex::with_val(options.prec, Nan)
-            }
-        }
-        "lcm" =>
-        {
-            if let Some(b) = c
-            {
-                if !a.real().is_finite() || !b.real().is_finite()
-                {
-                    Complex::with_val(options.prec, Nan)
-                }
-                else
-                {
-                    let a = a.real().to_integer().unwrap();
-                    let b = b.real().to_integer().unwrap();
-                    Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
-                }
-            }
-            else
-            {
-                return Err("not enough args");
-            }
-        }
-        "gcd" | "gcf" =>
-        {
-            if let Some(b) = c
-            {
-                if !a.real().is_finite() || !b.real().is_finite()
-                {
-                    Complex::with_val(options.prec, Nan)
-                }
-                else
-                {
-                    Complex::with_val(
-                        options.prec,
-                        gcd(
-                            a.real().to_integer().unwrap(),
-                            b.real().to_integer().unwrap(),
-                        ),
-                    )
-                }
-            }
-            else
-            {
-                return Err("not enough args");
-            }
-        }
-        "isprime" | "is_prime" =>
-        {
-            if a.imag().is_zero() && a.real().clone().fract() == 0.0 && a.real().is_finite()
-            {
-                Complex::with_val(
-                    options.prec,
-                    (a.real().to_integer().unwrap().is_probably_prime(100) != IsPrime::No) as u8,
-                )
-            }
-            else
-            {
-                Complex::with_val(options.prec, Nan)
-            }
-        }
-        _ =>
-        {
-            return Err("wrong input type");
-        }
+            },
+            None,
+        )
     };
-    if n.imag().is_zero() && !n.imag().is_sign_positive()
+    if n.0.imag().is_zero() && !n.0.imag().is_sign_positive()
     {
-        Ok(Complex::with_val(n.prec(), n.real()))
+        Ok((Complex::with_val(n.0.prec(), n.0.real()), n.1))
     }
     else
     {

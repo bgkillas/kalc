@@ -2,7 +2,7 @@ use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     math::do_math,
     misc::do_math_with_var,
-    Options,
+    Options, Units,
 };
 use rug::{
     float::{
@@ -16,59 +16,136 @@ use std::cmp::Ordering;
 #[derive(Clone, PartialEq)]
 pub enum NumStr
 {
-    //Num((Complex, Option<Units>)),
-    Num(Complex),
+    Num((Complex, Option<Units>)),
     Str(String),
-    Vector(Vec<Complex>),
-    Matrix(Vec<Vec<Complex>>),
+    Vector(Vec<(Complex, Option<Units>)>),
+    Matrix(Vec<Vec<(Complex, Option<Units>)>>),
 }
-// #[derive(Clone, PartialEq)]
-// pub struct Units
-// {
-//     meters: f64,
-//     seconds: f64,
-// }
+impl Units
+{
+    pub fn mul(&self, b: &Self) -> Self
+    {
+        Self {
+            second: self.second + b.second,
+            meter: self.meter + b.meter,
+            kilogram: self.kilogram + b.kilogram,
+            ampere: self.ampere + b.ampere,
+            kelvin: self.kelvin + b.kelvin,
+            mole: self.mole + b.mole,
+            candela: self.candela + b.candela,
+        }
+    }
+    pub fn div(&self, b: &Self) -> Self
+    {
+        Self {
+            second: self.second - b.second,
+            meter: self.meter - b.meter,
+            kilogram: self.kilogram - b.kilogram,
+            ampere: self.ampere - b.ampere,
+            kelvin: self.kelvin - b.kelvin,
+            mole: self.mole - b.mole,
+            candela: self.candela - b.candela,
+        }
+    }
+    pub fn pow(&self, b: f64) -> Self
+    {
+        Self {
+            second: self.second * b,
+            meter: self.meter * b,
+            kilogram: self.kilogram * b,
+            ampere: self.ampere * b,
+            kelvin: self.kelvin * b,
+            mole: self.mole * b,
+            candela: self.candela * b,
+        }
+    }
+    pub fn root(&self, b: f64) -> Self
+    {
+        Self {
+            second: self.second / b,
+            meter: self.meter / b,
+            kilogram: self.kilogram / b,
+            ampere: self.ampere / b,
+            kelvin: self.kelvin / b,
+            mole: self.mole / b,
+            candela: self.candela / b,
+        }
+    }
+}
+pub fn add(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
+{
+    (
+        a.0.clone() + b.0.clone(),
+        if a.1 == b.1 { a.1 } else { None },
+    )
+}
+pub fn sub(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
+{
+    (
+        a.0.clone() - b.0.clone(),
+        if a.1 == b.1 { a.1 } else { None },
+    )
+}
 impl NumStr
 {
     pub fn mul(&self, b: &Self) -> Result<Self, &'static str>
     {
-        fn m(a: &Complex, b: &Complex) -> Complex
+        fn m(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>))
+            -> (Complex, Option<Units>)
         {
-            if a.real().is_infinite() || b.real().is_infinite()
-            {
-                if (a.real().is_infinite() && b.is_zero())
-                    || (b.real().is_infinite() && a.is_zero())
+            (
                 {
-                    Complex::with_val(a.prec(), Nan)
-                }
-                else
-                {
-                    match (a.real().is_sign_positive(), b.real().is_sign_positive())
+                    let a = a.0.clone();
+                    let b = b.0.clone();
+                    if a.real().is_infinite() || b.real().is_infinite()
                     {
-                        (true, true) | (false, false) => Complex::with_val(a.prec(), Infinity),
-                        (false, true) | (true, false) => -Complex::with_val(a.prec(), Infinity),
+                        if (a.real().is_infinite() && b.is_zero())
+                            || (b.real().is_infinite() && a.is_zero())
+                        {
+                            Complex::with_val(a.prec(), Nan)
+                        }
+                        else
+                        {
+                            match (a.real().is_sign_positive(), b.real().is_sign_positive())
+                            {
+                                (true, true) | (false, false) =>
+                                {
+                                    Complex::with_val(a.prec(), Infinity)
+                                }
+                                (false, true) | (true, false) =>
+                                {
+                                    -Complex::with_val(a.prec(), Infinity)
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            else
-            {
-                a * b.clone()
-            }
+                    else
+                    {
+                        a * b.clone()
+                    }
+                },
+                match (a.1, b.1)
+                {
+                    (Some(a), Some(b)) => Some(a.mul(&b)),
+                    (Some(a), None) | (None, Some(a)) => Some(a),
+                    (None, None) => None,
+                },
+            )
         }
         Ok(match (self, b)
         {
             (Num(a), Num(b)) => Num(m(a, b)),
             (Num(b), Vector(a)) | (Vector(a), Num(b)) =>
             {
-                Vector(a.iter().map(|a| a * b.clone()).collect())
+                Vector(a.iter().map(|a| m(a, b)).collect())
             }
             (Vector(a), Vector(b)) if a.len() == b.len() =>
             {
-                Vector(a.iter().zip(b.iter()).map(|(a, b)| a * b.clone()).collect())
+                Vector(a.iter().zip(b.iter()).map(|(a, b)| m(a, b)).collect())
             }
             (Num(b), Matrix(a)) | (Matrix(a), Num(b)) => Matrix(
                 a.iter()
-                    .map(|a| a.iter().map(|a| a * b.clone()).collect())
+                    .map(|a| a.iter().map(|a| m(a, b)).collect())
                     .collect(),
             ),
             (Vector(b), Matrix(a)) if a[0].len() == b.len() => Vector(
@@ -76,16 +153,21 @@ impl NumStr
                     .map(|a| {
                         a.iter()
                             .zip(b.iter())
-                            .map(|(a, b)| a * b.clone())
-                            .fold(Complex::new(b[0].prec()), |sum, val| sum + val)
+                            .map(|(a, b)| m(a, b))
+                            .fold(Complex::new(b[0].0.prec()), |sum, val| sum + val.0)
                     })
-                    .collect::<Vec<Complex>>(),
+                    .map(|a| (a, None))
+                    .collect::<Vec<(Complex, Option<Units>)>>(),
             ),
             (Matrix(a), Vector(b)) if a[0].len() == b.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| a * b.clone()).collect::<Vec<Complex>>())
-                    .collect::<Vec<Vec<Complex>>>(),
+                    .map(|(a, b)| {
+                        a.iter()
+                            .map(|a| m(a, b))
+                            .collect::<Vec<(Complex, Option<Units>)>>()
+                    })
+                    .collect::<Vec<Vec<(Complex, Option<Units>)>>>(),
             ),
             (Matrix(a), Matrix(b))
                 if a.len() == b[0].len() && (0..b.len()).all(|j| b.len() == b[j].len()) =>
@@ -99,10 +181,11 @@ impl NumStr
                                 .map(|b| {
                                     a.iter()
                                         .zip(b.iter())
-                                        .map(|(a, b)| a * b.clone())
-                                        .fold(Complex::new(a[0].prec()), |sum, val| sum + val)
+                                        .map(|(a, b)| m(a, b))
+                                        .fold(Complex::new(a[0].0.prec()), |sum, val| sum + val.0)
                                 })
-                                .collect::<Vec<Complex>>()
+                                .map(|a| (a, None))
+                                .collect::<Vec<(Complex, Option<Units>)>>()
                         })
                         .collect(),
                 )
@@ -114,81 +197,93 @@ impl NumStr
     {
         Ok(match (self, b)
         {
-            (Num(a), Num(b)) => Vector(vec![a + b.clone(), a - b.clone()]),
+            (Num(a), Num(b)) => Vector(vec![add(a, b), sub(a, b)]),
             (Num(a), Vector(b)) => Vector(
                 b.iter()
-                    .map(|b| a + b.clone())
-                    .chain(b.iter().map(|b| a - b.clone()))
+                    .map(|b| add(a, b))
+                    .chain(b.iter().map(|b| sub(a, b)))
                     .collect(),
             ),
             (Vector(b), Num(a)) => Vector(
                 b.iter()
-                    .map(|b| b + a.clone())
-                    .chain(b.iter().map(|b| b - a.clone()))
+                    .map(|b| add(a, b))
+                    .chain(b.iter().map(|b| sub(a, b)))
                     .collect(),
             ),
             (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a + b.clone())
-                    .chain(a.iter().zip(b.iter()).map(|(a, b)| a - b.clone()))
+                    .map(|(a, b)| add(a, b))
+                    .chain(a.iter().zip(b.iter()).map(|(a, b)| sub(a, b)))
                     .collect(),
             ),
             (Matrix(a), Num(b)) | (Num(b), Matrix(a)) => Vector(
                 a.iter()
                     .flat_map(|a| {
                         a.iter()
-                            .map(|a| a + b.clone())
-                            .chain(a.iter().map(|a| a - b.clone()))
-                            .collect::<Vec<Complex>>()
+                            .map(|a| add(a, b))
+                            .chain(a.iter().map(|a| sub(a, b)))
+                            .collect::<Vec<(Complex, Option<Units>)>>()
                     })
-                    .collect::<Vec<Complex>>(),
+                    .collect::<Vec<(Complex, Option<Units>)>>(),
             ),
             _ => return Err("plus-minus unsupported"),
         })
     }
     pub fn pow(&self, b: &Self) -> Result<Self, &'static str>
     {
-        fn p(a: &Complex, b: &Complex) -> Complex
+        fn p(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>))
+            -> (Complex, Option<Units>)
         {
-            if a.real().is_infinite()
-            {
-                if b.is_zero()
+            (
                 {
-                    Complex::with_val(a.prec(), Nan)
-                }
-                else if b.real().is_sign_positive()
+                    let a = a.0.clone();
+                    let b = b.0.clone();
+                    if a.real().is_infinite()
+                    {
+                        if b.is_zero()
+                        {
+                            Complex::with_val(a.prec(), Nan)
+                        }
+                        else if b.real().is_sign_positive()
+                        {
+                            Complex::with_val(a.prec(), Infinity)
+                        }
+                        else
+                        {
+                            Complex::new(a.prec())
+                        }
+                    }
+                    else if b.real().is_infinite()
+                    {
+                        if a.clone().abs() == 1
+                        {
+                            Complex::with_val(a.prec(), Nan)
+                        }
+                        else if b.real().is_sign_positive() == a.real().clone().trunc().is_zero()
+                        {
+                            Complex::new(a.prec())
+                        }
+                        else
+                        {
+                            Complex::with_val(a.prec(), Infinity)
+                        }
+                    }
+                    else if a.is_zero() && b.real().is_zero()
+                    {
+                        Complex::with_val(a.prec(), Nan)
+                    }
+                    else
+                    {
+                        a.pow(b.clone())
+                    }
+                },
+                match (a.1, b.1)
                 {
-                    Complex::with_val(a.prec(), Infinity)
-                }
-                else
-                {
-                    Complex::new(a.prec())
-                }
-            }
-            else if b.real().is_infinite()
-            {
-                if a.clone().abs() == 1
-                {
-                    Complex::with_val(a.prec(), Nan)
-                }
-                else if b.real().is_sign_positive() == a.real().clone().trunc().is_zero()
-                {
-                    Complex::new(a.prec())
-                }
-                else
-                {
-                    Complex::with_val(a.prec(), Infinity)
-                }
-            }
-            else if a.is_zero() && b.real().is_zero()
-            {
-                Complex::with_val(a.prec(), Nan)
-            }
-            else
-            {
-                a.pow(b.clone())
-            }
+                    (Some(a), None) => Some(a.pow(b.0.real().to_f64())),
+                    _ => None,
+                },
+            )
         }
         Ok(match (self, b)
         {
@@ -206,6 +301,7 @@ impl NumStr
             ),
             (Matrix(a), Num(b)) if a.len() == a[0].len() =>
             {
+                let b = b.0.clone();
                 if b.imag().is_zero() && b.real().clone().fract().is_zero()
                 {
                     if b.real().is_zero()
@@ -219,11 +315,11 @@ impl NumStr
                                 vec.push(
                                     if i == j
                                     {
-                                        Complex::with_val(a[0][0].prec(), 1)
+                                        (Complex::with_val(a[0][0].0.prec(), 1), None)
                                     }
                                     else
                                     {
-                                        Complex::new(a[0][0].prec())
+                                        (Complex::new(a[0][0].0.prec()), None)
                                     },
                                 )
                             }
@@ -273,7 +369,7 @@ impl NumStr
                         a.iter()
                             .zip(b.iter())
                             .map(|(a, b)| p(a, b))
-                            .collect::<Vec<Complex>>()
+                            .collect::<Vec<(Complex, Option<Units>)>>()
                     })
                     .collect(),
             ),
@@ -282,7 +378,7 @@ impl NumStr
     }
     pub fn func<F>(&self, b: &Self, func: F) -> Result<Self, &'static str>
     where
-        F: Fn(&Complex, &Complex) -> Complex,
+        F: Fn(&(Complex, Option<Units>), &(Complex, Option<Units>)) -> (Complex, Option<Units>),
     {
         Ok(match (self, b)
         {
@@ -306,7 +402,7 @@ impl NumStr
             (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| rem(b, a)).collect())
+                    .map(|(a, b)| a.iter().map(|a| func(b, a)).collect())
                     .collect(),
             ),
             (Matrix(a), Vector(b)) if a.len() == b.len() => Matrix(
@@ -322,7 +418,7 @@ impl NumStr
                         a.iter()
                             .zip(b.iter())
                             .map(|(a, b)| func(a, b))
-                            .collect::<Vec<Complex>>()
+                            .collect::<Vec<(Complex, Option<Units>)>>()
                     })
                     .collect(),
             ),
@@ -337,7 +433,7 @@ impl NumStr
             _ => false,
         }
     }
-    pub fn num(&self) -> Result<Complex, &'static str>
+    pub fn num(&self) -> Result<(Complex, Option<Units>), &'static str>
     {
         match self
         {
@@ -345,7 +441,7 @@ impl NumStr
             _ => Err("failed to get number"),
         }
     }
-    pub fn vec(&self) -> Result<Vec<Complex>, &'static str>
+    pub fn vec(&self) -> Result<Vec<(Complex, Option<Units>)>, &'static str>
     {
         match self
         {
@@ -353,7 +449,7 @@ impl NumStr
             _ => Err("failed to get vector"),
         }
     }
-    pub fn mat(&self) -> Result<Vec<Vec<Complex>>, &'static str>
+    pub fn mat(&self) -> Result<Vec<Vec<(Complex, Option<Units>)>>, &'static str>
     {
         match self
         {
@@ -362,124 +458,174 @@ impl NumStr
         }
     }
 }
-pub fn and(a: &Complex, b: &Complex) -> Complex
+pub fn and(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    Complex::with_val(
-        a.prec(),
-        (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as u8,
+    let a = &a.0;
+    let b = &b.0;
+    (
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as u8,
+        ),
+        None,
     )
 }
-pub fn or(a: &Complex, b: &Complex) -> Complex
+pub fn or(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    Complex::with_val(
-        a.prec(),
-        (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as u8,
+    let a = &a.0;
+    let b = &b.0;
+    (
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as u8,
+        ),
+        None,
     )
 }
-pub fn sub(a: &Complex, b: &Complex) -> Complex
+pub fn div(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    a - b.clone()
-}
-pub fn div(a: &Complex, b: &Complex) -> Complex
-{
-    if b.is_zero() || a.real().is_infinite()
-    {
-        if a.is_zero() || b.real().is_infinite()
+    (
         {
-            Complex::with_val(a.prec(), Nan)
-        }
-        else if a.real().is_sign_positive() == b.real().is_sign_positive()
+            let a = a.0.clone();
+            let b = b.0.clone();
+            if b.is_zero() || a.real().is_infinite()
+            {
+                if a.is_zero() || b.real().is_infinite()
+                {
+                    Complex::with_val(a.prec(), Nan)
+                }
+                else if a.real().is_sign_positive() == b.real().is_sign_positive()
+                {
+                    Complex::with_val(a.prec(), Infinity)
+                }
+                else
+                {
+                    -Complex::with_val(a.prec(), Infinity)
+                }
+            }
+            else
+            {
+                a / b.clone()
+            }
+        },
+        match (a.1, b.1)
         {
-            Complex::with_val(a.prec(), Infinity)
-        }
-        else
+            (Some(a), Some(b)) => Some(a.div(&b)),
+            (Some(a), None) | (None, Some(a)) => Some(a),
+            (None, None) => None,
+        },
+    )
+}
+pub fn root(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>))
+    -> (Complex, Option<Units>)
+{
+    (
         {
-            -Complex::with_val(a.prec(), Infinity)
-        }
-    }
-    else
-    {
-        a / b.clone()
-    }
+            let a = a.0.clone();
+            let b = b.0.clone();
+            let c: Float = b.real().clone() / 2;
+            match b.imag().is_zero()
+                && !c.fract().is_zero()
+                && b.real().clone().fract().is_zero()
+                && a.imag().is_zero()
+            {
+                true => (a.real() / a.real().clone().abs()
+                    * a.real().clone().abs().pow(b.real().clone().recip()))
+                .into(),
+                false => a.pow(b.clone().recip()),
+            }
+        },
+        match (a.1, b.1)
+        {
+            (Some(a), None) => Some(a.root(b.0.real().to_f64())),
+            _ => None,
+        },
+    )
 }
-pub fn root(a: &Complex, b: &Complex) -> Complex
+pub fn shl(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    let c: Float = b.real().clone() / 2;
-    match b.imag().is_zero()
-        && !c.fract().is_zero()
-        && b.real().clone().fract().is_zero()
-        && a.imag().is_zero()
-    {
-        true => (a.real() / a.real().clone().abs()
-            * a.real().clone().abs().pow(b.real().clone().recip()))
-        .into(),
-        false => a.pow(b.clone().recip()),
-    }
+    (
+        a.0.clone() * Complex::with_val(a.0.prec(), 2).pow(b.0.clone()),
+        None,
+    )
 }
-pub fn add(a: &Complex, b: &Complex) -> Complex
+pub fn shr(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    a + b.clone()
+    (
+        a.0.clone() * Complex::with_val(a.0.prec(), 2).pow(-b.0.clone()),
+        None,
+    )
 }
-pub fn shl(a: &Complex, b: &Complex) -> Complex
+pub fn ne(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    a * Complex::with_val(a.prec(), 2).pow(b)
-}
-pub fn shr(a: &Complex, b: &Complex) -> Complex
-{
-    a * Complex::with_val(a.prec(), 2).pow(-b.clone())
-}
-pub fn ne(a: &Complex, b: &Complex) -> Complex
-{
-    let c: Complex = a - b.clone();
+    let a = a.0.clone();
+    let b = b.0.clone();
+    let c: Complex = a.clone() - b.clone();
     let int = Integer::from(10).pow(a.prec().0 / 4);
     let re: Float = c.real().clone() * int.clone();
     let re: Float = re.round() / int.clone();
     let im: Float = c.imag().clone() * int.clone();
     let im: Float = im.round() / int;
-    Complex::with_val(
-        a.prec(),
-        (!(re.is_zero()
-            || (a.real().is_infinite()
-                && b.real().is_infinite()
-                && a.real().is_sign_positive() == b.real().is_sign_positive()))
-            || !(im.is_zero()
+    (
+        Complex::with_val(
+            a.prec(),
+            (!(re.is_zero()
+                || (a.real().is_infinite()
+                    && b.real().is_infinite()
+                    && a.real().is_sign_positive() == b.real().is_sign_positive()))
+                || !(im.is_zero()
+                    || (a.imag().is_infinite()
+                        && b.imag().is_infinite()
+                        && a.imag().is_sign_positive() == b.imag().is_sign_positive())))
+                as u8,
+        ),
+        None,
+    )
+}
+pub fn eq(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
+{
+    let a = a.0.clone();
+    let b = b.0.clone();
+    let c: Complex = a.clone() - b.clone();
+    let int = Integer::from(10).pow(a.prec().0 / 4);
+    let re: Float = c.real().clone() * int.clone();
+    let re: Float = re.round() / int.clone();
+    let im: Float = c.imag().clone() * int.clone();
+    let im: Float = im.round() / int;
+    (
+        Complex::with_val(
+            a.prec(),
+            (re.is_zero()
+                || (a.real().is_infinite()
+                    && b.real().is_infinite()
+                    && a.real().is_sign_positive() == b.real().is_sign_positive())
+                    && im.is_zero()
                 || (a.imag().is_infinite()
                     && b.imag().is_infinite()
-                    && a.imag().is_sign_positive() == b.imag().is_sign_positive()))) as u8,
+                    && a.imag().is_sign_positive() == b.imag().is_sign_positive()))
+                as u8,
+        ),
+        None,
     )
 }
-pub fn eq(a: &Complex, b: &Complex) -> Complex
+pub fn ge(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    let c: Complex = a - b.clone();
-    let int = Integer::from(10).pow(a.prec().0 / 4);
-    let re: Float = c.real().clone() * int.clone();
-    let re: Float = re.round() / int.clone();
-    let im: Float = c.imag().clone() * int.clone();
-    let im: Float = im.round() / int;
-    Complex::with_val(
-        a.prec(),
-        (re.is_zero()
-            || (a.real().is_infinite()
-                && b.real().is_infinite()
-                && a.real().is_sign_positive() == b.real().is_sign_positive())
-                && im.is_zero()
-            || (a.imag().is_infinite()
-                && b.imag().is_infinite()
-                && a.imag().is_sign_positive() == b.imag().is_sign_positive())) as u8,
+    (
+        Complex::with_val(a.0.prec(), (a.0.real() >= b.0.real()) as u8),
+        None,
     )
 }
-pub fn ge(a: &Complex, b: &Complex) -> Complex
+pub fn gt(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    Complex::with_val(a.prec(), (a.real() >= b.real()) as u8)
-}
-pub fn gt(a: &Complex, b: &Complex) -> Complex
-{
-    Complex::with_val(a.prec(), (a.real() > b.real()) as u8)
+    (
+        Complex::with_val(a.0.prec(), (a.0.real() > b.0.real()) as u8),
+        None,
+    )
 }
 pub fn between(
-    left: &Complex,
-    center: &Complex,
-    right: &Complex,
+    left: Complex,
+    center: Complex,
+    right: Complex,
     equalleft: bool,
     equalright: bool,
 ) -> Complex
@@ -503,14 +649,16 @@ pub fn between(
         }) as u8,
     )
 }
-pub fn rem(a: &Complex, b: &Complex) -> Complex
+pub fn rem(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
-    let c = a / b.clone();
+    let a = &a.0;
+    let b = &b.0;
+    let c = a.clone() / b.clone();
     let c = Complex::with_val(
         a.prec(),
         (c.real().clone().floor(), c.imag().clone().floor()),
     );
-    a - b * c
+    (a - b * c, None)
 }
 pub fn digamma(mut z: Complex, mut n: u32) -> Complex
 {
@@ -550,27 +698,36 @@ pub fn gamma(a: Complex) -> Complex
         a.real().clone().gamma().into()
     }
 }
-pub fn tetration(a: &Complex, b: &Complex) -> Complex
+pub fn tetration(
+    a: &(Complex, Option<Units>),
+    b: &(Complex, Option<Units>),
+) -> (Complex, Option<Units>)
 {
-    if b.real().clone().fract().is_zero()
-    {
-        if b.real().is_sign_positive()
+    let a = a.0.clone();
+    let b = b.0.clone();
+    (
+        if b.real().clone().fract().is_zero()
         {
-            (1..b.real().to_f64() as usize).fold(a.clone(), |tetration, _| a.pow(tetration))
-        }
-        else if *b == -1
-        {
-            Complex::with_val(a.prec(), 0)
+            if b.real().is_sign_positive()
+            {
+                (1..b.real().to_f64() as usize)
+                    .fold(a.clone(), |tetration, _| a.clone().pow(tetration))
+            }
+            else if b == -1
+            {
+                Complex::with_val(a.prec(), 0)
+            }
+            else
+            {
+                Complex::with_val(a.prec(), (Infinity, Nan))
+            }
         }
         else
         {
-            Complex::with_val(a.prec(), (Infinity, Nan))
-        }
-    }
-    else
-    {
-        tetration_recursion(a.clone(), b.clone())
-    }
+            tetration_recursion(a.clone(), b.clone())
+        },
+        None,
+    )
 }
 fn tetration_recursion(a: Complex, b: Complex) -> Complex
 {
@@ -635,11 +792,14 @@ pub fn atan(a: Complex, b: Complex) -> Complex
         -i.clone() * ((a + b * i) / abs.sqrt()).ln()
     }
 }
-pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
+pub fn to_polar(
+    mut a: Vec<(Complex, Option<Units>)>,
+    to_deg: Complex,
+) -> Vec<(Complex, Option<Units>)>
 {
     if a.len() == 1
     {
-        a.push(Complex::new(a[0].prec()));
+        a.push((Complex::new(a[0].0.prec()), None));
     }
     if a.len() != 2 && a.len() != 3
     {
@@ -647,76 +807,85 @@ pub fn to_polar(mut a: Vec<Complex>, to_deg: Complex) -> Vec<Complex>
     }
     else if a.len() == 2
     {
-        if a[1].is_zero()
+        if a[1].0.is_zero()
         {
-            if a[0].is_zero()
-            {
-                vec![Complex::new(a[0].prec()), Complex::new(a[0].prec())]
-            }
-            else
+            if a[0].0.is_zero()
             {
                 vec![
-                    a[0].clone().abs(),
-                    if a[0].real().is_sign_positive()
-                    {
-                        Complex::new(a[0].prec())
-                    }
-                    else
-                    {
-                        to_deg * Float::with_val(a[0].prec().0, Pi)
-                    },
-                ]
-            }
-        }
-        else
-        {
-            let mut n: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-            n = n.sqrt();
-            vec![n.clone(), atan(a[0].clone(), a[1].clone()) * to_deg]
-        }
-    }
-    else if a[1].is_zero()
-    {
-        if a[0].is_zero()
-        {
-            if a[2].is_zero()
-            {
-                vec![
-                    Complex::new(a[0].prec()),
-                    Complex::new(a[0].prec()),
-                    Complex::new(a[0].prec()),
+                    (Complex::new(a[0].0.prec()), None),
+                    (Complex::new(a[0].0.prec()), None),
                 ]
             }
             else
             {
                 vec![
-                    a[2].clone().abs(),
-                    Complex::new(a[0].prec()),
-                    Complex::new(a[0].prec()),
+                    (a[0].0.clone().abs(), a[0].1),
+                    (
+                        if a[0].0.real().is_sign_positive()
+                        {
+                            Complex::new(a[0].0.prec())
+                        }
+                        else
+                        {
+                            to_deg * Float::with_val(a[0].0.prec().0, Pi)
+                        },
+                        None,
+                    ),
                 ]
             }
         }
         else
         {
-            let nxy: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-            let mut n: Complex = nxy.clone() + a[2].clone().pow(2);
+            let mut n: Complex = a[0].0.clone().pow(2) + a[1].0.clone().pow(2);
             n = n.sqrt();
             vec![
-                n.clone(),
-                atan(a[2].clone(), nxy.sqrt()) * to_deg.clone(),
-                Complex::new(a[0].prec()),
+                (n.clone(), a[0].1),
+                (atan(a[0].0.clone(), a[1].0.clone()) * to_deg, None),
+            ]
+        }
+    }
+    else if a[1].0.is_zero()
+    {
+        if a[0].0.is_zero()
+        {
+            if a[2].0.is_zero()
+            {
+                vec![
+                    (Complex::new(a[0].0.prec()), None),
+                    (Complex::new(a[0].0.prec()), None),
+                    (Complex::new(a[0].0.prec()), None),
+                ]
+            }
+            else
+            {
+                vec![
+                    (a[2].0.clone().abs(), a[2].1),
+                    (Complex::new(a[0].0.prec()), None),
+                    (Complex::new(a[0].0.prec()), None),
+                ]
+            }
+        }
+        else
+        {
+            let nxy: Complex = a[0].0.clone().pow(2) + a[1].0.clone().pow(2);
+            let mut n: Complex = nxy.clone() + a[2].0.clone().pow(2);
+            n = n.sqrt();
+            vec![
+                (n.clone(), a[0].1),
+                (atan(a[2].0.clone(), nxy.sqrt()) * to_deg.clone(), None),
+                (Complex::new(a[0].0.prec()), None),
             ]
         }
     }
     else
     {
-        let nxy: Complex = a[0].clone().pow(2) + a[1].clone().pow(2);
-        let mut n: Complex = nxy.clone() + a[2].clone().pow(2);
+        let nxy: Complex = a[0].0.clone().pow(2) + a[1].0.clone().pow(2);
+        let mut n: Complex = nxy.clone() + a[2].0.clone().pow(2);
         n = n.sqrt();
         vec![
-            n.clone(),
-            atan(a[2].clone(), nxy.sqrt()) * to_deg.clone(),
-            atan(a[0].clone(), a[1].clone()) * to_deg.clone(),
+            (n.clone(), a[0].1),
+            (atan(a[2].0.clone(), nxy.sqrt()) * to_deg.clone(), None),
+            (atan(a[0].0.clone(), a[1].0.clone()) * to_deg.clone(), None),
         ]
     }
 }
@@ -726,16 +895,21 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
     {
         (Num(a), Num(b)) =>
         {
-            let prec = a.prec();
-            let a = a.real().to_f64() as isize;
-            let b = b.real().to_f64() as isize;
-            let vec: Vec<Complex> = if a < b
+            let prec = a.0.prec();
+            let a = a.0.real().to_f64() as isize;
+            let b = b.0.real().to_f64() as isize;
+            let vec: Vec<(Complex, Option<Units>)> = if a < b
             {
-                (a..=b).map(|a| Complex::with_val(prec, a)).collect()
+                (a..=b)
+                    .map(|a| (Complex::with_val(prec, a), None))
+                    .collect()
             }
             else
             {
-                (b..=a).rev().map(|a| Complex::with_val(prec, a)).collect()
+                (b..=a)
+                    .rev()
+                    .map(|a| (Complex::with_val(prec, a), None))
+                    .collect()
             };
             if vec.is_empty()
             {
@@ -745,19 +919,24 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
         }
         (Vector(a), Num(b)) =>
         {
-            let prec = b.prec();
-            let b = b.real().to_f64() as isize;
-            let mat: Vec<Vec<Complex>> = a
+            let prec = b.0.prec();
+            let b = b.0.real().to_f64() as isize;
+            let mat: Vec<Vec<(Complex, Option<Units>)>> = a
                 .iter()
                 .map(|a| {
-                    let a = a.real().to_f64() as isize;
+                    let a = a.0.real().to_f64() as isize;
                     if a < b
                     {
-                        (a..=b).map(|a| Complex::with_val(prec, a)).collect()
+                        (a..=b)
+                            .map(|a| (Complex::with_val(prec, a), None))
+                            .collect()
                     }
                     else
                     {
-                        (b..=a).rev().map(|a| Complex::with_val(prec, a)).collect()
+                        (b..=a)
+                            .rev()
+                            .map(|a| (Complex::with_val(prec, a), None))
+                            .collect()
                     }
                 })
                 .collect();
@@ -769,19 +948,24 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
         }
         (Num(a), Vector(b)) =>
         {
-            let prec = a.prec();
-            let a = a.real().to_f64() as isize;
-            let mat: Vec<Vec<Complex>> = b
+            let prec = a.0.prec();
+            let a = a.0.real().to_f64() as isize;
+            let mat: Vec<Vec<(Complex, Option<Units>)>> = b
                 .iter()
                 .map(|b| {
-                    let b = b.real().to_f64() as isize;
+                    let b = b.0.real().to_f64() as isize;
                     if a < b
                     {
-                        (a..=b).map(|a| Complex::with_val(prec, a)).collect()
+                        (a..=b)
+                            .map(|a| (Complex::with_val(prec, a), None))
+                            .collect()
                     }
                     else
                     {
-                        (b..=a).rev().map(|a| Complex::with_val(prec, a)).collect()
+                        (b..=a)
+                            .rev()
+                            .map(|a| (Complex::with_val(prec, a), None))
+                            .collect()
                     }
                 })
                 .collect();
@@ -815,7 +999,7 @@ pub fn mvec(
                 options,
                 func_vars.clone(),
                 var,
-                Num(Complex::with_val(options.prec, z)),
+                Num((Complex::with_val(options.prec, z), None)),
             )?
             {
                 Num(n) => vec.push(n),
@@ -835,7 +1019,7 @@ pub fn mvec(
                 options,
                 func_vars.clone(),
                 var,
-                Num(Complex::with_val(options.prec, z)),
+                Num((Complex::with_val(options.prec, z), None)),
             )?
             {
                 Num(n) => vec.push(n),
@@ -872,23 +1056,23 @@ pub fn sum(
     options: Options,
 ) -> Result<NumStr, &'static str>
 {
-    let mut value = Num(
-        if product
-        {
-            Complex::with_val(options.prec, 1)
-        }
-        else
-        {
-            Complex::new(options.prec)
-        },
-    );
+    let mut value = do_math_with_var(
+        function.clone(),
+        options,
+        func_vars.clone(),
+        var,
+        Num((
+            Complex::with_val(options.prec, if start < end { start } else { end }),
+            None,
+        )),
+    )?;
     for z in if start < end
     {
-        start..=end
+        start + 1..=end
     }
     else
     {
-        end..=start
+        end + 1..=start
     }
     {
         let math = do_math_with_var(
@@ -896,7 +1080,7 @@ pub fn sum(
             options,
             func_vars.clone(),
             var,
-            Num(Complex::with_val(options.prec, z)),
+            Num((Complex::with_val(options.prec, z), None)),
         )?;
         if product
         {
@@ -909,7 +1093,11 @@ pub fn sum(
     }
     Ok(value)
 }
-pub fn submatrix(a: &[Vec<Complex>], row: usize, col: usize) -> Vec<Vec<Complex>>
+pub fn submatrix(
+    a: &[Vec<(Complex, Option<Units>)>],
+    row: usize,
+    col: usize,
+) -> Vec<Vec<(Complex, Option<Units>)>>
 {
     a.iter()
         .enumerate()
@@ -919,24 +1107,24 @@ pub fn submatrix(a: &[Vec<Complex>], row: usize, col: usize) -> Vec<Vec<Complex>
                 .enumerate()
                 .filter(|&(j, _)| j != col)
                 .map(|(_, value)| value.clone())
-                .collect::<Vec<Complex>>()
+                .collect::<Vec<(Complex, Option<Units>)>>()
         })
         .collect()
 }
-pub fn trace(a: &[Vec<Complex>]) -> Complex
+pub fn trace(a: &[Vec<(Complex, Option<Units>)>]) -> Complex
 {
-    let mut n = Complex::new(a[0][0].prec());
+    let mut n = Complex::new(a[0][0].0.prec());
     for (i, j) in a.iter().enumerate()
     {
         if j.len() == i
         {
             break;
         }
-        n += j[i].clone();
+        n += j[i].0.clone();
     }
     n
 }
-pub fn identity(a: usize, prec: u32) -> Vec<Vec<Complex>>
+pub fn identity(a: usize, prec: u32) -> Vec<Vec<(Complex, Option<Units>)>>
 {
     let mut mat = Vec::with_capacity(a);
     for i in 0..a
@@ -946,60 +1134,72 @@ pub fn identity(a: usize, prec: u32) -> Vec<Vec<Complex>>
         {
             if i == j
             {
-                vec.push(Complex::with_val(prec, 1));
+                vec.push((Complex::with_val(prec, 1), None));
             }
             else
             {
-                vec.push(Complex::new(prec));
+                vec.push((Complex::new(prec), None));
             }
         }
         mat.push(vec);
     }
     mat
 }
-pub fn determinant(a: &[Vec<Complex>]) -> Result<Complex, &'static str>
+pub fn determinant(
+    a: &[Vec<(Complex, Option<Units>)>],
+) -> Result<(Complex, Option<Units>), &'static str>
 {
     if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        Ok(match a.len()
-        {
-            1 => a[0][0].clone(),
-            2 => a[0][0].clone() * a[1][1].clone() - a[1][0].clone() * a[0][1].clone(),
-            3 =>
+        Ok((
+            match a.len()
             {
-                a[0][0].clone()
-                    * (a[1][1].clone() * a[2][2].clone() - a[1][2].clone() * a[2][1].clone())
-                    + a[0][1].clone()
-                        * (a[1][2].clone() * a[2][0].clone() - a[1][0].clone() * a[2][2].clone())
-                    + a[0][2].clone()
-                        * (a[1][0].clone() * a[2][1].clone() - a[1][1].clone() * a[2][0].clone())
-            }
-            _ =>
-            {
-                let mut det = Complex::new(a[0][0].prec());
-                for (i, x) in a[0].iter().enumerate()
+                1 => a[0][0].0.clone(),
+                2 => a[0][0].0.clone() * a[1][1].0.clone() - a[1][0].0.clone() * a[0][1].0.clone(),
+                3 =>
                 {
-                    let mut sub_matrix = a[1..].to_vec();
-                    for row in &mut sub_matrix
-                    {
-                        row.remove(i);
-                    }
-                    det += x * determinant(&sub_matrix)? * if i % 2 == 0 { 1.0 } else { -1.0 };
+                    a[0][0].0.clone()
+                        * (a[1][1].0.clone() * a[2][2].0.clone()
+                            - a[1][2].0.clone() * a[2][1].0.clone())
+                        + a[0][1].0.clone()
+                            * (a[1][2].0.clone() * a[2][0].0.clone()
+                                - a[1][0].0.clone() * a[2][2].0.clone())
+                        + a[0][2].0.clone()
+                            * (a[1][0].0.clone() * a[2][1].0.clone()
+                                - a[1][1].0.clone() * a[2][0].0.clone())
                 }
-                det
-            }
-        })
+                _ =>
+                {
+                    let mut det = Complex::new(a[0][0].0.prec());
+                    for (i, x) in a[0].iter().enumerate()
+                    {
+                        let mut sub_matrix = a[1..].to_vec();
+                        for row in &mut sub_matrix
+                        {
+                            row.remove(i);
+                        }
+                        det += x.0.clone()
+                            * determinant(&sub_matrix)?.0
+                            * if i % 2 == 0 { 1.0 } else { -1.0 };
+                    }
+                    det
+                }
+            },
+            None,
+        ))
     }
     else
     {
         Err("not square")
     }
 }
-pub fn transpose(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+pub fn transpose(
+    a: &[Vec<(Complex, Option<Units>)>],
+) -> Result<Vec<Vec<(Complex, Option<Units>)>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        let mut b = vec![vec![Complex::new(1); a.len()]; a[0].len()];
+        let mut b = vec![vec![(Complex::new(1), None); a.len()]; a[0].len()];
         for (i, l) in a.iter().enumerate()
         {
             for (j, n) in l.iter().enumerate()
@@ -1014,11 +1214,13 @@ pub fn transpose(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
         Err("not square")
     }
 }
-pub fn minors(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+pub fn minors(
+    a: &[Vec<(Complex, Option<Units>)>],
+) -> Result<Vec<Vec<(Complex, Option<Units>)>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        let mut result = vec![vec![Complex::new(1); a[0].len()]; a.len()];
+        let mut result = vec![vec![(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()
         {
             for (j, l) in k.iter_mut().enumerate()
@@ -1033,23 +1235,28 @@ pub fn minors(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
         Err("not square")
     }
 }
-pub fn cofactor(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+pub fn cofactor(
+    a: &[Vec<(Complex, Option<Units>)>],
+) -> Result<Vec<Vec<(Complex, Option<Units>)>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        let mut result = vec![vec![Complex::new(1); a[0].len()]; a.len()];
+        let mut result = vec![vec![(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()
         {
             for (j, l) in k.iter_mut().enumerate()
             {
-                *l = if (i + j) % 2 == 1
-                {
-                    -determinant(&submatrix(a, i, j))?
-                }
-                else
-                {
-                    determinant(&submatrix(a, i, j))?
-                };
+                *l = (
+                    if (i + j) % 2 == 1
+                    {
+                        -determinant(&submatrix(a, i, j))?.0
+                    }
+                    else
+                    {
+                        determinant(&submatrix(a, i, j))?.0
+                    },
+                    None,
+                );
             }
         }
         Ok(result)
@@ -1059,7 +1266,9 @@ pub fn cofactor(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
         Err("not square")
     }
 }
-pub fn inverse(a: &[Vec<Complex>]) -> Result<Vec<Vec<Complex>>, &'static str>
+pub fn inverse(
+    a: &[Vec<(Complex, Option<Units>)>],
+) -> Result<Vec<Vec<(Complex, Option<Units>)>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
@@ -1118,12 +1327,18 @@ pub fn is_prime(num: usize) -> bool
     }
     true
 }
-pub fn sort(mut a: Vec<Complex>) -> Vec<Complex>
+pub fn sort(mut a: Vec<(Complex, Option<Units>)>) -> Vec<(Complex, Option<Units>)>
 {
-    a.sort_by(|x, y| x.real().partial_cmp(y.real()).unwrap_or(Ordering::Equal));
+    a.sort_by(|x, y| {
+        x.0.real()
+            .partial_cmp(y.0.real())
+            .unwrap_or(Ordering::Equal)
+    });
     a
 }
-pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
+pub fn eigenvalues(
+    a: &[Vec<(Complex, Option<Units>)>],
+) -> Result<Vec<(Complex, Option<Units>)>, &'static str>
 {
     if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
     {
@@ -1131,25 +1346,25 @@ pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
         {
             1 => Ok(a[0].clone()),
             2 => Ok(quadratic(
-                Complex::with_val(a[0][0].prec(), 1),
-                -a[0][0].clone() - a[1][1].clone(),
-                a[0][0].clone() * a[1][1].clone() - a[0][1].clone() * a[1][0].clone(),
+                Complex::with_val(a[0][0].0.prec(), 1),
+                -a[0][0].0.clone() - a[1][1].0.clone(),
+                a[0][0].0.clone() * a[1][1].0.clone() - a[0][1].0.clone() * a[1][0].0.clone(),
                 false,
             )),
             3 => Ok(cubic(
-                Complex::with_val(a[0][0].prec(), -1),
-                a[2][2].clone() + a[1][1].clone() + a[0][0].clone(),
-                -a[0][0].clone() * a[1][1].clone() - a[0][0].clone() * a[2][2].clone()
-                    + a[0][1].clone() * a[1][0].clone()
-                    + a[0][2].clone() * a[2][0].clone()
-                    - a[1][1].clone() * a[2][2].clone()
-                    + a[1][2].clone() * a[2][1].clone(),
-                a[0][0].clone() * a[1][1].clone() * a[2][2].clone()
-                    - a[0][0].clone() * a[1][2].clone() * a[2][1].clone()
-                    - a[0][1].clone() * a[1][0].clone() * a[2][2].clone()
-                    + a[0][1].clone() * a[1][2].clone() * a[2][0].clone()
-                    + a[0][2].clone() * a[1][0].clone() * a[2][1].clone()
-                    - a[0][2].clone() * a[1][1].clone() * a[2][0].clone(),
+                Complex::with_val(a[0][0].0.prec(), -1),
+                a[2][2].0.clone() + a[1][1].0.clone() + a[0][0].0.clone(),
+                -a[0][0].0.clone() * a[1][1].0.clone() - a[0][0].0.clone() * a[2][2].0.clone()
+                    + a[0][1].0.clone() * a[1][0].0.clone()
+                    + a[0][2].0.clone() * a[2][0].0.clone()
+                    - a[1][1].0.clone() * a[2][2].0.clone()
+                    + a[1][2].0.clone() * a[2][1].0.clone(),
+                a[0][0].0.clone() * a[1][1].0.clone() * a[2][2].0.clone()
+                    - a[0][0].0.clone() * a[1][2].0.clone() * a[2][1].0.clone()
+                    - a[0][1].0.clone() * a[1][0].0.clone() * a[2][2].0.clone()
+                    + a[0][1].0.clone() * a[1][2].0.clone() * a[2][0].0.clone()
+                    + a[0][2].0.clone() * a[1][0].0.clone() * a[2][1].0.clone()
+                    - a[0][2].0.clone() * a[1][1].0.clone() * a[2][0].0.clone(),
                 false,
             )),
             _ => Err("unsupported"),
@@ -1160,11 +1375,11 @@ pub fn eigenvalues(a: &[Vec<Complex>]) -> Result<Vec<Complex>, &'static str>
         Err("not square")
     }
 }
-pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Complex>
+pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<(Complex, Option<Units>)>
 {
     if a.is_zero()
     {
-        return vec![-c / b];
+        return vec![(-c / b, None)];
     }
     let p: Complex = b.clone().pow(2);
     let p: Complex = p - (4 * c * a.clone());
@@ -1173,24 +1388,33 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Complex>
     if real
     {
         let z1 = (p.clone() - b.clone()) / a.clone();
-        let z2 = (-p - b) / a;
+        let z2 = (-p - b) / a.clone();
         let mut vec = Vec::new();
-        if z1.imag().to_f64().abs() < 0.0000000000000001
+        if -z1.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(z1)
+            vec.push((z1, None))
         }
-        if z2.imag().to_f64().abs() < 0.0000000000000001
+        if -z2.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(z2)
+            vec.push((z2, None))
         }
         vec
     }
     else
     {
-        vec![(p.clone() - b.clone()) / a.clone(), (-p - b) / a]
+        vec![
+            ((p.clone() - b.clone()) / a.clone(), None),
+            ((-p - b) / a, None),
+        ]
     }
 }
-pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<Complex>
+pub fn cubic(
+    a: Complex,
+    b: Complex,
+    c: Complex,
+    d: Complex,
+    real: bool,
+) -> Vec<(Complex, Option<Units>)>
 {
     if a.is_zero()
     {
@@ -1202,15 +1426,25 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
     {
         return if d.is_zero()
         {
-            vec![Complex::new(prec), Complex::new(prec), Complex::new(prec)]
+            vec![
+                (Complex::new(prec), None),
+                (Complex::new(prec), None),
+                (Complex::new(prec), None),
+            ]
         }
         else
         {
             let reuse = (d / a).pow(threerecip.clone());
             vec![
-                -reuse.clone(),
-                reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone()),
-                -reuse * Complex::with_val(prec, -1).pow(2 * threerecip),
+                (-reuse.clone(), None),
+                (
+                    reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone()),
+                    None,
+                ),
+                (
+                    -reuse * Complex::with_val(prec, -1).pow(2 * threerecip),
+                    None,
+                ),
             ]
         };
     }
@@ -1243,39 +1477,49 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
                 / 3;
         let z3: Complex = ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3;
         let mut vec = Vec::new();
-        if z1.imag().to_f64().abs() < 0.0000000000000001
+        if -z1.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(z1)
+            vec.push((z1, None))
         }
-        if z2.imag().to_f64().abs() < 0.0000000000000001
+        if -z2.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(z2)
+            vec.push((z2, None))
         }
-        if z3.imag().to_f64().abs() < 0.0000000000000001
+        if -z3.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(z3)
+            vec.push((z3, None))
         }
         vec
     }
     else
     {
         vec![
-            (left.clone() - right.clone() - b.clone()) / 3,
-            ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone())
-                / 3,
-            ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
+            ((left.clone() - right.clone() - b.clone()) / 3, None),
+            (
+                ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone())
+                    - b.clone())
+                    / 3,
+                None,
+            ),
+            (
+                ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
+                None,
+            ),
         ]
     }
 }
-pub fn variance(a: &[Complex], prec: u32) -> Complex
+pub fn variance(a: &[(Complex, Option<Units>)], prec: u32) -> (Complex, Option<Units>)
 {
-    let mean = a.iter().fold(Complex::new(prec), |sum, val| sum + val) / a.len();
+    let mean = a
+        .iter()
+        .fold(Complex::new(prec), |sum, val| sum + val.0.clone())
+        / a.len();
     let mut variance = Complex::new(prec);
     for a in a
     {
-        variance += (a - mean.clone()).pow(2)
+        variance += (a.0.clone() - mean.clone()).pow(2)
     }
-    variance / (a.len() - 1)
+    (variance / (a.len() - 1), None)
 }
 pub fn recursion(
     mut func_vars: Vec<(String, Vec<NumStr>)>,
@@ -1665,7 +1909,7 @@ pub fn length(
         options,
         func_vars.clone(),
         &var.clone(),
-        Num(start.clone()),
+        Num((start.clone(), None)),
     )?;
     let mut length = Complex::new(options.prec);
     for i in 0..points
@@ -1683,19 +1927,19 @@ pub fn length(
             options,
             func_vars.clone(),
             &var.clone(),
-            Num(start.clone()),
+            Num((start.clone(), None)),
         )?;
         match (x0, x1)
         {
             (Num(xi), Num(xf)) =>
             {
-                let nl: Complex = (xf.clone() - xi).pow(2) + delta.clone().pow(2);
+                let nl: Complex = (xf.0.clone() - xi.0).pow(2) + delta.clone().pow(2);
                 length += nl.sqrt();
                 x0 = Num(xf);
             }
             (Vector(xi), Vector(xf)) if xf.len() == 1 =>
             {
-                let nl: Complex = (xf[0].clone() - xi[0].clone()).pow(2) + delta.clone().pow(2);
+                let nl: Complex = (xf[0].0.clone() - xi[0].0.clone()).pow(2) + delta.clone().pow(2);
                 length += nl.sqrt();
                 x0 = Vector(xf);
             }
@@ -1705,7 +1949,7 @@ pub fn length(
                     .iter()
                     .zip(xf.clone())
                     .fold(Complex::new(options.prec), |sum, x| {
-                        sum + (x.1 - x.0).pow(2)
+                        sum + (x.1 .0 - x.0 .0.clone()).pow(2)
                     });
                 length += nl.sqrt();
                 x0 = Vector(xf);
@@ -1755,7 +1999,7 @@ pub fn area(
             func = func[last..func.len() - 1].to_vec();
         }
     }
-    let mut areavec: Vec<Complex> = Vec::new();
+    let mut areavec: Vec<(Complex, Option<Units>)> = Vec::new();
     let div = Complex::with_val(options.prec, 0.5).pow(options.prec / 2);
     let delta: Complex = (end.clone() - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
@@ -1764,7 +2008,7 @@ pub fn area(
         options,
         func_vars.clone(),
         &var,
-        Num(start.clone()),
+        Num((start.clone(), None)),
     )?;
     if !funcs.is_empty()
     {
@@ -1776,21 +2020,21 @@ pub fn area(
                 options,
                 func_vars.clone(),
                 &var,
-                Num(start.clone() + div.clone()),
+                Num((start.clone() + div.clone(), None)),
             )?
             .num()?
-                - do_math_with_var(
-                    i.clone(),
-                    options,
-                    func_vars.clone(),
-                    &var,
-                    Num(start.clone()),
-                )?
-                .num()?)
-                / div.clone())
+            .0 - do_math_with_var(
+                i.clone(),
+                options,
+                func_vars.clone(),
+                &var,
+                Num((start.clone(), None)),
+            )?
+            .num()?
+            .0) / div.clone())
             .pow(2);
         }
-        x0 = Num(x0.num()? * nx0t.sqrt());
+        x0 = Num((x0.num()?.0 * nx0t.sqrt(), None));
     }
     let h: Complex = delta.clone() / 4;
     for i in 0..points
@@ -1808,34 +2052,34 @@ pub fn area(
             options,
             func_vars.clone(),
             &var,
-            Num(start.clone() - 3 * h.clone()),
+            Num((start.clone() - 3 * h.clone(), None)),
         )?;
         let x2 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(start.clone() - 2 * h.clone()),
+            Num((start.clone() - 2 * h.clone(), None)),
         )?;
         let x3 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(start.clone() - h.clone()),
+            Num((start.clone() - h.clone(), None)),
         )?;
         let x4 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(start.clone()),
+            Num((start.clone(), None)),
         )?;
         match (x0, x1, x2, x3, x4.clone())
         {
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
                 {
-                    area += 2 * h.clone() * (7 * (nx0 + nx4) + 12 * nx2 + 32 * (nx1 + nx3)) / 45;
+                    area += 2 * h.clone() * (7 * (nx0.0 + nx4.0) + 12 * nx2.0 + 32 * (nx1.0 + nx3.0)) / 45;
                     x0 = x4;
                 }
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
@@ -1850,14 +2094,14 @@ pub fn area(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(start.clone() - 3 * h.clone() + div.clone()))?
-                            .num()?
+                            &var, Num((start.clone() - 3 * h.clone() + div.clone(),None)))?
+                            .num()?.0
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(start.clone() - 3 * h.clone()))?
-                            .num()?)
+                            &var, Num((start.clone() - 3 * h.clone(),None)))?
+                            .num()?.0)
                             / div.clone())
                             .pow(2);
                         nx2t += ((do_math_with_var(
@@ -1865,15 +2109,15 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(start.clone() - 2 * h.clone() + div.clone()),
+                            Num((start.clone() - 2 * h.clone() + div.clone(),None)),
                         )?
-                            .num()?
+                            .num()?.0
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(start.clone() - 2 * h.clone()))?
-                            .num()?)
+                            &var, Num((start.clone() - 2 * h.clone(),None)))?
+                            .num()?.0)
                             / div.clone())
                             .pow(2);
                         nx3t += ((do_math_with_var(
@@ -1881,15 +2125,15 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(start.clone() - h.clone() + div.clone()),
+                            Num((start.clone() - h.clone() + div.clone(),None)),
                         )?
-                            .num()?
+                            .num()?.0
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(start.clone() - h.clone()))?
-                            .num()?)
+                            &var, Num((start.clone() - h.clone(),None)))?
+                            .num()?.0)
                             / div.clone())
                             .pow(2);
                         nx4t += ((do_math_with_var(
@@ -1897,26 +2141,26 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(start.clone() + div.clone()),
+                            Num((start.clone() + div.clone(),None)),
                         )?
-                            .num()?
+                            .num()?.0
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(start.clone()))?
-                            .num()?)
+                            &var, Num((start.clone(),None)))?
+                            .num()?.0)
                             / div.clone())
                             .pow(2);
                     }
-                    let x4 = nx4 * nx4t.sqrt();
+                    let x4 = nx4.0 * nx4t.sqrt();
                     area += 2
                         * h.clone()
-                        * (7 * (nx0 + x4.clone())
-                        + 12 * (nx2 * nx2t.sqrt())
-                        + 32 * ((nx1 * nx1t.sqrt()) + (nx3 * nx3t.sqrt())))
+                        * (7 * (nx0.0 + x4.clone())
+                        + 12 * (nx2.0 * nx2t.sqrt())
+                        + 32 * ((nx1.0 * nx1t.sqrt()) + (nx3.0 * nx3t.sqrt())))
                         / 45;
-                    x0 = Num(x4);
+                    x0 = Num((x4,None));
                 }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
             if areavec.is_empty() && !combine =>
@@ -1924,11 +2168,11 @@ pub fn area(
                     for i in 0..nx0.len()
                     {
                         areavec.push(
-                            2 * h.clone()
-                                * (7 * (nx0[i].clone() + nx4[i].clone())
-                                + 12 * nx2[i].clone()
-                                + 32 * (nx1[i].clone() + nx3[i].clone()))
-                                / 45,
+                            (      2 * h.clone()
+                                * (7 * (nx0[i].0.clone() + nx4[i].0.clone())
+                                + 12 * nx2[i].0.clone()
+                                + 32 * (nx1[i].0.clone() + nx3[i].0.clone()))
+                                / 45,None)
                         )
                     }
                     x0 = x4;
@@ -1937,11 +2181,11 @@ pub fn area(
                 {
                     for (i, v) in areavec.iter_mut().enumerate()
                     {
-                        *v += 2
+                        v.0 += 2
                             * h.clone()
-                            * (7 * (nx0[i].clone() + nx4[i].clone())
-                            + 12 * nx2[i].clone()
-                            + 32 * (nx1[i].clone() + nx3[i].clone()))
+                            * (7 * (nx0[i].0.clone() + nx4[i].0.clone())
+                            + 12 * nx2[i].0.clone()
+                            + 32 * (nx1[i].0.clone() + nx3[i].0.clone()))
                             / 45
                     }
                     x0 = x4;
@@ -1951,7 +2195,7 @@ pub fn area(
     }
     if areavec.is_empty()
     {
-        Ok(Num(area))
+        Ok(Num((area, None)))
     }
     else
     {
@@ -1999,6 +2243,8 @@ pub fn slope(
             {
                 (Num(left), Num(right)) =>
                 {
+                    let left = left.0;
+                    let right = right.0;
                     if (((left.real().is_infinite()
                         && right.real().is_infinite()
                         && (left.imag().clone() - right.imag().clone())
@@ -2018,11 +2264,11 @@ pub fn slope(
                         || (left.clone() - right.clone()).abs().real().clone().log2()
                             < options.prec as i32 / -16
                     {
-                        Ok(Num((left + right) / 2))
+                        Ok(Num(((left + right) / 2, None)))
                     }
                     else
                     {
-                        Ok(Num(Complex::with_val(options.prec, Nan)))
+                        Ok(Num((Complex::with_val(options.prec, Nan), None)))
                     }
                 }
                 (Vector(left), Vector(right)) =>
@@ -2030,35 +2276,40 @@ pub fn slope(
                     let mut vec = Vec::with_capacity(left.len());
                     for (left, right) in left.iter().zip(right)
                     {
-                        vec.push(
-                            if (((left.real().is_infinite()
-                                && right.real().is_infinite()
-                                && (left.imag().clone() - right.imag().clone())
-                                    .abs()
-                                    .clone()
-                                    .log2()
-                                    < options.prec as i32 / -16)
-                                || (left.imag().is_infinite()
-                                    && right.imag().is_infinite()
-                                    && (left.real().clone() - right.real().clone())
+                        vec.push((
+                            {
+                                let left = left.0.clone();
+                                let right = right.0.clone();
+                                if (((left.real().is_infinite()
+                                    && right.real().is_infinite()
+                                    && (left.imag().clone() - right.imag().clone())
                                         .abs()
                                         .clone()
                                         .log2()
-                                        < options.prec as i32 / -16))
-                                && left.real().is_sign_positive()
-                                    == right.real().is_sign_positive()
-                                && left.imag().is_sign_positive()
-                                    == right.imag().is_sign_positive())
-                                || (left.clone() - right.clone()).abs().real().clone().log2()
-                                    < options.prec as i32 / -16
-                            {
-                                (left + right) / 2
-                            }
-                            else
-                            {
-                                Complex::with_val(options.prec, Nan)
+                                        < options.prec as i32 / -16)
+                                    || (left.imag().is_infinite()
+                                        && right.imag().is_infinite()
+                                        && (left.real().clone() - right.real().clone())
+                                            .abs()
+                                            .clone()
+                                            .log2()
+                                            < options.prec as i32 / -16))
+                                    && left.real().is_sign_positive()
+                                        == right.real().is_sign_positive()
+                                    && left.imag().is_sign_positive()
+                                        == right.imag().is_sign_positive())
+                                    || (left.clone() - right.clone()).abs().real().clone().log2()
+                                        < options.prec as i32 / -16
+                                {
+                                    (left + right) / 2
+                                }
+                                else
+                                {
+                                    Complex::with_val(options.prec, Nan)
+                                }
                             },
-                        )
+                            None,
+                        ))
                     }
                     Ok(Vector(vec))
                 }
@@ -2103,13 +2354,14 @@ pub fn slopesided(
         options,
         func_vars.clone(),
         &var,
-        Num(point.clone()),
+        Num((point.clone(), None)),
     )?;
     let num = Integer::from(nth);
     match n
     {
-        Num(mut sum) =>
+        Num(sum) =>
         {
+            let mut sum = sum.0;
             if nth % 2 == 1
             {
                 sum *= -1;
@@ -2124,9 +2376,10 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(point.clone() + h.clone() * (nth - k)),
+                            Num((point.clone() + h.clone() * (nth - k), None)),
                         )?
-                        .num()?;
+                        .num()?
+                        .0;
                 }
                 else
                 {
@@ -2136,25 +2389,32 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(point.clone() + h.clone() * (nth - k)),
+                            Num((point.clone() + h.clone() * (nth - k), None)),
                         )?
-                        .num()?;
+                        .num()?
+                        .0;
                 }
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(get_infinities(
-                    sum * Float::with_val(options.prec, 2).pow(nth * prec),
-                    prec,
-                    options.prec,
+                Ok(Num((
+                    get_infinities(
+                        sum * Float::with_val(options.prec, 2).pow(nth * prec),
+                        prec,
+                        options.prec,
+                    ),
+                    None,
                 )))
             }
             else
             {
-                Ok(Num(-get_infinities(
-                    sum * Float::with_val(options.prec, 2).pow(nth * prec),
-                    prec,
-                    options.prec,
+                Ok(Num((
+                    -get_infinities(
+                        sum * Float::with_val(options.prec, 2).pow(nth * prec),
+                        prec,
+                        options.prec,
+                    ),
+                    None,
                 )))
             }
         }
@@ -2164,7 +2424,7 @@ pub fn slopesided(
             {
                 for n in sum.iter_mut()
                 {
-                    *n *= -1;
+                    n.0 *= -1;
                 }
             }
             for k in 0..nth
@@ -2175,94 +2435,105 @@ pub fn slopesided(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(point.clone() + h.clone() * (nth - k)),
+                    Num((point.clone() + h.clone() * (nth - k), None)),
                 )?
                 .vec()?;
                 if k % 2 == 0
                 {
                     for (n, a) in sum.iter_mut().zip(vec)
                     {
-                        *n += a * b.clone()
+                        n.0 += a.0 * b.clone()
                     }
                 }
                 else
                 {
                     for (n, a) in sum.iter_mut().zip(vec)
                     {
-                        *n -= a * b.clone()
+                        n.0 -= a.0 * b.clone()
                     }
                 }
             }
             Ok(Vector(
                 sum.iter()
                     .map(|n| {
-                        if right || nth % 2 == 0
-                        {
-                            get_infinities(
-                                n.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
-                                prec,
-                                options.prec,
-                            )
-                        }
-                        else
-                        {
-                            -get_infinities(
-                                n.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
-                                prec,
-                                options.prec,
-                            )
-                        }
+                        (
+                            if right || nth % 2 == 0
+                            {
+                                get_infinities(
+                                    n.0.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
+                                    prec,
+                                    options.prec,
+                                )
+                            }
+                            else
+                            {
+                                -get_infinities(
+                                    n.0.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
+                                    prec,
+                                    options.prec,
+                                )
+                            },
+                            None,
+                        )
                     })
-                    .collect::<Vec<Complex>>(),
+                    .collect::<Vec<(Complex, Option<Units>)>>(),
             ))
         }
         Vector(mut sum) if sum.len() == 1 =>
         {
             if nth % 2 == 1
             {
-                sum[0] *= -1;
+                sum[0].0 *= -1;
             }
             for k in 0..nth
             {
                 if k % 2 == 0
                 {
-                    sum[0] += num.clone().binomial(k)
+                    sum[0].0 += num.clone().binomial(k)
                         * do_math_with_var(
                             func.clone(),
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(point.clone() + h.clone() * (nth - k)),
+                            Num((point.clone() + h.clone() * (nth - k), None)),
                         )?
-                        .num()?;
+                        .num()?
+                        .0;
                 }
                 else
                 {
-                    sum[0] -= num.clone().binomial(k)
+                    sum[0].0 -= num.clone().binomial(k)
                         * do_math_with_var(
                             func.clone(),
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(point.clone() + h.clone() * (nth - k)),
+                            Num((point.clone() + h.clone() * (nth - k), None)),
                         )?
-                        .num()?;
+                        .num()?
+                        .0;
                 }
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(get_infinities(
-                    sum[0].clone() * Float::with_val(options.prec, 2).pow(nth * prec),
-                    prec,
-                    options.prec,
+                Ok(Num((
+                    get_infinities(
+                        sum[0].0.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
+                        prec,
+                        options.prec,
+                    ),
+                    None,
                 )))
             }
             else
             {
-                Ok(Num(-get_infinities(
-                    sum[0].clone() * Float::with_val(options.prec, 2).pow(nth * prec),
-                    prec,
-                    options.prec,
+                Ok(Num((
+                    -get_infinities(
+                        sum[0].0.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
+                        prec,
+                        options.prec,
+                    ),
+                    None,
                 )))
             }
         }
@@ -2272,7 +2543,7 @@ pub fn slopesided(
             {
                 for n in sum.iter_mut()
                 {
-                    *n *= -1;
+                    n.0 *= -1;
                 }
             }
             for k in 0..nth
@@ -2283,40 +2554,44 @@ pub fn slopesided(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(point.clone() + h.clone() * (nth - k)),
+                    Num((point.clone() + h.clone() * (nth - k), None)),
                 )?
                 .vec()?;
                 if k % 2 == 0
                 {
                     for (n, a) in sum.iter_mut().zip(vec)
                     {
-                        *n += a * b.clone()
+                        n.0 += a.0 * b.clone()
                     }
                 }
                 else
                 {
                     for (n, a) in sum.iter_mut().zip(vec)
                     {
-                        *n -= a * b.clone()
+                        n.0 -= a.0 * b.clone()
                     }
                 }
             }
             if sum.len() == 2
             {
-                Ok(Num(get_infinities(
-                    sum[1].clone() / sum[0].clone(),
-                    prec,
-                    options.prec,
+                Ok(Num((
+                    get_infinities(sum[1].0.clone() / sum[0].0.clone(), prec, options.prec),
+                    None,
                 )))
             }
             else
             {
-                let nf = sum.last().unwrap();
+                let nf = &sum.last().unwrap().0;
                 Ok(Vector(
                     sum[0..sum.len() - 1]
                         .iter()
-                        .map(|n| get_infinities(nf.clone() / n, prec, options.prec))
-                        .collect::<Vec<Complex>>(),
+                        .map(|n| {
+                            (
+                                get_infinities(nf.clone() / n.0.clone(), prec, options.prec),
+                                None,
+                            )
+                        })
+                        .collect::<Vec<(Complex, Option<Units>)>>(),
                 ))
             }
         }
@@ -2408,24 +2683,38 @@ pub fn limit(
             h1 = -Complex::with_val(options.prec, 2).pow(options.prec / 4);
             h2 = 3 - Complex::with_val(options.prec, 2).pow((options.prec / 3) as f64 + 7.0 / 0.94);
         }
-        let n1 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h1))?;
-        let n2 = do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(h2))?;
+        let n1 = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var,
+            Num((h1, None)),
+        )?;
+        let n2 = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var,
+            Num((h2, None)),
+        )?;
         match (n1, n2)
         {
             (Num(n1), Num(n2)) =>
             {
+                let n1 = n1.0;
+                let n2 = n2.0;
                 if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
-                    Ok(Num(n2))
+                    Ok(Num((n2, None)))
                 }
                 else if n1.real().is_sign_positive() != n2.real().is_sign_positive()
                     || n1.imag().is_sign_positive() != n2.imag().is_sign_positive()
                 {
-                    Ok(Num(Complex::with_val(options.prec, Nan)))
+                    Ok(Num((Complex::with_val(options.prec, Nan), None)))
                 }
                 else if n2.real().is_infinite() || n2.imag().is_infinite()
                 {
-                    Ok(Num(
+                    Ok(Num((
                         match (n2.real().is_infinite(), n2.imag().is_infinite())
                         {
                             (true, true) =>
@@ -2530,7 +2819,8 @@ pub fn limit(
                             }
                             (false, false) => Complex::with_val(options.prec, Nan),
                         },
-                    ))
+                        None,
+                    )))
                 }
                 else
                 {
@@ -2539,7 +2829,7 @@ pub fn limit(
                         options,
                         func_vars.clone(),
                         &var,
-                        Num(
+                        Num((
                             if positive
                             {
                                 Complex::with_val(options.prec, 2)
@@ -2551,9 +2841,11 @@ pub fn limit(
                                 7 - Complex::with_val(options.prec, 2)
                                     .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                             },
-                        ),
+                            None,
+                        )),
                     )?
-                    .num()?;
+                    .num()?
+                    .0;
                     let sign = n2.real().is_sign_positive() == n3.real().is_sign_positive()
                         && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
                     let n1r = n1.real().clone().abs();
@@ -2562,7 +2854,7 @@ pub fn limit(
                     let n1i = n1.imag().clone().abs();
                     let n2i = n2.imag().clone().abs();
                     let n3i = n3.imag().clone().abs();
-                    Ok(Num(
+                    Ok(Num((
                         if !sign
                         {
                             Complex::with_val(options.prec, Nan)
@@ -2677,16 +2969,19 @@ pub fn limit(
                                 (false, false) => Complex::with_val(options.prec, Nan),
                             }
                         },
-                    ))
+                        None,
+                    )))
                 }
             }
             (Vector(v1), Vector(v2)) =>
             {
-                let mut v3: Vec<Complex> = Vec::new();
+                let mut v3: Vec<(Complex, Option<Units>)> = Vec::new();
                 let mut vec = Vec::with_capacity(v1.len());
                 for (i, (n1, n2)) in v1.iter().zip(v2).enumerate()
                 {
-                    vec.push(
+                    let n1 = n1.0.clone();
+                    let n2 = n2.0.clone();
+                    vec.push((
                         if (n1.clone() - n2.clone()).abs().real().clone().log2()
                             < options.prec as i32 / -16
                         {
@@ -2816,7 +3111,7 @@ pub fn limit(
                                     options,
                                     func_vars.clone(),
                                     &var,
-                                    Num(
+                                    Num((
                                         if positive
                                         {
                                             Complex::with_val(options.prec, 2)
@@ -2828,19 +3123,20 @@ pub fn limit(
                                             7 - Complex::with_val(options.prec, 2)
                                                 .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                                         },
-                                    ),
+                                        None,
+                                    )),
                                 )?
                                 .vec()?;
                             }
-                            let sign = n2.real().is_sign_positive()
-                                == v3[i].real().is_sign_positive()
-                                && n2.imag().is_sign_positive() == v3[i].imag().is_sign_positive();
+                            let v3 = &v3[i].0;
+                            let sign = n2.real().is_sign_positive() == v3.real().is_sign_positive()
+                                && n2.imag().is_sign_positive() == v3.imag().is_sign_positive();
                             let n1r = n1.real().clone().abs();
                             let n2r = n2.real().clone().abs();
-                            let n3r = v3[i].real().clone().abs();
+                            let n3r = v3.real().clone().abs();
                             let n1i = n1.imag().clone().abs();
                             let n2i = n2.imag().clone().abs();
-                            let n3i = v3[i].imag().clone().abs();
+                            let n3i = v3.imag().clone().abs();
                             if !sign
                             {
                                 Complex::with_val(options.prec, Nan)
@@ -2962,7 +3258,8 @@ pub fn limit(
                                 }
                             }
                         },
-                    )
+                        None,
+                    ))
                 }
                 Ok(Vector(vec))
             }
@@ -2990,6 +3287,8 @@ pub fn limit(
                 {
                     (Num(left), Num(right)) =>
                     {
+                        let left = left.0;
+                        let right = right.0;
                         if (((left.real().is_infinite()
                             && right.real().is_infinite()
                             && (left.imag().clone() - right.imag().clone())
@@ -3009,11 +3308,11 @@ pub fn limit(
                             || (left.clone() - right.clone()).abs().real().clone().log2()
                                 < options.prec as i32 / -16
                         {
-                            Ok(Num((left + right) / 2))
+                            Ok(Num(((left + right) / 2, None)))
                         }
                         else
                         {
-                            Ok(Num(Complex::with_val(options.prec, Nan)))
+                            Ok(Num((Complex::with_val(options.prec, Nan), None)))
                         }
                     }
                     (Vector(left), Vector(right)) =>
@@ -3021,7 +3320,9 @@ pub fn limit(
                         let mut vec = Vec::with_capacity(left.len());
                         for (left, right) in left.iter().zip(right)
                         {
-                            vec.push(
+                            let left = &left.0;
+                            let right = &right.0;
+                            vec.push((
                                 if (((left.real().is_infinite()
                                     && right.real().is_infinite()
                                     && (left.imag().clone() - right.imag().clone())
@@ -3043,13 +3344,14 @@ pub fn limit(
                                     || (left.clone() - right.clone()).abs().real().clone().log2()
                                         < options.prec as i32 / -16
                                 {
-                                    (left + right) / 2
+                                    (left + right.clone()) / 2
                                 }
                                 else
                                 {
                                     Complex::with_val(options.prec, Nan)
                                 },
-                            )
+                                None,
+                            ))
                         }
                         Ok(Vector(vec))
                     }
@@ -3075,164 +3377,173 @@ fn limsided(
         options,
         func_vars.clone(),
         &var,
-        Num(point.clone() + if right { h1 } else { -h1 }),
+        Num((point.clone() + if right { h1 } else { -h1 }, None)),
     )?;
     let n2 = do_math_with_var(
         func.clone(),
         options,
         func_vars.clone(),
         &var,
-        Num(point.clone() + if right { h2 } else { -h2 }),
+        Num((point.clone() + if right { h2 } else { -h2 }, None)),
     )?;
     match (n1, n2)
     {
-        (Num(n1), Num(n2)) => Ok(Num(
-            if (n2.clone() - n1.clone()).abs().real().clone().log2() < options.prec as i32 / -16
-            {
-                n1
-            }
-            else
-            {
-                let h3 = Complex::with_val(options.prec, 0.5)
-                    .pow((options.prec / 2) as f64 + 13.0 / 0.7);
-                let n3 = do_math_with_var(
-                    func.clone(),
-                    options,
-                    func_vars.clone(),
-                    &var,
-                    Num(point.clone() + if right { h3 } else { -h3 }),
-                )?
-                .num()?;
-                let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
-                    && n2.real().is_sign_positive() == n3.real().is_sign_positive()
-                    && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
-                    && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
-                let n1r = n1.real().clone().abs();
-                let n2r = n2.real().clone().abs();
-                let n3r = n3.real().clone().abs();
-                let n1i = n1.imag().clone().abs();
-                let n2i = n2.imag().clone().abs();
-                let n3i = n3.imag().clone().abs();
-                if !sign
+        (Num(n1), Num(n2)) =>
+        {
+            let n1 = n1.0;
+            let n2 = n2.0;
+            Ok(Num((
+                if (n2.clone() - n1.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
-                    Complex::with_val(options.prec, Nan)
+                    n1
                 }
                 else
                 {
-                    match (n3r > n2r && n2r > n1r, n3i > n2i && n2i > n1i)
+                    let h3 = Complex::with_val(options.prec, 0.5)
+                        .pow((options.prec / 2) as f64 + 13.0 / 0.7);
+                    let n3 = do_math_with_var(
+                        func.clone(),
+                        options,
+                        func_vars.clone(),
+                        &var,
+                        Num((point.clone() + if right { h3 } else { -h3 }, None)),
+                    )?
+                    .num()?
+                    .0;
+                    let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
+                        && n2.real().is_sign_positive() == n3.real().is_sign_positive()
+                        && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
+                        && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
+                    let n1r = n1.real().clone().abs();
+                    let n2r = n2.real().clone().abs();
+                    let n3r = n3.real().clone().abs();
+                    let n1i = n1.imag().clone().abs();
+                    let n2i = n2.imag().clone().abs();
+                    let n3i = n3.imag().clone().abs();
+                    if !sign
                     {
-                        (true, true) =>
-                        {
-                            match (n1.real().is_sign_positive(), n1.imag().is_sign_positive())
-                            {
-                                (true, true) =>
-                                {
-                                    Complex::with_val(options.prec, (Infinity, Infinity))
-                                }
-                                (true, false) => Complex::with_val(
-                                    options.prec,
-                                    (Infinity, -Float::with_val(options.prec, Infinity)),
-                                ),
-                                (false, true) => Complex::with_val(
-                                    options.prec,
-                                    (-Float::with_val(options.prec, Infinity), Infinity),
-                                ),
-                                (false, false) =>
-                                {
-                                    -Complex::with_val(options.prec, (Infinity, Infinity))
-                                }
-                            }
-                        }
-                        (true, false) =>
-                        {
-                            if n1.real().is_sign_positive()
-                            {
-                                Complex::with_val(
-                                    options.prec,
-                                    (
-                                        Infinity,
-                                        if (n1.imag() - n2.imag().clone()).abs().log2()
-                                            < options.prec as i32 / -16
-                                        {
-                                            n2.imag().clone()
-                                        }
-                                        else
-                                        {
-                                            Float::new(options.prec)
-                                        },
-                                    ),
-                                )
-                            }
-                            else
-                            {
-                                -Complex::with_val(
-                                    options.prec,
-                                    (
-                                        Infinity,
-                                        if (n1.imag() - n2.imag().clone()).abs().log2()
-                                            < options.prec as i32 / -16
-                                        {
-                                            -n2.imag().clone()
-                                        }
-                                        else
-                                        {
-                                            Float::new(options.prec)
-                                        },
-                                    ),
-                                )
-                            }
-                        }
-                        (false, true) =>
-                        {
-                            if n1.imag().is_sign_positive()
-                            {
-                                Complex::with_val(
-                                    options.prec,
-                                    (
-                                        if (n1.real() - n2.real().clone()).abs().log2()
-                                            < options.prec as i32 / -16
-                                        {
-                                            n2.real().clone()
-                                        }
-                                        else
-                                        {
-                                            Float::new(options.prec)
-                                        },
-                                        Infinity,
-                                    ),
-                                )
-                            }
-                            else
-                            {
-                                -Complex::with_val(
-                                    options.prec,
-                                    (
-                                        if (n1.real() - n2.real().clone()).abs().log2()
-                                            < options.prec as i32 / -16
-                                        {
-                                            -n2.real().clone()
-                                        }
-                                        else
-                                        {
-                                            Float::new(options.prec)
-                                        },
-                                        Infinity,
-                                    ),
-                                )
-                            }
-                        }
-                        (false, false) => Complex::with_val(options.prec, Nan),
+                        Complex::with_val(options.prec, Nan)
                     }
-                }
-            },
-        )),
+                    else
+                    {
+                        match (n3r > n2r && n2r > n1r, n3i > n2i && n2i > n1i)
+                        {
+                            (true, true) =>
+                            {
+                                match (n1.real().is_sign_positive(), n1.imag().is_sign_positive())
+                                {
+                                    (true, true) =>
+                                    {
+                                        Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                    (true, false) => Complex::with_val(
+                                        options.prec,
+                                        (Infinity, -Float::with_val(options.prec, Infinity)),
+                                    ),
+                                    (false, true) => Complex::with_val(
+                                        options.prec,
+                                        (-Float::with_val(options.prec, Infinity), Infinity),
+                                    ),
+                                    (false, false) =>
+                                    {
+                                        -Complex::with_val(options.prec, (Infinity, Infinity))
+                                    }
+                                }
+                            }
+                            (true, false) =>
+                            {
+                                if n1.real().is_sign_positive()
+                                {
+                                    Complex::with_val(
+                                        options.prec,
+                                        (
+                                            Infinity,
+                                            if (n1.imag() - n2.imag().clone()).abs().log2()
+                                                < options.prec as i32 / -16
+                                            {
+                                                n2.imag().clone()
+                                            }
+                                            else
+                                            {
+                                                Float::new(options.prec)
+                                            },
+                                        ),
+                                    )
+                                }
+                                else
+                                {
+                                    -Complex::with_val(
+                                        options.prec,
+                                        (
+                                            Infinity,
+                                            if (n1.imag() - n2.imag().clone()).abs().log2()
+                                                < options.prec as i32 / -16
+                                            {
+                                                -n2.imag().clone()
+                                            }
+                                            else
+                                            {
+                                                Float::new(options.prec)
+                                            },
+                                        ),
+                                    )
+                                }
+                            }
+                            (false, true) =>
+                            {
+                                if n1.imag().is_sign_positive()
+                                {
+                                    Complex::with_val(
+                                        options.prec,
+                                        (
+                                            if (n1.real() - n2.real().clone()).abs().log2()
+                                                < options.prec as i32 / -16
+                                            {
+                                                n2.real().clone()
+                                            }
+                                            else
+                                            {
+                                                Float::new(options.prec)
+                                            },
+                                            Infinity,
+                                        ),
+                                    )
+                                }
+                                else
+                                {
+                                    -Complex::with_val(
+                                        options.prec,
+                                        (
+                                            if (n1.real() - n2.real().clone()).abs().log2()
+                                                < options.prec as i32 / -16
+                                            {
+                                                -n2.real().clone()
+                                            }
+                                            else
+                                            {
+                                                Float::new(options.prec)
+                                            },
+                                            Infinity,
+                                        ),
+                                    )
+                                }
+                            }
+                            (false, false) => Complex::with_val(options.prec, Nan),
+                        }
+                    }
+                },
+                None,
+            )))
+        }
         (Vector(n1), Vector(n2)) =>
         {
-            let mut n3: Vec<Complex> = Vec::new();
+            let mut n3: Vec<(Complex, Option<Units>)> = Vec::new();
             let mut vec = Vec::with_capacity(n1.len());
             for (i, (n1, n2)) in n1.iter().zip(n2).enumerate()
             {
-                vec.push(
+                let n1 = &n1.0;
+                let n2 = &n2.0;
+                vec.push((
                     if (n2.clone() - n1.clone()).abs().real().clone().log2()
                         < options.prec as i32 / -16
                     {
@@ -3249,20 +3560,21 @@ fn limsided(
                                 options,
                                 func_vars.clone(),
                                 &var,
-                                Num(point.clone() - h3.clone()),
+                                Num((point.clone() - h3.clone(), None)),
                             )?
                             .vec()?;
                         }
+                        let n3 = &n3[i].0;
                         let sign = n1.real().is_sign_positive() == n2.real().is_sign_positive()
-                            && n2.real().is_sign_positive() == n3[i].real().is_sign_positive()
+                            && n2.real().is_sign_positive() == n3.real().is_sign_positive()
                             && n1.imag().is_sign_positive() == n2.imag().is_sign_positive()
-                            && n2.imag().is_sign_positive() == n3[i].imag().is_sign_positive();
+                            && n2.imag().is_sign_positive() == n3.imag().is_sign_positive();
                         let n1r = n1.real().clone().abs();
                         let n2r = n2.real().clone().abs();
-                        let n3r = n3[i].real().clone().abs();
+                        let n3r = n3.real().clone().abs();
                         let n1i = n1.imag().clone().abs();
                         let n2i = n2.imag().clone().abs();
-                        let n3i = n3[i].imag().clone().abs();
+                        let n3i = n3.imag().clone().abs();
                         if !sign
                         {
                             Complex::with_val(options.prec, Nan)
@@ -3378,7 +3690,8 @@ fn limsided(
                             }
                         }
                     },
-                )
+                    None,
+                ))
             }
             Ok(Vector(vec))
         }

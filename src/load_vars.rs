@@ -1,6 +1,6 @@
 use crate::{
     complex::NumStr::Num, math::do_math, options::set_commands, parse::input_var, Colors, Options,
-    Variable,
+    Units, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float};
 pub fn get_file_vars(
@@ -66,6 +66,246 @@ pub fn get_file_vars(
         }
     }
 }
+fn ec(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['e', 'c'],
+        parsed: vec![Num((
+            Complex::parse("1.602176634e-19").unwrap().complete(prec),
+            Some(Units {
+                second: 1.0,
+                meter: 0.0,
+                kilogram: 0.0,
+                ampere: 1.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn kb(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['k', 'B'],
+        parsed: vec![Num((
+            Complex::parse("1.380649e-23").unwrap().complete(prec),
+            Some(Units {
+                second: -2.0,
+                meter: 2.0,
+                kilogram: 1.0,
+                ampere: 0.0,
+                kelvin: -1.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn me(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['m', 'e'],
+        parsed: vec![Num((
+            Complex::parse("9.1093837015e-31").unwrap().complete(prec),
+            Some(Units {
+                second: 0.0,
+                meter: 0.0,
+                kilogram: 1.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn mn(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['m', 'n'],
+        parsed: vec![Num((
+            Complex::parse("1.67492749804e-27").unwrap().complete(prec),
+            Some(Units {
+                second: 0.0,
+                meter: 0.0,
+                kilogram: 1.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn mp(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['m', 'p'],
+        parsed: vec![Num((
+            Complex::parse("1.67262192369e-27").unwrap().complete(prec),
+            Some(Units {
+                second: 0.0,
+                meter: 0.0,
+                kilogram: 1.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn c(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['c'],
+        parsed: vec![Num((
+            Complex::parse("299792458").unwrap().complete(prec),
+            Some(Units {
+                second: -1.0,
+                meter: 1.0,
+                kilogram: 0.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn g(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['g'],
+        parsed: vec![Num((
+            Complex::parse("9.80665").unwrap().complete(prec),
+            Some(Units {
+                second: -2.0,
+                meter: 1.0,
+                kilogram: 0.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn gc(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['G'],
+        parsed: vec![Num((
+            Complex::parse("6.67430e-11").unwrap().complete(prec),
+            Some(Units {
+                second: -2.0,
+                meter: 3.0,
+                kilogram: -1.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn h(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['h'],
+        parsed: vec![Num((
+            Complex::parse("6.62607015e-34").unwrap().complete(prec),
+            Some(Units {
+                second: -1.0,
+                meter: 2.0,
+                kilogram: 1.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn na(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['N', 'a'],
+        parsed: vec![Num((
+            Complex::parse("6.02214076e23").unwrap().complete(prec),
+            Some(Units {
+                second: 0.0,
+                meter: 0.0,
+                kilogram: 0.0,
+                ampere: 0.0,
+                kelvin: 0.0,
+                mole: -1.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn k(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['k'],
+        parsed: vec![Num((
+            Complex::parse("8.9875517923e9").unwrap().complete(prec),
+            Some(Units {
+                second: 0.0,
+                meter: 3.0,
+                kilogram: 1.0,
+                ampere: 2.0,
+                kelvin: 0.0,
+                mole: 0.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn r(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['R'],
+        parsed: vec![Num((
+            Complex::parse("8.31446261815324").unwrap().complete(prec),
+            Some(Units {
+                second: -2.0,
+                meter: 2.0,
+                kilogram: 1.0,
+                ampere: 0.0,
+                kelvin: 1.0,
+                mole: -1.0,
+                candela: 0.0,
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
 fn get_preset_vars(
     options: Options,
     args: &str,
@@ -77,136 +317,62 @@ fn get_preset_vars(
     if args.contains("ec") && !blacklist.contains(&"ec".to_string())
     {
         blacklist.push("ec".to_string());
-        vars.push(Variable {
-            name: vec!['e', 'c'],
-            parsed: vec![Num(Complex::parse("1.602176634e-19")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(ec(prec));
     }
     if args.contains("kB") && !blacklist.contains(&"kB".to_string())
     {
         blacklist.push("kB".to_string());
-        vars.push(Variable {
-            name: vec!['k', 'B'],
-            parsed: vec![Num(Complex::parse("1.380649e-23").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(kb(prec));
     }
     if args.contains("me") && !blacklist.contains(&"me".to_string())
     {
         blacklist.push("me".to_string());
-        vars.push(Variable {
-            name: vec!['m', 'e'],
-            parsed: vec![Num(Complex::parse("9.1093837015e-31")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(me(prec));
     }
     if args.contains("mn") && !blacklist.contains(&"mn".to_string())
     {
         blacklist.push("mn".to_string());
-        vars.push(Variable {
-            name: vec!['m', 'n'],
-            parsed: vec![Num(Complex::parse("1.67492749804e-27")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(mn(prec));
     }
     if args.contains("mp") && !blacklist.contains(&"mp".to_string())
     {
         blacklist.push("mp".to_string());
-        vars.push(Variable {
-            name: vec!['m', 'p'],
-            parsed: vec![Num(Complex::parse("1.67262192369e-27")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(mp(prec));
     }
     if args.contains("Na") && !blacklist.contains(&"Na".to_string())
     {
         blacklist.push("Na".to_string());
-        vars.push(Variable {
-            name: vec!['N', 'a'],
-            parsed: vec![Num(Complex::parse("6.02214076e23").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(na(prec));
     }
     if args.contains('c') && !blacklist.contains(&"c".to_string())
     {
         blacklist.push("c".to_string());
-        vars.push(Variable {
-            name: vec!['c'],
-            parsed: vec![Num(Complex::parse("299792458").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(c(prec));
     }
     if args.contains('G') && !blacklist.contains(&"G".to_string())
     {
         blacklist.push("G".to_string());
-        vars.push(Variable {
-            name: vec!['G'],
-            parsed: vec![Num(Complex::parse("6.67430e-11").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(gc(prec));
     }
     if args.contains('g') && !blacklist.contains(&"g".to_string())
     {
         blacklist.push("g".to_string());
-        vars.push(Variable {
-            name: vec!['g'],
-            parsed: vec![Num(Complex::parse("9.80665").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(g(prec));
     }
     if args.contains('h') && !blacklist.contains(&"h".to_string())
     {
         blacklist.push("h".to_string());
-        vars.push(Variable {
-            name: vec!['h'],
-            parsed: vec![Num(Complex::parse("6.62607015e-34")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(h(prec));
     }
     if args.contains('k') && !blacklist.contains(&"k".to_string())
     {
         blacklist.push("k".to_string());
-        vars.push(Variable {
-            name: vec!['k'],
-            parsed: vec![Num(Complex::parse("8.9875517923e9")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(k(prec));
     }
     if args.contains('R') && !blacklist.contains(&"R".to_string())
     {
         blacklist.push("R".to_string());
-        vars.push(Variable {
-            name: vec!['R'],
-            parsed: vec![Num(Complex::parse("8.31446261815324")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(r(prec));
     }
     {
         let phi1 = args.contains("phi") && !blacklist.contains(&"phi".to_string());
@@ -221,7 +387,7 @@ fn get_preset_vars(
                     0,
                     Variable {
                         name: vec!['p', 'h', 'i'],
-                        parsed: vec![Num(phi.clone().into())],
+                        parsed: vec![Num((phi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -232,7 +398,7 @@ fn get_preset_vars(
                 blacklist.push("φ".to_string());
                 vars.push(Variable {
                     name: vec!['φ'],
-                    parsed: vec![Num(phi.into())],
+                    parsed: vec![Num((phi.into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -254,7 +420,7 @@ fn get_preset_vars(
                     vars.iter().position(|c| c.name.len() != 3).unwrap_or(0),
                     Variable {
                         name: vec!['p', 'i'],
-                        parsed: vec![Num(pi.clone().into())],
+                        parsed: vec![Num((pi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -265,7 +431,7 @@ fn get_preset_vars(
                 blacklist.push("π".to_string());
                 vars.push(Variable {
                     name: vec!['π'],
-                    parsed: vec![Num(pi.clone().into())],
+                    parsed: vec![Num((pi.clone().into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -280,7 +446,7 @@ fn get_preset_vars(
                         0,
                         Variable {
                             name: vec!['t', 'a', 'u'],
-                            parsed: vec![Num(tau.clone().into())],
+                            parsed: vec![Num((tau.clone().into(), None))],
                             unparsed: String::new(),
                             funcvars: Vec::new(),
                         },
@@ -291,7 +457,7 @@ fn get_preset_vars(
                     blacklist.push("τ".to_string());
                     vars.push(Variable {
                         name: vec!['τ'],
-                        parsed: vec![Num(tau.into())],
+                        parsed: vec![Num((tau.into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     });
@@ -305,7 +471,7 @@ fn get_preset_vars(
         let e = Float::with_val(options.prec, 1).exp();
         vars.push(Variable {
             name: vec!['e'],
-            parsed: vec![Num(e.into())],
+            parsed: vec![Num((e.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         });
@@ -320,125 +486,51 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
     let prec = (options.prec, options.prec);
     if args.contains("ec")
     {
-        vars.push(Variable {
-            name: vec!['e', 'c'],
-            parsed: vec![Num(Complex::parse("1.602176634e-19")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(ec(prec));
     }
     if args.contains("kB")
     {
-        vars.push(Variable {
-            name: vec!['k', 'B'],
-            parsed: vec![Num(Complex::parse("1.380649e-23").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(kb(prec));
     }
     if args.contains("me")
     {
-        vars.push(Variable {
-            name: vec!['m', 'e'],
-            parsed: vec![Num(Complex::parse("9.1093837015e-31")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(me(prec));
     }
     if args.contains("mn")
     {
-        vars.push(Variable {
-            name: vec!['m', 'n'],
-            parsed: vec![Num(Complex::parse("1.67492749804e-27")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(mn(prec));
     }
     if args.contains("mp")
     {
-        vars.push(Variable {
-            name: vec!['m', 'p'],
-            parsed: vec![Num(Complex::parse("1.67262192369e-27")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(mp(prec));
     }
     if args.contains("Na")
     {
-        vars.push(Variable {
-            name: vec!['N', 'a'],
-            parsed: vec![Num(Complex::parse("6.02214076e23").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(na(prec));
     }
     if args.contains('c')
     {
-        vars.push(Variable {
-            name: vec!['c'],
-            parsed: vec![Num(Complex::parse("299792458").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(c(prec));
     }
     if args.contains('G')
     {
-        vars.push(Variable {
-            name: vec!['G'],
-            parsed: vec![Num(Complex::parse("6.67430e-11").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(gc(prec));
     }
     if args.contains('g')
     {
-        vars.push(Variable {
-            name: vec!['g'],
-            parsed: vec![Num(Complex::parse("9.80665").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(g(prec));
     }
     if args.contains('h')
     {
-        vars.push(Variable {
-            name: vec!['h'],
-            parsed: vec![Num(Complex::parse("6.62607015e-34")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(h(prec));
     }
     if args.contains('k')
     {
-        vars.push(Variable {
-            name: vec!['k'],
-            parsed: vec![Num(Complex::parse("8.9875517923e9")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(k(prec));
     }
     if args.contains('R')
     {
-        vars.push(Variable {
-            name: vec!['R'],
-            parsed: vec![Num(Complex::parse("8.31446261815324")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        });
+        vars.push(r(prec));
     }
     {
         let phi1 = args.contains("phi");
@@ -452,7 +544,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                     0,
                     Variable {
                         name: vec!['p', 'h', 'i'],
-                        parsed: vec![Num(phi.clone().into())],
+                        parsed: vec![Num((phi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -462,7 +554,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
             {
                 vars.push(Variable {
                     name: vec!['φ'],
-                    parsed: vec![Num(phi.into())],
+                    parsed: vec![Num((phi.into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -483,7 +575,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                     vars.iter().position(|c| c.name.len() != 3).unwrap_or(0),
                     Variable {
                         name: vec!['p', 'i'],
-                        parsed: vec![Num(pi.clone().into())],
+                        parsed: vec![Num((pi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -493,7 +585,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
             {
                 vars.push(Variable {
                     name: vec!['π'],
-                    parsed: vec![Num(pi.clone().into())],
+                    parsed: vec![Num((pi.clone().into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -507,7 +599,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                         0,
                         Variable {
                             name: vec!['t', 'a', 'u'],
-                            parsed: vec![Num(tau.clone().into())],
+                            parsed: vec![Num((tau.clone().into(), None))],
                             unparsed: String::new(),
                             funcvars: Vec::new(),
                         },
@@ -517,7 +609,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 {
                     vars.push(Variable {
                         name: vec!['τ'],
-                        parsed: vec![Num(tau.into())],
+                        parsed: vec![Num((tau.into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     });
@@ -530,7 +622,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
         let e = Float::with_val(options.prec, 1).exp();
         vars.push(Variable {
             name: vec!['e'],
-            parsed: vec![Num(e.into())],
+            parsed: vec![Num((e.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         });
@@ -546,129 +638,55 @@ pub fn get_vars(options: Options) -> Vec<Variable>
     vec![
         Variable {
             name: vec!['p', 'h', 'i'],
-            parsed: vec![Num(phi.clone().into())],
+            parsed: vec![Num((phi.clone().into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         Variable {
             name: vec!['t', 'a', 'u'],
-            parsed: vec![Num(tau.clone().into())],
+            parsed: vec![Num((tau.clone().into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
-        Variable {
-            name: vec!['e', 'c'],
-            parsed: vec![Num(Complex::parse("1.602176634e-19")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['k', 'B'],
-            parsed: vec![Num(Complex::parse("1.380649e-23").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['m', 'e'],
-            parsed: vec![Num(Complex::parse("9.1093837015e-31")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['m', 'n'],
-            parsed: vec![Num(Complex::parse("1.67492749804e-27")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['m', 'p'],
-            parsed: vec![Num(Complex::parse("1.67262192369e-27")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['N', 'a'],
-            parsed: vec![Num(Complex::parse("6.02214076e23").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
+        ec(prec),
+        kb(prec),
+        me(prec),
+        mn(prec),
+        mp(prec),
+        na(prec),
         Variable {
             name: vec!['p', 'i'],
-            parsed: vec![Num(pi.clone().into())],
+            parsed: vec![Num((pi.clone().into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
-        Variable {
-            name: vec!['c'],
-            parsed: vec![Num(Complex::parse("299792458").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
+        c(prec),
         Variable {
             name: vec!['e'],
-            parsed: vec![Num(e.into())],
+            parsed: vec![Num((e.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
-        Variable {
-            name: vec!['G'],
-            parsed: vec![Num(Complex::parse("6.67430e-11").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['g'],
-            parsed: vec![Num(Complex::parse("9.80665").unwrap().complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['h'],
-            parsed: vec![Num(Complex::parse("6.62607015e-34")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['k'],
-            parsed: vec![Num(Complex::parse("8.9875517923e9")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
-        Variable {
-            name: vec!['R'],
-            parsed: vec![Num(Complex::parse("8.31446261815324")
-                .unwrap()
-                .complete(prec))],
-            unparsed: String::new(),
-            funcvars: Vec::new(),
-        },
+        gc(prec),
+        g(prec),
+        h(prec),
+        k(prec),
+        r(prec),
         Variable {
             name: vec!['φ'],
-            parsed: vec![Num(phi.into())],
+            parsed: vec![Num((phi.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         Variable {
             name: vec!['π'],
-            parsed: vec![Num(pi.into())],
+            parsed: vec![Num((pi.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         Variable {
             name: vec!['τ'],
-            parsed: vec![Num(tau.into())],
+            parsed: vec![Num((tau.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },

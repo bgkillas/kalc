@@ -134,7 +134,7 @@ pub fn help()
     - g: gravity, 9.80665 m/s^2\x1b[G\n\
     - G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)\x1b[G\n\
     - h: planck's constant, 6.62607015E-34 J*s\x1b[G\n\
-    - ec: elementary charge/electron volt, 1.602176634E-19 C/J\x1b[G\n\
+    - ec: elementary charge/electron volt, 1.602176634E-19 C\x1b[G\n\
     - me: electron mass, 9.1093837015E-31 kg\x1b[G\n\
     - mp: proton mass, 1.67262192369E-27 kg\x1b[G\n\
     - mn: neutron mass, 1.67492749804E-27 kg\x1b[G\n\

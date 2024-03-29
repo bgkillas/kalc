@@ -14,10 +14,10 @@ use crate::{
     options::{equal_to, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Options, Variable,
+    Colors, Options, Units, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt};
 #[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
@@ -493,9 +493,10 @@ pub fn print_concurrent(
     {
         Num(n) =>
         {
-            let output = get_output(options, &colors, &n);
+            let output = get_output(options, &colors, &n.0, n.1);
             let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
             {
+                let n = n.0;
                 let fa = fraction(n.real().clone(), options);
                 let fb = fraction(n.imag().clone(), options);
                 let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
@@ -746,7 +747,8 @@ pub fn print_concurrent(
             let mut frac_temp;
             for (k, i) in v.iter().enumerate()
             {
-                out = get_output(options, &colors, i);
+                out = get_output(options, &colors, &i.0, i.1);
+                let i = &i.0;
                 if options.frac || options.frac_iter == 0
                 {
                     frac_temp = fraction(i.real().clone(), options);
@@ -905,7 +907,8 @@ pub fn print_concurrent(
                 }
                 for (k, i) in j.iter().enumerate()
                 {
-                    out = get_output(options, &colors, i);
+                    out = get_output(options, &colors, &i.0, i.1);
+                    let i = &i.0;
                     if options.frac || options.frac_iter == 0
                     {
                         frac_temp = fraction(i.real().clone(), options);
@@ -1133,7 +1136,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
     {
         Num(n) =>
         {
-            let a = get_output(options, colors, &n);
+            let a = get_output(options, colors, &n.0, n.1);
             print!(
                 "{}{}{}",
                 a.0,
@@ -1159,7 +1162,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             let mut out;
             for (k, i) in v.iter().enumerate()
             {
-                out = get_output(options, colors, i);
+                out = get_output(options, colors, &i.0, i.1);
                 output += out.0.as_str();
                 output += out.1.as_str();
                 if options.color
@@ -1203,7 +1206,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 }
                 for (k, i) in j.iter().enumerate()
                 {
-                    out = get_output(options, colors, i);
+                    out = get_output(options, colors, &i.0, i.1);
                     output += out.0.as_str();
                     output += out.1.as_str();
                     if options.color
@@ -1248,7 +1251,12 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
         {}
     }
 }
-pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, String)
+pub fn get_output(
+    options: Options,
+    colors: &Colors,
+    num: &Complex,
+    units: Option<Units>,
+) -> (String, String)
 {
     let dec = if options.decimal_places == 0
     {
@@ -1500,7 +1508,21 @@ pub fn get_output(options: Options, colors: &Colors, num: &Complex) -> (String, 
             }
             else
             {
-                re
+                re + &if im == "0"
+                {
+                    if let Some(units) = units
+                    {
+                        units.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+                }
+                else
+                {
+                    String::new()
+                }
             },
             if im == "0"
             {
@@ -1842,5 +1864,127 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
                     + if num.len() - 1 > dec { 1 } else { 0 })
                 .to_string()
         }
+    }
+}
+impl fmt::Display for Units
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
+    {
+        write!(
+            f,
+            "{}{}{}{}{}{}{}",
+            if self.meter != 0.0
+            {
+                " m".to_owned()
+                    + &if self.meter != 1.0
+                    {
+                        "^".to_owned() + &self.meter.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.second != 0.0
+            {
+                " s".to_owned()
+                    + &if self.second != 1.0
+                    {
+                        "^".to_owned() + &self.second.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.kilogram != 0.0
+            {
+                " kg".to_owned()
+                    + &if self.kilogram != 1.0
+                    {
+                        "^".to_owned() + &self.kilogram.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.ampere != 0.0
+            {
+                " A".to_owned()
+                    + &if self.ampere != 1.0
+                    {
+                        "^".to_owned() + &self.ampere.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.kelvin != 0.0
+            {
+                " K".to_owned()
+                    + &if self.kelvin != 1.0
+                    {
+                        "^".to_owned() + &self.kelvin.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.mole != 0.0
+            {
+                " mol".to_owned()
+                    + &if self.mole != 1.0
+                    {
+                        "^".to_owned() + &self.mole.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.candela != 0.0
+            {
+                " cd".to_owned()
+                    + &if self.candela != 1.0
+                    {
+                        "^".to_owned() + &self.candela.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            }
+        )
     }
 }

@@ -1049,7 +1049,7 @@ pub fn get_list_2d(
     }
     if let Num(n) = &func.0[0]
     {
-        if func.0.len() == 1 && n.is_zero()
+        if func.0.len() == 1 && n.0.is_zero()
         {
             return Default::default();
         }
@@ -1092,7 +1092,7 @@ pub fn get_list_2d(
     for i in 0..=func.2.samples_2d
     {
         let n = func.2.xr.0 + i as f64 * den_range;
-        let num = Num(Complex::with_val(func.2.prec, n));
+        let num = Num((Complex::with_val(func.2.prec, n), None));
         match do_math(
             place_varxy(func.0.clone(), num.clone()),
             func.2,
@@ -1101,6 +1101,7 @@ pub fn get_list_2d(
         {
             Ok(Num(num)) =>
             {
+                let num = num.0;
                 if num.real().is_nan() || num.imag().is_nan()
                 {
                     continue;
@@ -1148,6 +1149,7 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
+                        let num = num.0;
                         if num.real().is_nan() || num.imag().is_nan()
                         {
                             continue;
@@ -1193,12 +1195,12 @@ pub fn get_list_2d(
                 else if v.len() == 3
                 {
                     nan = false;
-                    let xr = v[0].real().to_f64();
-                    let yr = v[1].real().to_f64();
-                    let zr = v[2].real().to_f64();
-                    let xi = v[0].imag().to_f64();
-                    let yi = v[1].imag().to_f64();
-                    let zi = v[2].imag().to_f64();
+                    let xr = v[0].0.real().to_f64();
+                    let yr = v[1].0.real().to_f64();
+                    let zr = v[2].0.real().to_f64();
+                    let xi = v[0].0.imag().to_f64();
+                    let yi = v[1].0.imag().to_f64();
+                    let zi = v[2].0.imag().to_f64();
                     if (xr * 1e8).round() / 1e8 != 0.0
                         || (yr * 1e8).round() / 1e8 != 0.0
                         || (zr * 1e8).round() / 1e8 != 0.0
@@ -1221,10 +1223,10 @@ pub fn get_list_2d(
                 else if v.len() == 2
                 {
                     nan = false;
-                    let xr = v[0].real().to_f64();
-                    let yr = v[1].real().to_f64();
-                    let xi = v[0].imag().to_f64();
-                    let yi = v[1].imag().to_f64();
+                    let xr = v[0].0.real().to_f64();
+                    let yr = v[1].0.real().to_f64();
+                    let xi = v[0].0.imag().to_f64();
+                    let yi = v[1].0.imag().to_f64();
                     if (xr * 1e8).round() / 1e8 != 0.0 || (yr * 1e8).round() / 1e8 != 0.0
                     {
                         zero.0 = true;
@@ -1245,6 +1247,7 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
+                        let num = num.0;
                         if num.real().is_nan() || num.imag().is_nan()
                         {
                             continue;
@@ -1340,6 +1343,7 @@ pub fn get_list_3d(
     }
     if let Num(n) = &func.0[0]
     {
+        let n = &n.0;
         if func.0.len() == 1 && n.is_zero()
         {
             return Default::default();
@@ -1388,13 +1392,13 @@ pub fn get_list_3d(
     for i in 0..=func.2.samples_3d.0
     {
         let n = func.2.xr.0 + i as f64 * den_x_range;
-        let num = Num(Complex::with_val(func.2.prec, n));
+        let num = Num((Complex::with_val(func.2.prec, n), None));
         modified = place_var(func.0.clone(), "x", num.clone());
         modifiedvars = place_funcvar(func.1.clone(), "x", num);
         for g in 0..=func.2.samples_3d.1
         {
             let f = func.2.yr.0 + g as f64 * den_y_range;
-            let num = Num(Complex::with_val(func.2.prec, f));
+            let num = Num((Complex::with_val(func.2.prec, f), None));
             match do_math(
                 place_var(modified.clone(), "y", num.clone()),
                 func.2,
@@ -1403,6 +1407,7 @@ pub fn get_list_3d(
             {
                 Ok(Num(num)) =>
                 {
+                    let num = num.0;
                     if num.real().is_nan() || num.imag().is_nan()
                     {
                         continue;
@@ -1453,6 +1458,7 @@ pub fn get_list_3d(
                     {
                         for num in v
                         {
+                            let num = num.0;
                             if num.real().is_nan() || num.imag().is_nan()
                             {
                                 continue;
@@ -1501,12 +1507,12 @@ pub fn get_list_3d(
                     else if v.len() == 3
                     {
                         nan = false;
-                        let xr = v[0].real().to_f64();
-                        let yr = v[1].real().to_f64();
-                        let zr = v[2].real().to_f64();
-                        let xi = v[0].imag().to_f64();
-                        let yi = v[1].imag().to_f64();
-                        let zi = v[2].imag().to_f64();
+                        let xr = v[0].0.real().to_f64();
+                        let yr = v[1].0.real().to_f64();
+                        let zr = v[2].0.real().to_f64();
+                        let xi = v[0].0.imag().to_f64();
+                        let yi = v[1].0.imag().to_f64();
+                        let zi = v[2].0.imag().to_f64();
                         if (xr * 1e8).round() / 1e8 != 0.0
                             || (yr * 1e8).round() / 1e8 != 0.0
                             || (zr * 1e8).round() / 1e8 != 0.0
@@ -1530,10 +1536,10 @@ pub fn get_list_3d(
                     {
                         nan = false;
                         d2 = true;
-                        let xr = v[0].real().to_f64();
-                        let yr = v[1].real().to_f64();
-                        let xi = v[0].imag().to_f64();
-                        let yi = v[1].imag().to_f64();
+                        let xr = v[0].0.real().to_f64();
+                        let yr = v[1].0.real().to_f64();
+                        let xi = v[0].0.imag().to_f64();
+                        let yi = v[1].0.imag().to_f64();
                         if (xr * 1e8).round() / 1e8 != 0.0 || (yr * 1e8).round() / 1e8 != 0.0
                         {
                             zero.0 = true;
@@ -1554,6 +1560,7 @@ pub fn get_list_3d(
                     {
                         for num in v
                         {
+                            let num = num.0;
                             if num.real().is_nan() || num.imag().is_nan()
                             {
                                 continue;
@@ -1685,6 +1692,7 @@ fn get_data(
             {
                 Num(n) =>
                 {
+                    let n = n.0;
                     d2_or_d3.0 = true;
                     let change = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
                     let im = n.imag().to_f64();
@@ -1729,14 +1737,14 @@ fn get_data(
                             d2_or_d3.1 = true;
                             points3d = [
                                 [
-                                    vec![0.0, v[0].real().to_f64()],
-                                    vec![0.0, v[1].real().to_f64()],
-                                    vec![0.0, v[2].real().to_f64()],
+                                    vec![0.0, v[0].0.real().to_f64()],
+                                    vec![0.0, v[1].0.real().to_f64()],
+                                    vec![0.0, v[2].0.real().to_f64()],
                                 ],
                                 [
-                                    vec![0.0, v[0].imag().to_f64()],
-                                    vec![0.0, v[1].imag().to_f64()],
-                                    vec![0.0, v[2].imag().to_f64()],
+                                    vec![0.0, v[0].0.imag().to_f64()],
+                                    vec![0.0, v[1].0.imag().to_f64()],
+                                    vec![0.0, v[2].0.imag().to_f64()],
                                 ],
                             ];
                             re_or_im = (
@@ -1748,11 +1756,17 @@ fn get_data(
                         {
                             lines = false;
                             d2_or_d3.0 = true;
-                            (points2d, _, _) =
-                                get_list_2d((vec![Num(v[0].clone())], Vec::new(), func.2));
+                            (points2d, _, _) = get_list_2d((
+                                vec![Num((v[0].0.clone(), None))],
+                                Vec::new(),
+                                func.2,
+                            ));
                             let points2dtemp: [[Vec<f64>; 2]; 2];
-                            (points2dtemp, _, re_or_im) =
-                                get_list_2d((vec![Num(v[1].clone())], Vec::new(), func.2));
+                            (points2dtemp, _, re_or_im) = get_list_2d((
+                                vec![Num((v[1].0.clone(), None))],
+                                Vec::new(),
+                                func.2,
+                            ));
                             points2d[0][0].extend(points2dtemp[0][0].clone());
                             points2d[0][1].extend(points2dtemp[0][1].clone());
                             points2d[1][0].extend(points2dtemp[1][0].clone());
@@ -1775,12 +1789,12 @@ fn get_data(
                             d2_or_d3.0 = true;
                             points2d = [
                                 [
-                                    vec![0.0, v[0].real().to_f64()],
-                                    vec![0.0, v[1].real().to_f64()],
+                                    vec![0.0, v[0].0.real().to_f64()],
+                                    vec![0.0, v[1].0.real().to_f64()],
                                 ],
                                 [
-                                    vec![0.0, v[0].imag().to_f64()],
-                                    vec![0.0, v[1].imag().to_f64()],
+                                    vec![0.0, v[0].0.imag().to_f64()],
+                                    vec![0.0, v[1].0.imag().to_f64()],
                                 ],
                             ];
                             re_or_im = (
@@ -1799,13 +1813,13 @@ fn get_data(
                             points2d = [
                                 [
                                     vec,
-                                    v.iter().map(|c| c.real().to_f64()).collect::<Vec<f64>>(),
+                                    v.iter().map(|c| c.0.real().to_f64()).collect::<Vec<f64>>(),
                                 ],
                                 [
                                     Vec::new(),
-                                    if v.iter().any(|c| !c.imag().is_zero())
+                                    if v.iter().any(|c| !c.0.imag().is_zero())
                                     {
-                                        v.iter().map(|c| c.imag().to_f64()).collect::<Vec<f64>>()
+                                        v.iter().map(|c| c.0.imag().to_f64()).collect::<Vec<f64>>()
                                     }
                                     else
                                     {
@@ -1830,30 +1844,42 @@ fn get_data(
                             d2_or_d3.1 = true;
                             points3d = [
                                 [
-                                    m.iter().map(|c| c[0].real().to_f64()).collect::<Vec<f64>>(),
-                                    m.iter().map(|c| c[1].real().to_f64()).collect::<Vec<f64>>(),
-                                    m.iter().map(|c| c[2].real().to_f64()).collect::<Vec<f64>>(),
+                                    m.iter()
+                                        .map(|c| c[0].0.real().to_f64())
+                                        .collect::<Vec<f64>>(),
+                                    m.iter()
+                                        .map(|c| c[1].0.real().to_f64())
+                                        .collect::<Vec<f64>>(),
+                                    m.iter()
+                                        .map(|c| c[2].0.real().to_f64())
+                                        .collect::<Vec<f64>>(),
                                 ],
                                 [
-                                    if m.iter().any(|c| !c[0].imag().is_zero())
+                                    if m.iter().any(|c| !c[0].0.imag().is_zero())
                                     {
-                                        m.iter().map(|c| c[0].imag().to_f64()).collect::<Vec<f64>>()
+                                        m.iter()
+                                            .map(|c| c[0].0.imag().to_f64())
+                                            .collect::<Vec<f64>>()
                                     }
                                     else
                                     {
                                         Vec::new()
                                     },
-                                    if m.iter().any(|c| !c[1].imag().is_zero())
+                                    if m.iter().any(|c| !c[1].0.imag().is_zero())
                                     {
-                                        m.iter().map(|c| c[1].imag().to_f64()).collect::<Vec<f64>>()
+                                        m.iter()
+                                            .map(|c| c[1].0.imag().to_f64())
+                                            .collect::<Vec<f64>>()
                                     }
                                     else
                                     {
                                         Vec::new()
                                     },
-                                    if m.iter().any(|c| !c[2].imag().is_zero())
+                                    if m.iter().any(|c| !c[2].0.imag().is_zero())
                                     {
-                                        m.iter().map(|c| c[2].imag().to_f64()).collect::<Vec<f64>>()
+                                        m.iter()
+                                            .map(|c| c[2].0.imag().to_f64())
+                                            .collect::<Vec<f64>>()
                                     }
                                     else
                                     {
@@ -1871,21 +1897,29 @@ fn get_data(
                             d2_or_d3.0 = true;
                             points2d = [
                                 [
-                                    m.iter().map(|c| c[0].real().to_f64()).collect::<Vec<f64>>(),
-                                    m.iter().map(|c| c[1].real().to_f64()).collect::<Vec<f64>>(),
+                                    m.iter()
+                                        .map(|c| c[0].0.real().to_f64())
+                                        .collect::<Vec<f64>>(),
+                                    m.iter()
+                                        .map(|c| c[1].0.real().to_f64())
+                                        .collect::<Vec<f64>>(),
                                 ],
                                 [
-                                    if m.iter().any(|c| !c[0].imag().is_zero())
+                                    if m.iter().any(|c| !c[0].0.imag().is_zero())
                                     {
-                                        m.iter().map(|c| c[0].imag().to_f64()).collect::<Vec<f64>>()
+                                        m.iter()
+                                            .map(|c| c[0].0.imag().to_f64())
+                                            .collect::<Vec<f64>>()
                                     }
                                     else
                                     {
                                         Vec::new()
                                     },
-                                    if m.iter().any(|c| !c[1].imag().is_zero())
+                                    if m.iter().any(|c| !c[1].0.imag().is_zero())
                                     {
-                                        m.iter().map(|c| c[1].imag().to_f64()).collect::<Vec<f64>>()
+                                        m.iter()
+                                            .map(|c| c[1].0.imag().to_f64())
+                                            .collect::<Vec<f64>>()
                                     }
                                     else
                                     {

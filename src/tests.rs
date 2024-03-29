@@ -22,49 +22,49 @@ fn test_math()
     )
     .unwrap();
     let expected = vec![
-        Num(Complex::with_val(512, Pi)),
+        Num((Complex::with_val(512, Pi), None)),
         Str("+".to_string()),
-        Num(2 * Complex::with_val(512, Pi)),
+        Num((2 * Complex::with_val(512, Pi), None)),
         Str("*".to_string()),
-        Num(Complex::with_val(512, 1).exp()),
+        Num((Complex::with_val(512, 1).exp(), None)),
         Str("/".to_string()),
-        Num(Complex::with_val(512, 2)),
+        Num((Complex::with_val(512, 2), None)),
         Str("*".to_string()),
-        Num(Complex::with_val(512, (0.0, 1))),
+        Num((Complex::with_val(512, (0.0, 1)), None)),
         Str("^".to_string()),
         Str("(".to_string()),
         Str("sqrt".to_string()),
         Str("(".to_string()),
-        Num(Complex::with_val(512, 2)),
+        Num((Complex::with_val(512, 2), None)),
         Str(")".to_string()),
         Str(")".to_string()),
         Str("/".to_string()),
-        Num(Complex::with_val(512, 3)),
+        Num((Complex::with_val(512, 3), None)),
         Str("*".to_string()),
-        Num(Complex::with_val(512, 3)),
+        Num((Complex::with_val(512, 3), None)),
         Str("-".to_string()),
         Str("log".to_string()),
         Str("(".to_string()),
-        Num(Complex::with_val(512, 2)),
+        Num((Complex::with_val(512, 2), None)),
         Str("-".to_string()),
-        Num(Complex::with_val(512, 2)),
+        Num((Complex::with_val(512, 2), None)),
         Str("*".to_string()),
-        Num(Complex::with_val(512, (0, 1))),
+        Num((Complex::with_val(512, (0, 1)), None)),
         Str(",".to_string()),
-        Num(Complex::with_val(512, -3)),
+        Num((Complex::with_val(512, -3), None)),
         Str("+".to_string()),
-        Num(Complex::with_val(512, (0, 1))),
+        Num((Complex::with_val(512, (0, 1)), None)),
         Str(")".to_string()),
         Str("+".to_string()),
         Str("sqrt".to_string()),
         Str("(".to_string()),
-        Num(Complex::with_val(512, 2)),
+        Num((Complex::with_val(512, 2), None)),
         Str(")".to_string()),
         Str("^".to_string()),
         Str("(".to_string()),
         Str("sqrt".to_string()),
         Str("(".to_string()),
-        Num(Complex::with_val(512, 2)),
+        Num((Complex::with_val(512, 2), None)),
         Str(")".to_string()),
         Str(")".to_string()),
     ];
@@ -76,8 +76,8 @@ fn test_math()
         .unwrap()
         .num()
         .unwrap();
-    assert_eq!(out.real().to_string(), answer.real().to_string());
-    assert_eq!(out.imag().to_string(), answer.imag().to_string());
-    assert_eq!(&out.real().to_string()[..20], "2.009877988310399125");
-    assert_eq!(&out.imag().to_string()[..20], "4.535664430265577075");
+    assert_eq!(out.0.real().to_string(), answer.0.real().to_string());
+    assert_eq!(out.0.imag().to_string(), answer.0.imag().to_string());
+    assert_eq!(&out.0.real().to_string()[..20], "2.009877988310399125");
+    assert_eq!(&out.0.imag().to_string()[..20], "4.535664430265577075");
 }

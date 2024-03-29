@@ -213,10 +213,10 @@ pub fn set_commands(
         }
         "graphcli" | "slowcheck" | "tau" | "interactive" | "color" | "prompt" | "depth"
         | "surface" | "flat" | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines"
-        | "polar" | "frac" | "multi" | "tabbed" | "comma" | "graph" | "var_multiply"
-        | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci"
-        | "decimals" | "graphprec" | "graphprecision" | "prec" | "precision" | "range" | "xr"
-        | "yr" | "zr" | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
+        | "polar" | "frac" | "multi" | "tabbed" | "comma" | "graph" | "scalegraph" | "debug"
+        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
+        | "graphprecision" | "prec" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange"
+        | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -244,6 +244,7 @@ pub fn set_commands(
                             args.push(
                                 do_math(parsed.0, *options, parsed.1)?
                                     .num()?
+                                    .0
                                     .real()
                                     .to_f64(),
                             );
@@ -267,6 +268,7 @@ pub fn set_commands(
                 args.push(
                     do_math(parsed.0, *options, parsed.1)?
                         .num()?
+                        .0
                         .real()
                         .to_f64(),
                 );
@@ -291,7 +293,6 @@ pub fn set_commands(
                 "tabbed" => options.tabbed = args[0] != 0.0,
                 "comma" => options.comma = args[0] != 0.0,
                 "graph" => options.graph = args[0] != 0.0,
-                "var_multiply" => options.var_multiply = args[0] != 0.0,
                 "scalegraph" => options.scale_graph = args[0] != 0.0,
                 "debug" => options.debug = args[0] != 0.0,
                 "vars" => options.allow_vars = args[0] != 0.0,
@@ -427,7 +428,7 @@ pub fn set_commands(
                                     else
                                     {
                                         vec![do_math(parsed.0, *options, parsed.1.clone())
-                                            .unwrap_or(Num(Complex::new(options.prec)))]
+                                            .unwrap_or(Num((Complex::new(options.prec), None)))]
                                     };
                                     vars[i].funcvars = parsed.1;
                                     if var.name.contains(&'(')
@@ -680,7 +681,6 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
     match input.iter().collect::<String>().as_str()
     {
         "default" | "defaults" | "reset" => *options = Options::default(),
-        "var_multiply" => options.var_multiply = !options.var_multiply,
         "interactive" => options.stay_interactive = !options.stay_interactive,
         "scalegraph" => options.scale_graph = !options.scale_graph,
         "debug" => options.debug = !options.debug,
@@ -734,12 +734,6 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             *options = Options::default();
-        }
-        "var_multiply" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.var_multiply = !options.var_multiply
         }
         "scalegraph" =>
         {
@@ -913,7 +907,7 @@ pub fn commands(
                     {
                         Num(n) =>
                         {
-                            let n = get_output(*options, colors, n);
+                            let n = get_output(*options, colors, &n.0, n.1);
                             print!(
                                 "{}={}{}{}\x1b[G\n",
                                 v.name.iter().collect::<String>(),
@@ -927,7 +921,7 @@ pub fn commands(
                             let mut st = String::new();
                             for i in m
                             {
-                                let n = get_output(*options, colors, i);
+                                let n = get_output(*options, colors, &i.0, i.1);
                                 st.push_str(&n.0);
                                 st.push_str(&n.1);
                                 if options.color
@@ -950,7 +944,7 @@ pub fn commands(
                                 st.push('{');
                                 for g in i
                                 {
-                                    let n = get_output(*options, colors, g);
+                                    let n = get_output(*options, colors, &g.0, g.1);
                                     st.push_str(&n.0);
                                     st.push_str(&n.1);
                                     if options.color
@@ -1044,7 +1038,6 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             formatcol(&colors.im6col),
         )
         }
-        "var_multiply" => format!("{}", options.var_multiply),
         "slowcheck" => format!("{}", options.slowcheck),
         "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),
         "color" => format!("{}", options.color),

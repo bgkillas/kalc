@@ -45,7 +45,6 @@ use std::{
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //infinitely long greater/lesser than chains
-//support units properly, add a part to the Num struct where it just stores the unit which then can be dealt with in complex or smth
 #[derive(Clone)]
 pub struct Variable
 {
@@ -53,6 +52,17 @@ pub struct Variable
     parsed: Vec<NumStr>,
     unparsed: String,
     funcvars: Vec<(String, Vec<NumStr>)>,
+}
+#[derive(Clone, PartialEq, Copy)]
+pub struct Units
+{
+    second: f64,
+    meter: f64,
+    kilogram: f64,
+    ampere: f64,
+    kelvin: f64,
+    mole: f64,
+    candela: f64,
 }
 #[derive(Clone)]
 pub struct Colors
@@ -154,7 +164,6 @@ pub struct Options
     flat: bool,
     graph: bool,
     slowcheck: u128,
-    var_multiply: bool,
     interactive: bool,
     surface: bool,
     scale_graph: bool,
@@ -201,7 +210,6 @@ impl Default for Options
             flat: false,
             graph: true,
             slowcheck: 300,
-            var_multiply: false,
             interactive: true,
             surface: false,
             scale_graph: true,

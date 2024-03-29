@@ -165,14 +165,19 @@ pub fn help_for(thing: &str) -> String
     {
         "W" | "productlog" | "lambertw" =>
         {
-            "W(k,z), productlog(k,z), lambertw(k,z)\x1b[G\nkth branch of the inverse of z*e^z\x1b[G\ngiven one argument assumes k=0"
+            "W(k,z), W(z)\x1b[G\n\
+            kth branch of the inverse of z*e^z\x1b[G\n\
+            given one argument assumes k=0"
         }
         "atan" | "arctan" | "atan2" =>
         {
-            "atan(x,y), arctan(x,y), atan2(y,x)\x1b[G\ninverse of tan(z)"
+            "atan(y/x), atan(x,y), atan2(y,x)\x1b[G\n\
+        inverse of tan(z)\x1b[G\n\
+        using the 2 arg version gives you an angle from 0 instead of from the x axis\x1b[G\n\
+        example using cardinal directions: atan(-2,-3)=-2.15 E->N, atan(-3/-2)=0.98 W->S"
         }
-        "help"=>"W, atan",
-        ""=>"",
+        "help" => "W, atan",
+        "" => "",
         _ => "not in database",
     }
     .to_string()

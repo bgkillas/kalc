@@ -2470,13 +2470,13 @@ fn functions(
         {
             if let Some(b) = c
             {
-                let i = Complex::with_val(options.prec, (0, -1));
                 if a.imag().is_zero() && b.imag().is_zero()
                 {
-                    (b + a * i).arg() * to_deg
+                    Complex::with_val(options.prec, (b.real(), a.real())).arg() * to_deg
                 }
                 else
                 {
+                    let i = Complex::with_val(options.prec, (0, 1));
                     let abs: Complex = a.clone().pow(2) + b.clone().pow(2);
                     -i.clone() * ((b + a * i) / abs.sqrt()).ln() * to_deg
                 }
@@ -2490,13 +2490,13 @@ fn functions(
         {
             if let Some(b) = c
             {
-                let i = Complex::with_val(options.prec, (0, -1));
                 if a.imag().is_zero() && b.imag().is_zero()
                 {
-                    (a + b * i).arg() * to_deg
+                    Complex::with_val(options.prec, (a.real(), b.real())).arg() * to_deg
                 }
                 else
                 {
+                    let i = Complex::with_val(options.prec, (0, 1));
                     let abs: Complex = a.clone().pow(2) + b.clone().pow(2);
                     -i.clone() * ((a + b * i) / abs.sqrt()).ln() * to_deg
                 }

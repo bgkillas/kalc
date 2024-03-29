@@ -68,9 +68,25 @@ pub fn print_concurrent(
         let tempinput = unparsed.iter().collect::<String>();
         if tempinput.starts_with("help ")
         {
-            //TODO wrap
             let message = help_for(tempinput.splitn(2, ' ').last().unwrap());
-            let num = message.chars().filter(|c| c == &'\n').count();
+            let mut num = message.chars().filter(|c| c == &'\n').count();
+            {
+                let width = get_terminal_dimensions().0;
+                let mut len = 0;
+                for i in no_col(&message, options.color)
+                {
+                    len += 1;
+                    if i == '\n'
+                    {
+                        len = 0
+                    }
+                    else if len > width
+                    {
+                        len = 0;
+                        num += 1;
+                    }
+                }
+            }
             print!(
                 "\x1b[G\x1b[J\n{}\x1b[G\x1b[{}A{}{}{}",
                 message,

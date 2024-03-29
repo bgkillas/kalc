@@ -21,57 +21,6 @@ pub enum NumStr
     Vector(Vec<(Complex, Option<Units>)>),
     Matrix(Vec<Vec<(Complex, Option<Units>)>>),
 }
-impl Units
-{
-    pub fn mul(&self, b: &Self) -> Self
-    {
-        Self {
-            second: self.second + b.second,
-            meter: self.meter + b.meter,
-            kilogram: self.kilogram + b.kilogram,
-            ampere: self.ampere + b.ampere,
-            kelvin: self.kelvin + b.kelvin,
-            mole: self.mole + b.mole,
-            candela: self.candela + b.candela,
-        }
-    }
-    pub fn div(&self, b: &Self) -> Self
-    {
-        Self {
-            second: self.second - b.second,
-            meter: self.meter - b.meter,
-            kilogram: self.kilogram - b.kilogram,
-            ampere: self.ampere - b.ampere,
-            kelvin: self.kelvin - b.kelvin,
-            mole: self.mole - b.mole,
-            candela: self.candela - b.candela,
-        }
-    }
-    pub fn pow(&self, b: f64) -> Self
-    {
-        Self {
-            second: self.second * b,
-            meter: self.meter * b,
-            kilogram: self.kilogram * b,
-            ampere: self.ampere * b,
-            kelvin: self.kelvin * b,
-            mole: self.mole * b,
-            candela: self.candela * b,
-        }
-    }
-    pub fn root(&self, b: f64) -> Self
-    {
-        Self {
-            second: self.second / b,
-            meter: self.meter / b,
-            kilogram: self.kilogram / b,
-            ampere: self.ampere / b,
-            kelvin: self.kelvin / b,
-            mole: self.mole / b,
-            candela: self.candela / b,
-        }
-    }
-}
 pub fn add(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Complex, Option<Units>)
 {
     (
@@ -511,7 +460,8 @@ pub fn div(a: &(Complex, Option<Units>), b: &(Complex, Option<Units>)) -> (Compl
         match (a.1, b.1)
         {
             (Some(a), Some(b)) => Some(a.div(&b)),
-            (Some(a), None) | (None, Some(a)) => Some(a),
+            (Some(a), None) => Some(a),
+            (None, Some(b)) => Some(Units::default().div(&b)),
             (None, None) => None,
         },
     )

@@ -17,7 +17,7 @@ use crate::{
     Colors, Options, Units, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
-use std::{cmp::Ordering, fmt};
+use std::cmp::Ordering;
 #[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
     unmodified_input: &[char],
@@ -1864,127 +1864,5 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
                     + if num.len() - 1 > dec { 1 } else { 0 })
                 .to_string()
         }
-    }
-}
-impl fmt::Display for Units
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
-    {
-        write!(
-            f,
-            "{}{}{}{}{}{}{}",
-            if self.meter != 0.0
-            {
-                " m".to_owned()
-                    + &if self.meter != 1.0
-                    {
-                        "^".to_owned() + &self.meter.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
-            if self.second != 0.0
-            {
-                " s".to_owned()
-                    + &if self.second != 1.0
-                    {
-                        "^".to_owned() + &self.second.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
-            if self.kilogram != 0.0
-            {
-                " kg".to_owned()
-                    + &if self.kilogram != 1.0
-                    {
-                        "^".to_owned() + &self.kilogram.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
-            if self.ampere != 0.0
-            {
-                " A".to_owned()
-                    + &if self.ampere != 1.0
-                    {
-                        "^".to_owned() + &self.ampere.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
-            if self.kelvin != 0.0
-            {
-                " K".to_owned()
-                    + &if self.kelvin != 1.0
-                    {
-                        "^".to_owned() + &self.kelvin.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
-            if self.mole != 0.0
-            {
-                " mol".to_owned()
-                    + &if self.mole != 1.0
-                    {
-                        "^".to_owned() + &self.mole.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
-            if self.candela != 0.0
-            {
-                " cd".to_owned()
-                    + &if self.candela != 1.0
-                    {
-                        "^".to_owned() + &self.candela.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            }
-        )
     }
 }

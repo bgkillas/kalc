@@ -11,6 +11,7 @@ mod parse;
 mod print;
 #[cfg(test)]
 mod tests;
+mod units;
 use crate::{
     complex::NumStr,
     graph::graph,
@@ -45,6 +46,7 @@ use std::{
 //do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
 //allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //infinitely long greater/lesser than chains
+//have unit powers be fractional, maybe 2 usizes
 #[derive(Clone)]
 pub struct Variable
 {

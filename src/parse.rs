@@ -5,7 +5,8 @@ use crate::{
     },
     functions::functions,
     math::do_math,
-    Options, Units, Variable,
+    units::{to_unit, units},
+    Options, Variable,
 };
 use rug::{
     float::Special::{Infinity, Nan},
@@ -973,7 +974,7 @@ pub fn input_var(
             }
         }
         let mut num = 0;
-        if matches!(word.as_str(), "m" | "s" | "kg" | "A" | "K" | "mol" | "cd")
+        if units().contains(word.as_str())
         {
             i += countv;
             if let Some(Str(s)) = output.last_mut()
@@ -987,18 +988,7 @@ pub fn input_var(
             {
                 output.push(Str('×'.to_string()))
             }
-            output.push(Num((
-                Complex::with_val(options.prec, 1),
-                Some(Units {
-                    second: if word == "s" { 1.0 } else { 0.0 },
-                    meter: if word == "m" { 1.0 } else { 0.0 },
-                    kilogram: if word == "kg" { 1.0 } else { 0.0 },
-                    ampere: if word == "A" { 1.0 } else { 0.0 },
-                    kelvin: if word == "K" { 1.0 } else { 0.0 },
-                    mole: if word == "mol" { 1.0 } else { 0.0 },
-                    candela: if word == "cd" { 1.0 } else { 0.0 },
-                }),
-            )))
+            output.push(Num(to_unit(word, prec)))
         }
         else if !vars.clone().iter().any(|a| {
             if a.name.contains(&'(')

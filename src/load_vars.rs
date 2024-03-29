@@ -273,10 +273,10 @@ fn k(prec: (u32, u32)) -> Variable
         parsed: vec![Num((
             Complex::parse("8.9875517923e9").unwrap().complete(prec),
             Some(Units {
-                second: 0.0,
+                second: -4.0,
                 meter: 3.0,
                 kilogram: 1.0,
-                ampere: 2.0,
+                ampere: -2.0,
                 kelvin: 0.0,
                 mole: 0.0,
                 candela: 0.0,

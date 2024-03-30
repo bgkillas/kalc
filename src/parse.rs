@@ -867,9 +867,14 @@ pub fn input_var(
             countv += 1;
         }
         let wordv = word.clone();
-        if (word.ends_with('x') && word != "max" && !word.ends_with("lx"))
-            || (word.ends_with('y') && word != "any" && !word.ends_with("day"))
-            || word.ends_with('z')
+        if (word.ends_with('x') && word != "max" && !word.ends_with("lx") && !word.ends_with("lux"))
+            || (word.ends_with('y')
+                && word != "any"
+                && !word.ends_with("day")
+                && !word.ends_with("henry")
+                && !word.ends_with("Gy")
+                && !word.ends_with("gray"))
+            || (word.ends_with('z') && !word.ends_with("Hz") && !word.ends_with("hertz"))
         {
             countv -= 1;
             word.pop();

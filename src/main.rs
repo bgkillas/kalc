@@ -74,6 +74,7 @@ pub struct Colors
     prompt: String,
     imag: String,
     sci: String,
+    units: String,
     brackets: Vec<String>,
     re1col: String,
     re2col: String,
@@ -98,6 +99,7 @@ impl Default for Colors
             prompt: "\x1b[94m".to_string(),
             imag: "\x1b[93m".to_string(),
             sci: "\x1b[92m".to_string(),
+            units: "\x1b[96m".to_string(),
             brackets: vec![
                 "\x1b[91m".to_string(),
                 "\x1b[92m".to_string(),

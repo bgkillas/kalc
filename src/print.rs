@@ -1296,7 +1296,19 @@ pub fn get_output(
                     {
                         if let Some(units) = units
                         {
-                            units.to_string()
+                            format!(
+                                "{}{}{}",
+                                if options.color
+                                {
+                                    "\x1b[".to_owned() + &colors.units + "m"
+                                }
+                                else
+                                {
+                                    String::new()
+                                },
+                                units,
+                                if options.color { "\x1b[0m" } else { "" }
+                            )
                         }
                         else
                         {
@@ -1400,7 +1412,19 @@ pub fn get_output(
                         {
                             if let Some(units) = units
                             {
-                                units.to_string()
+                                format!(
+                                    "{}{}{}",
+                                    if options.color
+                                    {
+                                        "\x1b[".to_owned() + &colors.units + "m"
+                                    }
+                                    else
+                                    {
+                                        String::new()
+                                    },
+                                    units,
+                                    if options.color { "\x1b[0m" } else { "" }
+                                )
                             }
                             else
                             {
@@ -1541,7 +1565,19 @@ pub fn get_output(
                 {
                     if let Some(units) = units
                     {
-                        units.to_string()
+                        format!(
+                            "{}{}{}",
+                            if options.color
+                            {
+                                "\x1b[".to_owned() + &colors.units + "m"
+                            }
+                            else
+                            {
+                                String::new()
+                            },
+                            units,
+                            if options.color { "\x1b[0m" } else { "" }
+                        )
                     }
                     else
                     {

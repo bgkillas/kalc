@@ -172,6 +172,7 @@ pub fn set_commands(
         "promptc" => colors.prompt = "\x1b[".to_owned() + r,
         "imagc" => colors.imag = "\x1b[".to_owned() + r,
         "scic" => colors.sci = "\x1b[".to_owned() + r,
+        "unitsc" => colors.units = "\x1b[".to_owned() + r,
         "bracketc" =>
         {
             colors.brackets = r
@@ -1022,7 +1023,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "colors" =>
         {
             format!(
-            "{}textc={} {}promptc={} {}imagc={} {}scic={} \x1b[0mbracketc={} \x1b[0mre1col={} re2col={} re3col={} re4col={} re5col={} re6col={} im1col={} im2col={} im3col={} im4col={} im5col={} im6col={}",
+            "{}textc={} {}promptc={} {}imagc={} {}scic={} {}unitsc={} \x1b[0mbracketc={} \x1b[0mre1col={} re2col={} re3col={} re4col={} re5col={} re6col={} im1col={} im2col={} im3col={} im4col={} im5col={} im6col={}",
             colors.text,
             &colors.text[2..],
             colors.prompt,
@@ -1031,6 +1032,8 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             &colors.imag[2..],
             colors.sci,
             &colors.sci[2..],
+            colors.units,
+            &colors.units[2..],
             bracketcol(&colors.brackets),
             formatcol(&colors.re1col),
             formatcol(&colors.re2col),
@@ -1103,6 +1106,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "promptc" => colors.prompt.to_string(),
         "imagc" => colors.imag.to_string(),
         "scic" => colors.sci.to_string(),
+        "unitsc" => colors.units.to_string(),
         "bracketc" => bracketcol(&colors.brackets),
         "re1col" => formatcol(&colors.re1col),
         "re2col" => formatcol(&colors.re2col),

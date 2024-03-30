@@ -161,7 +161,7 @@ pub fn input_var(
             {
                 Some(Num(_)) => output.push(Str('^'.to_string())),
                 Some(Str(s))
-                    if matches!(s.as_str(), "x" | "y" | "rnd")
+                    if matches!(s.as_str(), "x" | "y" | "rnd" | "epoch")
                         || sumrec.iter().any(|v| &v.1 == s) =>
                 {
                     output.push(Str('^'.to_string()))
@@ -1080,7 +1080,7 @@ pub fn input_var(
                 ))
                 || matches!(
                     word.as_str(),
-                    "rnd" | "inf" | "true" | "false" | "nan" | "NaN"
+                    "rnd" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
                 ))
         {
             place_multiplier(&mut output, sumrec);
@@ -2229,7 +2229,8 @@ pub fn input_var(
         {
             Some(Num(_)) => output.push(Str('^'.to_string())),
             Some(Str(s))
-                if matches!(s.as_str(), "x" | "y" | "rnd") || sumrec.iter().any(|v| &v.1 == s) =>
+                if matches!(s.as_str(), "x" | "y" | "rnd" | "epoch")
+                    || sumrec.iter().any(|v| &v.1 == s) =>
             {
                 output.push(Str('^'.to_string()))
             }
@@ -2323,7 +2324,7 @@ pub fn input_var(
             {
                 match s.as_str()
                 {
-                    "x" | "y" | "roll" | "rnd" =>
+                    "x" | "y" | "roll" | "rnd" | "epoch" =>
                     {
                         to = 0;
                     }
@@ -2362,10 +2363,12 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
     match output.last()
     {
         Some(Str(s))
-            if matches!(s.as_str(), ")" | "x" | "y" | "]" | "}" | "rnd" | "@")
-                || sumrec
-                    .iter()
-                    .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s) =>
+            if matches!(
+                s.as_str(),
+                ")" | "x" | "y" | "]" | "}" | "rnd" | "epoch" | "@"
+            ) || sumrec
+                .iter()
+                .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s) =>
         {
             output.push(Str('*'.to_string()))
         }

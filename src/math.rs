@@ -10,7 +10,7 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     AngleType::{Degrees, Gradians, Radians},
-    Number, Options,
+    Number, Options, Units,
 };
 use rug::{
     float::{
@@ -21,7 +21,7 @@ use rug::{
     ops::Pow,
     Complex, Float, Integer,
 };
-use std::{cmp::Ordering, ops::Rem};
+use std::{cmp::Ordering, ops::Rem, time::SystemTime};
 pub fn do_math(
     mut function: Vec<NumStr>,
     options: Options,
@@ -47,17 +47,37 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            if s == "rnd"
+            match s.as_str()
             {
-                function[i] = Num(Number::from_units(
-                    Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
-                    None,
-                ))
-            }
-            else
-            {
-                let s = s.clone();
-                recursively_get_var(&mut function, &func_vars, &i, &s);
+                "rnd" =>
+                {
+                    function[i] = Num(Number::from_units(
+                        Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
+                        None,
+                    ))
+                }
+                "epoch" =>
+                {
+                    function[i] = Num(Number::from_units(
+                        Complex::with_val(
+                            options.prec,
+                            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
+                            {
+                                Ok(n) => n.as_nanos(),
+                                _ => return Err("epoch fail"),
+                            },
+                        ) / 1000000000,
+                        Some(Units {
+                            second: 1.0,
+                            ..Units::default()
+                        }),
+                    ))
+                }
+                _ =>
+                {
+                    let s = s.clone();
+                    recursively_get_var(&mut function, &func_vars, &i, &s);
+                }
             }
         }
         i += 1;

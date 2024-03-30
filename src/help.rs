@@ -79,7 +79,8 @@ Operators:\x1b[G\n\
 - +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-\x1b[G\n\
 - !x (subfact), x! (fact), x!! (doublefact)\x1b[G\n\
 - && (and), || (or), == (equals), != (not equals)\x1b[G\n\
-- >> (right shift), << (left shift)\x1b[G\n\n\
+- >> (right shift), << (left shift)\x1b[G\n\
+- ->, to (unit conversions, ie 2m->yd)\x1b[G\n\n\
 Functions:\x1b[G\n\
 - sin, cos, tan, asin, acos, atan, atan(x,y)\x1b[G\n\
 - csc, sec, cot, acsc, asec, acot\x1b[G\n\

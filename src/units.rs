@@ -256,6 +256,10 @@ impl Default for Units
 }
 pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
 {
+    if units().contains(unit.as_str())
+    {
+        return (unit, Complex::with_val(prec, 1));
+    }
     let bak = unit.clone();
     let mut word = String::new();
     while !unit.is_empty() && word.len() < 7

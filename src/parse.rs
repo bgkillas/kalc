@@ -588,7 +588,12 @@ pub fn input_var(
                 }
                 '-' if i + 1 < chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    if i != 0 && chars[i - 1] == '^'
+                    if options.units && chars[i + 1] == '>'
+                    {
+                        output.push(Str("/".to_string()));
+                        i += 1;
+                    }
+                    else if i != 0 && chars[i - 1] == '^'
                     {
                         output.push(Str("(".to_string()));
                         output.push(Num(Number::from_units(n1.clone(), None)));
@@ -1042,7 +1047,8 @@ pub fn input_var(
         }
         let (unit, mul);
         let mut num = 0;
-        if if i + countv < chars.len() && matches!(chars[i + countv], '(' | '{' | '[' | '|')
+        let var_overrule = if i + countv < chars.len()
+            && matches!(chars[i + countv], '(' | '{' | '[' | '|')
         {
             !vars.clone().iter().any(|a| {
                 if a.name.contains(&'(')
@@ -1064,16 +1070,18 @@ pub fn input_var(
                 .clone()
                 .iter()
                 .any(|a| a.name.iter().collect::<String>() == word)
-        } && ((functions.contains(word.as_str())
-            && i + countv < chars.len()
-            && matches!(
-                chars[i + countv],
-                'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^' | '⁻'
-            ))
-            || matches!(
-                word.as_str(),
-                "rnd" | "inf" | "true" | "false" | "nan" | "NaN"
-            ))
+        };
+        if var_overrule
+            && ((functions.contains(word.as_str())
+                && i + countv < chars.len()
+                && matches!(
+                    chars[i + countv],
+                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^' | '⁻'
+                ))
+                || matches!(
+                    word.as_str(),
+                    "rnd" | "inf" | "true" | "false" | "nan" | "NaN"
+                ))
         {
             place_multiplier(&mut output, sumrec);
             if neg
@@ -1212,31 +1220,8 @@ pub fn input_var(
                 (unit, mul) = prefixes(word.clone(), prec);
                 units().contains(unit.as_str())
             }
-            && if i + countv < chars.len() && matches!(chars[i + countv], '(' | '{' | '[' | '|')
-            {
-                !vars.clone().iter().any(|a| {
-                    if a.name.contains(&'(')
-                    {
-                        a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
-                            .iter()
-                            .collect::<String>()
-                            == word
-                    }
-                    else
-                    {
-                        a.name.iter().collect::<String>() == word
-                    }
-                })
-            }
-            else
-            {
-                !vars
-                    .clone()
-                    .iter()
-                    .any(|a| a.name.iter().collect::<String>() == word)
-            }
+            && var_overrule
         {
-            i += countv;
             place_multiplier(&mut output, sumrec);
             if neg
             {
@@ -1259,10 +1244,36 @@ pub fn input_var(
             output.push(Num(num));
             if let Some(num) = add
             {
-                output.insert(output.len().saturating_sub(3), Str('('.to_string()));
+                output.insert(
+                    if i != 0 && chars[i - 1].is_alphanumeric()
+                    {
+                        output.len().saturating_sub(3)
+                    }
+                    else if i != 0 && chars[i - 1] == ')'
+                    {
+                        output.len().saturating_sub(
+                            output.iter().rev().position(|c| c.str_is("(")).unwrap(),
+                        )
+                    }
+                    else
+                    {
+                        output.len().saturating_sub(1)
+                    },
+                    Str('('.to_string()),
+                );
                 output.push(Str('+'.to_string()));
                 output.push(Num(num));
                 output.push(Str(')'.to_string()));
+            }
+            i += countv;
+        }
+        else if options.units && word == "to" && !output.is_empty() && var_overrule
+        {
+            i += countv;
+            *output.last_mut().unwrap() = Str('/'.to_string());
+            if chars.len() > i
+            {
+                chars.remove(i);
             }
         }
         else

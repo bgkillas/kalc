@@ -408,8 +408,6 @@ pub fn units() -> HashSet<&'static str>
         "meter",
         "s",
         "second",
-        "kg",
-        "kilogram",
         "A",
         "ampere",
         "K",

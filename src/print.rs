@@ -1300,7 +1300,7 @@ pub fn get_output(
                                 "{}{}{}",
                                 if options.color
                                 {
-                                    "\x1b[".to_owned() + &colors.units + "m"
+                                    "\x1b[".to_owned() + &colors.units
                                 }
                                 else
                                 {
@@ -1416,7 +1416,7 @@ pub fn get_output(
                                     "{}{}{}",
                                     if options.color
                                     {
-                                        "\x1b[".to_owned() + &colors.units + "m"
+                                        "\x1b[".to_owned() + &colors.units
                                     }
                                     else
                                     {
@@ -1569,7 +1569,7 @@ pub fn get_output(
                             "{}{}{}",
                             if options.color
                             {
-                                "\x1b[".to_owned() + &colors.units + "m"
+                                "\x1b[".to_owned() + &colors.units
                             }
                             else
                             {

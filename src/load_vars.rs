@@ -1,6 +1,6 @@
 use crate::{
-    complex::NumStr::Num, math::do_math, options::set_commands, parse::input_var, Colors, Options,
-    Units, Variable,
+    complex::NumStr::Num, math::do_math, options::set_commands, parse::input_var, Colors, Number,
+    Options, Units, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float};
 pub fn get_file_vars(
@@ -70,7 +70,7 @@ fn ec(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['e', 'c'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("1.602176634e-19").unwrap().complete(prec),
             Some(Units {
                 second: 1.0,
@@ -86,7 +86,7 @@ fn kb(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['b', 'o'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("1.380649e-23").unwrap().complete(prec),
             Some(Units {
                 second: -2.0,
@@ -104,7 +104,7 @@ fn me(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['m', 'e'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("9.1093837015e-31").unwrap().complete(prec),
             Some(Units {
                 kilogram: 1.0,
@@ -119,7 +119,7 @@ fn mn(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['m', 'n'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("1.67492749804e-27").unwrap().complete(prec),
             Some(Units {
                 kilogram: 1.0,
@@ -134,7 +134,7 @@ fn mp(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['m', 'p'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("1.67262192369e-27").unwrap().complete(prec),
             Some(Units {
                 kilogram: 1.0,
@@ -149,7 +149,7 @@ fn c(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['c'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("299792458").unwrap().complete(prec),
             Some(Units {
                 second: -1.0,
@@ -165,7 +165,7 @@ fn g(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['g', 'r'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("9.80665").unwrap().complete(prec),
             Some(Units {
                 second: -2.0,
@@ -181,7 +181,7 @@ fn gc(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['G'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("6.67430e-11").unwrap().complete(prec),
             Some(Units {
                 second: -2.0,
@@ -198,7 +198,7 @@ fn h(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['p', 'l'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("6.62607015e-34").unwrap().complete(prec),
             Some(Units {
                 second: -1.0,
@@ -215,7 +215,7 @@ fn na(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['N', 'a'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("6.02214076e23").unwrap().complete(prec),
             Some(Units {
                 mole: -1.0,
@@ -230,7 +230,7 @@ fn k(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['k'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("8.9875517923e9").unwrap().complete(prec),
             Some(Units {
                 second: -4.0,
@@ -248,7 +248,7 @@ fn r(prec: (u32, u32)) -> Variable
 {
     Variable {
         name: vec!['R'],
-        parsed: vec![Num((
+        parsed: vec![Num(Number::from_units(
             Complex::parse("8.31446261815324").unwrap().complete(prec),
             Some(Units {
                 second: -2.0,
@@ -344,7 +344,7 @@ fn get_preset_vars(
                     0,
                     Variable {
                         name: vec!['p', 'h', 'i'],
-                        parsed: vec![Num((phi.clone().into(), None))],
+                        parsed: vec![Num(Number::from_units(phi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -355,7 +355,7 @@ fn get_preset_vars(
                 blacklist.push("φ".to_string());
                 vars.push(Variable {
                     name: vec!['φ'],
-                    parsed: vec![Num((phi.into(), None))],
+                    parsed: vec![Num(Number::from_units(phi.into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -377,7 +377,7 @@ fn get_preset_vars(
                     vars.iter().position(|c| c.name.len() != 3).unwrap_or(0),
                     Variable {
                         name: vec!['p', 'i'],
-                        parsed: vec![Num((pi.clone().into(), None))],
+                        parsed: vec![Num(Number::from_units(pi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -388,7 +388,7 @@ fn get_preset_vars(
                 blacklist.push("π".to_string());
                 vars.push(Variable {
                     name: vec!['π'],
-                    parsed: vec![Num((pi.clone().into(), None))],
+                    parsed: vec![Num(Number::from_units(pi.clone().into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -403,7 +403,7 @@ fn get_preset_vars(
                         0,
                         Variable {
                             name: vec!['t', 'a', 'u'],
-                            parsed: vec![Num((tau.clone().into(), None))],
+                            parsed: vec![Num(Number::from_units(tau.clone().into(), None))],
                             unparsed: String::new(),
                             funcvars: Vec::new(),
                         },
@@ -414,7 +414,7 @@ fn get_preset_vars(
                     blacklist.push("τ".to_string());
                     vars.push(Variable {
                         name: vec!['τ'],
-                        parsed: vec![Num((tau.into(), None))],
+                        parsed: vec![Num(Number::from_units(tau.into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     });
@@ -428,7 +428,7 @@ fn get_preset_vars(
         let e = Float::with_val(options.prec, 1).exp();
         vars.push(Variable {
             name: vec!['e'],
-            parsed: vec![Num((e.into(), None))],
+            parsed: vec![Num(Number::from_units(e.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         });
@@ -501,7 +501,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                     0,
                     Variable {
                         name: vec!['p', 'h', 'i'],
-                        parsed: vec![Num((phi.clone().into(), None))],
+                        parsed: vec![Num(Number::from_units(phi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -511,7 +511,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
             {
                 vars.push(Variable {
                     name: vec!['φ'],
-                    parsed: vec![Num((phi.into(), None))],
+                    parsed: vec![Num(Number::from_units(phi.into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -532,7 +532,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                     vars.iter().position(|c| c.name.len() != 3).unwrap_or(0),
                     Variable {
                         name: vec!['p', 'i'],
-                        parsed: vec![Num((pi.clone().into(), None))],
+                        parsed: vec![Num(Number::from_units(pi.clone().into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     },
@@ -542,7 +542,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
             {
                 vars.push(Variable {
                     name: vec!['π'],
-                    parsed: vec![Num((pi.clone().into(), None))],
+                    parsed: vec![Num(Number::from_units(pi.clone().into(), None))],
                     unparsed: String::new(),
                     funcvars: Vec::new(),
                 });
@@ -556,7 +556,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                         0,
                         Variable {
                             name: vec!['t', 'a', 'u'],
-                            parsed: vec![Num((tau.clone().into(), None))],
+                            parsed: vec![Num(Number::from_units(tau.clone().into(), None))],
                             unparsed: String::new(),
                             funcvars: Vec::new(),
                         },
@@ -566,7 +566,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
                 {
                     vars.push(Variable {
                         name: vec!['τ'],
-                        parsed: vec![Num((tau.into(), None))],
+                        parsed: vec![Num(Number::from_units(tau.into(), None))],
                         unparsed: String::new(),
                         funcvars: Vec::new(),
                     });
@@ -579,7 +579,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
         let e = Float::with_val(options.prec, 1).exp();
         vars.push(Variable {
             name: vec!['e'],
-            parsed: vec![Num((e.into(), None))],
+            parsed: vec![Num(Number::from_units(e.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         });
@@ -595,13 +595,13 @@ pub fn get_vars(options: Options) -> Vec<Variable>
     vec![
         Variable {
             name: vec!['p', 'h', 'i'],
-            parsed: vec![Num((phi.clone().into(), None))],
+            parsed: vec![Num(Number::from_units(phi.clone().into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         Variable {
             name: vec!['t', 'a', 'u'],
-            parsed: vec![Num((tau.clone().into(), None))],
+            parsed: vec![Num(Number::from_units(tau.clone().into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
@@ -613,14 +613,14 @@ pub fn get_vars(options: Options) -> Vec<Variable>
         na(prec),
         Variable {
             name: vec!['p', 'i'],
-            parsed: vec![Num((pi.clone().into(), None))],
+            parsed: vec![Num(Number::from_units(pi.clone().into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         c(prec),
         Variable {
             name: vec!['e'],
-            parsed: vec![Num((e.into(), None))],
+            parsed: vec![Num(Number::from_units(e.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
@@ -631,19 +631,19 @@ pub fn get_vars(options: Options) -> Vec<Variable>
         r(prec),
         Variable {
             name: vec!['φ'],
-            parsed: vec![Num((phi.into(), None))],
+            parsed: vec![Num(Number::from_units(phi.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         Variable {
             name: vec!['π'],
-            parsed: vec![Num((pi.into(), None))],
+            parsed: vec![Num(Number::from_units(pi.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },
         Variable {
             name: vec!['τ'],
-            parsed: vec![Num((tau.into(), None))],
+            parsed: vec![Num(Number::from_units(tau.into(), None))],
             unparsed: String::new(),
             funcvars: Vec::new(),
         },

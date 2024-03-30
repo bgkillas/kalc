@@ -1,4 +1,4 @@
-use crate::Units;
+use crate::{Number, Units};
 use rug::{float::Constant::Pi, ops::Pow, Complex};
 use std::{collections::HashSet, fmt};
 impl Units
@@ -493,11 +493,7 @@ pub fn units() -> HashSet<&'static str>
     .cloned()
     .collect::<HashSet<&str>>()
 }
-pub fn to_unit(
-    unit: String,
-    prec: (u32, u32),
-    mut num: Complex,
-) -> ((Complex, Option<Units>), Option<(Complex, Option<Units>)>)
+pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Option<Number>)
 {
     let mut units = Units::default();
     let mut add = None;
@@ -523,7 +519,8 @@ pub fn to_unit(
         }
         "gray" | "Gy" =>
         {
-            units.second = -1.0;
+            units.second = -2.0;
+            units.meter = 2.0;
         }
         "sievert" | "Sv" =>
         {
@@ -610,7 +607,10 @@ pub fn to_unit(
                 kelvin: 1.0,
                 ..Units::default()
             };
-            add = Some((Complex::with_val(prec, 5463) / 20, Some(unit)));
+            add = Some(Number::from_units(
+                Complex::with_val(prec, 5463) / 20,
+                Some(unit),
+            ));
         }
         "°F" | "fahrenheit" =>
         {
@@ -621,7 +621,10 @@ pub fn to_unit(
                 kelvin: 1.0,
                 ..Units::default()
             };
-            add = Some((Complex::with_val(prec, 45967) / 180, Some(unit)));
+            add = Some(Number::from_units(
+                Complex::with_val(prec, 45967) / 180,
+                Some(unit),
+            ));
         }
         "kWh" =>
         {
@@ -728,5 +731,5 @@ pub fn to_unit(
         _ =>
         {}
     }
-    ((num, Some(units)), add)
+    (Number::from_units(num, Some(units)), add)
 }

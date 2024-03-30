@@ -14,7 +14,7 @@ use crate::{
     options::{equal_to, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Options, Units, Variable,
+    Colors, Number, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::cmp::Ordering;
@@ -493,10 +493,10 @@ pub fn print_concurrent(
     {
         Num(n) =>
         {
-            let output = get_output(options, &colors, &n.0, n.1);
+            let output = get_output(options, &colors, &n);
             let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
             {
-                let n = n.0;
+                let n = n.number;
                 let fa = fraction(n.real().clone(), options);
                 let fb = fraction(n.imag().clone(), options);
                 let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
@@ -747,8 +747,8 @@ pub fn print_concurrent(
             let mut frac_temp;
             for (k, i) in v.iter().enumerate()
             {
-                out = get_output(options, &colors, &i.0, i.1);
-                let i = &i.0;
+                out = get_output(options, &colors, i);
+                let i = &i.number;
                 if options.frac || options.frac_iter == 0
                 {
                     frac_temp = fraction(i.real().clone(), options);
@@ -907,8 +907,8 @@ pub fn print_concurrent(
                 }
                 for (k, i) in j.iter().enumerate()
                 {
-                    out = get_output(options, &colors, &i.0, i.1);
-                    let i = &i.0;
+                    out = get_output(options, &colors, i);
+                    let i = &i.number;
                     if options.frac || options.frac_iter == 0
                     {
                         frac_temp = fraction(i.real().clone(), options);
@@ -1136,7 +1136,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
     {
         Num(n) =>
         {
-            let a = get_output(options, colors, &n.0, n.1);
+            let a = get_output(options, colors, &n);
             print!(
                 "{}{}{}",
                 a.0,
@@ -1162,7 +1162,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             let mut out;
             for (k, i) in v.iter().enumerate()
             {
-                out = get_output(options, colors, &i.0, i.1);
+                out = get_output(options, colors, i);
                 output += out.0.as_str();
                 output += out.1.as_str();
                 if options.color
@@ -1206,7 +1206,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 }
                 for (k, i) in j.iter().enumerate()
                 {
-                    out = get_output(options, colors, &i.0, i.1);
+                    out = get_output(options, colors, i);
                     output += out.0.as_str();
                     output += out.1.as_str();
                     if options.color
@@ -1251,13 +1251,10 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
         {}
     }
 }
-pub fn get_output(
-    options: Options,
-    colors: &Colors,
-    num: &Complex,
-    units: Option<Units>,
-) -> (String, String)
+pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String, String)
 {
+    let num = number.number.clone();
+    let units = number.units;
     let dec = if options.decimal_places == 0
     {
         1
@@ -1285,40 +1282,44 @@ pub fn get_output(
                     let n = num
                         .real()
                         .to_string_radix(options.base.1, Some(options.decimal_places));
-                    (if n.contains('e')
-                    {
-                        n
-                    }
-                    else
-                    {
-                        n.trim_end_matches('0').trim_end_matches('.').to_string()
-                    } + &if options.units && num.imag().is_zero()
-                    {
-                        if let Some(units) = units
+                    format!(
+                        "{}{}",
+                        if n.contains('e')
                         {
-                            format!(
-                                "{}{}{}",
-                                if options.color
-                                {
-                                    "\x1b[".to_owned() + &colors.units
-                                }
-                                else
-                                {
-                                    String::new()
-                                },
-                                units,
-                                if options.color { "\x1b[0m" } else { "" }
-                            )
+                            n
+                        }
+                        else
+                        {
+                            n.trim_end_matches('0').trim_end_matches('.').to_string()
+                        },
+                        &if options.units && num.imag().is_zero()
+                        {
+                            if let Some(units) = units
+                            {
+                                format!(
+                                    "{}{}{}",
+                                    if options.color
+                                    {
+                                        "\x1b[".to_owned() + &colors.units
+                                    }
+                                    else
+                                    {
+                                        String::new()
+                                    },
+                                    units,
+                                    if options.color { "\x1b[0m" } else { "" }
+                                )
+                            }
+                            else
+                            {
+                                String::new()
+                            }
                         }
                         else
                         {
                             String::new()
                         }
-                    }
-                    else
-                    {
-                        String::new()
-                    })
+                    )
                 }
                 else if num.imag().is_zero()
                 {

@@ -7,7 +7,7 @@ use crate::{
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Options, Variable,
+    Colors, Number, Options, Variable,
 };
 use crossterm::{
     execute, terminal,
@@ -245,7 +245,7 @@ pub fn set_commands(
                             args.push(
                                 do_math(parsed.0, *options, parsed.1)?
                                     .num()?
-                                    .0
+                                    .number
                                     .real()
                                     .to_f64(),
                             );
@@ -269,7 +269,7 @@ pub fn set_commands(
                 args.push(
                     do_math(parsed.0, *options, parsed.1)?
                         .num()?
-                        .0
+                        .number
                         .real()
                         .to_f64(),
                 );
@@ -430,7 +430,10 @@ pub fn set_commands(
                                     else
                                     {
                                         vec![do_math(parsed.0, *options, parsed.1.clone())
-                                            .unwrap_or(Num((Complex::new(options.prec), None)))]
+                                            .unwrap_or(Num(Number::from_units(
+                                                Complex::new(options.prec),
+                                                None,
+                                            )))]
                                     };
                                     vars[i].funcvars = parsed.1;
                                     if var.name.contains(&'(')
@@ -916,7 +919,7 @@ pub fn commands(
                     {
                         Num(n) =>
                         {
-                            let n = get_output(*options, colors, &n.0, n.1);
+                            let n = get_output(*options, colors, n);
                             print!(
                                 "{}={}{}{}\x1b[G\n",
                                 v.name.iter().collect::<String>(),
@@ -930,7 +933,7 @@ pub fn commands(
                             let mut st = String::new();
                             for i in m
                             {
-                                let n = get_output(*options, colors, &i.0, i.1);
+                                let n = get_output(*options, colors, i);
                                 st.push_str(&n.0);
                                 st.push_str(&n.1);
                                 if options.color
@@ -953,7 +956,7 @@ pub fn commands(
                                 st.push('{');
                                 for g in i
                                 {
-                                    let n = get_output(*options, colors, &g.0, g.1);
+                                    let n = get_output(*options, colors, g);
                                     st.push_str(&n.0);
                                     st.push_str(&n.1);
                                     if options.color

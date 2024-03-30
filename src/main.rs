@@ -30,6 +30,7 @@ use crossterm::{
     cursor::{DisableBlinking, EnableBlinking},
     execute, terminal,
 };
+use rug::Complex;
 use std::{
     env::{args, var},
     fs::{File, OpenOptions},
@@ -70,6 +71,12 @@ pub struct Units
     radian: f64,
     steradian: f64,
     byte: f64,
+}
+#[derive(Clone, PartialEq)]
+pub struct Number
+{
+    number: Complex,
+    units: Option<Units>,
 }
 #[derive(Clone)]
 pub struct Colors

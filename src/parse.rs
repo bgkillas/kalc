@@ -6,7 +6,7 @@ use crate::{
     functions::functions,
     math::do_math,
     units::{prefixes, to_unit, units},
-    Options, Variable,
+    Number, Options, Variable,
 };
 use rug::{
     float::Special::{Infinity, Nan},
@@ -169,7 +169,7 @@ pub fn input_var(
                 _ =>
                 {}
             }
-            output.push(Num((
+            output.push(Num(Number::from_units(
                 match Complex::parse_radix(pow.as_bytes(), options.base.0)
                 {
                     Ok(n) => n.complete(prec),
@@ -230,7 +230,7 @@ pub fn input_var(
                 if chars.len() > i + 1
                     && (chars[i] == '^' || (chars[i] == '/' && chars[i + 1] == '/'))
                 {
-                    output.push(Num((n1.clone(), None)));
+                    output.push(Num(Number::from_units(n1.clone(), None)));
                     output.push(Str('*'.to_string()));
                 }
                 else
@@ -244,7 +244,7 @@ pub fn input_var(
                 num.insert(0, '-');
                 i += 1;
             }
-            output.push(Num((
+            output.push(Num(Number::from_units(
                 match Complex::parse_radix(num.clone(), options.base.0)
                 {
                     Ok(n) => n.complete(prec),
@@ -334,30 +334,87 @@ pub fn input_var(
             {
                 '√' => output.push(Str("sqrt".to_string())),
                 '∛' => output.push(Str("cbrt".to_string())),
-                '¼' => output.push(Num((Complex::with_val(options.prec, 0.25), None))),
-                '½' => output.push(Num((Complex::with_val(options.prec, 0.5), None))),
-                '¾' => output.push(Num((Complex::with_val(options.prec, 0.75), None))),
-                '⅒' => output.push(Num((Complex::with_val(options.prec, 0.1), None))),
-                '⅕' => output.push(Num((Complex::with_val(options.prec, 0.2), None))),
-                '⅖' => output.push(Num((Complex::with_val(options.prec, 0.4), None))),
-                '⅗' => output.push(Num((Complex::with_val(options.prec, 0.6), None))),
-                '⅘' => output.push(Num((Complex::with_val(options.prec, 0.8), None))),
-                '⅐' => output.push(Num((Complex::with_val(options.prec, 7).recip(), None))),
-                '⅑' => output.push(Num((Complex::with_val(options.prec, 9).recip(), None))),
-                '⅓' => output.push(Num((Complex::with_val(options.prec, 3).recip(), None))),
-                '⅔' => output.push(Num((Complex::with_val(options.prec, 1.5).recip(), None))),
-                '⅙' => output.push(Num((Complex::with_val(options.prec, 6).recip(), None))),
-                '⅚' => output.push(Num((Complex::with_val(options.prec, 1.2).recip(), None))),
-                '⅛' => output.push(Num((Complex::with_val(options.prec, 0.125), None))),
-                '⅜' => output.push(Num((Complex::with_val(options.prec, 0.375), None))),
-                '⅝' => output.push(Num((Complex::with_val(options.prec, 0.625), None))),
-                '⅞' => output.push(Num((Complex::with_val(options.prec, 0.875), None))),
+                '¼' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.25),
+                    None,
+                ))),
+                '½' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.5),
+                    None,
+                ))),
+                '¾' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.75),
+                    None,
+                ))),
+                '⅒' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.1),
+                    None,
+                ))),
+                '⅕' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.2),
+                    None,
+                ))),
+                '⅖' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.4),
+                    None,
+                ))),
+                '⅗' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.6),
+                    None,
+                ))),
+                '⅘' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.8),
+                    None,
+                ))),
+                '⅐' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 7).recip(),
+                    None,
+                ))),
+                '⅑' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 9).recip(),
+                    None,
+                ))),
+                '⅓' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 3).recip(),
+                    None,
+                ))),
+                '⅔' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 1.5).recip(),
+                    None,
+                ))),
+                '⅙' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 6).recip(),
+                    None,
+                ))),
+                '⅚' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 1.2).recip(),
+                    None,
+                ))),
+                '⅛' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.125),
+                    None,
+                ))),
+                '⅜' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.375),
+                    None,
+                ))),
+                '⅝' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.625),
+                    None,
+                ))),
+                '⅞' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, 0.875),
+                    None,
+                ))),
                 '⅟' =>
                 {
-                    output.push(Num((Complex::with_val(options.prec, 1), None)));
+                    output.push(Num(Number::from_units(
+                        Complex::with_val(options.prec, 1),
+                        None,
+                    )));
                     output.push(Str("/".to_string()))
                 }
-                '↉' => output.push(Num((Complex::new(options.prec), None))),
+                '↉' => output.push(Num(Number::from_units(Complex::new(options.prec), None))),
                 '⁰' | '₀' => pow.push('0'),
                 '⁹' | '₉' => pow.push('9'),
                 '⁸' | '₈' => pow.push('8'),
@@ -416,7 +473,7 @@ pub fn input_var(
                     if output.is_empty()
                         || matches!(output.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
                     {
-                        output.push(Num((Complex::new(options.prec), None)))
+                        output.push(Num(Number::from_units(Complex::new(options.prec), None)))
                     }
                     output.push(Str("±".to_string()))
                 }
@@ -449,7 +506,7 @@ pub fn input_var(
                     else if chars[i + 1] == '-'
                     {
                         place_multiplier(&mut output, sumrec);
-                        output.push(Num((n1.clone(), None)));
+                        output.push(Num(Number::from_units(n1.clone(), None)));
                         output.push(Str('/'.to_string()));
                         i += 1;
                     }
@@ -471,7 +528,7 @@ pub fn input_var(
                         if output.is_empty()
                             || matches!(output.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
                         {
-                            output.push(Num((Complex::new(options.prec), None)))
+                            output.push(Num(Number::from_units(Complex::new(options.prec), None)))
                         }
                         i += 1;
                         output.push(Str('±'.to_string()))
@@ -488,7 +545,7 @@ pub fn input_var(
                     if output.is_empty()
                         || matches!(output.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
                     {
-                        output.push(Num((Complex::new(options.prec), None)))
+                        output.push(Num(Number::from_units(Complex::new(options.prec), None)))
                     }
                     i += 1;
                     output.push(Str('±'.to_string()))
@@ -534,7 +591,7 @@ pub fn input_var(
                     if i != 0 && chars[i - 1] == '^'
                     {
                         output.push(Str("(".to_string()));
-                        output.push(Num((n1.clone(), None)));
+                        output.push(Num(Number::from_units(n1.clone(), None)));
                         pwr.0 = true;
                         pwr.1 = *bracket;
                         pwr.2 += 1;
@@ -548,7 +605,7 @@ pub fn input_var(
                         if i + 1 != chars.len()
                             && matches!(chars[i + 1], '(' | '{' | '[' | '|' | '-' | '!')
                         {
-                            output.push(Num((n1.clone(), None)));
+                            output.push(Num(Number::from_units(n1.clone(), None)));
                             output.push(Str("*".to_string()));
                         }
                         else
@@ -635,7 +692,7 @@ pub fn input_var(
                     if !exp.0.is_empty() && exp.1 == *bracket
                     {
                         output.push(Str("^".to_string()));
-                        output.push(Num((
+                        output.push(Num(Number::from_units(
                             match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                             {
                                 Ok(n) => n.complete(prec),
@@ -702,12 +759,15 @@ pub fn input_var(
                             _ => return Err("factorial err"),
                         }
                         {
-                            let a = &a.0;
+                            let a = &a.number;
                             if a.real().is_sign_negative()
                             {
                                 output.pop();
-                                output.push(Num((-a.clone(), None)));
-                                output.insert(output.len() - 1, Num((n1.clone(), None)));
+                                output.push(Num(Number::from_units(-a.clone(), None)));
+                                output.insert(
+                                    output.len() - 1,
+                                    Num(Number::from_units(n1.clone(), None)),
+                                );
                                 output.insert(output.len() - 1, Str("*".to_string()));
                             }
                         }
@@ -833,7 +893,10 @@ pub fn input_var(
                 {
                     output.push(Str('%'.to_string()))
                 }
-                '∞' => output.push(Num((Complex::with_val(options.prec, Infinity), None))),
+                '∞' => output.push(Num(Number::from_units(
+                    Complex::with_val(options.prec, Infinity),
+                    None,
+                ))),
                 '#' =>
                 {
                     graph = true;
@@ -1014,7 +1077,7 @@ pub fn input_var(
             place_multiplier(&mut output, sumrec);
             if neg
             {
-                output.push(Num((n1.clone(), None)));
+                output.push(Num(Number::from_units(n1.clone(), None)));
                 output.push(Str('×'.to_string()));
                 neg = false;
             }
@@ -1023,19 +1086,28 @@ pub fn input_var(
             {
                 if matches!(word.as_str(), "nan" | "NaN")
                 {
-                    output.push(Num((Complex::with_val(options.prec, Nan), None)));
+                    output.push(Num(Number::from_units(
+                        Complex::with_val(options.prec, Nan),
+                        None,
+                    )));
                 }
                 else if word == "true"
                 {
-                    output.push(Num((Complex::with_val(options.prec, 1), None)));
+                    output.push(Num(Number::from_units(
+                        Complex::with_val(options.prec, 1),
+                        None,
+                    )));
                 }
                 else if word == "false"
                 {
-                    output.push(Num((Complex::new(options.prec), None)));
+                    output.push(Num(Number::from_units(Complex::new(options.prec), None)));
                 }
                 else
                 {
-                    output.push(Num((Complex::with_val(options.prec, Infinity), None)));
+                    output.push(Num(Number::from_units(
+                        Complex::with_val(options.prec, Infinity),
+                        None,
+                    )));
                 }
                 if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                 {
@@ -1093,7 +1165,7 @@ pub fn input_var(
             place_multiplier(&mut output, sumrec);
             if neg
             {
-                output.push(Num((n1.clone(), None)));
+                output.push(Num(Number::from_units(n1.clone(), None)));
                 output.push(Str('×'.to_string()));
                 neg = false;
             }
@@ -1167,7 +1239,7 @@ pub fn input_var(
             place_multiplier(&mut output, sumrec);
             if neg
             {
-                output.push(Num((n1.clone(), None)));
+                output.push(Num(Number::from_units(n1.clone(), None)));
                 output.push(Str('×'.to_string()));
                 neg = false;
             }
@@ -1294,7 +1366,7 @@ pub fn input_var(
                             place_multiplier(&mut output, sumrec);
                             if neg
                             {
-                                output.push(Num((n1.clone(), None)));
+                                output.push(Num(Number::from_units(n1.clone(), None)));
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
@@ -1370,7 +1442,7 @@ pub fn input_var(
                                     options.base.0,
                                 )
                                 {
-                                    vec![Num((n.complete(prec), None))]
+                                    vec![Num(Number::from_units(n.complete(prec), None))]
                                 }
                                 else
                                 {
@@ -1566,7 +1638,7 @@ pub fn input_var(
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
-                                output.push(Num((
+                                output.push(Num(Number::from_units(
                                     match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                                     {
                                         Ok(n) => n.complete(prec),
@@ -1584,7 +1656,7 @@ pub fn input_var(
                             place_multiplier(&mut output, sumrec);
                             if neg
                             {
-                                output.push(Num((n1.clone(), None)));
+                                output.push(Num(Number::from_units(n1.clone(), None)));
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
@@ -1612,7 +1684,7 @@ pub fn input_var(
                                 options.base.0,
                             )
                             {
-                                vec![Num((n.complete(prec), None))]
+                                vec![Num(Number::from_units(n.complete(prec), None))]
                             }
                             else
                             {
@@ -1820,7 +1892,7 @@ pub fn input_var(
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
                                 output.push(Str("^".to_string()));
-                                output.push(Num((
+                                output.push(Num(Number::from_units(
                                     match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                                     {
                                         Ok(n) => n.complete(prec),
@@ -1889,7 +1961,7 @@ pub fn input_var(
                         place_multiplier(&mut output, sumrec);
                         if neg
                         {
-                            output.push(Num((n1.clone(), None)));
+                            output.push(Num(Number::from_units(n1.clone(), None)));
                             output.push(Str('×'.to_string()));
                             neg = false;
                         }
@@ -1947,7 +2019,7 @@ pub fn input_var(
             {
                 if neg
                 {
-                    output.push(Num((n1.clone(), None)));
+                    output.push(Num(Number::from_units(n1.clone(), None)));
                     output.push(Str('×'.to_string()));
                     neg = false;
                 }
@@ -1971,7 +2043,10 @@ pub fn input_var(
                             }
                         }
                         place_multiplier(&mut output, sumrec);
-                        output.push(Num((Complex::with_val(options.prec, options.base.0), None)));
+                        output.push(Num(Number::from_units(
+                            Complex::with_val(options.prec, options.base.0),
+                            None,
+                        )));
                         if i + 1 != chars.len()
                             && (chars[i + 1].is_alphanumeric()
                                 || is_digit(chars[i + 1], options.base.0)
@@ -2017,7 +2092,10 @@ pub fn input_var(
                     'i' =>
                     {
                         place_multiplier(&mut output, sumrec);
-                        output.push(Num((Complex::with_val(options.prec, (0, 1)), None)));
+                        output.push(Num(Number::from_units(
+                            Complex::with_val(options.prec, (0, 1)),
+                            None,
+                        )));
                         if pwr.0
                             && pwr.1 == *bracket
                             && (chars.len() <= i + 1 || chars[i + 1] != '^')
@@ -2050,7 +2128,10 @@ pub fn input_var(
                         output.push(Str('+'.to_string()));
                         output.push(Str('y'.to_string()));
                         output.push(Str('*'.to_string()));
-                        output.push(Num((Complex::with_val(options.prec, (0, 1)), None)));
+                        output.push(Num(Number::from_units(
+                            Complex::with_val(options.prec, (0, 1)),
+                            None,
+                        )));
                         output.push(Str(')'.to_string()));
                         if scientific
                         {
@@ -2105,7 +2186,7 @@ pub fn input_var(
             _ =>
             {}
         }
-        output.push(Num((
+        output.push(Num(Number::from_units(
             match Complex::parse_radix(pow.as_bytes(), options.base.0)
             {
                 Ok(n) => n.complete(prec),
@@ -2117,7 +2198,7 @@ pub fn input_var(
     if !exp.0.is_empty()
     {
         output.push(Str("^".to_string()));
-        output.push(Num((
+        output.push(Num(Number::from_units(
             match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
             {
                 Ok(n) => n.complete(prec),
@@ -2128,7 +2209,7 @@ pub fn input_var(
     }
     if neg
     {
-        output.push(Num((n1, None)));
+        output.push(Num(Number::from_units(n1, None)));
     }
     for _ in abs
     {

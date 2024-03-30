@@ -414,7 +414,7 @@ pub fn to_unit(
                 kelvin: 1.0,
                 ..Units::default()
             };
-            add = Some((Complex::with_val(prec, 273.15), Some(unit)));
+            add = Some((Complex::with_val(prec, 5463) / 20, Some(unit)));
         }
         "°F" | "fahrenheit" =>
         {

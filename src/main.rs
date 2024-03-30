@@ -187,6 +187,7 @@ pub struct Options
     stay_interactive: bool,
     graph_cli: bool,
     units: bool,
+    window_size: (usize, usize),
 }
 impl Default for Options
 {
@@ -234,6 +235,7 @@ impl Default for Options
             stay_interactive: false,
             graph_cli: false,
             units: true,
+            window_size: (0, 0),
         }
     }
 }

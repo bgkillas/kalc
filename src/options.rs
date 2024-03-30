@@ -216,8 +216,8 @@ pub fn set_commands(
         | "surface" | "flat" | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines"
         | "polar" | "frac" | "multi" | "tabbed" | "comma" | "graph" | "units" | "scalegraph"
         | "debug" | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals"
-        | "graphprec" | "graphprecision" | "prec" | "precision" | "range" | "xr" | "yr" | "zr"
-        | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
+        | "graphprec" | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr"
+        | "yr" | "zr" | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -344,6 +344,17 @@ pub fn set_commands(
                     n if n != 0 => options.graph_prec = n,
                     _ => return Err("Invalid graphprecision"),
                 },
+                "windowsize" =>
+                {
+                    if args.len() == 1
+                    {
+                        options.window_size = (args[0] as usize, args[0] as usize)
+                    }
+                    else
+                    {
+                        options.window_size = (args[0] as usize, args[1] as usize)
+                    }
+                }
                 "prec" | "precision" => match args[0] as u32
                 {
                     n if n != 0 =>
@@ -1078,6 +1089,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "onaxis" => format!("{}", options.onaxis),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
         "prec" | "precision" => format!("{}", options.prec),
+        "windowsize" => format!("{},{}", options.window_size.0, options.window_size.1),
         "graphprec" | "graphprecision" => format!("{}", options.graph_prec),
         "xr" => format!("{},{}", options.xr.0, options.xr.1),
         "yr" => format!("{},{}", options.yr.0, options.yr.1),

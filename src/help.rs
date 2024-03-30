@@ -47,7 +47,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph\x1b[G\n\
 --flat display 2d complex graphs like they are on the 2d number line\x1b[G\n\
 --small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number\x1b[G\n\
---scalegraph scales the y part of a 2d graph to the users screen size\x1b[G\x1b[G\n\n\
+--scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
 - \"colors=\" to see color settings\x1b[G\n\
 - \"exit\" to exit the program\x1b[G\n\
@@ -124,7 +124,7 @@ Vector operations/functions:\x1b[G\n\
 - part({{vec}},col), sum, prod\x1b[G\n\
 - convert to polar: pol{{vec}} outputs (radius, theta, phi)\x1b[G\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\x1b[G\n\
-- other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\x1b[G\n\n\
+- other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\n\n\
 Matrix operations/functions:\x1b[G\n\
 - eigenvalues\x1b[G\n\
 - trace/tr, determinant/det, inverse/inv\x1b[G\n\

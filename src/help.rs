@@ -81,8 +81,8 @@ Order of Operations:\x1b[G\n\
 - % (modulus), .. (a..b creates lists of integers from a to b)\x1b[G\n\
 - ^/** (exponentiation), // (a//b is a root b) ^^ (tetration), × internal multiplication for units and some negitive signs\x1b[G\n\
 - * (multiplication), / (division)\x1b[G\n\
-- to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)\x1b[G\n\
 - + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)\x1b[G\n\
+- to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)\x1b[G\n\
 - < (lt), <= (le), > (gt), >= (ge), == (eq), != (!eq), >> (a>>b shifts b bits right), << (a<<b shifts b bits left)\x1b[G\n\
 - && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)\x1b[G\n\n\
 Functions:\x1b[G\n\

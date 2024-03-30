@@ -1291,9 +1291,25 @@ pub fn input_var(
             {
                 chars.remove(i - 1);
             }
-            *output.last_mut().unwrap() = Str("->".to_string());
+            if let Some(Str(s)) = output.last_mut()
+            {
+                if s == "*"
+                {
+                    *s = "->".to_string()
+                }
+                else
+                {
+                    i += 1;
+                    output.push(Str("->".to_string()));
+                }
+            }
+            else
+            {
+                i += 1;
+                output.push(Str("->".to_string()));
+            }
             i += 1;
-            if chars.len() > i && chars[i] == '*'
+            if chars.len() > i && (chars[i] == '*' || chars[i] == '×')
             {
                 chars.remove(i);
             }

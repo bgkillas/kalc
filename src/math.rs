@@ -2267,6 +2267,30 @@ pub fn do_math(
             i += 1;
         }
     }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            function[i] = match s.as_str()
+            {
+                "±" => function[i - 1].pm(&function[i + 1])?,
+                "+" => function[i - 1].func(&function[i + 1], add)?,
+                "-" => function[i - 1].func(&function[i + 1], sub)?,
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            };
+            function.remove(i + 1);
+            function.remove(i - 1);
+        }
+        else
+        {
+            i += 1;
+        }
+    }
     if options.units
     {
         i = 1;
@@ -2290,30 +2314,6 @@ pub fn do_math(
             {
                 i += 1;
             }
-        }
-    }
-    i = 1;
-    while i < function.len() - 1
-    {
-        if let Str(s) = &function[i]
-        {
-            function[i] = match s.as_str()
-            {
-                "±" => function[i - 1].pm(&function[i + 1])?,
-                "+" => function[i - 1].func(&function[i + 1], add)?,
-                "-" => function[i - 1].func(&function[i + 1], sub)?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
         }
     }
     i = 1;

@@ -40,6 +40,7 @@ Usage: kalc [FLAGS] equation_1 equation_2 equation_3...
 FLAGS: --help (this message)
 --help {thing} to get more detail on a function/option/feature, --help help to list all "things"
 --interactive/-i allows interaction after finishing the equations given
+--units toggles units\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --tau fractions are shown in tau instead of pi
 --deg compute in degrees
@@ -188,6 +189,46 @@ Constants:
 - e: euler's number, 2.7182818284~
 - pi/π: pi, 3.1415926535~
 - tau/τ: tau, 6.2831853071~
+
+Units:
+supports metric prefixes and the following units
+"m" | "meter"
+"s" | "second"
+"A" | "ampere"
+"K" | "kelvin"
+"mol" | "mole"
+"cd" | "candela"
+"g" | "gram"
+"J" | "joule"
+"mph"
+"mi" | "mile"
+"yd" | "yard"
+"ft" | "\'" | "foot"
+"in" | "inch"
+"lb" | "pound"
+"L" | "litre"
+"Hz" | "hertz"
+"V" | "volt" | "voltage"
+"°C" | "celsius"
+"°F" | "fahrenheit"
+"kWh"
+"T" | "tesla"
+"H" | "henry"
+"weber" | "Wb"
+"siemens" | "S"
+"F" | "farad"
+"W" | "watt"
+"Pa" | "pascal"
+"Ω" | "ohm"
+"min" | "minute"
+"h" | "hour"
+"d" | "day"
+"week"
+"N" | "newton"
+"C" | "coulomb"
+"°" | "deg" | "degrees"
+"rad" | "radians"
+"grad" | "gradians"
 
 Digraph:
 hit escape then a letter

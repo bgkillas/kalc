@@ -184,7 +184,7 @@ Constants:
 - k: coulomb's constant, 8.9875517923E9 N*m^2/C^2
 - Na: avogadro's number, 6.02214076E23 1/mol
 - R: gas constant, 8.31446261815324 J/(mol*K)
-- kB: boltzmann constant, 1.380649E-23 J/K
+- bo: boltzmann constant, 1.380649E-23 J/K
 - phi/φ: golden ratio, 1.6180339887~
 - e: euler's number, 2.7182818284~
 - pi/π: pi, 3.1415926535~
@@ -229,6 +229,14 @@ supports metric prefixes and the following units
 "°" | "deg" | "degrees"
 "rad" | "radians"
 "grad" | "gradians"
+"lumen" | "lm"
+"lux" | "lx"
+"byte" | "B"
+"gray" | "Gy"
+"sievert" | "Sv"
+"katal" | "kat"
+"bit" | "b"
+"steradian" | "sr"
 
 Digraph:
 hit escape then a letter

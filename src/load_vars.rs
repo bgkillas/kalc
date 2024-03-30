@@ -74,13 +74,8 @@ fn ec(prec: (u32, u32)) -> Variable
             Complex::parse("1.602176634e-19").unwrap().complete(prec),
             Some(Units {
                 second: 1.0,
-                meter: 0.0,
-                kilogram: 0.0,
                 ampere: 1.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -90,18 +85,15 @@ fn ec(prec: (u32, u32)) -> Variable
 fn kb(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['k', 'B'],
+        name: vec!['b', 'o'],
         parsed: vec![Num((
             Complex::parse("1.380649e-23").unwrap().complete(prec),
             Some(Units {
                 second: -2.0,
                 meter: 2.0,
                 kilogram: 1.0,
-                ampere: 0.0,
                 kelvin: -1.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -115,14 +107,8 @@ fn me(prec: (u32, u32)) -> Variable
         parsed: vec![Num((
             Complex::parse("9.1093837015e-31").unwrap().complete(prec),
             Some(Units {
-                second: 0.0,
-                meter: 0.0,
                 kilogram: 1.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -136,14 +122,8 @@ fn mn(prec: (u32, u32)) -> Variable
         parsed: vec![Num((
             Complex::parse("1.67492749804e-27").unwrap().complete(prec),
             Some(Units {
-                second: 0.0,
-                meter: 0.0,
                 kilogram: 1.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -157,14 +137,8 @@ fn mp(prec: (u32, u32)) -> Variable
         parsed: vec![Num((
             Complex::parse("1.67262192369e-27").unwrap().complete(prec),
             Some(Units {
-                second: 0.0,
-                meter: 0.0,
                 kilogram: 1.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -180,12 +154,7 @@ fn c(prec: (u32, u32)) -> Variable
             Some(Units {
                 second: -1.0,
                 meter: 1.0,
-                kilogram: 0.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -201,12 +170,7 @@ fn g(prec: (u32, u32)) -> Variable
             Some(Units {
                 second: -2.0,
                 meter: 1.0,
-                kilogram: 0.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -223,11 +187,7 @@ fn gc(prec: (u32, u32)) -> Variable
                 second: -2.0,
                 meter: 3.0,
                 kilogram: -1.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -244,11 +204,7 @@ fn h(prec: (u32, u32)) -> Variable
                 second: -1.0,
                 meter: 2.0,
                 kilogram: 1.0,
-                ampere: 0.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -262,14 +218,8 @@ fn na(prec: (u32, u32)) -> Variable
         parsed: vec![Num((
             Complex::parse("6.02214076e23").unwrap().complete(prec),
             Some(Units {
-                second: 0.0,
-                meter: 0.0,
-                kilogram: 0.0,
-                ampere: 0.0,
-                kelvin: 0.0,
                 mole: -1.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -287,10 +237,7 @@ fn k(prec: (u32, u32)) -> Variable
                 meter: 3.0,
                 kilogram: 1.0,
                 ampere: -2.0,
-                kelvin: 0.0,
-                mole: 0.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -307,11 +254,9 @@ fn r(prec: (u32, u32)) -> Variable
                 second: -2.0,
                 meter: 2.0,
                 kilogram: 1.0,
-                ampere: 0.0,
                 kelvin: 1.0,
                 mole: -1.0,
-                candela: 0.0,
-                radian: 0.0,
+                ..Units::default()
             }),
         ))],
         unparsed: String::new(),
@@ -331,9 +276,9 @@ fn get_preset_vars(
         blacklist.push("ec".to_string());
         vars.push(ec(prec));
     }
-    if args.contains("kB") && !blacklist.contains(&"kB".to_string())
+    if args.contains("bo") && !blacklist.contains(&"bo".to_string())
     {
-        blacklist.push("kB".to_string());
+        blacklist.push("bo".to_string());
         vars.push(kb(prec));
     }
     if args.contains("me") && !blacklist.contains(&"me".to_string())
@@ -500,7 +445,7 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
     {
         vars.push(ec(prec));
     }
-    if args.contains("kB")
+    if args.contains("bo")
     {
         vars.push(kb(prec));
     }

@@ -14,6 +14,8 @@ impl Units
             mole: self.mole + b.mole,
             candela: self.candela + b.candela,
             radian: self.radian + b.radian,
+            steradian: self.steradian + b.steradian,
+            byte: self.byte + b.byte,
         }
     }
     pub fn div(&self, b: &Self) -> Self
@@ -27,6 +29,8 @@ impl Units
             mole: self.mole - b.mole,
             candela: self.candela - b.candela,
             radian: self.radian - b.radian,
+            steradian: self.steradian - b.steradian,
+            byte: self.byte - b.byte,
         }
     }
     pub fn pow(&self, b: f64) -> Self
@@ -40,6 +44,8 @@ impl Units
             mole: self.mole * b,
             candela: self.candela * b,
             radian: self.radian * b,
+            steradian: self.steradian * b,
+            byte: self.byte * b,
         }
     }
     pub fn root(&self, b: f64) -> Self
@@ -53,6 +59,8 @@ impl Units
             mole: self.mole / b,
             candela: self.candela / b,
             radian: self.radian / b,
+            steradian: self.steradian / b,
+            byte: self.byte / b,
         }
     }
 }
@@ -69,6 +77,8 @@ impl Default for Units
             mole: 0.0,
             candela: 0.0,
             radian: 0.0,
+            steradian: 0.0,
+            byte: 0.0,
         }
     }
 }
@@ -78,7 +88,7 @@ impl fmt::Display for Units
     {
         write!(
             f,
-            "{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}",
             if self.meter != 0.0
             {
                 " m".to_owned()
@@ -206,11 +216,43 @@ impl fmt::Display for Units
             else
             {
                 String::new()
+            },
+            if self.steradian != 0.0
+            {
+                " sr".to_owned()
+                    + &if self.steradian != 1.0
+                    {
+                        "^".to_owned() + &self.steradian.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
+            if self.byte != 0.0
+            {
+                " B".to_owned()
+                    + &if self.byte != 1.0
+                    {
+                        "^".to_owned() + &self.byte.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
             }
         )
     }
 }
-pub fn prefixes(mut unit: String) -> (String, isize)
+pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
 {
     let bak = unit.clone();
     let mut word = String::new();
@@ -219,35 +261,139 @@ pub fn prefixes(mut unit: String) -> (String, isize)
         word.push(unit.remove(0));
         match word.as_str()
         {
-            "quetta" | "Q" if units().contains(unit.as_str()) => return (unit, 30),
-            "ronna" | "R" if units().contains(unit.as_str()) => return (unit, 27),
-            "yotta" | "Y" if units().contains(unit.as_str()) => return (unit, 24),
-            "zetta" | "Z" if units().contains(unit.as_str()) => return (unit, 21),
-            "exa" | "E" if units().contains(unit.as_str()) => return (unit, 18),
-            "peta" | "P" if units().contains(unit.as_str()) => return (unit, 15),
-            "tera" | "T" if units().contains(unit.as_str()) => return (unit, 12),
-            "giga" | "G" if units().contains(unit.as_str()) => return (unit, 9),
-            "mega" | "M" if units().contains(unit.as_str()) => return (unit, 6),
-            "kilo" | "k" if units().contains(unit.as_str()) => return (unit, 3),
-            "hecto" | "h" if units().contains(unit.as_str()) => return (unit, 2),
-            "deca" | "da" if units().contains(unit.as_str()) => return (unit, 1),
-            "deci" | "d" if units().contains(unit.as_str()) => return (unit, -1),
-            "centi" | "c" if units().contains(unit.as_str()) => return (unit, -2),
-            "milli" | "m" if units().contains(unit.as_str()) => return (unit, -3),
-            "micro" | "μ" if units().contains(unit.as_str()) => return (unit, -6),
-            "nano" | "n" if units().contains(unit.as_str()) => return (unit, -9),
-            "pico" | "p" if units().contains(unit.as_str()) => return (unit, -12),
-            "femto" | "f" if units().contains(unit.as_str()) => return (unit, -15),
-            "atto" | "a" if units().contains(unit.as_str()) => return (unit, -18),
-            "zepto" | "z" if units().contains(unit.as_str()) => return (unit, -21),
-            "yocto" | "y" if units().contains(unit.as_str()) => return (unit, -24),
-            "ronto" | "r" if units().contains(unit.as_str()) => return (unit, -27),
-            "qecto" | "q" if units().contains(unit.as_str()) => return (unit, -30),
+            "quetta" | "Q" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(30))
+            }
+            "ronna" | "R" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(27))
+            }
+            "yotta" | "Y" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(24))
+            }
+            "zetta" | "Z" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(21))
+            }
+            "exa" | "E" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(18))
+            }
+            "peta" | "P" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(15))
+            }
+            "tera" | "T" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(12))
+            }
+            "giga" | "G" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(9))
+            }
+            "mega" | "M" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(6))
+            }
+            "kilo" | "k" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(3))
+            }
+            "hecto" | "h" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(2))
+            }
+            "deca" | "da" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(1))
+            }
+            "deci" | "d" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-1))
+            }
+            "centi" | "c" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-2))
+            }
+            "milli" | "m" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-3))
+            }
+            "micro" | "μ" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-6))
+            }
+            "nano" | "n" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-9))
+            }
+            "pico" | "p" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-12))
+            }
+            "femto" | "f" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-15))
+            }
+            "atto" | "a" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-18))
+            }
+            "zepto" | "z" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-21))
+            }
+            "yocto" | "y" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-24))
+            }
+            "ronto" | "r" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-27))
+            }
+            "qecto" | "q" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 10).pow(-30))
+            }
+            "kibi" | "Ki" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(10))
+            }
+            "mebi" | "Mi" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(20))
+            }
+            "gibi" | "Gi" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(30))
+            }
+            "tebi" | "Ti" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(40))
+            }
+            "pebi" | "Pi" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(50))
+            }
+            "exbi" | "Ei" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(60))
+            }
+            "zebi" | "Zi" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(70))
+            }
+            "yobi" | "Yi" if units().contains(unit.as_str()) =>
+            {
+                return (unit, Complex::with_val(prec, 2).pow(80))
+            }
             _ =>
             {}
         }
     }
-    (bak, 0)
+    (bak, Complex::with_val(prec, 1))
 }
 pub fn units() -> HashSet<&'static str>
 {
@@ -326,19 +472,33 @@ pub fn units() -> HashSet<&'static str>
         "g",
         "h",
         "d",
+        "lumen",
+        "lm",
+        "lux",
+        "lx",
+        "byte",
+        "B",
+        "gray",
+        "Gy",
+        "sievert",
+        "Sv",
+        "katal",
+        "kat",
+        "bit",
+        "b",
+        "steradian",
+        "sr",
     ]
     .iter()
     .cloned()
     .collect::<HashSet<&str>>()
 }
 pub fn to_unit(
-    mut unit: String,
+    unit: String,
     prec: (u32, u32),
+    mut num: Complex,
 ) -> ((Complex, Option<Units>), Option<(Complex, Option<Units>)>)
 {
-    let mut pow;
-    (unit, pow) = prefixes(unit);
-    let mut num = Complex::with_val(prec, 1);
     let mut units = Units::default();
     let mut add = None;
     match unit.as_str()
@@ -349,10 +509,42 @@ pub fn to_unit(
         "K" | "kelvin" => units.kelvin = 1.0,
         "mol" | "mole" => units.mole = 1.0,
         "cd" | "candela" => units.candela = 1.0,
+        "byte" | "B" => units.byte = 1.0,
+        "steradian" | "sr" => units.steradian = 1.0,
+        "bit" | "b" =>
+        {
+            num /= 8;
+            units.byte = 1.0;
+        }
         "g" | "gram" =>
         {
-            pow -= 3;
+            num *= Complex::with_val(prec, 10).pow(-3);
             units.kilogram = 1.0
+        }
+        "gray" | "Gy" =>
+        {
+            units.second = -1.0;
+        }
+        "sievert" | "Sv" =>
+        {
+            units.second = -2.0;
+            units.meter = 2.0;
+        }
+        "katal" | "kat" =>
+        {
+            units.second = -1.0;
+            units.mole = 1.0;
+        }
+        "lumen" | "lm" =>
+        {
+            units.steradian = 1.0;
+            units.candela = 1.0;
+        }
+        "lux" | "lx" =>
+        {
+            units.steradian = 1.0;
+            units.candela = 1.0;
+            units.meter = -2.0;
         }
         "J" | "joule" =>
         {
@@ -400,7 +592,7 @@ pub fn to_unit(
         }
         "L" | "litre" =>
         {
-            pow -= 3;
+            num *= Complex::with_val(prec, 10).pow(-3);
             units.meter = 3.0;
         }
         "Hz" | "hertz" => units.second = -1.0,
@@ -536,8 +728,5 @@ pub fn to_unit(
         _ =>
         {}
     }
-    (
-        (num * Complex::with_val(prec, 10).pow(pow), Some(units)),
-        add,
-    )
+    ((num, Some(units)), add)
 }

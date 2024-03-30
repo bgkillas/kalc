@@ -867,8 +867,8 @@ pub fn input_var(
             countv += 1;
         }
         let wordv = word.clone();
-        if (word.ends_with('x') && word != "max")
-            || (word.ends_with('y') && word != "any" && word != "day")
+        if (word.ends_with('x') && word != "max" && !word.ends_with("lx"))
+            || (word.ends_with('y') && word != "any" && !word.ends_with("day"))
             || word.ends_with('z')
         {
             countv -= 1;
@@ -971,6 +971,7 @@ pub fn input_var(
                 }
             }
         }
+        let (unit, mul);
         let mut num = 0;
         if if i + countv < chars.len() && matches!(chars[i + countv], '(' | '{' | '[' | '|')
         {
@@ -1129,7 +1130,10 @@ pub fn input_var(
             }
         }
         else if options.units
-            && units().contains(prefixes(word.clone()).0.as_str())
+            && {
+                (unit, mul) = prefixes(word.clone(), prec);
+                units().contains(unit.as_str())
+            }
             && if i + countv < chars.len() && matches!(chars[i + countv], '(' | '{' | '[' | '|')
             {
                 !vars.clone().iter().any(|a| {
@@ -1173,7 +1177,7 @@ pub fn input_var(
             {
                 output.push(Str('×'.to_string()))
             }
-            let (num, add) = to_unit(word, prec);
+            let (num, add) = to_unit(unit, prec, mul);
             output.push(Num(num));
             if let Some(num) = add
             {

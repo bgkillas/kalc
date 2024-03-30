@@ -142,7 +142,7 @@ Constants:\x1b[G\n\
 - k: coulomb's constant, 8.9875517923E9 N*m^2/C^2\x1b[G\n\
 - Na: avogadro's number, 6.02214076E23 1/mol\x1b[G\n\
 - R: gas constant, 8.31446261815324 J/(mol*K)\x1b[G\n\
-- kB: boltzmann constant, 1.380649E-23 J/K\x1b[G\n\
+- bo: boltzmann constant, 1.380649E-23 J/K\x1b[G\n\
 - phi/φ: golden ratio, 1.6180339887~\x1b[G\n\
 - e: euler's number, 2.7182818284~\x1b[G\n\
 - pi/π: pi, 3.1415926535~\x1b[G\n\
@@ -185,7 +185,15 @@ supports metric prefixes and the following units\x1b[G\n\
 \"C\" | \"coulomb\"\x1b[G\n\
 \"°\" | \"deg\" | \"degrees\"\x1b[G\n\
 \"rad\" | \"radians\"\x1b[G\n\
-\"grad\" | \"gradians\"\x1b[G\n\n\
+\"grad\" | \"gradians\"\x1b[G\n\
+\"lumen\" | \"lm\"\x1b[G\n\
+\"lux\" | \"lx\"\x1b[G\n\
+\"byte\" | \"B\"\x1b[G\n\
+\"gray\" | \"Gy\"\x1b[G\n\
+\"sievert\" | \"Sv\"\x1b[G\n\
+\"katal\" | \"kat\"\x1b[G\n\
+\"bit\" | \"b\"\x1b[G\n\
+\"steradian\" | \"sr\"\x1b[G\n\n\
 Digraph:\x1b[G\n\
 hit escape then a letter\x1b[G\n\
 a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,\x1b[G\n\

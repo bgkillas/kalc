@@ -47,6 +47,8 @@ use std::{
 //allow setting x and y window dimensions of gnuplot, defaulting to what happens now
 //infinitely long greater/lesser than chains
 //have unit powers be fractional, maybe 2 usizes
+//make deg/grad/rad units work better with deg/grad/rad
+//-> operator
 #[derive(Clone)]
 pub struct Variable
 {
@@ -66,6 +68,8 @@ pub struct Units
     mole: f64,
     candela: f64,
     radian: f64,
+    steradian: f64,
+    byte: f64,
 }
 #[derive(Clone)]
 pub struct Colors

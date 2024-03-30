@@ -34,7 +34,7 @@ pub fn do_math(
     }
     for (i, v) in func_vars.clone().iter().enumerate()
     {
-        if v.1.len() != 1 && !v.0.ends_with(')')
+        if (v.1.len() != 1 || v.1[0].str_is("rnd") || v.1[0].str_is("epoch")) && !v.0.ends_with(')')
         {
             if let Ok(n) = do_math(v.1.clone(), options, func_vars[..i].to_vec())
             {

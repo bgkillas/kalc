@@ -1244,26 +1244,44 @@ pub fn input_var(
             output.push(Num(num));
             if let Some(num) = add
             {
-                output.insert(
-                    if i != 0 && chars[i - 1].is_alphanumeric()
+                if i > 2
+                    && ((chars[i - 2] == 't' && chars[i - 1] == 'o')
+                        || (chars[i - 2] == '-' && chars[i - 1] == '>'))
+                {
+                    if chars[i - 3] == 'K'
                     {
-                        output.len().saturating_sub(3)
-                    }
-                    else if i != 0 && chars[i - 1] == ')'
-                    {
-                        output.len().saturating_sub(
-                            output.iter().rev().position(|c| c.str_is("(")).unwrap(),
-                        )
+                        output.insert(output.len().saturating_sub(2), Str('-'.to_string()));
+                        output.insert(output.len().saturating_sub(2), Num(num));
                     }
                     else
                     {
-                        output.len().saturating_sub(1)
-                    },
-                    Str('('.to_string()),
-                );
-                output.push(Str('+'.to_string()));
-                output.push(Num(num));
-                output.push(Str(')'.to_string()));
+                        output.insert(output.len().saturating_sub(3), Str('-'.to_string()));
+                        output.insert(output.len().saturating_sub(3), Num(num));
+                    }
+                }
+                else
+                {
+                    output.insert(
+                        if i != 0 && chars[i - 1].is_alphanumeric()
+                        {
+                            output.len().saturating_sub(3)
+                        }
+                        else if i != 0 && chars[i - 1] == ')'
+                        {
+                            output.len().saturating_sub(
+                                output.iter().rev().position(|c| c.str_is("(")).unwrap(),
+                            )
+                        }
+                        else
+                        {
+                            output.len().saturating_sub(1)
+                        },
+                        Str('('.to_string()),
+                    );
+                    output.push(Str('+'.to_string()));
+                    output.push(Num(num));
+                    output.push(Str(')'.to_string()));
+                }
             }
             i += countv;
         }

@@ -1306,7 +1306,7 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                                     {
                                         String::new()
                                     },
-                                    units,
+                                    units.to_string(options),
                                     if options.color { "\x1b[0m" } else { "" }
                                 )
                             }
@@ -1423,7 +1423,7 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                                     {
                                         String::new()
                                     },
-                                    units,
+                                    units.to_string(options),
                                     if options.color { "\x1b[0m" } else { "" }
                                 )
                             }
@@ -1576,7 +1576,7 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                             {
                                 String::new()
                             },
-                            units,
+                            units.to_string(options),
                             if options.color { "\x1b[0m" } else { "" }
                         )
                     }

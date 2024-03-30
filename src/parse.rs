@@ -1255,7 +1255,7 @@ pub fn input_var(
             {
                 output.push(Str('×'.to_string()))
             }
-            let (num, add) = to_unit(unit, prec, mul);
+            let (num, add) = to_unit(unit, mul, options);
             output.push(Num(num));
             if let Some(num) = add
             {

@@ -1,6 +1,6 @@
-use crate::{Number, Units};
+use crate::{AngleType, Number, Options, Units};
 use rug::{float::Constant::Pi, ops::Pow, Complex};
-use std::{collections::HashSet, fmt};
+use std::collections::HashSet;
 impl Units
 {
     pub fn mul(&self, b: &Self) -> Self
@@ -13,7 +13,7 @@ impl Units
             kelvin: self.kelvin + b.kelvin,
             mole: self.mole + b.mole,
             candela: self.candela + b.candela,
-            radian: self.radian + b.radian,
+            angle: self.angle + b.angle,
             steradian: self.steradian + b.steradian,
             byte: self.byte + b.byte,
         }
@@ -28,7 +28,7 @@ impl Units
             kelvin: self.kelvin - b.kelvin,
             mole: self.mole - b.mole,
             candela: self.candela - b.candela,
-            radian: self.radian - b.radian,
+            angle: self.angle - b.angle,
             steradian: self.steradian - b.steradian,
             byte: self.byte - b.byte,
         }
@@ -43,7 +43,7 @@ impl Units
             kelvin: self.kelvin * b,
             mole: self.mole * b,
             candela: self.candela * b,
-            radian: self.radian * b,
+            angle: self.angle * b,
             steradian: self.steradian * b,
             byte: self.byte * b,
         }
@@ -58,36 +58,14 @@ impl Units
             kelvin: self.kelvin / b,
             mole: self.mole / b,
             candela: self.candela / b,
-            radian: self.radian / b,
+            angle: self.angle / b,
             steradian: self.steradian / b,
             byte: self.byte / b,
         }
     }
-}
-impl Default for Units
-{
-    fn default() -> Self
+    pub fn to_string(&self, options: Options) -> String
     {
-        Self {
-            second: 0.0,
-            meter: 0.0,
-            kilogram: 0.0,
-            ampere: 0.0,
-            kelvin: 0.0,
-            mole: 0.0,
-            candela: 0.0,
-            radian: 0.0,
-            steradian: 0.0,
-            byte: 0.0,
-        }
-    }
-}
-impl fmt::Display for Units
-{
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result
-    {
-        write!(
-            f,
+        format!(
             "{}{}{}{}{}{}{}{}{}{}",
             if self.meter != 0.0
             {
@@ -201,12 +179,18 @@ impl fmt::Display for Units
             {
                 String::new()
             },
-            if self.radian != 0.0
+            if self.angle != 0.0
             {
-                " rad".to_owned()
-                    + &if self.radian != 1.0
+                match options.deg
+                {
+                    AngleType::Degrees => " deg",
+                    AngleType::Radians => " rad",
+                    AngleType::Gradians => " grad",
+                }
+                .to_owned()
+                    + &if self.angle != 1.0
                     {
-                        "^".to_owned() + &self.radian.to_string()
+                        "^".to_owned() + &self.angle.to_string()
                     }
                     else
                     {
@@ -250,6 +234,24 @@ impl fmt::Display for Units
                 String::new()
             }
         )
+    }
+}
+impl Default for Units
+{
+    fn default() -> Self
+    {
+        Self {
+            second: 0.0,
+            meter: 0.0,
+            kilogram: 0.0,
+            ampere: 0.0,
+            kelvin: 0.0,
+            mole: 0.0,
+            candela: 0.0,
+            angle: 0.0,
+            steradian: 0.0,
+            byte: 0.0,
+        }
     }
 }
 pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
@@ -497,7 +499,7 @@ pub fn units() -> HashSet<&'static str>
     .cloned()
     .collect::<HashSet<&str>>()
 }
-pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Option<Number>)
+pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Option<Number>)
 {
     let mut units = Units::default();
     let mut add = None;
@@ -518,7 +520,7 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
         }
         "g" | "gram" =>
         {
-            num *= Complex::with_val(prec, 10).pow(-3);
+            num *= Complex::with_val(options.prec, 10).pow(-3);
             units.kilogram = 1.0
         }
         "gray" | "Gy" =>
@@ -598,7 +600,7 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
         }
         "L" | "litre" =>
         {
-            num *= Complex::with_val(prec, 10).pow(-3);
+            num *= Complex::with_val(options.prec, 10).pow(-3);
             units.meter = 3.0;
         }
         "Hz" | "hertz" => units.second = -1.0,
@@ -617,7 +619,7 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
                 ..Units::default()
             };
             add = Some(Number::from_units(
-                Complex::with_val(prec, 5463) / 20,
+                Complex::with_val(options.prec, 5463) / 20,
                 Some(unit),
             ));
         }
@@ -631,7 +633,7 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
                 ..Units::default()
             };
             add = Some(Number::from_units(
-                Complex::with_val(prec, 45967) / 180,
+                Complex::with_val(options.prec, 45967) / 180,
                 Some(unit),
             ));
         }
@@ -744,14 +746,44 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
         }
         "°" | "deg" | "degrees" =>
         {
-            num *= Complex::with_val(prec, Pi) / 180;
-            units.radian = 1.0;
+            match options.deg
+            {
+                AngleType::Degrees =>
+                {}
+                AngleType::Gradians =>
+                {
+                    num *= 200;
+                    num /= 180
+                }
+                AngleType::Radians => num *= Complex::with_val(options.prec, Pi) / 180,
+            };
+            units.angle = 1.0;
         }
-        "rad" | "radians" => units.radian = 1.0,
+        "rad" | "radians" =>
+        {
+            match options.deg
+            {
+                AngleType::Degrees => num *= 180 / Complex::with_val(options.prec, Pi),
+                AngleType::Gradians => num *= 200 / Complex::with_val(options.prec, Pi),
+                AngleType::Radians =>
+                {}
+            };
+            units.angle = 1.0
+        }
         "grad" | "gradians" =>
         {
-            num *= Complex::with_val(prec, Pi) / 200;
-            units.radian = 1.0;
+            match options.deg
+            {
+                AngleType::Degrees =>
+                {
+                    num *= 180;
+                    num /= 200
+                }
+                AngleType::Gradians =>
+                {}
+                AngleType::Radians => num *= Complex::with_val(options.prec, Pi) / 200,
+            };
+            units.angle = 1.0;
         }
         _ =>
         {}

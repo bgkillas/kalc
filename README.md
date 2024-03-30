@@ -113,12 +113,16 @@ FLAGS: --help (this message)
 - "help {thing}" to get more detail on a function/option/feature
 - "help help" to list all things to query
 
-Operators:
-- +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-
-- !x (subfact), x! (fact), x!! (doublefact)
-- && (and), || (or), == (equals), != (not equals)
-- >> (right shift), << (left shift)
-- ->, to --- unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion
+Order of Operations:
+- user defined functions
+- functions, !x, x!, x!!, |x|
+- % (modulus), .. (a..b creates lists of integers from a to b)
+- ^/** (exponentiation), // (a//b is a root b) ^^ (tetration), × internal multiplication for units and some negitive signs
+- * (multiplication), / (division)
+- to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)
+- + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)
+- < (lt), <= (le), > (gt), >= (ge), == (eq), != (!eq), >> (a>>b shifts b bits right), << (a<<b shifts b bits left)
+- && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)
 
 Functions:
 - sin, cos, tan, asin, acos, atan, atan(x,y)

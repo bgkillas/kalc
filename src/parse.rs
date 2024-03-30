@@ -590,7 +590,7 @@ pub fn input_var(
                 {
                     if options.units && chars[i + 1] == '>'
                     {
-                        output.push(Str("/".to_string()));
+                        output.push(Str("->".to_string()));
                         i += 1;
                     }
                     else if i != 0 && chars[i - 1] == '^'
@@ -1291,7 +1291,7 @@ pub fn input_var(
             {
                 chars.remove(i - 1);
             }
-            *output.last_mut().unwrap() = Str('/'.to_string());
+            *output.last_mut().unwrap() = Str("->".to_string());
             i += 1;
             if chars.len() > i && chars[i] == '*'
             {

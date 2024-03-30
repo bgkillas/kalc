@@ -75,12 +75,16 @@ FLAGS: --help (this message)\x1b[G\n\
 - Alt+Enter will not graph whatever is present\x1b[G\n\
 - \"help {{thing}}\" to get more detail on a function/option/feature\x1b[G\n\
 - \"help help\" to list all things to query\x1b[G\n\n\
-Operators:\x1b[G\n\
-- +, -, *, /, //, ^, ^^, %(modulo), <, >, <=, >=, |x|, ±/+-\x1b[G\n\
-- !x (subfact), x! (fact), x!! (doublefact)\x1b[G\n\
-- && (and), || (or), == (equals), != (not equals)\x1b[G\n\
-- >> (right shift), << (left shift)\x1b[G\n\
-- ->, to --- unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion\x1b[G\n\n\
+Order of Operations:\x1b[G\n\
+- user defined functions\x1b[G\n\
+- functions, !x, x!, x!!, |x|\x1b[G\n\
+- % (modulus), .. (a..b creates lists of integers from a to b)\x1b[G\n\
+- ^/** (exponentiation), // (a//b is a root b) ^^ (tetration), × internal multiplication for units and some negitive signs\x1b[G\n\
+- * (multiplication), / (division)\x1b[G\n\
+- to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)\x1b[G\n\
+- + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)\x1b[G\n\
+- < (lt), <= (le), > (gt), >= (ge), == (eq), != (!eq), >> (a>>b shifts b bits right), << (a<<b shifts b bits left)\x1b[G\n\
+- && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)\x1b[G\n\n\
 Functions:\x1b[G\n\
 - sin, cos, tan, asin, acos, atan, atan(x,y)\x1b[G\n\
 - csc, sec, cot, acsc, asec, acot\x1b[G\n\

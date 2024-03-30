@@ -336,7 +336,7 @@ pub fn to_unit(
     prec: (u32, u32),
 ) -> ((Complex, Option<Units>), Option<(Complex, Option<Units>)>)
 {
-    let pow;
+    let mut pow;
     (unit, pow) = prefixes(unit);
     let mut num = Complex::with_val(prec, 1);
     let mut units = Units::default();
@@ -372,27 +372,31 @@ pub fn to_unit(
         }
         "yd" | "yard" =>
         {
-            num *= 0.9144;
+            num *= 1143;
+            num /= 1250;
             units.meter = 1.0;
         }
         "ft" | "\'" | "foot" =>
         {
             units.meter = 1.0;
-            num *= 0.3048;
+            num *= 381;
+            num /= 1250;
         }
         "in" | "inch" =>
         {
             units.meter = 1.0;
-            num *= 0.0254;
+            num *= 127;
+            num /= 5000;
         }
         "lb" | "pound" =>
         {
             units.kilogram = 1.0;
-            num *= 0.45359237;
+            num *= 45359237;
+            num /= 100000000;
         }
         "L" | "litre" =>
         {
-            num *= 0.001;
+            pow += -3;
             units.meter = 3.0;
         }
         "Hz" | "hertz" => units.second = -1.0,

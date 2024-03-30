@@ -168,7 +168,11 @@ supports metric prefixes and the following units\x1b[G\n\
 \"V\" | \"volt\" | \"voltage\"\x1b[G\n\
 \"°C\" | \"celsius\"\x1b[G\n\
 \"°F\" | \"fahrenheit\"\x1b[G\n\
-\"kWh\"\x1b[G\n\
+\"Wh\"\x1b[G\n\
+\"Ah\"\x1b[G\n\
+\"year\"\x1b[G\n\
+\"ly\"\x1b[G\n\
+\"kph\"\x1b[G\n\
 \"T\" | \"tesla\"\x1b[G\n\
 \"H\" | \"henry\"\x1b[G\n\
 \"weber\" | \"Wb\"\x1b[G\n\

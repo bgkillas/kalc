@@ -453,7 +453,8 @@ pub fn units() -> HashSet<&'static str>
         "henry",
         "°C",
         "°F",
-        "kWh",
+        "Wh",
+        "Ah",
         "celsius",
         "fahrenheit",
         "litre",
@@ -488,6 +489,9 @@ pub fn units() -> HashSet<&'static str>
         "b",
         "steradian",
         "sr",
+        "kph",
+        "year",
+        "ly",
     ]
     .iter()
     .cloned()
@@ -556,6 +560,11 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
             num /= 3600;
             units.meter = 1.0;
             units.second = -1.0;
+        }
+        "kph" =>
+        {
+            num /= 3.6;
+            units.meter = 1.0;
         }
         "mi" | "mile" =>
         {
@@ -626,12 +635,18 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
                 Some(unit),
             ));
         }
-        "kWh" =>
+        "Wh" =>
         {
-            num *= 3600000;
+            num *= 3600;
             units.kilogram = 1.0;
             units.meter = 2.0;
             units.second = -2.0;
+        }
+        "Ah" =>
+        {
+            num *= 3600;
+            units.ampere = 1.0;
+            units.second = 1.0;
         }
         "T" | "tesla" =>
         {
@@ -705,6 +720,16 @@ pub fn to_unit(unit: String, prec: (u32, u32), mut num: Complex) -> (Number, Opt
         {
             units.second = 1.0;
             num *= 604800;
+        }
+        "year" =>
+        {
+            num *= 31557600;
+            units.second = 1.0;
+        }
+        "ly" =>
+        {
+            num *= 9460730472580800u128;
+            units.second = 1.0;
         }
         "N" | "newton" =>
         {

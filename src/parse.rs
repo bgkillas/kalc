@@ -1285,11 +1285,15 @@ pub fn input_var(
             }
             i += countv;
         }
-        else if options.units && word == "to" && !output.is_empty() && var_overrule
+        else if options.units && word.starts_with("to") && !output.is_empty() && var_overrule
         {
-            i += countv;
+            if i != 0 && chars[i - 1] == '*'
+            {
+                chars.remove(i - 1);
+            }
             *output.last_mut().unwrap() = Str('/'.to_string());
-            if chars.len() > i
+            i += 1;
+            if chars.len() > i && chars[i] == '*'
             {
                 chars.remove(i);
             }

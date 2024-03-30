@@ -118,7 +118,7 @@ Operators:
 - !x (subfact), x! (fact), x!! (doublefact)
 - && (and), || (or), == (equals), != (not equals)
 - >> (right shift), << (left shift)
-- ->, to (unit conversions, ie 2m->yd)
+- ->, to --- unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion
 
 Functions:
 - sin, cos, tan, asin, acos, atan, atan(x,y)

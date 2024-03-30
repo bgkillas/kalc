@@ -160,7 +160,7 @@ supports metric prefixes and the following units\x1b[G\n\
 \"mph\"\x1b[G\n\
 \"mi\" | \"mile\"\x1b[G\n\
 \"yd\" | \"yard\"\x1b[G\n\
-\"ft\" | \"\'\" | \"foot\"\x1b[G\n\
+\"ft\" | \"foot\"\x1b[G\n\
 \"in\" | \"inch\"\x1b[G\n\
 \"lb\" | \"pound\"\x1b[G\n\
 \"L\" | \"litre\"\x1b[G\n\

@@ -203,7 +203,7 @@ supports metric prefixes and the following units
 "mph"
 "mi" | "mile"
 "yd" | "yard"
-"ft" | "\'" | "foot"
+"ft" | "foot"
 "in" | "inch"
 "lb" | "pound"
 "L" | "litre"

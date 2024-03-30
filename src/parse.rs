@@ -274,7 +274,7 @@ pub fn input_var(
             }
             continue;
         }
-        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫' | '\'')
+        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫')
         {
             if !output.is_empty()
             {
@@ -855,7 +855,7 @@ pub fn input_var(
                 depthcheck = !depthcheck;
             }
             else if c.is_alphabetic()
-                || matches!(*c, '\'' | '°' | '`' | '∫')
+                || matches!(*c, '°' | '`' | '∫')
                 || (c == &'2' && word == "atan")
             {
                 word.push(*c);

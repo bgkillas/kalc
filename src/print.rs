@@ -1285,14 +1285,28 @@ pub fn get_output(
                     let n = num
                         .real()
                         .to_string_radix(options.base.1, Some(options.decimal_places));
-                    if n.contains('e')
+                    (if n.contains('e')
                     {
                         n
                     }
                     else
                     {
                         n.trim_end_matches('0').trim_end_matches('.').to_string()
+                    } + &if options.units && num.imag().is_zero()
+                    {
+                        if let Some(units) = units
+                        {
+                            units.to_string()
+                        }
+                        else
+                        {
+                            String::new()
+                        }
                     }
+                    else
+                    {
+                        String::new()
+                    })
                 }
                 else if num.imag().is_zero()
                 {
@@ -1382,6 +1396,21 @@ pub fn get_output(
                             "E".to_string()
                         },
                     ) + if options.color { "\x1b[0m" } else { "" }
+                        + &if options.units && num.imag().is_zero()
+                        {
+                            if let Some(units) = units
+                            {
+                                units.to_string()
+                            }
+                            else
+                            {
+                                String::new()
+                            }
+                        }
+                        else
+                        {
+                            String::new()
+                        }
                 },
                 if num.imag().is_zero()
                 {

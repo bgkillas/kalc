@@ -1085,6 +1085,12 @@ pub fn input_var(
         {
             i += countv;
             place_multiplier(&mut output, sumrec);
+            if neg
+            {
+                output.push(Num((n1.clone(), None)));
+                output.push(Str('×'.to_string()));
+                neg = false;
+            }
             if let Some(Str(s)) = output.last_mut()
             {
                 if s == "*"

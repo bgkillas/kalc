@@ -195,7 +195,7 @@ fn c(prec: (u32, u32)) -> Variable
 fn g(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['g'],
+        name: vec!['g', 'r'],
         parsed: vec![Num((
             Complex::parse("9.80665").unwrap().complete(prec),
             Some(Units {
@@ -237,7 +237,7 @@ fn gc(prec: (u32, u32)) -> Variable
 fn h(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['h'],
+        name: vec!['p', 'l'],
         parsed: vec![Num((
             Complex::parse("6.62607015e-34").unwrap().complete(prec),
             Some(Units {
@@ -366,14 +366,14 @@ fn get_preset_vars(
         blacklist.push("G".to_string());
         vars.push(gc(prec));
     }
-    if args.contains('g') && !blacklist.contains(&"g".to_string())
+    if args.contains("gr") && !blacklist.contains(&"gr".to_string())
     {
-        blacklist.push("g".to_string());
+        blacklist.push("gr".to_string());
         vars.push(g(prec));
     }
-    if args.contains('h') && !blacklist.contains(&"h".to_string())
+    if args.contains("pl") && !blacklist.contains(&"pl".to_string())
     {
-        blacklist.push("h".to_string());
+        blacklist.push("pl".to_string());
         vars.push(h(prec));
     }
     if args.contains('k') && !blacklist.contains(&"k".to_string())
@@ -528,11 +528,11 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
     {
         vars.push(gc(prec));
     }
-    if args.contains('g')
+    if args.contains("gr")
     {
         vars.push(g(prec));
     }
-    if args.contains('h')
+    if args.contains("pl")
     {
         vars.push(h(prec));
     }

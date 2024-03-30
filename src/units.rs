@@ -326,6 +326,10 @@ pub fn units() -> HashSet<&'static str>
         "mi",
         "mile",
         "mph",
+        "gram",
+        "g",
+        "h",
+        "d",
     ]
     .iter()
     .cloned()
@@ -345,11 +349,15 @@ pub fn to_unit(
     {
         "m" | "meter" => units.meter = 1.0,
         "s" | "second" => units.second = 1.0,
-        "kg" | "kilogram" => units.kilogram = 1.0,
         "A" | "ampere" => units.ampere = 1.0,
         "K" | "kelvin" => units.kelvin = 1.0,
         "mol" | "mole" => units.mole = 1.0,
         "cd" | "candela" => units.candela = 1.0,
+        "g" | "gram" =>
+        {
+            pow -= 3;
+            units.kilogram = 1.0
+        }
         "J" | "joule" =>
         {
             units.kilogram = 1.0;
@@ -396,7 +404,7 @@ pub fn to_unit(
         }
         "L" | "litre" =>
         {
-            pow += -3;
+            pow -= 3;
             units.meter = 3.0;
         }
         "Hz" | "hertz" => units.second = -1.0,
@@ -492,12 +500,12 @@ pub fn to_unit(
             units.second = 1.0;
             num *= 60;
         }
-        "hour" =>
+        "h" | "hour" =>
         {
             units.second = 1.0;
             num *= 3600;
         }
-        "day" =>
+        "d" | "day" =>
         {
             units.second = 1.0;
             num *= 86400;

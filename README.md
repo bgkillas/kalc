@@ -173,9 +173,9 @@ Matrix functions:
 
 Constants:
 - c: speed of light, 299792458 m/s
-- g: gravity, 9.80665 m/s^2
+- gr: gravity, 9.80665 m/s^2
 - G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)
-- h: planck's constant, 6.62607015E-34 J*s
+- pl: planck's constant, 6.62607015E-34 J*s
 - ec: elementary charge/electron volt, 1.602176634E-19 C
 - me: electron mass, 9.1093837015E-31 kg
 - mp: proton mass, 1.67262192369E-27 kg

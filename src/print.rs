@@ -1508,7 +1508,7 @@ pub fn get_output(
             }
             else
             {
-                re + &if im == "0"
+                re + &if options.units && im == "0"
                 {
                     if let Some(units) = units
                     {

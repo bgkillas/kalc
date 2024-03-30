@@ -172,6 +172,7 @@ pub struct Options
     scale_graph: bool,
     stay_interactive: bool,
     graph_cli: bool,
+    units: bool,
 }
 impl Default for Options
 {
@@ -218,6 +219,7 @@ impl Default for Options
             scale_graph: true,
             stay_interactive: false,
             graph_cli: false,
+            units: true,
         }
     }
 }

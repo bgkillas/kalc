@@ -1057,7 +1057,8 @@ pub fn input_var(
                 output.push(Str(word))
             }
         }
-        else if units().contains(prefixes(word.clone()).0.as_str())
+        else if options.units
+            && units().contains(prefixes(word.clone()).0.as_str())
             && if i + countv < chars.len() && chars[i + countv] == '('
             {
                 !vars.clone().iter().any(|a| {

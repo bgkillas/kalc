@@ -138,7 +138,6 @@ Functions:
 - fact, doublefact, subfact
 - sinc, cis, exp
 - zeta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
-- deg, rad, grad
 - re, im, split(x+yi), next(n,to)
 - factors, prime, isprime, gcd, lcm
 - slog(a,b), ssrt(k,a) (k is lambert w branch)

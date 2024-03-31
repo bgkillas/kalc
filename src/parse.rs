@@ -1040,7 +1040,7 @@ pub fn input_var(
                 }
             }
         }
-        let (unit, mul);
+        let (mut unit, mul);
         let mut num = 0;
         let var_overrule = if i + countv < chars.len()
             && matches!(chars[i + countv], '(' | '{' | '[' | '|')
@@ -1211,6 +1211,15 @@ pub fn input_var(
             && {
                 (unit, mul) = prefixes(word.clone(), prec);
                 units().contains(unit.as_str())
+                    || (if unit.len() > 3 && unit.ends_with('s')
+                    {
+                        unit.pop();
+                        units().contains(unit.as_str())
+                    }
+                    else
+                    {
+                        false
+                    })
             }
             && var_overrule
         {

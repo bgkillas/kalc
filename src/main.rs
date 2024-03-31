@@ -69,7 +69,6 @@ pub struct Units
     mole: f64,
     candela: f64,
     angle: f64,
-    steradian: f64,
     byte: f64,
 }
 #[derive(Clone, PartialEq)]

@@ -14,7 +14,6 @@ impl Units
             mole: self.mole + b.mole,
             candela: self.candela + b.candela,
             angle: self.angle + b.angle,
-            steradian: self.steradian + b.steradian,
             byte: self.byte + b.byte,
         }
     }
@@ -29,7 +28,6 @@ impl Units
             mole: self.mole - b.mole,
             candela: self.candela - b.candela,
             angle: self.angle - b.angle,
-            steradian: self.steradian - b.steradian,
             byte: self.byte - b.byte,
         }
     }
@@ -44,7 +42,6 @@ impl Units
             mole: self.mole * b,
             candela: self.candela * b,
             angle: self.angle * b,
-            steradian: self.steradian * b,
             byte: self.byte * b,
         }
     }
@@ -59,14 +56,13 @@ impl Units
             mole: self.mole / b,
             candela: self.candela / b,
             angle: self.angle / b,
-            steradian: self.steradian / b,
             byte: self.byte / b,
         }
     }
     pub fn to_string(&self, options: Options) -> String
     {
         format!(
-            "{}{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}",
             if self.meter != 0.0
             {
                 " m".to_owned()
@@ -201,22 +197,6 @@ impl Units
             {
                 String::new()
             },
-            if self.steradian != 0.0
-            {
-                " sr".to_owned()
-                    + &if self.steradian != 1.0
-                    {
-                        "^".to_owned() + &self.steradian.to_string()
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-            }
-            else
-            {
-                String::new()
-            },
             if self.byte != 0.0
             {
                 " B".to_owned()
@@ -249,7 +229,6 @@ impl Default for Units
             mole: 0.0,
             candela: 0.0,
             angle: 0.0,
-            steradian: 0.0,
             byte: 0.0,
         }
     }
@@ -427,11 +406,11 @@ pub fn units() -> HashSet<&'static str>
         "newton",
         "°",
         "deg",
-        "degrees",
+        "degree",
         "rad",
-        "radians",
+        "radian",
         "grad",
-        "gradians",
+        "gradian",
         "hour",
         "day",
         "week",
@@ -517,7 +496,17 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         "mol" | "mole" => units.mole = 1.0,
         "cd" | "candela" => units.candela = 1.0,
         "byte" | "B" => units.byte = 1.0,
-        "steradian" | "sr" => units.steradian = 1.0,
+        "steradian" | "sr" =>
+        {
+            match options.deg
+            {
+                AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Radians =>
+                {}
+            };
+            units.angle = 2.0
+        }
         "bit" | "b" =>
         {
             num /= 8;
@@ -550,12 +539,26 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "lumen" | "lm" =>
         {
-            units.steradian = 1.0;
+            match options.deg
+            {
+                AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Radians =>
+                {}
+            };
+            units.angle = 2.0;
             units.candela = 1.0;
         }
         "lux" | "lx" =>
         {
-            units.steradian = 1.0;
+            match options.deg
+            {
+                AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Radians =>
+                {}
+            };
+            units.angle = 2.0;
             units.candela = 1.0;
             units.meter = -2.0;
         }
@@ -759,7 +762,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             units.ampere = 1.0;
             units.second = 1.0;
         }
-        "°" | "deg" | "degrees" =>
+        "°" | "deg" | "degree" =>
         {
             match options.deg
             {
@@ -774,7 +777,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             };
             units.angle = 1.0;
         }
-        "rad" | "radians" =>
+        "rad" | "radian" =>
         {
             match options.deg
             {
@@ -785,7 +788,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             };
             units.angle = 1.0
         }
-        "grad" | "gradians" =>
+        "grad" | "gradian" =>
         {
             match options.deg
             {

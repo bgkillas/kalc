@@ -172,7 +172,7 @@ pub fn set_commands(
         {
             options.notation = match r
             {
-                "sci" | "scientific" | "s" | "10^" | "*10^" => Scientific,
+                "sci" | "scientific" | "s" | "10^" | "*10^" | "10" => Scientific,
                 "engSmall" | "e" => SmallEngineering,
                 "engLarge" | "eng" | "engineering" | "E" => LargeEngineering,
                 "normal" | "n" => Normal,

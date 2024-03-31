@@ -1343,9 +1343,15 @@ pub fn get_output(
                     let n = num
                         .real()
                         .to_string_radix(options.base.1, Some(options.decimal_places));
-                    if n.contains('e')
+                    if n.chars().filter(|c| *c == '@').count() == 1
                     {
-                        n
+                        n.replace('@', &notate(options, colors))
+                            + if options.color { "\x1b[0m" } else { "" }
+                    }
+                    else if n.contains('e')
+                    {
+                        n.replace("e0", "").replace('e', &notate(options, colors))
+                            + if options.color { "\x1b[0m" } else { "" }
                     }
                     else
                     {
@@ -1365,9 +1371,15 @@ pub fn get_output(
                     let n = num
                         .imag()
                         .to_string_radix(options.base.1, Some(options.decimal_places));
-                    sign + &if n.contains('e')
+                    sign + &if n.chars().filter(|c| *c == '@').count() == 1
                     {
-                        n
+                        n.replace('@', &notate(options, colors))
+                            + if options.color { "\x1b[0m" } else { "" }
+                    }
+                    else if n.contains('e')
+                    {
+                        n.replace("e0", "").replace('e', &notate(options, colors))
+                            + if options.color { "\x1b[0m" } else { "" }
                     }
                     else
                     {
@@ -1440,27 +1452,8 @@ pub fn get_output(
                         remove_trailing_zeros(&format!("{:e}", num.real()), dec, options.prec)
                     }
                     .replace("e0", "")
-                    .replace(
-                        'e',
-                        &format!(
-                            "{}{}",
-                            if options.color
-                            {
-                                colors.sci.to_string()
-                            }
-                            else
-                            {
-                                String::new()
-                            },
-                            match options.notation
-                            {
-                                SmallEngineering => "e",
-                                Notation::LargeEngineering => "E",
-                                Notation::Scientific => "*10^",
-                                Normal => "",
-                            },
-                        ),
-                    ) + if options.color { "\x1b[0m" } else { "" }
+                    .replace('e', &notate(options, colors))
+                        + if options.color { "\x1b[0m" } else { "" }
                 },
                 if num.imag().is_zero()
                 {
@@ -1510,34 +1503,15 @@ pub fn get_output(
                         )
                     }
                     .replace("e0", "")
-                    .replace(
-                        'e',
-                        &format!(
-                            "{}{}",
-                            if options.color
-                            {
-                                colors.sci.to_string()
-                            }
-                            else
-                            {
-                                String::new()
-                            },
-                            match options.notation
-                            {
-                                SmallEngineering => "e",
-                                Notation::LargeEngineering => "E",
-                                Notation::Scientific => "*10^",
-                                Normal => "",
-                            },
-                        ),
-                    ) + &if options.color
-                    {
-                        format!("{}i", &colors.imag)
-                    }
-                    else
-                    {
-                        "i".to_string()
-                    }
+                    .replace('e', &notate(options, colors))
+                        + &if options.color
+                        {
+                            format!("{}i", &colors.imag)
+                        }
+                        else
+                        {
+                            "i".to_string()
+                        }
                 },
                 if options.units && num.imag().is_zero()
                 {
@@ -1973,4 +1947,25 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
                 .to_string()
         }
     }
+}
+fn notate(options: Options, colors: &Colors) -> String
+{
+    format!(
+        "{}{}",
+        if options.color
+        {
+            colors.sci.to_string()
+        }
+        else
+        {
+            String::new()
+        },
+        match options.notation
+        {
+            SmallEngineering => "e",
+            Notation::LargeEngineering => "E",
+            Notation::Scientific => "*10^",
+            Normal => "",
+        },
+    )
 }

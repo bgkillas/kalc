@@ -8,9 +8,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --units toggles units\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
 --tau fractions are shown in tau instead of pi\x1b[G\n\
---deg compute in degrees\x1b[G\n\
---rad compute in radians\x1b[G\n\
---grad compute in gradians\x1b[G\n\
+--angle=deg/rad/grad sets your angletype\x1b[G\n\
 --2d=[num] number of points to graph in 2D\x1b[G\n\
 --3d=[x],[y] number of points to graph in 3D\x1b[G\n\
 --xr=[min],[max] x range for graphing\x1b[G\n\
@@ -54,7 +52,7 @@ FLAGS: --help (this message)\x1b[G\n\
 - \"clear\" to clear the screen\x1b[G\n\
 - \"history [arg]\" to see the history, arg searches for the arg it if specified\x1b[G\n\
 - \"vars\" to list all variables\x1b[G\n\
-- \"option/var;function\" to set a temporal option/var, example: \"a=45;deg;sin(a)\" = sqrt(2)/2\x1b[G\n\
+- \"option/var;function\" to set a temporal option/var, example: \"a=45;angle=deg;sin(a)\" = sqrt(2)/2\x1b[G\n\
 - \"f(x)=var:function\" to set a temporal var when defining function, example: \"f(x)=a=2:ax\" = f(x)=2x\x1b[G\n\
 - \"_\" to use the previous answer\x1b[G\n\
 - \"a={{expr}}\" to define a variable\x1b[G\n\

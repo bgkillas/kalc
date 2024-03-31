@@ -156,6 +156,16 @@ pub fn set_commands(
 {
     match l
     {
+        "angle" =>
+        {
+            options.angle = match r
+            {
+                "deg" | "degree" | "degrees" => Degrees,
+                "rad" | "radians" | "radian" => Radians,
+                "grad" | "gradians" | "gradian" => Gradians,
+                _ => return Err("bad angle type"),
+            }
+        }
         "re1col" => colors.re1col = r.to_string(),
         "im1col" => colors.im1col = r.to_string(),
         "re2col" => colors.re2col = r.to_string(),
@@ -706,9 +716,6 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "onaxis" => options.onaxis = !options.onaxis,
         "surface" => options.surface = !options.surface,
         "flat" => options.flat = !options.flat,
-        "deg" => options.deg = Degrees,
-        "rad" => options.deg = Radians,
-        "grad" => options.deg = Gradians,
         "rt" => options.real_time_output = !options.real_time_output,
         "tau" => options.tau = true,
         "pi" => options.tau = false,
@@ -793,24 +800,6 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.flat = !options.flat;
-        }
-        "deg" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.deg = Degrees;
-        }
-        "rad" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.deg = Radians;
-        }
-        "grad" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.deg = Gradians;
         }
         "rt" =>
         {
@@ -1116,9 +1105,13 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "frac_iter" => format!("{}", options.frac_iter),
         "2d" => format!("{}", options.samples_2d),
         "3d" => format!("{} {}", options.samples_3d.0, options.samples_3d.1),
-        "deg" => format!("{}", options.deg == Degrees),
-        "grad" => format!("{}", options.deg == Gradians),
-        "rad" => format!("{}", options.deg == Radians),
+        "angle" => match options.angle
+        {
+            Degrees => "deg",
+            Radians => "rad",
+            Gradians => "grad",
+        }
+        .to_string(),
         "interactive" => format!("{}", options.interactive),
         "textc" => colors.text.to_string(),
         "promptc" => colors.prompt.to_string(),

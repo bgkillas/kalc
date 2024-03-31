@@ -43,9 +43,7 @@ FLAGS: --help (this message)
 --units toggles units\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --tau fractions are shown in tau instead of pi
---deg compute in degrees
---rad compute in radians
---grad compute in gradians
+--angle=deg/rad/grad sets your angletype
 --2d=[num] number of points to graph in 2D
 --3d=[x],[y] number of points to graph in 3D
 --xr=[min],[max] x range for graphing
@@ -90,7 +88,7 @@ FLAGS: --help (this message)
 - "clear" to clear the screen
 - "history [arg]" to see the history, arg searches for the arg it if specified
 - "vars" to list all variables
-- "option/var;function" to set a temporal option/var, example: "a=45;deg;sin(a)" = sqrt(2)/2
+- "option/var;function" to set a temporal option/var, example: "a=45;angle=deg;sin(a)" = sqrt(2)/2
 - "f(x)=var:function" to set a temporal var when defining function, example: "f(x)=a=2:ax" = f(x)=2x
 - "_" to use the previous answer
 - "a={expr}" to define a variable

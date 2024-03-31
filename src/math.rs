@@ -351,7 +351,7 @@ pub fn do_math(
         }
     }
     i = 0;
-    let to_deg = match options.deg
+    let to_deg = match options.angle
     {
         Degrees => 180 / Complex::with_val(options.prec, Pi),
         Radians => Complex::with_val(options.prec, 1),
@@ -3158,19 +3158,19 @@ fn functions(
                     }
                 }
                 "abs" | "norm" => a.abs(),
-                "deg" | "degree" => match options.deg
+                "deg" | "degree" => match options.angle
                 {
                     Radians => a * 180 / Complex::with_val(options.prec, Pi),
                     Gradians => a * 180.0 / 200.0,
                     Degrees => a,
                 },
-                "rad" | "radian" => match options.deg
+                "rad" | "radian" => match options.angle
                 {
                     Radians => a,
                     Gradians => a * Complex::with_val(options.prec, Pi) / 200,
                     Degrees => a * Complex::with_val(options.prec, Pi) / 180,
                 },
-                "grad" | "gradian" => match options.deg
+                "grad" | "gradian" => match options.angle
                 {
                     Radians => a * 200 / Complex::with_val(options.prec, Pi),
                     Gradians => a,

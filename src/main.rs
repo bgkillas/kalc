@@ -145,7 +145,7 @@ pub enum AngleType
 pub struct Options
 {
     sci: bool,
-    deg: AngleType,
+    angle: AngleType,
     base: (i32, i32),
     ticks: f64,
     onaxis: bool,
@@ -193,7 +193,7 @@ impl Default for Options
     {
         Self {
             sci: false,
-            deg: Radians,
+            angle: Radians,
             base: (10, 10),
             ticks: 20.0,
             onaxis: true,

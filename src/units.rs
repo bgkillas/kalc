@@ -177,7 +177,7 @@ impl Units
             },
             if self.angle != 0.0
             {
-                match options.deg
+                match options.angle
                 {
                     AngleType::Degrees => " deg",
                     AngleType::Radians => " rad",
@@ -501,7 +501,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         "byte" | "B" => units.byte = 1.0,
         "steradian" | "sr" =>
         {
-            match options.deg
+            match options.angle
             {
                 AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
                 AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
@@ -542,7 +542,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "lumen" | "lm" =>
         {
-            match options.deg
+            match options.angle
             {
                 AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
                 AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
@@ -554,7 +554,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "lux" | "lx" =>
         {
-            match options.deg
+            match options.angle
             {
                 AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
                 AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
@@ -767,7 +767,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "°" | "deg" | "degree" =>
         {
-            match options.deg
+            match options.angle
             {
                 AngleType::Degrees =>
                 {}
@@ -782,7 +782,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "rad" | "radian" =>
         {
-            match options.deg
+            match options.angle
             {
                 AngleType::Degrees => num *= 180 / Complex::with_val(options.prec, Pi),
                 AngleType::Gradians => num *= 200 / Complex::with_val(options.prec, Pi),
@@ -793,7 +793,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "grad" | "gradian" =>
         {
-            match options.deg
+            match options.angle
             {
                 AngleType::Degrees =>
                 {

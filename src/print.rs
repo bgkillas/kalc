@@ -738,7 +738,7 @@ pub fn print_concurrent(
             {
                 v = to_polar(
                     v,
-                    match options.deg
+                    match options.angle
                     {
                         Degrees => 180 / Complex::with_val(options.prec, Pi),
                         Radians => Complex::with_val(options.prec, 1),
@@ -1166,7 +1166,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             {
                 v = to_polar(
                     v,
-                    match options.deg
+                    match options.angle
                     {
                         Degrees => 180 / Complex::with_val(options.prec, Pi),
                         Radians => Complex::with_val(options.prec, 1),

@@ -14,7 +14,9 @@ use crate::{
     options::{equal_to, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Number, Options, Variable,
+    Colors, Notation,
+    Notation::{Normal, SmallEngineering},
+    Number, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
 use std::cmp::Ordering;
@@ -203,6 +205,7 @@ pub fn print_concurrent(
                     | "im5col"
                     | "re6col"
                     | "im6col"
+                    | "notation"
                     | "textc"
                     | "promptc"
                     | "imagc"
@@ -530,7 +533,7 @@ pub fn print_concurrent(
         Num(n) =>
         {
             let mut output = get_output(options, &colors, &n);
-            let (mut frac_a, frac_b) = if options.frac || options.frac_iter == 0
+            let (mut frac_a, frac_b) = if options.frac
             {
                 let n = n.number;
                 let fa = fraction(n.real().clone(), options);
@@ -790,7 +793,7 @@ pub fn print_concurrent(
             {
                 out = get_output(options, &colors, i);
                 let i = &i.number;
-                if options.frac || options.frac_iter == 0
+                if options.frac
                 {
                     frac_temp = fraction(i.real().clone(), options);
                     frac_out += if !frac_temp.is_empty()
@@ -955,7 +958,7 @@ pub fn print_concurrent(
                 {
                     out = get_output(options, &colors, i);
                     let i = &i.number;
-                    if options.frac || options.frac_iter == 0
+                    if options.frac
                     {
                         frac_temp = fraction(i.real().clone(), options);
                         frac_out += if !frac_temp.is_empty()
@@ -1321,7 +1324,7 @@ pub fn get_output(
     {
         options.decimal_places
     };
-    if options.sci
+    if options.notation != Normal
     {
         if options.base.1 != 10
         {
@@ -1439,25 +1442,24 @@ pub fn get_output(
                     .replace("e0", "")
                     .replace(
                         'e',
-                        &if options.small_e
-                        {
+                        &format!(
+                            "{}{}",
                             if options.color
                             {
-                                format!("{}e", &colors.sci)
+                                colors.sci.to_string()
                             }
                             else
                             {
-                                "e".to_string()
-                            }
-                        }
-                        else if options.color
-                        {
-                            format!("{}E", &colors.sci)
-                        }
-                        else
-                        {
-                            "E".to_string()
-                        },
+                                String::new()
+                            },
+                            match options.notation
+                            {
+                                SmallEngineering => "e",
+                                Notation::LargeEngineering => "E",
+                                Notation::Scientific => "*10^",
+                                Normal => "",
+                            },
+                        ),
                     ) + if options.color { "\x1b[0m" } else { "" }
                 },
                 if num.imag().is_zero()
@@ -1510,25 +1512,24 @@ pub fn get_output(
                     .replace("e0", "")
                     .replace(
                         'e',
-                        &if options.small_e
-                        {
+                        &format!(
+                            "{}{}",
                             if options.color
                             {
-                                format!("{}e", &colors.sci)
+                                colors.sci.to_string()
                             }
                             else
                             {
-                                "e".to_string()
-                            }
-                        }
-                        else if options.color
-                        {
-                            format!("{}E", &colors.sci)
-                        }
-                        else
-                        {
-                            "E".to_string()
-                        },
+                                String::new()
+                            },
+                            match options.notation
+                            {
+                                SmallEngineering => "e",
+                                Notation::LargeEngineering => "E",
+                                Notation::Scientific => "*10^",
+                                Normal => "",
+                            },
+                        ),
                     ) + &if options.color
                     {
                         format!("{}i", &colors.imag)

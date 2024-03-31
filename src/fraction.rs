@@ -62,7 +62,7 @@ pub fn fraction(value: Float, options: Options) -> String
         }
         let mut number = orig.clone().fract();
         let mut nums = Vec::new();
-        for _ in 0..=options.frac_iter
+        for _ in 0..=50
         {
             let mut recip = number.clone().recip();
             let fract = recip.clone().fract();

@@ -7,7 +7,9 @@ use crate::{
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Number, Options, Variable,
+    Colors,
+    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
+    Number, Options, Variable,
 };
 use crossterm::{
     execute, terminal,
@@ -166,6 +168,17 @@ pub fn set_commands(
                 _ => return Err("bad angle type"),
             }
         }
+        "notation" =>
+        {
+            options.notation = match r
+            {
+                "sci" | "scientific" | "s" | "10^" | "*10^" => Scientific,
+                "engSmall" | "e" => SmallEngineering,
+                "engLarge" | "eng" | "engineering" | "E" => LargeEngineering,
+                "normal" | "n" => Normal,
+                _ => return Err("bad notation type"),
+            }
+        }
         "re1col" => colors.re1col = r.to_string(),
         "im1col" => colors.im1col = r.to_string(),
         "re2col" => colors.re2col = r.to_string(),
@@ -223,11 +236,11 @@ pub fn set_commands(
             }
         }
         "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "depth" | "surface"
-        | "flat" | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines" | "polar"
-        | "frac" | "multi" | "tabbed" | "comma" | "graph" | "units" | "scalegraph" | "debug"
-        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
-        | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr"
-        | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
+        | "flat" | "rt" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed" | "comma"
+        | "graph" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks"
+        | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
+        | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
+        | "vzr" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -294,8 +307,6 @@ pub fn set_commands(
                 "surface" => options.surface = args[0] != 0.0,
                 "flat" => options.flat = args[0] != 0.0,
                 "rt" => options.real_time_output = args[0] != 0.0,
-                "small_e" => options.small_e = args[0] != 0.0,
-                "sci" | "scientific" => options.sci = args[0] != 0.0,
                 "line" | "lines" => options.lines = args[0] != 0.0,
                 "polar" => options.polar = args[0] != 0.0,
                 "frac" => options.frac = args[0] != 0.0,
@@ -678,7 +689,6 @@ pub fn set_commands(
                         options.vzr = (min, max)
                     }
                 }
-                "frac_iter" => options.frac_iter = args[0] as usize,
                 "2d" => options.samples_2d = args[0] as usize,
                 "3d" =>
                 {
@@ -716,8 +726,6 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "surface" => options.surface = !options.surface,
         "flat" => options.flat = !options.flat,
         "rt" => options.real_time_output = !options.real_time_output,
-        "small_e" => options.small_e = !options.small_e,
-        "sci" | "scientific" => options.sci = !options.sci,
         "line" | "lines" => options.lines = !options.lines,
         "polar" => options.polar = !options.polar,
         "frac" => options.frac = !options.frac,
@@ -803,18 +811,6 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.real_time_output = !options.real_time_output;
-        }
-        "small_e" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.small_e = !options.small_e;
-        }
-        "sci" | "scientific" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.sci = !options.sci;
         }
         "clear" =>
         {
@@ -1058,7 +1054,6 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "flat" => format!("{}", options.flat),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
-        "sci" | "scientific" => format!("{}", options.sci),
         "debug" => format!("{}", options.debug),
         "scalegraph" => format!("{}", options.scale_graph),
         "line" => format!("{}", options.lines),
@@ -1097,7 +1092,6 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             options.vzr.0,
             options.vzr.1
         ),
-        "frac_iter" => format!("{}", options.frac_iter),
         "2d" => format!("{}", options.samples_2d),
         "3d" => format!("{} {}", options.samples_3d.0, options.samples_3d.1),
         "angle" => match options.angle
@@ -1105,6 +1099,14 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             Degrees => "deg",
             Radians => "rad",
             Gradians => "grad",
+        }
+        .to_string(),
+        "notation" => match options.notation
+        {
+            SmallEngineering => "e",
+            LargeEngineering => "E",
+            Scientific => "s",
+            Normal => "n",
         }
         .to_string(),
         "interactive" => format!("{}", options.interactive),

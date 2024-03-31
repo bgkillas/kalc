@@ -50,6 +50,7 @@ use std::{
 //have unit powers be fractional, maybe 2 usizes
 //add option to print units in simplified form instead of just in base si units, like N instead of kg m s^-2
 //compress units if able
+//remake readme image cuz angle=deg and notation=s
 #[derive(Clone)]
 pub struct Variable
 {
@@ -141,10 +142,18 @@ pub enum AngleType
     Degrees,
     Gradians,
 }
+#[derive(Copy, Clone, PartialEq)]
+pub enum Notation
+{
+    Normal,
+    Scientific,
+    LargeEngineering,
+    SmallEngineering,
+}
 #[derive(Clone, Copy)]
 pub struct Options
 {
-    sci: bool,
+    notation: Notation,
     angle: AngleType,
     base: (i32, i32),
     ticks: f64,
@@ -158,7 +167,6 @@ pub struct Options
     comma: bool,
     prec: u32,
     graph_prec: u32,
-    frac_iter: usize,
     xr: (f64, f64),
     yr: (f64, f64),
     zr: (f64, f64),
@@ -172,7 +180,6 @@ pub struct Options
     multi: bool,
     tabbed: bool,
     allow_vars: bool,
-    small_e: bool,
     debug: bool,
     depth: bool,
     flat: bool,
@@ -191,7 +198,7 @@ impl Default for Options
     fn default() -> Self
     {
         Self {
-            sci: false,
+            notation: Notation::Normal,
             angle: Radians,
             base: (10, 10),
             ticks: 20.0,
@@ -205,7 +212,6 @@ impl Default for Options
             comma: false,
             prec: 512,
             graph_prec: 128,
-            frac_iter: 50,
             xr: (-10.0, 10.0),
             yr: (-10.0, 10.0),
             zr: (-10.0, 10.0),
@@ -219,7 +225,6 @@ impl Default for Options
             multi: true,
             tabbed: false,
             allow_vars: true,
-            small_e: false,
             debug: false,
             depth: false,
             flat: false,
@@ -1555,11 +1560,7 @@ fn main()
                 input
                     .iter()
                     .collect::<String>()
-                    .replace("small_e", "smalle")
-                    .replace("frac_iter", "fraciter")
-                    .replace('_', &format!("({})", last.iter().collect::<String>()))
-                    .replace("smalle", "small_e")
-                    .replace("fraciter", "frac_iter"),
+                    .replace('_', &format!("({})", last.iter().collect::<String>())),
                 file.as_mut().unwrap(),
                 unmod_lines.as_mut().unwrap(),
                 slow,

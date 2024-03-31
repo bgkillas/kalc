@@ -40,7 +40,8 @@ Usage: kalc [FLAGS] equation_1 equation_2 equation_3...
 FLAGS: --help (this message)
 --help {thing} to get more detail on a function/option/feature, --help help to list all "things"
 --interactive/-i allows interaction after finishing the equations given
---units toggles units\x1b[G\n\
+--units toggles units
+--notation=e,E,s,n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --angle=deg/rad/grad sets your angletype
 --2d=[num] number of points to graph in 2D
@@ -54,7 +55,6 @@ FLAGS: --help (this message)
 --vzr=[min],[max] z range for graphing, graph view override, useful for parametric
 --vrange=[num] sets all ranges to [-num],[num], graph view override, useful for parametric
 --point [char] point style for graphing
---sci toggles scientific notation
 --base=[input],[output] sets the numbers base from 2 to 36
 --ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
 --onaxis toggles showing the ticks on the x/y/z axis on by default for 2d, off by default for 3d
@@ -68,7 +68,6 @@ FLAGS: --help (this message)
 --rt toggles real time printing
 --polar toggles displaying polar vectors
 --frac toggles fraction display
---frac_iter=[num] how many iterations to check for fractions
 --prec=[num] sets the output precision(default 512)
 --graphprec=[num] sets the graph precision(default 64)
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
@@ -78,7 +77,6 @@ FLAGS: --help (this message)
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph
 --flat display 2d complex graphs like they are on the 2d number line
---small_e use small e notation, like 5e2=5*10^2, instead of capital 'E' for scientific notation. only works with a number before and number or '-' sign after the 'e' otherwise assumes euler number
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate
 
 - flags can be executed in runtime just without the dashes

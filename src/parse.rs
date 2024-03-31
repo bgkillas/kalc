@@ -6,6 +6,7 @@ use crate::{
     functions::functions,
     math::do_math,
     units::{prefixes, to_unit, units},
+    Notation::SmallEngineering,
     Number, Options, Variable,
 };
 use rug::{
@@ -517,7 +518,15 @@ pub fn input_var(
                     && (chars[i - 1].is_alphanumeric()
                         || (!output.is_empty() && output.last().unwrap().str_is(")"))
                         || matches!(chars[i - 1], '}' | ']' | ')' | '@'))
-                    && chars[i - 1] != if options.small_e { 'e' } else { 'E' }
+                    && chars[i - 1]
+                        != if options.notation == SmallEngineering
+                        {
+                            'e'
+                        }
+                        else
+                        {
+                            'E'
+                        }
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if chars[i + 1] == '-'
@@ -599,7 +608,15 @@ pub fn input_var(
                         pwr.2 += 1;
                     }
                     else if i == 0
-                        || !(chars[i - 1] != if options.small_e { 'e' } else { 'E' }
+                        || !(chars[i - 1]
+                            != if options.notation == SmallEngineering
+                            {
+                                'e'
+                            }
+                            else
+                            {
+                                'E'
+                            }
                             && (chars[i - 1].is_alphanumeric()
                                 || (!output.is_empty() && output.last().unwrap().str_is(")"))
                                 || matches!(chars[i - 1], '}' | ']' | ')' | '@')))
@@ -1320,7 +1337,7 @@ pub fn input_var(
             for var in vars.clone()
             {
                 if var.name != vec!['e']
-                    || (!options.small_e
+                    || (options.notation != SmallEngineering
                         || !(i != 0
                             && i + 1 != chars.len()
                             && chars[i - 1].is_numeric()
@@ -2059,7 +2076,7 @@ pub fn input_var(
                 }
             }
             if (i == 0 || chars[i - 1] != ' ' || c != ' ')
-                && (if options.small_e
+                && (if options.notation == SmallEngineering
                 {
                     matches!(c, 'x' | 'y' | 'z' | 'i' | 'e')
                 }
@@ -2078,7 +2095,8 @@ pub fn input_var(
                 {
                     'ⁱ' => pow.push('i'),
                     'E' | 'e'
-                        if (options.small_e && c == 'e') || (!options.small_e && c == 'E') =>
+                        if (options.notation == SmallEngineering && c == 'e')
+                            || (options.notation != SmallEngineering && c == 'E') =>
                     {
                         if let Some(last) = output.last()
                         {

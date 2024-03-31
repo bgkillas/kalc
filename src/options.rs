@@ -222,12 +222,12 @@ pub fn set_commands(
                 return Err("Invalid point type");
             }
         }
-        "graphcli" | "slowcheck" | "tau" | "interactive" | "color" | "prompt" | "depth"
-        | "surface" | "flat" | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines"
-        | "polar" | "frac" | "multi" | "tabbed" | "comma" | "graph" | "units" | "scalegraph"
-        | "debug" | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals"
-        | "graphprec" | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr"
-        | "yr" | "zr" | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
+        "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "depth" | "surface"
+        | "flat" | "rt" | "small_e" | "sci" | "scientific" | "line" | "lines" | "polar"
+        | "frac" | "multi" | "tabbed" | "comma" | "graph" | "units" | "scalegraph" | "debug"
+        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
+        | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr"
+        | "vrange" | "vxr" | "vyr" | "vzr" | "frac_iter" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -287,7 +287,6 @@ pub fn set_commands(
             match l
             {
                 "graphcli" => options.graph_cli = args[0] != 0.0,
-                "tau" => options.tau = args[0] != 0.0,
                 "color" => options.color = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
                 "prompt" => options.prompt = args[0] != 0.0,
@@ -717,8 +716,6 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "surface" => options.surface = !options.surface,
         "flat" => options.flat = !options.flat,
         "rt" => options.real_time_output = !options.real_time_output,
-        "tau" => options.tau = true,
-        "pi" => options.tau = false,
         "small_e" => options.small_e = !options.small_e,
         "sci" | "scientific" => options.sci = !options.sci,
         "line" | "lines" => options.lines = !options.lines,
@@ -807,8 +804,6 @@ pub fn commands(
             stdout.flush().unwrap();
             options.real_time_output = !options.real_time_output;
         }
-        "tau" => options.tau = true,
-        "pi" => options.tau = false,
         "small_e" =>
         {
             print!("\x1b[G\x1b[A\x1b[K");

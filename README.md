@@ -42,7 +42,6 @@ FLAGS: --help (this message)
 --interactive/-i allows interaction after finishing the equations given
 --units toggles units\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
---tau fractions are shown in tau instead of pi
 --angle=deg/rad/grad sets your angletype
 --2d=[num] number of points to graph in 2D
 --3d=[x],[y] number of points to graph in 3D

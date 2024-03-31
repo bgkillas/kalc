@@ -187,96 +187,132 @@ pub fn print_concurrent(
         {
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
             let mut input = unparsed[n..].iter().collect::<String>();
-            let mut func = unparsed[..n].to_vec();
-            let mut func_vars: Vec<(isize, String)> = Vec::new();
-            if func.contains(&'(')
-            {
-                func.drain(0..=func.iter().position(|c| c == &'(').unwrap());
-                func.pop();
-                func.pop();
-                for i in func.split(|c| c == &',')
-                {
-                    func_vars.push((-1, i.iter().collect()));
-                }
-            }
-            if input.contains(':')
-            {
-                let inp = input;
-                let mut split = inp.split(':').collect::<Vec<&str>>();
-                input = split.pop().unwrap().to_string();
-                for i in split
-                {
-                    if i.contains('=')
-                    {
-                        let mut split = i.splitn(2, '=');
-                        func_vars.push((-1, split.next().unwrap().to_string()));
-                    }
-                }
-            }
-            let out = match input_var(
-                &input,
-                vars.to_vec(),
-                &mut func_vars,
-                &mut 0,
-                options,
-                false,
-                true,
-                0,
-                Vec::new(),
+            let mut func = unparsed[..n - 1].to_vec();
+            if matches!(
+                func.iter().collect::<String>().as_str(),
+                "angle"
+                    | "re1col"
+                    | "im1col"
+                    | "re2col"
+                    | "im2col"
+                    | "re3col"
+                    | "im3col"
+                    | "re4col"
+                    | "im4col"
+                    | "re5col"
+                    | "im5col"
+                    | "re6col"
+                    | "im6col"
+                    | "textc"
+                    | "promptc"
+                    | "imagc"
+                    | "scic"
+                    | "unitsc"
+                    | "bracketc"
+                    | "label"
             )
             {
-                Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
-                _ => String::new(),
-            };
-            if out.is_empty()
-            {
-                clear(unmodified_input, start, end, options, &colors);
-                return (0, false, false, true);
-            }
-            let (width, height) = get_terminal_dimensions();
-            let len = no_col(&out, options.color).len();
-            let wrap = (len - 1) / width + 1;
-            return if len > width * (height - 1)
-            {
-                if long_output
-                {
-                    print!(
-                        "\x1b[G\n\x1b[J{}{}",
-                        out,
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    (wrap, true, false, true)
-                }
-                else
-                {
-                    print!(
-                        "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
-                        prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" },
-                    );
-                    (0, true, true, true)
-                }
-            }
-            else
-            {
                 print!(
-                    "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                    out,
-                    if wrap == 0
-                    {
-                        String::new()
-                    }
-                    else
-                    {
-                        format!("\x1b[{}A", wrap)
-                    },
+                    "\x1b[G\n\x1b[J{}\x1b[A\x1b[G\x1b[K{}{}{}",
+                    input,
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (wrap, true, false, true)
-            };
+                return (1, true, false, true);
+            }
+            else
+            {
+                let mut func_vars: Vec<(isize, String)> = Vec::new();
+                if func.contains(&'(')
+                {
+                    func.drain(0..=func.iter().position(|c| c == &'(').unwrap());
+                    func.pop();
+                    func.pop();
+                    for i in func.split(|c| c == &',')
+                    {
+                        func_vars.push((-1, i.iter().collect()));
+                    }
+                }
+                if input.contains(':')
+                {
+                    let inp = input;
+                    let mut split = inp.split(':').collect::<Vec<&str>>();
+                    input = split.pop().unwrap().to_string();
+                    for i in split
+                    {
+                        if i.contains('=')
+                        {
+                            let mut split = i.splitn(2, '=');
+                            func_vars.push((-1, split.next().unwrap().to_string()));
+                        }
+                    }
+                }
+                let out = match input_var(
+                    &input,
+                    vars.to_vec(),
+                    &mut func_vars,
+                    &mut 0,
+                    options,
+                    false,
+                    true,
+                    0,
+                    Vec::new(),
+                )
+                {
+                    Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
+                    _ => String::new(),
+                };
+                if out.is_empty()
+                {
+                    clear(unmodified_input, start, end, options, &colors);
+                    return (0, false, false, true);
+                }
+                let (width, height) = get_terminal_dimensions();
+                let len = no_col(&out, options.color).len();
+                let wrap = (len - 1) / width + 1;
+                return if len > width * (height - 1)
+                {
+                    if long_output
+                    {
+                        print!(
+                            "\x1b[G\n\x1b[J{}{}",
+                            out,
+                            if options.color { "\x1b[0m" } else { "" }
+                        );
+                        (wrap, true, false, true)
+                    }
+                    else
+                    {
+                        print!(
+                            "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
+                            prompt(options, &colors),
+                            to_output(&unmodified_input[start..end], options.color, &colors),
+                            if options.color { "\x1b[0m" } else { "" },
+                        );
+                        (0, true, true, true)
+                    }
+                }
+                else
+                {
+                    print!(
+                        "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                        out,
+                        if wrap == 0
+                        {
+                            String::new()
+                        }
+                        else
+                        {
+                            format!("\x1b[{}A", wrap)
+                        },
+                        prompt(options, &colors),
+                        to_output(&unmodified_input[start..end], options.color, &colors),
+                        if options.color { "\x1b[0m" } else { "" }
+                    );
+                    (wrap, true, false, true)
+                };
+            }
         }
     }
     if input.2

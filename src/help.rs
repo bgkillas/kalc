@@ -7,7 +7,6 @@ FLAGS: --help (this message)\x1b[G\n\
 --interactive/-i allows interaction after finishing the equations given\x1b[G\n\
 --units toggles units\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
---tau fractions are shown in tau instead of pi\x1b[G\n\
 --angle=deg/rad/grad sets your angletype\x1b[G\n\
 --2d=[num] number of points to graph in 2D\x1b[G\n\
 --3d=[x],[y] number of points to graph in 3D\x1b[G\n\

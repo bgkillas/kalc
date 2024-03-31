@@ -10,14 +10,7 @@ pub fn fraction(value: Float, options: Options) -> String
     let rt3 = Float::with_val(options.prec, 3).sqrt();
     let values = [
         Float::with_val(options.prec, 1.0),
-        if options.tau
-        {
-            2 * Float::with_val(options.prec, Pi)
-        }
-        else
-        {
-            Float::with_val(options.prec, Pi)
-        },
+        Float::with_val(options.prec, Pi),
         Float::with_val(options.prec, 2).sqrt(),
         rt3.clone(),
         Float::with_val(options.prec, 2 + rt3.clone()).sqrt(),
@@ -32,7 +25,7 @@ pub fn fraction(value: Float, options: Options) -> String
         String::new()
     };
     let val = value.abs();
-    let tau = if options.tau { "τ" } else { "π" };
+    let tau = "π";
     for (i, constant) in values.iter().enumerate()
     {
         let orig = val.clone() / constant;

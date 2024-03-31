@@ -220,6 +220,7 @@ supports metric prefixes and the following units
 "Wh"
 "Ah"
 "year"
+"month"
 "ly"
 "kph"
 "T" | "tesla"

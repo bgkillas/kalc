@@ -47,38 +47,8 @@ pub fn do_math(
     {
         if let Str(s) = &function[i]
         {
-            match s.as_str()
-            {
-                "rnd" =>
-                {
-                    function[i] = Num(Number::from_units(
-                        Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
-                        None,
-                    ))
-                }
-                "epoch" =>
-                {
-                    function[i] = Num(Number::from_units(
-                        Complex::with_val(
-                            options.prec,
-                            match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
-                            {
-                                Ok(n) => n.as_nanos(),
-                                _ => return Err("epoch fail"),
-                            },
-                        ) / 1000000000,
-                        Some(Units {
-                            second: 1.0,
-                            ..Units::default()
-                        }),
-                    ))
-                }
-                _ =>
-                {
-                    let s = s.clone();
-                    recursively_get_var(&mut function, &func_vars, &i, &s);
-                }
-            }
+            let s = s.clone();
+            recursively_get_var(&mut function, &func_vars, &i, &s);
         }
         i += 1;
     }
@@ -368,7 +338,17 @@ pub fn do_math(
     }
     if function.len() == 1
     {
-        return Ok(function[0].clone());
+        if let Str(s) = &function[0]
+        {
+            if !matches!(s.as_str(), "rnd" | "epoch")
+            {
+                return Ok(function[0].clone());
+            }
+        }
+        else
+        {
+            return Ok(function[0].clone());
+        }
     }
     i = 0;
     let to_deg = match options.deg
@@ -381,7 +361,9 @@ pub fn do_math(
     {
         if let Str(s) = &function[i].clone()
         {
-            if s.len() > 1 && s.chars().next().unwrap().is_alphabetic()
+            if (s.len() > 1
+                && s.chars().next().unwrap().is_alphabetic()
+                && !matches!(s.as_str(), "epoch" | "rnd"))
                 || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D" | "∫")
             {
                 if matches!(
@@ -2214,6 +2196,43 @@ pub fn do_math(
             }
         }
         i += 1;
+    }
+    i = 0;
+    while i < function.len()
+    {
+        if let Str(s) = &function[i]
+        {
+            function[i] = match s.as_str()
+            {
+                "rnd" => Num(Number::from_units(
+                    Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
+                    None,
+                )),
+                "epoch" => Num(Number::from_units(
+                    Complex::with_val(
+                        options.prec,
+                        match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
+                        {
+                            Ok(n) => n.as_nanos(),
+                            _ => return Err("epoch fail"),
+                        },
+                    ) / 1000000000,
+                    Some(Units {
+                        second: 1.0,
+                        ..Units::default()
+                    }),
+                )),
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            }
+        }
+        else
+        {
+            i += 1;
+        }
     }
     i = 1;
     while i < function.len() - 1

@@ -415,6 +415,7 @@ pub fn units() -> HashSet<&'static str>
         "mol",
         "mole",
         "cd",
+        "month",
         "candela",
         "J",
         "joule",
@@ -724,6 +725,11 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             units.second = 1.0;
             num *= 604800;
+        }
+        "month" =>
+        {
+            num *= 2629800;
+            units.second = 1.0
         }
         "year" =>
         {

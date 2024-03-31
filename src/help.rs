@@ -177,6 +177,7 @@ supports metric prefixes and the following units\x1b[G\n\
 \"Wh\"\x1b[G\n\
 \"Ah\"\x1b[G\n\
 \"year\"\x1b[G\n\
+\"month\"\x1b[G\n\
 \"ly\"\x1b[G\n\
 \"kph\"\x1b[G\n\
 \"T\" | \"tesla\"\x1b[G\n\

@@ -2803,7 +2803,28 @@ fn functions(
     }
     let n = if matches!(
         s,
-        "root" | "sqrt" | "asquare" | "exp" | "aln" | "square" | "asqrt" | "cube" | "acbrt"
+        "root"
+            | "sqrt"
+            | "asquare"
+            | "exp"
+            | "aln"
+            | "square"
+            | "asqrt"
+            | "cube"
+            | "acbrt"
+            | "asin"
+            | "arcsin"
+            | "acsc"
+            | "arccsc"
+            | "acos"
+            | "arccos"
+            | "asec"
+            | "arcsec"
+            | "atan2"
+            | "atan"
+            | "arctan"
+            | "acot"
+            | "arccot"
     )
     {
         if let Some(ref b) = c
@@ -2875,6 +2896,81 @@ fn functions(
             }
             "square" | "asqrt" => Number::from(a.number.pow(2), a.units.map(|a| a.pow(2.0))),
             "cube" | "acbrt" => Number::from(a.number.pow(3), a.units.map(|a| a.pow(3.0))),
+            "asin" | "arcsin" => Number::from(
+                a.number.clone().asin() * to_deg,
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
+            "acsc" | "arccsc" => Number::from(
+                a.number.clone().recip().asin() * to_deg,
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
+            "acos" | "arccos" => Number::from(
+                a.number.clone().acos() * to_deg,
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
+            "asec" | "arcsec" => Number::from(
+                a.number.clone().recip().acos() * to_deg,
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
+            "atan2" =>
+            {
+                if let Some(b) = c
+                {
+                    Number::from(
+                        atan(b.number, a.number) * to_deg,
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    )
+                }
+                else
+                {
+                    return Err("not enough args");
+                }
+            }
+            "atan" | "arctan" =>
+            {
+                if let Some(b) = c
+                {
+                    Number::from(
+                        atan(a.number, b.number) * to_deg,
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    )
+                }
+                else
+                {
+                    Number::from(
+                        a.number.atan() * to_deg,
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    )
+                }
+            }
+            "acot" | "arccot" => Number::from(
+                a.number.recip().atan() * to_deg,
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
             _ => return Err("unreachable"),
         }
     }
@@ -2902,33 +2998,6 @@ fn functions(
                 "sec" => (a / to_deg).cos().recip(),
                 "tan" => (a / to_deg).tan(),
                 "cot" => (a / to_deg).tan().recip(),
-                "asin" | "arcsin" => a.clone().asin() * to_deg,
-                "acsc" | "arccsc" => a.clone().recip().asin() * to_deg,
-                "acos" | "arccos" => a.clone().acos() * to_deg,
-                "asec" | "arcsec" => a.clone().recip().acos() * to_deg,
-                "atan2" =>
-                {
-                    if let Some(b) = d
-                    {
-                        atan(b, a) * to_deg
-                    }
-                    else
-                    {
-                        return Err("not enough args");
-                    }
-                }
-                "atan" | "arctan" =>
-                {
-                    if let Some(b) = d
-                    {
-                        atan(a, b) * to_deg
-                    }
-                    else
-                    {
-                        a.atan() * to_deg
-                    }
-                }
-                "acot" | "arccot" => a.recip().atan() * to_deg,
                 "sinh" => a.sinh(),
                 "csch" => a.sinh().recip(),
                 "cosh" => a.cosh(),
@@ -3158,24 +3227,6 @@ fn functions(
                     }
                 }
                 "abs" | "norm" => a.abs(),
-                "deg" | "degree" => match options.angle
-                {
-                    Radians => a * 180 / Complex::with_val(options.prec, Pi),
-                    Gradians => a * 180.0 / 200.0,
-                    Degrees => a,
-                },
-                "rad" | "radian" => match options.angle
-                {
-                    Radians => a,
-                    Gradians => a * Complex::with_val(options.prec, Pi) / 200,
-                    Degrees => a * Complex::with_val(options.prec, Pi) / 180,
-                },
-                "grad" | "gradian" => match options.angle
-                {
-                    Radians => a * 200 / Complex::with_val(options.prec, Pi),
-                    Gradians => a,
-                    Degrees => a * 200.0 / 180.0,
-                },
                 "re" | "real" => Complex::with_val(options.prec, a.real()),
                 "im" | "imag" => Complex::with_val(options.prec, a.imag()),
                 "sgn" | "sign" =>

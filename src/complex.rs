@@ -780,7 +780,10 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
                         {
                             to_deg * Float::with_val(a[0].number.prec().0, Pi)
                         },
-                        None,
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
                     ),
                 ]
             }
@@ -793,7 +796,10 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
                 Number::from(n.clone(), a[0].units),
                 Number::from(
                     atan(a[0].number.clone(), a[1].number.clone()) * to_deg,
-                    None,
+                    Some(Units {
+                        angle: 1.0,
+                        ..Units::default()
+                    }),
                 ),
             ]
         }
@@ -814,8 +820,20 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             {
                 vec![
                     Number::from(a[2].number.clone().abs(), a[2].units),
-                    Number::from(Complex::new(a[0].number.prec()), None),
-                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
                 ]
             }
         }
@@ -826,8 +844,20 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             n = n.sqrt();
             vec![
                 Number::from(n.clone(), a[0].units),
-                Number::from(atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone(), None),
-                Number::from(Complex::new(a[0].number.prec()), None),
+                Number::from(
+                    atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone(),
+                    Some(Units {
+                        angle: 1.0,
+                        ..Units::default()
+                    }),
+                ),
+                Number::from(
+                    Complex::new(a[0].number.prec()),
+                    Some(Units {
+                        angle: 1.0,
+                        ..Units::default()
+                    }),
+                ),
             ]
         }
     }
@@ -838,10 +868,19 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
         n = n.sqrt();
         vec![
             Number::from(n.clone(), a[0].units),
-            Number::from(atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone(), None),
+            Number::from(
+                atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone(),
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
             Number::from(
                 atan(a[0].number.clone(), a[1].number.clone()) * to_deg.clone(),
-                None,
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
             ),
         ]
     }

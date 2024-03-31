@@ -196,7 +196,9 @@ Constants:
 - tau/τ: tau, 6.2831853071~
 
 Units:
-supports metric prefixes and the following units
+supports metric and binary prefixes
+ignores "s" at the end to allow "meters" and stuff
+the following units are supported
 "m" | "meter"
 "s" | "second"
 "A" | "ampere"

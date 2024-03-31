@@ -450,6 +450,9 @@ pub fn units() -> HashSet<&'static str>
         "ft",
         "yd",
         "yard",
+        "foot",
+        "feet",
+        "inches",
         "mi",
         "mile",
         "mph",
@@ -593,13 +596,13 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             num /= 1250;
             units.meter = 1.0;
         }
-        "ft" | "foot" =>
+        "ft" | "foot" | "feet" =>
         {
             units.meter = 1.0;
             num *= 381;
             num /= 1250;
         }
-        "in" | "inch" =>
+        "in" | "inch" | "inches" =>
         {
             units.meter = 1.0;
             num *= 127;

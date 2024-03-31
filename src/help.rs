@@ -153,7 +153,9 @@ Constants:\x1b[G\n\
 - pi/π: pi, 3.1415926535~\x1b[G\n\
 - tau/τ: tau, 6.2831853071~\x1b[G\n\n\
 Units:\x1b[G\n\
-supports metric prefixes and the following units\x1b[G\n\
+supports metric and binary prefixes\x1b[G\n\
+ignores \"s\" at the end to allow \"meters\" and stuff\x1b[G\n\
+the following units are supported\x1b[G\n\
 {}\x1b[G\n\n\
 Digraph:\x1b[G\n\
 hit escape then a letter, or hold alt while typing(only lowercase)\x1b[G\n\

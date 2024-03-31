@@ -441,7 +441,7 @@ pub fn set_commands(
                                     else
                                     {
                                         vec![do_math(parsed.0, *options, parsed.1.clone())
-                                            .unwrap_or(Num(Number::from_units(
+                                            .unwrap_or(Num(Number::from(
                                                 Complex::new(options.prec),
                                                 None,
                                             )))]
@@ -932,10 +932,11 @@ pub fn commands(
                         {
                             let n = get_output(*options, colors, n);
                             print!(
-                                "{}={}{}{}\x1b[G\n",
+                                "{}={}{}{}{}\x1b[G\n",
                                 v.name.iter().collect::<String>(),
                                 n.0,
                                 n.1,
+                                n.2.unwrap_or_default(),
                                 if options.color { &colors.text } else { "" }
                             )
                         }
@@ -947,6 +948,7 @@ pub fn commands(
                                 let n = get_output(*options, colors, i);
                                 st.push_str(&n.0);
                                 st.push_str(&n.1);
+                                st.push_str(&n.2.unwrap_or_default());
                                 if options.color
                                 {
                                     st.push_str(&colors.text)
@@ -970,6 +972,7 @@ pub fn commands(
                                     let n = get_output(*options, colors, g);
                                     st.push_str(&n.0);
                                     st.push_str(&n.1);
+                                    st.push_str(&n.2.unwrap_or_default());
                                     if options.color
                                     {
                                         st.push_str(&colors.text)

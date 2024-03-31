@@ -23,28 +23,21 @@ pub enum NumStr
 }
 impl Number
 {
-    pub fn from(number: Complex) -> Number
-    {
-        Self {
-            number,
-            units: None,
-        }
-    }
-    pub fn from_units(number: Complex, units: Option<Units>) -> Number
+    pub fn from(number: Complex, units: Option<Units>) -> Number
     {
         Self { number, units }
     }
 }
 pub fn add(a: &Number, b: &Number) -> Number
 {
-    Number::from_units(
+    Number::from(
         a.number.clone() + b.number.clone(),
         if a.units == b.units { a.units } else { None },
     )
 }
 pub fn sub(a: &Number, b: &Number) -> Number
 {
-    Number::from_units(
+    Number::from(
         a.number.clone() - b.number.clone(),
         if a.units == b.units { a.units } else { None },
     )
@@ -55,7 +48,7 @@ impl NumStr
     {
         fn m(a: &Number, b: &Number) -> Number
         {
-            Number::from_units(
+            Number::from(
                 {
                     let a = a.number.clone();
                     let b = b.number.clone();
@@ -120,7 +113,7 @@ impl NumStr
                                 sum + val.number
                             })
                     })
-                    .map(Number::from)
+                    .map(|a| Number::from(a, None))
                     .collect::<Vec<Number>>(),
             ),
             (Matrix(a), Vector(b)) if a[0].len() == b.len() => Matrix(
@@ -146,7 +139,7 @@ impl NumStr
                                             sum + val.number
                                         })
                                 })
-                                .map(Number::from)
+                                .map(|a| Number::from(a, None))
                                 .collect::<Vec<Number>>()
                         })
                         .collect(),
@@ -196,7 +189,7 @@ impl NumStr
     {
         fn p(a: &Number, b: &Number) -> Number
         {
-            Number::from_units(
+            Number::from(
                 {
                     let a = a.number.clone();
                     let b = b.number.clone();
@@ -276,11 +269,14 @@ impl NumStr
                                 vec.push(
                                     if i == j
                                     {
-                                        Number::from(Complex::with_val(a[0][0].number.prec(), 1))
+                                        Number::from(
+                                            Complex::with_val(a[0][0].number.prec(), 1),
+                                            None,
+                                        )
                                     }
                                     else
                                     {
-                                        Number::from(Complex::new(a[0][0].number.prec()))
+                                        Number::from(Complex::new(a[0][0].number.prec()), None)
                                     },
                                 )
                             }
@@ -423,23 +419,29 @@ pub fn and(a: &Number, b: &Number) -> Number
 {
     let a = &a.number;
     let b = &b.number;
-    Number::from(Complex::with_val(
-        a.prec(),
-        (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as u8,
-    ))
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && a.real() == &1 && b.real() == &1) as u8,
+        ),
+        None,
+    )
 }
 pub fn or(a: &Number, b: &Number) -> Number
 {
     let a = &a.number;
     let b = &b.number;
-    Number::from(Complex::with_val(
-        a.prec(),
-        (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as u8,
-    ))
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && (a.real() == &1 || b.real() == &1)) as u8,
+        ),
+        None,
+    )
 }
 pub fn div(a: &Number, b: &Number) -> Number
 {
-    Number::from_units(
+    Number::from(
         {
             let a = a.number.clone();
             let b = b.number.clone();
@@ -474,7 +476,7 @@ pub fn div(a: &Number, b: &Number) -> Number
 }
 pub fn root(a: &Number, b: &Number) -> Number
 {
-    Number::from_units(
+    Number::from(
         {
             let a = a.number.clone();
             let b = b.number.clone();
@@ -499,11 +501,17 @@ pub fn root(a: &Number, b: &Number) -> Number
 }
 pub fn shl(a: &Number, b: &Number) -> Number
 {
-    Number::from(a.number.clone() * Complex::with_val(a.number.prec(), 2).pow(b.number.clone()))
+    Number::from(
+        a.number.clone() * Complex::with_val(a.number.prec(), 2).pow(b.number.clone()),
+        None,
+    )
 }
 pub fn shr(a: &Number, b: &Number) -> Number
 {
-    Number::from(a.number.clone() * Complex::with_val(a.number.prec(), 2).pow(-b.number.clone()))
+    Number::from(
+        a.number.clone() * Complex::with_val(a.number.prec(), 2).pow(-b.number.clone()),
+        None,
+    )
 }
 pub fn ne(a: &Number, b: &Number) -> Number
 {
@@ -515,17 +523,21 @@ pub fn ne(a: &Number, b: &Number) -> Number
     let re: Float = re.round() / int.clone();
     let im: Float = c.imag().clone() * int.clone();
     let im: Float = im.round() / int;
-    Number::from(Complex::with_val(
-        a.prec(),
-        (!(re.is_zero()
-            || (a.real().is_infinite()
-                && b.real().is_infinite()
-                && a.real().is_sign_positive() == b.real().is_sign_positive()))
-            || !(im.is_zero()
-                || (a.imag().is_infinite()
-                    && b.imag().is_infinite()
-                    && a.imag().is_sign_positive() == b.imag().is_sign_positive()))) as u8,
-    ))
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (!(re.is_zero()
+                || (a.real().is_infinite()
+                    && b.real().is_infinite()
+                    && a.real().is_sign_positive() == b.real().is_sign_positive()))
+                || !(im.is_zero()
+                    || (a.imag().is_infinite()
+                        && b.imag().is_infinite()
+                        && a.imag().is_sign_positive() == b.imag().is_sign_positive())))
+                as u8,
+        ),
+        None,
+    )
 }
 pub fn eq(a: &Number, b: &Number) -> Number
 {
@@ -537,31 +549,35 @@ pub fn eq(a: &Number, b: &Number) -> Number
     let re: Float = re.round() / int.clone();
     let im: Float = c.imag().clone() * int.clone();
     let im: Float = im.round() / int;
-    Number::from(Complex::with_val(
-        a.prec(),
-        (re.is_zero()
-            || (a.real().is_infinite()
-                && b.real().is_infinite()
-                && a.real().is_sign_positive() == b.real().is_sign_positive())
-                && im.is_zero()
-            || (a.imag().is_infinite()
-                && b.imag().is_infinite()
-                && a.imag().is_sign_positive() == b.imag().is_sign_positive())) as u8,
-    ))
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (re.is_zero()
+                || (a.real().is_infinite()
+                    && b.real().is_infinite()
+                    && a.real().is_sign_positive() == b.real().is_sign_positive())
+                    && im.is_zero()
+                || (a.imag().is_infinite()
+                    && b.imag().is_infinite()
+                    && a.imag().is_sign_positive() == b.imag().is_sign_positive()))
+                as u8,
+        ),
+        None,
+    )
 }
 pub fn ge(a: &Number, b: &Number) -> Number
 {
-    Number::from(Complex::with_val(
-        a.number.prec(),
-        (a.number.real() >= b.number.real()) as u8,
-    ))
+    Number::from(
+        Complex::with_val(a.number.prec(), (a.number.real() >= b.number.real()) as u8),
+        None,
+    )
 }
 pub fn gt(a: &Number, b: &Number) -> Number
 {
-    Number::from(Complex::with_val(
-        a.number.prec(),
-        (a.number.real() > b.number.real()) as u8,
-    ))
+    Number::from(
+        Complex::with_val(a.number.prec(), (a.number.real() > b.number.real()) as u8),
+        None,
+    )
 }
 pub fn between(
     left: Complex,
@@ -599,7 +615,7 @@ pub fn rem(a: &Number, b: &Number) -> Number
         a.prec(),
         (c.real().clone().floor(), c.imag().clone().floor()),
     );
-    Number::from(a - b * c)
+    Number::from(a - b * c, None)
 }
 pub fn digamma(mut z: Complex, mut n: u32) -> Complex
 {
@@ -664,6 +680,7 @@ pub fn tetration(a: &Number, b: &Number) -> Number
         {
             tetration_recursion(a.clone(), b.clone())
         },
+        None,
     )
 }
 fn tetration_recursion(a: Complex, b: Complex) -> Complex
@@ -733,7 +750,7 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
 {
     if a.len() == 1
     {
-        a.push(Number::from(Complex::new(a[0].number.prec())));
+        a.push(Number::from(Complex::new(a[0].number.prec()), None));
     }
     if a.len() != 2 && a.len() != 3
     {
@@ -746,14 +763,14 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             if a[0].number.is_zero()
             {
                 vec![
-                    Number::from(Complex::new(a[0].number.prec())),
-                    Number::from(Complex::new(a[0].number.prec())),
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(Complex::new(a[0].number.prec()), None),
                 ]
             }
             else
             {
                 vec![
-                    Number::from_units(a[0].number.clone().abs(), a[0].units),
+                    Number::from(a[0].number.clone().abs(), a[0].units),
                     Number::from(
                         if a[0].number.real().is_sign_positive()
                         {
@@ -763,6 +780,7 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
                         {
                             to_deg * Float::with_val(a[0].number.prec().0, Pi)
                         },
+                        None,
                     ),
                 ]
             }
@@ -772,8 +790,11 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             let mut n: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
             n = n.sqrt();
             vec![
-                Number::from_units(n.clone(), a[0].units),
-                Number::from(atan(a[0].number.clone(), a[1].number.clone()) * to_deg),
+                Number::from(n.clone(), a[0].units),
+                Number::from(
+                    atan(a[0].number.clone(), a[1].number.clone()) * to_deg,
+                    None,
+                ),
             ]
         }
     }
@@ -784,17 +805,17 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             if a[2].number.is_zero()
             {
                 vec![
-                    Number::from(Complex::new(a[0].number.prec())),
-                    Number::from(Complex::new(a[0].number.prec())),
-                    Number::from(Complex::new(a[0].number.prec())),
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(Complex::new(a[0].number.prec()), None),
                 ]
             }
             else
             {
                 vec![
-                    Number::from_units(a[2].number.clone().abs(), a[2].units),
-                    Number::from(Complex::new(a[0].number.prec())),
-                    Number::from(Complex::new(a[0].number.prec())),
+                    Number::from(a[2].number.clone().abs(), a[2].units),
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(Complex::new(a[0].number.prec()), None),
                 ]
             }
         }
@@ -804,9 +825,9 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             let mut n: Complex = nxy.clone() + a[2].number.clone().pow(2);
             n = n.sqrt();
             vec![
-                Number::from_units(n.clone(), a[0].units),
-                Number::from(atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone()),
-                Number::from(Complex::new(a[0].number.prec())),
+                Number::from(n.clone(), a[0].units),
+                Number::from(atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone(), None),
+                Number::from(Complex::new(a[0].number.prec()), None),
             ]
         }
     }
@@ -816,9 +837,12 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
         let mut n: Complex = nxy.clone() + a[2].number.clone().pow(2);
         n = n.sqrt();
         vec![
-            Number::from_units(n.clone(), a[0].units),
-            Number::from(atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone()),
-            Number::from(atan(a[0].number.clone(), a[1].number.clone()) * to_deg.clone()),
+            Number::from(n.clone(), a[0].units),
+            Number::from(atan(a[2].number.clone(), nxy.sqrt()) * to_deg.clone(), None),
+            Number::from(
+                atan(a[0].number.clone(), a[1].number.clone()) * to_deg.clone(),
+                None,
+            ),
         ]
     }
 }
@@ -834,14 +858,14 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
             let vec: Vec<Number> = if a < b
             {
                 (a..=b)
-                    .map(|a| Number::from(Complex::with_val(prec, a)))
+                    .map(|a| Number::from(Complex::with_val(prec, a), None))
                     .collect()
             }
             else
             {
                 (b..=a)
                     .rev()
-                    .map(|a| Number::from(Complex::with_val(prec, a)))
+                    .map(|a| Number::from(Complex::with_val(prec, a), None))
                     .collect()
             };
             if vec.is_empty()
@@ -861,14 +885,14 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
                     if a < b
                     {
                         (a..=b)
-                            .map(|a| Number::from(Complex::with_val(prec, a)))
+                            .map(|a| Number::from(Complex::with_val(prec, a), None))
                             .collect()
                     }
                     else
                     {
                         (b..=a)
                             .rev()
-                            .map(|a| Number::from(Complex::with_val(prec, a)))
+                            .map(|a| Number::from(Complex::with_val(prec, a), None))
                             .collect()
                     }
                 })
@@ -890,14 +914,14 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
                     if a < b
                     {
                         (a..=b)
-                            .map(|a| Number::from(Complex::with_val(prec, a)))
+                            .map(|a| Number::from(Complex::with_val(prec, a), None))
                             .collect()
                     }
                     else
                     {
                         (b..=a)
                             .rev()
-                            .map(|a| Number::from(Complex::with_val(prec, a)))
+                            .map(|a| Number::from(Complex::with_val(prec, a), None))
                             .collect()
                     }
                 })
@@ -932,7 +956,7 @@ pub fn mvec(
                 options,
                 func_vars.clone(),
                 var,
-                Num(Number::from(Complex::with_val(options.prec, z))),
+                Num(Number::from(Complex::with_val(options.prec, z), None)),
             )?
             {
                 Num(n) => vec.push(n),
@@ -952,7 +976,7 @@ pub fn mvec(
                 options,
                 func_vars.clone(),
                 var,
-                Num(Number::from(Complex::with_val(options.prec, z))),
+                Num(Number::from(Complex::with_val(options.prec, z), None)),
             )?
             {
                 Num(n) => vec.push(n),
@@ -994,10 +1018,10 @@ pub fn sum(
         options,
         func_vars.clone(),
         var,
-        Num(Number::from(Complex::with_val(
-            options.prec,
-            if start < end { start } else { end },
-        ))),
+        Num(Number::from(
+            Complex::with_val(options.prec, if start < end { start } else { end }),
+            None,
+        )),
     )?;
     for z in if start < end
     {
@@ -1013,7 +1037,7 @@ pub fn sum(
             options,
             func_vars.clone(),
             var,
-            Num(Number::from(Complex::with_val(options.prec, z))),
+            Num(Number::from(Complex::with_val(options.prec, z), None)),
         )?;
         if product
         {
@@ -1063,11 +1087,11 @@ pub fn identity(a: usize, prec: u32) -> Vec<Vec<Number>>
         {
             if i == j
             {
-                vec.push(Number::from(Complex::with_val(prec, 1)));
+                vec.push(Number::from(Complex::with_val(prec, 1), None));
             }
             else
             {
-                vec.push(Number::from(Complex::new(prec)));
+                vec.push(Number::from(Complex::new(prec), None));
             }
         }
         mat.push(vec);
@@ -1078,43 +1102,46 @@ pub fn determinant(a: &[Vec<Number>]) -> Result<Number, &'static str>
 {
     if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        Ok(Number::from(match a.len()
-        {
-            1 => a[0][0].number.clone(),
-            2 =>
+        Ok(Number::from(
+            match a.len()
             {
-                a[0][0].number.clone() * a[1][1].number.clone()
-                    - a[1][0].number.clone() * a[0][1].number.clone()
-            }
-            3 =>
-            {
-                a[0][0].number.clone()
-                    * (a[1][1].number.clone() * a[2][2].number.clone()
-                        - a[1][2].number.clone() * a[2][1].number.clone())
-                    + a[0][1].number.clone()
-                        * (a[1][2].number.clone() * a[2][0].number.clone()
-                            - a[1][0].number.clone() * a[2][2].number.clone())
-                    + a[0][2].number.clone()
-                        * (a[1][0].number.clone() * a[2][1].number.clone()
-                            - a[1][1].number.clone() * a[2][0].number.clone())
-            }
-            _ =>
-            {
-                let mut det = Complex::new(a[0][0].number.prec());
-                for (i, x) in a[0].iter().enumerate()
+                1 => a[0][0].number.clone(),
+                2 =>
                 {
-                    let mut sub_matrix = a[1..].to_vec();
-                    for row in &mut sub_matrix
-                    {
-                        row.remove(i);
-                    }
-                    det += x.number.clone()
-                        * determinant(&sub_matrix)?.number
-                        * if i % 2 == 0 { 1.0 } else { -1.0 };
+                    a[0][0].number.clone() * a[1][1].number.clone()
+                        - a[1][0].number.clone() * a[0][1].number.clone()
                 }
-                det
-            }
-        }))
+                3 =>
+                {
+                    a[0][0].number.clone()
+                        * (a[1][1].number.clone() * a[2][2].number.clone()
+                            - a[1][2].number.clone() * a[2][1].number.clone())
+                        + a[0][1].number.clone()
+                            * (a[1][2].number.clone() * a[2][0].number.clone()
+                                - a[1][0].number.clone() * a[2][2].number.clone())
+                        + a[0][2].number.clone()
+                            * (a[1][0].number.clone() * a[2][1].number.clone()
+                                - a[1][1].number.clone() * a[2][0].number.clone())
+                }
+                _ =>
+                {
+                    let mut det = Complex::new(a[0][0].number.prec());
+                    for (i, x) in a[0].iter().enumerate()
+                    {
+                        let mut sub_matrix = a[1..].to_vec();
+                        for row in &mut sub_matrix
+                        {
+                            row.remove(i);
+                        }
+                        det += x.number.clone()
+                            * determinant(&sub_matrix)?.number
+                            * if i % 2 == 0 { 1.0 } else { -1.0 };
+                    }
+                    det
+                }
+            },
+            None,
+        ))
     }
     else
     {
@@ -1125,7 +1152,7 @@ pub fn transpose(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        let mut b = vec![vec![Number::from(Complex::new(1)); a.len()]; a[0].len()];
+        let mut b = vec![vec![Number::from(Complex::new(1), None); a.len()]; a[0].len()];
         for (i, l) in a.iter().enumerate()
         {
             for (j, n) in l.iter().enumerate()
@@ -1144,7 +1171,7 @@ pub fn minors(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        let mut result = vec![vec![Number::from(Complex::new(1),); a[0].len()]; a.len()];
+        let mut result = vec![vec![Number::from(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()
         {
             for (j, l) in k.iter_mut().enumerate()
@@ -1163,7 +1190,7 @@ pub fn cofactor(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        let mut result = vec![vec![Number::from(Complex::new(1),); a[0].len()]; a.len()];
+        let mut result = vec![vec![Number::from(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()
         {
             for (j, l) in k.iter_mut().enumerate()
@@ -1177,6 +1204,7 @@ pub fn cofactor(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
                     {
                         determinant(&submatrix(a, i, j))?.number
                     },
+                    None,
                 );
             }
         }
@@ -1299,7 +1327,7 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Number>
 {
     if a.is_zero()
     {
-        return vec![Number::from(-c / b)];
+        return vec![Number::from(-c / b, None)];
     }
     let p: Complex = b.clone().pow(2);
     let p: Complex = p - (4 * c * a.clone());
@@ -1312,19 +1340,19 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Number>
         let mut vec = Vec::new();
         if -z1.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(Number::from(z1))
+            vec.push(Number::from(z1, None))
         }
         if -z2.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(Number::from(z2))
+            vec.push(Number::from(z2, None))
         }
         vec
     }
     else
     {
         vec![
-            Number::from((p.clone() - b.clone()) / a.clone()),
-            Number::from((-p - b) / a),
+            Number::from((p.clone() - b.clone()) / a.clone(), None),
+            Number::from((-p - b) / a, None),
         ]
     }
 }
@@ -1341,18 +1369,24 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
         return if d.is_zero()
         {
             vec![
-                Number::from(Complex::new(prec)),
-                Number::from(Complex::new(prec)),
-                Number::from(Complex::new(prec)),
+                Number::from(Complex::new(prec), None),
+                Number::from(Complex::new(prec), None),
+                Number::from(Complex::new(prec), None),
             ]
         }
         else
         {
             let reuse = (d / a).pow(threerecip.clone());
             vec![
-                Number::from(-reuse.clone()),
-                Number::from(reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone())),
-                Number::from(-reuse * Complex::with_val(prec, -1).pow(2 * threerecip)),
+                Number::from(-reuse.clone(), None),
+                Number::from(
+                    reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone()),
+                    None,
+                ),
+                Number::from(
+                    -reuse * Complex::with_val(prec, -1).pow(2 * threerecip),
+                    None,
+                ),
             ]
         };
     }
@@ -1387,28 +1421,32 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
         let mut vec = Vec::new();
         if -z1.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(Number::from(z1))
+            vec.push(Number::from(z1, None))
         }
         if -z2.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(Number::from(z2))
+            vec.push(Number::from(z2, None))
         }
         if -z3.imag().clone().abs().log10() > a.prec().0 / 16
         {
-            vec.push(Number::from(z3))
+            vec.push(Number::from(z3, None))
         }
         vec
     }
     else
     {
         vec![
-            Number::from((left.clone() - right.clone() - b.clone()) / 3),
+            Number::from((left.clone() - right.clone() - b.clone()) / 3, None),
             Number::from(
                 ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone())
                     - b.clone())
                     / 3,
+                None,
             ),
-            Number::from(((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3),
+            Number::from(
+                ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
+                None,
+            ),
         ]
     }
 }
@@ -1423,7 +1461,7 @@ pub fn variance(a: &[Number], prec: u32) -> Number
     {
         variance += (a.number.clone() - mean.clone()).pow(2)
     }
-    Number::from(variance / (a.len() - 1))
+    Number::from(variance / (a.len() - 1), None)
 }
 pub fn recursion(
     mut func_vars: Vec<(String, Vec<NumStr>)>,
@@ -1813,7 +1851,7 @@ pub fn length(
         options,
         func_vars.clone(),
         &var.clone(),
-        Num(Number::from(start.clone())),
+        Num(Number::from(start.clone(), None)),
     )?;
     let mut length = Complex::new(options.prec);
     for i in 0..points
@@ -1831,7 +1869,7 @@ pub fn length(
             options,
             func_vars.clone(),
             &var.clone(),
-            Num(Number::from(start.clone())),
+            Num(Number::from(start.clone(), None)),
         )?;
         match (x0, x1)
         {
@@ -1913,7 +1951,7 @@ pub fn area(
         options,
         func_vars.clone(),
         &var,
-        Num(Number::from(start.clone())),
+        Num(Number::from(start.clone(), None)),
     )?;
     if !funcs.is_empty()
     {
@@ -1925,7 +1963,7 @@ pub fn area(
                 options,
                 func_vars.clone(),
                 &var,
-                Num(Number::from(start.clone() + div.clone())),
+                Num(Number::from(start.clone() + div.clone(), None)),
             )?
             .num()?
             .number
@@ -1934,14 +1972,14 @@ pub fn area(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(Number::from(start.clone())),
+                    Num(Number::from(start.clone(), None)),
                 )?
                 .num()?
                 .number)
                 / div.clone())
             .pow(2);
         }
-        x0 = Num(Number::from(x0.num()?.number * nx0t.sqrt()));
+        x0 = Num(Number::from(x0.num()?.number * nx0t.sqrt(), None));
     }
     let h: Complex = delta.clone() / 4;
     for i in 0..points
@@ -1959,28 +1997,28 @@ pub fn area(
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone() - 3 * h.clone())),
+            Num(Number::from(start.clone() - 3 * h.clone(), None)),
         )?;
         let x2 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone() - 2 * h.clone())),
+            Num(Number::from(start.clone() - 2 * h.clone(), None)),
         )?;
         let x3 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone() - h.clone())),
+            Num(Number::from(start.clone() - h.clone(), None)),
         )?;
         let x4 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone())),
+            Num(Number::from(start.clone(), None)),
         )?;
         match (x0, x1, x2, x3, x4.clone())
         {
@@ -2001,13 +2039,13 @@ pub fn area(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num( Number::from(start.clone() - 3 * h.clone() + div.clone(),)))?
+                            &var, Num( Number::from(start.clone() - 3 * h.clone() + div.clone(),None)))?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num( Number::from(start.clone() - 3 * h.clone(),)))?
+                            &var, Num( Number::from(start.clone() - 3 * h.clone(),None)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2016,14 +2054,14 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num( Number::from(start.clone() - 2 * h.clone() + div.clone(),)),
+                            Num( Number::from(start.clone() - 2 * h.clone() + div.clone(),None)),
                         )?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num( Number::from(start.clone() - 2 * h.clone(),)))?
+                            &var, Num( Number::from(start.clone() - 2 * h.clone(),None)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2032,14 +2070,14 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num( Number::from_units(start.clone() - h.clone() + div.clone(),None)),
+                            Num( Number::from(start.clone() - h.clone() + div.clone(), None)),
                         )?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(Number::from_units(start.clone() - h.clone(),None)))?
+                            &var, Num(Number::from(start.clone() - h.clone(), None)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2048,14 +2086,14 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from_units(start.clone() + div.clone(),None)),
+                            Num(Number::from(start.clone() + div.clone(), None)),
                         )?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(Number::from_units(start.clone(),None)))?
+                            &var, Num(Number::from(start.clone(), None)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2067,14 +2105,14 @@ pub fn area(
                         + 12 * (nx2.number * nx2t.sqrt())
                         + 32 * ((nx1.number * nx1t.sqrt()) + (nx3.number * nx3t.sqrt())))
                         / 45;
-                    x0 = Num(Number::from_units(x4,None));
+                    x0 = Num(Number::from(x4, None));
                 }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
             if areavec.is_empty() && !combine =>
                 {
                     for i in 0..nx0.len()
                     {
-                        areavec.push(Number::from_units
+                        areavec.push(Number::from
                             (      2 * h.clone()
                                 * (7 * (nx0[i].number.clone() + nx4[i].number.clone())
                                 + 12 * nx2[i].number.clone()
@@ -2102,7 +2140,7 @@ pub fn area(
     }
     if areavec.is_empty()
     {
-        Ok(Num(Number::from_units(area, None)))
+        Ok(Num(Number::from(area, None)))
     }
     else
     {
@@ -2171,11 +2209,11 @@ pub fn slope(
                         || (left.clone() - right.clone()).abs().real().clone().log2()
                             < options.prec as i32 / -16
                     {
-                        Ok(Num(Number::from_units((left + right) / 2, None)))
+                        Ok(Num(Number::from((left + right) / 2, None)))
                     }
                     else
                     {
-                        Ok(Num(Number::from_units(
+                        Ok(Num(Number::from(
                             Complex::with_val(options.prec, Nan),
                             None,
                         )))
@@ -2186,7 +2224,7 @@ pub fn slope(
                     let mut vec = Vec::with_capacity(left.len());
                     for (left, right) in left.iter().zip(right)
                     {
-                        vec.push(Number::from_units(
+                        vec.push(Number::from(
                             {
                                 let left = left.number.clone();
                                 let right = right.number.clone();
@@ -2264,7 +2302,7 @@ pub fn slopesided(
         options,
         func_vars.clone(),
         &var,
-        Num(Number::from_units(point.clone(), None)),
+        Num(Number::from(point.clone(), None)),
     )?;
     let num = Integer::from(nth);
     match n
@@ -2286,10 +2324,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from_units(
-                                point.clone() + h.clone() * (nth - k),
-                                None,
-                            )),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
                         )?
                         .num()?
                         .number;
@@ -2302,10 +2337,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from_units(
-                                point.clone() + h.clone() * (nth - k),
-                                None,
-                            )),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
                         )?
                         .num()?
                         .number;
@@ -2313,7 +2345,7 @@ pub fn slopesided(
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(Number::from_units(
+                Ok(Num(Number::from(
                     get_infinities(
                         sum * Float::with_val(options.prec, 2).pow(nth * prec),
                         prec,
@@ -2324,7 +2356,7 @@ pub fn slopesided(
             }
             else
             {
-                Ok(Num(Number::from_units(
+                Ok(Num(Number::from(
                     -get_infinities(
                         sum * Float::with_val(options.prec, 2).pow(nth * prec),
                         prec,
@@ -2351,10 +2383,7 @@ pub fn slopesided(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(Number::from_units(
-                        point.clone() + h.clone() * (nth - k),
-                        None,
-                    )),
+                    Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
                 )?
                 .vec()?;
                 if k % 2 == 0
@@ -2375,7 +2404,7 @@ pub fn slopesided(
             Ok(Vector(
                 sum.iter()
                     .map(|n| {
-                        Number::from_units(
+                        Number::from(
                             if right || nth % 2 == 0
                             {
                                 get_infinities(
@@ -2416,10 +2445,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from_units(
-                                point.clone() + h.clone() * (nth - k),
-                                None,
-                            )),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
                         )?
                         .num()?
                         .number;
@@ -2432,10 +2458,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from_units(
-                                point.clone() + h.clone() * (nth - k),
-                                None,
-                            )),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
                         )?
                         .num()?
                         .number;
@@ -2443,7 +2466,7 @@ pub fn slopesided(
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(Number::from_units(
+                Ok(Num(Number::from(
                     get_infinities(
                         sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                         prec,
@@ -2454,7 +2477,7 @@ pub fn slopesided(
             }
             else
             {
-                Ok(Num(Number::from_units(
+                Ok(Num(Number::from(
                     -get_infinities(
                         sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                         prec,
@@ -2481,10 +2504,7 @@ pub fn slopesided(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(Number::from_units(
-                        point.clone() + h.clone() * (nth - k),
-                        None,
-                    )),
+                    Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
                 )?
                 .vec()?;
                 if k % 2 == 0
@@ -2504,7 +2524,7 @@ pub fn slopesided(
             }
             if sum.len() == 2
             {
-                Ok(Num(Number::from_units(
+                Ok(Num(Number::from(
                     get_infinities(
                         sum[1].number.clone() / sum[0].number.clone(),
                         prec,
@@ -2520,7 +2540,7 @@ pub fn slopesided(
                     sum[0..sum.len() - 1]
                         .iter()
                         .map(|n| {
-                            Number::from_units(
+                            Number::from(
                                 get_infinities(nf.clone() / n.number.clone(), prec, options.prec),
                                 None,
                             )
@@ -2622,14 +2642,14 @@ pub fn limit(
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from_units(h1, None)),
+            Num(Number::from(h1, None)),
         )?;
         let n2 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from_units(h2, None)),
+            Num(Number::from(h2, None)),
         )?;
         match (n1, n2)
         {
@@ -2639,19 +2659,19 @@ pub fn limit(
                 let n2 = n2.number;
                 if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
-                    Ok(Num(Number::from_units(n2, None)))
+                    Ok(Num(Number::from(n2, None)))
                 }
                 else if n1.real().is_sign_positive() != n2.real().is_sign_positive()
                     || n1.imag().is_sign_positive() != n2.imag().is_sign_positive()
                 {
-                    Ok(Num(Number::from_units(
+                    Ok(Num(Number::from(
                         Complex::with_val(options.prec, Nan),
                         None,
                     )))
                 }
                 else if n2.real().is_infinite() || n2.imag().is_infinite()
                 {
-                    Ok(Num(Number::from_units(
+                    Ok(Num(Number::from(
                         match (n2.real().is_infinite(), n2.imag().is_infinite())
                         {
                             (true, true) =>
@@ -2766,7 +2786,7 @@ pub fn limit(
                         options,
                         func_vars.clone(),
                         &var,
-                        Num(Number::from_units(
+                        Num(Number::from(
                             if positive
                             {
                                 Complex::with_val(options.prec, 2)
@@ -2791,7 +2811,7 @@ pub fn limit(
                     let n1i = n1.imag().clone().abs();
                     let n2i = n2.imag().clone().abs();
                     let n3i = n3.imag().clone().abs();
-                    Ok(Num(Number::from_units(
+                    Ok(Num(Number::from(
                         if !sign
                         {
                             Complex::with_val(options.prec, Nan)
@@ -2918,7 +2938,7 @@ pub fn limit(
                 {
                     let n1 = n1.number.clone();
                     let n2 = n2.number.clone();
-                    vec.push(Number::from_units(
+                    vec.push(Number::from(
                         if (n1.clone() - n2.clone()).abs().real().clone().log2()
                             < options.prec as i32 / -16
                         {
@@ -3048,7 +3068,7 @@ pub fn limit(
                                     options,
                                     func_vars.clone(),
                                     &var,
-                                    Num(Number::from_units(
+                                    Num(Number::from(
                                         if positive
                                         {
                                             Complex::with_val(options.prec, 2)
@@ -3245,11 +3265,11 @@ pub fn limit(
                             || (left.clone() - right.clone()).abs().real().clone().log2()
                                 < options.prec as i32 / -16
                         {
-                            Ok(Num(Number::from_units((left + right) / 2, None)))
+                            Ok(Num(Number::from((left + right) / 2, None)))
                         }
                         else
                         {
-                            Ok(Num(Number::from_units(
+                            Ok(Num(Number::from(
                                 Complex::with_val(options.prec, Nan),
                                 None,
                             )))
@@ -3262,7 +3282,7 @@ pub fn limit(
                         {
                             let left = &left.number;
                             let right = &right.number;
-                            vec.push(Number::from_units(
+                            vec.push(Number::from(
                                 if (((left.real().is_infinite()
                                     && right.real().is_infinite()
                                     && (left.imag().clone() - right.imag().clone())
@@ -3317,7 +3337,7 @@ fn limsided(
         options,
         func_vars.clone(),
         &var,
-        Num(Number::from_units(
+        Num(Number::from(
             point.clone() + if right { h1 } else { -h1 },
             None,
         )),
@@ -3327,7 +3347,7 @@ fn limsided(
         options,
         func_vars.clone(),
         &var,
-        Num(Number::from_units(
+        Num(Number::from(
             point.clone() + if right { h2 } else { -h2 },
             None,
         )),
@@ -3338,7 +3358,7 @@ fn limsided(
         {
             let n1 = n1.number;
             let n2 = n2.number;
-            Ok(Num(Number::from_units(
+            Ok(Num(Number::from(
                 if (n2.clone() - n1.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
                     n1
@@ -3352,7 +3372,7 @@ fn limsided(
                         options,
                         func_vars.clone(),
                         &var,
-                        Num(Number::from_units(
+                        Num(Number::from(
                             point.clone() + if right { h3 } else { -h3 },
                             None,
                         )),
@@ -3492,7 +3512,7 @@ fn limsided(
             {
                 let n1 = &n1.number;
                 let n2 = &n2.number;
-                vec.push(Number::from_units(
+                vec.push(Number::from(
                     if (n2.clone() - n1.clone()).abs().real().clone().log2()
                         < options.prec as i32 / -16
                     {
@@ -3509,7 +3529,7 @@ fn limsided(
                                 options,
                                 func_vars.clone(),
                                 &var,
-                                Num(Number::from_units(point.clone() - h3.clone(), None)),
+                                Num(Number::from(point.clone() - h3.clone(), None)),
                             )?
                             .vec()?;
                         }

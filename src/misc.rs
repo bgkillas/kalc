@@ -68,9 +68,16 @@ pub fn get_terminal_height() -> usize
         80
     }
 }
-pub fn digraph() -> char
+pub fn digraph(char: Option<char>) -> char
 {
-    match read_single_char()
+    match if let Some(c) = char
+    {
+        c
+    }
+    else
+    {
+        read_single_char()
+    }
     {
         ';' => '°',
         'a' => 'α',
@@ -197,7 +204,8 @@ pub fn read_single_char() -> char
                 (KeyCode::Char('p'), KeyModifiers::CONTROL) => '\x05',
                 (KeyCode::Char('n'), KeyModifiers::CONTROL) => '\x04',
                 (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
-                (KeyCode::Esc, _) => digraph(),
+                (KeyCode::Char(c), KeyModifiers::ALT) => digraph(Some(c)),
+                (KeyCode::Esc, _) => digraph(None),
                 (KeyCode::Enter, KeyModifiers::NONE) => '\n',
                 (KeyCode::Enter, KeyModifiers::ALT) => '\x09',
                 (KeyCode::Char('h'), KeyModifiers::CONTROL) => '\x03',
@@ -600,9 +608,10 @@ pub fn parsed_to_string(
             {
                 let n = get_output(*options, colors, &n);
                 format!(
-                    "{}{}{}",
+                    "{}{}{}{}",
                     n.0,
                     n.1,
+                    n.2.unwrap_or_default(),
                     if options.color { "\x1b[0m" } else { "" }
                 )
             }
@@ -614,9 +623,10 @@ pub fn parsed_to_string(
                 {
                     num = get_output(*options, colors, &i);
                     str.push_str(&format!(
-                        "{}{}{},",
+                        "{}{}{}{},",
                         num.0,
                         num.1,
+                        num.2.unwrap_or_default(),
                         if options.color { "\x1b[0m" } else { "" }
                     ));
                 }
@@ -633,9 +643,10 @@ pub fn parsed_to_string(
                     {
                         num = get_output(*options, colors, &j);
                         str.push_str(&format!(
-                            "{}{}{},",
+                            "{}{}{}{},",
                             num.0,
                             num.1,
+                            num.2.unwrap_or_default(),
                             if options.color { "\x1b[0m" } else { "" }
                         ));
                     }

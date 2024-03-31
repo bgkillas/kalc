@@ -242,6 +242,7 @@ supports metric prefixes and the following units
 "grad" | "gradians"
 "lumen" | "lm"
 "lux" | "lx"
+"nit" | "nt"
 "byte" | "B"
 "gray" | "Gy"
 "sievert" | "Sv"
@@ -250,7 +251,7 @@ supports metric prefixes and the following units
 "steradian" | "sr"
 
 Digraph:
-hit escape then a letter
+hit escape then a letter, or hold alt while typing(only lowercase)
 a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,
 e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,
 i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,

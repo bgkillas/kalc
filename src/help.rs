@@ -199,6 +199,7 @@ supports metric prefixes and the following units\x1b[G\n\
 \"grad\" | \"gradians\"\x1b[G\n\
 \"lumen\" | \"lm\"\x1b[G\n\
 \"lux\" | \"lx\"\x1b[G\n\
+\"nit\" | \"nt\"\x1b[G\n\
 \"byte\" | \"B\"\x1b[G\n\
 \"gray\" | \"Gy\"\x1b[G\n\
 \"sievert\" | \"Sv\"\x1b[G\n\
@@ -206,7 +207,7 @@ supports metric prefixes and the following units\x1b[G\n\
 \"bit\" | \"b\"\x1b[G\n\
 \"steradian\" | \"sr\"\x1b[G\n\n\
 Digraph:\x1b[G\n\
-hit escape then a letter\x1b[G\n\
+hit escape then a letter, or hold alt while typing(only lowercase)\x1b[G\n\
 a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,\x1b[G\n\
 e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,\x1b[G\n\
 i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,\x1b[G\n\

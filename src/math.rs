@@ -469,7 +469,7 @@ pub fn do_math(
                         ("length" | "arclength", Str(var))
                             if place.len() == 4 || place.len() == 5 =>
                         {
-                            function[i] = Num(Number::from_units(
+                            function[i] = Num(Number::from(
                                 length(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     func_vars.clone(),
@@ -647,10 +647,7 @@ pub fn do_math(
                             }
                             else
                             {
-                                Num(Number::from_units(
-                                    Complex::with_val(options.prec, Nan),
-                                    None,
-                                ))
+                                Num(Number::from(Complex::with_val(options.prec, Nan), None))
                             };
                             function.drain(i + 1..=*place.last().unwrap());
                         }
@@ -723,13 +720,13 @@ pub fn do_math(
                             }
                             {
                                 Ok(Num(a)) => Num(a.clone()),
-                                Ok(Vector(a)) => Num(Number::from_units(
+                                Ok(Vector(a)) => Num(Number::from(
                                     a.iter().fold(Complex::new(options.prec), |sum, val| {
                                         sum + val.number.clone()
                                     }),
                                     None,
                                 )),
-                                Ok(Matrix(a)) => Num(Number::from_units(
+                                Ok(Matrix(a)) => Num(Number::from(
                                     a.iter()
                                         .flatten()
                                         .fold(Complex::new(options.prec), |sum, val| {
@@ -756,14 +753,14 @@ pub fn do_math(
                             }
                             {
                                 Ok(Num(a)) => Num(a.clone()),
-                                Ok(Vector(a)) => Num(Number::from_units(
+                                Ok(Vector(a)) => Num(Number::from(
                                     a.iter()
                                         .fold(Complex::with_val(options.prec, 1), |sum, val| {
                                             sum * val.number.clone()
                                         }),
                                     None,
                                 )),
-                                Ok(Matrix(a)) => Num(Number::from_units(
+                                Ok(Matrix(a)) => Num(Number::from(
                                     a.iter()
                                         .flatten()
                                         .fold(Complex::with_val(options.prec, 1), |sum, val| {
@@ -824,15 +821,15 @@ pub fn do_math(
                             "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
                             "inverse" | "inv" => Matrix(inverse(&a)?),
                             "transpose" | "trans" => Matrix(transpose(&a)?),
-                            "len" => Num(Number::from_units(
-                                Complex::with_val(options.prec, a.len()),
-                                None,
-                            )),
-                            "wid" | "width" => Num(Number::from_units(
+                            "len" =>
+                            {
+                                Num(Number::from(Complex::with_val(options.prec, a.len()), None))
+                            }
+                            "wid" | "width" => Num(Number::from(
                                 Complex::with_val(options.prec, a[0].len()),
                                 None,
                             )),
-                            "tr" | "trace" => Num(Number::from_units(trace(&a), None)),
+                            "tr" | "trace" => Num(Number::from(trace(&a), None)),
                             "det" | "determinant" => Num(determinant(&a)?),
                             "part" =>
                             {
@@ -959,9 +956,9 @@ pub fn do_math(
                                 {
                                     n += j.number.clone().abs().pow(2);
                                 }
-                                Num(Number::from_units(n.sqrt(), None))
+                                Num(Number::from(n.sqrt(), None))
                             }
-                            "mean" | "μ" => Num(Number::from_units(
+                            "mean" | "μ" => Num(Number::from(
                                 a.iter()
                                     .flatten()
                                     .fold(Complex::new(options.prec), |sum, val| {
@@ -1023,7 +1020,7 @@ pub fn do_math(
                                         res = false
                                     }
                                 }
-                                Num(Number::from_units(
+                                Num(Number::from(
                                     Complex::with_val(options.prec, res as u8),
                                     None,
                                 ))
@@ -1038,7 +1035,7 @@ pub fn do_math(
                                         res = true
                                     }
                                 }
-                                Num(Number::from_units(
+                                Num(Number::from(
                                     Complex::with_val(options.prec, res as u8),
                                     None,
                                 ))
@@ -1096,10 +1093,7 @@ pub fn do_math(
                                         }
                                     }
                                 }
-                                Num(Number::from_units(
-                                    Complex::with_val(options.prec, sum),
-                                    None,
-                                ))
+                                Num(Number::from(Complex::with_val(options.prec, sum), None))
                             }
                             "dice" =>
                             {
@@ -1129,7 +1123,7 @@ pub fn do_math(
                                     Vector(
                                         last.iter()
                                             .map(|a| {
-                                                Number::from_units(
+                                                Number::from(
                                                     Complex::with_val(options.prec, a),
                                                     None,
                                                 )
@@ -1165,7 +1159,7 @@ pub fn do_math(
                                         current
                                             .iter()
                                             .map(|a| {
-                                                Number::from_units(
+                                                Number::from(
                                                     Complex::with_val(options.prec, a),
                                                     None,
                                                 )
@@ -1183,10 +1177,8 @@ pub fn do_math(
                                 let mut vec = Vec::new();
                                 for (i, a) in a.iter().enumerate()
                                 {
-                                    let num = Number::from_units(
-                                        Complex::with_val(options.prec, i + 1),
-                                        None,
-                                    );
+                                    let num =
+                                        Number::from(Complex::with_val(options.prec, i + 1), None);
                                     for _ in 1..=a.number.real().to_f64() as usize
                                     {
                                         vec.push(num.clone())
@@ -1222,10 +1214,7 @@ pub fn do_math(
                                         i += 1;
                                     }
                                 }
-                                Num(Number::from_units(
-                                    Complex::with_val(options.prec, sum),
-                                    None,
-                                ))
+                                Num(Number::from(Complex::with_val(options.prec, sum), None))
                             }
                             "dice" =>
                             {
@@ -1243,7 +1232,7 @@ pub fn do_math(
                                     Vector(
                                         last.iter()
                                             .map(|a| {
-                                                Number::from_units(
+                                                Number::from(
                                                     Complex::with_val(options.prec, a),
                                                     None,
                                                 )
@@ -1279,7 +1268,7 @@ pub fn do_math(
                                         current
                                             .iter()
                                             .map(|a| {
-                                                Number::from_units(
+                                                Number::from(
                                                     Complex::with_val(options.prec, a),
                                                     None,
                                                 )
@@ -1307,13 +1296,13 @@ pub fn do_math(
                                 if half1.len() % 2 == 0
                                 {
                                     Vector(vec![
-                                        Number::from_units(
+                                        Number::from(
                                             (half1[half1.len() / 2 - 1].number.clone()
                                                 + half1[half1.len() / 2].number.clone())
                                                 / 2,
                                             None,
                                         ),
-                                        Number::from_units(
+                                        Number::from(
                                             if a.len() % 2 == 0
                                             {
                                                 (half1[half1.len() - 1].number.clone()
@@ -1326,7 +1315,7 @@ pub fn do_math(
                                             },
                                             None,
                                         ),
-                                        Number::from_units(
+                                        Number::from(
                                             (half2[half2.len() / 2 - 1].number.clone()
                                                 + half2[half2.len() / 2].number.clone())
                                                 / 2,
@@ -1337,11 +1326,8 @@ pub fn do_math(
                                 else
                                 {
                                     Vector(vec![
-                                        Number::from_units(
-                                            half1[half1.len() / 2].number.clone(),
-                                            None,
-                                        ),
-                                        Number::from_units(
+                                        Number::from(half1[half1.len() / 2].number.clone(), None),
+                                        Number::from(
                                             if a.len() % 2 == 0
                                             {
                                                 (half1[half1.len() - 1].number.clone()
@@ -1354,10 +1340,7 @@ pub fn do_math(
                                             },
                                             None,
                                         ),
-                                        Number::from_units(
-                                            half2[half2.len() / 2].number.clone(),
-                                            None,
-                                        ),
+                                        Number::from(half2[half2.len() / 2].number.clone(), None),
                                     ])
                                 }
                             }
@@ -1400,7 +1383,7 @@ pub fn do_math(
                                         break;
                                     }
                                 }
-                                Num(Number::from_units(
+                                Num(Number::from(
                                     100 * (cf + Complex::with_val(options.prec, f) / 2) / a.len(),
                                     None,
                                 ))
@@ -1422,7 +1405,7 @@ pub fn do_math(
                                     {
                                         mat.push(vec![
                                             last.clone(),
-                                            Number::from_units(
+                                            Number::from(
                                                 Complex::with_val(options.prec, count),
                                                 None,
                                             ),
@@ -1434,17 +1417,14 @@ pub fn do_math(
                                 }
                                 mat.push(vec![
                                     last.clone(),
-                                    Number::from_units(
-                                        Complex::with_val(options.prec, count),
-                                        None,
-                                    ),
+                                    Number::from(Complex::with_val(options.prec, count), None),
                                 ]);
                                 Matrix(mat)
                             }
-                            "standarddeviation" | "σ" => Num(Number::from_units(
-                                variance(&a, options.prec).number.sqrt(),
-                                None,
-                            )),
+                            "standarddeviation" | "σ" =>
+                            {
+                                Num(Number::from(variance(&a, options.prec).number.sqrt(), None))
+                            }
                             "variance" | "var" => Num(variance(&a, options.prec)),
                             "all" =>
                             {
@@ -1456,7 +1436,7 @@ pub fn do_math(
                                         res = false
                                     }
                                 }
-                                Num(Number::from_units(
+                                Num(Number::from(
                                     Complex::with_val(options.prec, res as u8),
                                     None,
                                 ))
@@ -1471,13 +1451,13 @@ pub fn do_math(
                                         res = true
                                     }
                                 }
-                                Num(Number::from_units(
+                                Num(Number::from(
                                     Complex::with_val(options.prec, res as u8),
                                     None,
                                 ))
                             }
                             "sort" => Vector(sort(a)),
-                            "mean" | "μ" => Num(Number::from_units(
+                            "mean" | "μ" => Num(Number::from(
                                 a.iter().fold(Complex::new(options.prec), |sum, val| {
                                     sum + val.number.clone()
                                 }) / a.len(),
@@ -1488,7 +1468,7 @@ pub fn do_math(
                                 let a = sort(a);
                                 if a.len() % 2 == 0
                                 {
-                                    Num(Number::from_units(
+                                    Num(Number::from(
                                         (a[a.len() / 2 - 1].number.clone()
                                             + a[a.len() / 2].number.clone())
                                             / 2,
@@ -1497,7 +1477,7 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    Num(Number::from_units(a[a.len() / 2].number.clone(), None))
+                                    Num(Number::from(a[a.len() / 2].number.clone(), None))
                                 }
                             }
                             "mode" =>
@@ -1570,10 +1550,10 @@ pub fn do_math(
                                     return Err("no args");
                                 }
                             }
-                            "len" => Num(Number::from_units(
-                                Complex::with_val(options.prec, a.len()),
-                                None,
-                            )),
+                            "len" =>
+                            {
+                                Num(Number::from(Complex::with_val(options.prec, a.len()), None))
+                            }
                             "norm" =>
                             {
                                 let mut n = Complex::new(options.prec);
@@ -1581,7 +1561,7 @@ pub fn do_math(
                                 {
                                     n += i.number.abs().pow(2);
                                 }
-                                Num(Number::from_units(n.sqrt(), None))
+                                Num(Number::from(n.sqrt(), None))
                             }
                             "normalize" =>
                             {
@@ -1593,10 +1573,7 @@ pub fn do_math(
                                 Vector(
                                     a.iter()
                                         .map(|x| {
-                                            Number::from_units(
-                                                x.number.clone() / n.clone().sqrt(),
-                                                None,
-                                            )
+                                            Number::from(x.number.clone() / n.clone().sqrt(), None)
                                         })
                                         .collect(),
                                 )
@@ -1607,11 +1584,11 @@ pub fn do_math(
                                 {
                                     let t = a[1].number.clone() / to_deg.clone();
                                     Vector(vec![
-                                        Number::from_units(
+                                        Number::from(
                                             a[0].number.clone() * t.clone().cos(),
                                             a[0].units,
                                         ),
-                                        Number::from_units(
+                                        Number::from(
                                             a[0].number.clone() * t.clone().sin(),
                                             a[0].units,
                                         ),
@@ -1622,19 +1599,19 @@ pub fn do_math(
                                     let t1 = a[1].number.clone() / to_deg.clone();
                                     let t2 = a[2].number.clone() / to_deg.clone();
                                     Vector(vec![
-                                        Number::from_units(
+                                        Number::from(
                                             a[0].number.clone()
                                                 * t1.clone().sin()
                                                 * t2.clone().cos(),
                                             a[0].units,
                                         ),
-                                        Number::from_units(
+                                        Number::from(
                                             a[0].number.clone()
                                                 * t1.clone().sin()
                                                 * t2.clone().sin(),
                                             a[0].units,
                                         ),
-                                        Number::from_units(
+                                        Number::from(
                                             a[0].number.clone() * t1.clone().cos(),
                                             a[0].units,
                                         ),
@@ -1659,7 +1636,7 @@ pub fn do_math(
                                         let d: Complex = b[0].number.clone().pow(2)
                                             + b[1].number.clone().pow(2)
                                             + b[2].number.clone().pow(2);
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             ((a[0].number.clone() * b[0].number.clone()
                                                 + a[1].number.clone() * b[1].number.clone()
                                                 + a[2].number.clone() * b[2].number.clone())
@@ -1675,7 +1652,7 @@ pub fn do_math(
                                             a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
                                         let d: Complex =
                                             b[0].number.clone().pow(2) + b[1].number.clone().pow(2);
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             ((a[0].number.clone() * b[0].number.clone()
                                                 + a[1].number.clone() * b[1].number.clone())
                                                 / (c.sqrt() * d.sqrt()))
@@ -1702,17 +1679,17 @@ pub fn do_math(
                                     if a.len() == 3 && b.len() == 3
                                     {
                                         Vector(vec![
-                                            Number::from_units(
+                                            Number::from(
                                                 a[1].number.clone() * &b[2].number
                                                     - a[2].number.clone() * &b[1].number,
                                                 None,
                                             ),
-                                            Number::from_units(
+                                            Number::from(
                                                 a[2].number.clone() * &b[0].number
                                                     - a[0].number.clone() * &b[2].number,
                                                 None,
                                             ),
-                                            Number::from_units(
+                                            Number::from(
                                                 a[0].number.clone() * &b[1].number
                                                     - a[1].number.clone() * &b[0].number,
                                                 None,
@@ -1721,7 +1698,7 @@ pub fn do_math(
                                     }
                                     else if a.len() == 2 && b.len() == 2
                                     {
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             a[0].number.clone() * &b[1].number
                                                 - a[1].number.clone() * &b[0].number,
                                             None,
@@ -1757,7 +1734,7 @@ pub fn do_math(
                                         {
                                             norm += i.number.abs().pow(2);
                                         }
-                                        Num(Number::from_units(dot / norm, None)).mul(&b)?
+                                        Num(Number::from(dot / norm, None)).mul(&b)?
                                     }
                                     else
                                     {
@@ -1781,7 +1758,7 @@ pub fn do_math(
                                     {
                                         n += i;
                                     }
-                                    Num(Number::from_units(n, None))
+                                    Num(Number::from(n, None))
                                 }
                                 else
                                 {
@@ -1836,14 +1813,8 @@ pub fn do_math(
                                 a.iter()
                                     .map(|a| {
                                         vec![
-                                            Number::from_units(
-                                                a.number.real().clone().into(),
-                                                None,
-                                            ),
-                                            Number::from_units(
-                                                a.number.imag().clone().into(),
-                                                None,
-                                            ),
+                                            Number::from(a.number.real().clone().into(), None),
+                                            Number::from(a.number.imag().clone().into(), None),
                                         ]
                                     })
                                     .collect::<Vec<Vec<Number>>>(),
@@ -1865,7 +1836,7 @@ pub fn do_math(
                                             {
                                                 if n % i == 0
                                                 {
-                                                    vec.push(Number::from_units(
+                                                    vec.push(Number::from(
                                                         Complex::with_val(options.prec, i),
                                                         None,
                                                     ));
@@ -1887,10 +1858,7 @@ pub fn do_math(
                                 }
                                 if fail
                                 {
-                                    Num(Number::from_units(
-                                        Complex::with_val(options.prec, Nan),
-                                        None,
-                                    ))
+                                    Num(Number::from(Complex::with_val(options.prec, Nan), None))
                                 }
                                 else
                                 {
@@ -1912,7 +1880,7 @@ pub fn do_math(
                                     let temp = temp.clone() + 1;
                                     divisor *= gamma(temp);
                                 }
-                                Num(Number::from_units(gamma(numerator) / divisor, None))
+                                Num(Number::from(gamma(numerator) / divisor, None))
                             }
                             "Β" | "B" | "beta" =>
                             {
@@ -1923,11 +1891,11 @@ pub fn do_math(
                                     if i + 1 < function.len()
                                     {
                                         let x = function.remove(i + 1).num()?.number;
-                                        Num(Number::from_units(incomplete_beta(a, b, x), None))
+                                        Num(Number::from(incomplete_beta(a, b, x), None))
                                     }
                                     else if a.imag().is_zero() && b.imag().is_zero()
                                     {
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             gamma(a.clone()) * gamma(b.clone())
                                                 / gamma(a + b.clone()),
                                             None,
@@ -1935,7 +1903,7 @@ pub fn do_math(
                                     }
                                     else
                                     {
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             incomplete_beta(
                                                 Complex::with_val(options.prec, 1),
                                                 a,
@@ -1957,7 +1925,7 @@ pub fn do_math(
                                     let a = arg.num()?.number;
                                     let b = function.remove(i + 1).num()?.number;
                                     let x = function.remove(i + 1).num()?.number;
-                                    Num(Number::from_units(
+                                    Num(Number::from(
                                         gamma(x.clone() + b.clone())
                                             * incomplete_beta(a, b.clone(), x.clone())
                                             / (gamma(x) * gamma(b)),
@@ -1977,7 +1945,7 @@ pub fn do_math(
                                     let beta = function.remove(i + 1).num()?.number;
                                     let x = function.remove(i + 1).num()?.number;
                                     let c: Complex = 1 - x.clone();
-                                    Num(Number::from_units(
+                                    Num(Number::from(
                                         gamma(alpha.clone() + beta.clone())
                                             * x.pow(alpha.clone() - 1)
                                             * c.pow(beta.clone() - 1)
@@ -2000,7 +1968,7 @@ pub fn do_math(
                                     let n: Complex = (x - mu).pow(2);
                                     let n: Complex = -n / (2 * sigma.clone().pow(2));
                                     let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
-                                    Num(Number::from_units(n.exp() / (sigma * tau.sqrt()), None))
+                                    Num(Number::from(n.exp() / (sigma * tau.sqrt()), None))
                                 }
                                 else
                                 {
@@ -2018,7 +1986,7 @@ pub fn do_math(
                                 if a.imag().is_zero()
                                 {
                                     let two = Float::with_val(options.prec, 2);
-                                    Num(Number::from_units(
+                                    Num(Number::from(
                                         ((-a / two.clone().sqrt()).real().clone().erfc() / two)
                                             .into(),
                                         None,
@@ -2027,10 +1995,7 @@ pub fn do_math(
                                 else
                                 {
                                     let two = Float::with_val(options.prec, 2);
-                                    Num(Number::from_units(
-                                        erf(-a / two.clone().sqrt()) / two,
-                                        None,
-                                    ))
+                                    Num(Number::from(erf(-a / two.clone().sqrt()) / two, None))
                                 }
                             }
                             "cubic" =>
@@ -2089,7 +2054,7 @@ pub fn do_math(
                                     let n = quadratic(a, b, c, real);
                                     if n.is_empty()
                                     {
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             Complex::with_val(options.prec, Nan),
                                             None,
                                         ))
@@ -2130,8 +2095,8 @@ pub fn do_math(
                             {
                                 let a = arg.num()?.number;
                                 Vector(vec![
-                                    Number::from_units(a.real().clone().into(), None),
-                                    Number::from_units(a.imag().clone().into(), None),
+                                    Number::from(a.real().clone().into(), None),
+                                    Number::from(a.imag().clone().into(), None),
                                 ])
                             }
                             "iden" | "identity" => Matrix(identity(
@@ -2143,12 +2108,12 @@ pub fn do_math(
                                 let a = arg.num()?.number / to_deg.clone();
                                 Matrix(vec![
                                     vec![
-                                        Number::from_units(a.clone().cos(), None),
-                                        Number::from_units(-a.clone().sin(), None),
+                                        Number::from(a.clone().cos(), None),
+                                        Number::from(-a.clone().sin(), None),
                                     ],
                                     vec![
-                                        Number::from_units(a.clone().sin(), None),
-                                        Number::from_units(a.cos(), None),
+                                        Number::from(a.clone().sin(), None),
+                                        Number::from(a.cos(), None),
                                     ],
                                 ])
                             }
@@ -2165,7 +2130,7 @@ pub fn do_math(
                                         {
                                             if n % i == 0
                                             {
-                                                vec.push(Number::from_units(
+                                                vec.push(Number::from(
                                                     Complex::with_val(options.prec, i),
                                                     None,
                                                 ));
@@ -2175,7 +2140,7 @@ pub fn do_math(
                                     }
                                     else
                                     {
-                                        Num(Number::from_units(
+                                        Num(Number::from(
                                             Complex::with_val(options.prec, Nan),
                                             None,
                                         ))
@@ -2183,10 +2148,7 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    Num(Number::from_units(
-                                        Complex::with_val(options.prec, Nan),
-                                        None,
-                                    ))
+                                    Num(Number::from(Complex::with_val(options.prec, Nan), None))
                                 }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
@@ -2204,11 +2166,11 @@ pub fn do_math(
         {
             function[i] = match s.as_str()
             {
-                "rnd" => Num(Number::from_units(
+                "rnd" => Num(Number::from(
                     Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
                     None,
                 )),
-                "epoch" => Num(Number::from_units(
+                "epoch" => Num(Number::from(
                     Complex::with_val(
                         options.prec,
                         match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)
@@ -2377,7 +2339,7 @@ pub fn do_math(
                             {
                                 ("<", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             left.number.clone(),
                                             center.number.clone(),
@@ -2393,7 +2355,7 @@ pub fn do_math(
                                 }
                                 ("<=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             left.number.clone(),
                                             center.number.clone(),
@@ -2429,7 +2391,7 @@ pub fn do_math(
                             {
                                 ("<", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             left.number.clone(),
                                             center.number.clone(),
@@ -2445,7 +2407,7 @@ pub fn do_math(
                                 }
                                 ("<=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             left.number.clone(),
                                             center.number.clone(),
@@ -2481,7 +2443,7 @@ pub fn do_math(
                             {
                                 (">", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             right.number.clone(),
                                             center.number.clone(),
@@ -2497,7 +2459,7 @@ pub fn do_math(
                                 }
                                 (">=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             right.number.clone(),
                                             center.number.clone(),
@@ -2533,7 +2495,7 @@ pub fn do_math(
                             {
                                 (">", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             right.number.clone(),
                                             center.number.clone(),
@@ -2549,7 +2511,7 @@ pub fn do_math(
                                 }
                                 (">=", Num(left), Num(center), Num(right)) =>
                                 {
-                                    function[i] = Num(Number::from_units(
+                                    function[i] = Num(Number::from(
                                         between(
                                             right.number.clone(),
                                             center.number.clone(),
@@ -2848,7 +2810,7 @@ fn functions(
         {
             if b.number.imag().is_zero() && !b.number.imag().is_sign_positive()
             {
-                c = Some(Number::from_units(
+                c = Some(Number::from(
                     Complex::with_val(b.number.prec(), b.number.real()),
                     b.units,
                 ))
@@ -2856,7 +2818,7 @@ fn functions(
         }
         match s
         {
-            "sqrt" | "asquare" => Number::from_units(a.number.sqrt(), a.units.map(|a| a.root(2.0))),
+            "sqrt" | "asquare" => Number::from(a.number.sqrt(), a.units.map(|a| a.root(2.0))),
             "root" =>
             {
                 if let Some(b) = c
@@ -2865,14 +2827,14 @@ fn functions(
                     let c: Float = b.real().clone() / 2;
                     if b.is_zero() && !a.number.is_zero()
                     {
-                        Number::from_units(Complex::with_val(a.number.prec(), Nan), None)
+                        Number::from(Complex::with_val(a.number.prec(), Nan), None)
                     }
                     else if b.imag().is_zero()
                         && !c.fract().is_zero()
                         && b.real().clone().fract().is_zero()
                         && a.number.imag().is_zero()
                     {
-                        Number::from_units(
+                        Number::from(
                             {
                                 let a = a.number.real();
                                 let ab = a.clone().abs();
@@ -2886,7 +2848,7 @@ fn functions(
                     }
                     else
                     {
-                        Number::from_units(
+                        Number::from(
                             a.number.pow(b.clone().recip()),
                             a.units.map(|a| a.root(b.real().to_f64())),
                         )
@@ -2894,25 +2856,25 @@ fn functions(
                 }
                 else
                 {
-                    Number::from_units(a.number.sqrt(), a.units.map(|a| a.root(2.0)))
+                    Number::from(a.number.sqrt(), a.units.map(|a| a.root(2.0)))
                 }
             }
             "exp" | "aln" =>
             {
                 if let Some(b) = c
                 {
-                    Number::from_units(
+                    Number::from(
                         a.number.pow(b.number.clone()),
                         a.units.map(|a| a.pow(b.number.real().to_f64())),
                     )
                 }
                 else
                 {
-                    Number::from_units(a.number.exp(), None)
+                    Number::from(a.number.exp(), None)
                 }
             }
-            "square" | "asqrt" => Number::from_units(a.number.pow(2), a.units.map(|a| a.pow(2.0))),
-            "cube" | "acbrt" => Number::from_units(a.number.pow(3), a.units.map(|a| a.pow(3.0))),
+            "square" | "asqrt" => Number::from(a.number.pow(2), a.units.map(|a| a.pow(2.0))),
+            "cube" | "acbrt" => Number::from(a.number.pow(3), a.units.map(|a| a.pow(3.0))),
             _ => return Err("unreachable"),
         }
     }
@@ -2931,7 +2893,7 @@ fn functions(
                 d = Some(b.number.clone())
             }
         }
-        Number::from_units(
+        Number::from(
             match s
             {
                 "sin" => (a / to_deg).sin(),
@@ -3458,7 +3420,7 @@ fn functions(
     };
     if n.number.imag().is_zero() && !n.number.imag().is_sign_positive()
     {
-        Ok(Number::from_units(
+        Ok(Number::from(
             Complex::with_val(n.number.prec(), n.number.real()),
             n.units,
         ))

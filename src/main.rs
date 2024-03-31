@@ -49,7 +49,6 @@ use std::{
 //infinitely long greater/lesser than chains
 //have unit powers be fractional, maybe 2 usizes
 //add option to print units in simplified form instead of just in base si units, like N instead of kg m s^-2
-//allow units in fractional output
 //compress units if able
 #[derive(Clone)]
 pub struct Variable

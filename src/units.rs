@@ -497,6 +497,8 @@ pub fn units() -> HashSet<&'static str>
         "kph",
         "year",
         "ly",
+        "nit",
+        "nt",
     ]
     .iter()
     .cloned()
@@ -525,6 +527,11 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             num *= Complex::with_val(options.prec, 10).pow(-3);
             units.kilogram = 1.0
+        }
+        "nit" | "nt" =>
+        {
+            units.candela = 1.0;
+            units.meter = -2.0
         }
         "gray" | "Gy" =>
         {
@@ -621,7 +628,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
                 kelvin: 1.0,
                 ..Units::default()
             };
-            add = Some(Number::from_units(
+            add = Some(Number::from(
                 Complex::with_val(options.prec, 5463) / 20,
                 Some(unit),
             ));
@@ -635,7 +642,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
                 kelvin: 1.0,
                 ..Units::default()
             };
-            add = Some(Number::from_units(
+            add = Some(Number::from(
                 Complex::with_val(options.prec, 45967) / 180,
                 Some(unit),
             ));
@@ -796,5 +803,5 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         _ =>
         {}
     }
-    (Number::from_units(num, Some(units)), add)
+    (Number::from(num, Some(units)), add)
 }

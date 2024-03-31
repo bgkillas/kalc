@@ -1099,7 +1099,7 @@ pub fn get_list_2d(
     for i in 0..=func.2.samples_2d
     {
         let n = func.2.xr.0 + i as f64 * den_range;
-        let num = Num(Number::from_units(Complex::with_val(func.2.prec, n), None));
+        let num = Num(Number::from(Complex::with_val(func.2.prec, n), None));
         match do_math(
             place_varxy(func.0.clone(), num.clone()),
             func.2,
@@ -1399,13 +1399,13 @@ pub fn get_list_3d(
     for i in 0..=func.2.samples_3d.0
     {
         let n = func.2.xr.0 + i as f64 * den_x_range;
-        let num = Num(Number::from_units(Complex::with_val(func.2.prec, n), None));
+        let num = Num(Number::from(Complex::with_val(func.2.prec, n), None));
         modified = place_var(func.0.clone(), "x", num.clone());
         modifiedvars = place_funcvar(func.1.clone(), "x", num);
         for g in 0..=func.2.samples_3d.1
         {
             let f = func.2.yr.0 + g as f64 * den_y_range;
-            let num = Num(Number::from_units(Complex::with_val(func.2.prec, f), None));
+            let num = Num(Number::from(Complex::with_val(func.2.prec, f), None));
             match do_math(
                 place_var(modified.clone(), "y", num.clone()),
                 func.2,
@@ -1764,13 +1764,13 @@ fn get_data(
                             lines = false;
                             d2_or_d3.0 = true;
                             (points2d, _, _) = get_list_2d((
-                                vec![Num(Number::from_units(v[0].number.clone(), None))],
+                                vec![Num(Number::from(v[0].number.clone(), None))],
                                 Vec::new(),
                                 func.2,
                             ));
                             let points2dtemp: [[Vec<f64>; 2]; 2];
                             (points2dtemp, _, re_or_im) = get_list_2d((
-                                vec![Num(Number::from_units(v[1].number.clone(), None))],
+                                vec![Num(Number::from(v[1].number.clone(), None))],
                                 Vec::new(),
                                 func.2,
                             ));

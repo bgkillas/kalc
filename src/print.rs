@@ -493,8 +493,8 @@ pub fn print_concurrent(
     {
         Num(n) =>
         {
-            let output = get_output(options, &colors, &n);
-            let (frac_a, frac_b) = if options.frac || options.frac_iter == 0
+            let mut output = get_output(options, &colors, &n);
+            let (mut frac_a, frac_b) = if options.frac || options.frac_iter == 0
             {
                 let n = n.number;
                 let fa = fraction(n.real().clone(), options);
@@ -600,6 +600,11 @@ pub fn print_concurrent(
                 (String::new(), String::new())
             };
             let (width, height) = get_terminal_dimensions();
+            if let Some(st) = output.2
+            {
+                output.0 += &st;
+                frac_a += &st;
+            }
             let len1 = no_col(&output.0, options.color).len();
             let len2 = no_col(&output.1, options.color).len();
             if (frac == 1 && !options.frac)
@@ -800,6 +805,11 @@ pub fn print_concurrent(
                 }
                 output += &out.0;
                 output += &out.1;
+                if let Some(st) = out.2
+                {
+                    output += &st;
+                    frac_out += &st;
+                }
                 if options.color
                 {
                     output += "\x1b[0m";
@@ -960,6 +970,11 @@ pub fn print_concurrent(
                     }
                     output += &out.0;
                     output += &out.1;
+                    if let Some(st) = out.2
+                    {
+                        output += &st;
+                        frac_out += &st;
+                    }
                     if options.color
                     {
                         output += "\x1b[0m";
@@ -1138,8 +1153,9 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
         {
             let a = get_output(options, colors, &n);
             print!(
-                "{}{}{}",
+                "{}{}{}{}",
                 a.0,
+                a.2.unwrap_or_default(),
                 a.1,
                 if options.color { "\x1b[0m" } else { "" }
             );
@@ -1165,6 +1181,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 out = get_output(options, colors, i);
                 output += out.0.as_str();
                 output += out.1.as_str();
+                output += &out.2.unwrap_or_default();
                 if options.color
                 {
                     output += "\x1b[0m";
@@ -1209,6 +1226,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                     out = get_output(options, colors, i);
                     output += out.0.as_str();
                     output += out.1.as_str();
+                    output += &out.2.unwrap_or_default();
                     if options.color
                     {
                         output += "\x1b[0m";
@@ -1251,7 +1269,11 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
         {}
     }
 }
-pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String, String)
+pub fn get_output(
+    options: Options,
+    colors: &Colors,
+    number: &Number,
+) -> (String, String, Option<String>)
 {
     let num = number.number.clone();
     let units = number.units;
@@ -1282,44 +1304,14 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                     let n = num
                         .real()
                         .to_string_radix(options.base.1, Some(options.decimal_places));
-                    format!(
-                        "{}{}",
-                        if n.contains('e')
-                        {
-                            n
-                        }
-                        else
-                        {
-                            n.trim_end_matches('0').trim_end_matches('.').to_string()
-                        },
-                        &if options.units && num.imag().is_zero()
-                        {
-                            if let Some(units) = units
-                            {
-                                format!(
-                                    "{}{}{}",
-                                    if options.color
-                                    {
-                                        "\x1b[".to_owned() + &colors.units
-                                    }
-                                    else
-                                    {
-                                        String::new()
-                                    },
-                                    units.to_string(options),
-                                    if options.color { "\x1b[0m" } else { "" }
-                                )
-                            }
-                            else
-                            {
-                                String::new()
-                            }
-                        }
-                        else
-                        {
-                            String::new()
-                        }
-                    )
+                    if n.contains('e')
+                    {
+                        n
+                    }
+                    else
+                    {
+                        n.trim_end_matches('0').trim_end_matches('.').to_string()
+                    }
                 }
                 else if num.imag().is_zero()
                 {
@@ -1353,6 +1345,28 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                 else
                 {
                     String::new()
+                },
+                if options.units && num.imag().is_zero()
+                {
+                    units.map(|units| {
+                        format!(
+                            "{}{}{}",
+                            if options.color
+                            {
+                                "\x1b[".to_owned() + &colors.units
+                            }
+                            else
+                            {
+                                String::new()
+                            },
+                            units.to_string(options),
+                            if options.color { "\x1b[0m" } else { "" }
+                        )
+                    })
+                }
+                else
+                {
+                    None
                 },
             )
         }
@@ -1409,33 +1423,6 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                             "E".to_string()
                         },
                     ) + if options.color { "\x1b[0m" } else { "" }
-                        + &if options.units && num.imag().is_zero()
-                        {
-                            if let Some(units) = units
-                            {
-                                format!(
-                                    "{}{}{}",
-                                    if options.color
-                                    {
-                                        "\x1b[".to_owned() + &colors.units
-                                    }
-                                    else
-                                    {
-                                        String::new()
-                                    },
-                                    units.to_string(options),
-                                    if options.color { "\x1b[0m" } else { "" }
-                                )
-                            }
-                            else
-                            {
-                                String::new()
-                            }
-                        }
-                        else
-                        {
-                            String::new()
-                        }
                 },
                 if num.imag().is_zero()
                 {
@@ -1515,6 +1502,28 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                         "i".to_string()
                     }
                 },
+                if options.units && num.imag().is_zero()
+                {
+                    units.map(|units| {
+                        format!(
+                            "{}{}{}",
+                            if options.color
+                            {
+                                "\x1b[".to_owned() + &colors.units
+                            }
+                            else
+                            {
+                                String::new()
+                            },
+                            units.to_string(options),
+                            if options.color { "\x1b[0m" } else { "" }
+                        )
+                    })
+                }
+                else
+                {
+                    None
+                },
             )
         }
     }
@@ -1562,33 +1571,7 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
             }
             else
             {
-                re + &if options.units && im == "0"
-                {
-                    if let Some(units) = units
-                    {
-                        format!(
-                            "{}{}{}",
-                            if options.color
-                            {
-                                "\x1b[".to_owned() + &colors.units
-                            }
-                            else
-                            {
-                                String::new()
-                            },
-                            units.to_string(options),
-                            if options.color { "\x1b[0m" } else { "" }
-                        )
-                    }
-                    else
-                    {
-                        String::new()
-                    }
-                }
-                else
-                {
-                    String::new()
-                }
+                re
             },
             if im == "0"
             {
@@ -1627,6 +1610,28 @@ pub fn get_output(options: Options, colors: &Colors, number: &Number) -> (String
                     {
                         "i".to_string()
                     }
+            },
+            if options.units && num.imag().is_zero()
+            {
+                units.map(|units| {
+                    format!(
+                        "{}{}{}",
+                        if options.color
+                        {
+                            "\x1b[".to_owned() + &colors.units
+                        }
+                        else
+                        {
+                            String::new()
+                        },
+                        units.to_string(options),
+                        if options.color { "\x1b[0m" } else { "" }
+                    )
+                })
+            }
+            else
+            {
+                None
             },
         )
     }

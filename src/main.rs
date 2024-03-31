@@ -714,6 +714,10 @@ fn main()
                         {
                             end = input.len()
                         }
+                        if start >= end
+                        {
+                            start = end;
+                        }
                         if i == lines.len()
                         {
                             current.clone_from(&input);

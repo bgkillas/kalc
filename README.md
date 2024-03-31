@@ -91,7 +91,7 @@ FLAGS: --help (this message)
 - "history [arg]" to see the history, arg searches for the arg it if specified
 - "vars" to list all variables
 - "option/var;function" to set a temporal option/var, example: "a=45;deg;sin(a)" = sqrt(2)/2
-- "f(x)=var;function" to set a temporal var when defining function, example: "f(x)=a=2:ax" = f(x)=2x
+- "f(x)=var:function" to set a temporal var when defining function, example: "f(x)=a=2:ax" = f(x)=2x
 - "_" to use the previous answer
 - "a={expr}" to define a variable
 - "f(x)=..." to define a function

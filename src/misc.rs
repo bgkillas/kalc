@@ -254,7 +254,7 @@ pub fn no_col(input: &str, color: bool) -> Vec<char>
 }
 pub fn write(mut input: String, file: &mut File, lines: &mut Vec<String>, slow: bool, last: String)
 {
-    if last != input && !input.replace(' ', "").is_empty()
+    if last != input && !input.replace(' ', "").is_empty() && !input.starts_with('#')
     {
         if slow
         {

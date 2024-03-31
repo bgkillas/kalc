@@ -46,9 +46,9 @@ pub fn arg_opts(
             }
             "-h" | "--help" =>
             {
-                if args.len() == 2
+                if args.len() > 1
                 {
-                    println!("{}", help_for(&args[1]));
+                    println!("{}", help_for(&args[1..].join(" ")));
                 }
                 else
                 {

@@ -55,7 +55,7 @@ FLAGS: --help (this message)\x1b[G\n\
 - \"history [arg]\" to see the history, arg searches for the arg it if specified\x1b[G\n\
 - \"vars\" to list all variables\x1b[G\n\
 - \"option/var;function\" to set a temporal option/var, example: \"a=45;deg;sin(a)\" = sqrt(2)/2\x1b[G\n\
-- \"f(x)=var;function\" to set a temporal var when defining function, example: \"f(x)=a=2:ax\" = f(x)=2x\x1b[G\n\
+- \"f(x)=var:function\" to set a temporal var when defining function, example: \"f(x)=a=2:ax\" = f(x)=2x\x1b[G\n\
 - \"_\" to use the previous answer\x1b[G\n\
 - \"a={{expr}}\" to define a variable\x1b[G\n\
 - \"f(x)=...\" to define a function\x1b[G\n\
@@ -154,7 +154,50 @@ Constants:\x1b[G\n\
 - tau/τ: tau, 6.2831853071~\x1b[G\n\n\
 Units:\x1b[G\n\
 supports metric prefixes and the following units\x1b[G\n\
-\"m\" | \"meter\"\x1b[G\n\
+{}\x1b[G\n\n\
+Digraph:\x1b[G\n\
+hit escape then a letter, or hold alt while typing(only lowercase)\x1b[G\n\
+a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,\x1b[G\n\
+e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,\x1b[G\n\
+i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,\x1b[G\n\
+n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,\x1b[G\n\
+r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,\x1b[G\n\
+w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\x1b[G\n\
+==>±, `=>ⁱ, _=>∞, ;=>°\x1b[G\n\
+numbers/minus sign convert to superscript acting as exponents\x1b[G\n"
+,all_units());
+}
+//TODO
+pub fn help_for(thing: &str) -> String
+{
+    match thing
+    {
+        "W" | "productlog" | "lambertw" =>
+        {
+            "W(k,z), W(z)\x1b[G\n\
+            kth branch of the inverse of z*e^z\x1b[G\n\
+            given one argument assumes k=0"
+        }
+        "atan" | "arctan" | "atan2" =>
+        {
+            "atan(y/x), atan(x,y), atan2(y,x)\x1b[G\n\
+        inverse of tan(z)\x1b[G\n\
+        using the 2 arg version gives you an angle from 0 instead of from the x axis\x1b[G\n\
+        example using cardinal directions: atan(-2,-3)=-2.15 E->N, atan(-3/-2)=0.98 W->S"
+        }
+        "->"|"to"=>"divides the left number and unit by the right unit after the '+'/'-' step of order of operations, bit more complex for fereignheit/celsius",
+        "units" => "typing a number with a unit converts the number to related base SI units for further calculations",
+        "units list" =>
+            all_units(),
+        "help" => "W, atan\x1b[G\nunits, ->",
+        "" => "",
+        _ => "not in database",
+    }
+    .to_string()
+}
+fn all_units() -> &'static str
+{
+    "\"m\" | \"meter\"\x1b[G\n\
 \"s\" | \"second\"\x1b[G\n\
 \"A\" | \"ampere\"\x1b[G\n\
 \"K\" | \"kelvin\"\x1b[G\n\
@@ -204,40 +247,5 @@ supports metric prefixes and the following units\x1b[G\n\
 \"sievert\" | \"Sv\"\x1b[G\n\
 \"katal\" | \"kat\"\x1b[G\n\
 \"bit\" | \"b\"\x1b[G\n\
-\"steradian\" | \"sr\"\x1b[G\n\n\
-Digraph:\x1b[G\n\
-hit escape then a letter, or hold alt while typing(only lowercase)\x1b[G\n\
-a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,\x1b[G\n\
-e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,\x1b[G\n\
-i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,\x1b[G\n\
-n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,\x1b[G\n\
-r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,\x1b[G\n\
-w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\x1b[G\n\
-==>±, `=>ⁱ, _=>∞, ;=>°\x1b[G\n\
-numbers/minus sign convert to superscript acting as exponents\x1b[G\n"
-);
-}
-//TODO
-pub fn help_for(thing: &str) -> String
-{
-    match thing
-    {
-        "W" | "productlog" | "lambertw" =>
-        {
-            "W(k,z), W(z)\x1b[G\n\
-            kth branch of the inverse of z*e^z\x1b[G\n\
-            given one argument assumes k=0"
-        }
-        "atan" | "arctan" | "atan2" =>
-        {
-            "atan(y/x), atan(x,y), atan2(y,x)\x1b[G\n\
-        inverse of tan(z)\x1b[G\n\
-        using the 2 arg version gives you an angle from 0 instead of from the x axis\x1b[G\n\
-        example using cardinal directions: atan(-2,-3)=-2.15 E->N, atan(-3/-2)=0.98 W->S"
-        }
-        "help" => "W, atan",
-        "" => "",
-        _ => "not in database",
-    }
-    .to_string()
+\"steradian\" | \"sr\""
 }

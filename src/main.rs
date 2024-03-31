@@ -600,7 +600,7 @@ fn main()
                             end = input.len()
                         }
                         if (!options.real_time_output || long || (slow && !firstslow))
-                            && !input.is_empty()
+                            && (!input.is_empty() && !input.starts_with(&['#']))
                             && c != '\x14'
                             && c != '\x06'
                         {
@@ -616,7 +616,7 @@ fn main()
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                         }
-                        if !input.is_empty()
+                        if !input.is_empty() && !input.starts_with(&['#'])
                         {
                             let num = frac + if !graphable && !varcheck { 1 } else { 0 };
                             if num != 0

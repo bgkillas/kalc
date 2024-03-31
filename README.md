@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/kalc.svg)](https://crates.io/crates/kalc) [![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
 
-![image](https://github.com/bgkillas/kalc/assets/55570525/9e8947b0-eef1-4a49-9bec-dbc4d311b9e0)
+![image](https://github.com/bgkillas/kalc/assets/55570525/40ef3f19-97de-4da4-a5df-8a6e37ff33b2)
 
 requires gnuplot for graphing, a modern terminal like windows terminal on windows(via wsl)
 

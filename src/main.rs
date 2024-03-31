@@ -25,6 +25,7 @@ use crate::{
     parse::input_var,
     print::{print_answer, print_concurrent},
     AngleType::Radians,
+    Notation::Normal,
 };
 use crossterm::{
     cursor::{DisableBlinking, EnableBlinking},
@@ -49,8 +50,7 @@ use std::{
 //infinitely long greater/lesser than chains
 //have unit powers be fractional, maybe 2 usizes
 //add option to print units in simplified form instead of just in base si units, like N instead of kg m s^-2
-//compress units if able
-//remake readme image cuz angle=deg and notation=s
+//compress units if makes sense, ie m s^-2 -> m/s^2
 #[derive(Clone)]
 pub struct Variable
 {
@@ -198,7 +198,7 @@ impl Default for Options
     fn default() -> Self
     {
         Self {
-            notation: Notation::Normal,
+            notation: Normal,
             angle: Radians,
             base: (10, 10),
             ticks: 20.0,

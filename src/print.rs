@@ -14,8 +14,8 @@ use crate::{
     options::{equal_to, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, Notation,
-    Notation::{Normal, SmallEngineering},
+    Colors,
+    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
     Number, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
@@ -190,7 +190,7 @@ pub fn print_concurrent(
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
             let mut input = unparsed[n..].iter().collect::<String>();
             let mut func = unparsed[..n - 1].to_vec();
-            if matches!(
+            return if matches!(
                 func.iter().collect::<String>().as_str(),
                 "angle"
                     | "re1col"
@@ -222,7 +222,7 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                return (1, true, false, true);
+                (1, true, false, true)
             }
             else
             {
@@ -274,7 +274,7 @@ pub fn print_concurrent(
                 let (width, height) = get_terminal_dimensions();
                 let len = no_col(&out, options.color).len();
                 let wrap = (len - 1) / width + 1;
-                return if len > width * (height - 1)
+                if len > width * (height - 1)
                 {
                     if long_output
                     {
@@ -314,8 +314,8 @@ pub fn print_concurrent(
                         if options.color { "\x1b[0m" } else { "" }
                     );
                     (wrap, true, false, true)
-                };
-            }
+                }
+            };
         }
     }
     if input.2
@@ -1963,8 +1963,8 @@ fn notate(options: Options, colors: &Colors) -> String
         match options.notation
         {
             SmallEngineering => "e",
-            Notation::LargeEngineering => "E",
-            Notation::Scientific => "*10^",
+            LargeEngineering => "E",
+            Scientific => "*10^",
             Normal => "",
         },
     )

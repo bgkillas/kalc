@@ -193,6 +193,7 @@ Constants:
 Units:
 supports metric and binary prefixes
 ignores "s" at the end to allow "meters" and stuff
+"units" function will extract the units of a number for == checks and stuff
 the following units are supported
 "m" | "meter"
 "s" | "second"

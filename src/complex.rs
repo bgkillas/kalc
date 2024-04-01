@@ -515,6 +515,8 @@ pub fn shr(a: &Number, b: &Number) -> Number
 }
 pub fn ne(a: &Number, b: &Number) -> Number
 {
+    let ua = a.units;
+    let ub = b.units;
     let a = a.number.clone();
     let b = b.number.clone();
     let c: Complex = a.clone() - b.clone();
@@ -526,7 +528,7 @@ pub fn ne(a: &Number, b: &Number) -> Number
     Number::from(
         Complex::with_val(
             a.prec(),
-            (!(re.is_zero()
+            ((!(re.is_zero()
                 || (a.real().is_infinite()
                     && b.real().is_infinite()
                     && a.real().is_sign_positive() == b.real().is_sign_positive()))
@@ -534,13 +536,20 @@ pub fn ne(a: &Number, b: &Number) -> Number
                     || (a.imag().is_infinite()
                         && b.imag().is_infinite()
                         && a.imag().is_sign_positive() == b.imag().is_sign_positive())))
-                as u8,
+                || match (ua, ub)
+                {
+                    (Some(a), Some(b)) => a != b,
+                    (Some(a), None) | (None, Some(a)) => !a.is_none(),
+                    (None, None) => false,
+                }) as u8,
         ),
         None,
     )
 }
 pub fn eq(a: &Number, b: &Number) -> Number
 {
+    let ua = a.units;
+    let ub = b.units;
     let a = a.number.clone();
     let b = b.number.clone();
     let c: Complex = a.clone() - b.clone();
@@ -552,7 +561,7 @@ pub fn eq(a: &Number, b: &Number) -> Number
     Number::from(
         Complex::with_val(
             a.prec(),
-            (re.is_zero()
+            ((re.is_zero()
                 || (a.real().is_infinite()
                     && b.real().is_infinite()
                     && a.real().is_sign_positive() == b.real().is_sign_positive())
@@ -560,7 +569,12 @@ pub fn eq(a: &Number, b: &Number) -> Number
                 || (a.imag().is_infinite()
                     && b.imag().is_infinite()
                     && a.imag().is_sign_positive() == b.imag().is_sign_positive()))
-                as u8,
+                && match (ua, ub)
+                {
+                    (Some(a), Some(b)) => a == b,
+                    (Some(a), None) | (None, Some(a)) => a.is_none(),
+                    (None, None) => true,
+                }) as u8,
         ),
         None,
     )

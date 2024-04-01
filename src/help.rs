@@ -150,6 +150,7 @@ Constants:\x1b[G\n\
 Units:\x1b[G\n\
 supports metric and binary prefixes\x1b[G\n\
 ignores \"s\" at the end to allow \"meters\" and stuff\x1b[G\n\
+\"units\" function will extract the units of a number for == checks and stuff\x1b[G\n\
 the following units are supported\x1b[G\n\
 {}\x1b[G\n\n\
 Digraph:\x1b[G\n\

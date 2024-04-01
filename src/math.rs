@@ -2825,6 +2825,19 @@ fn functions(
             | "arctan"
             | "acot"
             | "arccot"
+            | "ceil"
+            | "floor"
+            | "round"
+            | "frac"
+            | "fract"
+            | "cbrt"
+            | "acube"
+            | "units"
+            | "int"
+            | "trunc"
+            | "recip"
+            | "abs"
+            | "norm"
     )
     {
         if let Some(ref b) = c
@@ -2971,6 +2984,85 @@ fn functions(
                     ..Units::default()
                 }),
             ),
+            "ceil" => Number::from(
+                Complex::with_val(
+                    options.prec,
+                    (
+                        a.number.real().clone().ceil(),
+                        a.number.imag().clone().ceil(),
+                    ),
+                ),
+                a.units,
+            ),
+            "floor" => Number::from(
+                Complex::with_val(
+                    options.prec,
+                    (
+                        a.number.real().clone().floor(),
+                        a.number.imag().clone().floor(),
+                    ),
+                ),
+                a.units,
+            ),
+            "round" => Number::from(
+                Complex::with_val(
+                    options.prec,
+                    (
+                        a.number.real().clone().round(),
+                        a.number.imag().clone().round(),
+                    ),
+                ),
+                a.units,
+            ),
+            "cbrt" | "acube" => Number::from(
+                if a.number.imag().is_zero()
+                {
+                    if a.number.real().is_zero()
+                    {
+                        Complex::new(options.prec)
+                    }
+                    else
+                    {
+                        (a.number.real() / a.number.real().clone().abs()
+                            * a.number
+                                .real()
+                                .clone()
+                                .abs()
+                                .pow(Float::with_val(a.number.prec().0, 3).recip()))
+                        .into()
+                    }
+                }
+                else
+                {
+                    a.number
+                        .clone()
+                        .pow(Float::with_val(a.number.prec().0, 3).recip())
+                },
+                a.units.map(|a| a.root(3.0)),
+            ),
+            "abs" | "norm" => Number::from(a.number.abs(), a.units),
+            "frac" | "fract" => Number::from(
+                Complex::with_val(
+                    options.prec,
+                    (
+                        a.number.real().clone().fract(),
+                        a.number.imag().clone().fract(),
+                    ),
+                ),
+                a.units,
+            ),
+            "int" | "trunc" => Number::from(
+                Complex::with_val(
+                    options.prec,
+                    (
+                        a.number.real().clone().trunc(),
+                        a.number.imag().clone().trunc(),
+                    ),
+                ),
+                a.units,
+            ),
+            "recip" => Number::from(a.number.recip(), a.units.map(|a| a.pow(-1.0))),
+            "units" => Number::from(Complex::with_val(options.prec, 1), a.units),
             _ => return Err("unreachable"),
         }
     }
@@ -3016,19 +3108,6 @@ fn functions(
                     b.clone().cos() + b.sin() * Complex::with_val(options.prec, (0.0, 1.0))
                 }
                 "ln" | "aexp" => a.ln(),
-                "ceil" => Complex::with_val(
-                    options.prec,
-                    (a.real().clone().ceil(), a.imag().clone().ceil()),
-                ),
-                "floor" => Complex::with_val(
-                    options.prec,
-                    (a.real().clone().floor(), a.imag().clone().floor()),
-                ),
-                "round" => Complex::with_val(
-                    options.prec,
-                    (a.real().clone().round(), a.imag().clone().round()),
-                ),
-                "recip" => a.recip(),
                 "W" | "productlog" | "lambertw" =>
                 {
                     if let Some(b) = d
@@ -3226,7 +3305,6 @@ fn functions(
                         gamma(a)
                     }
                 }
-                "abs" | "norm" => a.abs(),
                 "re" | "real" => Complex::with_val(options.prec, a.real()),
                 "im" | "imag" => Complex::with_val(options.prec, a.imag()),
                 "sgn" | "sign" =>
@@ -3241,37 +3319,6 @@ fn functions(
                     }
                 }
                 "arg" => a.arg(),
-                "cbrt" | "acube" =>
-                {
-                    if a.imag().is_zero()
-                    {
-                        if a.real().is_zero()
-                        {
-                            Complex::new(options.prec)
-                        }
-                        else
-                        {
-                            (a.real() / a.real().clone().abs()
-                                * a.real()
-                                    .clone()
-                                    .abs()
-                                    .pow(Float::with_val(a.prec().0, 3).recip()))
-                            .into()
-                        }
-                    }
-                    else
-                    {
-                        a.clone().pow(Float::with_val(a.prec().0, 3).recip())
-                    }
-                }
-                "frac" | "fract" => Complex::with_val(
-                    options.prec,
-                    (a.real().clone().fract(), a.imag().clone().fract()),
-                ),
-                "int" | "trunc" => Complex::with_val(
-                    options.prec,
-                    (a.real().clone().trunc(), a.imag().clone().trunc()),
-                ),
                 "doublefact" | "doublefactorial" =>
                 {
                     let two = Complex::with_val(options.prec, 2);

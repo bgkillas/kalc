@@ -3,6 +3,18 @@ use rug::{float::Constant::Pi, ops::Pow, Complex};
 use std::collections::HashSet;
 impl Units
 {
+    pub fn is_none(&self) -> bool
+    {
+        self.second == 0.0
+            && self.meter == 0.0
+            && self.kilogram == 0.0
+            && self.ampere == 0.0
+            && self.kelvin == 0.0
+            && self.mole == 0.0
+            && self.candela == 0.0
+            && self.angle == 0.0
+            && self.byte == 0.0
+    }
     pub fn mul(&self, b: &Self) -> Self
     {
         Self {

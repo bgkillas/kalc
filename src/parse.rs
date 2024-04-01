@@ -38,6 +38,7 @@ pub fn input_var(
     {
         return Err(" ");
     }
+    let mut funcfailed = false;
     let mut scientific = false;
     let mut abs = Vec::new();
     let mut neg = false;
@@ -1060,7 +1061,15 @@ pub fn input_var(
         let (mut unit, mul);
         let mut num = 0;
         let var_overrule = if i + countv < chars.len()
-            && matches!(chars[i + countv], '(' | '{' | '[' | '|')
+            && (matches!(chars[i + countv], '(' | '{' | '[')
+                || if !funcfailed
+                {
+                    chars[i + countv] == '|'
+                }
+                else
+                {
+                    false
+                })
         {
             !vars.clone().iter().any(|a| {
                 if a.name.contains(&'(')
@@ -1364,6 +1373,7 @@ pub fn input_var(
                             {
                                 if abstest
                                 {
+                                    abstest = false;
                                     i += f;
                                     break;
                                 }
@@ -1383,6 +1393,12 @@ pub fn input_var(
                                     break;
                                 }
                             }
+                        }
+                        if abstest
+                        {
+                            i = j;
+                            funcfailed = true;
+                            continue 'main;
                         }
                         if i == j
                         {
@@ -1408,6 +1424,17 @@ pub fn input_var(
                                     }
                             {
                                 ccount += 1;
+                            }
+                            else if abs && *c == '|' && (count == 0 || (abstest && count == 1))
+                            {
+                                if abstest
+                                {
+                                    abstest = false;
+                                    count -= 1;
+                                    continue;
+                                }
+                                count += 1;
+                                abstest = true
                             }
                             else if matches!(c, '(' | '{' | '[')
                             {
@@ -2229,6 +2256,7 @@ pub fn input_var(
                     {}
                 }
             }
+            funcfailed = false;
             i += 1;
         }
     }

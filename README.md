@@ -4,13 +4,13 @@
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/5ef1fa92-ca42-480b-a2a5-71cc1e254c1e)
 
-requires gnuplot for graphing, a modern terminal like windows terminal on windows(via wsl)
+history file is stored in ```~/.config/kalc.history``` or ```C:\\Users\\$USER\\AppData\\Roaming\\kalc.history```
 
-history file is stored in ```~/.config/kalc.history```
+config file is stored in ```~/.config/kalc.config``` or ```C:\\Users\\$USER\\AppData\\Roaming\\kalc.config``` example in
+repo
 
-config file is stored in ```~/.config/kalc.config``` example in repo
-
-you can set permanent variables and functions in the file ```~/.config/kalc.vars``` example in repo, also contains more
+you can set permanent variables and functions in the file ```~/.config/kalc.vars```
+or ```C:\\Users\\$USER\\AppData\\Roaming\\kalc.vars``` example in repo, also contains more
 advanced example usage, suggested not to use entire kalc.vars example on lower end systems as it may cause lag
 
 config defaults listed in kalc.config
@@ -25,6 +25,10 @@ use aur or run
 ### windows
 
 download kalc.exe from https://github.com/bgkillas/kalc/releases/latest
+
+needs a modern terminal like 'windows terminal'
+
+for graphing install gnuplot via winget or [sourceforge](https://sourceforge.net/projects/gnuplot/files/gnuplot/)
 
 # build instructions
 

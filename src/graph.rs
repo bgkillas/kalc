@@ -1,3 +1,7 @@
+#[cfg(not(unix))]
+use crate::misc::get_terminal_dimensions;
+#[cfg(unix)]
+use crate::misc::get_terminal_dimensions_pixel;
 use crate::{
     complex::{
         NumStr,
@@ -243,17 +247,23 @@ pub fn graph(
             };
             let ratio = if options.scale_graph
             {
+                #[cfg(not(unix))]
                 let (x, y) = if options.window_size.0 != 0
                 {
                     options.window_size
                 }
-                else if cfg!(unix)
+                else
                 {
-                    crate::misc::get_terminal_dimensions_pixel()
+                    get_terminal_dimensions()
+                };
+                #[cfg(unix)]
+                let (x, y) = if options.window_size.0 != 0
+                {
+                    options.window_size
                 }
                 else
                 {
-                    crate::misc::get_terminal_dimensions()
+                    get_terminal_dimensions_pixel()
                 };
                 let rt = y as f64 / x as f64;
                 let w = rt * (options.xr.1 - options.xr.0) / (options.yr.1 - options.yr.0);

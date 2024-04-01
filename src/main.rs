@@ -51,6 +51,8 @@ use std::{
 //have unit powers be fractional, maybe 2 usizes
 //add option to print units in simplified form instead of just in base si units, like N instead of kg m s^-2
 //compress units if makes sense, ie m s^-2 -> m/s^2
+//allow changing the default unit for all, like angles
+//maybe add exchange rates via something like https://www.floatrates.com/daily/usd.json
 #[derive(Clone)]
 pub struct Variable
 {
@@ -1388,6 +1390,7 @@ fn main()
                                 {
                                     if hit
                                     {
+                                        hit = false;
                                         placement = i + 1;
                                         break;
                                     }
@@ -1397,10 +1400,16 @@ fn main()
                                     hit = true;
                                 }
                             }
+                            if hit
+                            {
+                                placement = 0;
+                            }
                             if placement <= start
                             {
-                                end -= start - placement;
-                                start = start - (start - placement);
+                                end = placement
+                                    + (get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 });
+                                start = placement;
                                 clearln(&input, start, end, options, &colors);
                                 if end - placement != 0
                                 {
@@ -1431,6 +1440,7 @@ fn main()
                                 {
                                     if hit
                                     {
+                                        hit = false;
                                         placement += i + 1;
                                         break;
                                     }
@@ -1440,10 +1450,16 @@ fn main()
                                     hit = true;
                                 }
                             }
+                            if hit
+                            {
+                                placement = input.len();
+                            }
                             if placement >= end
                             {
-                                start += placement - end;
-                                end = end + (placement - end);
+                                start = placement
+                                    - (get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 });
+                                end = placement;
                                 clearln(&input, start, end, options, &colors)
                             }
                             else if placement == s

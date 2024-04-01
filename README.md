@@ -16,14 +16,18 @@ advanced example usage, suggested not to use entire kalc.vars example on lower e
 config defaults listed in kalc.config
 
 # install instructions
+### linux
 
 use aur or run
 ```cargo install kalc```
 
+### windows
+
+download kalc.exe from https://github.com/bgkillas/kalc/releases/latest
+
 # build instructions
 
-windows is not properly supported due to dependencys being weird, just use wsl
-
+### linux
 dependencys are: rust>=1.73.0, diffutils, gcc, m4, make
 
 ```
@@ -32,6 +36,45 @@ cd kalc
 cargo build --release
 ./target/release/kalc
 ```
+
+### windows
+
+have cargo and the toolchain stable-x86_64-pc-windows-gnu installed
+
+as per [gmp-mpfr-sys](https://docs.rs/gmp-mpfr-sys/latest/gmp_mpfr_sys/index.html#building-on-windows)
+
+install MSYS2 using the [installer](https://www.msys2.org/)
+
+launch MSYS2 MinGW and run
+
+```
+pacman -Syu pacman-mirrors
+pacman -S git diffutils m4 make mingw-w64-x86_64-gcc
+git clone https://github.com/bgkillas/kalc
+cd kalc
+mkdir /mnt
+mount C: /mnt
+```
+
+if cargo is locally installed
+
+```
+/mnt/Users/$USER/.cargo/bin/cargo --release build
+./target/release/kalc.exe
+```
+
+if cargo is universally installed
+
+```
+cargo --release build
+./target/release/kalc.exe
+```
+
+then move kalc.exe wherever you want in /mnt
+
+### macos
+
+unsupported due to inability to test, create an issue if you want macos to work
 
 # usage
 

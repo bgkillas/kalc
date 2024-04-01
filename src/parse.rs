@@ -5,7 +5,7 @@ use crate::{
     },
     functions::functions,
     math::do_math,
-    units::{prefixes, to_unit, units},
+    units::{is_unit, prefixes, to_unit},
     Notation::SmallEngineering,
     Number, Options, Variable,
 };
@@ -1236,16 +1236,7 @@ pub fn input_var(
         else if options.units
             && {
                 (unit, mul) = prefixes(word.clone(), prec);
-                units().contains(unit.as_str())
-                    || (if unit.len() > 3 && unit.ends_with('s')
-                    {
-                        unit.pop();
-                        units().contains(unit.as_str())
-                    }
-                    else
-                    {
-                        false
-                    })
+                is_unit(&mut unit)
             }
             && var_overrule
         {

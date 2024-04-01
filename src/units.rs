@@ -245,9 +245,20 @@ impl Default for Units
         }
     }
 }
+pub fn is_unit(unit: &mut String) -> bool
+{
+    units().contains(unit.as_str())
+        || (unit.len() > 2 && unit.ends_with('s') && {
+            let is_true = units().contains(&unit[..unit.len() - 1]);
+            is_true && {
+                unit.pop();
+                true
+            }
+        })
+}
 pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
 {
-    if units().contains(unit.as_str())
+    if is_unit(&mut unit)
     {
         return (unit, Complex::with_val(prec, 1));
     }
@@ -258,131 +269,131 @@ pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
         word.push(unit.remove(0));
         match word.as_str()
         {
-            "quetta" | "Q" if units().contains(unit.as_str()) =>
+            "quetta" | "Q" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(30))
             }
-            "ronna" | "R" if units().contains(unit.as_str()) =>
+            "ronna" | "R" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(27))
             }
-            "yotta" | "Y" if units().contains(unit.as_str()) =>
+            "yotta" | "Y" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(24))
             }
-            "zetta" | "Z" if units().contains(unit.as_str()) =>
+            "zetta" | "Z" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(21))
             }
-            "exa" | "E" if units().contains(unit.as_str()) =>
+            "exa" | "E" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(18))
             }
-            "peta" | "P" if units().contains(unit.as_str()) =>
+            "peta" | "P" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(15))
             }
-            "tera" | "T" if units().contains(unit.as_str()) =>
+            "tera" | "T" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(12))
             }
-            "giga" | "G" if units().contains(unit.as_str()) =>
+            "giga" | "G" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(9))
             }
-            "mega" | "M" if units().contains(unit.as_str()) =>
+            "mega" | "M" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(6))
             }
-            "kilo" | "k" if units().contains(unit.as_str()) =>
+            "kilo" | "k" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(3))
             }
-            "hecto" | "h" if units().contains(unit.as_str()) =>
+            "hecto" | "h" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(2))
             }
-            "deca" | "da" if units().contains(unit.as_str()) =>
+            "deca" | "da" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(1))
             }
-            "deci" | "d" if units().contains(unit.as_str()) =>
+            "deci" | "d" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-1))
             }
-            "centi" | "c" if units().contains(unit.as_str()) =>
+            "centi" | "c" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-2))
             }
-            "milli" | "m" if units().contains(unit.as_str()) =>
+            "milli" | "m" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-3))
             }
-            "micro" | "μ" if units().contains(unit.as_str()) =>
+            "micro" | "μ" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-6))
             }
-            "nano" | "n" if units().contains(unit.as_str()) =>
+            "nano" | "n" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-9))
             }
-            "pico" | "p" if units().contains(unit.as_str()) =>
+            "pico" | "p" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-12))
             }
-            "femto" | "f" if units().contains(unit.as_str()) =>
+            "femto" | "f" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-15))
             }
-            "atto" | "a" if units().contains(unit.as_str()) =>
+            "atto" | "a" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-18))
             }
-            "zepto" | "z" if units().contains(unit.as_str()) =>
+            "zepto" | "z" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-21))
             }
-            "yocto" | "y" if units().contains(unit.as_str()) =>
+            "yocto" | "y" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-24))
             }
-            "ronto" | "r" if units().contains(unit.as_str()) =>
+            "ronto" | "r" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-27))
             }
-            "qecto" | "q" if units().contains(unit.as_str()) =>
+            "qecto" | "q" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 10).pow(-30))
             }
-            "kibi" | "Ki" if units().contains(unit.as_str()) =>
+            "kibi" | "Ki" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(10))
             }
-            "mebi" | "Mi" if units().contains(unit.as_str()) =>
+            "mebi" | "Mi" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(20))
             }
-            "gibi" | "Gi" if units().contains(unit.as_str()) =>
+            "gibi" | "Gi" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(30))
             }
-            "tebi" | "Ti" if units().contains(unit.as_str()) =>
+            "tebi" | "Ti" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(40))
             }
-            "pebi" | "Pi" if units().contains(unit.as_str()) =>
+            "pebi" | "Pi" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(50))
             }
-            "exbi" | "Ei" if units().contains(unit.as_str()) =>
+            "exbi" | "Ei" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(60))
             }
-            "zebi" | "Zi" if units().contains(unit.as_str()) =>
+            "zebi" | "Zi" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(70))
             }
-            "yobi" | "Yi" if units().contains(unit.as_str()) =>
+            "yobi" | "Yi" if is_unit(&mut unit) =>
             {
                 return (unit, Complex::with_val(prec, 2).pow(80))
             }

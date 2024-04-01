@@ -8,7 +8,7 @@ use crate::{
     print::get_output,
     Colors, Options,
 };
-use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 #[cfg(unix)]
 use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
 use std::{fs::File, io::Write};
@@ -169,41 +169,51 @@ pub fn read_single_char() -> char
     }
     {
         Event::Key(KeyEvent {
-            code, modifiers, ..
+            code,
+            modifiers,
+            kind,
+            ..
         }) =>
         {
-            match (code, modifiers)
+            if kind == KeyEventKind::Press
             {
-                (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
-                (KeyCode::Home, KeyModifiers::NONE)
-                | (KeyCode::Char('a'), KeyModifiers::CONTROL) => '\x10',
-                (KeyCode::End, KeyModifiers::NONE)
-                | (KeyCode::Char('e'), KeyModifiers::CONTROL) => '\x11',
-                (KeyCode::Left, KeyModifiers::CONTROL)
-                | (KeyCode::Char('b'), KeyModifiers::ALT) => '\x12',
-                (KeyCode::Right, KeyModifiers::CONTROL)
-                | (KeyCode::Char('f'), KeyModifiers::ALT) => '\x13',
-                (KeyCode::Char('l'), KeyModifiers::CONTROL) => '\x15',
-                (KeyCode::Char('t'), KeyModifiers::CONTROL) => '\x16',
-                (KeyCode::Char('u'), KeyModifiers::CONTROL) => '\x18',
-                (KeyCode::Char('k'), KeyModifiers::CONTROL) => '\x19',
-                (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x17',
-                (KeyCode::Char('d'), KeyModifiers::CONTROL) => '\x06',
-                (KeyCode::Char('p'), KeyModifiers::CONTROL) => '\x05',
-                (KeyCode::Char('n'), KeyModifiers::CONTROL) => '\x04',
-                (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
-                (KeyCode::Char(c), KeyModifiers::ALT) => digraph(Some(c)),
-                (KeyCode::Esc, _) => digraph(None),
-                (KeyCode::Enter, KeyModifiers::NONE) => '\n',
-                (KeyCode::Enter, KeyModifiers::ALT) => '\x09',
-                (KeyCode::Char('h'), KeyModifiers::CONTROL) => '\x03',
-                (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
-                (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
-                (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
-                (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
-                (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
-                (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
-                _ => '\0',
+                match (code, modifiers)
+                {
+                    (KeyCode::Char('c'), KeyModifiers::CONTROL) => '\x14',
+                    (KeyCode::Home, KeyModifiers::NONE)
+                    | (KeyCode::Char('a'), KeyModifiers::CONTROL) => '\x10',
+                    (KeyCode::End, KeyModifiers::NONE)
+                    | (KeyCode::Char('e'), KeyModifiers::CONTROL) => '\x11',
+                    (KeyCode::Left, KeyModifiers::CONTROL)
+                    | (KeyCode::Char('b'), KeyModifiers::ALT) => '\x12',
+                    (KeyCode::Right, KeyModifiers::CONTROL)
+                    | (KeyCode::Char('f'), KeyModifiers::ALT) => '\x13',
+                    (KeyCode::Char('l'), KeyModifiers::CONTROL) => '\x15',
+                    (KeyCode::Char('t'), KeyModifiers::CONTROL) => '\x16',
+                    (KeyCode::Char('u'), KeyModifiers::CONTROL) => '\x18',
+                    (KeyCode::Char('k'), KeyModifiers::CONTROL) => '\x19',
+                    (KeyCode::Char('y'), KeyModifiers::CONTROL) => '\x17',
+                    (KeyCode::Char('d'), KeyModifiers::CONTROL) => '\x06',
+                    (KeyCode::Char('p'), KeyModifiers::CONTROL) => '\x05',
+                    (KeyCode::Char('n'), KeyModifiers::CONTROL) => '\x04',
+                    (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
+                    (KeyCode::Char(c), KeyModifiers::ALT) => digraph(Some(c)),
+                    (KeyCode::Esc, _) => digraph(None),
+                    (KeyCode::Enter, KeyModifiers::NONE) => '\n',
+                    (KeyCode::Enter, KeyModifiers::ALT) => '\x09',
+                    (KeyCode::Char('h'), KeyModifiers::CONTROL) => '\x03',
+                    (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
+                    (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
+                    (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
+                    (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
+                    (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
+                    (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
+                    _ => '\0',
+                }
+            }
+            else
+            {
+                '\0'
             }
         }
         _ => '\0',

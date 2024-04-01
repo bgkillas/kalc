@@ -1402,7 +1402,7 @@ fn main()
                             }
                             if hit
                             {
-                                placement = 0;
+                                placement = 1;
                             }
                             if placement <= start
                             {
@@ -1452,7 +1452,7 @@ fn main()
                             }
                             if hit
                             {
-                                placement = input.len();
+                                placement = input.len() - 1;
                             }
                             if placement >= end
                             {

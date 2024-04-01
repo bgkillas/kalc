@@ -26,7 +26,7 @@ use aur or run
 
 download kalc.exe from https://github.com/bgkillas/kalc/releases/latest
 
-needs a modern terminal like 'windows terminal'
+needs a modern terminal like 'windows terminal' or alacritty
 
 for graphing install gnuplot via winget or [sourceforge](https://sourceforge.net/projects/gnuplot/files/gnuplot/)
 

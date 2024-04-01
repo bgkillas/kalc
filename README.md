@@ -4,13 +4,13 @@
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/5ef1fa92-ca42-480b-a2a5-71cc1e254c1e)
 
-history file is stored in ```~/.config/kalc.history``` or ```C:\\Users\\$USER\\AppData\\Roaming\\kalc.history```
+history file is stored in ```~/.config/kalc.history``` or ```C:\Users\$USER\AppData\Roaming\kalc.history```
 
-config file is stored in ```~/.config/kalc.config``` or ```C:\\Users\\$USER\\AppData\\Roaming\\kalc.config``` example in
+config file is stored in ```~/.config/kalc.config``` or ```C:\Users\$USER\AppData\Roaming\kalc.config``` example in
 repo
 
 you can set permanent variables and functions in the file ```~/.config/kalc.vars```
-or ```C:\\Users\\$USER\\AppData\\Roaming\\kalc.vars``` example in repo, also contains more
+or ```C:\Users\$USER\AppData\Roaming\kalc.vars``` example in repo, also contains more
 advanced example usage, suggested not to use entire kalc.vars example on lower end systems as it may cause lag
 
 config defaults listed in kalc.config
@@ -30,6 +30,9 @@ needs a modern terminal like 'windows terminal' or alacritty
 
 for graphing install gnuplot via winget or [sourceforge](https://sourceforge.net/projects/gnuplot/files/gnuplot/)
 
+kalc.exe may have to be next to gnuplot.exe for graphing, gnuplot.exe is located
+in ```C:\Program Files\gnuplot\bin\```
+
 # build instructions
 
 ### linux
@@ -45,7 +48,7 @@ cargo build --release
 
 ### windows
 
-have cargo and the toolchain stable-x86_64-pc-windows-gnu installed
+have cargo and the toolchain ```stable-x86_64-pc-windows-gnu``` installed
 
 as per [gmp-mpfr-sys](https://docs.rs/gmp-mpfr-sys/latest/gmp_mpfr_sys/index.html#building-on-windows)
 
@@ -76,7 +79,7 @@ cargo build --release
 ./target/release/kalc.exe
 ```
 
-then move kalc.exe wherever you want in /mnt
+then move kalc.exe wherever you want in /mnt (your C drive)
 
 ### macos
 
@@ -308,7 +311,7 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,
 numbers/minus sign convert to superscript acting as exponents
 ```
 
-# example usage
+# basic example usage
 
 ```
 kalc
@@ -351,6 +354,8 @@ piecewise({0±sqrt(2^2-x^2),(x<2)&&(x>-2)})
 exp(1i*x)
 ```
 
+### cli usage
+
 ```
 echo -ne 'sqrt(pi) \n pi^2'|kalc
 1.7724538509055159
@@ -363,6 +368,10 @@ kalc 'sqrt(pi)' 'pi^2'
 echo -ne 'sin(x)#cos(x)'|kalc // graphs sin(x) and cos(x) in 2D
 kalc 'sin(x)#cos(x)' // graphs sin(x) and cos(x) in 2D
 ```
+
+### more advanced usage
+
+see kalc.vars in repo
 
 # graphing
 

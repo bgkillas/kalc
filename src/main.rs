@@ -234,7 +234,7 @@ impl Default for Options
             slowcheck: 300,
             interactive: true,
             surface: false,
-            scale_graph: true,
+            scale_graph: false,
             stay_interactive: false,
             graph_cli: false,
             units: true,

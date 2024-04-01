@@ -2226,7 +2226,6 @@ pub fn do_math(
         {
             function[i] = match s.as_str()
             {
-                "×" => function[i - 1].mul(&function[i + 1])?,
                 "^" => function[i - 1].pow(&function[i + 1])?,
                 "^^" => function[i - 1].func(&function[i + 1], tetration)?,
                 "//" => function[i - 1].func(&function[i + 1], root)?,
@@ -2243,6 +2242,28 @@ pub fn do_math(
         else
         {
             i -= 1;
+        }
+    }
+    i = 1;
+    while i < function.len() - 1
+    {
+        if let Str(s) = &function[i]
+        {
+            function[i] = match s.as_str()
+            {
+                "×" => function[i - 1].mul(&function[i + 1])?,
+                _ =>
+                {
+                    i += 1;
+                    continue;
+                }
+            };
+            function.remove(i + 1);
+            function.remove(i - 1);
+        }
+        else
+        {
+            i += 1;
         }
     }
     i = 1;

@@ -26,7 +26,7 @@ use aur or run
 
 download kalc.exe from https://github.com/bgkillas/kalc/releases/latest
 
-needs a modern terminal like 'windows terminal' or alacritty
+needs a modern terminal like 'windows terminal' or alacritty, alacritty has better latency seemingly
 
 for graphing install gnuplot via winget or [sourceforge](https://sourceforge.net/projects/gnuplot/files/gnuplot/)
 
@@ -165,7 +165,8 @@ Order of Operations:
 - user defined functions
 - functions, !x, x!, x!!, |x|
 - % (modulus), .. (a..b creates lists of integers from a to b)
-- ^/** (exponentiation), // (a//b is a root b) ^^ (tetration), × internal multiplication for units and some negitive signs
+- ^/** (exponentiation), // (a//b is a root b) ^^ (tetration)
+- × internal multiplication for units and negitive signs
 - * (multiplication), / (division)
 - + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)
 - to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)

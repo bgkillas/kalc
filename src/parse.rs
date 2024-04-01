@@ -233,7 +233,7 @@ pub fn input_var(
                     && (chars[i] == '^' || (chars[i] == '/' && chars[i + 1] == '/'))
                 {
                     output.push(Num(Number::from(n1.clone(), None)));
-                    output.push(Str('*'.to_string()));
+                    output.push(Str('×'.to_string()));
                 }
                 else
                 {
@@ -604,6 +604,7 @@ pub fn input_var(
                     {
                         output.push(Str("(".to_string()));
                         output.push(Num(Number::from(n1.clone(), None)));
+                        output.push(Str("×".to_string()));
                         pwr.0 = true;
                         pwr.1 = *bracket;
                         pwr.2 += 1;
@@ -626,7 +627,7 @@ pub fn input_var(
                             && matches!(chars[i + 1], '(' | '{' | '[' | '|' | '-' | '!')
                         {
                             output.push(Num(Number::from(n1.clone(), None)));
-                            output.push(Str("*".to_string()));
+                            output.push(Str("×".to_string()));
                         }
                         else
                         {
@@ -786,7 +787,7 @@ pub fn input_var(
                                 output.push(Num(Number::from(-a.clone(), None)));
                                 output
                                     .insert(output.len() - 1, Num(Number::from(n1.clone(), None)));
-                                output.insert(output.len() - 1, Str("*".to_string()));
+                                output.insert(output.len() - 1, Str("×".to_string()));
                             }
                         }
                         if output.clone().last().unwrap().str_is(")")

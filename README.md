@@ -16,6 +16,7 @@ advanced example usage, suggested not to use entire kalc.vars example on lower e
 config defaults listed in kalc.config
 
 # install instructions
+
 ### linux
 
 use aur or run
@@ -28,6 +29,7 @@ download kalc.exe from https://github.com/bgkillas/kalc/releases/latest
 # build instructions
 
 ### linux
+
 dependencys are: rust>=1.73.0, diffutils, gcc, m4, make
 
 ```
@@ -59,14 +61,14 @@ mount C: /mnt
 if cargo is locally installed
 
 ```
-/mnt/Users/$USER/.cargo/bin/cargo --release build
+/mnt/Users/$USER/.cargo/bin/cargo build --release
 ./target/release/kalc.exe
 ```
 
-if cargo is universally installed
+if cargo is globally installed
 
 ```
-cargo --release build
+cargo build --release
 ./target/release/kalc.exe
 ```
 

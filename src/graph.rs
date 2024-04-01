@@ -5,10 +5,7 @@ use crate::{
     },
     load_vars::set_commands_or_vars,
     math::do_math,
-    misc::{
-        get_terminal_dimensions_pixel, place_funcvar, place_funcvarxy, place_var, place_varxy,
-        prompt,
-    },
+    misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     options::silent_commands,
     parse::input_var,
     Colors, Number, Options, Variable,
@@ -250,9 +247,13 @@ pub fn graph(
                 {
                     options.window_size
                 }
+                else if cfg!(unix)
+                {
+                    crate::misc::get_terminal_dimensions_pixel()
+                }
                 else
                 {
-                    get_terminal_dimensions_pixel()
+                    crate::misc::get_terminal_dimensions()
                 };
                 let rt = y as f64 / x as f64;
                 let w = rt * (options.xr.1 - options.xr.0) / (options.yr.1 - options.yr.0);

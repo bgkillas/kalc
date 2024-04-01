@@ -45,27 +45,15 @@ pub fn get_terminal_dimensions_pixel() -> (usize, usize)
     }
 }
 #[cfg(not(unix))]
-pub fn get_terminal_width() -> usize
+pub fn get_terminal_dimensions() -> (usize, usize)
 {
-    if let Some((width, _)) = dimensions()
+    if let Some((width, height)) = dimensions()
     {
-        width
+        (width, height)
     }
     else
     {
-        80
-    }
-}
-#[cfg(not(unix))]
-pub fn get_terminal_height() -> usize
-{
-    if let Some((_, height)) = dimensions()
-    {
-        height
-    }
-    else
-    {
-        80
+        (80, 80)
     }
 }
 pub fn digraph(char: Option<char>) -> char

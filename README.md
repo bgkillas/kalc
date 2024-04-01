@@ -114,8 +114,8 @@ FLAGS: --help (this message)
 --color toggles color output, toggled by default when running from arguments
 --comma toggles comma seperation
 --graph toggles graphing
---vars disables default variables and kalc.vars\n\x1b[G\
---default sets to default settings
+--vars disables default variables and kalc.vars
+--default sets to default settings and ignores kalc.vars
 --line toggles line graphing
 --rt toggles real time printing
 --polar toggles displaying polar vectors
@@ -226,17 +226,18 @@ Matrix functions:
 
 Constants:
 - c: speed of light, 299792458 m/s
-- gr: gravity, 9.80665 m/s^2
+- gravity: gravity, 9.80665 m/s^2
 - G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)
-- pl: planck's constant, 6.62607015E-34 J*s
-- ec: elementary charge/electron volt, 1.602176634E-19 C
-- me: electron mass, 9.1093837015E-31 kg
-- mp: proton mass, 1.67262192369E-27 kg
-- mn: neutron mass, 1.67492749804E-27 kg
-- k: coulomb's constant, 8.9875517923E9 N*m^2/C^2
+- planck: planck's constant, 6.62607015E-34 J*s
+- eV: electron volt, 1.602176634E-19 J
+- eC: elementary charge, 1.602176634E-19 C
+- eM: electron mass, 9.1093837015E-31 kg
+- pM: proton mass, 1.67262192369E-27 kg
+- nM: neutron mass, 1.67492749804E-27 kg
+- ke: coulomb's constant, 8.9875517923E9 N*m^2/C^2
 - Na: avogadro's number, 6.02214076E23 1/mol
 - R: gas constant, 8.31446261815324 J/(mol*K)
-- bo: boltzmann constant, 1.380649E-23 J/K
+- boltzmann: boltzmann constant, 1.380649E-23 J/K
 - phi/φ: golden ratio, 1.6180339887~
 - e: euler's number, 2.7182818284~
 - pi/π: pi, 3.1415926535~

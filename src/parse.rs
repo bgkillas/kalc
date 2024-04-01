@@ -948,15 +948,44 @@ pub fn input_var(
             countv += 1;
         }
         let wordv = word.clone();
-        if (word.ends_with('x') && word != "max" && !word.ends_with("lx") && !word.ends_with("lux"))
-            || (word.ends_with('y')
-                && word != "any"
-                && !word.ends_with("day")
-                && !word.ends_with("ly")
-                && !word.ends_with("henry")
-                && !word.ends_with("Gy")
-                && !word.ends_with("gray"))
-            || (word.ends_with('z') && !word.ends_with("Hz") && !word.ends_with("hertz"))
+        let var_overrule = if i + countv < chars.len()
+            && (matches!(chars[i + countv], '(' | '{' | '[')
+                || (!funcfailed && chars[i + countv] == '|'))
+        {
+            !vars.clone().iter().any(|a| {
+                if a.name.contains(&'(')
+                {
+                    a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
+                        .iter()
+                        .collect::<String>()
+                        == word
+                }
+                else
+                {
+                    a.name.iter().collect::<String>() == word
+                }
+            })
+        }
+        else
+        {
+            !vars
+                .clone()
+                .iter()
+                .any(|a| a.name.iter().collect::<String>() == word)
+        };
+        if var_overrule
+            && ((word.ends_with('x')
+                && word != "max"
+                && !word.ends_with("lx")
+                && !word.ends_with("lux"))
+                || (word.ends_with('y')
+                    && word != "any"
+                    && !word.ends_with("day")
+                    && !word.ends_with("ly")
+                    && !word.ends_with("henry")
+                    && !word.ends_with("Gy")
+                    && !word.ends_with("gray"))
+                || (word.ends_with('z') && !word.ends_with("Hz") && !word.ends_with("hertz")))
         {
             countv -= 1;
             word.pop();
@@ -1062,14 +1091,7 @@ pub fn input_var(
         let mut num = 0;
         let var_overrule = if i + countv < chars.len()
             && (matches!(chars[i + countv], '(' | '{' | '[')
-                || if !funcfailed
-                {
-                    chars[i + countv] == '|'
-                }
-                else
-                {
-                    false
-                })
+                || (!funcfailed && chars[i + countv] == '|'))
         {
             !vars.clone().iter().any(|a| {
                 if a.name.contains(&'(')
@@ -1087,10 +1109,12 @@ pub fn input_var(
         }
         else
         {
-            !vars
-                .clone()
-                .iter()
-                .any(|a| a.name.iter().collect::<String>() == word)
+            !vars.clone().iter().any(|a| {
+                a.name.iter().collect::<String>().starts_with(&word)
+                    && (a.name.len() == word.chars().count()
+                        || (i + (a.name.len() - 1) < chars.len()
+                            && chars[i..i + a.name.len()] == a.name))
+            })
         };
         if var_overrule
             && ((functions.contains(word.as_str())

@@ -25,7 +25,7 @@ pub fn arg_opts(
     options: &mut Options,
     colors: &mut Colors,
     args: &mut Vec<String>,
-) -> Result<(), &'static str>
+) -> Result<bool, &'static str>
 {
     args.remove(0);
     loop
@@ -57,6 +57,12 @@ pub fn arg_opts(
                     help();
                 }
                 process::exit(0)
+            }
+            "--default" =>
+            {
+                args.remove(0);
+                *options = Options::default();
+                return Ok(true);
             }
             "--" =>
             {
@@ -100,7 +106,7 @@ pub fn arg_opts(
             }
         }
     }
-    Ok(())
+    Ok(false)
 }
 pub fn file_opts(
     options: &mut Options,

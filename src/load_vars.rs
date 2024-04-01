@@ -66,15 +66,32 @@ pub fn get_file_vars(
         }
     }
 }
-fn ec(prec: (u32, u32)) -> Variable
+fn ev(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['e', 'c'],
+        name: vec!['e', 'V'],
         parsed: vec![Num(Number::from(
             Complex::parse("1.602176634e-19").unwrap().complete(prec),
             Some(Units {
-                second: 1.0,
+                meter: 2.0,
+                second: -2.0,
+                kilogram: 1.0,
+                ..Units::default()
+            }),
+        ))],
+        unparsed: String::new(),
+        funcvars: Vec::new(),
+    }
+}
+fn ec(prec: (u32, u32)) -> Variable
+{
+    Variable {
+        name: vec!['e', 'C'],
+        parsed: vec![Num(Number::from(
+            Complex::parse("1.602176634e-19").unwrap().complete(prec),
+            Some(Units {
                 ampere: 1.0,
+                second: 1.0,
                 ..Units::default()
             }),
         ))],
@@ -85,7 +102,7 @@ fn ec(prec: (u32, u32)) -> Variable
 fn kb(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['b', 'o'],
+        name: vec!['b', 'o', 'l', 't', 'z', 'm', 'a', 'n', 'n'],
         parsed: vec![Num(Number::from(
             Complex::parse("1.380649e-23").unwrap().complete(prec),
             Some(Units {
@@ -103,7 +120,7 @@ fn kb(prec: (u32, u32)) -> Variable
 fn me(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['m', 'e'],
+        name: vec!['e', 'M'],
         parsed: vec![Num(Number::from(
             Complex::parse("9.1093837015e-31").unwrap().complete(prec),
             Some(Units {
@@ -118,7 +135,7 @@ fn me(prec: (u32, u32)) -> Variable
 fn mn(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['m', 'n'],
+        name: vec!['n', 'M'],
         parsed: vec![Num(Number::from(
             Complex::parse("1.67492749804e-27").unwrap().complete(prec),
             Some(Units {
@@ -133,7 +150,7 @@ fn mn(prec: (u32, u32)) -> Variable
 fn mp(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['m', 'p'],
+        name: vec!['p', 'M'],
         parsed: vec![Num(Number::from(
             Complex::parse("1.67262192369e-27").unwrap().complete(prec),
             Some(Units {
@@ -164,7 +181,7 @@ fn c(prec: (u32, u32)) -> Variable
 fn g(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['g', 'r'],
+        name: vec!['g', 'r', 'a', 'v', 'i', 't', 'y'],
         parsed: vec![Num(Number::from(
             Complex::parse("9.80665").unwrap().complete(prec),
             Some(Units {
@@ -197,7 +214,7 @@ fn gc(prec: (u32, u32)) -> Variable
 fn h(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['p', 'l'],
+        name: vec!['p', 'l', 'a', 'n', 'c', 'k'],
         parsed: vec![Num(Number::from(
             Complex::parse("6.62607015e-34").unwrap().complete(prec),
             Some(Units {
@@ -229,7 +246,7 @@ fn na(prec: (u32, u32)) -> Variable
 fn k(prec: (u32, u32)) -> Variable
 {
     Variable {
-        name: vec!['k'],
+        name: vec!['k', 'e'],
         parsed: vec![Num(Number::from(
             Complex::parse("8.9875517923e9").unwrap().complete(prec),
             Some(Units {
@@ -271,29 +288,49 @@ fn get_preset_vars(
 )
 {
     let prec = (options.prec, options.prec);
-    if args.contains("ec") && !blacklist.contains(&"ec".to_string())
+    if args.contains("boltzmann") && !blacklist.contains(&"boltzmann".to_string())
     {
-        blacklist.push("ec".to_string());
-        vars.push(ec(prec));
-    }
-    if args.contains("bo") && !blacklist.contains(&"bo".to_string())
-    {
-        blacklist.push("bo".to_string());
+        blacklist.push("boltzmann".to_string());
         vars.push(kb(prec));
     }
-    if args.contains("me") && !blacklist.contains(&"me".to_string())
+    if args.contains("gravity") && !blacklist.contains(&"gravity".to_string())
     {
-        blacklist.push("me".to_string());
+        blacklist.push("gravity".to_string());
+        vars.push(g(prec));
+    }
+    if args.contains("planck") && !blacklist.contains(&"planck".to_string())
+    {
+        blacklist.push("planck".to_string());
+        vars.push(h(prec));
+    }
+    if args.contains("ke") && !blacklist.contains(&"ke".to_string())
+    {
+        blacklist.push("ke".to_string());
+        vars.push(k(prec));
+    }
+    if args.contains("eV") && !blacklist.contains(&"eV".to_string())
+    {
+        blacklist.push("eV".to_string());
+        vars.push(ev(prec));
+    }
+    if args.contains("eC") && !blacklist.contains(&"eC".to_string())
+    {
+        blacklist.push("eC".to_string());
+        vars.push(ec(prec));
+    }
+    if args.contains("eM") && !blacklist.contains(&"eM".to_string())
+    {
+        blacklist.push("eM".to_string());
         vars.push(me(prec));
     }
-    if args.contains("mn") && !blacklist.contains(&"mn".to_string())
+    if args.contains("nM") && !blacklist.contains(&"nM".to_string())
     {
-        blacklist.push("mn".to_string());
+        blacklist.push("nM".to_string());
         vars.push(mn(prec));
     }
-    if args.contains("mp") && !blacklist.contains(&"mp".to_string())
+    if args.contains("pM") && !blacklist.contains(&"pM".to_string())
     {
-        blacklist.push("mp".to_string());
+        blacklist.push("pM".to_string());
         vars.push(mp(prec));
     }
     if args.contains("Na") && !blacklist.contains(&"Na".to_string())
@@ -310,21 +347,6 @@ fn get_preset_vars(
     {
         blacklist.push("G".to_string());
         vars.push(gc(prec));
-    }
-    if args.contains("gr") && !blacklist.contains(&"gr".to_string())
-    {
-        blacklist.push("gr".to_string());
-        vars.push(g(prec));
-    }
-    if args.contains("pl") && !blacklist.contains(&"pl".to_string())
-    {
-        blacklist.push("pl".to_string());
-        vars.push(h(prec));
-    }
-    if args.contains('k') && !blacklist.contains(&"k".to_string())
-    {
-        blacklist.push("k".to_string());
-        vars.push(k(prec));
     }
     if args.contains('R') && !blacklist.contains(&"R".to_string())
     {
@@ -441,23 +463,39 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
         return;
     }
     let prec = (options.prec, options.prec);
-    if args.contains("ec")
-    {
-        vars.push(ec(prec));
-    }
-    if args.contains("bo")
+    if args.contains("boltzmann")
     {
         vars.push(kb(prec));
     }
-    if args.contains("me")
+    if args.contains("gravity")
+    {
+        vars.push(g(prec));
+    }
+    if args.contains("planck")
+    {
+        vars.push(h(prec));
+    }
+    if args.contains("ke")
+    {
+        vars.push(k(prec));
+    }
+    if args.contains("eV")
+    {
+        vars.push(ev(prec));
+    }
+    if args.contains("eC")
+    {
+        vars.push(ec(prec));
+    }
+    if args.contains("eM")
     {
         vars.push(me(prec));
     }
-    if args.contains("mn")
+    if args.contains("nM")
     {
         vars.push(mn(prec));
     }
-    if args.contains("mp")
+    if args.contains("pM")
     {
         vars.push(mp(prec));
     }
@@ -472,18 +510,6 @@ pub fn get_cli_vars(options: Options, args: String, vars: &mut Vec<Variable>)
     if args.contains('G')
     {
         vars.push(gc(prec));
-    }
-    if args.contains("gr")
-    {
-        vars.push(g(prec));
-    }
-    if args.contains("pl")
-    {
-        vars.push(h(prec));
-    }
-    if args.contains('k')
-    {
-        vars.push(k(prec));
     }
     if args.contains('R')
     {
@@ -593,6 +619,9 @@ pub fn get_vars(options: Options) -> Vec<Variable>
     let phi: Float = (1 + Float::with_val(options.prec, 5).sqrt()) / 2;
     let e = Float::with_val(options.prec, 1).exp();
     vec![
+        kb(prec),
+        g(prec),
+        h(prec),
         Variable {
             name: vec!['p', 'h', 'i'],
             parsed: vec![Num(Number::from(phi.clone().into(), None))],
@@ -606,10 +635,11 @@ pub fn get_vars(options: Options) -> Vec<Variable>
             funcvars: Vec::new(),
         },
         ec(prec),
-        kb(prec),
+        ev(prec),
         me(prec),
         mn(prec),
         mp(prec),
+        k(prec),
         na(prec),
         Variable {
             name: vec!['p', 'i'],
@@ -625,9 +655,6 @@ pub fn get_vars(options: Options) -> Vec<Variable>
             funcvars: Vec::new(),
         },
         gc(prec),
-        g(prec),
-        h(prec),
-        k(prec),
         r(prec),
         Variable {
             name: vec!['φ'],

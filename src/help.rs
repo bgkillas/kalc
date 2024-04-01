@@ -28,7 +28,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --comma toggles comma seperation\x1b[G\n\
 --graph toggles graphing\x1b[G\n\
 --vars disables default variables and kalc.vars\x1b[G\n\
---default sets to default settings\x1b[G\n\
+--default sets to default settings and ignores kalc.vars\x1b[G\n\
 --line toggles line graphing\x1b[G\n\
 --rt toggles real time printing\x1b[G\n\
 --polar toggles displaying polar vectors\x1b[G\n\
@@ -132,17 +132,18 @@ Matrix operations/functions:\x1b[G\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\x1b[G\n\n\
 Constants:\x1b[G\n\
 - c: speed of light, 299792458 m/s\x1b[G\n\
-- gr: gravity, 9.80665 m/s^2\x1b[G\n\
+- gravity: gravity, 9.80665 m/s^2\x1b[G\n\
 - G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)\x1b[G\n\
-- pl: planck's constant, 6.62607015E-34 J*s\x1b[G\n\
-- ec: elementary charge/electron volt, 1.602176634E-19 C\x1b[G\n\
-- me: electron mass, 9.1093837015E-31 kg\x1b[G\n\
-- mp: proton mass, 1.67262192369E-27 kg\x1b[G\n\
-- mn: neutron mass, 1.67492749804E-27 kg\x1b[G\n\
-- k: coulomb's constant, 8.9875517923E9 N*m^2/C^2\x1b[G\n\
+- planck: planck's constant, 6.62607015E-34 J*s\x1b[G\n\
+- eV: electron volt, 1.602176634E-19 J\x1b[G\n\
+- eC: elementary charge, 1.602176634E-19 C\x1b[G\n\
+- eM: electron mass, 9.1093837015E-31 kg\x1b[G\n\
+- pM: proton mass, 1.67262192369E-27 kg\x1b[G\n\
+- nM: neutron mass, 1.67492749804E-27 kg\x1b[G\n\
+- ke: coulomb's constant, 8.9875517923E9 N*m^2/C^2\x1b[G\n\
 - Na: avogadro's number, 6.02214076E23 1/mol\x1b[G\n\
 - R: gas constant, 8.31446261815324 J/(mol*K)\x1b[G\n\
-- bo: boltzmann constant, 1.380649E-23 J/K\x1b[G\n\
+- boltzmann: boltzmann constant, 1.380649E-23 J/K\x1b[G\n\
 - phi/φ: golden ratio, 1.6180339887~\x1b[G\n\
 - e: euler's number, 2.7182818284~\x1b[G\n\
 - pi/π: pi, 3.1415926535~\x1b[G\n\

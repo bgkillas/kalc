@@ -247,6 +247,7 @@ fn main()
     let mut colors = Colors::default();
     let mut options = Options::default();
     let mut args = args().collect::<Vec<String>>();
+    let mut default = false;
     {
         #[cfg(unix)]
         let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
@@ -260,10 +261,20 @@ fn main()
             println!("{}", s);
             std::process::exit(1);
         }
-        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args)
+        match arg_opts(&mut options, &mut colors, &mut args)
         {
-            println!("{}", s);
-            std::process::exit(1);
+            Ok(s) =>
+            {
+                if s
+                {
+                    default = true
+                }
+            }
+            Err(s) =>
+            {
+                println!("{}", s);
+                std::process::exit(1);
+            }
         }
     }
     if !stdin().is_terminal()
@@ -327,7 +338,7 @@ fn main()
         get_cli_vars(options, args.concat(), &mut vars)
     }
     {
-        if options.allow_vars
+        if options.allow_vars && !default
         {
             options.base = (10, 10);
             if let Ok(file) = File::open(file_path)

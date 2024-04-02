@@ -1962,11 +1962,13 @@ pub fn area(
     options: Options,
     var: String,
     mut start: Complex,
-    end: Complex,
+    end: Number,
     points: usize,
     combine: bool,
 ) -> Result<NumStr, &'static str>
 {
+    let units = end.units;
+    let end = end.number;
     let mut funcs = Vec::new();
     if combine && !func.is_empty() && func[0].str_is("{")
     {
@@ -2006,6 +2008,7 @@ pub fn area(
         &var,
         Num(Number::from(start.clone(), None)),
     )?;
+    let yunits = if let Num(ref a) = x0 { a.units } else { None };
     if !funcs.is_empty()
     {
         let mut nx0t = Complex::new(options.prec);
@@ -2170,7 +2173,14 @@ pub fn area(
                                 * (7 * (nx0[i].number.clone() + nx4[i].number.clone())
                                 + 12 * nx2[i].number.clone()
                                 + 32 * (nx1[i].number.clone() + nx3[i].number.clone()))
-                                / 45,None)
+                                / 45,
+                                        match (units, nx1[i].units)
+            {
+                (Some(a), Some(b)) => Some(a.mul(&b)),
+                (Some(a), None) | (None, Some(a)) => Some(a),
+                (None, None) => None,
+            }
+)
                         )
                     }
                     x0 = x4;
@@ -2193,7 +2203,15 @@ pub fn area(
     }
     if areavec.is_empty()
     {
-        Ok(Num(Number::from(area, None)))
+        Ok(Num(Number::from(
+            area,
+            match (units, yunits)
+            {
+                (Some(a), Some(b)) => Some(a.mul(&b)),
+                (Some(a), None) | (None, Some(a)) => Some(a),
+                (None, None) => None,
+            },
+        )))
     }
     else
     {
@@ -2206,7 +2224,7 @@ pub fn slope(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    point: Complex,
+    point: Number,
     combine: bool,
     nth: u32,
     side: LimSide,
@@ -2241,6 +2259,7 @@ pub fn slope(
             {
                 (Num(left), Num(right)) =>
                 {
+                    let units = left.units;
                     let left = left.number;
                     let right = right.number;
                     if (((left.real().is_infinite()
@@ -2262,7 +2281,7 @@ pub fn slope(
                         || (left.clone() - right.clone()).abs().real().clone().log2()
                             < options.prec as i32 / -16
                     {
-                        Ok(Num(Number::from((left + right) / 2, None)))
+                        Ok(Num(Number::from((left + right) / 2, units)))
                     }
                     else
                     {
@@ -2277,40 +2296,38 @@ pub fn slope(
                     let mut vec = Vec::with_capacity(left.len());
                     for (left, right) in left.iter().zip(right)
                     {
-                        vec.push(Number::from(
-                            {
-                                let left = left.number.clone();
-                                let right = right.number.clone();
-                                if (((left.real().is_infinite()
-                                    && right.real().is_infinite()
-                                    && (left.imag().clone() - right.imag().clone())
+                        vec.push({
+                            let units = left.units;
+                            let left = left.number.clone();
+                            let right = right.number.clone();
+                            if (((left.real().is_infinite()
+                                && right.real().is_infinite()
+                                && (left.imag().clone() - right.imag().clone())
+                                    .abs()
+                                    .clone()
+                                    .log2()
+                                    < options.prec as i32 / -16)
+                                || (left.imag().is_infinite()
+                                    && right.imag().is_infinite()
+                                    && (left.real().clone() - right.real().clone())
                                         .abs()
                                         .clone()
                                         .log2()
-                                        < options.prec as i32 / -16)
-                                    || (left.imag().is_infinite()
-                                        && right.imag().is_infinite()
-                                        && (left.real().clone() - right.real().clone())
-                                            .abs()
-                                            .clone()
-                                            .log2()
-                                            < options.prec as i32 / -16))
-                                    && left.real().is_sign_positive()
-                                        == right.real().is_sign_positive()
-                                    && left.imag().is_sign_positive()
-                                        == right.imag().is_sign_positive())
-                                    || (left.clone() - right.clone()).abs().real().clone().log2()
-                                        < options.prec as i32 / -16
-                                {
-                                    (left + right) / 2
-                                }
-                                else
-                                {
-                                    Complex::with_val(options.prec, Nan)
-                                }
-                            },
-                            None,
-                        ))
+                                        < options.prec as i32 / -16))
+                                && left.real().is_sign_positive()
+                                    == right.real().is_sign_positive()
+                                && left.imag().is_sign_positive()
+                                    == right.imag().is_sign_positive())
+                                || (left.clone() - right.clone()).abs().real().clone().log2()
+                                    < options.prec as i32 / -16
+                            {
+                                Number::from((left + right) / 2, units)
+                            }
+                            else
+                            {
+                                Number::from(Complex::with_val(options.prec, Nan), None)
+                            }
+                        })
                     }
                     Ok(Vector(vec))
                 }
@@ -2325,12 +2342,14 @@ pub fn slopesided(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    mut point: Complex,
+    point: Number,
     combine: bool,
     nth: u32,
     right: bool,
 ) -> Result<NumStr, &'static str>
 {
+    let units = point.units;
+    let mut point = point.number;
     if options.prec < 256
     {
         options.prec = 256;
@@ -2362,6 +2381,7 @@ pub fn slopesided(
     {
         Num(sum) =>
         {
+            let yunits = sum.units;
             let mut sum = sum.number;
             if nth % 2 == 1
             {
@@ -2404,7 +2424,13 @@ pub fn slopesided(
                         prec,
                         options.prec,
                     ),
-                    None,
+                    match (yunits, units)
+                    {
+                        (Some(a), Some(b)) => Some(a.div(&b)),
+                        (Some(a), None) => Some(a),
+                        (None, Some(b)) => Some(Units::default().div(&b)),
+                        (None, None) => None,
+                    },
                 )))
             }
             else
@@ -2415,12 +2441,19 @@ pub fn slopesided(
                         prec,
                         options.prec,
                     ),
-                    None,
+                    match (yunits, units)
+                    {
+                        (Some(a), Some(b)) => Some(a.div(&b)),
+                        (Some(a), None) => Some(a),
+                        (None, Some(b)) => Some(Units::default().div(&b)),
+                        (None, None) => None,
+                    },
                 )))
             }
         }
         Vector(mut sum) if !combine =>
         {
+            let yunits = sum[0].units;
             if nth % 2 == 1
             {
                 for n in sum.iter_mut()
@@ -2476,7 +2509,13 @@ pub fn slopesided(
                                     options.prec,
                                 )
                             },
-                            None,
+                            match (yunits, units)
+                            {
+                                (Some(a), Some(b)) => Some(a.div(&b)),
+                                (Some(a), None) => Some(a),
+                                (None, Some(b)) => Some(Units::default().div(&b)),
+                                (None, None) => None,
+                            },
                         )
                     })
                     .collect::<Vec<Number>>(),
@@ -2484,6 +2523,7 @@ pub fn slopesided(
         }
         Vector(mut sum) if sum.len() == 1 =>
         {
+            let yunits = sum[0].units;
             if nth % 2 == 1
             {
                 sum[0].number *= -1;
@@ -2525,7 +2565,13 @@ pub fn slopesided(
                         prec,
                         options.prec,
                     ),
-                    None,
+                    match (yunits, units)
+                    {
+                        (Some(a), Some(b)) => Some(a.div(&b)),
+                        (Some(a), None) => Some(a),
+                        (None, Some(b)) => Some(Units::default().div(&b)),
+                        (None, None) => None,
+                    },
                 )))
             }
             else
@@ -2536,12 +2582,19 @@ pub fn slopesided(
                         prec,
                         options.prec,
                     ),
-                    None,
+                    match (yunits, units)
+                    {
+                        (Some(a), Some(b)) => Some(a.div(&b)),
+                        (Some(a), None) => Some(a),
+                        (None, Some(b)) => Some(Units::default().div(&b)),
+                        (None, None) => None,
+                    },
                 )))
             }
         }
         Vector(mut sum) =>
         {
+            let yunits = sum[0].units;
             if nth % 2 == 1
             {
                 for n in sum.iter_mut()
@@ -2583,7 +2636,13 @@ pub fn slopesided(
                         prec,
                         options.prec,
                     ),
-                    None,
+                    match (yunits, units)
+                    {
+                        (Some(a), Some(b)) => Some(a.div(&b)),
+                        (Some(a), None) => Some(a),
+                        (None, Some(b)) => Some(Units::default().div(&b)),
+                        (None, None) => None,
+                    },
                 )))
             }
             else
@@ -2595,7 +2654,13 @@ pub fn slopesided(
                         .map(|n| {
                             Number::from(
                                 get_infinities(nf.clone() / n.number.clone(), prec, options.prec),
-                                None,
+                                match (yunits, units)
+                                {
+                                    (Some(a), Some(b)) => Some(a.div(&b)),
+                                    (Some(a), None) => Some(a),
+                                    (None, Some(b)) => Some(Units::default().div(&b)),
+                                    (None, None) => None,
+                                },
                             )
                         })
                         .collect::<Vec<Number>>(),
@@ -2708,6 +2773,7 @@ pub fn limit(
         {
             (Num(n1), Num(n2)) =>
             {
+                let units = n1.units;
                 let n1 = n1.number;
                 let n2 = n2.number;
                 if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
@@ -2829,7 +2895,7 @@ pub fn limit(
                             }
                             (false, false) => Complex::with_val(options.prec, Nan),
                         },
-                        None,
+                        units,
                     )))
                 }
                 else
@@ -2979,7 +3045,7 @@ pub fn limit(
                                 (false, false) => Complex::with_val(options.prec, Nan),
                             }
                         },
-                        None,
+                        units,
                     )))
                 }
             }
@@ -2989,6 +3055,7 @@ pub fn limit(
                 let mut vec = Vec::with_capacity(v1.len());
                 for (i, (n1, n2)) in v1.iter().zip(v2).enumerate()
                 {
+                    let units = n1.units;
                     let n1 = n1.number.clone();
                     let n2 = n2.number.clone();
                     vec.push(Number::from(
@@ -3268,7 +3335,7 @@ pub fn limit(
                                 }
                             }
                         },
-                        None,
+                        units,
                     ))
                 }
                 Ok(Vector(vec))
@@ -3297,6 +3364,7 @@ pub fn limit(
                 {
                     (Num(left), Num(right)) =>
                     {
+                        let units = left.units;
                         let left = left.number;
                         let right = right.number;
                         if (((left.real().is_infinite()
@@ -3318,7 +3386,7 @@ pub fn limit(
                             || (left.clone() - right.clone()).abs().real().clone().log2()
                                 < options.prec as i32 / -16
                         {
-                            Ok(Num(Number::from((left + right) / 2, None)))
+                            Ok(Num(Number::from((left + right) / 2, units)))
                         }
                         else
                         {
@@ -3333,9 +3401,10 @@ pub fn limit(
                         let mut vec = Vec::with_capacity(left.len());
                         for (left, right) in left.iter().zip(right)
                         {
+                            let units = left.units;
                             let left = &left.number;
                             let right = &right.number;
-                            vec.push(Number::from(
+                            vec.push(
                                 if (((left.real().is_infinite()
                                     && right.real().is_infinite()
                                     && (left.imag().clone() - right.imag().clone())
@@ -3357,14 +3426,13 @@ pub fn limit(
                                     || (left.clone() - right.clone()).abs().real().clone().log2()
                                         < options.prec as i32 / -16
                                 {
-                                    (left + right.clone()) / 2
+                                    Number::from((left + right.clone()) / 2, units)
                                 }
                                 else
                                 {
-                                    Complex::with_val(options.prec, Nan)
+                                    Number::from(Complex::with_val(options.prec, Nan), None)
                                 },
-                                None,
-                            ))
+                            )
                         }
                         Ok(Vector(vec))
                     }
@@ -3409,6 +3477,7 @@ fn limsided(
     {
         (Num(n1), Num(n2)) =>
         {
+            let units = n1.units;
             let n1 = n1.number;
             let n2 = n2.number;
             Ok(Num(Number::from(
@@ -3554,7 +3623,7 @@ fn limsided(
                         }
                     }
                 },
-                None,
+                units,
             )))
         }
         (Vector(n1), Vector(n2)) =>
@@ -3563,6 +3632,7 @@ fn limsided(
             let mut vec = Vec::with_capacity(n1.len());
             for (i, (n1, n2)) in n1.iter().zip(n2).enumerate()
             {
+                let units = n1.units;
                 let n1 = &n1.number;
                 let n2 = &n2.number;
                 vec.push(Number::from(
@@ -3712,7 +3782,7 @@ fn limsided(
                             }
                         }
                     },
-                    None,
+                    units,
                 ))
             }
             Ok(Vector(vec))

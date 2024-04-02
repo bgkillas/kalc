@@ -530,8 +530,7 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?
-                                .number,
+                                .num()?,
                                 if place.len() == 4
                                 {
                                     options.prec as usize / 4
@@ -568,8 +567,7 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?
-                                .number,
+                                .num()?,
                                 place.len() != 6,
                                 if place.len() >= 5
                                 {

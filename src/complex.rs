@@ -2006,7 +2006,7 @@ pub fn area(
         options,
         func_vars.clone(),
         &var,
-        Num(Number::from(start.clone(), None)),
+        Num(Number::from(start.clone(), units)),
     )?;
     let yunits = if let Num(ref a) = x0 { a.units } else { None };
     if !funcs.is_empty()
@@ -2019,7 +2019,7 @@ pub fn area(
                 options,
                 func_vars.clone(),
                 &var,
-                Num(Number::from(start.clone() + div.clone(), None)),
+                Num(Number::from(start.clone() + div.clone(), units)),
             )?
             .num()?
             .number
@@ -2028,14 +2028,14 @@ pub fn area(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(Number::from(start.clone(), None)),
+                    Num(Number::from(start.clone(), units)),
                 )?
                 .num()?
                 .number)
                 / div.clone())
             .pow(2);
         }
-        x0 = Num(Number::from(x0.num()?.number * nx0t.sqrt(), None));
+        x0 = Num(Number::from(x0.num()?.number * nx0t.sqrt(), units));
     }
     let h: Complex = delta.clone() / 4;
     for i in 0..points
@@ -2053,28 +2053,28 @@ pub fn area(
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone() - 3 * h.clone(), None)),
+            Num(Number::from(start.clone() - 3 * h.clone(), units)),
         )?;
         let x2 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone() - 2 * h.clone(), None)),
+            Num(Number::from(start.clone() - 2 * h.clone(), units)),
         )?;
         let x3 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone() - h.clone(), None)),
+            Num(Number::from(start.clone() - h.clone(), units)),
         )?;
         let x4 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(start.clone(), None)),
+            Num(Number::from(start.clone(), units)),
         )?;
         match (x0, x1, x2, x3, x4.clone())
         {
@@ -2095,13 +2095,13 @@ pub fn area(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num( Number::from(start.clone() - 3 * h.clone() + div.clone(),None)))?
+                            &var, Num( Number::from(start.clone() - 3 * h.clone() + div.clone(),units)))?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num( Number::from(start.clone() - 3 * h.clone(),None)))?
+                            &var, Num( Number::from(start.clone() - 3 * h.clone(),units)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2110,14 +2110,14 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num( Number::from(start.clone() - 2 * h.clone() + div.clone(),None)),
+                            Num( Number::from(start.clone() - 2 * h.clone() + div.clone(),units)),
                         )?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num( Number::from(start.clone() - 2 * h.clone(),None)))?
+                            &var, Num( Number::from(start.clone() - 2 * h.clone(),units)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2126,14 +2126,14 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num( Number::from(start.clone() - h.clone() + div.clone(), None)),
+                            Num( Number::from(start.clone() - h.clone() + div.clone(), units)),
                         )?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(Number::from(start.clone() - h.clone(), None)))?
+                            &var, Num(Number::from(start.clone() - h.clone(), units)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2142,14 +2142,14 @@ pub fn area(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from(start.clone() + div.clone(), None)),
+                            Num(Number::from(start.clone() + div.clone(), units)),
                         )?
                             .num()?.number
                             - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
-                            &var, Num(Number::from(start.clone(), None)))?
+                            &var, Num(Number::from(start.clone(), units)))?
                             .num()?.number)
                             / div.clone())
                             .pow(2);
@@ -2161,7 +2161,7 @@ pub fn area(
                         + 12 * (nx2.number * nx2t.sqrt())
                         + 32 * ((nx1.number * nx1t.sqrt()) + (nx3.number * nx3t.sqrt())))
                         / 45;
-                    x0 = Num(Number::from(x4, None));
+                    x0 = Num(Number::from(x4, units));
                 }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
             if areavec.is_empty() && !combine =>
@@ -2374,7 +2374,7 @@ pub fn slopesided(
         options,
         func_vars.clone(),
         &var,
-        Num(Number::from(point.clone(), None)),
+        Num(Number::from(point.clone(), units)),
     )?;
     let num = Integer::from(nth);
     match n
@@ -2397,7 +2397,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), units)),
                         )?
                         .num()?
                         .number;
@@ -2410,7 +2410,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), units)),
                         )?
                         .num()?
                         .number;
@@ -2469,7 +2469,7 @@ pub fn slopesided(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
+                    Num(Number::from(point.clone() + h.clone() * (nth - k), units)),
                 )?
                 .vec()?;
                 if k % 2 == 0
@@ -2538,7 +2538,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), units)),
                         )?
                         .num()?
                         .number;
@@ -2551,7 +2551,7 @@ pub fn slopesided(
                             options,
                             func_vars.clone(),
                             &var,
-                            Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
+                            Num(Number::from(point.clone() + h.clone() * (nth - k), units)),
                         )?
                         .num()?
                         .number;
@@ -2610,7 +2610,7 @@ pub fn slopesided(
                     options,
                     func_vars.clone(),
                     &var,
-                    Num(Number::from(point.clone() + h.clone() * (nth - k), None)),
+                    Num(Number::from(point.clone() + h.clone() * (nth - k), units)),
                 )?
                 .vec()?;
                 if k % 2 == 0

@@ -248,7 +248,7 @@ fn k(prec: (u32, u32)) -> Variable
     Variable {
         name: vec!['k', 'e'],
         parsed: vec![Num(Number::from(
-            Complex::parse("8.9875517923e9").unwrap().complete(prec),
+            Complex::parse("8987551792.3").unwrap().complete(prec),
             Some(Units {
                 second: -4.0,
                 meter: 3.0,

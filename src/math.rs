@@ -465,8 +465,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("length" | "arclength", Str(var))
-                            if place.len() == 4 || place.len() == 5 =>
+                        ("length" | "arclength", Str(var)) if place.len() == 4 =>
                         {
                             function[i] = Num(Number::from(
                                 length(
@@ -488,29 +487,14 @@ pub fn do_math(
                                     )?
                                     .num()?
                                     .number,
-                                    if place.len() == 5
-                                    {
-                                        do_math(
-                                            function[place[3] + 1..place[4]].to_vec(),
-                                            options,
-                                            func_vars.clone(),
-                                        )?
-                                        .num()?
-                                        .number
-                                        .real()
-                                        .to_f64() as usize
-                                    }
-                                    else
-                                    {
-                                        options.prec as usize / 4
-                                    },
+                                    options.prec as usize / 4,
                                 )?,
                                 None,
                             ));
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("∫" | "area" | "integrate", Str(var))
-                            if place.len() == 4 || place.len() == 5 || place.len() == 6 =>
+                            if place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = area(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -530,23 +514,8 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                if place.len() == 4
-                                {
-                                    options.prec as usize / 4
-                                }
-                                else
-                                {
-                                    do_math(
-                                        function[place[3] + 1..place[4]].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?
-                                    .num()?
-                                    .number
-                                    .real()
-                                    .to_f64() as usize
-                                },
-                                place.len() != 6,
+                                options.prec as usize / 4,
+                                place.len() != 5,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }

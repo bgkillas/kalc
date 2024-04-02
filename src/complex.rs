@@ -2224,7 +2224,7 @@ pub fn slope(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    point: Number,
+    mut point: Number,
     combine: bool,
     nth: u32,
     side: LimSide,
@@ -2236,14 +2236,15 @@ pub fn slope(
         LimSide::Right => slopesided(func, func_vars, options, var, point, combine, nth, true),
         LimSide::Both =>
         {
-            if options.prec < 512
+            if options.prec < 256
             {
-                options.prec = 512;
+                options.prec = 256;
             }
             else if options.prec > 1024
             {
                 options.prec = 1024;
             }
+            point.number.set_prec(options.prec);
             let left = slopesided(
                 func.clone(),
                 func_vars.clone(),

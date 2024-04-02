@@ -2727,10 +2727,12 @@ pub fn limit(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    mut point: Complex,
+    point: Number,
     side: LimSide,
 ) -> Result<NumStr, &'static str>
 {
+    let xunits = point.units;
+    let mut point = point.number;
     if options.prec < 256
     {
         options.prec = 256;
@@ -2760,14 +2762,14 @@ pub fn limit(
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(h1, None)),
+            Num(Number::from(h1, xunits)),
         )?;
         let n2 = do_math_with_var(
             func.clone(),
             options,
             func_vars.clone(),
             &var,
-            Num(Number::from(h2, None)),
+            Num(Number::from(h2, xunits)),
         )?;
         match (n1, n2)
         {
@@ -2778,7 +2780,7 @@ pub fn limit(
                 let n2 = n2.number;
                 if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
-                    Ok(Num(Number::from(n2, None)))
+                    Ok(Num(Number::from(n2, units)))
                 }
                 else if n1.real().is_sign_positive() != n2.real().is_sign_positive()
                     || n1.imag().is_sign_positive() != n2.imag().is_sign_positive()
@@ -2917,7 +2919,7 @@ pub fn limit(
                                 7 - Complex::with_val(options.prec, 2)
                                     .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                             },
-                            None,
+                            xunits,
                         )),
                     )?
                     .num()?
@@ -3200,7 +3202,7 @@ pub fn limit(
                                             7 - Complex::with_val(options.prec, 2)
                                                 .pow((options.prec / 2) as f64 + 13.0 / 0.7)
                                         },
-                                        None,
+                                        xunits,
                                     )),
                                 )?
                                 .vec()?;
@@ -3345,6 +3347,7 @@ pub fn limit(
     }
     else
     {
+        let point = Number::from(point, xunits);
         match side
         {
             LimSide::Left => limsided(func, func_vars, options, var, point, false),
@@ -3447,10 +3450,12 @@ fn limsided(
     func_vars: Vec<(String, Vec<NumStr>)>,
     options: Options,
     var: String,
-    point: Complex,
+    point: Number,
     right: bool,
 ) -> Result<NumStr, &'static str>
 {
+    let xunits = point.units;
+    let point = point.number;
     let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec / 4);
     let h2 = Complex::with_val(options.prec, 0.5).pow((options.prec / 3) as f64 + 7.0 / 0.94);
     let n1 = do_math_with_var(
@@ -3460,7 +3465,7 @@ fn limsided(
         &var,
         Num(Number::from(
             point.clone() + if right { h1 } else { -h1 },
-            None,
+            xunits,
         )),
     )?;
     let n2 = do_math_with_var(
@@ -3470,7 +3475,7 @@ fn limsided(
         &var,
         Num(Number::from(
             point.clone() + if right { h2 } else { -h2 },
-            None,
+            xunits,
         )),
     )?;
     match (n1, n2)
@@ -3496,7 +3501,7 @@ fn limsided(
                         &var,
                         Num(Number::from(
                             point.clone() + if right { h3 } else { -h3 },
-                            None,
+                            xunits,
                         )),
                     )?
                     .num()?
@@ -3652,7 +3657,7 @@ fn limsided(
                                 options,
                                 func_vars.clone(),
                                 &var,
-                                Num(Number::from(point.clone() - h3.clone(), None)),
+                                Num(Number::from(point.clone() - h3.clone(), xunits)),
                             )?
                             .vec()?;
                         }

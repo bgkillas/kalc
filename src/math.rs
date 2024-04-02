@@ -439,8 +439,7 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?
-                                .number,
+                                .num()?,
                                 if place.len() == 4
                                 {
                                     match (do_math(

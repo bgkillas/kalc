@@ -33,6 +33,16 @@ for graphing install gnuplot via winget or [sourceforge](https://sourceforge.net
 kalc.exe may have to be next to gnuplot.exe for graphing, gnuplot.exe is located
 in ```C:\Program Files\gnuplot\bin\```
 
+### macos
+
+install developer tools via ```xcode-select --install```
+
+```cargo install kalc```
+
+install gnuplot via ```brew install gnuplot```
+
+may need to run kalc from ```kalc 2> /dev/null``` for gnuplot not to output error messages
+
 # build instructions
 
 ### linux
@@ -83,7 +93,18 @@ then move kalc.exe wherever you want in /mnt (your C drive)
 
 ### macos
 
-unsupported due to inability to test, create an issue if you want macos to work
+as per [gmp-mpfr-sys](https://docs.rs/gmp-mpfr-sys/latest/gmp_mpfr_sys/index.html#building-on-macos)
+
+assure the path upto your build path contains no spaces
+
+install developer tools via ```xcode-select --install```
+
+```
+git clone https://github.com/bgkillas/kalc
+cd kalc
+cargo build --release
+./target/release/kalc
+```
 
 # usage
 

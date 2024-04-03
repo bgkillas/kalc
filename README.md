@@ -4,14 +4,14 @@
 
 ![image](https://github.com/bgkillas/kalc/assets/55570525/5ef1fa92-ca42-480b-a2a5-71cc1e254c1e)
 
-history file is stored in ```~/.config/kalc.history``` or ```C:\Users\$USER\AppData\Roaming\kalc.history```
+history file is stored in [config_dir](https://docs.rs/dirs/latest/dirs/fn.config_dir.html)/kalc/kalc.history
 
-config file is stored in ```~/.config/kalc.config``` or ```C:\Users\$USER\AppData\Roaming\kalc.config``` example in
+config file is stored in [config_dir](https://docs.rs/dirs/latest/dirs/fn.config_dir.html)/kalc/kalc.config example in
 repo
 
-you can set permanent variables and functions in the file ```~/.config/kalc.vars```
-or ```C:\Users\$USER\AppData\Roaming\kalc.vars``` example in repo, also contains more
-advanced example usage, suggested not to use entire kalc.vars example on lower end systems as it may cause lag
+you can set permanent variables and functions in the
+file [config_dir](https://docs.rs/dirs/latest/dirs/fn.config_dir.html)/kalc/kalc.vars example in repo, also contains
+more advanced example usage, suggested not to use entire kalc.vars example on lower end systems as it may cause lag
 
 config defaults listed in kalc.config
 

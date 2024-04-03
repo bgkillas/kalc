@@ -27,6 +27,7 @@ impl Units
             candela: self.candela + b.candela,
             angle: self.angle + b.angle,
             byte: self.byte + b.byte,
+            usd: self.usd + b.usd,
         }
     }
     pub fn div(&self, b: &Self) -> Self
@@ -41,6 +42,7 @@ impl Units
             candela: self.candela - b.candela,
             angle: self.angle - b.angle,
             byte: self.byte - b.byte,
+            usd: self.usd - b.usd,
         }
     }
     pub fn pow(&self, b: f64) -> Self
@@ -55,6 +57,7 @@ impl Units
             candela: self.candela * b,
             angle: self.angle * b,
             byte: self.byte * b,
+            usd: self.usd * b,
         }
     }
     pub fn root(&self, b: f64) -> Self
@@ -69,12 +72,13 @@ impl Units
             candela: self.candela / b,
             angle: self.angle / b,
             byte: self.byte / b,
+            usd: self.usd / b,
         }
     }
     pub fn to_string(&self, options: Options) -> String
     {
         format!(
-            "{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}",
             if self.meter != 0.0
             {
                 " m".to_owned()
@@ -224,7 +228,23 @@ impl Units
             else
             {
                 String::new()
+            },
+            if self.usd != 0.0
+            {
+                " USD".to_owned()
+                    + &if self.usd != 1.0
+                    {
+                        "^".to_owned() + &self.usd.to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
             }
+            else
+            {
+                String::new()
+            },
         )
     }
 }
@@ -242,6 +262,7 @@ impl Default for Units
             candela: 0.0,
             angle: 0.0,
             byte: 0.0,
+            usd: 0.0,
         }
     }
 }
@@ -504,6 +525,12 @@ pub fn units() -> HashSet<&'static str>
         "ly",
         "nit",
         "nt",
+        "usd",
+        "USD",
+        "$",
+        "¢",
+        "dollar",
+        "cent",
     ]
     .iter()
     .cloned()
@@ -522,6 +549,12 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         "mol" | "mole" => units.mole = 1.0,
         "cd" | "candela" => units.candela = 1.0,
         "byte" | "B" => units.byte = 1.0,
+        "usd" | "USD" | "$" | "dollar" => units.usd = 1.0,
+        "¢" | "cent" =>
+        {
+            num /= 100;
+            units.usd = 1.0
+        }
         "steradian" | "sr" =>
         {
             match options.angle

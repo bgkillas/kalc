@@ -20,6 +20,7 @@ fastrand = "2.0.2"
 rug = "1.24.1"
 gnuplot = "0.0.43"
 crossterm = "0.27.0"
+dirs = "5.0.1"
 
 [target.'cfg(not(unix))'.dependencies]
 term_size = "0.3.2"

@@ -33,7 +33,7 @@ use crossterm::{
 };
 use rug::Complex;
 use std::{
-    env::{args, var},
+    env::args,
     fs::{File, OpenOptions},
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
     thread::JoinHandle,
@@ -73,6 +73,7 @@ pub struct Units
     candela: f64,
     angle: f64,
     byte: f64,
+    usd: f64,
 }
 #[derive(Clone, PartialEq)]
 pub struct Number
@@ -248,15 +249,11 @@ fn main()
     let mut options = Options::default();
     let mut args = args().collect::<Vec<String>>();
     let mut default = false;
+    let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc";
+    std::fs::create_dir_all(dir.clone()).unwrap();
     {
-        #[cfg(unix)]
-        let file_path = &(var("HOME").unwrap() + "/.config/kalc.config");
-        #[cfg(not(unix))]
-        let file_path = &format!(
-            "C:\\Users\\{}\\AppData\\Roaming\\kalc.config",
-            var("USERNAME").unwrap()
-        );
-        if let Err(s) = file_opts(&mut options, &mut colors, file_path)
+        let file_path = dir.clone() + "/kalc.config";
+        if let Err(s) = file_opts(&mut options, &mut colors, &file_path)
         {
             println!("{}", s);
             std::process::exit(1);
@@ -316,13 +313,7 @@ fn main()
             arg.pop();
         }
     }
-    #[cfg(unix)]
-    let file_path = &(var("HOME").unwrap() + "/.config/kalc.vars");
-    #[cfg(not(unix))]
-    let file_path = &format!(
-        "C:\\Users\\{}\\AppData\\Roaming\\kalc.vars",
-        var("USERNAME").unwrap()
-    );
+    let file_path = dir.clone() + "/kalc.vars";
     let mut vars: Vec<Variable> = if options.allow_vars
         && (options.interactive || options.stay_interactive)
     {
@@ -458,13 +449,7 @@ fn main()
     options.base = base;
     let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive
     {
-        #[cfg(unix)]
-        let file_path = &(var("HOME").unwrap() + "/.config/kalc.history");
-        #[cfg(not(unix))]
-        let file_path = &format!(
-            "C:\\Users\\{}\\AppData\\Roaming\\kalc.history",
-            var("USERNAME").unwrap()
-        );
+        let file_path = &(dir.clone() + "/kalc.history");
         if File::open(file_path).is_err()
         {
             File::create(file_path).unwrap();

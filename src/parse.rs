@@ -2341,16 +2341,24 @@ pub fn input_var(
             {
                 "(" =>
                 {
-                    if output.len() > i + 1 && output[i + 1].str_is(")")
+                    if output.len() > i + 2 && output[i + 2].str_is(")")
                     {
-                        output.remove(i + 1);
+                        output.remove(i + 2);
                         output.remove(i);
-                        i = i.saturating_sub(1);
-                        count -= 1;
-                        continue;
                     }
-                    brackets.push((i, count as usize));
-                    count += 1
+                    else
+                    {
+                        if output.len() > i + 1 && output[i + 1].str_is(")")
+                        {
+                            output.remove(i + 1);
+                            output.remove(i);
+                            i = i.saturating_sub(1);
+                            count -= 1;
+                            continue;
+                        }
+                        brackets.push((i, count as usize));
+                        count += 1
+                    }
                 }
                 ")" =>
                 {
@@ -2417,6 +2425,62 @@ pub fn input_var(
                     {}
                 }
             }
+        }
+        i = 0;
+        while i < funcvars.len()
+        {
+            let v = funcvars[i].clone();
+            if (v.1.len() != 1
+                || (if let Str(s) = &v.1[0]
+                {
+                    matches!(s.as_str(), "rnd" | "epoch")
+                }
+                else
+                {
+                    false
+                }))
+                && !v.0.ends_with(')')
+            {
+                if let Ok(n) = do_math(v.1.clone(), options, funcvars[..i].to_vec())
+                {
+                    for f in output.iter_mut()
+                    {
+                        if let Str(s) = &f
+                        {
+                            if *s == v.0
+                            {
+                                *f = n.clone();
+                            }
+                        }
+                    }
+                    if i + 1 < funcvars.len()
+                    {
+                        for fv in funcvars[i + 1..].iter_mut()
+                        {
+                            for f in fv.1.iter_mut()
+                            {
+                                if let Str(s) = &f
+                                {
+                                    if *s == v.0
+                                    {
+                                        *f = n.clone();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    funcvars.remove(i);
+                    continue;
+                }
+            }
+            i += 1;
+        }
+    }
+    if let Some(Str(s)) = output.last()
+    {
+        if s == "*"
+        {
+            output.pop();
         }
     }
     Ok((output, funcvars, graph, false))

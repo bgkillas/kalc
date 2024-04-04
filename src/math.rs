@@ -32,23 +32,52 @@ pub fn do_math(
     {
         return Err(" ");
     }
-    for (i, v) in func_vars.clone().iter().enumerate()
+    let mut i = 0;
+    while i < func_vars.len()
     {
-        if (v.1.len() != 1 || v.1[0].str_is("rnd") || v.1[0].str_is("epoch")) && !v.0.ends_with(')')
+        let v = func_vars[i].clone();
+        if (v.1.len() != 1
+            || (if let Str(s) = &v.1[0]
+            {
+                matches!(s.as_str(), "rnd" | "epoch")
+            }
+            else
+            {
+                false
+            }))
+            && !v.0.ends_with(')')
         {
             if let Ok(n) = do_math(v.1.clone(), options, func_vars[..i].to_vec())
             {
-                func_vars[i] = (v.0.clone(), vec![n]);
+                for f in function.iter_mut()
+                {
+                    if let Str(s) = &f
+                    {
+                        if *s == v.0
+                        {
+                            *f = n.clone();
+                        }
+                    }
+                }
+                if i + 1 < func_vars.len()
+                {
+                    for fv in func_vars[i + 1..].iter_mut()
+                    {
+                        for f in fv.1.iter_mut()
+                        {
+                            if let Str(s) = &f
+                            {
+                                if *s == v.0
+                                {
+                                    *f = n.clone();
+                                }
+                            }
+                        }
+                    }
+                }
+                func_vars.remove(i);
+                continue;
             }
-        }
-    }
-    let mut i = 0;
-    while i < function.len()
-    {
-        if let Str(s) = &function[i]
-        {
-            let s = s.clone();
-            recursively_get_var(&mut function, &func_vars, &i, &s);
         }
         i += 1;
     }
@@ -2567,28 +2596,6 @@ pub fn do_math(
     else
     {
         Err("failed to compute")
-    }
-}
-fn recursively_get_var(
-    function: &mut Vec<NumStr>,
-    func_vars: &Vec<(String, Vec<NumStr>)>,
-    i: &usize,
-    s: &String,
-)
-{
-    for v in func_vars
-    {
-        if *s == v.0 && !v.0.ends_with(')') && v.1.len() == 1
-        {
-            if let Str(s) = &v.1[0]
-            {
-                recursively_get_var(function, func_vars, i, s)
-            }
-            else
-            {
-                function[*i] = v.1[0].clone();
-            }
-        }
     }
 }
 fn do_functions(

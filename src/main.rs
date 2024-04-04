@@ -52,7 +52,6 @@ use std::{
 //add option to print units in simplified form instead of just in base si units, like N instead of kg m s^-2
 //compress units if makes sense, ie m s^-2 -> m/s^2
 //allow changing the default unit for all, like angles
-//maybe add exchange rates via something like https://www.floatrates.com/daily/usd.json
 #[derive(Clone)]
 pub struct Variable
 {

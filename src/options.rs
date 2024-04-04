@@ -243,8 +243,8 @@ pub fn set_commands(
         }
         "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "depth" | "surface"
         | "flat" | "rt" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed" | "comma"
-        | "graph" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks"
-        | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
+        | "graph" | "graphing" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base"
+        | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
         | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
         | "vzr" | "2d" | "3d" =>
         {
@@ -319,7 +319,7 @@ pub fn set_commands(
                 "multi" => options.multi = args[0] != 0.0,
                 "tabbed" => options.tabbed = args[0] != 0.0,
                 "comma" => options.comma = args[0] != 0.0,
-                "graph" => options.graph = args[0] != 0.0,
+                "graph" | "graphing" => options.graph = args[0] != 0.0,
                 "units" => options.units = args[0] != 0.0,
                 "scalegraph" => options.scale_graph = args[0] != 0.0,
                 "debug" => options.debug = args[0] != 0.0,
@@ -738,7 +738,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "multi" => options.multi = !options.multi,
         "tabbed" => options.tabbed = !options.tabbed,
         "comma" => options.comma = !options.comma,
-        "graph" => options.graph = !options.graph,
+        "graph" | "graphing" => options.graph = !options.graph,
         "units" => options.graph = !options.units,
         "vars" => options.allow_vars = !options.allow_vars,
         "graphcli" => options.graph_cli = !options.graph_cli,
@@ -872,7 +872,7 @@ pub fn commands(
             stdout.flush().unwrap();
             options.comma = !options.comma;
         }
-        "graph" =>
+        "graph" | "graphing" =>
         {
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
@@ -1068,7 +1068,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "multi" => format!("{}", options.multi),
         "tabbed" => format!("{}", options.tabbed),
         "comma" => format!("{}", options.comma),
-        "graph" => format!("{}", options.graph),
+        "graph" | "graphing" => format!("{}", options.graph),
         "units" => format!("{}", options.units),
         "graphcli" => format!("{}", options.graph_cli),
         "point" => format!("{}", options.point_style),

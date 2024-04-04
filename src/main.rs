@@ -1609,7 +1609,7 @@ fn main()
             }
             stdout.flush().unwrap()
         }
-        else if options.graph && graphable
+        else if graphable
         {
             let inputs: Vec<String> = input
                 .iter()

@@ -2341,7 +2341,7 @@ pub fn input_var(
             {
                 "(" =>
                 {
-                    if output.len() > i + 2 && output[i + 2].str_is(")")
+                    if output.len() > i + 2 && output[i + 2].str_is(")") && !print
                     {
                         output.remove(i + 2);
                         output.remove(i);
@@ -2483,7 +2483,7 @@ pub fn input_var(
             output.pop();
         }
     }
-    Ok((output, funcvars, graph, false))
+    Ok((output, funcvars, graph && options.graph, false))
 }
 fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
 {

@@ -79,6 +79,10 @@ pub fn graph(
                     }
                 }
             }
+            if !options.graph
+            {
+                return;
+            }
             options.prec = options.graph_prec;
             func.push(
                 match input_var(

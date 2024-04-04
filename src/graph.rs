@@ -87,7 +87,7 @@ pub fn graph(
             func.push(
                 match input_var(
                     &input[i],
-                    vars.clone(),
+                    &vars,
                     &mut Vec::new(),
                     &mut 0,
                     options,

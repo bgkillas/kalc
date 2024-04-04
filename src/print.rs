@@ -167,7 +167,7 @@ pub fn print_concurrent(
             .iter()
             .collect::<String>()
             .replace('_', &format!("({})", last.iter().collect::<String>())),
-        vars.to_vec(),
+        &vars,
         &mut Vec::new(),
         &mut 0,
         options,
@@ -252,7 +252,7 @@ pub fn print_concurrent(
                 }
                 let out = match input_var(
                     &input,
-                    vars.to_vec(),
+                    &vars,
                     &mut func_vars,
                     &mut 0,
                     options,

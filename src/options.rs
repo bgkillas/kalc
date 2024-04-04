@@ -262,7 +262,7 @@ pub fn set_commands(
                         {
                             let parsed = input_var(
                                 &r[last..i],
-                                vars.to_vec(),
+                                vars,
                                 &mut Vec::new(),
                                 &mut 0,
                                 *options,
@@ -286,7 +286,7 @@ pub fn set_commands(
                 }
                 let parsed = input_var(
                     &r[last..],
-                    vars.to_vec(),
+                    vars,
                     &mut Vec::new(),
                     &mut 0,
                     *options,
@@ -429,7 +429,7 @@ pub fn set_commands(
                                                 let s = split.next().unwrap().to_string();
                                                 let parsed = input_var(
                                                     split.next().unwrap(),
-                                                    vars.to_vec(),
+                                                    vars,
                                                     &mut func_vars,
                                                     &mut 0,
                                                     *options,
@@ -446,7 +446,7 @@ pub fn set_commands(
                                     }
                                     let mut parsed = match input_var(
                                         &unparsed,
-                                        vars.to_vec(),
+                                        vars,
                                         &mut func_vars,
                                         &mut 0,
                                         *options,
@@ -1138,7 +1138,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         {
             let input = input_var(
                 &l.replace('_', &format!("({})", last)),
-                vars.to_vec(),
+                vars,
                 &mut Vec::new(),
                 &mut 0,
                 options,

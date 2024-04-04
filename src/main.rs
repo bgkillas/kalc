@@ -496,7 +496,7 @@ fn main()
             {
                 (output, funcvar, graphable, varcheck) = match input_var(
                     &input.iter().map(convert).collect::<String>(),
-                    vars.clone(),
+                    &vars,
                     &mut Vec::new(),
                     &mut 0,
                     options,

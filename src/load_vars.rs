@@ -747,7 +747,7 @@ pub fn add_var(
                     let s = split.next().unwrap().to_string();
                     let parsed = input_var(
                         split.next().unwrap(),
-                        tempvars.clone(),
+                        &tempvars,
                         &mut func_vars,
                         &mut 0,
                         options,
@@ -764,7 +764,7 @@ pub fn add_var(
         }
         let mut parsed = input_var(
             r,
-            tempvars.clone(),
+            &tempvars,
             &mut func_vars,
             &mut 0,
             options,
@@ -865,7 +865,7 @@ pub fn add_var(
                                 let s = split.next().unwrap().to_string();
                                 let parsed = input_var(
                                     split.next().unwrap(),
-                                    vars.clone(),
+                                    vars,
                                     &mut func_vars,
                                     &mut 0,
                                     options,
@@ -882,7 +882,7 @@ pub fn add_var(
                     }
                     let mut parsed = input_var(
                         &unparsed,
-                        vars.clone(),
+                        vars,
                         &mut func_vars,
                         &mut 0,
                         options,

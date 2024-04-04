@@ -231,7 +231,6 @@ pub fn print_concurrent(
                 {
                     func.drain(0..=func.iter().position(|c| c == &'(').unwrap());
                     func.pop();
-                    func.pop();
                     for i in func.split(|c| c == &',')
                     {
                         func_vars.push((-1, i.iter().collect()));

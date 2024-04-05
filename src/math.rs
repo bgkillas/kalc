@@ -1,10 +1,10 @@
 use crate::{
     complex::{
         add, and, area, atan, between, binomial, cofactor, cubic, determinant, digamma, div,
-        eigenvalues, eq, erf, erfc, euleriannumbers, gamma, gcd, ge, gt, identity, incomplete_beta,
-        incomplete_gamma, inverse, lambertw, length, limit, minors, mvec, ne, nth_prime, or,
-        quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub, subfactorial, sum,
-        tetration, to, to_polar, trace, transpose, variance,
+        eigenvalues, eq, erf, erfc, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
+        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
+        mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub,
+        subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -3206,10 +3206,10 @@ fn functions(
                     if let Some(b) = d
                     {
                         let mut sum = Complex::new(options.prec);
-                        let n = a.real().to_f64() as usize;
+                        let n = a.real().to_f64() as u32;
                         for k in 0..=n
                         {
-                            sum += b.clone().pow(k) * euleriannumbers(a.clone(), k)
+                            sum += b.clone().pow(k) * euleriannumbersint(n, k)
                         }
                         sum
                     }
@@ -3222,7 +3222,7 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        euleriannumbers(a, b.real().to_f64() as usize)
+                        euleriannumbers(a, b.real().to_f64() as u32)
                     }
                     else
                     {

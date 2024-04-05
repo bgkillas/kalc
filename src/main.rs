@@ -860,6 +860,10 @@ fn main()
                     '\x7F' =>
                     {
                         //delete
+                        if placement == input.len()
+                        {
+                            continue;
+                        }
                         if placement - start == 0 && start != 0
                         {
                             start -= 1;

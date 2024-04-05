@@ -1844,14 +1844,39 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
         incomplete_gamma_recursion(s, z, 0, p)
     }
 }
-pub fn euleriannumbers(n: Complex, k: usize) -> Complex
+pub fn euleriannumbers(n: Complex, k: u32) -> Complex
 {
-    let mut sum = Complex::new(n.prec());
+    if n.real().clone().fract() != 0
+    {
+        let mut sum = Complex::new(n.prec());
+        for i in 0..=k
+        {
+            let ic = Complex::with_val(n.prec(), i);
+            let num: Complex = k - ic.clone() + 1;
+            let num = binomial(n.clone() + 1, ic) * num.pow(n.clone());
+            if i % 2 == 0
+            {
+                sum += num
+            }
+            else
+            {
+                sum -= num
+            }
+        }
+        sum
+    }
+    else
+    {
+        Complex::with_val(n.prec(), euleriannumbersint(n.real().to_f64() as u32, k))
+    }
+}
+pub fn euleriannumbersint(n: u32, k: u32) -> Integer
+{
+    let mut sum = Integer::new();
     for i in 0..=k
     {
-        let ic = Complex::with_val(n.prec(), i);
-        let num: Complex = k - ic.clone() + 1;
-        let num = binomial(n.clone() + 1, ic) * num.pow(n.clone());
+        let num: Integer = k - Integer::from(i) + 1;
+        let num = Integer::from(n + 1).binomial(i) * num.pow(n);
         if i % 2 == 0
         {
             sum += num

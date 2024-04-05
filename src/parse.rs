@@ -2375,6 +2375,18 @@ pub fn input_var(
                         brackets.pop();
                     }
                 }
+                _ if print && functions.contains(s.as_str()) && i + 1 < output.len() =>
+                {
+                    if let Str(s) = &output[i + 1]
+                    {
+                        if !matches!(s.as_str(), "(" | "{" | "[" | "|")
+                        {
+                            output.insert(i + 2, Str(")".to_string()));
+                            output.insert(i + 1, Str("(".to_string()));
+                            i += 1;
+                        }
+                    }
+                }
                 _ =>
                 {}
             }

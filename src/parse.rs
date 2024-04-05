@@ -39,6 +39,7 @@ pub fn input_var(
         return Err(" ");
     }
     let mut funcfailed = false;
+    let mut absfailed = false;
     let mut scientific = false;
     let mut abs = Vec::new();
     let mut neg = false;
@@ -726,7 +727,7 @@ pub fn input_var(
                 }
                 '|' =>
                 {
-                    if !abs.is_empty() && abs[0] == *bracket && can_abs(&output, &vars)
+                    if !abs.is_empty() && abs[0] == *bracket && can_abs(&output, vars)
                     {
                         *bracket -= 1;
                         if (i + 2 >= chars.len() || chars[i + 1] != '^') && pwr.1 == *bracket
@@ -1409,10 +1410,11 @@ pub fn input_var(
                                 }
                             }
                         }
-                        if abstest
+                        if abstest && !absfailed
                         {
                             i = j;
                             funcfailed = true;
+                            absfailed = true;
                             continue 'main;
                         }
                         if i == j
@@ -2272,6 +2274,7 @@ pub fn input_var(
                 }
             }
             funcfailed = false;
+            absfailed = false;
             i += 1;
         }
     }

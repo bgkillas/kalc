@@ -1378,6 +1378,7 @@ pub fn input_var(
                         && i + vn.len() < chars.len()
                         && chars[i..i + vn.len()] == *vn
                         && matches!(chars[i + vn.len()], '(' | '{' | '[' | '|')
+                        && !absfailed
                     {
                         let abs = chars[i + vn.len()] == '|';
                         let countj = vn.len();
@@ -1410,7 +1411,7 @@ pub fn input_var(
                                 }
                             }
                         }
-                        if abstest && !absfailed
+                        if abstest
                         {
                             i = j;
                             funcfailed = true;

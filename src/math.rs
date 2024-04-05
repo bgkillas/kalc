@@ -4,7 +4,7 @@ use crate::{
         eigenvalues, eq, erf, erfc, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
         identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
         mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub,
-        subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
+        subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -3425,7 +3425,8 @@ fn functions(
                         let mut sum = Complex::new(options.prec);
                         for n in 0..=options.prec / 8
                         {
-                            sum += 1 / (n + b.clone()).pow(a.clone())
+                            let c: Complex = (n + b.clone()).pow(2);
+                            sum += 1 / c.pow(a.clone() / 2)
                         }
                         sum
                     }
@@ -3433,15 +3434,19 @@ fn functions(
                     {
                         a.real().clone().zeta().into()
                     }
+                    else if a.real().is_sign_negative()
+                    {
+                        let pi = Complex::with_val(options.prec, Pi);
+                        let n: Complex = pi.clone() * a.clone() / 2;
+                        zeta(1 - a.clone())
+                            * gamma(1 - a.clone())
+                            * n.sin()
+                            * 2.pow(a.clone())
+                            * pi.pow(a - 1)
+                    }
                     else
                     {
-                        let b = Complex::with_val(options.prec, 1);
-                        let mut sum = Complex::new(options.prec);
-                        for n in 0..=options.prec / 8
-                        {
-                            sum += 1 / (n + b.clone()).pow(a.clone())
-                        }
-                        sum
+                        zeta(a)
                     }
                 }
                 "prime" =>

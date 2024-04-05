@@ -1844,6 +1844,17 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
         incomplete_gamma_recursion(s, z, 0, p)
     }
 }
+pub fn zeta(s: Complex) -> Complex
+{
+    let b = Complex::with_val(s.prec(), 1);
+    let mut sum = Complex::new(s.prec());
+    for n in 0..=s.prec().0 / 8
+    {
+        let c: Complex = (n + b.clone()).pow(2);
+        sum += 1 / c.pow(s.clone() / 2)
+    }
+    sum
+}
 pub fn euleriannumbers(n: Complex, k: u32) -> Complex
 {
     if n.real().clone().fract() != 0

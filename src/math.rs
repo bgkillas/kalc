@@ -1,10 +1,10 @@
 use crate::{
     complex::{
-        add, and, area, atan, between, cofactor, cubic, determinant, digamma, div, eigenvalues, eq,
-        erf, erfc, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse,
-        lambertw, length, limit, minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root,
-        shl, shr, slog, slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace,
-        transpose, variance,
+        add, and, area, atan, between, binomial, cofactor, cubic, determinant, digamma, div,
+        eigenvalues, eq, erf, erfc, euleriannumbers, gamma, gcd, ge, gt, identity, incomplete_beta,
+        incomplete_gamma, inverse, lambertw, length, limit, minors, mvec, ne, nth_prime, or,
+        quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub, subfactorial, sum,
+        tetration, to, to_polar, trace, transpose, variance,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -238,6 +238,8 @@ pub fn do_math(
                                     | "link"
                                     | "C"
                                     | "P"
+                                    | "Ap"
+                                    | "An"
                                     | "gamma"
                                     | "ph"
                                     | "pochhammer"
@@ -3199,6 +3201,34 @@ fn functions(
                         return Err("no args");
                     }
                 }
+                "Ap" =>
+                {
+                    if let Some(b) = d
+                    {
+                        let mut sum = Complex::new(options.prec);
+                        let n = a.real().to_f64() as usize;
+                        for k in 0..=n
+                        {
+                            sum += b.clone().pow(k) * euleriannumbers(a.clone(), k)
+                        }
+                        sum
+                    }
+                    else
+                    {
+                        return Err("no args");
+                    }
+                }
+                "An" =>
+                {
+                    if let Some(b) = d
+                    {
+                        euleriannumbers(a, b.real().to_f64() as usize)
+                    }
+                    else
+                    {
+                        return Err("no args");
+                    }
+                }
                 "P" =>
                 {
                     if let Some(b) = d
@@ -3243,25 +3273,7 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        if a.imag().is_zero()
-                            && b.imag().is_zero()
-                            && a.real().clone().fract().is_zero()
-                            && b.real().clone().fract().is_zero()
-                            && a.real().is_finite()
-                        {
-                            Complex::with_val(
-                                options.prec,
-                                a.real()
-                                    .to_integer()
-                                    .unwrap()
-                                    .binomial(b.real().to_f64() as u32),
-                            )
-                        }
-                        else
-                        {
-                            gamma(a.clone() + 1)
-                                / (gamma(b.clone() + 1) * gamma(a.clone() - b.clone() + 1))
-                        }
+                        binomial(a, b)
                     }
                     else
                     {

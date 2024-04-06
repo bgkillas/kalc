@@ -236,7 +236,7 @@ Vector functions:
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
 Matrix functions:
-- eigenvalues
+- eigenvalues, eigenvectors
 - trace/tr, determinant/det, inverse/inv
 - transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row), flatten, sum, prod

@@ -1,10 +1,10 @@
 use crate::{
     complex::{
         add, and, area, atan, between, binomial, cofactor, cubic, determinant, digamma, div,
-        eigenvalues, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
-        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
-        mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub,
-        subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
+        eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma,
+        gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit,
+        minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope,
+        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -814,9 +814,9 @@ pub fn do_math(
                             "flatten" => Vector(a.into_iter().flatten().collect::<Vec<Number>>()),
                             "cofactor" | "cofactors" | "cof" => Matrix(cofactor(&a)?),
                             "minor" | "minors" => Matrix(minors(&a)?),
-                            "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)?),
+                            "adjugate" | "adj" => Matrix(transpose(&cofactor(&a)?)),
                             "inverse" | "inv" => Matrix(inverse(&a)?),
-                            "transpose" | "trans" => Matrix(transpose(&a)?),
+                            "transpose" | "trans" => Matrix(transpose(&a)),
                             "len" =>
                             {
                                 Num(Number::from(Complex::with_val(options.prec, a.len()), None))
@@ -1036,7 +1036,8 @@ pub fn do_math(
                                     None,
                                 ))
                             }
-                            "eigenvalues" => Vector(eigenvalues(&a)?),
+                            "eigenvalues" => eigenvalues(&a)?,
+                            "eigenvectors" => eigenvectors(&a)?,
                             "tolist" =>
                             {
                                 let mut vec = Vec::new();

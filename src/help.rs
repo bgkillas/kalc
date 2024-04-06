@@ -122,7 +122,7 @@ Vector operations/functions:\x1b[G\n\
 - convert to cartesian: car{{vec}} outputs (x, y, z)\x1b[G\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\n\n\
 Matrix operations/functions:\x1b[G\n\
-- eigenvalues\x1b[G\n\
+- eigenvalues, eigenvectors\x1b[G\n\
 - trace/tr, determinant/det, inverse/inv\x1b[G\n\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\x1b[G\n\
 - part({{mat}},col,row), flatten, sum, prod\x1b[G\n\

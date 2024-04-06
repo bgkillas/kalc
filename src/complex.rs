@@ -103,24 +103,32 @@ impl NumStr
                     .map(|a| a.iter().map(|a| m(a, b)).collect())
                     .collect(),
             ),
-            (Vector(b), Matrix(a)) if a[0].len() == b.len() => Vector(
+            (Matrix(a), Vector(b)) if a[0].len() == b.len() => Vector(
                 a.iter()
                     .map(|a| {
-                        a.iter()
-                            .zip(b.iter())
-                            .map(|(a, b)| m(a, b))
-                            .fold(Complex::new(b[0].number.prec()), |sum, val| {
-                                sum + val.number
-                            })
+                        let mut iter = a.iter().zip(b.iter()).map(|(a, b)| m(a, b));
+                        let mut sum = iter.next().unwrap();
+                        for val in iter
+                        {
+                            sum = add(&sum, &val)
+                        }
+                        sum
                     })
-                    .map(|a| Number::from(a, None))
                     .collect::<Vec<Number>>(),
             ),
-            (Matrix(a), Vector(b)) if a[0].len() == b.len() => Matrix(
-                a.iter()
-                    .zip(b.iter())
-                    .map(|(a, b)| a.iter().map(|a| m(a, b)).collect::<Vec<Number>>())
-                    .collect::<Vec<Vec<Number>>>(),
+            (Vector(a), Matrix(b)) if a.len() == b.len() => Vector(
+                transpose(b)
+                    .iter()
+                    .map(|b| {
+                        let mut iter = b.iter().zip(a.iter()).map(|(a, b)| m(a, b));
+                        let mut sum = iter.next().unwrap();
+                        for val in iter
+                        {
+                            sum = add(&sum, &val)
+                        }
+                        sum
+                    })
+                    .collect::<Vec<Number>>(),
             ),
             (Matrix(a), Matrix(b))
                 if a.len() == b[0].len() && (0..b.len()).all(|j| b.len() == b[j].len()) =>
@@ -129,17 +137,16 @@ impl NumStr
                     a.iter()
                         .map(|a| {
                             transpose(b)
-                                .unwrap()
                                 .iter()
                                 .map(|b| {
-                                    a.iter()
-                                        .zip(b.iter())
-                                        .map(|(a, b)| m(a, b))
-                                        .fold(Complex::new(a[0].number.prec()), |sum, val| {
-                                            sum + val.number
-                                        })
+                                    let mut iter = a.iter().zip(b.iter()).map(|(a, b)| m(a, b));
+                                    let mut sum = iter.next().unwrap();
+                                    for val in iter
+                                    {
+                                        sum = add(&sum, &val)
+                                    }
+                                    sum
                                 })
-                                .map(|a| Number::from(a, None))
                                 .collect::<Vec<Number>>()
                         })
                         .collect(),
@@ -1201,24 +1208,17 @@ pub fn determinant(a: &[Vec<Number>]) -> Result<Number, &'static str>
         Err("not square")
     }
 }
-pub fn transpose(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
+pub fn transpose(a: &[Vec<Number>]) -> Vec<Vec<Number>>
 {
-    if (0..a.len()).all(|j| a.len() == a[j].len())
+    let mut b = vec![vec![Number::from(Complex::new(1), None); a.len()]; a[0].len()];
+    for (i, l) in a.iter().enumerate()
     {
-        let mut b = vec![vec![Number::from(Complex::new(1), None); a.len()]; a[0].len()];
-        for (i, l) in a.iter().enumerate()
+        for (j, n) in l.iter().enumerate()
         {
-            for (j, n) in l.iter().enumerate()
-            {
-                b[j][i].clone_from(n);
-            }
+            b[j][i].clone_from(n);
         }
-        Ok(b)
     }
-    else
-    {
-        Err("not square")
-    }
+    b
 }
 pub fn minors(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
@@ -1272,7 +1272,7 @@ pub fn inverse(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
     if (0..a.len()).all(|j| a.len() == a[j].len())
     {
-        Matrix(transpose(&cofactor(a)?)?)
+        Matrix(transpose(&cofactor(a)?))
             .func(&Num(determinant(a)?), div)?
             .mat()
     }
@@ -1337,21 +1337,21 @@ pub fn sort(mut a: Vec<Number>) -> Vec<Number>
     });
     a
 }
-pub fn eigenvalues(a: &[Vec<Number>]) -> Result<Vec<Number>, &'static str>
+pub fn eigenvalues(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
 {
     if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
     {
         match a.len()
         {
-            1 => Ok(a[0].clone()),
-            2 => Ok(quadratic(
+            1 => Ok(Num(a[0][0].clone())),
+            2 => Ok(Vector(quadratic(
                 Complex::with_val(a[0][0].number.prec(), 1),
                 -a[0][0].number.clone() - a[1][1].number.clone(),
                 a[0][0].number.clone() * a[1][1].number.clone()
                     - a[0][1].number.clone() * a[1][0].number.clone(),
                 false,
-            )),
-            3 => Ok(cubic(
+            ))),
+            3 => Ok(Vector(cubic(
                 Complex::with_val(a[0][0].number.prec(), -1),
                 a[2][2].number.clone() + a[1][1].number.clone() + a[0][0].number.clone(),
                 -a[0][0].number.clone() * a[1][1].number.clone()
@@ -1367,6 +1367,34 @@ pub fn eigenvalues(a: &[Vec<Number>]) -> Result<Vec<Number>, &'static str>
                     + a[0][2].number.clone() * a[1][0].number.clone() * a[2][1].number.clone()
                     - a[0][2].number.clone() * a[1][1].number.clone() * a[2][0].number.clone(),
                 false,
+            ))),
+            _ => Err("unsupported"),
+        }
+    }
+    else
+    {
+        Err("not square")
+    }
+}
+pub fn eigenvectors(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
+{
+    if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
+    {
+        let one = Number::from(Complex::with_val(a[0][0].number.prec(), 1), None);
+        match a.len()
+        {
+            1 => Ok(Num(one)),
+            2 => Ok(Matrix(
+                quadratic(
+                    -a[1][0].number.clone(),
+                    a[0][0].number.clone() - a[1][1].number.clone(),
+                    a[0][1].number.clone(),
+                    false,
+                )
+                .iter()
+                .rev()
+                .map(|n| vec![n.clone(), one.clone()])
+                .collect::<Vec<Vec<Number>>>(),
             )),
             _ => Err("unsupported"),
         }
@@ -2337,14 +2365,7 @@ pub fn slope(
         LimSide::Right => slopesided(func, func_vars, options, var, point, combine, nth, true),
         LimSide::Both =>
         {
-            if options.prec < 256
-            {
-                options.prec = 256;
-            }
-            else if options.prec > 1024
-            {
-                options.prec = 1024;
-            }
+            options.prec = options.prec.clamp(256, 1024);
             point.number.set_prec(options.prec);
             let left = slopesided(
                 func.clone(),
@@ -2452,14 +2473,7 @@ pub fn slopesided(
 {
     let units = point.units;
     let mut point = point.number;
-    if options.prec < 256
-    {
-        options.prec = 256;
-    }
-    else if options.prec > 1024
-    {
-        options.prec = 1024;
-    }
+    options.prec = options.prec.clamp(256, 1024);
     let prec = options.prec / 8;
     options.prec = nth.max(1) * options.prec / 2;
     point.set_prec(options.prec);

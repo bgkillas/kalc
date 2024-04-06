@@ -134,6 +134,7 @@ pub fn functions() -> HashSet<&'static str>
         "all",
         "any",
         "eigenvalues",
+        "eigenvectors",
         "mat",
         "prime",
         "add",
@@ -206,6 +207,8 @@ pub fn functions() -> HashSet<&'static str>
         "Ap",
         "eta",
         "η",
+        "iden",
+        "identity",
     ]
     .iter()
     .cloned()

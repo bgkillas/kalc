@@ -8,8 +8,7 @@ use crate::{
     load_vars::set_commands_or_vars,
     math::do_math,
     misc::{
-        clear, clearln, get_terminal_dimensions, handle_err, no_col, parsed_to_string, prompt,
-        to_output,
+        clear, get_terminal_dimensions, handle_err, no_col, parsed_to_string, prompt, to_output,
     },
     options::{equal_to, silent_commands},
     parse::input_var,
@@ -157,7 +156,7 @@ pub fn print_concurrent(
             }
             else
             {
-                clearln(unmodified_input, start, end, options, &colors);
+                clear(unmodified_input, start, end, options, &colors);
                 (0, false, false, false)
             };
         }

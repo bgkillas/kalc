@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Num, Str},
+        NumStr::{Matrix, Num, Str, Vector},
     },
     functions::functions,
     math::do_math,
@@ -162,7 +162,10 @@ pub fn input_var(
             }
             match output.last()
             {
-                Some(Num(_)) => output.push(Str('^'.to_string())),
+                Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) =>
+                {
+                    output.push(Str('^'.to_string()))
+                }
                 Some(Str(s))
                     if matches!(s.as_str(), "x" | "y" | "rnd" | "epoch")
                         || sumrec.iter().any(|v| &v.1 == s) =>
@@ -2293,7 +2296,7 @@ pub fn input_var(
         }
         match output.last()
         {
-            Some(Num(_)) => output.push(Str('^'.to_string())),
+            Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Str('^'.to_string())),
             Some(Str(s))
                 if matches!(s.as_str(), "x" | "y" | "rnd" | "epoch")
                     || sumrec.iter().any(|v| &v.1 == s) =>
@@ -2514,7 +2517,7 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
         {
             output.push(Str('*'.to_string()))
         }
-        Some(Num(_)) => output.push(Str('*'.to_string())),
+        Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Str('*'.to_string())),
         _ =>
         {}
     }

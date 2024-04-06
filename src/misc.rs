@@ -637,6 +637,7 @@ pub fn parsed_to_string(
                 let mut num;
                 for i in n
                 {
+                    str.push('{');
                     for j in i
                     {
                         num = get_output(*options, colors, &j);
@@ -648,6 +649,7 @@ pub fn parsed_to_string(
                             if options.color { "\x1b[0m" } else { "" }
                         ));
                     }
+                    str.insert(str.len() - 1, '}');
                 }
                 str.pop();
                 format!("{{{}}}", str)

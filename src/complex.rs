@@ -1372,19 +1372,19 @@ pub fn eigenvalues(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
         Err("not square")
     }
 }
-pub fn eigenvectors(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
+pub fn eigenvectors(mat: &[Vec<Number>]) -> Result<NumStr, &'static str>
 {
-    if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
+    if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
     {
-        let one = Number::from(Complex::with_val(a[0][0].number.prec(), 1), None);
-        match a.len()
+        let one = Number::from(Complex::with_val(mat[0][0].number.prec(), 1), None);
+        match mat.len()
         {
             1 => Ok(Num(one)),
             2 => Ok(Matrix(
                 quadratic(
-                    -a[1][0].number.clone(),
-                    a[0][0].number.clone() - a[1][1].number.clone(),
-                    a[0][1].number.clone(),
+                    -mat[1][0].number.clone(),
+                    mat[0][0].number.clone() - mat[1][1].number.clone(),
+                    mat[0][1].number.clone(),
                     false,
                 )
                 .iter()
@@ -1392,6 +1392,38 @@ pub fn eigenvectors(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
                 .map(|n| vec![n.clone(), one.clone()])
                 .collect::<Vec<Vec<Number>>>(),
             )),
+            3 =>
+            {
+                let l = eigenvalues(mat).unwrap().vec().unwrap();
+                //x=(b(l-i)+hc)/(h(l-a)+bg)
+                //y=(dx+f)/(l-e)
+                let a = mat[0][0].number.clone();
+                let b = mat[0][1].number.clone();
+                let c = mat[0][2].number.clone();
+                let d = mat[1][0].number.clone();
+                let e = mat[1][1].number.clone();
+                let f = mat[1][2].number.clone();
+                let g = mat[2][0].number.clone();
+                let h = mat[2][1].number.clone();
+                let i = mat[2][2].number.clone();
+                Ok(Matrix(
+                    l.iter()
+                        .map(|l| {
+                            let l = l.number.clone();
+                            let x = (b.clone() * (l.clone() - i.clone()) + h.clone() * c.clone())
+                                / (h.clone() * (l.clone() - a.clone()) + b.clone() * g.clone());
+                            vec![
+                                Number::from(x.clone(), None),
+                                Number::from(
+                                    (d.clone() * x + f.clone()) / (l.clone() - e.clone()),
+                                    None,
+                                ),
+                                one.clone(),
+                            ]
+                        })
+                        .collect::<Vec<Vec<Number>>>(),
+                ))
+            }
             _ => Err("unsupported"),
         }
     }

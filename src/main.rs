@@ -102,6 +102,7 @@ pub struct Colors
     im5col: String,
     im6col: String,
     label: (String, String, String),
+    graphtofile: String,
 }
 impl Default for Colors
 {
@@ -134,6 +135,7 @@ impl Default for Colors
             im5col: "#00aaaa".to_string(),
             im6col: "#aaaa00".to_string(),
             label: ("x".to_string(), "y".to_string(), "z".to_string()),
+            graphtofile: String::new(),
         }
     }
 }

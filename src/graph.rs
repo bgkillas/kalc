@@ -1047,7 +1047,16 @@ pub fn graph(
         {
             println!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis());
         }
-        if fg.show().is_err()
+        if !colors.graphtofile.is_empty()
+        {
+            fg.save_to_png(
+                colors.graphtofile,
+                options.window_size.0 as u32,
+                options.window_size.1 as u32,
+            )
+            .unwrap()
+        }
+        else if fg.show().is_err()
         {
             print!("\x1b[G\x1b[Kno gnuplot\x1b[G\n{}", prompt(options, &colors));
             stdout().flush().unwrap();

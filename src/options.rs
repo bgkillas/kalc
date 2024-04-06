@@ -185,6 +185,7 @@ pub fn set_commands(
                 _ => return Err("bad notation type"),
             }
         }
+        "saveto" => colors.graphtofile = r.to_string(),
         "re1col" => colors.re1col = r.to_string(),
         "im1col" => colors.im1col = r.to_string(),
         "re2col" => colors.re2col = r.to_string(),
@@ -1122,6 +1123,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "scic" => colors.sci.to_string(),
         "unitsc" => colors.units.to_string(),
         "bracketc" => bracketcol(&colors.brackets),
+        "saveto" => colors.graphtofile.to_string(),
         "re1col" => formatcol(&colors.re1col),
         "re2col" => formatcol(&colors.re2col),
         "re3col" => formatcol(&colors.re3col),

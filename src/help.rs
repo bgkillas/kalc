@@ -42,7 +42,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\x1b[G\n\
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph\x1b[G\n\
 --flat display 2d complex graphs like they are on the 2d number line\x1b[G\n\
---scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\n\
+--scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\
+--saveto=[file] saves the graph as a png to the given file\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
 - \"colors=\" to see color settings\x1b[G\n\
 - \"exit\" to exit the program\x1b[G\n\

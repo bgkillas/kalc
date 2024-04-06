@@ -1844,20 +1844,42 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
         incomplete_gamma_recursion(s, z, 0, p)
     }
 }
-pub fn zeta(s: Complex) -> Complex
+pub fn eta(s: Complex) -> Complex
 {
-    let b = Complex::with_val(s.prec(), 1);
-    let mut sum = Complex::new(s.prec());
-    for n in 0..=s.prec().0 / 8
+    let prec = s.prec().0;
+    let mut sum = Complex::new(prec);
+    let two = Complex::with_val(prec, 2);
+    for n in 0..=prec / 16
     {
-        let c: Complex = (n + b.clone()).pow(2);
-        sum += 1 / c.pow(s.clone() / 2)
+        let mut innersum = Complex::new(prec);
+        let nb = Integer::from(n);
+        for k in 0..=n
+        {
+            let num = nb.clone().binomial(k) * Complex::with_val(prec, 1 + k).pow(-s.clone());
+            if k % 2 == 0
+            {
+                innersum += num;
+            }
+            else
+            {
+                innersum -= num;
+            }
+        }
+        sum += innersum / two.clone().pow(n + 1)
     }
     sum
 }
-pub fn euleriannumbers(n: Complex, k: u32) -> Complex
+pub fn zeta(s: Complex) -> Complex
 {
-    if n.real().clone().fract() != 0
+    eta(s.clone()) / (1 - Complex::with_val(s.prec(), 2).pow(1 - s))
+}
+pub fn euleriannumbers(n: Complex, k: i32) -> Complex
+{
+    if k < 0
+    {
+        Complex::with_val(n.prec(), Nan)
+    }
+    else if n.real().clone().fract() != 0 && n.imag().is_zero() && n.real().is_sign_positive()
     {
         let mut sum = Complex::new(n.prec());
         for i in 0..=k
@@ -1878,7 +1900,10 @@ pub fn euleriannumbers(n: Complex, k: u32) -> Complex
     }
     else
     {
-        Complex::with_val(n.prec(), euleriannumbersint(n.real().to_f64() as u32, k))
+        Complex::with_val(
+            n.prec(),
+            euleriannumbersint(n.real().to_f64() as u32, k as u32),
+        )
     }
 }
 pub fn euleriannumbersint(n: u32, k: u32) -> Integer

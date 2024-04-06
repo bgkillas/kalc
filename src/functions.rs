@@ -204,6 +204,8 @@ pub fn functions() -> HashSet<&'static str>
         "units",
         "An",
         "Ap",
+        "eta",
+        "η",
     ]
     .iter()
     .cloned()

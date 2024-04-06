@@ -1,7 +1,7 @@
 use crate::{
     complex::{
         add, and, area, atan, between, binomial, cofactor, cubic, determinant, digamma, div,
-        eigenvalues, eq, erf, erfc, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
+        eigenvalues, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
         identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
         mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope, sort, sub,
         subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
@@ -205,7 +205,6 @@ pub fn do_math(
                                 "next"
                                     | "log"
                                     | "exp"
-                                    | "zeta"
                                     | "ζ"
                                     | "polygamma"
                                     | "digamma"
@@ -3205,13 +3204,20 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        let mut sum = Complex::new(options.prec);
-                        let n = a.real().to_f64() as u32;
-                        for k in 0..=n
+                        if a.real().is_sign_negative()
                         {
-                            sum += b.clone().pow(k) * euleriannumbersint(n, k)
+                            Complex::with_val(options.prec, Nan)
                         }
-                        sum
+                        else
+                        {
+                            let mut sum = Complex::new(options.prec);
+                            let n = a.real().to_f64() as u32;
+                            for k in 0..=n
+                            {
+                                sum += b.clone().pow(k) * euleriannumbersint(n, k)
+                            }
+                            sum
+                        }
                     }
                     else
                     {
@@ -3222,7 +3228,7 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        euleriannumbers(a, b.real().to_f64() as u32)
+                        euleriannumbers(a, b.real().to_f64() as i32)
                     }
                     else
                     {
@@ -3418,31 +3424,12 @@ fn functions(
                         digamma(a, 0)
                     }
                 }
+                "eta" | "η" => eta(a),
                 "zeta" | "ζ" =>
                 {
-                    if let Some(b) = d
-                    {
-                        let mut sum = Complex::new(options.prec);
-                        for n in 0..=options.prec / 8
-                        {
-                            let c: Complex = (n + b.clone()).pow(2);
-                            sum += 1 / c.pow(a.clone() / 2)
-                        }
-                        sum
-                    }
-                    else if a.imag().is_zero()
+                    if a.imag().is_zero()
                     {
                         a.real().clone().zeta().into()
-                    }
-                    else if a.real().is_sign_negative()
-                    {
-                        let pi = Complex::with_val(options.prec, Pi);
-                        let n: Complex = pi.clone() * a.clone() / 2;
-                        zeta(1 - a.clone())
-                            * gamma(1 - a.clone())
-                            * n.sin()
-                            * 2.pow(a.clone())
-                            * pi.pow(a - 1)
                     }
                     else
                     {

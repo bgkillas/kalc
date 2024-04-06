@@ -130,7 +130,7 @@ Matrix operations/functions:\x1b[G\n\
 - len, wid\x1b[G\n\
 - max, min, mean, mode\x1b[G\n\
 - iden(n) produces an n dimension identity matrix\x1b[G\n\
-- rotate(theta) produces a rotational matrix\x1b[G\n\
+- rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix\x1b[G\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\x1b[G\n\n\
 Constants:\x1b[G\n\
 - c: speed of light, 299792458 m/s\x1b[G\n\

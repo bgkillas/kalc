@@ -130,28 +130,24 @@ impl NumStr
                     })
                     .collect::<Vec<Number>>(),
             ),
-            (Matrix(a), Matrix(b))
-                if a.len() == b[0].len() && (0..b.len()).all(|j| b.len() == b[j].len()) =>
-            {
-                Matrix(
-                    a.iter()
-                        .map(|a| {
-                            transpose(b)
-                                .iter()
-                                .map(|b| {
-                                    let mut iter = a.iter().zip(b.iter()).map(|(a, b)| m(a, b));
-                                    let mut sum = iter.next().unwrap();
-                                    for val in iter
-                                    {
-                                        sum = add(&sum, &val)
-                                    }
-                                    sum
-                                })
-                                .collect::<Vec<Number>>()
-                        })
-                        .collect(),
-                )
-            }
+            (Matrix(a), Matrix(b)) if a[0].len() == b.len() => Matrix(
+                a.iter()
+                    .map(|a| {
+                        transpose(b)
+                            .iter()
+                            .map(|b| {
+                                let mut iter = a.iter().zip(b.iter()).map(|(a, b)| m(a, b));
+                                let mut sum = iter.next().unwrap();
+                                for val in iter
+                                {
+                                    sum = add(&sum, &val)
+                                }
+                                sum
+                            })
+                            .collect::<Vec<Number>>()
+                    })
+                    .collect(),
+            ),
             _ => return Err("mul err"),
         })
     }

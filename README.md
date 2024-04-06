@@ -244,7 +244,7 @@ Matrix functions:
 - len, wid
 - max, min, mean, mode
 - iden(n) produces an n dimension identity matrix
-- rotate(theta) produces a rotational matrix
+- rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}} 
 
 Constants:

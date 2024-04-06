@@ -209,6 +209,7 @@ pub fn do_math(
                                     | "polygamma"
                                     | "digamma"
                                     | "ψ"
+                                    | "rotate"
                                     | "multinomial"
                                     | "gcd"
                                     | "gcf"
@@ -2102,17 +2103,62 @@ pub fn do_math(
                             )),
                             "rotate" =>
                             {
-                                let a = arg.num()?.number / to_deg.clone();
-                                Matrix(vec![
-                                    vec![
-                                        Number::from(a.clone().cos(), None),
-                                        Number::from(-a.clone().sin(), None),
-                                    ],
-                                    vec![
-                                        Number::from(a.clone().sin(), None),
-                                        Number::from(a.cos(), None),
-                                    ],
-                                ])
+                                if i + 2 < function.len()
+                                {
+                                    let (sina, cosa) = (arg.num()?.number / to_deg.clone())
+                                        .sin_cos(Complex::new(options.prec));
+                                    let (sinb, cosb) = (function.remove(i + 1).num()?.number
+                                        / to_deg.clone())
+                                    .sin_cos(Complex::new(options.prec));
+                                    let (sinc, cosc) = (function.remove(i + 1).num()?.number
+                                        / to_deg.clone())
+                                    .sin_cos(Complex::new(options.prec));
+                                    Matrix(vec![
+                                        vec![
+                                            Number::from(cosa.clone() * cosb.clone(), None),
+                                            Number::from(
+                                                cosa.clone() * sinb.clone() * sinc.clone()
+                                                    - sina.clone() * cosc.clone(),
+                                                None,
+                                            ),
+                                            Number::from(
+                                                cosa.clone() * sinb.clone() * cosc.clone()
+                                                    + sina.clone() * sinc.clone(),
+                                                None,
+                                            ),
+                                        ],
+                                        vec![
+                                            Number::from(sina.clone() * cosb.clone(), None),
+                                            Number::from(
+                                                sina.clone() * sinb.clone() * sinc.clone()
+                                                    + cosa.clone() * cosc.clone(),
+                                                None,
+                                            ),
+                                            Number::from(
+                                                sina.clone() * sinb.clone() * cosc.clone()
+                                                    - cosa.clone() * sinc.clone(),
+                                                None,
+                                            ),
+                                        ],
+                                        vec![
+                                            Number::from(-sinb.clone(), None),
+                                            Number::from(cosb.clone() * sinc.clone(), None),
+                                            Number::from(cosb.clone() * cosc.clone(), None),
+                                        ],
+                                    ])
+                                }
+                                else
+                                {
+                                    let (sin, cos) = (arg.num()?.number / to_deg.clone())
+                                        .sin_cos(Complex::new(options.prec));
+                                    Matrix(vec![
+                                        vec![
+                                            Number::from(cos.clone(), None),
+                                            Number::from(-sin.clone(), None),
+                                        ],
+                                        vec![Number::from(sin, None), Number::from(cos, None)],
+                                    ])
+                                }
                             }
                             "factors" | "factor" =>
                             {

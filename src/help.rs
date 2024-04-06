@@ -88,7 +88,7 @@ Functions:\x1b[G\n\
 - csc, sec, cot, acsc, asec, acot\x1b[G\n\
 - sinh, cosh, tanh, asinh, acosh, atanh\x1b[G\n\
 - csch, sech, coth, acsch, asech, acoth\x1b[G\n\
-- sqrt, cbrt, square, cube, quadratic(a,b,c) cubic(a,b,c,d) (quadratic and cubic finds the zeros for the given polynomials, you can use cubic(a,b,c,d,1) to only find real solutions for cubics/quadratics)\x1b[G\n\
+- sqrt, cbrt, square, cube, quadratic(a,b,c), cubic(a,b,c,d), quartic(a,b,c,d,e) (finds the zeros for the given polynomial, you can add a '1' to the args to only find real roots)\x1b[G\n\
 - ln, log(base,num), W(k,z) (product log, branch k, defaults to k=0)\x1b[G\n\
 - root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\x1b[G\n\
 - abs, sgn, arg\x1b[G\n\

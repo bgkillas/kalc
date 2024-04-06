@@ -3,8 +3,9 @@ use crate::{
         add, and, area, atan, between, binomial, cofactor, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma,
         gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit,
-        minors, mvec, ne, nth_prime, or, quadratic, recursion, rem, root, shl, shr, slog, slope,
-        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
+        minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog,
+        slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
+        zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -250,6 +251,7 @@ pub fn do_math(
                                     | "quad"
                                     | "quadratic"
                                     | "cubic"
+                                    | "quartic"
                                     | "percentilerank"
                                     | "percentile"
                             )
@@ -1996,6 +1998,55 @@ pub fn do_math(
                                     Num(Number::from(erf(-a / two.clone().sqrt()) / two, None))
                                 }
                             }
+                            "quartic" =>
+                            {
+                                if i + 5 < function.len()
+                                {
+                                    let a = arg.num()?.number;
+                                    let b = function.remove(i + 1).num()?.number;
+                                    let c = function.remove(i + 1).num()?.number;
+                                    let d = function.remove(i + 1).num()?.number;
+                                    let e = function.remove(i + 1).num()?.number;
+                                    let real = !function.remove(i + 1).num()?.number.is_zero();
+                                    let n = quartic(a, b, c, d, e, real);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
+                                }
+                                else if i + 4 < function.len()
+                                {
+                                    let a = arg.num()?.number;
+                                    let b = function.remove(i + 1).num()?.number;
+                                    let c = function.remove(i + 1).num()?.number;
+                                    let d = function.remove(i + 1).num()?.number;
+                                    let e = function.remove(i + 1).num()?.number;
+                                    Vector(quartic(a, b, c, d, e, false))
+                                }
+                                else if i + 3 < function.len()
+                                {
+                                    let b = arg.num()?.number;
+                                    let c = function.remove(i + 1).num()?.number;
+                                    let d = function.remove(i + 1).num()?.number;
+                                    let e = function.remove(i + 1).num()?.number;
+                                    Vector(quartic(
+                                        Complex::with_val(options.prec, 1),
+                                        b,
+                                        c,
+                                        d,
+                                        e,
+                                        false,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
                             "cubic" =>
                             {
                                 if i + 4 < function.len()
@@ -3563,10 +3614,7 @@ fn functions(
     };
     if n.number.imag().is_zero() && !n.number.imag().is_sign_positive()
     {
-        Ok(Number::from(
-            Complex::with_val(n.number.prec(), n.number.real()),
-            n.units,
-        ))
+        Ok(Number::from(n.number.real().clone().into(), n.units))
     }
     else
     {

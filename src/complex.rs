@@ -1442,16 +1442,24 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Number>
     let p: Complex = p - (4 * c * a.clone());
     let p = p.sqrt();
     let a: Complex = 2 * a;
+    let mut z1 = (p.clone() - b.clone()) / a.clone();
+    let mut z2 = (-p - b) / a.clone();
+    if -z1.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        z1 = z1.real().clone().into();
+    }
+    if -z2.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        z2 = z2.real().clone().into();
+    }
     if real
     {
-        let z1 = (p.clone() - b.clone()) / a.clone();
-        let z2 = (-p - b) / a.clone();
         let mut vec = Vec::new();
-        if -z1.imag().clone().abs().log10() > a.prec().0 / 16
+        if z1.imag().is_zero()
         {
             vec.push(Number::from(z1, None))
         }
-        if -z2.imag().clone().abs().log10() > a.prec().0 / 16
+        if z2.imag().is_zero()
         {
             vec.push(Number::from(z2, None))
         }
@@ -1459,10 +1467,7 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Number>
     }
     else
     {
-        vec![
-            Number::from((p.clone() - b.clone()) / a.clone(), None),
-            Number::from((-p - b) / a, None),
-        ]
+        vec![Number::from(z1, None), Number::from(z2, None)]
     }
 }
 pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<Number>
@@ -1520,23 +1525,34 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
     //-((1 - i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 + i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
     //-((1 + i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 - i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
     let omega: Complex = (1 + (Complex::with_val(prec, (0, 1)) * threesqrt.clone())) / 2;
+    let mut z1: Complex = (left.clone() - right.clone() - b.clone()) / 3;
+    let mut z2: Complex =
+        ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone()) / 3;
+    let mut z3: Complex = ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3;
+    if -z1.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        z1 = z1.real().clone().into();
+    }
+    if -z2.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        z2 = z2.real().clone().into();
+    }
+    if -z3.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        z3 = z3.real().clone().into();
+    }
     if real
     {
-        let z1: Complex = (left.clone() - right.clone() - b.clone()) / 3;
-        let z2: Complex =
-            ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone())
-                / 3;
-        let z3: Complex = ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3;
         let mut vec = Vec::new();
-        if -z1.imag().clone().abs().log10() > a.prec().0 / 16
+        if z1.imag().is_zero()
         {
             vec.push(Number::from(z1, None))
         }
-        if -z2.imag().clone().abs().log10() > a.prec().0 / 16
+        if z2.imag().is_zero()
         {
             vec.push(Number::from(z2, None))
         }
-        if -z3.imag().clone().abs().log10() > a.prec().0 / 16
+        if z3.imag().is_zero()
         {
             vec.push(Number::from(z3, None))
         }
@@ -1545,17 +1561,111 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
     else
     {
         vec![
-            Number::from((left.clone() - right.clone() - b.clone()) / 3, None),
-            Number::from(
-                ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone())
-                    - b.clone())
-                    / 3,
-                None,
-            ),
-            Number::from(
-                ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3,
-                None,
-            ),
+            Number::from(z1, None),
+            Number::from(z2, None),
+            Number::from(z3, None),
+        ]
+    }
+}
+pub fn quartic(
+    div: Complex,
+    b: Complex,
+    c: Complex,
+    d: Complex,
+    e: Complex,
+    real: bool,
+) -> Vec<Number>
+{
+    // https://upload.wikimedia.org/wikipedia/commons/9/99/Quartic_Formula.svg
+    if div.is_zero()
+    {
+        return cubic(b, c, d, e, real);
+    }
+    let prec = div.prec();
+    let threerecip = Float::with_val(prec.0, 3).recip();
+    let a = b / div.clone();
+    let b = c / div.clone();
+    let c = d / div.clone();
+    let d = e / div;
+    let alpha: Complex = b.clone().pow(2) - 3 * a.clone() * c.clone() + 12 * d.clone();
+    let phi: Complex = 2 * b.clone().pow(3) - 9 * a.clone() * b.clone() * c.clone()
+        + 27 * c.clone().pow(2)
+        + 27 * a.clone().pow(2) * d.clone()
+        - 72 * b.clone() * d.clone();
+
+    let omega: Complex = -4 * alpha.clone().pow(3) + phi.clone().pow(2);
+    let omega: Complex = phi + omega.sqrt();
+
+    let alpha: Complex = Complex::with_val(prec, 2).pow(threerecip.clone()) * alpha
+        / (3 * omega.clone().pow(threerecip.clone()));
+
+    let beta: Complex = omega / 54;
+    let beta: Complex = beta.pow(threerecip.clone());
+
+    let infirst: Complex = a.clone().pow(2) / 4 - 2 * b.clone() / 3 + alpha.clone() + beta.clone();
+
+    let first: Complex = infirst.clone().sqrt() / 2;
+
+    let third: Complex = -1 * a.clone().pow(3) + 4 * a.clone() * b.clone() - 8 * c.clone();
+    let third: Complex = third / (first.clone() * 8);
+
+    let a4: Complex = -a.clone() / 4;
+
+    let second: Complex = a.clone().pow(2) / 2 - 4 * b.clone() / 3 - alpha.clone() - beta.clone();
+
+    let secondn: Complex = second.clone() - third.clone();
+    let secondn: Complex = secondn.sqrt() / 2;
+
+    let secondp: Complex = second + third.clone();
+    let secondp: Complex = secondp.sqrt() / 2;
+    let mut r1 = a4.clone() - first.clone() - secondn.clone();
+    let mut r2 = a4.clone() - first.clone() + secondn.clone();
+    let mut r3 = a4.clone() + first.clone() - secondp.clone();
+    let mut r4 = a4.clone() + first.clone() + secondp.clone();
+    if -r1.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        r1 = r1.real().clone().into();
+    }
+    if -r2.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        r2 = r2.real().clone().into();
+    }
+    if -r3.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        r3 = r3.real().clone().into();
+    }
+    if -r4.imag().clone().abs().log10() > a.prec().0 / 4
+    {
+        r4 = r4.real().clone().into();
+    }
+    if real
+    {
+        let mut vec = Vec::new();
+        if r1.imag().is_zero()
+        {
+            vec.push(Number::from(r1, None))
+        }
+        if r2.imag().is_zero()
+        {
+            vec.push(Number::from(r2, None))
+        }
+        if r3.imag().is_zero()
+        {
+            vec.push(Number::from(r3, None))
+        }
+        if r4.imag().is_zero()
+        {
+            vec.push(Number::from(r4, None))
+        }
+        vec
+    }
+    else
+    {
+        vec![
+            Number::from(r1, None),
+            Number::from(r2, None),
+            Number::from(r3, None),
+            Number::from(r4, None),
         ]
     }
 }

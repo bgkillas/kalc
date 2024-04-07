@@ -280,7 +280,7 @@ pub fn input_var(
             }
             continue;
         }
-        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫')
+        if !c.is_alphabetic() && !matches!(c, '°' | '@' | '∫' | '$' | '¢')
         {
             if !output.is_empty()
             {
@@ -522,7 +522,7 @@ pub fn input_var(
                     && i + 1 != chars.len()
                     && (chars[i - 1].is_alphanumeric()
                         || (!output.is_empty() && output.last().unwrap().str_is(")"))
-                        || matches!(chars[i - 1], '}' | ']' | ')' | '@'))
+                        || matches!(chars[i - 1], '}' | ']' | ')' | '@' | '°' | '$' | '¢'))
                     && chars[i - 1]
                         != if options.notation == SmallEngineering
                         {
@@ -625,7 +625,7 @@ pub fn input_var(
                             }
                             && (chars[i - 1].is_alphanumeric()
                                 || (!output.is_empty() && output.last().unwrap().str_is(")"))
-                                || matches!(chars[i - 1], '}' | ']' | ')' | '@')))
+                                || matches!(chars[i - 1], '}' | ']' | ')' | '@' | '°' | '$' | '¢')))
                     {
                         if i + 1 != chars.len()
                             && matches!(chars[i + 1], '(' | '{' | '[' | '|' | '-' | '!')
@@ -941,7 +941,7 @@ pub fn input_var(
                 depthcheck = !depthcheck;
             }
             else if c.is_alphabetic()
-                || matches!(*c, '°' | '`' | '∫')
+                || matches!(*c, '°' | '`' | '∫' | '$' | '¢')
                 || (c == &'2' && word == "atan")
             {
                 word.push(*c);

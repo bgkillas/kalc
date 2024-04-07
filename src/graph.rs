@@ -2007,7 +2007,7 @@ fn get_data(
             {
                 if re_or_im.1
                 {
-                    points2d[1][0] = points2d[0][0].clone();
+                    points2d[1][0].clone_from(&points2d[0][0].clone());
                     points2d[1].swap(0, 1);
                 }
                 points2d[0].swap(0, 1);
@@ -2016,7 +2016,7 @@ fn get_data(
             {
                 re_or_im.1 = false;
                 points2d[0].swap(0, 1);
-                points2d[0][1] = points2d[1][1].clone();
+                points2d[0][1].clone_from(&points2d[1][1].clone());
                 points2d[1] = Default::default();
             }
             else if func.2.depth
@@ -2058,16 +2058,16 @@ fn get_data(
             if func.2.flat
             {
                 re_or_im.1 = false;
-                points3d[0][1] = points3d[0][2].clone();
-                points3d[0][2] = points3d[1][2].clone();
+                points3d[0][1].clone_from(&points3d[0][2].clone());
+                points3d[0][2].clone_from(&points3d[1][2].clone());
                 points3d[1] = Default::default();
             }
             else if func.2.depth
             {
                 re_or_im.1 = false;
-                points3d[0][0] = points3d[0][1].clone();
-                points3d[0][1] = points3d[0][2].clone();
-                points3d[0][2] = points3d[1][2].clone();
+                points3d[0][0].clone_from(&points3d[0][1].clone());
+                points3d[0][1].clone_from(&points3d[0][2].clone());
+                points3d[0][2].clone_from(&points3d[1][2].clone());
                 points3d[1] = Default::default();
             }
         }

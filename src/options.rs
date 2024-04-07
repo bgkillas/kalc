@@ -898,7 +898,7 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             for l in lines
             {
-                print!("{}\x1b[G\n", l);
+                println!("{}\x1b[G", l);
             }
             stdout.flush().unwrap();
         }
@@ -909,8 +909,8 @@ pub fn commands(
             {
                 if !v.unparsed.is_empty()
                 {
-                    print!(
-                        "{}={}\x1b[G\n",
+                    println!(
+                        "{}={}\x1b[G",
                         v.name.iter().collect::<String>(),
                         to_output(
                             &v.unparsed.chars().collect::<Vec<char>>(),
@@ -926,8 +926,8 @@ pub fn commands(
                         Num(n) =>
                         {
                             let n = get_output(*options, colors, n);
-                            print!(
-                                "{}={}{}{}{}\x1b[G\n",
+                            println!(
+                                "{}={}{}{}{}\x1b[G",
                                 v.name.iter().collect::<String>(),
                                 n.0,
                                 n.1,
@@ -950,8 +950,8 @@ pub fn commands(
                                 }
                                 st.push(',');
                             }
-                            print!(
-                                "{}={{{}}}\x1b[G\n",
+                            println!(
+                                "{}={{{}}}\x1b[G",
                                 v.name.iter().collect::<String>(),
                                 st.trim_end_matches(',')
                             )
@@ -978,8 +978,8 @@ pub fn commands(
                                 st.push('}');
                                 st.push(',');
                             }
-                            print!(
-                                "{}={{{}}}\x1b[G\n",
+                            println!(
+                                "{}={{{}}}\x1b[G",
                                 v.name.iter().collect::<String>(),
                                 st.trim_end_matches(',')
                             )
@@ -1016,7 +1016,7 @@ pub fn commands(
                     {
                         if i.contains(r)
                         {
-                            print!("{}\x1b[G\n", i);
+                            println!("{}\x1b[G", i);
                         }
                     }
                     stdout.flush().unwrap();

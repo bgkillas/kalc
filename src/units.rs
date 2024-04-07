@@ -1,5 +1,9 @@
 use crate::{AngleType, Number, Options, Units};
-use rug::{float::Constant::Pi, ops::Pow, Complex};
+use rug::{
+    float::Constant::Pi,
+    ops::{DivRounding, Pow},
+    Complex,
+};
 use std::collections::HashSet;
 impl Units
 {
@@ -80,113 +84,137 @@ impl Units
         let mut siunits = String::new();
         if !options.si_units
         {
-            let mut farad = 0.0;
-            let mut ohm = 0.0;
-            let mut henry = 0.0;
-            let mut volt = 0.0;
-            let mut watt = 0.0;
-            let mut joules = 0.0;
-            let mut newtons = 0.0;
-            let mut pascal = 0.0;
-            let mut tesla = 0.0;
-            let mut litre = 0.0;
-            let mut coulomb = 0.0;
-            loop
+            let farad = self
+                .meter
+                .div_floor(-2.0)
+                .min(self.second.div_floor(4.0))
+                .min(self.kilogram.div_floor(-1.0))
+                .min(self.ampere.div_floor(2.0))
+                .max(0.0);
+
+            if farad != 0.0
             {
-                if self.meter <= -2.0
-                    && self.second >= 4.0
-                    && self.kilogram <= -1.0
-                    && self.ampere >= 2.0
-                {
-                    self.meter += 2.0;
-                    self.second -= 4.0;
-                    self.kilogram += 1.0;
-                    self.ampere -= 2.0;
-                    farad += 1.0;
-                }
-                else if self.meter >= 2.0
-                    && self.second <= -3.0
-                    && self.kilogram >= 1.0
-                    && self.ampere <= -2.0
-                {
-                    self.meter -= 2.0;
-                    self.second += 3.0;
-                    self.kilogram -= 1.0;
-                    self.ampere += 2.0;
-                    ohm += 1.0;
-                }
-                else if self.meter >= 2.0
-                    && self.second <= -2.0
-                    && self.kilogram >= 1.0
-                    && self.ampere <= -2.0
-                {
-                    self.meter -= 2.0;
-                    self.second += 2.0;
-                    self.kilogram -= 1.0;
-                    self.ampere += 2.0;
-                    henry += 1.0;
-                }
-                else if self.meter >= 2.0
-                    && self.second <= -3.0
-                    && self.kilogram >= 1.0
-                    && self.ampere <= -1.0
-                {
-                    self.meter -= 2.0;
-                    self.second += 3.0;
-                    self.kilogram -= 1.0;
-                    self.ampere += 1.0;
-                    volt += 1.0;
-                }
-                else if self.meter >= 2.0 && self.second <= -3.0 && self.kilogram >= 1.0
-                {
-                    self.meter -= 2.0;
-                    self.second += 3.0;
-                    self.kilogram -= 1.0;
-                    watt += 1.0;
-                }
-                else if self.meter >= 2.0 && self.second <= -2.0 && self.kilogram >= 1.0
-                {
-                    self.meter -= 2.0;
-                    self.second += 2.0;
-                    self.kilogram -= 1.0;
-                    joules += 1.0;
-                }
-                else if self.meter >= 1.0 && self.second <= -2.0 && self.kilogram >= 1.0
-                {
-                    self.meter -= 1.0;
-                    self.second += 2.0;
-                    self.kilogram -= 1.0;
-                    newtons += 1.0;
-                }
-                else if self.meter <= -1.0 && self.second <= -2.0 && self.kilogram >= 1.0
-                {
-                    self.meter += 1.0;
-                    self.second += 2.0;
-                    self.kilogram -= 1.0;
-                    pascal += 1.0;
-                }
-                else if self.ampere <= -1.0 && self.second <= -2.0 && self.kilogram >= 1.0
-                {
-                    self.ampere += 1.0;
-                    self.second += 2.0;
-                    self.kilogram -= 1.0;
-                    tesla += 1.0;
-                }
-                else if self.meter >= 3.0
-                {
-                    self.meter -= 3.0;
-                    litre += 1.0;
-                }
-                else if self.ampere >= 1.0 && self.second >= 1.0
-                {
-                    self.ampere -= 1.0;
-                    self.second -= 1.0;
-                    coulomb += 1.0;
-                }
-                else
-                {
-                    break;
-                }
+                self.meter += 2.0 * farad;
+                self.second -= 4.0 * farad;
+                self.kilogram += 1.0 * farad;
+                self.ampere -= 2.0 * farad;
+            }
+            let ohm = self
+                .meter
+                .div_floor(2.0)
+                .min(self.second.div_floor(-3.0))
+                .min(self.kilogram.div_floor(1.0))
+                .min(self.ampere.div_floor(-2.0))
+                .max(0.0);
+            if ohm != 0.0
+            {
+                self.meter -= 2.0 * ohm;
+                self.second += 3.0 * ohm;
+                self.kilogram -= 1.0 * ohm;
+                self.ampere += 2.0 * ohm;
+            }
+            let henry = self
+                .meter
+                .div_floor(2.0)
+                .min(self.second.div_floor(-2.0))
+                .min(self.kilogram.div_floor(1.0))
+                .min(self.ampere.div_floor(-2.0))
+                .max(0.0);
+            if henry != 0.0
+            {
+                self.meter -= 2.0 * henry;
+                self.second += 2.0 * henry;
+                self.kilogram -= 1.0 * henry;
+                self.ampere += 2.0 * henry;
+            }
+            let volt = self
+                .meter
+                .div_floor(2.0)
+                .min(self.second.div_floor(-3.0))
+                .min(self.kilogram.div_floor(1.0))
+                .min(self.ampere.div_floor(-1.0))
+                .max(0.0);
+            if volt != 0.0
+            {
+                self.meter -= 2.0 * volt;
+                self.second += 3.0 * volt;
+                self.kilogram -= 1.0 * volt;
+                self.ampere += 1.0 * volt;
+            }
+            let watt = self
+                .meter
+                .div_floor(2.0)
+                .min(self.second.div_floor(-3.0))
+                .min(self.kilogram.div_floor(1.0))
+                .max(0.0);
+            if watt != 0.0
+            {
+                self.meter -= 2.0 * watt;
+                self.second += 3.0 * watt;
+                self.kilogram -= 1.0 * watt;
+            }
+            let joules = self
+                .meter
+                .div_floor(2.0)
+                .min(self.second.div_floor(-2.0))
+                .min(self.kilogram.div_floor(1.0))
+                .max(0.0);
+            if joules != 0.0
+            {
+                self.meter -= 2.0 * joules;
+                self.second += 2.0 * joules;
+                self.kilogram -= 1.0 * joules;
+            }
+            let newtons = self
+                .meter
+                .div_floor(1.0)
+                .min(self.second.div_floor(-2.0))
+                .min(self.kilogram.div_floor(1.0))
+                .max(0.0);
+            if newtons != 0.0
+            {
+                self.meter -= 1.0 * newtons;
+                self.second += 2.0 * newtons;
+                self.kilogram -= 1.0 * newtons;
+            }
+            let pascal = self
+                .meter
+                .div_floor(-1.0)
+                .min(self.second.div_floor(-2.0))
+                .min(self.kilogram.div_floor(1.0))
+                .max(0.0);
+            if pascal != 0.0
+            {
+                self.meter += 1.0 * pascal;
+                self.second += 2.0 * pascal;
+                self.kilogram -= 1.0 * pascal;
+            }
+            let tesla = self
+                .ampere
+                .div_floor(-1.0)
+                .min(self.second.div_floor(-2.0))
+                .min(self.kilogram.div_floor(1.0))
+                .max(0.0);
+            if tesla != 0.0
+            {
+                self.ampere += 1.0 * tesla;
+                self.second += 2.0 * tesla;
+                self.kilogram -= 1.0 * tesla;
+            }
+            let litre = self.meter.div_floor(3.0).max(0.0);
+            if litre != 0.0
+            {
+                self.meter -= 3.0 * litre;
+            }
+            let coulomb = self
+                .ampere
+                .div_floor(1.0)
+                .min(self.second.div_floor(1.0))
+                .max(0.0);
+            if coulomb != 0.0
+            {
+                self.ampere -= 1.0 * coulomb;
+                self.second -= 1.0 * coulomb;
             }
             if farad != 0.0
             {

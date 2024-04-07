@@ -1123,10 +1123,10 @@ pub fn input_var(
         if var_overrule
             && ((functions.contains(word.as_str())
                 && i + countv < chars.len()
-                && matches!(
+                && (matches!(
                     chars[i + countv],
-                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '^' | '⁻'
-                ))
+                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '⁻'
+                ) || (chars[i + countv] == '^' && chars[i] != 'C' && countv != 1)))
                 || matches!(
                     word.as_str(),
                     "rnd" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
@@ -2496,7 +2496,7 @@ pub fn input_var(
     }
     if let Some(Str(s)) = output.last()
     {
-        if s == "*"
+        if s == "*" || s == "^"
         {
             output.pop();
         }

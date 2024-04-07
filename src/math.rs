@@ -3325,8 +3325,8 @@ fn functions(
                         gamma(a)
                     }
                 }
-                "re" | "real" => Complex::with_val(options.prec, a.real()),
-                "im" | "imag" => Complex::with_val(options.prec, a.imag()),
+                "re" | "real" => a.real().clone().into(),
+                "im" | "imag" => a.imag().clone().into(),
                 "sgn" | "sign" =>
                 {
                     if a.is_zero()

@@ -41,17 +41,9 @@ use std::{
 };
 //rpn
 //domain coloring
-//matrix exponentiation
 //surface area of a 3d curve
-//maybe nth area, make -nth go into the other function
-//stop vectors or matrixes disipearing graphically by making them have points instead of lines
-//do as much as you can before graphing, make '=' at end show unsimplified, and no = show simplififed
-//allow setting x and y window dimensions of gnuplot, defaulting to what happens now
-//infinitely long greater/lesser than chains
-//have unit powers be fractional, maybe 2 usizes
-//add option to print units in simplified form instead of just in base si units, like N instead of kg m s^-2
-//compress units if makes sense, ie m s^-2 -> m/s^2
-//allow changing the default unit for all, like angles
+//nth area
+//allow changing the default unit for all units, like angles
 #[derive(Clone)]
 pub struct Variable
 {
@@ -195,6 +187,7 @@ pub struct Options
     stay_interactive: bool,
     graph_cli: bool,
     units: bool,
+    si_units: bool,
     window_size: (usize, usize),
 }
 impl Default for Options
@@ -240,6 +233,7 @@ impl Default for Options
             stay_interactive: false,
             graph_cli: false,
             units: true,
+            si_units: false,
             window_size: (0, 0),
         }
     }

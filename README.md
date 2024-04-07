@@ -151,7 +151,8 @@ FLAGS: --help (this message)
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph
 --flat display 2d complex graphs like they are on the 2d number line
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate
---saveto=[file] saves the graph as a png to the given file
+--saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution
+--siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'
 
 - flags can be executed in runtime just without the dashes
 - "colors=" to see color settings

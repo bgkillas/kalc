@@ -307,7 +307,7 @@ impl NumStr
                 }
                 else
                 {
-                    return Err("no imag/fractional support for powers");
+                    return Err("no imag/fractional support for matrix powers");
                 }
             }
             (Vector(b), Matrix(a)) if b.len() == a.len() => Matrix(

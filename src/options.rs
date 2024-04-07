@@ -243,11 +243,11 @@ pub fn set_commands(
             }
         }
         "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "depth" | "surface"
-        | "flat" | "rt" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed" | "comma"
-        | "graph" | "graphing" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base"
-        | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
-        | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
-        | "vzr" | "2d" | "3d" =>
+        | "flat" | "rt" | "siunits" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed"
+        | "comma" | "graph" | "graphing" | "units" | "scalegraph" | "debug" | "vars" | "onaxis"
+        | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision"
+        | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr"
+        | "vyr" | "vzr" | "2d" | "3d" =>
         {
             let mut args: Vec<f64> = Vec::new();
             {
@@ -314,6 +314,7 @@ pub fn set_commands(
                 "surface" => options.surface = args[0] != 0.0,
                 "flat" => options.flat = args[0] != 0.0,
                 "rt" => options.real_time_output = args[0] != 0.0,
+                "siunits" => options.si_units = args[0] != 0.0,
                 "line" | "lines" => options.lines = args[0] != 0.0,
                 "polar" => options.polar = args[0] != 0.0,
                 "frac" => options.frac = args[0] != 0.0,
@@ -733,6 +734,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "surface" => options.surface = !options.surface,
         "flat" => options.flat = !options.flat,
         "rt" => options.real_time_output = !options.real_time_output,
+        "siunits" => options.si_units = !options.si_units,
         "line" | "lines" => options.lines = !options.lines,
         "polar" => options.polar = !options.polar,
         "frac" => options.frac = !options.frac,
@@ -818,6 +820,12 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.real_time_output = !options.real_time_output;
+        }
+        "siunits" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.si_units = !options.si_units;
         }
         "clear" =>
         {
@@ -1061,6 +1069,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "flat" => format!("{}", options.flat),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
+        "siunits" => format!("{}", options.si_units),
         "debug" => format!("{}", options.debug),
         "scalegraph" => format!("{}", options.scale_graph),
         "line" => format!("{}", options.lines),

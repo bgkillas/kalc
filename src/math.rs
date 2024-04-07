@@ -1,11 +1,10 @@
 use crate::{
     complex::{
-        add, and, area, atan, between, binomial, cofactor, cubic, determinant, digamma, div,
-        eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma,
-        gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit,
-        minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog,
-        slope, sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance,
-        zeta,
+        add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div, eigenvalues,
+        eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
+        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
+        mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog, slope,
+        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -2470,47 +2469,11 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            match (
-                                s.as_str(),
-                                &function[i - 1],
-                                &function[i + 1],
-                                &function[i + 3],
-                            )
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
                             {
-                                ("<", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            left.number.clone(),
-                                            center.number.clone(),
-                                            right.number.clone(),
-                                            false,
-                                            false,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                ("<=", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            left.number.clone(),
-                                            center.number.clone(),
-                                            right.number.clone(),
-                                            false,
-                                            true,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                _ =>
-                                {}
+                                function[i - 1] = function[i + 1].func(&function[i - 1], gt)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
                             }
                         }
                     }
@@ -2522,47 +2485,11 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            match (
-                                s.as_str(),
-                                &function[i - 1],
-                                &function[i + 1],
-                                &function[i + 3],
-                            )
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
                             {
-                                ("<", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            left.number.clone(),
-                                            center.number.clone(),
-                                            right.number.clone(),
-                                            true,
-                                            false,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                ("<=", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            left.number.clone(),
-                                            center.number.clone(),
-                                            right.number.clone(),
-                                            true,
-                                            true,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                _ =>
-                                {}
+                                function[i - 1] = function[i + 1].func(&function[i - 1], ge)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
                             }
                         }
                     }
@@ -2574,47 +2501,11 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            match (
-                                s.as_str(),
-                                &function[i - 1],
-                                &function[i + 1],
-                                &function[i + 3],
-                            )
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
                             {
-                                (">", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            right.number.clone(),
-                                            center.number.clone(),
-                                            left.number.clone(),
-                                            false,
-                                            false,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                (">=", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            right.number.clone(),
-                                            center.number.clone(),
-                                            left.number.clone(),
-                                            true,
-                                            false,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                _ =>
-                                {}
+                                function[i - 1] = function[i - 1].func(&function[i + 1], gt)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
                             }
                         }
                     }
@@ -2626,54 +2517,48 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            match (
-                                s.as_str(),
-                                &function[i - 1],
-                                &function[i + 1],
-                                &function[i + 3],
-                            )
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
                             {
-                                (">", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            right.number.clone(),
-                                            center.number.clone(),
-                                            left.number.clone(),
-                                            false,
-                                            true,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                (">=", Num(left), Num(center), Num(right)) =>
-                                {
-                                    function[i] = Num(Number::from(
-                                        between(
-                                            right.number.clone(),
-                                            center.number.clone(),
-                                            left.number.clone(),
-                                            true,
-                                            true,
-                                        ),
-                                        None,
-                                    ));
-                                    function.drain(i + 1..=i + 3);
-                                    function.remove(i - 1);
-                                    continue;
-                                }
-                                _ =>
-                                {}
+                                function[i - 1] = function[i - 1].func(&function[i + 1], ge)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
                             }
                         }
                     }
                     function[i] = function[i - 1].func(&function[i + 1], ge)?
                 }
-                "==" => function[i] = function[i - 1].func(&function[i + 1], eq)?,
-                "!=" => function[i] = function[i - 1].func(&function[i + 1], ne)?,
+                "==" =>
+                {
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            {
+                                function[i - 1] = function[i - 1].func(&function[i + 1], eq)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], eq)?
+                }
+                "!=" =>
+                {
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            {
+                                function[i - 1] = function[i - 1].func(&function[i + 1], ne)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], ne)?
+                }
                 ">>" => function[i] = function[i - 1].func(&function[i + 1], shr)?,
                 "<<" => function[i] = function[i - 1].func(&function[i + 1], shl)?,
                 _ =>

@@ -596,33 +596,6 @@ pub fn gt(a: &Number, b: &Number) -> Number
         None,
     )
 }
-pub fn between(
-    left: Complex,
-    center: Complex,
-    right: Complex,
-    equalleft: bool,
-    equalright: bool,
-) -> Complex
-{
-    Complex::with_val(
-        left.prec(),
-        (if equalleft
-        {
-            left.real() <= center.real()
-        }
-        else
-        {
-            left.real() < center.real()
-        } && if equalright
-        {
-            right.real() >= center.real()
-        }
-        else
-        {
-            right.real() > center.real()
-        }) as u8,
-    )
-}
 pub fn rem(a: &Number, b: &Number) -> Number
 {
     let a = &a.number;

@@ -1333,37 +1333,128 @@ pub fn sort(mut a: Vec<Number>) -> Vec<Number>
     });
     a
 }
-pub fn eigenvalues(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
+pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
 {
-    if !a.is_empty() && (0..a.len()).all(|j| a.len() == a[j].len())
+    if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
     {
-        match a.len()
+        match mat.len()
         {
-            1 => Ok(Num(a[0][0].clone())),
+            1 => Ok(Num(mat[0][0].clone())),
             2 => Ok(Vector(quadratic(
-                Complex::with_val(a[0][0].number.prec(), 1),
-                -a[0][0].number.clone() - a[1][1].number.clone(),
-                a[0][0].number.clone() * a[1][1].number.clone()
-                    - a[0][1].number.clone() * a[1][0].number.clone(),
-                false,
+                Complex::with_val(mat[0][0].number.prec(), 1),
+                -mat[0][0].number.clone() - mat[1][1].number.clone(),
+                mat[0][0].number.clone() * mat[1][1].number.clone()
+                    - mat[0][1].number.clone() * mat[1][0].number.clone(),
+                real,
             ))),
             3 => Ok(Vector(cubic(
-                Complex::with_val(a[0][0].number.prec(), -1),
-                a[2][2].number.clone() + a[1][1].number.clone() + a[0][0].number.clone(),
-                -a[0][0].number.clone() * a[1][1].number.clone()
-                    - a[0][0].number.clone() * a[2][2].number.clone()
-                    + a[0][1].number.clone() * a[1][0].number.clone()
-                    + a[0][2].number.clone() * a[2][0].number.clone()
-                    - a[1][1].number.clone() * a[2][2].number.clone()
-                    + a[1][2].number.clone() * a[2][1].number.clone(),
-                a[0][0].number.clone() * a[1][1].number.clone() * a[2][2].number.clone()
-                    - a[0][0].number.clone() * a[1][2].number.clone() * a[2][1].number.clone()
-                    - a[0][1].number.clone() * a[1][0].number.clone() * a[2][2].number.clone()
-                    + a[0][1].number.clone() * a[1][2].number.clone() * a[2][0].number.clone()
-                    + a[0][2].number.clone() * a[1][0].number.clone() * a[2][1].number.clone()
-                    - a[0][2].number.clone() * a[1][1].number.clone() * a[2][0].number.clone(),
-                false,
+                Complex::with_val(mat[0][0].number.prec(), -1),
+                mat[2][2].number.clone() + mat[1][1].number.clone() + mat[0][0].number.clone(),
+                -mat[0][0].number.clone() * mat[1][1].number.clone()
+                    - mat[0][0].number.clone() * mat[2][2].number.clone()
+                    + mat[0][1].number.clone() * mat[1][0].number.clone()
+                    + mat[0][2].number.clone() * mat[2][0].number.clone()
+                    - mat[1][1].number.clone() * mat[2][2].number.clone()
+                    + mat[1][2].number.clone() * mat[2][1].number.clone(),
+                mat[0][0].number.clone() * mat[1][1].number.clone() * mat[2][2].number.clone()
+                    - mat[0][0].number.clone()
+                        * mat[1][2].number.clone()
+                        * mat[2][1].number.clone()
+                    - mat[0][1].number.clone()
+                        * mat[1][0].number.clone()
+                        * mat[2][2].number.clone()
+                    + mat[0][1].number.clone()
+                        * mat[1][2].number.clone()
+                        * mat[2][0].number.clone()
+                    + mat[0][2].number.clone()
+                        * mat[1][0].number.clone()
+                        * mat[2][1].number.clone()
+                    - mat[0][2].number.clone()
+                        * mat[1][1].number.clone()
+                        * mat[2][0].number.clone(),
+                real,
             ))),
+            4 =>
+            {
+                let a = mat[0][0].number.clone();
+                let b = mat[0][1].number.clone();
+                let c = mat[0][2].number.clone();
+                let d = mat[0][3].number.clone();
+                let e = mat[1][0].number.clone();
+                let f = mat[1][1].number.clone();
+                let g = mat[1][2].number.clone();
+                let h = mat[1][3].number.clone();
+                let i = mat[2][0].number.clone();
+                let j = mat[2][1].number.clone();
+                let k = mat[2][2].number.clone();
+                let l = mat[2][3].number.clone();
+                let m = mat[3][0].number.clone();
+                let n = mat[3][1].number.clone();
+                let p = mat[3][2].number.clone();
+                let q = mat[3][3].number.clone();
+                Ok(Vector(quartic(
+                    Complex::with_val(a.prec(), 1),
+                    -a.clone() - f.clone() - k.clone() - q.clone(),
+                    a.clone() * f.clone() + a.clone() * k.clone() + a.clone() * q.clone()
+                        - b.clone() * e.clone()
+                        - c.clone() * i.clone()
+                        - d.clone() * m.clone()
+                        + f.clone() * k.clone()
+                        + f.clone() * q.clone()
+                        - g.clone() * j.clone()
+                        - h.clone() * n.clone()
+                        + k.clone() * q.clone()
+                        - l.clone() * p.clone(),
+                    -a.clone() * f.clone() * k.clone() - a.clone() * f.clone() * q.clone()
+                        + a.clone() * g.clone() * j.clone()
+                        + a.clone() * h.clone() * n.clone()
+                        - a.clone() * k.clone() * q.clone()
+                        + a.clone() * l.clone() * p.clone()
+                        + b.clone() * e.clone() * k.clone()
+                        + b.clone() * e.clone() * q.clone()
+                        - b.clone() * g.clone() * i.clone()
+                        - b.clone() * h.clone() * m.clone()
+                        - c.clone() * e.clone() * j.clone()
+                        + c.clone() * f.clone() * i.clone()
+                        + c.clone() * i.clone() * q.clone()
+                        - c.clone() * l.clone() * m.clone()
+                        - d.clone() * e.clone() * n.clone()
+                        + d.clone() * f.clone() * m.clone()
+                        - d.clone() * i.clone() * p.clone()
+                        + d.clone() * k.clone() * m.clone()
+                        - f.clone() * k.clone() * q.clone()
+                        + f.clone() * l.clone() * p.clone()
+                        + g.clone() * j.clone() * q.clone()
+                        - g.clone() * l.clone() * n.clone()
+                        - h.clone() * j.clone() * p.clone()
+                        + h.clone() * k.clone() * n.clone(),
+                    a.clone() * f.clone() * k.clone() * q.clone()
+                        - a.clone() * f.clone() * l.clone() * p.clone()
+                        - a.clone() * g.clone() * j.clone() * q.clone()
+                        + a.clone() * g.clone() * l.clone() * n.clone()
+                        + a.clone() * h.clone() * j.clone() * p.clone()
+                        - a.clone() * h.clone() * k.clone() * n.clone()
+                        - b.clone() * e.clone() * k.clone() * q.clone()
+                        + b.clone() * e.clone() * l.clone() * p.clone()
+                        + b.clone() * g.clone() * i.clone() * q.clone()
+                        - b.clone() * g.clone() * l.clone() * m.clone()
+                        - b.clone() * h.clone() * i.clone() * p.clone()
+                        + b.clone() * h.clone() * k.clone() * m.clone()
+                        + c.clone() * e.clone() * j.clone() * q.clone()
+                        - c.clone() * e.clone() * l.clone() * n.clone()
+                        - c.clone() * f.clone() * i.clone() * q.clone()
+                        + c.clone() * f.clone() * l.clone() * m.clone()
+                        + c.clone() * h.clone() * i.clone() * n.clone()
+                        - c.clone() * h.clone() * j.clone() * m.clone()
+                        - d.clone() * e.clone() * j.clone() * p.clone()
+                        + d.clone() * e.clone() * k.clone() * n.clone()
+                        + d.clone() * f.clone() * i.clone() * p.clone()
+                        - d.clone() * f.clone() * k.clone() * m.clone()
+                        - d.clone() * g.clone() * i.clone() * n.clone()
+                        + d.clone() * g.clone() * j.clone() * m.clone(),
+                    real,
+                )))
+            }
             _ => Err("unsupported"),
         }
     }
@@ -1372,7 +1463,7 @@ pub fn eigenvalues(a: &[Vec<Number>]) -> Result<NumStr, &'static str>
         Err("not square")
     }
 }
-pub fn eigenvectors(mat: &[Vec<Number>]) -> Result<NumStr, &'static str>
+pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
 {
     if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
     {
@@ -1385,7 +1476,7 @@ pub fn eigenvectors(mat: &[Vec<Number>]) -> Result<NumStr, &'static str>
                     -mat[1][0].number.clone(),
                     mat[0][0].number.clone() - mat[1][1].number.clone(),
                     mat[0][1].number.clone(),
-                    false,
+                    real,
                 )
                 .iter()
                 .rev()
@@ -1394,7 +1485,7 @@ pub fn eigenvectors(mat: &[Vec<Number>]) -> Result<NumStr, &'static str>
             )),
             3 =>
             {
-                let l = eigenvalues(mat).unwrap().vec().unwrap();
+                let l = eigenvalues(mat, real).unwrap().vec().unwrap();
                 //x=(b(l-i)+hc)/(h(l-a)+bg)
                 //y=(dx+f)/(l-e)
                 let a = mat[0][0].number.clone();
@@ -1418,6 +1509,63 @@ pub fn eigenvectors(mat: &[Vec<Number>]) -> Result<NumStr, &'static str>
                                     (d.clone() * x + f.clone()) / (l.clone() - e.clone()),
                                     None,
                                 ),
+                                one.clone(),
+                            ]
+                        })
+                        .collect::<Vec<Vec<Number>>>(),
+                ))
+            }
+            4 =>
+            {
+                let w = eigenvalues(mat, real).unwrap().vec().unwrap();
+                let a = mat[0][0].number.clone();
+                let b = mat[0][1].number.clone();
+                let c = mat[0][2].number.clone();
+                let d = mat[0][3].number.clone();
+                let e = mat[1][0].number.clone();
+                let f = mat[1][1].number.clone();
+                let g = mat[1][2].number.clone();
+                let h = mat[1][3].number.clone();
+                let i = mat[2][0].number.clone();
+                let j = mat[2][1].number.clone();
+                let k = mat[2][2].number.clone();
+                let l = mat[2][3].number.clone();
+                let m = mat[3][0].number.clone();
+                let n = mat[3][1].number.clone();
+                let o = mat[3][2].number.clone();
+                let p = mat[3][3].number.clone();
+                Ok(Matrix(
+                    w.iter()
+                        .map(|w| {
+                            let w = w.number.clone();
+                            let v1 = o.clone() * (w.clone() - f.clone()) + g.clone() * n.clone();
+                            let v2 = w.clone() - k.clone();
+                            let mut x: Complex = v1.clone() * v2.clone() * d.clone()
+                                + c.clone()
+                                    * (j.clone() * o.clone() * h.clone()
+                                        + j.clone() * g.clone() * (w.clone() - p.clone())
+                                        + v1.clone() * l.clone())
+                                + v2.clone()
+                                    * b.clone()
+                                    * (o.clone() * h.clone() + g.clone() * (w.clone() - p.clone()));
+                            x /= v1.clone() * v2.clone() * (w.clone() - a.clone())
+                                - c.clone() * o.clone() * e.clone() * j.clone()
+                                + g.clone() * m.clone() * c.clone() * j.clone()
+                                - v2.clone() * b.clone() * o.clone() * e.clone()
+                                + v2.clone() * b.clone() * g.clone() * m.clone()
+                                - c.clone() * v1.clone() * i.clone();
+                            let mut y: Complex = o.clone() * (h.clone() + e.clone() * x.clone())
+                                + g.clone() * (w.clone() - p.clone() - m.clone() * x.clone());
+                            y /= v1.clone();
+                            let mut z = w.clone()
+                                - p.clone()
+                                - m.clone() * x.clone()
+                                - n.clone() * y.clone();
+                            z /= o.clone();
+                            vec![
+                                Number::from(x, None),
+                                Number::from(y, None),
+                                Number::from(z, None),
                                 one.clone(),
                             ]
                         })
@@ -1463,7 +1611,14 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Number>
         {
             vec.push(Number::from(z2, None))
         }
-        vec
+        if vec.is_empty()
+        {
+            vec![Number::from(Complex::with_val(a.prec(), Nan), None)]
+        }
+        else
+        {
+            vec
+        }
     }
     else
     {
@@ -1556,7 +1711,14 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
         {
             vec.push(Number::from(z3, None))
         }
-        vec
+        if vec.is_empty()
+        {
+            vec![Number::from(Complex::with_val(prec, Nan), None)]
+        }
+        else
+        {
+            vec
+        }
     }
     else
     {
@@ -1657,7 +1819,14 @@ pub fn quartic(
         {
             vec.push(Number::from(r4, None))
         }
-        vec
+        if vec.is_empty()
+        {
+            vec![Number::from(Complex::with_val(prec, Nan), None)]
+        }
+        else
+        {
+            vec
+        }
     }
     else
     {

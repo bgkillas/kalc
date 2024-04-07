@@ -254,6 +254,8 @@ pub fn do_math(
                                     | "quartic"
                                     | "percentilerank"
                                     | "percentile"
+                                    | "eigenvalues"
+                                    | "eigenvectors"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -1039,8 +1041,30 @@ pub fn do_math(
                                     None,
                                 ))
                             }
-                            "eigenvalues" => eigenvalues(&a)?,
-                            "eigenvectors" => eigenvectors(&a)?,
+                            "eigenvalues" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    function.remove(i + 1);
+                                    eigenvalues(&a, true)?
+                                }
+                                else
+                                {
+                                    eigenvalues(&a, false)?
+                                }
+                            }
+                            "eigenvectors" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    function.remove(i + 1);
+                                    eigenvectors(&a, true)?
+                                }
+                                else
+                                {
+                                    eigenvectors(&a, false)?
+                                }
+                            }
                             "tolist" =>
                             {
                                 let mut vec = Vec::new();
@@ -1172,6 +1196,7 @@ pub fn do_math(
                         },
                         Vector(a) => match s.as_str()
                         {
+                            "transpose" | "trans" => Matrix(transpose(&[a])),
                             "tolist" =>
                             {
                                 let mut vec = Vec::new();

@@ -989,7 +989,10 @@ pub fn input_var(
                     && !word.ends_with("henry")
                     && !word.ends_with("Gy")
                     && !word.ends_with("gray"))
-                || (word.ends_with('z') && !word.ends_with("Hz") && !word.ends_with("hertz")))
+                || (word.ends_with('z')
+                    && !word.ends_with("Hz")
+                    && !word.ends_with("hertz")
+                    && !word.ends_with("oz")))
         {
             countv -= 1;
             word.pop();

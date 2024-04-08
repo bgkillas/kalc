@@ -250,5 +250,15 @@ fn all_units() -> &'static str
 \"sievert\" | \"Sv\"\x1b[G\n\
 \"katal\" | \"kat\"\x1b[G\n\
 \"bit\" | \"b\"\x1b[G\n\
-\"steradian\" | \"sr\""
+\"steradian\" | \"sr\"\x1b[G\n\
+\"atm\"\x1b[G\n\
+\"psi\"\x1b[G\n\
+\"bar\"\x1b[G\n\
+\"tonne\"\x1b[G\n\
+\"hectare\" | \"ha\"\x1b[G\n\
+\"acre\" | \"ac\"\x1b[G\n\
+\"ton\"\x1b[G\n\
+\"oz\"\x1b[G\n\
+\"gallon\" | \"gal\"\x1b[G\n\
+\"floz\""
 }

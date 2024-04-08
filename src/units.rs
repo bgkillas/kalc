@@ -201,11 +201,6 @@ impl Units
                 self.second += 2.0 * tesla;
                 self.kilogram -= 1.0 * tesla;
             }
-            let litre = self.meter.div_floor(3.0).max(0.0);
-            if litre != 0.0
-            {
-                self.meter -= 3.0 * litre;
-            }
             let coulomb = self
                 .ampere
                 .div_floor(1.0)
@@ -335,20 +330,6 @@ impl Units
                         + &if tesla != 1.0
                         {
                             format!("^{}", tesla)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if litre != 0.0
-            {
-                siunits.push_str(
-                    &(" L".to_owned()
-                        + &if litre != 1.0
-                        {
-                            format!("^{}", litre)
                         }
                         else
                         {
@@ -856,6 +837,19 @@ pub fn units() -> HashSet<&'static str>
         "¢",
         "dollar",
         "cent",
+        "atm",
+        "psi",
+        "bar",
+        "tonne",
+        "hectare",
+        "ha",
+        "acre",
+        "ac",
+        "ton",
+        "oz",
+        "gal",
+        "gallon",
+        "floz",
     ]
     .iter()
     .cloned()
@@ -898,7 +892,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "g" | "gram" =>
         {
-            num *= Complex::with_val(options.prec, 10).pow(-3);
+            num /= 1000;
             units.kilogram = 1.0
         }
         "nit" | "nt" =>
@@ -997,7 +991,19 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "L" | "litre" =>
         {
-            num *= Complex::with_val(options.prec, 10).pow(-3);
+            num /= 1000;
+            units.meter = 3.0;
+        }
+        "floz" =>
+        {
+            num *= 1420653;
+            num /= 50000000000u64;
+            units.meter = 3.0;
+        }
+        "gallon" | "gal" =>
+        {
+            num *= 473176473;
+            num /= 125000000000u64;
             units.meter = 3.0;
         }
         "Hz" | "hertz" => units.second = -1.0,
@@ -1092,6 +1098,56 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             units.kilogram = 1.0;
             units.meter = -1.0;
             units.second = -2.0;
+        }
+        "atm" =>
+        {
+            num *= 101325;
+            units.kilogram = 1.0;
+            units.meter = -1.0;
+            units.second = -2.0;
+        }
+        "psi" =>
+        {
+            num *= 6894757;
+            num /= 1000000;
+            units.kilogram = 1.0;
+            units.meter = -1.0;
+            units.second = -2.0;
+        }
+        "bar" =>
+        {
+            num *= 100000;
+            units.kilogram = 1.0;
+            units.meter = -1.0;
+            units.second = -2.0;
+        }
+        "tonne" =>
+        {
+            num *= 1000;
+            units.kilogram = 1.0;
+        }
+        "hectare" | "ha" =>
+        {
+            num *= 10000;
+            units.meter = 2.0;
+        }
+        "acre" | "ac" =>
+        {
+            num *= 316160658;
+            num /= 78125;
+            units.meter = 2.0;
+        }
+        "ton" =>
+        {
+            num *= 45359237;
+            num /= 50000;
+            units.kilogram = 1.0;
+        }
+        "oz" =>
+        {
+            num *= 45359237;
+            num /= 1600000000;
+            units.kilogram = 1.0;
         }
         "Ω" | "ohm" =>
         {

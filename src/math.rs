@@ -501,30 +501,27 @@ pub fn do_math(
                         }
                         ("length" | "arclength", Str(var)) if place.len() == 4 =>
                         {
-                            function[i] = Num(Number::from(
-                                length(
-                                    function[place[0] + 1..place[1]].to_vec(),
-                                    func_vars.clone(),
+                            function[i] = Num(length(
+                                function[place[0] + 1..place[1]].to_vec(),
+                                func_vars.clone(),
+                                options,
+                                var.to_string(),
+                                do_math(
+                                    function[place[1] + 1..place[2]].to_vec(),
                                     options,
-                                    var.to_string(),
-                                    do_math(
-                                        function[place[1] + 1..place[2]].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?
-                                    .num()?
-                                    .number,
-                                    do_math(
-                                        function[place[2] + 1..place[3]].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?
-                                    .num()?
-                                    .number,
-                                    options.prec as usize / 4,
-                                )?,
-                                None,
-                            ));
+                                    func_vars.clone(),
+                                )?
+                                .num()?
+                                .number,
+                                do_math(
+                                    function[place[2] + 1..place[3]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?
+                                .num()?
+                                .number,
+                                options.prec as usize / 4,
+                            )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("∫" | "area" | "integrate", Str(var))

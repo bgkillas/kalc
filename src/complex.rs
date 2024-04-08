@@ -2301,7 +2301,7 @@ pub fn length(
     mut start: Complex,
     mut end: Complex,
     points: usize,
-) -> Result<Complex, &'static str>
+) -> Result<Number, &'static str>
 {
     if start.real() > end.real()
     {
@@ -2315,6 +2315,12 @@ pub fn length(
         &var.clone(),
         Num(Number::from(start.clone(), None)),
     )?;
+    let units = match x0.clone()
+    {
+        Num(a) => a.units,
+        Vector(a) => a[0].units,
+        _ => return Err("not supported arc length data"),
+    };
     let mut length = Complex::new(options.prec);
     for i in 0..points
     {
@@ -2362,7 +2368,7 @@ pub fn length(
             (_, _) => return Err("not supported arc length data"),
         };
     }
-    Ok(length)
+    Ok(Number::from(length, units))
 }
 #[allow(clippy::too_many_arguments)]
 pub fn area(

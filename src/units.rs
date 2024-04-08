@@ -793,6 +793,7 @@ pub fn units() -> HashSet<&'static str>
         "fahrenheit",
         "litre",
         "L",
+        "l",
         "lb",
         "pound",
         "inch",
@@ -989,7 +990,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             num *= 45359237;
             num /= 100000000;
         }
-        "L" | "litre" =>
+        "L" | "l" | "litre" =>
         {
             num /= 1000;
             units.meter = 3.0;

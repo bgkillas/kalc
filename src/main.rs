@@ -39,11 +39,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//rpn
-//domain coloring
-//surface area of a 3d curve
-//nth area
-//allow changing the default unit for all units, like angles
 #[derive(Clone)]
 pub struct Variable
 {

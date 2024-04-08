@@ -287,7 +287,7 @@ the following units are supported
 "ft" | "foot"
 "in" | "inch"
 "lb" | "pound"
-"L" | "litre"
+"L" | "l" | "litre"
 "Hz" | "hertz"
 "V" | "volt" | "voltage"
 "°C" | "celsius"

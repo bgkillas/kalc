@@ -214,7 +214,7 @@ fn all_units() -> &'static str
 \"ft\" | \"foot\"\x1b[G\n\
 \"in\" | \"inch\"\x1b[G\n\
 \"lb\" | \"pound\"\x1b[G\n\
-\"L\" | \"litre\"\x1b[G\n\
+\"L\" | \"l\" | \"litre\"\x1b[G\n\
 \"Hz\" | \"hertz\"\x1b[G\n\
 \"V\" | \"volt\" | \"voltage\"\x1b[G\n\
 \"°C\" | \"celsius\"\x1b[G\n\

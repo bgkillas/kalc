@@ -518,8 +518,7 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?
-                                .number,
+                                .num()?,
                                 options.prec as usize / 4,
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());

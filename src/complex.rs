@@ -1306,6 +1306,16 @@ pub fn sort(mut a: Vec<Number>) -> Vec<Number>
     });
     a
 }
+pub fn sort_mat(mut a: Vec<Vec<Number>>) -> Vec<Vec<Number>>
+{
+    a.sort_by(|x, y| {
+        x[0].number
+            .real()
+            .partial_cmp(y[0].number.real())
+            .unwrap_or(Ordering::Equal)
+    });
+    a
+}
 pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
 {
     if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
@@ -1557,7 +1567,26 @@ pub fn quadratic(a: Complex, b: Complex, c: Complex, real: bool) -> Vec<Number>
 {
     if a.is_zero()
     {
-        return vec![Number::from(-c / b, None)];
+        return if b.is_zero()
+        {
+            vec![Number::from(Complex::with_val(a.prec(), Nan), None)]
+        }
+        else
+        {
+            let mut r = -c / b;
+            if -r.imag().clone().abs().log10() > a.prec().0 / 4
+            {
+                r = r.real().clone().into();
+            }
+            if real && !r.imag().is_zero()
+            {
+                vec![Number::from(Complex::with_val(a.prec(), Nan), None)]
+            }
+            else
+            {
+                vec![Number::from(r, None)]
+            }
+        };
     }
     let p: Complex = b.clone().pow(2);
     let p: Complex = p - (4 * c * a.clone());
@@ -1618,18 +1647,54 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
         }
         else
         {
-            let reuse = (d / a).pow(threerecip.clone());
-            vec![
-                Number::from(-reuse.clone(), None),
-                Number::from(
-                    reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone()),
-                    None,
-                ),
-                Number::from(
-                    -reuse * Complex::with_val(prec, -1).pow(2 * threerecip),
-                    None,
-                ),
-            ]
+            let reuse = (d / a.clone()).pow(threerecip.clone());
+            let mut z1 = -reuse.clone();
+            let mut z2 = reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone());
+            let mut z3: Complex = -reuse * Complex::with_val(prec, -1).pow(2 * threerecip);
+            if -z1.imag().clone().abs().log10() > a.prec().0 / 4
+            {
+                z1 = z1.real().clone().into();
+            }
+            if -z2.imag().clone().abs().log10() > a.prec().0 / 4
+            {
+                z2 = z2.real().clone().into();
+            }
+            if -z3.imag().clone().abs().log10() > a.prec().0 / 4
+            {
+                z3 = z3.real().clone().into();
+            }
+            if real
+            {
+                let mut vec = Vec::new();
+                if z1.imag().is_zero()
+                {
+                    vec.push(Number::from(z1, None))
+                }
+                if z2.imag().is_zero()
+                {
+                    vec.push(Number::from(z2, None))
+                }
+                if z3.imag().is_zero()
+                {
+                    vec.push(Number::from(z3, None))
+                }
+                if vec.is_empty()
+                {
+                    vec![Number::from(Complex::with_val(prec, Nan), None)]
+                }
+                else
+                {
+                    vec
+                }
+            }
+            else
+            {
+                vec![
+                    Number::from(z1, None),
+                    Number::from(z2, None),
+                    Number::from(z3, None),
+                ]
+            }
         };
     }
     let b = b / a.clone();
@@ -1711,6 +1776,12 @@ pub fn quartic(
     real: bool,
 ) -> Vec<Number>
 {
+    if e.is_zero()
+    {
+        let mut vec = cubic(div, b, c, d, real);
+        vec.push(Number::from(Complex::new(e.prec()), None));
+        return vec;
+    }
     // https://upload.wikimedia.org/wikipedia/commons/9/99/Quartic_Formula.svg
     if div.is_zero()
     {
@@ -2645,6 +2716,78 @@ pub fn area(
         Ok(Vector(areavec))
     }
 }
+pub fn solve(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut options: Options,
+    var: String,
+    mut x: Complex,
+) -> Result<NumStr, &'static str>
+{
+    //newtons method, x-f(x)/f'(x)
+    let op = options.prec;
+    options.prec = options.prec.clamp(256, 1024);
+    x.set_prec(options.prec);
+    for _ in 0..op / 4
+    {
+        let n = Number::from(x.clone(), None);
+        let y = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var.clone(),
+            Num(n.clone()),
+        )?;
+        x -= y.num()?.number
+            / slopesided(
+                func.clone(),
+                func_vars.clone(),
+                options,
+                var.clone(),
+                n,
+                false,
+                1,
+                true,
+                Some(y),
+            )?
+            .num()?
+            .number
+    }
+    let last = x.clone();
+    let n = Number::from(x.clone(), None);
+    let y = do_math_with_var(
+        func.clone(),
+        options,
+        func_vars.clone(),
+        &var.clone(),
+        Num(n.clone()),
+    )?;
+    x -= y.num()?.number
+        / slopesided(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            n,
+            false,
+            1,
+            true,
+            Some(y),
+        )?
+        .num()?
+        .number;
+    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16
+    {
+        Ok(Num(Number::from(x, None)))
+    }
+    else
+    {
+        Ok(Num(Number::from(
+            Complex::with_val(options.prec, Nan),
+            None,
+        )))
+    }
+}
 #[allow(clippy::too_many_arguments)]
 pub fn slope(
     func: Vec<NumStr>,
@@ -2659,8 +2802,12 @@ pub fn slope(
 {
     match side
     {
-        LimSide::Left => slopesided(func, func_vars, options, var, point, combine, nth, false),
-        LimSide::Right => slopesided(func, func_vars, options, var, point, combine, nth, true),
+        LimSide::Left => slopesided(
+            func, func_vars, options, var, point, combine, nth, false, None,
+        ),
+        LimSide::Right => slopesided(
+            func, func_vars, options, var, point, combine, nth, true, None,
+        ),
         LimSide::Both =>
         {
             options.prec = options.prec.clamp(256, 1024);
@@ -2674,8 +2821,11 @@ pub fn slope(
                 combine,
                 nth,
                 false,
+                None,
             )?;
-            let right = slopesided(func, func_vars, options, var, point, combine, nth, true)?;
+            let right = slopesided(
+                func, func_vars, options, var, point, combine, nth, true, None,
+            )?;
             match (left, right)
             {
                 (Num(left), Num(right)) =>
@@ -2767,6 +2917,7 @@ pub fn slopesided(
     combine: bool,
     nth: u32,
     right: bool,
+    val: Option<NumStr>,
 ) -> Result<NumStr, &'static str>
 {
     let units = point.units;
@@ -2783,13 +2934,20 @@ pub fn slopesided(
     {
         -Complex::with_val(options.prec, 0.5).pow(prec)
     };
-    let n = do_math_with_var(
-        func.clone(),
-        options,
-        func_vars.clone(),
-        &var,
-        Num(Number::from(point.clone(), units)),
-    )?;
+    let n = if let Some(n) = val
+    {
+        n
+    }
+    else
+    {
+        do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var,
+            Num(Number::from(point.clone(), units)),
+        )?
+    };
     let num = Integer::from(nth);
     match n
     {

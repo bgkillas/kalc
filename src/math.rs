@@ -4,7 +4,8 @@ use crate::{
         eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
         identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
         mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog, slope,
-        sort, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose, variance, zeta,
+        solve, sort, sort_mat, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
+        variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -208,6 +209,8 @@ pub fn do_math(
                                     | "ζ"
                                     | "polygamma"
                                     | "digamma"
+                                    | "inter"
+                                    | "interpolate"
                                     | "ψ"
                                     | "rotate"
                                     | "multinomial"
@@ -321,6 +324,7 @@ pub fn do_math(
                                 k.as_str(),
                                 "sum"
                                     | "area"
+                                    | "solve"
                                     | "∫"
                                     | "length"
                                     | "slope"
@@ -404,6 +408,7 @@ pub fn do_math(
                     s.as_str(),
                     "sum"
                         | "area"
+                        | "solve"
                         | "∫"
                         | "length"
                         | "slope"
@@ -461,6 +466,30 @@ pub fn do_math(
                         },
                     )
                     {
+                        ("solve", Str(var)) if place.len() == 2 || place.len() == 3 =>
+                        {
+                            function[i] = solve(
+                                function[place[0] + 1..place[1]].to_vec(),
+                                func_vars.clone(),
+                                options,
+                                var.to_string(),
+                                if place.len() == 3
+                                {
+                                    do_math(
+                                        function[place[1] + 1..place[2]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .number
+                                }
+                                else
+                                {
+                                    Complex::new(options.prec)
+                                },
+                            )?;
+                            function.drain(i + 1..=*place.last().unwrap());
+                        }
                         ("lim" | "limit", Str(var)) if place.len() == 3 || place.len() == 4 =>
                         {
                             function[i] = limit(
@@ -777,6 +806,34 @@ pub fn do_math(
                     {
                         Matrix(a) => match s.as_str()
                         {
+                            "inter" | "interpolate" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    let x = function.remove(i + 1).num()?.number;
+                                    let mut sum = Complex::new(options.prec);
+                                    for i in 0..a.len()
+                                    {
+                                        let mut prod = Complex::with_val(options.prec, 1);
+                                        for j in 0..a.len()
+                                        {
+                                            if j != i
+                                            {
+                                                prod *= (x.clone() - a[j][0].number.clone())
+                                                    / (a[i][0].number.clone()
+                                                        - a[j][0].number.clone())
+                                            }
+                                        }
+                                        sum += prod * a[i][1].number.clone()
+                                    }
+                                    Num(Number::from(sum, None))
+                                }
+                                else
+                                {
+                                    return Err("no x value given");
+                                }
+                            }
+                            "sort" => Matrix(sort_mat(a)),
                             "max" =>
                             {
                                 let mut vec = Vec::new();
@@ -2027,8 +2084,8 @@ pub fn do_math(
                                     let c = function.remove(i + 1).num()?.number;
                                     let d = function.remove(i + 1).num()?.number;
                                     let e = function.remove(i + 1).num()?.number;
-                                    let real = !function.remove(i + 1).num()?.number.is_zero();
-                                    let n = quartic(a, b, c, d, e, real);
+                                    function.remove(i + 1);
+                                    let n = quartic(a, b, c, d, e, true);
                                     if n.len() == 1
                                     {
                                         Num(n[0].clone())
@@ -2045,7 +2102,15 @@ pub fn do_math(
                                     let c = function.remove(i + 1).num()?.number;
                                     let d = function.remove(i + 1).num()?.number;
                                     let e = function.remove(i + 1).num()?.number;
-                                    Vector(quartic(a, b, c, d, e, false))
+                                    let n = quartic(a, b, c, d, e, false);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
                                 }
                                 else if i + 3 < function.len()
                                 {
@@ -2053,14 +2118,22 @@ pub fn do_math(
                                     let c = function.remove(i + 1).num()?.number;
                                     let d = function.remove(i + 1).num()?.number;
                                     let e = function.remove(i + 1).num()?.number;
-                                    Vector(quartic(
+                                    let n = quartic(
                                         Complex::with_val(options.prec, 1),
                                         b,
                                         c,
                                         d,
                                         e,
                                         false,
-                                    ))
+                                    );
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
                                 }
                                 else
                                 {
@@ -2075,8 +2148,8 @@ pub fn do_math(
                                     let b = function.remove(i + 1).num()?.number;
                                     let c = function.remove(i + 1).num()?.number;
                                     let d = function.remove(i + 1).num()?.number;
-                                    let real = !function.remove(i + 1).num()?.number.is_zero();
-                                    let n = cubic(a, b, c, d, real);
+                                    function.remove(i + 1);
+                                    let n = cubic(a, b, c, d, true);
                                     if n.len() == 1
                                     {
                                         Num(n[0].clone())
@@ -2092,20 +2165,31 @@ pub fn do_math(
                                     let b = function.remove(i + 1).num()?.number;
                                     let c = function.remove(i + 1).num()?.number;
                                     let d = function.remove(i + 1).num()?.number;
-                                    Vector(cubic(a, b, c, d, false))
+                                    let n = cubic(a, b, c, d, false);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
                                 }
                                 else if i + 2 < function.len()
                                 {
                                     let b = arg.num()?.number;
                                     let c = function.remove(i + 1).num()?.number;
                                     let d = function.remove(i + 1).num()?.number;
-                                    Vector(cubic(
-                                        Complex::with_val(options.prec, 1),
-                                        b,
-                                        c,
-                                        d,
-                                        false,
-                                    ))
+                                    let n =
+                                        cubic(Complex::with_val(options.prec, 1), b, c, d, false);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
                                 }
                                 else
                                 {
@@ -2119,8 +2203,8 @@ pub fn do_math(
                                     let a = arg.num()?.number;
                                     let b = function.remove(i + 1).num()?.number;
                                     let c = function.remove(i + 1).num()?.number;
-                                    let real = !function.remove(i + 1).num()?.number.is_zero();
-                                    let n = quadratic(a, b, c, real);
+                                    function.remove(i + 1);
+                                    let n = quadratic(a, b, c, true);
                                     if n.is_empty()
                                     {
                                         Num(Number::from(
@@ -2142,18 +2226,30 @@ pub fn do_math(
                                     let a = arg.num()?.number;
                                     let b = function.remove(i + 1).num()?.number;
                                     let c = function.remove(i + 1).num()?.number;
-                                    Vector(quadratic(a, b, c, false))
+                                    let n = quadratic(a, b, c, false);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
                                 }
                                 else if i + 1 < function.len()
                                 {
                                     let b = arg.num()?.number;
                                     let c = function.remove(i + 1).num()?.number;
-                                    Vector(quadratic(
-                                        Complex::with_val(options.prec, 1),
-                                        b,
-                                        c,
-                                        false,
-                                    ))
+                                    let n =
+                                        quadratic(Complex::with_val(options.prec, 1), b, c, false);
+                                    if n.len() == 1
+                                    {
+                                        Num(n[0].clone())
+                                    }
+                                    else
+                                    {
+                                        Vector(n)
+                                    }
                                 }
                                 else
                                 {

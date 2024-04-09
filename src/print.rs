@@ -1538,7 +1538,7 @@ pub fn get_output(
     }
     else
     {
-        let re = if options.comma
+        let mut re = if options.comma
         {
             add_commas(&to_string(
                 num.real(),
@@ -1551,7 +1551,7 @@ pub fn get_output(
         {
             to_string(num.real(), options.decimal_places, false, options.base.1)
         };
-        let im = if options.comma
+        let mut im = if options.comma
         {
             add_commas(&to_string(
                 num.imag(),
@@ -1564,6 +1564,14 @@ pub fn get_output(
         {
             to_string(num.imag(), options.decimal_places, true, options.base.1)
         };
+        if re == "-0"
+        {
+            re.remove(0);
+        }
+        if im == "-0"
+        {
+            im.remove(0);
+        }
         let sign = if num.imag().is_sign_positive() && re != "0"
         {
             "+"
@@ -1651,14 +1659,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     let mut neg = if neg { "-" } else { "" };
     if exp.is_none()
     {
-        return if str == "0"
-        {
-            "0".to_string()
-        }
-        else
-        {
-            format!("{}{}", neg, str)
-        };
+        return format!("{}{}", neg, str);
     }
     let exp = exp.unwrap();
     let width = get_terminal_dimensions().0;
@@ -1680,14 +1681,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     };
     if str.len() as i32 == exp
     {
-        return if str == "0"
-        {
-            neg.to_owned() + "0"
-        }
-        else
-        {
-            format!("{}{}", neg, str)
-        };
+        return format!("{}{}", neg, str);
     }
     if exp > str.len() as i32
     {
@@ -1713,14 +1707,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     let mut r = split.next().unwrap().to_string();
     if r.is_empty()
     {
-        return if str == "0"
-        {
-            neg.to_owned() + "0"
-        }
-        else
-        {
-            format!("{}{}", neg, l)
-        };
+        return format!("{}{}", neg, l);
     }
     if r.len() > decimals
     {

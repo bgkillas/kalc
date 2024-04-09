@@ -851,6 +851,7 @@ pub fn units() -> HashSet<&'static str>
         "gal",
         "gallon",
         "floz",
+        "lbf",
     ]
     .iter()
     .cloned()
@@ -949,15 +950,15 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "mph" =>
         {
-            num *= 201168;
-            num /= 125;
-            num /= 3600;
+            num *= 1397;
+            num /= 3125;
             units.meter = 1.0;
             units.second = -1.0;
         }
         "kph" =>
         {
-            num /= 3.6;
+            num *= 5;
+            num /= 18;
             units.meter = 1.0;
         }
         "mi" | "mile" =>
@@ -997,8 +998,8 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "floz" =>
         {
-            num *= 1420653;
-            num /= 50000000000u64;
+            num *= 473176473;
+            num /= 16000000000000u64;
             units.meter = 3.0;
         }
         "gallon" | "gal" =>
@@ -1110,7 +1111,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         "psi" =>
         {
             num *= 6894757;
-            num /= 1000000;
+            num /= 1000;
             units.kilogram = 1.0;
             units.meter = -1.0;
             units.second = -2.0;
@@ -1190,10 +1191,18 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         "ly" =>
         {
             num *= 9460730472580800u128;
-            units.second = 1.0;
+            units.meter = 1.0;
         }
         "N" | "newton" =>
         {
+            units.kilogram = 1.0;
+            units.meter = 1.0;
+            units.second = -2.0;
+        }
+        "lbf" =>
+        {
+            num *= 8896443230521u64;
+            num /= 2000000000000u64;
             units.kilogram = 1.0;
             units.meter = 1.0;
             units.second = -2.0;

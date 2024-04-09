@@ -144,7 +144,6 @@ FLAGS: --help (this message)
 --prec=[num] sets the output precision(default 512)
 --graphprec=[num] sets the graph precision(default 64)
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
---def ignores config file
 --multi toggles multi line display for matrixes
 --tabbed toggles tabbed display for matrixes
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis
@@ -224,6 +223,7 @@ Functions:
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right
 - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to)
+- solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
@@ -247,6 +247,8 @@ Matrix functions:
 - max, min, mean, mode
 - iden(n) produces an n dimension identity matrix
 - rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix
+- sort(mat) sorts rows by first column
+- interpolate(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}}
 
 Constants:
@@ -333,6 +335,7 @@ the following units are supported
 "ton"
 "oz"
 "gallon" | "gal"
+"lbf"
 "floz"
 
 Digraph:

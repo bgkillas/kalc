@@ -36,7 +36,6 @@ FLAGS: --help (this message)\x1b[G\n\
 --prec=[num] sets the output precision(default 512)\x1b[G\n\
 --graphprec=[num] sets the graph precision(default 64)\x1b[G\n\
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\x1b[G\n\
---def ignores config file\x1b[G\n\
 --multi toggles multi line display for matrixes\x1b[G\n\
 --tabbed toggles tabbed display for matrixes\x1b[G\n\
 --depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\x1b[G\n\
@@ -78,7 +77,7 @@ Order of Operations:\x1b[G\n\
 - functions, !x, x!, x!!, |x|\x1b[G\n\
 - % (modulus), .. (a..b creates lists of integers from a to b)\x1b[G\n\
 - ^/** (exponentiation), // (a//b is a root b) ^^ (tetration)\x1b[G\n\
-- × internal multiplication for units and some negitive signs\x1b[G\n\
+- × internal multiplication for units and negitive signs\x1b[G\n\
 - * (multiplication), / (division)\x1b[G\n\
 - + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)\x1b[G\n\
 - to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)\x1b[G\n\
@@ -112,6 +111,7 @@ Functions:\x1b[G\n\
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
 - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to)\x1b[G\n\
+- solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\n\
 Vector operations/functions:\x1b[G\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\x1b[G\n\
 - angle({{vec1}},{{vec2}})\x1b[G\n\
@@ -133,6 +133,8 @@ Matrix operations/functions:\x1b[G\n\
 - max, min, mean, mode\x1b[G\n\
 - iden(n) produces an n dimension identity matrix\x1b[G\n\
 - rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix\x1b[G\n\
+- sort(mat) sorts rows by first column\x1b[G\n\
+- interpolate(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\x1b[G\n\n\
 Constants:\x1b[G\n\
 - c: speed of light, 299792458 m/s\x1b[G\n\
@@ -189,7 +191,7 @@ pub fn help_for(thing: &str) -> String
         example using cardinal directions: atan(-2,-3)=-2.15 E->N, atan(-3/-2)=0.98 W->S"
         }
         "->"|"to"=>"divides the left number and unit by the right unit after the '+'/'-' step of order of operations, bit more complex for fereignheit/celsius",
-        "units" => "typing a number with a unit converts the number to related base SI units for further calculations",
+        "units" => "see \"units list\" for a list of all units supported\x1b[G\nsupports metric and binary prefixes, \"units\" function extracts the units of the given input",
         "units list" =>
             all_units(),
         "help" => "W, atan\x1b[G\nunits, ->",
@@ -260,5 +262,6 @@ fn all_units() -> &'static str
 \"ton\"\x1b[G\n\
 \"oz\"\x1b[G\n\
 \"gallon\" | \"gal\"\x1b[G\n\
+\"lbf\"\x1b[G\n\
 \"floz\""
 }

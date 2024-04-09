@@ -185,7 +185,17 @@ pub fn set_commands(
                 _ => return Err("bad notation type"),
             }
         }
-        "saveto" => colors.graphtofile = r.to_string(),
+        "saveto" =>
+        {
+            if r == "null"
+            {
+                colors.graphtofile.clear()
+            }
+            else
+            {
+                colors.graphtofile = r.to_string()
+            }
+        }
         "re1col" => colors.re1col = r.to_string(),
         "im1col" => colors.im1col = r.to_string(),
         "re2col" => colors.re2col = r.to_string(),

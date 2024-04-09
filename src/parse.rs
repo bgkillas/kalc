@@ -1004,6 +1004,7 @@ pub fn input_var(
         else if matches!(
             word.as_str(),
             "∫" | "area"
+                | "solve"
                 | "length"
                 | "slope"
                 | "sum"
@@ -1020,6 +1021,7 @@ pub fn input_var(
                 | "lim"
                 | "limit"
         ) && chars.len() > i + countv + 1
+            && var_overrule
         {
             let mut place = 0;
             let mut count2 = 0;

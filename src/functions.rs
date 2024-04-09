@@ -210,6 +210,9 @@ pub fn functions() -> HashSet<&'static str>
         "iden",
         "identity",
         "quartic",
+        "solve",
+        "inter",
+        "interpolate",
     ]
     .iter()
     .cloned()

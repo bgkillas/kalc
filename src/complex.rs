@@ -489,9 +489,8 @@ pub fn root(a: &Number, b: &Number) -> Number
                 && b.real().clone().fract().is_zero()
                 && a.imag().is_zero()
             {
-                true => (a.real() / a.real().clone().abs()
-                    * a.real().clone().abs().pow(b.real().clone().recip()))
-                .into(),
+                true if a.real().is_sign_positive() => a.pow(b.real().clone().recip()),
+                true => -(-a).pow(b.real().clone().recip()),
                 false => a.pow(b.clone().recip()),
             }
         },
@@ -1705,34 +1704,36 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
     let b = b / a.clone();
     let c = c / a.clone();
     let d = d / a.clone();
-    let threesqrt = Float::with_val(prec.0, 3).sqrt();
-    let cbrtwo = Float::with_val(prec.0, 2).pow(threerecip.clone());
-    let mut reuse: Complex = ((4 * b.clone().pow(3) * d.clone())
-        - (b.clone().pow(2) * c.clone().pow(2))
-        - (18 * b.clone() * c.clone() * d.clone())
-        + (4 * c.clone().pow(3))
-        + (27 * d.clone().pow(2)))
-        * 27;
-    reuse = (-2 * b.clone().pow(3)) + reuse.sqrt() + (9 * b.clone() * c.clone()) - (27 * d.clone());
-    reuse = reuse.pow(threerecip.clone());
-    let left: Complex = reuse.clone() / cbrtwo.clone();
-    let n: Complex = 3 * c.clone() - b.clone().pow(2);
-    let right: Complex = if n.is_zero()
+    // https://math.vanderbilt.edu/schectex/courses/cubic/
+    let p: Complex = -b.clone() / 3;
+    let q: Complex = p.clone().pow(3) + b.clone() * c.clone() / 6 - d.clone() / 2;
+    let r: Complex = c.clone() / 3;
+    let n: Complex = r.clone() - p.clone().pow(2);
+    let n: Complex = q.clone().pow(2) + n.clone().pow(3);
+    let n: Complex = n.sqrt();
+    let left = q.clone() + n.clone();
+    let left = if left.imag().is_zero() && left.real().is_sign_negative()
     {
-        Complex::new(prec)
+        -(-left).pow(threerecip.clone())
     }
     else
     {
-        cbrtwo * n / reuse.clone()
+        left.pow(threerecip.clone())
     };
-    //(-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)/(3 2^(1/3)) - (2^(1/3) (3 c - b^2))/(3 (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
-    //-((1 - i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 + i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
-    //-((1 + i sqrt(3)) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3))/(6 2^(1/3)) + ((1 - i sqrt(3)) (3 c - b^2))/(3 2^(2/3) (-2 b^3 + 3 sqrt(3) sqrt(4 b^3 d - b^2 c^2 - 18 b c d + 4 c^3 + 27 d^2) + 9 b c - 27 d)^(1/3)) - b/3
-    let omega: Complex = Complex::with_val(prec, (0.5, threesqrt / 2));
-    let mut z1: Complex = (left.clone() - right.clone() - b.clone()) / 3;
+    let right = q.clone() - n.clone();
+    let right = if right.imag().is_zero() && right.real().is_sign_negative()
+    {
+        -(-right).pow(threerecip.clone())
+    }
+    else
+    {
+        right.pow(threerecip.clone())
+    };
+    let omega: Complex = Complex::with_val(prec, (-0.5, -Float::with_val(prec.0, 3).sqrt() / 2));
+    let mut z1: Complex = left.clone() + right.clone() + p.clone();
     let mut z2: Complex =
-        ((-omega.clone() * left.clone()) + (omega.clone().conj() * right.clone()) - b.clone()) / 3;
-    let mut z3: Complex = ((-omega.clone().conj() * left) + (omega * right) - b.clone()) / 3;
+        left.clone() * omega.clone() + right.clone() * omega.clone().conj() + p.clone();
+    let mut z3: Complex = left * omega.clone().conj() + right * omega + p;
     if -z1.imag().clone().abs().log10() > a.prec().0 / 4
     {
         z1 = z1.real().clone().into();

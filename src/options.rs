@@ -69,7 +69,7 @@ pub fn arg_opts(
                 args.remove(0);
                 break;
             }
-            _ if !args[0].starts_with('-') =>
+            _ if !args[0].starts_with("--") =>
             {
                 break;
             }

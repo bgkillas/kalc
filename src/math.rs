@@ -3116,22 +3116,20 @@ fn functions(
                     {
                         Complex::new(options.prec)
                     }
+                    else if a.number.real().is_sign_positive()
+                    {
+                        a.number.pow(Float::with_val(options.prec, 3).recip())
+                    }
                     else
                     {
-                        (a.number.real() / a.number.real().clone().abs()
-                            * a.number
-                                .real()
-                                .clone()
-                                .abs()
-                                .pow(Float::with_val(a.number.prec().0, 3).recip()))
-                        .into()
+                        -(-a.number).pow(Float::with_val(options.prec, 3).recip())
                     }
                 }
                 else
                 {
                     a.number
                         .clone()
-                        .pow(Float::with_val(a.number.prec().0, 3).recip())
+                        .pow(Float::with_val(options.prec, 3).recip())
                 },
                 a.units.map(|a| a.root(3.0)),
             ),

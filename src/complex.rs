@@ -2254,7 +2254,7 @@ pub fn eta(s: Complex) -> Complex
     let prec = s.prec().0;
     let mut sum = Complex::new(prec);
     let two = Complex::with_val(prec, 2);
-    for n in 0..=prec / 16
+    for n in 0..=(prec / 16).max(16)
     {
         let mut innersum = Complex::new(prec);
         let nb = Integer::from(n);
@@ -2372,7 +2372,7 @@ fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -
 }
 pub fn subfactorial(z: Complex) -> Complex
 {
-    subfactorial_recursion(z.clone(), 0, z.prec().0 as usize / 4)
+    subfactorial_recursion(z.clone(), 0, (z.prec().0 as usize / 4).max(32))
         + gamma(z.clone() + 1) / Float::with_val(z.prec().0, 1).exp()
 }
 fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
@@ -4416,7 +4416,7 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
         }
     }
     let mut w = initpoint(z.clone(), k);
-    for _ in 0..(z.prec().0 / 64).max(5)
+    for _ in 0..(z.prec().0 / 64).max(8)
     {
         let zexp = w.clone().exp();
         let zexpz = w.clone() * zexp.clone();
@@ -4429,11 +4429,10 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
 }
 fn initpoint(z: Complex, k: isize) -> Complex
 {
-    let pi = Float::with_val(z.prec().0, Pi);
-    let e = Float::with_val(z.prec().0, 1).exp();
     {
+        let e = Float::with_val(z.prec().0, 1).exp();
         let test: Complex = z.clone() + e.clone().recip();
-        if test.abs().real() <= &1.0001
+        if test.abs().real() <= &1.005
         {
             let p1: Complex = 2 * e * z.clone() + 2;
             let p = p1.clone().sqrt();
@@ -4449,7 +4448,7 @@ fn initpoint(z: Complex, k: isize) -> Complex
     }
     {
         let test: Complex = z.clone() - 0.5;
-        if test.abs().real() <= &0.5001
+        if test.abs().real() <= &0.5005
         {
             if k == 0
             {
@@ -4466,7 +4465,7 @@ fn initpoint(z: Complex, k: isize) -> Complex
             }
         }
     }
-    let two_pi_k_i = Complex::with_val(z.prec(), (0, 2 * pi * k));
+    let two_pi_k_i = Complex::with_val(z.prec(), (0, 2 * Float::with_val(z.prec().0, Pi) * k));
     let zln = z.clone().ln() + two_pi_k_i;
     zln.clone() - zln.ln()
 }

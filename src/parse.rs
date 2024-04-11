@@ -71,7 +71,7 @@ pub fn input_var(
     {
         if chars[i].is_whitespace()
         {
-            if chars.len() - 1 == i
+            if chars.len().saturating_sub(1) == i
             {
                 chars.remove(i);
             }
@@ -789,9 +789,11 @@ pub fn input_var(
                             {
                                 output.pop();
                                 output.push(Num(Number::from(-a.clone(), None)));
-                                output
-                                    .insert(output.len() - 1, Num(Number::from(n1.clone(), None)));
-                                output.insert(output.len() - 1, Str("×".to_string()));
+                                output.insert(
+                                    output.len().saturating_sub(1),
+                                    Num(Number::from(n1.clone(), None)),
+                                );
+                                output.insert(output.len().saturating_sub(1), Str("×".to_string()));
                             }
                         }
                         if output.clone().last().unwrap().str_is(")")
@@ -854,21 +856,24 @@ pub fn input_var(
                                 }
                             }
                         }
-                        output.insert(output.len() - 1, Str("(".to_string()));
+                        output.insert(output.len().saturating_sub(1), Str("(".to_string()));
                         if i + 1 != chars.len() && chars[i + 1] == '!'
                         {
                             i += 1;
-                            output.insert(output.len() - 1, Str("doublefact".to_string()));
+                            output.insert(
+                                output.len().saturating_sub(1),
+                                Str("doublefact".to_string()),
+                            );
                         }
                         else
                         {
-                            output.insert(output.len() - 1, Str("fact".to_string()));
+                            output.insert(output.len().saturating_sub(1), Str("fact".to_string()));
                         }
-                        output.insert(output.len() - 1, Str("(".to_string()));
+                        output.insert(output.len().saturating_sub(1), Str("(".to_string()));
                         output.push(Str(")".to_string()));
                         output.push(Str(")".to_string()));
                     }
-                    else if i != chars.len() - 1
+                    else if i != chars.len().saturating_sub(1)
                         && (chars[i + 1].is_alphanumeric()
                             || matches!(chars[i + 1], '(' | '{' | '|' | '-' | '!'))
                     {
@@ -1122,7 +1127,7 @@ pub fn input_var(
             !vars.iter().any(|a| {
                 a.name.iter().collect::<String>().starts_with(&word)
                     && (a.name.len() == word.chars().count()
-                        || (i + (a.name.len() - 1) < chars.len()
+                        || (i + (a.name.len().saturating_sub(1)) < chars.len()
                             && chars[i..i + a.name.len()] == a.name))
             })
         };
@@ -1429,7 +1434,7 @@ pub fn input_var(
                         }
                         if i == j
                         {
-                            i = chars.len() - 1
+                            i = chars.len().saturating_sub(1)
                         }
                         if blacklist == var.name && piecewise == 0
                         {
@@ -1503,7 +1508,7 @@ pub fn input_var(
                             let mut temp = &chars[j + countj + 1..i + 1];
                             if temp.ends_with(&[')'])
                             {
-                                temp = &temp[..temp.len() - 1];
+                                temp = &temp[..temp.len().saturating_sub(1)];
                             }
                             let mut commas = Vec::new();
                             count = 0;
@@ -1793,10 +1798,10 @@ pub fn input_var(
                             let mut temp = &chars[j + countj + 1..i + 1];
                             if temp.ends_with(&[')'])
                             {
-                                temp = &temp[..temp.len() - 1];
+                                temp = &temp[..temp.len().saturating_sub(1)];
                             }
                             let l = var.name[var.name.iter().position(|c| c == &'(').unwrap() + 1
-                                ..var.name.len() - 1]
+                                ..var.name.len().saturating_sub(1)]
                                 .iter()
                                 .collect::<String>();
                             let mut parsed = var.parsed.clone();
@@ -2156,7 +2161,7 @@ pub fn input_var(
                         {
                             if last.num().is_ok() || last.str_is("x") || last.str_is("y")
                             {
-                                output.insert(output.len() - 1, Str("(".to_string()));
+                                output.insert(output.len().saturating_sub(1), Str("(".to_string()));
                                 if i + 1 != chars.len()
                                     && (matches!(chars[i + 1], '-' | '+' | 'x' | 'y' | 'z' | 'i')
                                         || is_digit(chars[i + 1], options.base.0))
@@ -2377,7 +2382,7 @@ pub fn input_var(
                     count -= 1;
                     if let Some(k) = brackets.last()
                     {
-                        if k.0 == 0 && i == output.len() - 1
+                        if k.0 == 0 && i == output.len().saturating_sub(1)
                         {
                             output.pop();
                             output.remove(0);

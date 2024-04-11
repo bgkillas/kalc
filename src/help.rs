@@ -97,6 +97,7 @@ Functions:\x1b[G\n\
 - sinc, cis, exp\x1b[G\n\
 - zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\
 - re, im, split(x+yi), next(n,to)\x1b[G\n\
+- unity(n,k) gets all roots of unity for k^(1/n)\x1b[G\n\
 - factors, prime, isprime, gcd, lcm\x1b[G\n\
 - slog(a,b), ssrt(k,a) (k is lambert w branch)\x1b[G\n\
 - piecewise/pw({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\x1b[G\n\
@@ -242,6 +243,8 @@ fn all_units() -> &'static str
 \"N\" | \"newton\"\x1b[G\n\
 \"C\" | \"coulomb\"\x1b[G\n\
 \"°\" | \"deg\" | \"degrees\"\x1b[G\n\
+\"arcsec\"\x1b[G\n\
+\"arcmin\"\x1b[G\n\
 \"rad\" | \"radians\"\x1b[G\n\
 \"grad\" | \"gradians\"\x1b[G\n\
 \"lumen\" | \"lm\"\x1b[G\n\
@@ -263,5 +266,7 @@ fn all_units() -> &'static str
 \"oz\"\x1b[G\n\
 \"gallon\" | \"gal\"\x1b[G\n\
 \"lbf\"\x1b[G\n\
+\"parsec\" | \"pc\"\x1b[G\n\
+\"au\"\x1b[G\n\
 \"floz\""
 }

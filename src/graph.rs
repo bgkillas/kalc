@@ -1102,7 +1102,10 @@ pub fn get_list_2d(
     let list = func.0.iter().any(|c| {
         if let Str(s) = c
         {
-            matches!(s.as_str(), "±" | "cubic" | "quadratic" | "quartic")
+            matches!(
+                s.as_str(),
+                "±" | "cubic" | "quadratic" | "quartic" | "unity"
+            )
         }
         else
         {
@@ -1112,7 +1115,10 @@ pub fn get_list_2d(
         c.1.iter().any(|c| {
             if let Str(s) = c
             {
-                matches!(s.as_str(), "±" | "cubic" | "quadratic" | "quartic")
+                matches!(
+                    s.as_str(),
+                    "±" | "cubic" | "quadratic" | "quartic" | "unity"
+                )
             }
             else
             {
@@ -1401,7 +1407,10 @@ pub fn get_list_3d(
     let list = func.0.iter().any(|c| {
         if let Str(s) = c
         {
-            matches!(s.as_str(), "±" | "cubic" | "quadratic" | "quartic")
+            matches!(
+                s.as_str(),
+                "±" | "cubic" | "quadratic" | "quartic" | "unity"
+            )
         }
         else
         {
@@ -1411,7 +1420,10 @@ pub fn get_list_3d(
         c.1.iter().any(|c| {
             if let Str(s) = c
             {
-                matches!(s.as_str(), "±" | "cubic" | "quadratic" | "quartic")
+                matches!(
+                    s.as_str(),
+                    "±" | "cubic" | "quadratic" | "quartic" | "unity"
+                )
             }
             else
             {

@@ -650,7 +650,7 @@ pub fn parsed_to_string(
                             if options.color { "\x1b[0m" } else { "" }
                         ));
                     }
-                    str.insert(str.len() - 1, '}');
+                    str.insert(str.len().saturating_sub(1), '}');
                 }
                 str.pop();
                 format!("{{{}}}", str)

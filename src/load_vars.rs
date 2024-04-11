@@ -834,7 +834,7 @@ pub fn add_var(
                 let check = &redef[k][0..=redef[k]
                     .iter()
                     .position(|a| a == &'(')
-                    .unwrap_or(redef[k].len() - 1)]
+                    .unwrap_or(redef[k].len().saturating_sub(1))]
                     .iter()
                     .collect::<String>();
                 if redef[k] != v.name && v.unparsed.contains(check)

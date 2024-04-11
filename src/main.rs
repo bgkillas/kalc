@@ -12,6 +12,7 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
+//fix cubic(i,1,1,1)
 use crate::{
     complex::NumStr,
     graph::graph,
@@ -1442,7 +1443,7 @@ fn main()
                             }
                             if hit
                             {
-                                placement = input.len() - 1;
+                                placement = input.len().saturating_sub(1);
                             }
                             if placement >= end
                             {

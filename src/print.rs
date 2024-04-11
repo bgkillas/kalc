@@ -104,7 +104,7 @@ pub fn print_concurrent(
                 options,
                 &colors,
                 &vars,
-                &tempinput[..tempinput.len() - 1],
+                &tempinput[..tempinput.len().saturating_sub(1)],
                 &last.iter().collect::<String>(),
             );
             return if !out.is_empty()
@@ -404,7 +404,7 @@ pub fn print_concurrent(
                     }
                     else
                     {
-                        (i.len() - 1) / width + 1
+                        (i.len().saturating_sub(1)) / width + 1
                     }
                 })
                 .sum();
@@ -852,7 +852,7 @@ pub fn print_concurrent(
                     output += "\x1b[0m";
                     frac_out += "\x1b[0m";
                 }
-                if k == v.len() - 1
+                if k == v.len().saturating_sub(1)
                 {
                     output += if options.polar { "]" } else { "}" };
                     frac_out += if options.polar { "]" } else { "}" };
@@ -1017,7 +1017,7 @@ pub fn print_concurrent(
                         output += "\x1b[0m";
                         frac_out += "\x1b[0m";
                     }
-                    if k == j.len() - 1
+                    if k == j.len().saturating_sub(1)
                     {
                         if !options.multi
                         {
@@ -1036,7 +1036,7 @@ pub fn print_concurrent(
                         frac_out += ",";
                     }
                 }
-                if l != v.len() - 1
+                if l != v.len().saturating_sub(1)
                 {
                     if options.multi
                     {
@@ -1057,7 +1057,7 @@ pub fn print_concurrent(
                 frac_out += "}";
             }
             let (width, height) = get_terminal_dimensions();
-            let length = no_col(&output, options.color).len() - 1;
+            let length = no_col(&output, options.color).len().saturating_sub(1);
             if frac_out != output
             {
                 frac = 1;
@@ -1223,7 +1223,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 {
                     output += "\x1b[0m";
                 }
-                output += if k == v.len() - 1
+                output += if k == v.len().saturating_sub(1)
                 {
                     if options.polar
                     {
@@ -1268,7 +1268,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                     {
                         output += "\x1b[0m";
                     }
-                    if k == j.len() - 1
+                    if k == j.len().saturating_sub(1)
                     {
                         if !options.multi
                         {
@@ -1284,7 +1284,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                         output += ",";
                     }
                 }
-                if l != v.len() - 1
+                if l != v.len().saturating_sub(1)
                 {
                     if options.multi
                     {
@@ -1928,7 +1928,14 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             sign + num.trim_end_matches('0').trim_end_matches('.')
                 + "e"
                 + &(input[pos + 1..].parse::<isize>().unwrap()
-                    + if num.len() - 1 > dec { 1 } else { 0 })
+                    + if num.len().saturating_sub(1) > dec
+                    {
+                        1
+                    }
+                    else
+                    {
+                        0
+                    })
                 .to_string()
         }
     }

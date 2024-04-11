@@ -209,6 +209,7 @@ Functions:
 - sinc, cis, exp
 - zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
 - re, im, split(x+yi), next(n,to)
+- unity(n,k) gets all roots of unity for k^(1/n)
 - factors, prime, isprime, gcd, lcm
 - slog(a,b), ssrt(k,a) (k is lambert w branch)
 - piecewise/pw({value,cond},{value2,cond2}...) (when first condition is met from left to right. value elsewards is nan)
@@ -315,6 +316,8 @@ the following units are supported
 "N" | "newton"
 "C" | "coulomb"
 "°" | "deg" | "degrees"
+"arcsec"
+"arcmin"
 "rad" | "radians"
 "grad" | "gradians"
 "lumen" | "lm"
@@ -336,6 +339,8 @@ the following units are supported
 "oz"
 "gallon" | "gal"
 "lbf"
+"parsec" | "pc"
+"au"
 "floz"
 
 Digraph:

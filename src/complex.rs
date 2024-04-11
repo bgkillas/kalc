@@ -1919,7 +1919,7 @@ pub fn variance(a: &[Number], prec: u32) -> Number
     {
         variance += (a.number.clone() - mean.clone()).pow(2)
     }
-    Number::from(variance / (a.len() - 1), None)
+    Number::from(variance / (a.len().saturating_sub(1)), None)
 }
 pub fn recursion(
     mut func_vars: Vec<(String, Vec<NumStr>)>,
@@ -1936,8 +1936,8 @@ pub fn recursion(
                 let mut vars = fv.0.split(',').collect::<Vec<&str>>();
                 vars[0] = vars[0].split('(').last().unwrap();
                 {
-                    let vl = vars.len() - 1;
-                    vars[vl] = &vars[vl][0..vars[vl].len() - 1];
+                    let vl = vars.len().saturating_sub(1);
+                    vars[vl] = &vars[vl][0..vars[vl].len().saturating_sub(1)];
                 }
                 let mut x = func.len();
                 while x > 0
@@ -2050,7 +2050,7 @@ pub fn recursion(
             else
             {
                 let var = fv.0.split('(').last().unwrap();
-                let var = &var[0..var.len() - 1];
+                let var = &var[0..var.len().saturating_sub(1)];
                 let mut x = func.len();
                 while x > 0
                 {
@@ -2518,7 +2518,7 @@ pub fn area(
         }
         if last != 1
         {
-            func = func[last..func.len() - 1].to_vec();
+            func = func[last..func.len().saturating_sub(1)].to_vec();
         }
     }
     let mut areavec: Vec<Number> = Vec::new();
@@ -3247,7 +3247,7 @@ pub fn slopesided(
             {
                 let nf = &sum.last().unwrap().number;
                 Ok(Vector(
-                    sum[0..sum.len() - 1]
+                    sum[0..sum.len().saturating_sub(1)]
                         .iter()
                         .map(|n| {
                             Number::from(

@@ -576,7 +576,7 @@ pub fn is_unit(unit: &mut String) -> bool
 {
     units().contains(unit.as_str())
         || (unit.len() > 2 && unit.ends_with('s') && {
-            let is_true = units().contains(&unit[..unit.len() - 1]);
+            let is_true = units().contains(&unit[..unit.len().saturating_sub(1)]);
             is_true && {
                 unit.pop();
                 true

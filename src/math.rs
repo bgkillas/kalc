@@ -396,7 +396,7 @@ pub fn do_math(
         Radians => Complex::with_val(options.prec, 1),
         Gradians => 200 / Complex::with_val(options.prec, Pi),
     };
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i].clone()
         {
@@ -642,7 +642,8 @@ pub fn do_math(
                         {
                             let mut ans = None;
                             let mut start = i + 3;
-                            for (i, end) in place[0..place.len() - 1].iter().enumerate()
+                            for (i, end) in
+                                place[0..place.len().saturating_sub(1)].iter().enumerate()
                             {
                                 if i % 2 == 0
                                     && do_math(
@@ -1231,7 +1232,10 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current)
                                     }
-                                    current.splice(0..0, vec![Integer::new(); faces.len() - 1]);
+                                    current.splice(
+                                        0..0,
+                                        vec![Integer::new(); faces.len().saturating_sub(1)],
+                                    );
                                     Vector(
                                         current
                                             .iter()
@@ -1341,7 +1345,10 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current);
                                     }
-                                    current.splice(0..0, vec![Integer::new(); a.len() - 1]);
+                                    current.splice(
+                                        0..0,
+                                        vec![Integer::new(); a.len().saturating_sub(1)],
+                                    );
                                     Vector(
                                         current
                                             .iter()
@@ -1383,7 +1390,9 @@ pub fn do_math(
                                         Number::from(
                                             if a.len() % 2 == 0
                                             {
-                                                (half1[half1.len() - 1].number.clone()
+                                                (half1[half1.len().saturating_sub(1)]
+                                                    .number
+                                                    .clone()
                                                     + half2[0].number.clone())
                                                     / 2
                                             }
@@ -1408,7 +1417,9 @@ pub fn do_math(
                                         Number::from(
                                             if a.len() % 2 == 0
                                             {
-                                                (half1[half1.len() - 1].number.clone()
+                                                (half1[half1.len().saturating_sub(1)]
+                                                    .number
+                                                    .clone()
                                                     + half2[0].number.clone())
                                                     / 2
                                             }
@@ -2376,8 +2387,17 @@ pub fn do_math(
                                 {
                                     taui.clone() / 2
                                 };
-                                let n = x.real().to_f64() as isize / 2;
-                                for k in -n..n
+                                let u = x.real().to_f64().abs() as usize;
+                                let n = u.div_ceil(2) as isize;
+                                for k in if !y.imag().is_zero() { -n } else { -n + 1 }
+                                    ..if !x.real().clone().fract().is_zero() || u % 2 == 0
+                                    {
+                                        n.max(1)
+                                    }
+                                    else
+                                    {
+                                        n - 1
+                                    }
                                 {
                                     let r: Complex = (y.clone() + k * taui.clone()) / x.clone();
                                     vec.push(Number::from(r.exp(), None))
@@ -2430,7 +2450,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i]
         {
@@ -2478,7 +2498,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i]
         {
@@ -2500,7 +2520,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i]
         {
@@ -2523,7 +2543,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i]
         {
@@ -2549,7 +2569,7 @@ pub fn do_math(
     if options.units
     {
         i = 1;
-        while i < function.len() - 1
+        while i < function.len().saturating_sub(1)
         {
             if let Str(s) = &function[i]
             {
@@ -2572,7 +2592,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i]
         {
@@ -2691,7 +2711,7 @@ pub fn do_math(
         }
     }
     i = 1;
-    while i < function.len() - 1
+    while i < function.len().saturating_sub(1)
     {
         if let Str(s) = &function[i]
         {

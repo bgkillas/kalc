@@ -984,6 +984,7 @@ pub fn input_var(
                 && !word.ends_with("lux"))
                 || (word.ends_with('y')
                     && word != "any"
+                    && word != "unity"
                     && !word.ends_with("day")
                     && !word.ends_with("ly")
                     && !word.ends_with("henry")

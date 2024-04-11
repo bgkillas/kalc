@@ -852,6 +852,11 @@ pub fn units() -> HashSet<&'static str>
         "gallon",
         "floz",
         "lbf",
+        "parsec",
+        "pc",
+        "au",
+        "arcsec",
+        "arcmin",
     ]
     .iter()
     .cloned()
@@ -972,6 +977,17 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             num *= 1143;
             num /= 1250;
             units.meter = 1.0;
+        }
+        "parsec" | "pc" =>
+        {
+            units.meter = 1.0;
+            num *= 648000 / Complex::with_val(options.prec, Pi);
+            num *= 149597870700u64;
+        }
+        "au" =>
+        {
+            units.meter = 1.0;
+            num *= 149597870700u64;
         }
         "ft" | "foot" | "feet" =>
         {
@@ -1211,6 +1227,50 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             units.ampere = 1.0;
             units.second = 1.0;
+        }
+        "arcmin" =>
+        {
+            match options.angle
+            {
+                AngleType::Degrees =>
+                {
+                    num /= 60;
+                }
+                AngleType::Gradians =>
+                {
+                    num *= 200;
+                    num /= 180;
+                    num /= 60;
+                }
+                AngleType::Radians =>
+                {
+                    num *= Complex::with_val(options.prec, Pi) / 180;
+                    num /= 60;
+                }
+            };
+            units.angle = 1.0;
+        }
+        "arcsec" =>
+        {
+            match options.angle
+            {
+                AngleType::Degrees =>
+                {
+                    num /= 3600;
+                }
+                AngleType::Gradians =>
+                {
+                    num *= 200;
+                    num /= 180;
+                    num /= 3600;
+                }
+                AngleType::Radians =>
+                {
+                    num *= Complex::with_val(options.prec, Pi) / 180;
+                    num /= 3600;
+                }
+            };
+            units.angle = 1.0;
         }
         "°" | "deg" | "degree" =>
         {

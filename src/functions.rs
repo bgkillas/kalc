@@ -213,6 +213,7 @@ pub fn functions() -> HashSet<&'static str>
         "solve",
         "inter",
         "interpolate",
+        "unity",
     ]
     .iter()
     .cloned()

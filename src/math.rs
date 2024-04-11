@@ -219,6 +219,7 @@ pub fn do_math(
                                     | "lcm"
                                     | "ssrt"
                                     | "W"
+                                    | "unity"
                                     | "productlog"
                                     | "lambertw"
                                     | "slog"
@@ -2360,6 +2361,28 @@ pub fn do_math(
                                 {
                                     Num(Number::from(Complex::with_val(options.prec, Nan), None))
                                 }
+                            }
+                            "unity" =>
+                            {
+                                //exp((ln(y)+k tau i)/x)
+                                let x = arg.num()?.number;
+                                let mut vec: Vec<Number> = Vec::new();
+                                let taui: Complex = 2 * Complex::with_val(options.prec, (0, Pi));
+                                let y = if i + 1 < function.len()
+                                {
+                                    function.remove(i + 1).num()?.number.ln()
+                                }
+                                else
+                                {
+                                    taui.clone() / 2
+                                };
+                                let n = x.real().to_f64() as isize / 2;
+                                for k in -n..n
+                                {
+                                    let r: Complex = (y.clone() + k * taui.clone()) / x.clone();
+                                    vec.push(Number::from(r.exp(), None))
+                                }
+                                Vector(vec)
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },

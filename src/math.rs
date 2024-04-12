@@ -2375,18 +2375,17 @@ pub fn do_math(
                             }
                             "unity" =>
                             {
-                                //exp((ln(y)+k tau i)/x)
                                 let vec = if i + 1 < function.len()
                                     && !matches!(&function[i + 1], Str(_))
                                 {
                                     unity(
-                                        function.remove(i + 1).num()?.number,
                                         arg.num()?.number.ln(),
+                                        function.remove(i + 1).num()?.number,
                                     )
                                 }
                                 else
                                 {
-                                    unity(arg.num()?.number, Complex::new(options.prec))
+                                    unity(Complex::new(options.prec), arg.num()?.number)
                                 };
                                 if vec.is_empty()
                                 {

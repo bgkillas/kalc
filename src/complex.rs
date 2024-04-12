@@ -501,14 +501,19 @@ pub fn root(a: &Number, b: &Number) -> Number
         },
     )
 }
-pub fn unity(x: Complex, y: Complex) -> Vec<Number>
+pub fn unity(y: Complex, x: Complex) -> Vec<Number>
 {
+    if x.real().is_zero()
+    {
+        return Vec::new();
+    }
     let mut vec: Vec<Number> = Vec::new();
     let taui: Complex = 2 * Complex::with_val(x.prec(), (0, Pi));
-    let n: Float = x.real().clone() / 2;
-    let r = y.imag() / taui.imag().clone();
-    let left = -r.clone() - n.clone();
-    let right = -r + n;
+    let r: Float = x.imag().clone().pow(2) / 2;
+    let r: Float = x.real().clone() / 2 + r / x.real().clone();
+    let n = y.imag() / taui.imag().clone();
+    let left: Float = -r.clone() - n.clone();
+    let right: Float = r - n;
     for k in if left < right
     {
         left.clone().trunc().to_f64() as isize
@@ -536,14 +541,7 @@ pub fn unity(x: Complex, y: Complex) -> Vec<Number>
     {
         let r: Complex = (y.clone() + k * taui.clone()) / x.clone();
         let r: Complex = r.exp();
-        if -r.imag().clone().abs().log10() > x.prec().0 / 4
-        {
-            vec.push(Number::from(r.real().clone().into(), None))
-        }
-        else
-        {
-            vec.push(Number::from(r, None))
-        }
+        vec.push(Number::from(r, None))
     }
     vec
 }

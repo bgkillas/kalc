@@ -506,7 +506,7 @@ pub fn do_math(
                                 .num()?,
                                 if place.len() == 4
                                 {
-                                    match (do_math(
+                                    match do_math(
                                         function[place[2] + 1..place[3]].to_vec(),
                                         options,
                                         func_vars.clone(),
@@ -514,12 +514,11 @@ pub fn do_math(
                                     .num()?
                                     .number
                                     .real()
-                                    .to_f64() as isize)
-                                        .cmp(&0)
+                                    .cmp0()
                                     {
-                                        Ordering::Less => Left,
-                                        Ordering::Greater => Right,
-                                        Ordering::Equal => Both,
+                                        Some(Ordering::Less) => Left,
+                                        Some(Ordering::Greater) => Right,
+                                        _ => Both,
                                     }
                                 }
                                 else
@@ -607,7 +606,10 @@ pub fn do_math(
                                     .num()?
                                     .number
                                     .real()
-                                    .to_f64() as u32
+                                    .to_integer()
+                                    .unwrap_or_default()
+                                    .to_u32()
+                                    .unwrap_or_default()
                                 }
                                 else
                                 {
@@ -615,7 +617,7 @@ pub fn do_math(
                                 },
                                 if place.len() >= 4
                                 {
-                                    match (do_math(
+                                    match do_math(
                                         function[place[2] + 1..place[3]].to_vec(),
                                         options,
                                         func_vars.clone(),
@@ -623,12 +625,11 @@ pub fn do_math(
                                     .num()?
                                     .number
                                     .real()
-                                    .to_f64() as isize)
-                                        .cmp(&0)
+                                    .cmp0()
                                     {
-                                        Ordering::Less => Left,
-                                        Ordering::Greater => Right,
-                                        Ordering::Equal => Both,
+                                        Some(Ordering::Less) => Left,
+                                        Some(Ordering::Greater) => Right,
+                                        _ => Both,
                                     }
                                 }
                                 else
@@ -706,8 +707,18 @@ pub fn do_math(
                             {
                                 return Err("fractional start/end");
                             }
-                            let start = start.real().to_f64() as isize;
-                            let end = end.real().to_f64() as isize;
+                            let start = start
+                                .real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_isize()
+                                .unwrap_or_default();
+                            let end = end
+                                .real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_isize()
+                                .unwrap_or_default();
                             function[i] = match s.as_str()
                             {
                                 "vec" | "mat" => mvec(
@@ -896,8 +907,20 @@ pub fn do_math(
                                         {
                                             let b = b.number;
                                             let c = c.number;
-                                            let n1 = b.clone().real().to_f64() as usize;
-                                            let n2 = c.clone().real().to_f64() as usize;
+                                            let n1 = b
+                                                .clone()
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
+                                            let n2 = c
+                                                .clone()
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
                                             if n1 <= a.len()
                                                 && n1 != 0
                                                 && n2 <= a[0].len()
@@ -913,11 +936,24 @@ pub fn do_math(
                                         (Vector(b), Num(c)) | (Num(c), Vector(b)) =>
                                         {
                                             let c = c.number;
-                                            let n2 = c.clone().real().to_f64() as usize;
+                                            let n2 = c
+                                                .clone()
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
                                             let mut vec = Vec::new();
                                             for n in b
                                             {
-                                                let n1 = n.number.clone().real().to_f64() as usize;
+                                                let n1 = n
+                                                    .number
+                                                    .clone()
+                                                    .real()
+                                                    .to_integer()
+                                                    .unwrap_or_default()
+                                                    .to_usize()
+                                                    .unwrap_or_default();
                                                 if n1 <= a.len()
                                                     && n1 != 0
                                                     && n2 <= a[0].len()
@@ -938,11 +974,24 @@ pub fn do_math(
                                             for g in b
                                             {
                                                 let mut vec = Vec::new();
-                                                let n1 = g.number.clone().real().to_f64() as usize;
+                                                let n1 = g
+                                                    .number
+                                                    .clone()
+                                                    .real()
+                                                    .to_integer()
+                                                    .unwrap_or_default()
+                                                    .to_usize()
+                                                    .unwrap_or_default();
                                                 for n in c.clone()
                                                 {
-                                                    let n2 =
-                                                        n.number.clone().real().to_f64() as usize;
+                                                    let n2 = n
+                                                        .number
+                                                        .clone()
+                                                        .real()
+                                                        .to_integer()
+                                                        .unwrap_or_default()
+                                                        .to_usize()
+                                                        .unwrap_or_default();
                                                     if n1 <= a.len()
                                                         && n1 != 0
                                                         && n2 <= a[0].len()
@@ -969,7 +1018,13 @@ pub fn do_math(
                                         Num(b) =>
                                         {
                                             let b = b.number;
-                                            let n = b.clone().real().to_f64() as usize;
+                                            let n = b
+                                                .clone()
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
                                             if n <= a.len() && n != 0
                                             {
                                                 Vector(a[n - 1].clone())
@@ -984,7 +1039,14 @@ pub fn do_math(
                                             let mut vec = Vec::new();
                                             for i in b
                                             {
-                                                let n = i.number.clone().real().to_f64() as usize;
+                                                let n = i
+                                                    .number
+                                                    .clone()
+                                                    .real()
+                                                    .to_integer()
+                                                    .unwrap_or_default()
+                                                    .to_usize()
+                                                    .unwrap_or_default();
                                                 if n <= a.len() && n != 0
                                                 {
                                                     vec.push(a[n - 1].clone());
@@ -1128,7 +1190,13 @@ pub fn do_math(
                                     {
                                         return Err("bad list");
                                     }
-                                    for _ in 0..a[1].number.real().to_f64() as usize
+                                    for _ in 0..a[1]
+                                        .number
+                                        .real()
+                                        .to_integer()
+                                        .unwrap_or_default()
+                                        .to_usize()
+                                        .unwrap_or_default()
                                     {
                                         vec.push(a[0].clone())
                                     }

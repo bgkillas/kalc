@@ -15,7 +15,7 @@ use crossterm::{
     execute, terminal,
     terminal::{Clear, ClearType},
 };
-use rug::Complex;
+use rug::{Complex, Float};
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
@@ -259,7 +259,7 @@ pub fn set_commands(
         | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr"
         | "vyr" | "vzr" | "2d" | "3d" =>
         {
-            let mut args: Vec<f64> = Vec::new();
+            let mut args: Vec<Float> = Vec::new();
             {
                 let mut bracket = 0;
                 let mut last = 0;
@@ -287,7 +287,7 @@ pub fn set_commands(
                                     .num()?
                                     .number
                                     .real()
-                                    .to_f64(),
+                                    .clone(),
                             );
                             last = i + 1;
                         }
@@ -311,7 +311,7 @@ pub fn set_commands(
                         .num()?
                         .number
                         .real()
-                        .to_f64(),
+                        .clone(),
                 );
             }
             match l
@@ -341,8 +341,16 @@ pub fn set_commands(
                 {
                     if args.len() == 2
                     {
-                        let n1 = args[0] as i32;
-                        let n2 = args[1] as i32;
+                        let n1 = args[0]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_i32()
+                            .unwrap_or_default();
+                        let n2 = args[1]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_i32()
+                            .unwrap_or_default();
                         if (2..=36).contains(&n1) && (2..=36).contains(&n2)
                         {
                             options.base = (n1, n2)
@@ -354,7 +362,11 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let n = args[0] as i32;
+                        let n = args[0]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_i32()
+                            .unwrap_or_default();
                         if (2..=36).contains(&n)
                         {
                             options.base = (n, n)
@@ -365,11 +377,22 @@ pub fn set_commands(
                         }
                     }
                 }
-                "ticks" => options.ticks = args[0],
-                "slowcheck" => options.slowcheck = args[0] as u128,
+                "ticks" => options.ticks = args[0].to_f64(),
+                "slowcheck" =>
+                {
+                    options.slowcheck = args[0]
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_u128()
+                        .unwrap_or_default()
+                }
                 "decimal" | "deci" | "decimals" =>
                 {
-                    options.decimal_places = match args[0] as isize
+                    options.decimal_places = match args[0]
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_isize()
+                        .unwrap_or_default()
                     {
                         -1 => usize::MAX - 1,
                         -2 => usize::MAX,
@@ -377,7 +400,11 @@ pub fn set_commands(
                         _ => return Err("Invalid decimal"),
                     };
                 }
-                "graphprec" | "graphprecision" => match args[0] as u32
+                "graphprec" | "graphprecision" => match args[0]
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_u32()
+                    .unwrap_or_default()
                 {
                     n if n != 0 => options.graph_prec = n,
                     _ => return Err("Invalid graphprecision"),
@@ -386,14 +413,40 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        options.window_size = (args[0] as usize, args[0] as usize)
+                        options.window_size = (
+                            args[0]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default(),
+                            args[0]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default(),
+                        )
                     }
                     else
                     {
-                        options.window_size = (args[0] as usize, args[1] as usize)
+                        options.window_size = (
+                            args[0]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default(),
+                            args[1]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default(),
+                        )
                     }
                 }
-                "prec" | "precision" => match args[0] as u32
+                "prec" | "precision" => match args[0]
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_u32()
+                    .unwrap_or_default()
                 {
                     n if n != 0 =>
                     {
@@ -507,7 +560,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -523,8 +576,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -543,7 +596,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -552,8 +605,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -565,7 +618,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -574,8 +627,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -587,7 +640,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -596,8 +649,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -609,7 +662,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -625,8 +678,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -645,7 +698,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -654,8 +707,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -667,7 +720,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -676,8 +729,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -689,7 +742,7 @@ pub fn set_commands(
                 {
                     if args.len() == 1
                     {
-                        let range = args[0];
+                        let range = args[0].to_f64();
                         if range == 0.0
                         {
                             return Err("bad range");
@@ -698,8 +751,8 @@ pub fn set_commands(
                     }
                     else
                     {
-                        let min = args[0];
-                        let max = args[1];
+                        let min = args[0].to_f64();
+                        let max = args[1].to_f64();
                         if min == max
                         {
                             return Err("bad range");
@@ -707,18 +760,37 @@ pub fn set_commands(
                         options.vzr = (min, max)
                     }
                 }
-                "2d" => options.samples_2d = args[0] as usize,
+                "2d" =>
+                {
+                    options.samples_2d = args[0]
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_usize()
+                        .unwrap_or_default()
+                }
                 "3d" =>
                 {
                     if args.len() == 1
                     {
-                        let range = args[0] as usize;
+                        let range = args[0]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_usize()
+                            .unwrap_or_default();
                         options.samples_3d = (range, range)
                     }
                     else
                     {
-                        let x = args[0] as usize;
-                        let y = args[1] as usize;
+                        let x = args[0]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_usize()
+                            .unwrap_or_default();
+                        let y = args[1]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_usize()
+                            .unwrap_or_default();
                         options.samples_3d = (x, y)
                     }
                 }

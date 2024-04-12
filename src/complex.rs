@@ -290,7 +290,14 @@ impl NumStr
                     else
                     {
                         let mut mat = Matrix(a.clone());
-                        let c = b.real().to_f64().abs() as usize;
+                        let c = b
+                            .real()
+                            .clone()
+                            .abs()
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_usize()
+                            .unwrap_or_default();
                         for _ in 1..c
                         {
                             mat = mat.mul(&Matrix(a.clone()))?;
@@ -516,26 +523,61 @@ pub fn unity(y: Complex, x: Complex) -> Vec<Number>
     let right: Float = r + n;
     for k in if left < right
     {
-        left.clone().trunc().to_f64() as isize
+        left.clone()
+            .trunc()
+            .to_integer()
+            .unwrap_or_default()
+            .to_i128()
+            .unwrap_or_default()
             ..=if left.clone().fract().is_zero() && right.clone().fract().is_zero()
             {
-                (right.clone().trunc().to_f64() - 1.0) as isize
+                right
+                    .clone()
+                    .trunc()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_i128()
+                    .unwrap_or_default()
+                    - 1
             }
             else
             {
-                right.clone().trunc().to_f64() as isize
+                right
+                    .clone()
+                    .trunc()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_i128()
+                    .unwrap_or_default()
             }
     }
     else
     {
-        right.clone().trunc().to_f64() as isize
+        right
+            .clone()
+            .trunc()
+            .to_integer()
+            .unwrap_or_default()
+            .to_i128()
+            .unwrap_or_default()
             ..=if left.clone().fract().is_zero() && right.clone().fract().is_zero()
             {
-                (left.clone().trunc().to_f64() - 1.0) as isize
+                left.clone()
+                    .trunc()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_i128()
+                    .unwrap_or_default()
+                    - 1
             }
             else
             {
-                left.clone().trunc().to_f64() as isize
+                left.clone()
+                    .trunc()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_i128()
+                    .unwrap_or_default()
             }
     }
     {
@@ -697,7 +739,12 @@ pub fn tetration(a: &Number, b: &Number) -> Number
         {
             if b.real().is_sign_positive()
             {
-                (1..b.real().to_f64() as usize)
+                (1..b
+                    .real()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_usize()
+                    .unwrap_or_default())
                     .fold(a.clone(), |tetration, _| a.clone().pow(tetration))
             }
             else if b == -1
@@ -925,8 +972,20 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
         (Num(a), Num(b)) =>
         {
             let prec = a.number.prec();
-            let a = a.number.real().to_f64() as isize;
-            let b = b.number.real().to_f64() as isize;
+            let a = a
+                .number
+                .real()
+                .to_integer()
+                .unwrap_or_default()
+                .to_isize()
+                .unwrap_or_default();
+            let b = b
+                .number
+                .real()
+                .to_integer()
+                .unwrap_or_default()
+                .to_isize()
+                .unwrap_or_default();
             let vec: Vec<Number> = if a < b
             {
                 (a..=b)
@@ -949,11 +1008,23 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
         (Vector(a), Num(b)) =>
         {
             let prec = b.number.prec();
-            let b = b.number.real().to_f64() as isize;
+            let b = b
+                .number
+                .real()
+                .to_integer()
+                .unwrap_or_default()
+                .to_isize()
+                .unwrap_or_default();
             let mat: Vec<Vec<Number>> = a
                 .iter()
                 .map(|a| {
-                    let a = a.number.real().to_f64() as isize;
+                    let a = a
+                        .number
+                        .real()
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_isize()
+                        .unwrap_or_default();
                     if a < b
                     {
                         (a..=b)
@@ -978,11 +1049,23 @@ pub fn to(a: &NumStr, b: &NumStr) -> Result<NumStr, &'static str>
         (Num(a), Vector(b)) =>
         {
             let prec = a.number.prec();
-            let a = a.number.real().to_f64() as isize;
+            let a = a
+                .number
+                .real()
+                .to_integer()
+                .unwrap_or_default()
+                .to_isize()
+                .unwrap_or_default();
             let mat: Vec<Vec<Number>> = b
                 .iter()
                 .map(|b| {
-                    let b = b.number.real().to_f64() as isize;
+                    let b = b
+                        .number
+                        .real()
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_isize()
+                        .unwrap_or_default();
                     if a < b
                     {
                         (a..=b)
@@ -2351,7 +2434,14 @@ pub fn euleriannumbers(n: Complex, k: i32) -> Complex
     {
         Complex::with_val(
             n.prec(),
-            euleriannumbersint(n.real().to_f64() as u32, k as u32),
+            euleriannumbersint(
+                n.real()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_u32()
+                    .unwrap_or_default(),
+                k as u32,
+            ),
         )
     }
 }
@@ -2383,10 +2473,13 @@ pub fn binomial(a: Complex, b: Complex) -> Complex
     {
         Complex::with_val(
             a.prec(),
-            a.real()
-                .to_integer()
-                .unwrap()
-                .binomial(b.real().to_f64() as u32),
+            a.real().to_integer().unwrap().binomial(
+                b.real()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .to_u32()
+                    .unwrap_or_default(),
+            ),
         )
     }
     else

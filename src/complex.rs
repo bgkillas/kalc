@@ -511,15 +511,15 @@ pub fn unity(y: Complex, x: Complex) -> Vec<Number>
     let taui: Complex = 2 * Complex::with_val(x.prec(), (0, Pi));
     let r: Float = x.imag().clone().pow(2) / 2;
     let r: Float = x.real().clone() / 2 + r / x.real().clone();
-    let n = y.imag() / taui.imag().clone();
-    let left: Float = -r.clone() - n.clone();
-    let right: Float = r - n;
+    let n = (x.imag().clone() * y.real() / x.real() - y.imag()) / taui.imag().clone();
+    let left: Float = -r.clone() + n.clone();
+    let right: Float = r + n;
     for k in if left < right
     {
         left.clone().trunc().to_f64() as isize
             ..=if left.clone().fract().is_zero() && right.clone().fract().is_zero()
             {
-                right.clone().trunc().to_f64() as isize - 1
+                (right.clone().trunc().to_f64() - 1.0) as isize
             }
             else
             {
@@ -531,7 +531,7 @@ pub fn unity(y: Complex, x: Complex) -> Vec<Number>
         right.clone().trunc().to_f64() as isize
             ..=if left.clone().fract().is_zero() && right.clone().fract().is_zero()
             {
-                left.clone().trunc().to_f64() as isize - 1
+                (left.clone().trunc().to_f64() - 1.0) as isize
             }
             else
             {

@@ -501,6 +501,52 @@ pub fn root(a: &Number, b: &Number) -> Number
         },
     )
 }
+pub fn unity(x: Complex, y: Complex) -> Vec<Number>
+{
+    let mut vec: Vec<Number> = Vec::new();
+    let taui: Complex = 2 * Complex::with_val(x.prec(), (0, Pi));
+    let n: Float = x.real().clone() / 2;
+    let r = y.imag() / taui.imag().clone();
+    let left = -r.clone() - n.clone();
+    let right = -r + n;
+    for k in if left < right
+    {
+        left.clone().trunc().to_f64() as isize
+            ..=if left.clone().fract().is_zero() && right.clone().fract().is_zero()
+            {
+                right.clone().trunc().to_f64() as isize - 1
+            }
+            else
+            {
+                right.clone().trunc().to_f64() as isize
+            }
+    }
+    else
+    {
+        right.clone().trunc().to_f64() as isize
+            ..=if left.clone().fract().is_zero() && right.clone().fract().is_zero()
+            {
+                left.clone().trunc().to_f64() as isize - 1
+            }
+            else
+            {
+                left.clone().trunc().to_f64() as isize
+            }
+    }
+    {
+        let r: Complex = (y.clone() + k * taui.clone()) / x.clone();
+        let r: Complex = r.exp();
+        if -r.imag().clone().abs().log10() > x.prec().0 / 4
+        {
+            vec.push(Number::from(r.real().clone().into(), None))
+        }
+        else
+        {
+            vec.push(Number::from(r, None))
+        }
+    }
+    vec
+}
 pub fn shl(a: &Number, b: &Number) -> Number
 {
     Number::from(

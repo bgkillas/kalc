@@ -5,7 +5,7 @@ use crate::{
         identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
         mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog, slope,
         solve, sort, sort_mat, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
-        variance, zeta,
+        unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -1097,7 +1097,7 @@ pub fn do_math(
                             }
                             "eigenvalues" =>
                             {
-                                if function.len() > i + 1
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Str(_))
                                 {
                                     function.remove(i + 1);
                                     eigenvalues(&a, true)?
@@ -1109,7 +1109,7 @@ pub fn do_math(
                             }
                             "eigenvectors" =>
                             {
-                                if function.len() > i + 1
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Str(_))
                                 {
                                     function.remove(i + 1);
                                     eigenvectors(&a, true)?
@@ -1962,7 +1962,7 @@ pub fn do_math(
                             {
                                 let mut numerator: Complex = arg.num()?.number + 1;
                                 let mut divisor = gamma(numerator.clone());
-                                while i + 1 < function.len()
+                                while i + 1 < function.len() && !matches!(&function[i + 1], Str(_))
                                 {
                                     let temp = function.remove(i + 1).num()?.number;
                                     numerator += temp.clone();
@@ -2376,33 +2376,26 @@ pub fn do_math(
                             "unity" =>
                             {
                                 //exp((ln(y)+k tau i)/x)
-                                let x = arg.num()?.number;
-                                let mut vec: Vec<Number> = Vec::new();
-                                let taui: Complex = 2 * Complex::with_val(options.prec, (0, Pi));
-                                let y = if i + 1 < function.len()
+                                let vec = if i + 1 < function.len()
+                                    && !matches!(&function[i + 1], Str(_))
                                 {
-                                    function.remove(i + 1).num()?.number.ln()
+                                    unity(
+                                        function.remove(i + 1).num()?.number,
+                                        arg.num()?.number.ln(),
+                                    )
                                 }
                                 else
                                 {
-                                    taui.clone() / 2
+                                    unity(arg.num()?.number, Complex::new(options.prec))
                                 };
-                                let u = x.real().to_f64().abs() as usize;
-                                let n = u.div_ceil(2) as isize;
-                                for k in if !y.imag().is_zero() { -n } else { -n + 1 }
-                                    ..if !x.real().clone().fract().is_zero() || u % 2 == 0
-                                    {
-                                        n.max(1)
-                                    }
-                                    else
-                                    {
-                                        n - 1
-                                    }
+                                if vec.is_empty()
                                 {
-                                    let r: Complex = (y.clone() + k * taui.clone()) / x.clone();
-                                    vec.push(Number::from(r.exp(), None))
+                                    Num(Number::from(Complex::with_val(options.prec, Nan), None))
                                 }
-                                Vector(vec)
+                                else
+                                {
+                                    Vector(vec)
+                                }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },

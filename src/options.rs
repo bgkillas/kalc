@@ -7,7 +7,7 @@ use crate::{
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
-    Colors,
+    Colors, GraphType,
     Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
     Number, Options, Variable,
 };
@@ -185,6 +185,17 @@ pub fn set_commands(
                 _ => return Err("bad notation type"),
             }
         }
+        "graph" =>
+        {
+            options.graphtype = match r
+            {
+                "normal" => GraphType::Normal,
+                "null" | "none" => GraphType::None,
+                "depth" => GraphType::Depth,
+                "flat" => GraphType::Flat,
+                _ => return Err("bad graph type"),
+            }
+        }
         "saveto" =>
         {
             if r == "null"
@@ -252,12 +263,12 @@ pub fn set_commands(
                 return Err("Invalid point type");
             }
         }
-        "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "depth" | "surface"
-        | "flat" | "rt" | "siunits" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed"
-        | "comma" | "graph" | "graphing" | "units" | "scalegraph" | "debug" | "vars" | "onaxis"
-        | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision"
-        | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr"
-        | "vyr" | "vzr" | "2d" | "3d" =>
+        "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "surface" | "rt"
+        | "siunits" | "line" | "lines" | "polar" | "frac" | "multi" | "tabbed" | "comma"
+        | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks" | "decimal"
+        | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec" | "windowsize"
+        | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr" | "vzr" | "2d"
+        | "3d" =>
         {
             let mut args: Vec<Float> = Vec::new();
             {
@@ -320,9 +331,7 @@ pub fn set_commands(
                 "color" => options.color = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
                 "prompt" => options.prompt = args[0] != 0.0,
-                "depth" => options.depth = args[0] != 0.0,
                 "surface" => options.surface = args[0] != 0.0,
-                "flat" => options.flat = args[0] != 0.0,
                 "rt" => options.real_time_output = args[0] != 0.0,
                 "siunits" => options.si_units = args[0] != 0.0,
                 "line" | "lines" => options.lines = args[0] != 0.0,
@@ -331,7 +340,6 @@ pub fn set_commands(
                 "multi" => options.multi = args[0] != 0.0,
                 "tabbed" => options.tabbed = args[0] != 0.0,
                 "comma" => options.comma = args[0] != 0.0,
-                "graph" | "graphing" => options.graph = args[0] != 0.0,
                 "units" => options.units = args[0] != 0.0,
                 "scalegraph" => options.scale_graph = args[0] != 0.0,
                 "debug" => options.debug = args[0] != 0.0,
@@ -811,10 +819,8 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "debug" => options.debug = !options.debug,
         "color" => options.color = !options.color,
         "prompt" => options.prompt = !options.prompt,
-        "depth" => options.depth = !options.depth,
         "onaxis" => options.onaxis = !options.onaxis,
         "surface" => options.surface = !options.surface,
-        "flat" => options.flat = !options.flat,
         "rt" => options.real_time_output = !options.real_time_output,
         "siunits" => options.si_units = !options.si_units,
         "line" | "lines" => options.lines = !options.lines,
@@ -823,8 +829,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "multi" => options.multi = !options.multi,
         "tabbed" => options.tabbed = !options.tabbed,
         "comma" => options.comma = !options.comma,
-        "graph" | "graphing" => options.graph = !options.graph,
-        "units" => options.graph = !options.units,
+        "units" => options.units = !options.units,
         "vars" => options.allow_vars = !options.allow_vars,
         "graphcli" => options.graph_cli = !options.graph_cli,
         _ => return false,
@@ -873,12 +878,6 @@ pub fn commands(
             stdout.flush().unwrap();
             options.prompt = !options.prompt;
         }
-        "depth" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.depth = !options.depth;
-        }
         "onaxis" =>
         {
             print!("\x1b[G\x1b[A\x1b[K");
@@ -890,12 +889,6 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.surface = !options.surface;
-        }
-        "flat" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.flat = !options.flat;
         }
         "rt" =>
         {
@@ -962,12 +955,6 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.comma = !options.comma;
-        }
-        "graph" | "graphing" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            stdout.flush().unwrap();
-            options.graph = !options.graph;
         }
         "units" =>
         {
@@ -1146,9 +1133,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "slowcheck" => format!("{}", options.slowcheck),
         "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),
         "color" => format!("{}", options.color),
-        "depth" => format!("{}", options.depth),
         "surface" => format!("{}", options.surface),
-        "flat" => format!("{}", options.flat),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
         "siunits" => format!("{}", options.si_units),
@@ -1160,7 +1145,6 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "multi" => format!("{}", options.multi),
         "tabbed" => format!("{}", options.tabbed),
         "comma" => format!("{}", options.comma),
-        "graph" | "graphing" => format!("{}", options.graph),
         "units" => format!("{}", options.units),
         "graphcli" => format!("{}", options.graph_cli),
         "point" => format!("{}", options.point_style),
@@ -1205,6 +1189,14 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             LargeEngineering => "E",
             Scientific => "s",
             Normal => "n",
+        }
+        .to_string(),
+        "graph" => match options.graphtype
+        {
+            GraphType::Normal => "normal",
+            GraphType::None => "none",
+            GraphType::Depth => "depth",
+            GraphType::Flat => "flat",
         }
         .to_string(),
         "interactive" => format!("{}", options.interactive),

@@ -6,6 +6,7 @@ use crate::{
     functions::functions,
     math::do_math,
     units::{is_unit, prefixes, to_unit},
+    GraphType,
     Notation::SmallEngineering,
     Number, Options, Variable,
 };
@@ -2189,7 +2190,7 @@ pub fn input_var(
                             output.push(Str(")".to_string()));
                         }
                     }
-                    'x' | 'y' =>
+                    'x' | 'y' if options.graphtype != GraphType::None =>
                     {
                         graph = true;
                         place_multiplier(&mut output, sumrec);
@@ -2247,7 +2248,7 @@ pub fn input_var(
                             output.push(Str(")".to_string()))
                         }
                     }
-                    'z' =>
+                    'z' if options.graphtype != GraphType::None =>
                     {
                         graph = true;
                         place_multiplier(&mut output, sumrec);
@@ -2505,14 +2506,26 @@ pub fn input_var(
             i += 1;
         }
     }
-    if let Some(Str(s)) = output.last()
+    while let Some(Str(s)) = output.last()
     {
-        if s == "*" || s == "^"
+        if matches!(
+            s.as_str(),
+            "*" | "^" | "^^" | "/" | "//" | "+" | "-" | "±" | "×"
+        ) || functions.contains(s.as_str())
         {
             output.pop();
         }
+        else
+        {
+            break;
+        }
     }
-    Ok((output, funcvars, graph && options.graph, false))
+    Ok((
+        output,
+        funcvars,
+        graph && options.graphtype != GraphType::None,
+        false,
+    ))
 }
 fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
 {

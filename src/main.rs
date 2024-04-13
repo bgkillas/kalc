@@ -141,11 +141,20 @@ pub enum Notation
     LargeEngineering,
     SmallEngineering,
 }
+#[derive(Copy, Clone, PartialEq)]
+pub enum GraphType
+{
+    Normal,
+    Flat,
+    Depth,
+    None,
+}
 #[derive(Clone, Copy)]
 pub struct Options
 {
     notation: Notation,
     angle: AngleType,
+    graphtype: GraphType,
     base: (i32, i32),
     ticks: f64,
     onaxis: bool,
@@ -172,9 +181,6 @@ pub struct Options
     tabbed: bool,
     allow_vars: bool,
     debug: bool,
-    depth: bool,
-    flat: bool,
-    graph: bool,
     slowcheck: u128,
     interactive: bool,
     surface: bool,
@@ -192,6 +198,7 @@ impl Default for Options
         Self {
             notation: Normal,
             angle: Radians,
+            graphtype: GraphType::Normal,
             base: (10, 10),
             ticks: 20.0,
             onaxis: true,
@@ -218,9 +225,6 @@ impl Default for Options
             tabbed: false,
             allow_vars: true,
             debug: false,
-            depth: false,
-            flat: false,
-            graph: true,
             slowcheck: 300,
             interactive: true,
             surface: false,

@@ -205,6 +205,7 @@ pub fn print_concurrent(
                     | "re6col"
                     | "im6col"
                     | "notation"
+                    | "graph"
                     | "textc"
                     | "promptc"
                     | "imagc"

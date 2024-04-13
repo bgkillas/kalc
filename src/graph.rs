@@ -12,7 +12,7 @@ use crate::{
     misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     options::silent_commands,
     parse::input_var,
-    Colors, Number, Options, Variable,
+    Colors, GraphType, Number, Options, Variable,
 };
 use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol, TickOption};
 use rug::Complex;
@@ -79,7 +79,7 @@ pub fn graph(
                     }
                 }
             }
-            if !options.graph
+            if options.graphtype == GraphType::None
             {
                 return;
             }
@@ -288,8 +288,28 @@ pub fn graph(
                     .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                    .set_x_label(if options.depth { "re" } else { &colors.label.0 }, &[])
-                    .set_y_label(if options.depth { "im" } else { &colors.label.1 }, &[])
+                    .set_x_label(
+                        if options.graphtype == GraphType::Flat
+                        {
+                            "re"
+                        }
+                        else
+                        {
+                            &colors.label.0
+                        },
+                        &[],
+                    )
+                    .set_y_label(
+                        if options.graphtype == GraphType::Flat
+                        {
+                            "im"
+                        }
+                        else
+                        {
+                            &colors.label.1
+                        },
+                        &[],
+                    )
                     .lines([0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
                     .lines([0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
                     .lines([0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
@@ -415,8 +435,28 @@ pub fn graph(
                     .set_y_ticks(yticks, &[TickOption::OnAxis(options.onaxis)], &[])
                     .set_y_range(Fix(options.yr.0), Fix(options.yr.1))
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
-                    .set_x_label(if options.depth { "re" } else { &colors.label.0 }, &[])
-                    .set_y_label(if options.depth { "im" } else { &colors.label.1 }, &[])
+                    .set_x_label(
+                        if options.graphtype == GraphType::Flat
+                        {
+                            "re"
+                        }
+                        else
+                        {
+                            &colors.label.0
+                        },
+                        &[],
+                    )
+                    .set_y_label(
+                        if options.graphtype == GraphType::Flat
+                        {
+                            "im"
+                        }
+                        else
+                        {
+                            &colors.label.1
+                        },
+                        &[],
+                    )
                     .lines([0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
                     .lines([0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
                     .lines([0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
@@ -655,8 +695,28 @@ pub fn graph(
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                     .set_x_label(&colors.label.0, &[])
-                    .set_y_label(if options.depth { "re" } else { &colors.label.1 }, &[])
-                    .set_z_label(if options.depth { "im" } else { &colors.label.2 }, &[])
+                    .set_y_label(
+                        if options.graphtype != GraphType::Normal
+                        {
+                            "re"
+                        }
+                        else
+                        {
+                            &colors.label.1
+                        },
+                        &[],
+                    )
+                    .set_z_label(
+                        if options.graphtype != GraphType::Normal
+                        {
+                            "im"
+                        }
+                        else
+                        {
+                            &colors.label.2
+                        },
+                        &[],
+                    )
                     .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
                     .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
                     .surface(
@@ -687,8 +747,28 @@ pub fn graph(
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                     .set_x_label(&colors.label.0, &[])
-                    .set_y_label(if options.depth { "re" } else { &colors.label.1 }, &[])
-                    .set_z_label(if options.depth { "im" } else { &colors.label.2 }, &[])
+                    .set_y_label(
+                        if options.graphtype != GraphType::Normal
+                        {
+                            "re"
+                        }
+                        else
+                        {
+                            &colors.label.1
+                        },
+                        &[],
+                    )
+                    .set_z_label(
+                        if options.graphtype != GraphType::Normal
+                        {
+                            "im"
+                        }
+                        else
+                        {
+                            &colors.label.2
+                        },
+                        &[],
+                    )
                     .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
                     .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
                     .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
@@ -871,8 +951,28 @@ pub fn graph(
                     .set_x_range(Fix(options.xr.0), Fix(options.xr.1))
                     .set_z_range(Fix(options.zr.0), Fix(options.zr.1))
                     .set_x_label(&colors.label.0, &[])
-                    .set_y_label(if options.depth { "re" } else { &colors.label.1 }, &[])
-                    .set_z_label(if options.depth { "im" } else { &colors.label.2 }, &[])
+                    .set_y_label(
+                        if options.graphtype != GraphType::Normal
+                        {
+                            "re"
+                        }
+                        else
+                        {
+                            &colors.label.1
+                        },
+                        &[],
+                    )
+                    .set_z_label(
+                        if options.graphtype != GraphType::Normal
+                        {
+                            "im"
+                        }
+                        else
+                        {
+                            &colors.label.2
+                        },
+                        &[],
+                    )
                     .lines([0], [0], [0], &[Caption(&re_cap[0]), Color(&colors.re1col)])
                     .lines([0], [0], [0], &[Caption(&im_cap[0]), Color(&colors.im1col)])
                     .lines([0], [0], [0], &[Caption(&re_cap[1]), Color(&colors.re2col)])
@@ -2024,14 +2124,14 @@ fn get_data(
                 }
                 points2d[0].swap(0, 1);
             }
-            if func.2.flat
+            if func.2.graphtype == GraphType::Flat
             {
                 re_or_im.1 = false;
                 points2d[0].swap(0, 1);
                 points2d[0][1].clone_from(&points2d[1][1].clone());
                 points2d[1] = Default::default();
             }
-            else if func.2.depth
+            else if func.2.graphtype == GraphType::Depth
             {
                 re_or_im.1 = false;
                 d2_or_d3 = (false, true);
@@ -2067,14 +2167,14 @@ fn get_data(
                     Default::default(),
                 );
             }
-            if func.2.flat
+            if func.2.graphtype == GraphType::Flat
             {
                 re_or_im.1 = false;
                 points3d[0][1].clone_from(&points3d[0][2].clone());
                 points3d[0][2].clone_from(&points3d[1][2].clone());
                 points3d[1] = Default::default();
             }
-            else if func.2.depth
+            else if func.2.graphtype == GraphType::Depth
             {
                 re_or_im.1 = false;
                 points3d[0][0].clone_from(&points3d[0][1].clone());

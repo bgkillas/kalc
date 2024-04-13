@@ -1831,36 +1831,39 @@ pub fn cubic(a: Complex, b: Complex, c: Complex, d: Complex, real: bool) -> Vec<
     let b = b / a.clone();
     let c = c / a.clone();
     let d = d / a.clone();
-    // https://math.vanderbilt.edu/schectex/courses/cubic/
-    let p: Complex = -b.clone() / 3;
-    let q: Complex = p.clone().pow(3) + b.clone() * c.clone() / 6 - d.clone() / 2;
-    let r: Complex = c.clone() / 3;
-    let n: Complex = r.clone() - p.clone().pow(2);
-    let n: Complex = q.clone().pow(2) + n.clone().pow(3);
-    let n: Complex = n.sqrt();
-    let left = q.clone() + n.clone();
-    let left = if left.imag().is_zero() && left.real().is_sign_negative()
+    // https://en.wikipedia.org/wiki/Cubic_equation#General_cubic_formula
+    let d0: Complex = b.clone().pow(2) - 3 * c.clone();
+    let d1: Complex = 2 * b.clone().pow(3) - 9 * b.clone() * c.clone() + 27 * d.clone();
+    let c: Complex = d1.clone().pow(2) - 4 * d0.clone().pow(3);
+    let c: Complex = (d1 + c.sqrt()) / 2;
+    let c = c.pow(threerecip.clone());
+    let omega: Complex = Complex::with_val(prec, (-0.5, Float::with_val(prec.0, 3).sqrt() / 2));
+    let mut z1: Complex = if d0.is_zero()
     {
-        -(-left).pow(threerecip.clone())
+        -(b.clone() + c.clone()) / 3
     }
     else
     {
-        left.pow(threerecip.clone())
+        -(b.clone() + c.clone() + d0.clone() / c.clone()) / 3
     };
-    let right = q.clone() - n.clone();
-    let right = if right.imag().is_zero() && right.real().is_sign_negative()
+    let c0 = c.clone() * omega.clone();
+    let mut z2: Complex = if d0.is_zero()
     {
-        -(-right).pow(threerecip.clone())
+        -(b.clone() + c0.clone()) / 3
     }
     else
     {
-        right.pow(threerecip.clone())
+        -(b.clone() + c0.clone() + d0.clone() / c0) / 3
     };
-    let omega: Complex = Complex::with_val(prec, (-0.5, -Float::with_val(prec.0, 3).sqrt() / 2));
-    let mut z1: Complex = left.clone() + right.clone() + p.clone();
-    let mut z2: Complex =
-        left.clone() * omega.clone() + right.clone() * omega.clone().conj() + p.clone();
-    let mut z3: Complex = left * omega.clone().conj() + right * omega + p;
+    let c1 = c * omega.conj();
+    let mut z3: Complex = if d0.is_zero()
+    {
+        -(b + c1.clone()) / 3
+    }
+    else
+    {
+        -(b + c1.clone() + d0 / c1) / 3
+    };
     if -z1.imag().clone().abs().log10() > a.prec().0 / 4
     {
         z1 = z1.real().clone().into();

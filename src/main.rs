@@ -12,7 +12,6 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
-//fix cubic(i,1,1,1)
 use crate::{
     complex::NumStr,
     graph::graph,

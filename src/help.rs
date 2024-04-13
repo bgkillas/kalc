@@ -6,7 +6,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --help {{thing}} to get more detail on a function/option/feature, --help help to list all \"things\"\x1b[G\n\
 --interactive/-i allows interaction after finishing the equations given\x1b[G\n\
 --units toggles units\x1b[G\n\
---notation=e,E,s,n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300\x1b[G\n\
+--notation=e/E/s/n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300\x1b[G\n\
+--graph=normal/depth/flat/none changes how a function is graphed\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
 --angle=deg/rad/grad sets your angletype\x1b[G\n\
 --2d=[num] number of points to graph in 2D\x1b[G\n\
@@ -38,9 +39,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals\x1b[G\n\
 --multi toggles multi line display for matrixes\x1b[G\n\
 --tabbed toggles tabbed display for matrixes\x1b[G\n\
---depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis\x1b[G\n\
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph\x1b[G\n\
---flat display 2d complex graphs like they are on the 2d number line\x1b[G\n\
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution\x1b[G\n\
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\n\

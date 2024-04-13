@@ -682,6 +682,7 @@ pub fn graph(
                     .iter()
                     .all(|p| p[0][2].is_empty() && p[1][2].is_empty())
                 && (points3d[0][0][2].is_empty() || points3d[0][1][2].is_empty())
+                && options.graphtype == GraphType::Normal
             {
                 fg.axes3d()
                     //.set_palette(Custom(&[(0.0, 0.0, 0.0, 0.0), (1.0, 1.0, 1.0, 1.0)]))

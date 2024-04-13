@@ -114,7 +114,8 @@ FLAGS: --help (this message)
 --help {thing} to get more detail on a function/option/feature, --help help to list all "things"
 --interactive/-i allows interaction after finishing the equations given
 --units toggles units
---notation=e,E,s,n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300
+--notation=e/E/s/n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300
+--graph=normal/depth/flat/none changes how a function is graphed
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --angle=deg/rad/grad sets your angletype
 --2d=[num] number of points to graph in 2D
@@ -146,9 +147,7 @@ FLAGS: --help (this message)
 --deci=[num] sets how many decimals to display, -1 for length of terminal, -2 for maximum decimal places, may need to up precision for more decimals
 --multi toggles multi line display for matrixes
 --tabbed toggles tabbed display for matrixes
---depth display 2d complex graphs in 3d with imag #'s going up/down on the z axis
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph
---flat display 2d complex graphs like they are on the 2d number line
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'
@@ -392,7 +391,7 @@ norm((x+y+1i))
 > deg // enables degrees
 > pol({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
 {9.273618495496,57.373262293469,39.805571092265}
-> piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # [5,x] # flat;exp(ix) //graphing circles 4 different ways
+> piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # [5,x] # graph=flat;exp(ix) //graphing circles 4 different ways
 piecewise({0±sqrt(2^2-x^2),(x<2)&&(x>-2)})
 3*{cos(x),sin(x)}
 exp(1i*x)

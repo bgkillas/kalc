@@ -2887,10 +2887,12 @@ pub fn solve(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    mut x: Complex,
+    x: Number,
 ) -> Result<NumStr, &'static str>
 {
     //newtons method, x-f(x)/f'(x)
+    let units = x.units;
+    let mut x = x.number;
     let op = options.prec;
     options.prec = options.prec.clamp(256, 1024);
     x.set_prec(options.prec);
@@ -2944,7 +2946,7 @@ pub fn solve(
         .number;
     if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16
     {
-        Ok(Num(Number::from(x, None)))
+        Ok(Num(Number::from(x, units)))
     }
     else
     {
@@ -4574,14 +4576,16 @@ fn initpoint(z: Complex, k: isize) -> Complex
         let test: Complex = z.clone() + e.clone().recip();
         if test.abs().real() <= &1.005
         {
-            let p1: Complex = 2 * e * z.clone() + 2;
-            let p = p1.clone().sqrt();
             if k == 0
             {
+                let p1: Complex = 2 * e * z.clone() + 2;
+                let p = p1.clone().sqrt();
                 return p.clone() - (p1 / 3) + ((11 * p.pow(3)) / 72) - 1;
             }
             else if (k == 1 && z.imag() < &0) || (k == -1 && z.imag() > &0)
             {
+                let p1: Complex = 2 * e * z.clone() + 2;
+                let p = p1.clone().sqrt();
                 return -1 - p.clone() - (p1 / 3) - ((11 * p.pow(3)) / 72);
             }
         }

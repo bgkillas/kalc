@@ -12,6 +12,7 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
+//lib, gui
 use crate::{
     complex::NumStr,
     graph::graph,

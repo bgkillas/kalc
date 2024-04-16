@@ -482,11 +482,10 @@ pub fn do_math(
                                         func_vars.clone(),
                                     )?
                                     .num()?
-                                    .number
                                 }
                                 else
                                 {
-                                    Complex::new(options.prec)
+                                    Number::from(Complex::new(options.prec), None)
                                 },
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());

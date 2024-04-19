@@ -2882,6 +2882,21 @@ pub fn area(
         Ok(Vector(areavec))
     }
 }
+pub fn iter(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    options: Options,
+    var: String,
+    mut x: NumStr,
+    n: usize,
+) -> Result<NumStr, &'static str>
+{
+    for _ in 0..n
+    {
+        x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?
+    }
+    Ok(x)
+}
 pub fn solve(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,

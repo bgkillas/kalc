@@ -186,7 +186,7 @@ Order of Operations:
 - user defined functions
 - functions, !x, x!, x!!, |x|
 - % (modulus), .. (a..b creates lists of integers from a to b)
-- ^/** (exponentiation), // (a//b is a root b) ^^ (tetration)
+- ^/** (exponentiation), // (a//b is a root b), ^^ (tetration), computed from right to left
 - × internal multiplication for units and negitive signs
 - * (multiplication), / (division)
 - + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)
@@ -224,6 +224,7 @@ Functions:
 - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to)
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
+- iter(x,f(x),p,n), f(x) iterated n times at point p
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})

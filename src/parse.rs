@@ -1015,6 +1015,7 @@ pub fn input_var(
                 | "length"
                 | "slope"
                 | "sum"
+                | "iter"
                 | "summation"
                 | "prod"
                 | "production"

@@ -2,10 +2,10 @@ use crate::{
     complex::{
         add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div, eigenvalues,
         eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
-        identity, incomplete_beta, incomplete_gamma, inverse, lambertw, length, limit, minors,
-        mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog, slope,
-        solve, sort, sort_mat, sub, subfactorial, sum, tetration, to, to_polar, trace, transpose,
-        unity, variance, zeta,
+        identity, incomplete_beta, incomplete_gamma, inverse, iter, lambertw, length, limit,
+        minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog,
+        slope, solve, sort, sort_mat, sub, subfactorial, sum, tetration, to, to_polar, trace,
+        transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -329,6 +329,7 @@ pub fn do_math(
                                     | "∫"
                                     | "length"
                                     | "slope"
+                                    | "iter"
                                     | "summation"
                                     | "prod"
                                     | "product"
@@ -413,6 +414,7 @@ pub fn do_math(
                         | "∫"
                         | "length"
                         | "slope"
+                        | "iter"
                         | "product"
                         | "prod"
                         | "summation"
@@ -467,6 +469,33 @@ pub fn do_math(
                         },
                     )
                     {
+                        ("iter", Str(var)) if place.len() == 4 =>
+                        {
+                            function[i] = iter(
+                                function[place[0] + 1..place[1]].to_vec(),
+                                func_vars.clone(),
+                                options,
+                                var.to_string(),
+                                do_math(
+                                    function[place[1] + 1..place[2]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?,
+                                do_math(
+                                    function[place[2] + 1..place[3]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?
+                                .num()?
+                                .number
+                                .real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default(),
+                            )?;
+                            function.drain(i + 1..=*place.last().unwrap());
+                        }
                         ("solve", Str(var)) if place.len() == 2 || place.len() == 3 =>
                         {
                             function[i] = solve(
@@ -638,27 +667,44 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("pw" | "piecewise", _) =>
+                        ("pw" | "piecewise", _) if !place.is_empty() =>
                         {
                             let mut ans = None;
                             let mut start = i + 3;
-                            for (i, end) in
-                                place[0..place.len().saturating_sub(1)].iter().enumerate()
+                            for (i, end) in place[0..if place.len() % 2 == 1
                             {
-                                if i % 2 == 0
-                                    && do_math(
-                                        function[*end + 1..place[i + 1] - 1].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?
-                                    .num()?
-                                    .number
-                                    .real()
-                                        == &1.0
+                                place.len()
+                            }
+                            else
+                            {
+                                place.len().saturating_sub(1)
+                            }]
+                                .iter()
+                                .enumerate()
+                            {
+                                if i + 1 == place.len()
+                                    || (i % 2 == 0
+                                        && do_math(
+                                            function[*end + 1..place[i + 1] - 1].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?
+                                        .num()?
+                                        .number
+                                        .real()
+                                            == &1.0)
                                 {
                                     ans = Some(recursion(
                                         func_vars.clone(),
-                                        function[start..*end].to_vec(),
+                                        function[if i + 1 == place.len()
+                                        {
+                                            start.saturating_sub(1)
+                                        }
+                                        else
+                                        {
+                                            start
+                                        }..*end]
+                                            .to_vec(),
                                         options,
                                     )?);
                                     break;

@@ -75,7 +75,7 @@ Order of Operations:\x1b[G\n\
 - user defined functions\x1b[G\n\
 - functions, !x, x!, x!!, |x|\x1b[G\n\
 - % (modulus), .. (a..b creates lists of integers from a to b)\x1b[G\n\
-- ^/** (exponentiation), // (a//b is a root b) ^^ (tetration)\x1b[G\n\
+- ^/** (exponentiation), // (a//b is a root b), ^^ (tetration), computed from right to left\x1b[G\n\
 - × internal multiplication for units and negitive signs\x1b[G\n\
 - * (multiplication), / (division)\x1b[G\n\
 - + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)\x1b[G\n\
@@ -111,7 +111,8 @@ Functions:\x1b[G\n\
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
 - slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to)\x1b[G\n\
-- solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\n\
+- solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\
+- iter(x,f(x),p,n), f(x) iterated n times at point p\x1b[G\n\n\
 Vector operations/functions:\x1b[G\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\x1b[G\n\
 - angle({{vec1}},{{vec2}})\x1b[G\n\

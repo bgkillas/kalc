@@ -9,6 +9,7 @@ use rug::{
         Constant::Pi,
         Special::{Infinity, Nan},
     },
+    integer::IsPrime,
     ops::Pow,
     Complex, Float, Integer,
 };
@@ -1376,17 +1377,17 @@ pub fn inverse(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
         Err("not square")
     }
 }
-pub fn nth_prime(n: usize) -> usize
+pub fn nth_prime(n: Integer) -> Integer
 {
-    let mut count = 0;
-    let mut num = 2;
+    let mut count = Integer::new();
+    let mut num = Integer::from(2);
     if n == 0
     {
-        num = 0
+        num = Integer::new()
     }
     while count < n
     {
-        if is_prime(num)
+        if num.is_probably_prime(100) != IsPrime::No
         {
             count += 1;
         }
@@ -1396,31 +1397,6 @@ pub fn nth_prime(n: usize) -> usize
         }
     }
     num
-}
-pub fn is_prime(num: usize) -> bool
-{
-    if num <= 1
-    {
-        return false;
-    }
-    if num <= 3
-    {
-        return true;
-    }
-    if num % 2 == 0 || num % 3 == 0
-    {
-        return false;
-    }
-    let mut i = 5;
-    while i * i <= num
-    {
-        if num % i == 0 || num % (i + 2) == 0
-        {
-            return false;
-        }
-        i += 6;
-    }
-    true
 }
 pub fn sort(mut a: Vec<Number>) -> Vec<Number>
 {
@@ -4551,7 +4527,7 @@ fn limsided(
     }
 }
 //https://github.com/IstvanMezo/LambertW-function/blob/master/complex%20Lambert.cpp
-pub fn lambertw(z: Complex, k: isize) -> Complex
+pub fn lambertw(z: Complex, k: Integer) -> Complex
 {
     if z.is_zero()
     {
@@ -4584,7 +4560,7 @@ pub fn lambertw(z: Complex, k: isize) -> Complex
     }
     w
 }
-fn initpoint(z: Complex, k: isize) -> Complex
+fn initpoint(z: Complex, k: Integer) -> Complex
 {
     {
         let e = Float::with_val(z.prec().0, 1).exp();

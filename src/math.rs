@@ -1252,6 +1252,41 @@ pub fn do_math(
                                 }
                                 Vector(sort(vec))
                             }
+                            "weighted" =>
+                            {
+                                let mut sum = Integer::new();
+                                for i in &a
+                                {
+                                    sum += i[1].number.real().to_integer().unwrap_or_default();
+                                }
+                                let n = sum.to_u64().unwrap_or_default();
+                                let max = u64::MAX - u64::MAX.rem(n);
+                                let mut rnd = u64::MAX;
+                                while rnd >= max
+                                {
+                                    rnd = fastrand::u64(..);
+                                }
+                                rnd = rnd.rem(n) + 1;
+                                let mut num =
+                                    Number::from(Complex::with_val(options.prec, Nan), None);
+                                for i in &a
+                                {
+                                    rnd = rnd.saturating_sub(
+                                        i[1].number
+                                            .real()
+                                            .to_integer()
+                                            .unwrap_or_default()
+                                            .to_u64()
+                                            .unwrap_or_default(),
+                                    );
+                                    if rnd == 0
+                                    {
+                                        num = i[0].clone();
+                                        break;
+                                    }
+                                }
+                                Num(num)
+                            }
                             "roll" =>
                             {
                                 let mut sum: Integer = Integer::new();
@@ -1261,18 +1296,20 @@ pub fn do_math(
                                     {
                                         return Err("bad dice data");
                                     }
-                                    let a = i[0].number.real().to_f64();
-                                    if a > u64::MAX as f64
+                                    let a = i[0].number.real().to_integer().unwrap_or_default();
+                                    if a > u64::MAX || a == 0
                                     {
-                                        return Err("dice too large");
+                                        return Err("dice too large or bad dice data");
                                     }
-                                    let n = a as u64;
-                                    if n == 0
-                                    {
-                                        return Err("bad dice data");
-                                    }
+                                    let n = a.to_u64().unwrap_or_default();
                                     let max = u64::MAX - u64::MAX.rem(n);
-                                    let end = i[1].number.real().to_f64() as u64;
+                                    let end = i[1]
+                                        .number
+                                        .real()
+                                        .to_integer()
+                                        .unwrap_or_default()
+                                        .to_u64()
+                                        .unwrap_or_default();
                                     let mut i = 0;
                                     while i < end
                                     {
@@ -1295,9 +1332,22 @@ pub fn do_math(
                                     {
                                         return Err("bad list");
                                     }
-                                    for _ in 0..a[1].number.real().to_f64() as usize
+                                    for _ in 0..a[1]
+                                        .number
+                                        .real()
+                                        .to_integer()
+                                        .unwrap_or_default()
+                                        .to_usize()
+                                        .unwrap_or_default()
                                     {
-                                        faces.push(a[0].number.real().to_f64() as usize)
+                                        faces.push(
+                                            a[0].number
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default(),
+                                        )
                                     }
                                 }
                                 if faces.is_empty()
@@ -1374,7 +1424,13 @@ pub fn do_math(
                                 {
                                     let num =
                                         Number::from(Complex::with_val(options.prec, i + 1), None);
-                                    for _ in 1..=a.number.real().to_f64() as usize
+                                    for _ in 1..=a
+                                        .number
+                                        .real()
+                                        .to_integer()
+                                        .unwrap_or_default()
+                                        .to_usize()
+                                        .unwrap_or_default()
                                     {
                                         vec.push(num.clone())
                                     }
@@ -1391,16 +1447,12 @@ pub fn do_math(
                                 let mut i = 0;
                                 while i < a.len()
                                 {
-                                    let a = a[i].number.real().to_f64();
-                                    if a > u64::MAX as f64
+                                    let a = a[i].number.real().to_integer().unwrap_or_default();
+                                    if a > u64::MAX as f64 || a == 0
                                     {
-                                        return Err("dice too large");
+                                        return Err("dice too large or bad dice data");
                                     }
-                                    let n = a as u64;
-                                    if n == 0
-                                    {
-                                        return Err("bad dice data");
-                                    }
+                                    let n = a.to_u64().unwrap_or_default();
                                     let max = u64::MAX - u64::MAX.rem(n);
                                     let rnd = fastrand::u64(..);
                                     if rnd < max
@@ -1415,7 +1467,14 @@ pub fn do_math(
                             {
                                 let faces = a
                                     .iter()
-                                    .map(|c| c.number.real().to_f64() as usize)
+                                    .map(|c| {
+                                        c.number
+                                            .real()
+                                            .to_integer()
+                                            .unwrap_or_default()
+                                            .to_usize()
+                                            .unwrap_or_default()
+                                    })
                                     .collect::<Vec<usize>>();
                                 if faces.iter().any(|c| c == &0)
                                 {
@@ -1554,7 +1613,12 @@ pub fn do_math(
                                 }
                                 let b = function.remove(i + 1).num()?.number;
                                 let r: Float = (b.real().clone() / 100) * a.len();
-                                let r = r.ceil().to_f64() as usize;
+                                let r = r
+                                    .ceil()
+                                    .to_integer()
+                                    .unwrap_or_default()
+                                    .to_usize()
+                                    .unwrap_or_default();
                                 if r > a.len()
                                 {
                                     return Err("bad input");
@@ -1976,7 +2040,13 @@ pub fn do_math(
                                         Num(b) =>
                                         {
                                             let b = b.number;
-                                            let n = b.clone().real().to_f64() as usize;
+                                            let n = b
+                                                .clone()
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
                                             if n <= a.len() && n != 0
                                             {
                                                 Num(a[n - 1].clone())
@@ -1991,7 +2061,14 @@ pub fn do_math(
                                             let mut vec = Vec::new();
                                             for i in b
                                             {
-                                                let n = i.number.clone().real().to_f64() as usize;
+                                                let n = i
+                                                    .number
+                                                    .clone()
+                                                    .real()
+                                                    .to_integer()
+                                                    .unwrap_or_default()
+                                                    .to_usize()
+                                                    .unwrap_or_default();
                                                 if n <= a.len() && n != 0
                                                 {
                                                     vec.push(a[n - 1].clone());
@@ -2033,7 +2110,12 @@ pub fn do_math(
                                         if num.real().clone().fract().is_zero()
                                         {
                                             let mut vec = Vec::new();
-                                            let n = num.real().to_f64() as usize;
+                                            let n = num
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
                                             for i in 1..=n
                                             {
                                                 if n % i == 0
@@ -2390,7 +2472,13 @@ pub fn do_math(
                                 ])
                             }
                             "iden" | "identity" => Matrix(identity(
-                                arg.num()?.number.real().to_f64() as usize,
+                                arg.num()?
+                                    .number
+                                    .real()
+                                    .to_integer()
+                                    .unwrap_or_default()
+                                    .to_usize()
+                                    .unwrap_or_default(),
                                 options.prec,
                             )),
                             "rotate" =>
@@ -2460,7 +2548,12 @@ pub fn do_math(
                                     if a.real().clone().fract().is_zero()
                                     {
                                         let mut vec = Vec::new();
-                                        let n = a.real().to_f64() as usize;
+                                        let n = a
+                                            .real()
+                                            .to_integer()
+                                            .unwrap_or_default()
+                                            .to_usize()
+                                            .unwrap_or_default();
                                         for i in 1..=n
                                         {
                                             if n % i == 0
@@ -3353,11 +3446,11 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        lambertw(b, a.real().to_f64() as isize)
+                        lambertw(b, a.real().to_integer().unwrap_or_default())
                     }
                     else
                     {
-                        lambertw(a, 0)
+                        lambertw(a, Integer::new())
                     }
                 }
                 "next" =>
@@ -3420,12 +3513,12 @@ fn functions(
                     if let Some(b) = d
                     {
                         let b = b.ln();
-                        b.clone() / lambertw(b, a.real().to_f64() as isize)
+                        b.clone() / lambertw(b, a.real().to_integer().unwrap_or_default())
                     }
                     else
                     {
                         let a = a.ln();
-                        a.clone() / lambertw(a, 0)
+                        a.clone() / lambertw(a, Integer::new())
                     }
                 }
                 "slog" =>
@@ -3457,7 +3550,12 @@ fn functions(
                         else
                         {
                             let mut sum = Complex::new(options.prec);
-                            let n = a.real().to_f64() as u32;
+                            let n = a
+                                .real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_u32()
+                                .unwrap_or_default();
                             for k in 0..=n
                             {
                                 sum += b.clone().pow(k) * euleriannumbersint(n, k)
@@ -3474,7 +3572,14 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        euleriannumbers(a, b.real().to_f64() as i32)
+                        euleriannumbers(
+                            a,
+                            b.real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_i32()
+                                .unwrap_or_default(),
+                        )
                     }
                     else
                     {
@@ -3652,7 +3757,14 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        digamma(b, a.real().to_f64() as u32)
+                        digamma(
+                            b,
+                            a.real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_u32()
+                                .unwrap_or_default(),
+                        )
                     }
                     else if a.imag().is_zero()
                     {
@@ -3686,7 +3798,10 @@ fn functions(
                 {
                     if a.imag().is_zero() && a.real().clone().fract() == 0.0
                     {
-                        Complex::with_val(options.prec, nth_prime(a.real().to_f64() as usize))
+                        Complex::with_val(
+                            options.prec,
+                            nth_prime(a.real().to_integer().unwrap_or_default()),
+                        )
                     }
                     else
                     {

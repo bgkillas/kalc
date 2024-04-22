@@ -17,6 +17,8 @@ use crate::{
 use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol, TickOption};
 use rug::Complex;
 use std::{
+    fs,
+    fs::remove_file,
     io::{stdout, Write},
     thread,
     thread::JoinHandle,
@@ -1150,12 +1152,29 @@ pub fn graph(
         }
         if !colors.graphtofile.is_empty()
         {
-            fg.save_to_png(
-                colors.graphtofile,
-                options.window_size.0 as u32,
-                options.window_size.1 as u32,
-            )
-            .unwrap()
+            if colors.graphtofile == *"-" && cfg!(unix)
+            {
+                fg.save_to_png(
+                    "/tmp/kalc-temp.png",
+                    options.window_size.0 as u32,
+                    options.window_size.1 as u32,
+                )
+                .unwrap();
+                stdout()
+                    .lock()
+                    .write_all(&fs::read("/tmp/kalc-temp.png").unwrap())
+                    .unwrap();
+                remove_file("/tmp/kalc-temp.png").unwrap()
+            }
+            else
+            {
+                fg.save_to_png(
+                    colors.graphtofile,
+                    options.window_size.0 as u32,
+                    options.window_size.1 as u32,
+                )
+                .unwrap()
+            }
         }
         else if fg.show().is_err()
         {

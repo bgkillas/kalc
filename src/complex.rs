@@ -2956,42 +2956,69 @@ pub fn slope(
     mut point: Number,
     combine: bool,
     nth: u32,
-    side: LimSide,
 ) -> Result<NumStr, &'static str>
 {
-    match side
+    options.prec = options.prec.clamp(256, 1024);
+    point.number.set_prec(options.prec);
+    let left = slopesided(
+        func.clone(),
+        func_vars.clone(),
+        options,
+        var.clone(),
+        point.clone(),
+        combine,
+        nth,
+        false,
+        None,
+    )?;
+    let right = slopesided(
+        func, func_vars, options, var, point, combine, nth, true, None,
+    )?;
+    match (left, right)
     {
-        LimSide::Left => slopesided(
-            func, func_vars, options, var, point, combine, nth, false, None,
-        ),
-        LimSide::Right => slopesided(
-            func, func_vars, options, var, point, combine, nth, true, None,
-        ),
-        LimSide::Both =>
+        (Num(left), Num(right)) =>
         {
-            options.prec = options.prec.clamp(256, 1024);
-            point.number.set_prec(options.prec);
-            let left = slopesided(
-                func.clone(),
-                func_vars.clone(),
-                options,
-                var.clone(),
-                point.clone(),
-                combine,
-                nth,
-                false,
-                None,
-            )?;
-            let right = slopesided(
-                func, func_vars, options, var, point, combine, nth, true, None,
-            )?;
-            match (left, right)
+            let units = left.units;
+            let left = left.number;
+            let right = right.number;
+            if (((left.real().is_infinite()
+                && right.real().is_infinite()
+                && (left.imag().clone() - right.imag().clone())
+                    .abs()
+                    .clone()
+                    .log2()
+                    < options.prec as i32 / -16)
+                || (left.imag().is_infinite()
+                    && right.imag().is_infinite()
+                    && (left.real().clone() - right.real().clone())
+                        .abs()
+                        .clone()
+                        .log2()
+                        < options.prec as i32 / -16))
+                && left.real().is_sign_positive() == right.real().is_sign_positive()
+                && left.imag().is_sign_positive() == right.imag().is_sign_positive())
+                || (left.clone() - right.clone()).abs().real().clone().log2()
+                    < options.prec as i32 / -16
             {
-                (Num(left), Num(right)) =>
-                {
+                Ok(Num(Number::from((left + right) / 2, units)))
+            }
+            else
+            {
+                Ok(Num(Number::from(
+                    Complex::with_val(options.prec, Nan),
+                    None,
+                )))
+            }
+        }
+        (Vector(left), Vector(right)) =>
+        {
+            let mut vec = Vec::with_capacity(left.len());
+            for (left, right) in left.iter().zip(right)
+            {
+                vec.push({
                     let units = left.units;
-                    let left = left.number;
-                    let right = right.number;
+                    let left = left.number.clone();
+                    let right = right.number.clone();
                     if (((left.real().is_infinite()
                         && right.real().is_infinite()
                         && (left.imag().clone() - right.imag().clone())
@@ -3011,59 +3038,17 @@ pub fn slope(
                         || (left.clone() - right.clone()).abs().real().clone().log2()
                             < options.prec as i32 / -16
                     {
-                        Ok(Num(Number::from((left + right) / 2, units)))
+                        Number::from((left + right) / 2, units)
                     }
                     else
                     {
-                        Ok(Num(Number::from(
-                            Complex::with_val(options.prec, Nan),
-                            None,
-                        )))
+                        Number::from(Complex::with_val(options.prec, Nan), None)
                     }
-                }
-                (Vector(left), Vector(right)) =>
-                {
-                    let mut vec = Vec::with_capacity(left.len());
-                    for (left, right) in left.iter().zip(right)
-                    {
-                        vec.push({
-                            let units = left.units;
-                            let left = left.number.clone();
-                            let right = right.number.clone();
-                            if (((left.real().is_infinite()
-                                && right.real().is_infinite()
-                                && (left.imag().clone() - right.imag().clone())
-                                    .abs()
-                                    .clone()
-                                    .log2()
-                                    < options.prec as i32 / -16)
-                                || (left.imag().is_infinite()
-                                    && right.imag().is_infinite()
-                                    && (left.real().clone() - right.real().clone())
-                                        .abs()
-                                        .clone()
-                                        .log2()
-                                        < options.prec as i32 / -16))
-                                && left.real().is_sign_positive()
-                                    == right.real().is_sign_positive()
-                                && left.imag().is_sign_positive()
-                                    == right.imag().is_sign_positive())
-                                || (left.clone() - right.clone()).abs().real().clone().log2()
-                                    < options.prec as i32 / -16
-                            {
-                                Number::from((left + right) / 2, units)
-                            }
-                            else
-                            {
-                                Number::from(Complex::with_val(options.prec, Nan), None)
-                            }
-                        })
-                    }
-                    Ok(Vector(vec))
-                }
-                (_, _) => Err("lim err"),
+                })
             }
+            Ok(Vector(vec))
         }
+        (_, _) => Err("lim err"),
     }
 }
 #[allow(clippy::too_many_arguments)]

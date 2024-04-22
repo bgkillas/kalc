@@ -110,7 +110,7 @@ Functions:\x1b[G\n\
 - weighted{{{{a,n1}},{{b,n2}}..}} rolls a weighted die where a and b are face values and n1 and n2 are their weights\x1b[G\n\
 - An(n,k), Ap(n,t) eulerian numbers and polynomials\x1b[G\n\
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
-- slope(x,f(x),point (,side) (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
+- slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to)\x1b[G\n\
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\
 - iter(x,f(x),p,n), f(x) iterated n times at point p\x1b[G\n\n\

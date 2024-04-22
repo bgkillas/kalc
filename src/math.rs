@@ -607,10 +607,7 @@ pub fn do_math(
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("slope" | "D", Str(var))
-                            if place.len() == 3
-                                || place.len() == 4
-                                || place.len() == 5
-                                || place.len() == 6 =>
+                            if place.len() == 3 || place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = slope(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -642,27 +639,6 @@ pub fn do_math(
                                 else
                                 {
                                     1
-                                },
-                                if place.len() >= 4
-                                {
-                                    match do_math(
-                                        function[place[2] + 1..place[3]].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?
-                                    .num()?
-                                    .number
-                                    .real()
-                                    .cmp0()
-                                    {
-                                        Some(Ordering::Less) => Left,
-                                        Some(Ordering::Greater) => Right,
-                                        _ => Both,
-                                    }
-                                }
-                                else
-                                {
-                                    Both
                                 },
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());

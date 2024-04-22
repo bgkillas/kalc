@@ -620,11 +620,11 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                place.len() != 6,
-                                if place.len() >= 5
+                                place.len() != 5,
+                                if place.len() >= 4
                                 {
                                     do_math(
-                                        function[place[3] + 1..place[4]].to_vec(),
+                                        function[place[2] + 1..place[3]].to_vec(),
                                         options,
                                         func_vars.clone(),
                                     )?

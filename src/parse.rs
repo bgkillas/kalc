@@ -471,6 +471,15 @@ pub fn input_var(
                 {
                     *bracket -= 1;
                     output.push(Str("}".to_string()));
+                    if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                    {
+                        for _ in 0..pwr.2
+                        {
+                            output.push(Str(')'.to_string()))
+                        }
+                        pwr.0 = false;
+                        pwr.2 = 0
+                    }
                 }
                 '±' if i + 1 != chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
@@ -683,6 +692,15 @@ pub fn input_var(
                     ceilfoor -= 2;
                     output.push(Str(")".to_string()));
                     output.push(Str(")".to_string()));
+                    if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                    {
+                        for _ in 0..pwr.2
+                        {
+                            output.push(Str(')'.to_string()))
+                        }
+                        pwr.0 = false;
+                        pwr.2 = 0
+                    }
                 }
                 '⌋' if i != 0 =>
                 {
@@ -690,6 +708,15 @@ pub fn input_var(
                     ceilfoor -= 2;
                     output.push(Str(")".to_string()));
                     output.push(Str(")".to_string()));
+                    if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                    {
+                        for _ in 0..pwr.2
+                        {
+                            output.push(Str(')'.to_string()))
+                        }
+                        pwr.0 = false;
+                        pwr.2 = 0
+                    }
                 }
                 '(' if i + 1 != chars.len() =>
                 {
@@ -727,6 +754,15 @@ pub fn input_var(
                             None,
                         )));
                         exp = (String::new(), 0);
+                    }
+                    if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                    {
+                        for _ in 0..pwr.2
+                        {
+                            output.push(Str(')'.to_string()))
+                        }
+                        pwr.0 = false;
+                        pwr.2 = 0
                     }
                 }
                 '|' =>

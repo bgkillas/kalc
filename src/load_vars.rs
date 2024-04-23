@@ -699,19 +699,20 @@ pub fn add_var(
         if l.contains(&'(')
         {
             let mut l = l.clone();
-            if l.drain(0..=l.iter().position(|c| c == &'(').unwrap())
-                .collect::<String>()
-                .contains(',')
+            l.pop();
+            let st = l
+                .drain(0..=l.iter().position(|c| c == &'(').unwrap())
+                .collect::<String>();
+            if st.contains(',') || st.len() == 1
             {
                 return Err("bad var name");
             }
-            l.pop();
             for i in l.split(|c| c == &',')
             {
                 func_vars.push((-1, i.iter().collect()));
             }
         }
-        else if l.contains(&',')
+        else if l.contains(&',') || l.is_empty()
         {
             return Err("bad var name");
         }
@@ -774,6 +775,14 @@ pub fn add_var(
             l.clone(),
         )?;
         parsed.1.extend(fvs);
+        if l.contains(&'(')
+            && r.contains(l.split(|c| c == &'(').next().unwrap())
+            && (r.contains("piecewise") || r.contains("pw"))
+        {
+            parsed
+                .1
+                .push((l.iter().collect::<String>(), parsed.0.clone()))
+        }
         if parsed.0.is_empty()
         {
             return Err("bad input");
@@ -812,15 +821,6 @@ pub fn add_var(
                     funcvars: parsed.1,
                 },
             )
-        }
-        if l.contains(&'(')
-            && r.contains(l.split(|c| c == &'(').next().unwrap())
-            && (r.contains("piecewise") || r.contains("pw"))
-        {
-            let parsed = vars[i].parsed.clone();
-            vars[i]
-                .funcvars
-                .push((l.iter().collect::<String>(), parsed))
         }
     }
     if redef
@@ -893,13 +893,21 @@ pub fn add_var(
                     )?;
                     parsed.1.extend(fvs);
                     if v.name.contains(&'(')
+                        && v.unparsed
+                            .contains(v.name.split(|c| c == &'(').next().unwrap())
+                        && (v.unparsed.contains("piecewise") || v.unparsed.contains("pw"))
                     {
-                        if vars[j].parsed.clone() != parsed.0
-                            || vars[j].funcvars.clone() != parsed.1
+                        parsed
+                            .1
+                            .push((v.name.iter().collect::<String>(), parsed.0.clone()));
+                    }
+                    if v.name.contains(&'(')
+                    {
+                        if vars[j].parsed != parsed.0 || vars[j].funcvars != parsed.1
                         {
                             redef.push(v.name.clone());
-                            vars[j].parsed.clone_from(&parsed.0);
-                            vars[j].funcvars.clone_from(&parsed.1);
+                            vars[j].parsed = parsed.0;
+                            vars[j].funcvars = parsed.1;
                         }
                     }
                     else if let Ok(n) = do_math(parsed.0.clone(), options, parsed.1.clone())
@@ -909,16 +917,6 @@ pub fn add_var(
                             redef.push(v.name.clone());
                             vars[j].parsed = vec![n];
                         }
-                    }
-                    if v.name.contains(&'(')
-                        && v.unparsed
-                            .contains(v.name.split(|c| c == &'(').next().unwrap())
-                        && (v.unparsed.contains("piecewise") || v.unparsed.contains("pw"))
-                    {
-                        let parsed = vars[j].parsed.clone();
-                        vars[j]
-                            .funcvars
-                            .push((v.name.iter().collect::<String>(), parsed))
                     }
                 }
             }

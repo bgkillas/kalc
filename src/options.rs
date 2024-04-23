@@ -27,6 +27,7 @@ pub fn arg_opts(
     args: &mut Vec<String>,
 ) -> Result<bool, &'static str>
 {
+    let mut default = false;
     args.remove(0);
     loop
     {
@@ -62,7 +63,7 @@ pub fn arg_opts(
             {
                 args.remove(0);
                 *options = Options::default();
-                return Ok(true);
+                default = true;
             }
             "--" =>
             {
@@ -106,7 +107,7 @@ pub fn arg_opts(
             }
         }
     }
-    Ok(false)
+    Ok(default)
 }
 pub fn file_opts(
     options: &mut Options,
@@ -533,6 +534,18 @@ pub fn set_commands(
                                         _ => return Err("prec crash"),
                                     };
                                     parsed.1.extend(fvs);
+                                    if var.name.contains(&'(')
+                                        && var
+                                            .unparsed
+                                            .contains(var.name.split(|c| c == &'(').next().unwrap())
+                                        && (var.unparsed.contains("piecewise")
+                                            || var.unparsed.contains("pw"))
+                                    {
+                                        parsed.1.push((
+                                            var.name.iter().collect::<String>(),
+                                            parsed.0.clone(),
+                                        ))
+                                    }
                                     vars[i].parsed = if var.name.contains(&'(')
                                     {
                                         parsed.0
@@ -546,18 +559,6 @@ pub fn set_commands(
                                             )))]
                                     };
                                     vars[i].funcvars = parsed.1;
-                                    if var.name.contains(&'(')
-                                        && var
-                                            .unparsed
-                                            .contains(var.name.split(|c| c == &'(').next().unwrap())
-                                        && (var.unparsed.contains("piecewise")
-                                            || var.unparsed.contains("pw"))
-                                    {
-                                        let parsed = vars[i].parsed.clone();
-                                        vars[i]
-                                            .funcvars
-                                            .push((var.name.iter().collect::<String>(), parsed))
-                                    }
                                 }
                             }
                         }

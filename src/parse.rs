@@ -614,7 +614,8 @@ pub fn input_var(
                         output.push(Str("->".to_string()));
                         i += 1;
                     }
-                    else if i != 0 && chars[i - 1] == '^'
+                    else if (i != 0 && chars[i - 1] == '^')
+                        || (i > 1 && chars[i - 1] == '/' && chars[i - 2] == '/')
                     {
                         output.push(Str("(".to_string()));
                         output.push(Num(Number::from(n1.clone(), None)));

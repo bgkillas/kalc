@@ -469,7 +469,7 @@ pub fn do_math(
                         },
                     )
                     {
-                        ("iter", Str(var)) if place.len() == 4 =>
+                        ("iter", Str(var)) if place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = iter(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -493,6 +493,7 @@ pub fn do_math(
                                 .unwrap_or_default()
                                 .to_usize()
                                 .unwrap_or_default(),
+                                place.len() == 5,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }

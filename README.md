@@ -225,7 +225,7 @@ Functions:
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to)
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
-- iter(x,f(x),p,n), f(x) iterated n times at point p
+- iter(x,f(x),p,n), f(x) iterated n times at point p, add ",1" to args to show steps
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})

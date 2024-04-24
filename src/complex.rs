@@ -2865,13 +2865,27 @@ pub fn iter(
     var: String,
     mut x: NumStr,
     n: usize,
+    all: bool,
 ) -> Result<NumStr, &'static str>
 {
-    for _ in 0..n
+    if all
     {
-        x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?
+        let mut vec = vec![x.num()?];
+        for _ in 0..n
+        {
+            x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+            vec.push(x.num()?);
+        }
+        Ok(Vector(vec))
     }
-    Ok(x)
+    else
+    {
+        for _ in 0..n
+        {
+            x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?
+        }
+        Ok(x)
+    }
 }
 pub fn solve(
     func: Vec<NumStr>,

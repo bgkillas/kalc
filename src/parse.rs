@@ -89,7 +89,10 @@ pub fn input_var(
                 chars.remove(i);
             }
         }
-        i += 1;
+        else
+        {
+            i += 1;
+        }
     }
     for c in &chars
     {

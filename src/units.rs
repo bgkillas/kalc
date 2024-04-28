@@ -857,6 +857,7 @@ pub fn units() -> HashSet<&'static str>
         "au",
         "arcsec",
         "arcmin",
+        "micron",
     ]
     .iter()
     .cloned()
@@ -896,6 +897,11 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             num /= 8;
             units.byte = 1.0;
+        }
+        "micron" =>
+        {
+            num /= 1000000;
+            units.meter = 1.0
         }
         "g" | "gram" =>
         {

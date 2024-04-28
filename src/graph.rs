@@ -1834,6 +1834,7 @@ fn get_data(
             func.0.iter().any(|i| i.str_is("y"))
                 || func.1.iter().any(|i| i.1.iter().any(|i| i.str_is("y"))),
         );
+        //TODO remove above to parse.rs to fix vec(x,x,0,999)#
         if !has_y && !has_x
         {
             match match do_math(func.0.clone(), func.2, func.1)

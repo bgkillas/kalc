@@ -978,6 +978,6 @@ pub fn set_commands_or_vars(
             return Ok(());
         }
     }
-    add_var(l, r, 0, vars, *options, true, false, false)?;
+    add_var(l, r, vars.len(), vars, *options, true, false, false)?;
     Ok(())
 }

@@ -12,6 +12,9 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
+//f (2) should not parse as f(2) with f(x) and f defined as functions/vars
+//surface area function
+//fix vec(x,x,0,999)#, x var messing up graphing
 //lib, gui
 use crate::{
     complex::NumStr,

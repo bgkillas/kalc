@@ -251,17 +251,36 @@ pub fn set_commands(
         }
         "point" =>
         {
-            let r = r.chars().next().unwrap();
-            if matches!(
-                r,
-                '.' | '+' | 'x' | '*' | 's' | 'S' | 'o' | 'O' | 't' | 'T' | 'd' | 'D' | 'r' | 'R'
-            )
+            if r.is_empty()
             {
-                options.point_style = r;
+                return Err("Invalid point type");
             }
             else
             {
-                return Err("Invalid point type");
+                let r = r.chars().next().unwrap();
+                if matches!(
+                    r,
+                    '.' | '+'
+                        | 'x'
+                        | '*'
+                        | 's'
+                        | 'S'
+                        | 'o'
+                        | 'O'
+                        | 't'
+                        | 'T'
+                        | 'd'
+                        | 'D'
+                        | 'r'
+                        | 'R'
+                )
+                {
+                    options.point_style = r;
+                }
+                else
+                {
+                    return Err("Invalid point type");
+                }
             }
         }
         "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "surface" | "rt"

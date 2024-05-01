@@ -1911,7 +1911,19 @@ pub fn do_math(
                                 }
                                 else
                                 {
-                                    return Err("no args");
+                                    let vec = to_polar(a, to_deg.clone());
+                                    if vec.len() == 3
+                                    {
+                                        Vector(vec[1..=2].to_vec())
+                                    }
+                                    else if vec.len() == 2
+                                    {
+                                        Num(vec[1].clone())
+                                    }
+                                    else
+                                    {
+                                        return Err("cant decern angles");
+                                    }
                                 }
                             }
                             "cross" =>

@@ -2870,13 +2870,30 @@ pub fn iter(
 {
     if all
     {
-        let mut vec = vec![x.num()?];
-        for _ in 0..n
+        if let Num(num) = x.clone()
         {
-            x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
-            vec.push(x.num()?);
+            let mut vec = vec![num];
+            for _ in 0..n
+            {
+                x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+                vec.push(x.num()?);
+            }
+            Ok(Vector(vec))
         }
-        Ok(Vector(vec))
+        else if let Vector(v) = x.clone()
+        {
+            let mut vec = vec![v];
+            for _ in 0..n
+            {
+                x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+                vec.push(x.vec()?);
+            }
+            Ok(Matrix(vec))
+        }
+        else
+        {
+            return Err("unsupported iter");
+        }
     }
     else
     {

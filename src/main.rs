@@ -1221,6 +1221,18 @@ fn main()
                             firstslow = false;
                             placement = input.len();
                             end = input.len();
+                            start = if get_terminal_dimensions().0
+                                - if options.prompt { 3 } else { 1 }
+                                > input.len()
+                            {
+                                0
+                            }
+                            else
+                            {
+                                input.len()
+                                    - (get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 })
+                            };
                             handle_err(
                                 "too slow, will print on enter",
                                 &input,
@@ -1234,17 +1246,19 @@ fn main()
                         {
                             placement = input.len();
                             end = input.len();
+                            start = if get_terminal_dimensions().0
+                                - if options.prompt { 3 } else { 1 }
+                                > input.len()
+                            {
+                                0
+                            }
+                            else
+                            {
+                                input.len()
+                                    - (get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 })
+                            };
                         }
-                        start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
-                            > input.len()
-                        {
-                            0
-                        }
-                        else
-                        {
-                            input.len()
-                                - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
-                        };
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();
@@ -1286,6 +1300,18 @@ fn main()
                             firstslow = false;
                             placement = input.len();
                             end = input.len();
+                            start = if get_terminal_dimensions().0
+                                - if options.prompt { 3 } else { 1 }
+                                > input.len()
+                            {
+                                0
+                            }
+                            else
+                            {
+                                input.len()
+                                    - (get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 })
+                            };
                             handle_err(
                                 "too slow, will print on enter",
                                 &input,
@@ -1299,17 +1325,19 @@ fn main()
                         {
                             placement = input.len();
                             end = input.len();
+                            start = if get_terminal_dimensions().0
+                                - if options.prompt { 3 } else { 1 }
+                                > input.len()
+                            {
+                                0
+                            }
+                            else
+                            {
+                                input.len()
+                                    - (get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 })
+                            };
                         }
-                        start = if get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
-                            > input.len()
-                        {
-                            0
-                        }
-                        else
-                        {
-                            input.len()
-                                - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
-                        };
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();

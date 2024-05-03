@@ -16,7 +16,6 @@ fn test_math()
         &mut 0,
         Options::default(),
         false,
-        false,
         0,
         Vec::new(),
     )

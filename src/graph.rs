@@ -12,7 +12,7 @@ use crate::{
     misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     options::silent_commands,
     parse::input_var,
-    Colors, GraphType, Number, Options, Variable,
+    Colors, GraphType, HowGraphing, Number, Options, Variable,
 };
 use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol, TickOption};
 use rug::Complex;
@@ -94,12 +94,11 @@ pub fn graph(
                     &mut 0,
                     options,
                     false,
-                    false,
                     0,
                     Vec::new(),
                 )
                 {
-                    Ok(f) => (f.0, f.1, options),
+                    Ok(f) => (f.0, f.1, options, f.2),
                     _ =>
                     {
                         print!("\x1b[G\x1b[Kbad input\x1b[G\n{}", prompt(options, &colors));
@@ -1185,7 +1184,12 @@ pub fn graph(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_2d(
-    mut func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
+    mut func: (
+        Vec<NumStr>,
+        Vec<(String, Vec<NumStr>)>,
+        Options,
+        HowGraphing,
+    ),
 ) -> ([[Vec<f64>; 2]; 2], [Vec<f64>; 2], (bool, bool))
 {
     {
@@ -1485,7 +1489,12 @@ pub fn get_list_2d(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_3d(
-    mut func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
+    mut func: (
+        Vec<NumStr>,
+        Vec<(String, Vec<NumStr>)>,
+        Options,
+        HowGraphing,
+    ),
 ) -> ([[Vec<f64>; 3]; 2], (bool, bool), bool)
 {
     {
@@ -1811,7 +1820,12 @@ fn fail(options: Options, colors: &Colors, input: String)
 #[allow(clippy::type_complexity)]
 fn get_data(
     colors: Colors,
-    func: (Vec<NumStr>, Vec<(String, Vec<NumStr>)>, Options),
+    func: (
+        Vec<NumStr>,
+        Vec<(String, Vec<NumStr>)>,
+        Options,
+        HowGraphing,
+    ),
     input: String,
 ) -> JoinHandle<(
     (bool, bool),
@@ -1828,12 +1842,7 @@ fn get_data(
         let mut points3d: [[Vec<f64>; 3]; 2] = Default::default();
         let mut d2_or_d3: (bool, bool) = (false, false);
         let mut re_or_im = (false, false);
-        let (has_x, has_y) = (
-            func.0.iter().any(|i| i.str_is("x"))
-                || func.1.iter().any(|i| i.1.iter().any(|i| i.str_is("x"))),
-            func.0.iter().any(|i| i.str_is("y"))
-                || func.1.iter().any(|i| i.1.iter().any(|i| i.str_is("y"))),
-        );
+        let (has_x, has_y) = (func.3.x, func.3.y);
         //TODO remove above to parse.rs to fix vec(x,x,0,999)#
         if !has_y && !has_x
         {
@@ -1924,12 +1933,14 @@ fn get_data(
                                 vec![Num(Number::from(v[0].number.clone(), None))],
                                 Vec::new(),
                                 func.2,
+                                HowGraphing::default(),
                             ));
                             let points2dtemp: [[Vec<f64>; 2]; 2];
                             (points2dtemp, _, re_or_im) = get_list_2d((
                                 vec![Num(Number::from(v[1].number.clone(), None))],
                                 Vec::new(),
                                 func.2,
+                                HowGraphing::default(),
                             ));
                             points2d[0][0].extend(points2dtemp[0][0].clone());
                             points2d[0][1].extend(points2dtemp[0][1].clone());

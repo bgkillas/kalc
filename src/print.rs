@@ -13,7 +13,7 @@ use crate::{
     options::{equal_to, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
-    Colors,
+    Colors, HowGraphing,
     Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
     Number, Options, Variable,
 };
@@ -29,12 +29,12 @@ pub fn print_concurrent(
     start: usize,
     end: usize,
     long_output: bool,
-) -> (usize, bool, bool, bool)
+) -> (usize, HowGraphing, bool, bool)
 {
     if unmodified_input.starts_with(&['#']) || unmodified_input.is_empty()
     {
         clear(unmodified_input, start, end, options, &colors);
-        return (0, false, false, false);
+        return (0, HowGraphing::default(), false, false);
     }
     let mut unparsed = unmodified_input;
     {
@@ -61,7 +61,7 @@ pub fn print_concurrent(
                     if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                     {
                         handle_err(s, unmodified_input, options, &colors, start, end);
-                        return (0, false, false, false);
+                        return (0, HowGraphing::default(), false, false);
                     }
                 }
             }
@@ -96,7 +96,7 @@ pub fn print_concurrent(
                 to_output(&unmodified_input[start..end], options.color, &colors),
                 if options.color { "\x1b[0m" } else { "" },
             );
-            return (num, false, false, false);
+            return (num, HowGraphing::default(), false, false);
         }
         else if tempinput.ends_with('=')
         {
@@ -121,7 +121,7 @@ pub fn print_concurrent(
                             out,
                             if options.color { "\x1b[0m" } else { "" }
                         );
-                        (wrap, false, false, false)
+                        (wrap, HowGraphing::default(), false, false)
                     }
                     else
                     {
@@ -131,7 +131,7 @@ pub fn print_concurrent(
                             to_output(&unmodified_input[start..end], options.color, &colors),
                             if options.color { "\x1b[0m" } else { "" },
                         );
-                        (0, false, true, false)
+                        (0, HowGraphing::default(), true, false)
                     }
                 }
                 else
@@ -151,13 +151,13 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap - 1, false, false, false)
+                    (wrap - 1, HowGraphing::default(), false, false)
                 }
             }
             else
             {
                 clear(unmodified_input, start, end, options, &colors);
-                (0, false, false, false)
+                (0, HowGraphing::default(), false, false)
             };
         }
     }
@@ -171,7 +171,6 @@ pub fn print_concurrent(
         &mut 0,
         options,
         false,
-        false,
         0,
         Vec::new(),
     )
@@ -180,14 +179,14 @@ pub fn print_concurrent(
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, &colors, start, end);
-            return (0, false, false, false);
+            return (0, HowGraphing::default(), false, false);
         }
     };
     {
         if input.3
         {
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
-            let mut input = unparsed[n..].iter().collect::<String>();
+            let mut inputs = unparsed[n..].iter().collect::<String>();
             let mut func = unparsed[..n - 1].to_vec();
             return if matches!(
                 func.iter().collect::<String>().as_str(),
@@ -217,12 +216,12 @@ pub fn print_concurrent(
             {
                 print!(
                     "\x1b[G\n\x1b[J{}\x1b[A\x1b[G\x1b[K{}{}{}",
-                    input,
+                    inputs,
                     prompt(options, &colors),
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (1, true, false, true)
+                (1, input.2, false, true)
             }
             else
             {
@@ -236,11 +235,11 @@ pub fn print_concurrent(
                         func_vars.push((-1, i.iter().collect()));
                     }
                 }
-                if input.contains(':')
+                if inputs.contains(':')
                 {
-                    let inp = input;
+                    let inp = inputs;
                     let mut split = inp.split(':').collect::<Vec<&str>>();
-                    input = split.pop().unwrap().to_string();
+                    inputs = split.pop().unwrap().to_string();
                     for i in split
                     {
                         if i.contains('=')
@@ -251,12 +250,11 @@ pub fn print_concurrent(
                     }
                 }
                 let out = match input_var(
-                    &input,
+                    &inputs,
                     &vars,
                     &mut func_vars,
                     &mut 0,
                     options,
-                    false,
                     true,
                     0,
                     Vec::new(),
@@ -268,7 +266,7 @@ pub fn print_concurrent(
                 if out.is_empty()
                 {
                     clear(unmodified_input, start, end, options, &colors);
-                    return (0, false, false, true);
+                    return (0, HowGraphing::default(), false, true);
                 }
                 let (width, height) = get_terminal_dimensions();
                 let len = no_col(&out, options.color).len();
@@ -282,7 +280,7 @@ pub fn print_concurrent(
                             out,
                             if options.color { "\x1b[0m" } else { "" }
                         );
-                        (wrap, true, false, true)
+                        (wrap, input.2, false, true)
                     }
                     else
                     {
@@ -292,7 +290,7 @@ pub fn print_concurrent(
                             to_output(&unmodified_input[start..end], options.color, &colors),
                             if options.color { "\x1b[0m" } else { "" },
                         );
-                        (0, true, true, true)
+                        (0, input.2, true, true)
                     }
                 }
                 else
@@ -312,12 +310,12 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap, true, false, true)
+                    (wrap, input.2, false, true)
                 }
             };
         }
     }
-    if input.2
+    if input.2.graph
     {
         return if unmodified_input.contains(&'#')
         {
@@ -333,7 +331,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    return (1, true, false, false);
+                    return (1, input.2, false, false);
                 }
                 let mut vars = vars.clone();
                 let mut options = options;
@@ -377,7 +375,7 @@ pub fn print_concurrent(
                                             start,
                                             end,
                                         );
-                                        return (0, false, false, false);
+                                        return (0, HowGraphing::default(), false, false);
                                     }
                                 }
                             }
@@ -420,7 +418,7 @@ pub fn print_concurrent(
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap, true, false, false)
+                    (wrap, input.2, false, false)
                 }
                 else
                 {
@@ -430,7 +428,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
-                    (0, true, true, false)
+                    (0, input.2, true, false)
                 }
             }
             else
@@ -450,17 +448,17 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (wrap, true, false, false)
+                (wrap, input.2, false, false)
             }
         }
         else
         {
-            let input = unparsed.iter().collect::<String>();
+            let inputs = unparsed.iter().collect::<String>();
             let out = equal_to(
                 options,
                 &colors,
                 &vars,
-                &input,
+                &inputs,
                 &last.iter().collect::<String>(),
             );
             let (width, height) = get_terminal_dimensions();
@@ -475,7 +473,7 @@ pub fn print_concurrent(
                         out,
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap, true, false, false)
+                    (wrap, input.2, false, false)
                 }
                 else
                 {
@@ -485,7 +483,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
-                    (0, true, true, false)
+                    (0, input.2, true, false)
                 }
             }
             else
@@ -505,7 +503,7 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (wrap, true, false, false)
+                (wrap, input.2, false, false)
             }
         };
     }
@@ -522,7 +520,7 @@ pub fn print_concurrent(
             {
                 handle_err(s, unmodified_input, options, &colors, start, end);
             }
-            return (0, false, false, false);
+            return (0, HowGraphing::default(), false, false);
         }
     };
     let mut frac = 0;
@@ -1181,7 +1179,7 @@ pub fn print_concurrent(
         }
         _ => handle_err("str err", unmodified_input, options, &colors, start, end),
     }
-    (frac, false, long, false)
+    (frac, HowGraphing::default(), long, false)
 }
 pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
 {

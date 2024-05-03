@@ -6,7 +6,7 @@ use crate::{
     functions::functions,
     math::do_math,
     units::{is_unit, prefixes, to_unit},
-    GraphType,
+    GraphType, HowGraphing,
     Notation::SmallEngineering,
     Number, Options, Variable,
 };
@@ -23,16 +23,16 @@ pub fn input_var(
     sumrec: &mut Vec<(isize, String)>,
     bracket: &mut isize,
     options: Options,
-    mut graph: bool,
     print: bool,
     depth: usize,
     blacklist: Vec<char>,
-) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, bool, bool), &'static str>
+) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, HowGraphing, bool), &'static str>
 {
     // if input == "debugtest"
     // {
     //     return Err("debugfail");
     // }
+    let mut graph = HowGraphing::default();
     let prec = (options.prec, options.prec);
     let mut funcvars = Vec::new();
     if input.starts_with("history") || input.starts_with("onaxis") || input.is_empty()
@@ -446,7 +446,7 @@ pub fn input_var(
                 {
                     if i == 0
                     {
-                        return Ok((Vec::new(), Vec::new(), false, true));
+                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true));
                     }
                     else if chars[i + 1] == '='
                     {
@@ -463,7 +463,7 @@ pub fn input_var(
                     }
                     else
                     {
-                        return Ok((Vec::new(), Vec::new(), false, true));
+                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true));
                     }
                 }
                 '{' =>
@@ -970,7 +970,7 @@ pub fn input_var(
                 ))),
                 '#' =>
                 {
-                    graph = true;
+                    graph.graph = true;
                     break 'main;
                 }
                 _ =>
@@ -1628,7 +1628,6 @@ pub fn input_var(
                                         sumrec,
                                         bracket,
                                         options,
-                                        false,
                                         print,
                                         depth + 1,
                                         blacklist.clone(),
@@ -1641,15 +1640,28 @@ pub fn input_var(
                                             continue;
                                         }
                                     };
-                                    if tempgraph
+                                    if tempgraph.graph
                                     {
-                                        graph = true
+                                        graph.graph = true
+                                    }
+                                    if tempgraph.x
+                                    {
+                                        graph.x = true
+                                    }
+                                    if tempgraph.y
+                                    {
+                                        graph.y = true
                                     }
                                     if exit
                                     {
-                                        return Ok((Vec::new(), Vec::new(), false, true));
+                                        return Ok((
+                                            Vec::new(),
+                                            Vec::new(),
+                                            HowGraphing::default(),
+                                            true,
+                                        ));
                                     }
-                                    if (tempgraph && parsed.len() > 1)
+                                    if (tempgraph.graph && parsed.len() > 1)
                                         || print
                                         || sumrec.iter().any(|c| c.0 == -1)
                                         || parsed.iter().any(|c| {
@@ -1870,7 +1882,6 @@ pub fn input_var(
                                     sumrec,
                                     bracket,
                                     options,
-                                    false,
                                     print,
                                     depth + 1,
                                     blacklist.clone(),
@@ -1883,15 +1894,28 @@ pub fn input_var(
                                         continue;
                                     }
                                 };
-                                if tempgraph
+                                if tempgraph.graph
                                 {
-                                    graph = true
+                                    graph.graph = true
+                                }
+                                if tempgraph.x
+                                {
+                                    graph.x = true
+                                }
+                                if tempgraph.y
+                                {
+                                    graph.y = true
                                 }
                                 if exit
                                 {
-                                    return Ok((Vec::new(), Vec::new(), false, true));
+                                    return Ok((
+                                        Vec::new(),
+                                        Vec::new(),
+                                        HowGraphing::default(),
+                                        true,
+                                    ));
                                 }
-                                if (tempgraph && parsed.len() > 1)
+                                if (tempgraph.graph && parsed.len() > 1)
                                     || print
                                     || sumrec.iter().any(|c| c.0 == -1)
                                     || parsed.iter().any(|c| {
@@ -2235,7 +2259,15 @@ pub fn input_var(
                     }
                     'x' | 'y' if options.graphtype != GraphType::None =>
                     {
-                        graph = true;
+                        graph.graph = true;
+                        if c == 'x'
+                        {
+                            graph.x = true
+                        }
+                        if c == 'y'
+                        {
+                            graph.y = true
+                        }
                         place_multiplier(&mut output, sumrec);
                         output.push(Str(c.to_string()));
                         if scientific
@@ -2293,7 +2325,9 @@ pub fn input_var(
                     }
                     'z' if options.graphtype != GraphType::None =>
                     {
-                        graph = true;
+                        graph.graph = true;
+                        graph.x = true;
+                        graph.y = true;
                         place_multiplier(&mut output, sumrec);
                         output.push(Str('('.to_string()));
                         output.push(Str('x'.to_string()));
@@ -2460,7 +2494,7 @@ pub fn input_var(
     {
         return Err(err);
     }
-    if graph && !print
+    if graph.graph && !print
     {
         i = output.len();
         count = 0;
@@ -2571,12 +2605,11 @@ pub fn input_var(
     {
         return Err("undefined var");
     }
-    Ok((
-        output,
-        funcvars,
-        graph && options.graphtype != GraphType::None,
-        false,
-    ))
+    if options.graphtype == GraphType::None
+    {
+        graph = HowGraphing::default()
+    }
+    Ok((output, funcvars, graph, false))
 }
 fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
 {

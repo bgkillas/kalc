@@ -296,7 +296,7 @@ pub fn set_commands(
             {
                 let mut bracket = 0;
                 let mut last = 0;
-                for (i, c) in r.chars().enumerate()
+                for (i, c) in o.chars().enumerate()
                 {
                     match c
                     {
@@ -305,12 +305,11 @@ pub fn set_commands(
                         ',' if bracket == 0 =>
                         {
                             let parsed = input_var(
-                                &r[last..i],
+                                &o[last..i],
                                 vars,
                                 &mut Vec::new(),
                                 &mut 0,
                                 *options,
-                                false,
                                 false,
                                 0,
                                 Vec::new(),
@@ -329,12 +328,11 @@ pub fn set_commands(
                     }
                 }
                 let parsed = input_var(
-                    &r[last..],
+                    &o[last..],
                     vars,
                     &mut Vec::new(),
                     &mut 0,
                     *options,
-                    false,
                     false,
                     0,
                     Vec::new(),
@@ -529,7 +527,6 @@ pub fn set_commands(
                                                     &mut 0,
                                                     *options,
                                                     false,
-                                                    false,
                                                     0,
                                                     s.chars().collect::<Vec<char>>(),
                                                 )?;
@@ -545,7 +542,6 @@ pub fn set_commands(
                                         &mut func_vars,
                                         &mut 0,
                                         *options,
-                                        false,
                                         false,
                                         0,
                                         var.name.clone(),
@@ -1249,7 +1245,6 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
                 &mut Vec::new(),
                 &mut 0,
                 options,
-                false,
                 true,
                 0,
                 Vec::new(),

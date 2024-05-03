@@ -13,7 +13,6 @@ mod print;
 mod tests;
 mod units;
 //surface area function
-//fix vec(x,x,0,999)#, x var messing up graphing
 //lib, gui
 use crate::{
     complex::NumStr,
@@ -136,6 +135,13 @@ pub enum AngleType
     Radians,
     Degrees,
     Gradians,
+}
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct HowGraphing
+{
+    graph: bool,
+    x: bool,
+    y: bool,
 }
 #[derive(Copy, Clone, PartialEq)]
 pub enum Notation
@@ -472,7 +478,7 @@ fn main()
     'main: loop
     {
         let mut input = Vec::new();
-        let mut graphable = false;
+        let mut graphable = HowGraphing::default();
         let mut varcheck = false;
         if !args.is_empty()
         {
@@ -487,106 +493,98 @@ fn main()
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
-            if input.contains(&'#')
+            let mut options = options;
+            let mut unparsed = input.clone();
             {
-                graphable = true
-            }
-            else
-            {
-                let mut options = options;
-                let mut unparsed = input.clone();
+                let split = input.split(|c| c == &';');
+                let count = split.clone().count();
+                if count != 1
                 {
-                    let split = input.split(|c| c == &';');
-                    let count = split.clone().count();
-                    if count != 1
+                    unparsed = split.clone().last().unwrap().to_vec();
+                    for (i, s) in split.enumerate()
                     {
-                        unparsed = split.clone().last().unwrap().to_vec();
-                        for (i, s) in split.enumerate()
+                        if i == count - 1
                         {
-                            if i == count - 1
+                            break;
+                        }
+                        silent_commands(
+                            &mut options,
+                            &s.iter()
+                                .copied()
+                                .filter(|&c| !c.is_whitespace())
+                                .collect::<Vec<char>>(),
+                        );
+                        if s.contains(&'=')
+                        {
+                            if let Err(s) =
+                                set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                             {
-                                break;
-                            }
-                            silent_commands(
-                                &mut options,
-                                &s.iter()
-                                    .copied()
-                                    .filter(|&c| !c.is_whitespace())
-                                    .collect::<Vec<char>>(),
-                            );
-                            if s.contains(&'=')
-                            {
-                                if let Err(s) =
-                                    set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
-                                {
-                                    println!("{}", s);
-                                    continue 'main;
-                                }
+                                println!("{}", s);
+                                continue 'main;
                             }
                         }
                     }
-                    let tempinput = unparsed.iter().collect::<String>();
-                    if tempinput.starts_with("help ")
-                    {
-                        println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
-                        continue 'main;
-                    }
-                    else if tempinput.ends_with('=')
-                    {
-                        println!(
-                            "{}",
-                            equal_to(
-                                options,
-                                &colors,
-                                &vars,
-                                &tempinput[..tempinput.len().saturating_sub(1)],
-                                "",
-                            )
-                        );
-                        continue 'main;
-                    }
                 }
-                (output, funcvar, graphable, varcheck) = match input_var(
-                    &unparsed.iter().map(convert).collect::<String>(),
-                    &vars,
-                    &mut Vec::new(),
-                    &mut 0,
-                    options,
-                    false,
-                    false,
-                    0,
-                    Vec::new(),
-                )
+                let tempinput = unparsed.iter().collect::<String>();
+                if tempinput.starts_with("help ")
                 {
-                    Ok(f) => f,
+                    println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
+                    continue 'main;
+                }
+                else if tempinput.ends_with('=')
+                {
+                    println!(
+                        "{}",
+                        equal_to(
+                            options,
+                            &colors,
+                            &vars,
+                            &tempinput[..tempinput.len().saturating_sub(1)],
+                            "",
+                        )
+                    );
+                    continue 'main;
+                }
+            }
+            (output, funcvar, graphable, varcheck) = match input_var(
+                &unparsed.iter().map(convert).collect::<String>(),
+                &vars,
+                &mut Vec::new(),
+                &mut 0,
+                options,
+                false,
+                0,
+                Vec::new(),
+            )
+            {
+                Ok(f) => f,
+                Err(s) =>
+                {
+                    println!("{}: {}", input.iter().collect::<String>(), s);
+                    continue;
+                }
+            };
+            if !graphable.graph && !varcheck
+            {
+                match do_math(output, options, funcvar)
+                {
+                    Ok(n) => print_answer(n, options, &colors),
                     Err(s) =>
                     {
                         println!("{}: {}", input.iter().collect::<String>(), s);
                         continue;
                     }
-                };
-                if !graphable && !varcheck
-                {
-                    match do_math(output, options, funcvar)
-                    {
-                        Ok(n) => print_answer(n, options, &colors),
-                        Err(s) =>
-                        {
-                            println!("{}: {}", input.iter().collect::<String>(), s);
-                            continue;
-                        }
-                    }
                 }
-                if !graphable && !varcheck
+            }
+            if !graphable.graph && !varcheck
+            {
+                if let Some(time) = watch
                 {
-                    if let Some(time) = watch
-                    {
-                        println!(" {}", time.elapsed().as_nanos());
-                    }
-                    else
-                    {
-                        println!();
-                    }
+                    println!(" {}", time.elapsed().as_nanos());
+                }
+                else
+                {
+                    println!();
                 }
             }
             if args.is_empty() && options.stay_interactive
@@ -670,7 +668,7 @@ fn main()
                         }
                         if !input.is_empty() && !input.starts_with(&['#'])
                         {
-                            let num = frac + if !graphable && !varcheck { 1 } else { 0 };
+                            let num = frac + if !graphable.graph && !varcheck { 1 } else { 0 };
                             if num != 0
                             {
                                 print!("\x1b[{}B", num);
@@ -692,7 +690,7 @@ fn main()
                         print!("\x1b[G\n\x1b[K");
                         if c == '\x09'
                         {
-                            graphable = false;
+                            graphable = HowGraphing::default();
                         }
                         break;
                     }
@@ -1693,7 +1691,7 @@ fn main()
             }
             stdout.flush().unwrap()
         }
-        else if graphable
+        else if graphable.graph
         {
             let inputs: Vec<String> = input
                 .iter()

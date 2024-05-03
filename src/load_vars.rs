@@ -753,7 +753,6 @@ pub fn add_var(
                         &mut 0,
                         options,
                         false,
-                        false,
                         0,
                         s.chars().collect::<Vec<char>>(),
                     )?;
@@ -769,7 +768,6 @@ pub fn add_var(
             &mut func_vars,
             &mut 0,
             options,
-            false,
             false,
             0,
             l.clone(),
@@ -870,7 +868,6 @@ pub fn add_var(
                                     &mut 0,
                                     options,
                                     false,
-                                    false,
                                     0,
                                     s.chars().collect::<Vec<char>>(),
                                 )?;
@@ -886,7 +883,6 @@ pub fn add_var(
                         &mut func_vars,
                         &mut 0,
                         options,
-                        false,
                         false,
                         0,
                         v.name.clone(),

@@ -160,9 +160,11 @@ pub fn set_commands(
     colors: &mut Colors,
     vars: &mut [Variable],
     l: &str,
-    r: &str,
+    o: &str,
 ) -> Result<(), &'static str>
 {
+    let o = o.replace(" ", "");
+    let r = o.as_str();
     match l
     {
         "angle" =>
@@ -234,7 +236,7 @@ pub fn set_commands(
         }
         "label" =>
         {
-            let mut split = r.split(',');
+            let mut split = o.split(',');
             if split.clone().count() == 2
             {
                 colors.label.0 = split.next().unwrap().to_string();

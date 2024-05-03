@@ -12,20 +12,20 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
-//f (2) should not parse as f(2) with f(x) and f defined as functions/vars
 //surface area function
 //fix vec(x,x,0,999)#, x var messing up graphing
 //lib, gui
 use crate::{
     complex::NumStr,
     graph::graph,
+    help::help_for,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
     misc::{
         clear, clearln, convert, get_terminal_dimensions, handle_err, prompt, read_single_char,
         write,
     },
-    options::{arg_opts, commands, file_opts},
+    options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
     AngleType::Radians,
@@ -469,7 +469,7 @@ fn main()
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
-    loop
+    'main: loop
     {
         let mut input = Vec::new();
         let mut graphable = false;
@@ -493,8 +493,61 @@ fn main()
             }
             else
             {
+                let mut options = options;
+                let mut unparsed = input.clone();
+                {
+                    let split = input.split(|c| c == &';');
+                    let count = split.clone().count();
+                    if count != 1
+                    {
+                        unparsed = split.clone().last().unwrap().to_vec();
+                        for (i, s) in split.enumerate()
+                        {
+                            if i == count - 1
+                            {
+                                break;
+                            }
+                            silent_commands(
+                                &mut options,
+                                &s.iter()
+                                    .copied()
+                                    .filter(|&c| !c.is_whitespace())
+                                    .collect::<Vec<char>>(),
+                            );
+                            if s.contains(&'=')
+                            {
+                                if let Err(s) =
+                                    set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
+                                {
+                                    println!("{}", s);
+                                    continue 'main;
+                                }
+                            }
+                        }
+                    }
+                    let tempinput = unparsed.iter().collect::<String>();
+                    if tempinput.starts_with("help ")
+                    {
+                        println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
+                        continue 'main;
+                    }
+                    else if tempinput.ends_with('=')
+                    {
+                        println!(
+                            "{}",
+                            equal_to(
+                                options,
+                                &colors,
+                                &vars,
+                                &tempinput[..tempinput.len().saturating_sub(1)],
+                                "",
+                            )
+                        );
+                        continue 'main;
+                    }
+                }
                 (output, funcvar, graphable, varcheck) = match input_var(
-                    &input.iter().map(convert).collect::<String>(),
+                    &unparsed.iter().map(convert).collect::<String>(),
                     &vars,
                     &mut Vec::new(),
                     &mut 0,

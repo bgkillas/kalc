@@ -39,6 +39,7 @@ pub fn input_var(
     {
         return Err(" ");
     }
+    let mut undf = false;
     let mut funcfailed = false;
     let mut absfailed = false;
     let mut scientific = false;
@@ -76,7 +77,8 @@ pub fn input_var(
             {
                 chars.remove(i);
             }
-            else if chars[i - 1].is_alphanumeric() && chars[i + 1].is_alphanumeric()
+            else if (chars[i - 1].is_alphanumeric() || matches!(chars[i - 1], ')' | '}' | '|'))
+                && (chars[i + 1].is_alphanumeric() || matches!(chars[i + 1], '(' | '{' | '|'))
             {
                 chars[i] = '*'
             }
@@ -2330,6 +2332,10 @@ pub fn input_var(
                     {}
                 }
             }
+            else
+            {
+                undf = true
+            }
             funcfailed = false;
             absfailed = false;
             i += 1;
@@ -2560,6 +2566,10 @@ pub fn input_var(
         {
             break;
         }
+    }
+    if undf
+    {
+        return Err("undefined var");
     }
     Ok((
         output,

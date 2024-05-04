@@ -30,34 +30,52 @@ pub fn get_file_vars(
             {
                 l.clone()
             };
-            if if l.contains('(')
-            {
-                r.contains(&(left.clone() + "("))
-                    || r.contains(&(left.clone() + "{"))
-                    || r.contains(&(left.clone() + "["))
+            if !blacklist.contains(&l) && {
+                let mut word = String::new();
+                let mut b = false;
+                for c in r.chars()
+                {
+                    if c.is_alphanumeric() || matches!(c, '\'' | '`')
+                    {
+                        word.push(c)
+                    }
+                    else
+                    {
+                        if l.contains('(')
+                        {
+                            b = word == left && matches!(c, '(' | '{' | '[' | '|');
+                        }
+                        else
+                        {
+                            b = word == left;
+                        }
+                        if b
+                        {
+                            break;
+                        }
+                        word.clear()
+                    }
+                }
+                b
             }
-            else
-            {
-                r.contains(&left)
-            } && !blacklist.contains(&l)
             {
                 if let Some(r) = split.next()
                 {
+                    let le = l.chars().collect::<Vec<char>>();
                     blacklist.push(l.clone());
-                    let l = l.chars().collect::<Vec<char>>();
                     get_file_vars(options, vars, lines.clone(), r, blacklist);
                     for (i, j) in vars.clone().iter().enumerate()
                     {
-                        if j.name.len() <= l.len()
+                        if j.name.len() <= le.len()
                         {
-                            if let Err(s) = add_var(l, r, i, vars, options, false, false, false)
+                            if let Err(s) = add_var(le, r, i, vars, options, false, false, false)
                             {
                                 println!("{}", s)
                             }
                             continue 'lower;
                         }
                     }
-                    if let Err(s) = add_var(l, r, 0, vars, options, false, false, false)
+                    if let Err(s) = add_var(le, r, 0, vars, options, false, false, false)
                     {
                         println!("{}", s)
                     }

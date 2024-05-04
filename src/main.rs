@@ -330,7 +330,7 @@ fn main()
     let base = options.base;
     if !options.interactive && options.allow_vars && !options.stay_interactive
     {
-        get_cli_vars(options, args.concat(), &mut vars)
+        get_cli_vars(options, args.join(" "), &mut vars)
     }
     {
         if options.allow_vars && !default
@@ -353,7 +353,7 @@ fn main()
                     })
                     .collect::<Vec<String>>();
                 let mut split;
-                let args = args.concat();
+                let args = args.join(" ");
                 let mut blacklist = if options.interactive || options.stay_interactive
                 {
                     Vec::new()
@@ -378,30 +378,42 @@ fn main()
                     };
                     if options.interactive
                         || options.stay_interactive
-                        || (!blacklist.contains(&l)
-                            && if l.contains('(')
+                        || (!blacklist.contains(&l) && {
+                            let mut b = false;
+                            let mut word = String::new();
+                            for c in args.chars()
                             {
-                                args.contains(&(left.clone() + "("))
-                                    || args.contains(&(left.clone() + "{"))
-                                    || args.contains(&(left.clone() + "["))
-                                    || args.contains(&(left.clone() + "|"))
+                                if c.is_alphanumeric() || matches!(c, '\'' | '`')
+                                {
+                                    word.push(c)
+                                }
+                                else
+                                {
+                                    if l.contains('(')
+                                    {
+                                        b = word == left && matches!(c, '(' | '{' | '[' | '|');
+                                    }
+                                    else
+                                    {
+                                        b = word == left;
+                                    }
+                                    if b
+                                    {
+                                        break;
+                                    }
+                                    word.clear()
+                                }
                             }
-                            else
-                            {
-                                args.contains(&left)
-                            })
+                            b
+                        })
                     {
                         if let Some(r) = split.next()
                         {
                             let le = l.chars().collect::<Vec<char>>();
                             if !options.interactive && !options.stay_interactive
                             {
-                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
-                                if blacklist.contains(&l)
-                                {
-                                    continue;
-                                }
                                 blacklist.push(l);
+                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                             }
                             for (i, v) in vars.iter().enumerate()
                             {
@@ -529,7 +541,7 @@ fn main()
                 if tempinput.starts_with("help ")
                 {
                     println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
-                    continue 'main;
+                    continue;
                 }
                 else if tempinput.ends_with('=')
                 {
@@ -543,7 +555,7 @@ fn main()
                             "",
                         )
                     );
-                    continue 'main;
+                    continue;
                 }
             }
             (output, funcvar, graphable, varcheck) = match input_var(

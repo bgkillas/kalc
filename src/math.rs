@@ -943,12 +943,9 @@ pub fn do_math(
                                                 .unwrap_or_default()
                                                 .to_usize()
                                                 .unwrap_or_default();
-                                            if n1 <= a.len()
-                                                && n1 != 0
-                                                && n2 <= a[0].len()
-                                                && n2 != 0
+                                            if n1 < a.len() && n2 < a[0].len()
                                             {
-                                                Num(a[n1 - 1][n2 - 1].clone())
+                                                Num(a[n1][n2].clone())
                                             }
                                             else
                                             {
@@ -976,12 +973,9 @@ pub fn do_math(
                                                     .unwrap_or_default()
                                                     .to_usize()
                                                     .unwrap_or_default();
-                                                if n1 <= a.len()
-                                                    && n1 != 0
-                                                    && n2 <= a[0].len()
-                                                    && n2 != 0
+                                                if n1 < a.len() && n2 < a[0].len()
                                                 {
-                                                    vec.push(a[n1 - 1][n2 - 1].clone())
+                                                    vec.push(a[n1][n2].clone())
                                                 }
                                                 else
                                                 {
@@ -1014,12 +1008,9 @@ pub fn do_math(
                                                         .unwrap_or_default()
                                                         .to_usize()
                                                         .unwrap_or_default();
-                                                    if n1 <= a.len()
-                                                        && n1 != 0
-                                                        && n2 <= a[0].len()
-                                                        && n2 != 0
+                                                    if n1 < a.len() && n2 < a[0].len()
                                                     {
-                                                        vec.push(a[n1 - 1][n2 - 1].clone())
+                                                        vec.push(a[n1][n2].clone())
                                                     }
                                                     else
                                                     {
@@ -1047,9 +1038,9 @@ pub fn do_math(
                                                 .unwrap_or_default()
                                                 .to_usize()
                                                 .unwrap_or_default();
-                                            if n <= a.len() && n != 0
+                                            if n < a.len()
                                             {
-                                                Vector(a[n - 1].clone())
+                                                Vector(a[n].clone())
                                             }
                                             else
                                             {
@@ -1069,9 +1060,9 @@ pub fn do_math(
                                                     .unwrap_or_default()
                                                     .to_usize()
                                                     .unwrap_or_default();
-                                                if n <= a.len() && n != 0
+                                                if n < a.len()
                                                 {
-                                                    vec.push(a[n - 1].clone());
+                                                    vec.push(a[n].clone());
                                                 }
                                                 else
                                                 {
@@ -2036,9 +2027,9 @@ pub fn do_math(
                                                 .unwrap_or_default()
                                                 .to_usize()
                                                 .unwrap_or_default();
-                                            if n <= a.len() && n != 0
+                                            if n < a.len()
                                             {
-                                                Num(a[n - 1].clone())
+                                                Num(a[n].clone())
                                             }
                                             else
                                             {
@@ -2058,9 +2049,9 @@ pub fn do_math(
                                                     .unwrap_or_default()
                                                     .to_usize()
                                                     .unwrap_or_default();
-                                                if n <= a.len() && n != 0
+                                                if n < a.len()
                                                 {
-                                                    vec.push(a[n - 1].clone());
+                                                    vec.push(a[n].clone());
                                                 }
                                                 else
                                                 {

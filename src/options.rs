@@ -163,8 +163,8 @@ pub fn set_commands(
     o: &str,
 ) -> Result<(), &'static str>
 {
-    let o = o.replace(" ", "");
-    let r = o.as_str();
+    let s = o.replace(" ", "");
+    let r = s.as_str();
     match l
     {
         "angle" =>
@@ -405,7 +405,22 @@ pub fn set_commands(
                         }
                     }
                 }
-                "ticks" => options.ticks = args[0].to_f64(),
+                "ticks" =>
+                {
+                    if args.len() == 3
+                    {
+                        options.ticks = (args[0].to_f64(), args[1].to_f64(), args[2].to_f64())
+                    }
+                    else if args.len() == 2
+                    {
+                        (options.ticks.0, options.ticks.1) = (args[0].to_f64(), args[1].to_f64())
+                    }
+                    else
+                    {
+                        let n = args[0].to_f64();
+                        options.ticks = (n, n, n);
+                    }
+                }
                 "slowcheck" =>
                 {
                     options.slowcheck = args[0]
@@ -1167,7 +1182,10 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "graphcli" => format!("{}", options.graph_cli),
         "point" => format!("{}", options.point_style),
         "base" => format!("{} {}", options.base.0, options.base.1),
-        "ticks" => format!("{}", options.ticks),
+        "ticks" => format!(
+            "x:{} y:{} z:{}",
+            options.ticks.0, options.ticks.1, options.ticks.2
+        ),
         "onaxis" => format!("{}", options.onaxis),
         "decimal" | "deci" | "decimals" => format!("{}", options.decimal_places),
         "prec" | "precision" => format!("{}", options.prec),

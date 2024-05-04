@@ -207,7 +207,7 @@ Functions:
 - fact, doublefact, subfact
 - sinc, cis, exp
 - zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
-- re, im, split(x+yi), next(n,to)
+- re, im, onlyreal, onlyimag, split(x+yi), next(n,to)
 - unity(n,k) gets all solutions for x in x^k=n
 - factors, prime, isprime, gcd, lcm
 - slog(a,b), ssrt(k,a) (k is lambert w branch)
@@ -250,7 +250,8 @@ Matrix functions:
 - iden(n) produces an n dimension identity matrix
 - rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix
 - sort(mat) sorts rows by first column
-- interpolate(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
+- interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
+- lineofbestfit/lobf(mat,x) line of best fit for a matrix organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}}
 
 Constants:

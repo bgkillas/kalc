@@ -95,7 +95,7 @@ Functions:\x1b[G\n\
 - fact, doublefact, subfact\x1b[G\n\
 - sinc, cis, exp\x1b[G\n\
 - zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\
-- re, im, split(x+yi), next(n,to)\x1b[G\n\
+- re, im, onlyreal, onlyimag, split(x+yi), next(n,to)\x1b[G\n\
 - unity(n,k) gets all solutions for x in x^k=n\x1b[G\n\
 - factors, prime, isprime, gcd, lcm\x1b[G\n\
 - slog(a,b), ssrt(k,a) (k is lambert w branch)\x1b[G\n\
@@ -136,7 +136,8 @@ Matrix operations/functions:\x1b[G\n\
 - iden(n) produces an n dimension identity matrix\x1b[G\n\
 - rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix\x1b[G\n\
 - sort(mat) sorts rows by first column\x1b[G\n\
-- interpolate(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
+- interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
+- lineofbestfit/lobf(mat,x) line of best fit for a matrix organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\x1b[G\n\n\
 Constants:\x1b[G\n\
 - c: speed of light, 299792458 m/s\x1b[G\n\

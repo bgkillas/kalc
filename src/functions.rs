@@ -216,6 +216,14 @@ pub fn functions() -> HashSet<&'static str>
         "unity",
         "iter",
         "weighted",
+        "lobf",
+        "lineofbestfit",
+        "onlyreal",
+        "onlyre",
+        "ore",
+        "onlyimag",
+        "onlyim",
+        "oim",
     ]
     .iter()
     .cloned()

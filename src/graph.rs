@@ -231,24 +231,37 @@ pub fn graph(
             {
                 options.yr = options.vyr;
             }
-            let (xticks, yticks) = if options.ticks == -2.0
+            let xticks = if options.ticks.0 == -2.0
             {
-                (Some((Auto, 0)), Some((Auto, 0)))
+                Some((Auto, 0))
             }
-            else if options.ticks == -1.0
+            else if options.ticks.0 == -1.0
             {
-                (Some((Fix(1.0), 0)), Some((Fix(1.0), 0)))
+                Some((Fix(1.0), 0))
             }
-            else if options.ticks == 0.0
+            else if options.ticks.0 == 0.0
             {
-                (None, None)
+                None
             }
             else
             {
-                (
-                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 0)),
-                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 0)),
-                )
+                Some((Fix((options.xr.1 - options.xr.0) / options.ticks.0), 0))
+            };
+            let yticks = if options.ticks.1 == -2.0
+            {
+                Some((Auto, 0))
+            }
+            else if options.ticks.1 == -1.0
+            {
+                Some((Fix(1.0), 0))
+            }
+            else if options.ticks.1 == 0.0
+            {
+                None
+            }
+            else
+            {
+                Some((Fix((options.yr.1 - options.yr.0) / options.ticks.1), 0))
             };
             let ratio = if options.scale_graph
             {
@@ -654,29 +667,53 @@ pub fn graph(
             {
                 options.zr = options.vzr;
             }
-            let (xticks, yticks, zticks) = if options.ticks == -2.0
+            let xticks = if options.ticks.0 == -2.0
             {
-                (Some((Auto, 0)), Some((Auto, 0)), Some((Auto, 0)))
+                Some((Auto, 0))
             }
-            else if options.ticks == -1.0
+            else if options.ticks.0 == -1.0
             {
-                (
-                    Some((Fix(1.0), 0)),
-                    Some((Fix(1.0), 0)),
-                    Some((Fix(1.0), 0)),
-                )
+                Some((Fix(1.0), 0))
             }
-            else if options.ticks == 0.0
+            else if options.ticks.0 == 0.0
             {
-                (None, None, None)
+                None
             }
             else
             {
-                (
-                    Some((Fix((options.xr.1 - options.xr.0) / options.ticks), 0)),
-                    Some((Fix((options.yr.1 - options.yr.0) / options.ticks), 0)),
-                    Some((Fix((options.zr.1 - options.zr.0) / options.ticks), 0)),
-                )
+                Some((Fix((options.xr.1 - options.xr.0) / options.ticks.0), 0))
+            };
+            let yticks = if options.ticks.1 == -2.0
+            {
+                Some((Auto, 0))
+            }
+            else if options.ticks.1 == -1.0
+            {
+                Some((Fix(1.0), 0))
+            }
+            else if options.ticks.1 == 0.0
+            {
+                None
+            }
+            else
+            {
+                Some((Fix((options.yr.1 - options.yr.0) / options.ticks.1), 0))
+            };
+            let zticks = if options.ticks.2 == -2.0
+            {
+                Some((Auto, 0))
+            }
+            else if options.ticks.2 == -1.0
+            {
+                Some((Fix(1.0), 0))
+            }
+            else if options.ticks.2 == 0.0
+            {
+                None
+            }
+            else
+            {
+                Some((Fix((options.zr.1 - options.zr.0) / options.ticks.2), 0))
             };
             if options.surface
                 && points3d[1..6]
@@ -1843,7 +1880,6 @@ fn get_data(
         let mut d2_or_d3: (bool, bool) = (false, false);
         let mut re_or_im = (false, false);
         let (has_x, has_y) = (func.3.x, func.3.y);
-        //TODO remove above to parse.rs to fix vec(x,x,0,999)#
         if !has_y && !has_x
         {
             match match do_math(func.0.clone(), func.2, func.1)

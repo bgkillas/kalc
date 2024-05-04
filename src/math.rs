@@ -211,6 +211,8 @@ pub fn do_math(
                                     | "digamma"
                                     | "inter"
                                     | "interpolate"
+                                    | "lobf"
+                                    | "lineofbestfit"
                                     | "ψ"
                                     | "rotate"
                                     | "multinomial"
@@ -841,27 +843,70 @@ pub fn do_math(
                     {
                         Matrix(a) => match s.as_str()
                         {
+                            "lobf" | "lineofbestfit" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if !a.is_empty() && a[0].len() == 2
+                                    {
+                                        let mut xsum = Complex::new(options.prec);
+                                        let mut ysum = Complex::new(options.prec);
+                                        let mut xxsum = Complex::new(options.prec);
+                                        let mut xysum = Complex::new(options.prec);
+                                        for row in &a
+                                        {
+                                            let x = row[0].number.clone();
+                                            let y = row[1].number.clone();
+                                            xsum += x.clone();
+                                            ysum += y.clone();
+                                            xxsum += x.clone() * x.clone();
+                                            xysum += x * y;
+                                        }
+                                        let m: Complex = (a.len() * xysum
+                                            - xsum.clone() * ysum.clone())
+                                            / (a.len() * xxsum - xsum.clone().pow(2));
+                                        let b = (ysum - m.clone() * xsum) / a.len();
+                                        let x = function.remove(i + 1).num()?.number;
+                                        Num(Number::from(m * x + b, a[0][1].units))
+                                    }
+                                    else
+                                    {
+                                        return Err("dimensions too high");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("no x value given");
+                                }
+                            }
                             "inter" | "interpolate" =>
                             {
                                 if function.len() > i + 1
                                 {
-                                    let x = function.remove(i + 1).num()?.number;
-                                    let mut sum = Complex::new(options.prec);
-                                    for i in 0..a.len()
+                                    if !a.is_empty() && a[0].len() == 2
                                     {
-                                        let mut prod = Complex::with_val(options.prec, 1);
-                                        for j in 0..a.len()
+                                        let x = function.remove(i + 1).num()?.number;
+                                        let mut sum = Complex::new(options.prec);
+                                        for i in 0..a.len()
                                         {
-                                            if j != i
+                                            let mut prod = Complex::with_val(options.prec, 1);
+                                            for j in 0..a.len()
                                             {
-                                                prod *= (x.clone() - a[j][0].number.clone())
-                                                    / (a[i][0].number.clone()
-                                                        - a[j][0].number.clone())
+                                                if j != i
+                                                {
+                                                    prod *= (x.clone() - a[j][0].number.clone())
+                                                        / (a[i][0].number.clone()
+                                                            - a[j][0].number.clone())
+                                                }
                                             }
+                                            sum += prod * a[i][1].number.clone()
                                         }
-                                        sum += prod * a[i][1].number.clone()
+                                        Num(Number::from(sum, a[0][1].units))
                                     }
-                                    Num(Number::from(sum, None))
+                                    else
+                                    {
+                                        return Err("dimensions too high");
+                                    }
                                 }
                                 else
                                 {
@@ -929,13 +974,10 @@ pub fn do_math(
                                         {
                                             let b = b.number;
                                             let c = c.number;
-                                            let n1 = b
-                                                .clone()
-                                                .real()
-                                                .to_integer()
-                                                .unwrap_or_default()
-                                                .to_usize()
-                                                .unwrap_or_default();
+                                            let n1 =
+                                                b.clone().real().to_integer().unwrap_or_default();
+                                            let getcol = n1 == -1;
+                                            let n1 = n1.to_usize().unwrap_or_default();
                                             let n2 = c
                                                 .clone()
                                                 .real()
@@ -943,7 +985,22 @@ pub fn do_math(
                                                 .unwrap_or_default()
                                                 .to_usize()
                                                 .unwrap_or_default();
-                                            if n1 < a.len() && n2 < a[0].len()
+                                            if getcol
+                                            {
+                                                if a.iter().all(|a| n2 < a.len())
+                                                {
+                                                    Vector(
+                                                        a.iter()
+                                                            .map(|a| a[n2].clone())
+                                                            .collect::<Vec<Number>>(),
+                                                    )
+                                                }
+                                                else
+                                                {
+                                                    return Err("out of range");
+                                                }
+                                            }
+                                            else if n1 < a.len() && n2 < a[n1].len()
                                             {
                                                 Num(a[n1][n2].clone())
                                             }
@@ -952,7 +1009,67 @@ pub fn do_math(
                                                 return Err("not in matrix");
                                             }
                                         }
-                                        (Vector(b), Num(c)) | (Num(c), Vector(b)) =>
+                                        (Num(b), Vector(c)) =>
+                                        {
+                                            let b = b.number;
+                                            let n1 =
+                                                b.clone().real().to_integer().unwrap_or_default();
+                                            let getcol = n1 == -1;
+                                            let n1 = n1.to_usize().unwrap_or_default();
+                                            if getcol
+                                            {
+                                                let mut mat = Vec::new();
+                                                for n in c
+                                                {
+                                                    let n = n
+                                                        .number
+                                                        .clone()
+                                                        .real()
+                                                        .to_integer()
+                                                        .unwrap_or_default()
+                                                        .to_usize()
+                                                        .unwrap_or_default();
+                                                    if a.iter().all(|a| n < a.len())
+                                                    {
+                                                        mat.push(
+                                                            a.iter()
+                                                                .map(|a| a[n].clone())
+                                                                .collect::<Vec<Number>>(),
+                                                        )
+                                                    }
+                                                    else
+                                                    {
+                                                        return Err("out of range");
+                                                    }
+                                                }
+                                                Matrix(transpose(&mat))
+                                            }
+                                            else
+                                            {
+                                                let mut vec = Vec::new();
+                                                for n in c
+                                                {
+                                                    let n2 = n
+                                                        .number
+                                                        .clone()
+                                                        .real()
+                                                        .to_integer()
+                                                        .unwrap_or_default()
+                                                        .to_usize()
+                                                        .unwrap_or_default();
+                                                    if n1 < a.len() && n2 < a[n1].len()
+                                                    {
+                                                        vec.push(a[n1][n2].clone())
+                                                    }
+                                                    else
+                                                    {
+                                                        return Err("not in matrix");
+                                                    }
+                                                }
+                                                Vector(vec)
+                                            }
+                                        }
+                                        (Vector(b), Num(c)) =>
                                         {
                                             let c = c.number;
                                             let n2 = c
@@ -973,7 +1090,7 @@ pub fn do_math(
                                                     .unwrap_or_default()
                                                     .to_usize()
                                                     .unwrap_or_default();
-                                                if n1 < a.len() && n2 < a[0].len()
+                                                if n1 < a.len() && n2 < a[n1].len()
                                                 {
                                                     vec.push(a[n1][n2].clone())
                                                 }
@@ -1008,7 +1125,7 @@ pub fn do_math(
                                                         .unwrap_or_default()
                                                         .to_usize()
                                                         .unwrap_or_default();
-                                                    if n1 < a.len() && n2 < a[0].len()
+                                                    if n1 < a.len() && n2 < a[n1].len()
                                                     {
                                                         vec.push(a[n1][n2].clone())
                                                     }
@@ -3472,7 +3589,14 @@ fn functions(
                         let b = b.ln();
                         if a.is_zero()
                         {
-                            Complex::with_val(options.prec, Infinity)
+                            if b.is_zero()
+                            {
+                                Complex::with_val(options.prec, Nan)
+                            }
+                            else
+                            {
+                                Complex::with_val(options.prec, Infinity)
+                            }
                         }
                         else if b.real().is_infinite()
                         {
@@ -3646,6 +3770,28 @@ fn functions(
                     else
                     {
                         gamma(a)
+                    }
+                }
+                "onlyreal" | "onlyre" | "ore" =>
+                {
+                    if -a.imag().clone().abs().log10() > a.prec().0 / 4
+                    {
+                        a.real().clone().into()
+                    }
+                    else
+                    {
+                        Complex::with_val(options.prec, Nan)
+                    }
+                }
+                "onlyimag" | "onlyim" | "oim" =>
+                {
+                    if -a.real().clone().abs().log10() > a.prec().0 / 4
+                    {
+                        a.imag().clone().into()
+                    }
+                    else
+                    {
+                        Complex::with_val(options.prec, Nan)
                     }
                 }
                 "re" | "real" => a.real().clone().into(),

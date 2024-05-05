@@ -970,27 +970,47 @@ pub fn input_var(
                         || matches!(chars[i + 1], '+' | '-' | '*' | '/' | '^' | '}' | ')')
                     {
                         let mut j: isize = -1;
-                        for (k, c) in chars[0..i].iter().rev().enumerate()
+                        let mut bracket = 0;
+                        for (k, n) in output.iter().rev().enumerate()
                         {
-                            if !c.is_alphanumeric()
+                            if let Str(s) = n
                             {
-                                j = (i as isize - k as isize) - 1;
-                                break;
+                                if s == ")"
+                                {
+                                    bracket += 1;
+                                }
+                                else if s == "("
+                                {
+                                    bracket -= 1;
+                                }
+                                else if bracket == 0 && matches!(s.as_str(), "+" | "-" | "±")
+                                {
+                                    j = ((output.len() - k) - 1) as isize;
+                                    break;
+                                }
                             }
                         }
-                        if j > 0
-                            && matches!(chars[j as usize], '+' | '-' | '±')
-                            && chars[j as usize - 1].is_alphanumeric()
+                        if j != -1
                         {
-                            output.insert(output.len() - 2, Str('*'.to_string()));
-                            output.insert(output.len() - 2, Str('('.to_string()));
                             output.insert(
-                                output.len() - 2,
+                                j as usize,
                                 Num(Number::from(Complex::with_val(options.prec, 1), None)),
                             );
+                            output.insert(j as usize, Str('('.to_string()));
+                            output.insert(j as usize, Str('*'.to_string()));
                         }
                         if let Some(Num(_)) = output.last()
                         {
+                        }
+                        else if let Some(Str(s)) = output.last()
+                        {
+                            if !matches!(s.as_str(), ")" | "}")
+                            {
+                                output.push(Num(Number::from(
+                                    Complex::with_val(options.prec, 1),
+                                    None,
+                                )))
+                            }
                         }
                         else
                         {
@@ -1001,9 +1021,7 @@ pub fn input_var(
                             Complex::with_val(options.prec, 1) / 100,
                             None,
                         )));
-                        if j > 0
-                            && matches!(chars[j as usize], '+' | '-' | '±')
-                            && chars[j as usize - 1].is_alphanumeric()
+                        if j != -1
                         {
                             output.push(Str(')'.to_string()));
                         }

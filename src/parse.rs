@@ -359,23 +359,23 @@ pub fn input_var(
                     None,
                 ))),
                 '⅒' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.1),
+                    Complex::with_val(options.prec, 1) / 10,
                     None,
                 ))),
                 '⅕' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.2),
+                    Complex::with_val(options.prec, 1) / 5,
                     None,
                 ))),
                 '⅖' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.4),
+                    Complex::with_val(options.prec, 2) / 5,
                     None,
                 ))),
                 '⅗' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.6),
+                    Complex::with_val(options.prec, 3) / 5,
                     None,
                 ))),
                 '⅘' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.8),
+                    Complex::with_val(options.prec, 4) / 5,
                     None,
                 ))),
                 '⅐' => output.push(Num(Number::from(
@@ -399,7 +399,7 @@ pub fn input_var(
                     None,
                 ))),
                 '⅚' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 1.2).recip(),
+                    Complex::with_val(options.prec, 5) / 6,
                     None,
                 ))),
                 '⅛' => output.push(Num(Number::from(

@@ -2561,6 +2561,11 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
+                            "cossin" =>
+                            {
+                                let (a, b) = arg.num()?.number.sin_cos(Complex::new(options.prec));
+                                Vector(vec![Number::from(b, None), Number::from(a, None)])
+                            }
                             "split" =>
                             {
                                 let a = arg.num()?.number;

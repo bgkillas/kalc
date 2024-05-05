@@ -22,7 +22,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --range=[num] sets all ranges to [-num],[num]\x1b[G\n\
 --point [char] point style for graphing\x1b[G\n\
 --base=[input],[output] sets the numbers base from 2 to 36\x1b[G\n\
---ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none\x1b[G\n\
+--ticks=[num](,[num](,[num])) sets amount of ticks, optionally set different x/y/z ticks, -2 will be auto, -1 will be at every whole number, 0 will be none\x1b[G\n\
 --onaxis toggles showing the ticks on the x/y/z axis\x1b[G\n\
 --prompt toggles the prompt\x1b[G\n\
 --color toggles color output, toggled by default when running from arguments\x1b[G\n\
@@ -83,7 +83,7 @@ Order of Operations:\x1b[G\n\
 - < (lt), <= (le), > (gt), >= (ge), == (eq), != (!eq), >> (a>>b shifts b bits right), << (a<<b shifts b bits left)\x1b[G\n\
 - && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)\x1b[G\n\n\
 Functions:\x1b[G\n\
-- sin, cos, tan, asin, acos, atan, atan(x,y)\x1b[G\n\
+- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), cossin(x)={{cos(x),sin(x)}}\x1b[G\n\
 - csc, sec, cot, acsc, asec, acot\x1b[G\n\
 - sinh, cosh, tanh, asinh, acosh, atanh\x1b[G\n\
 - csch, sech, coth, acsch, asech, acoth\x1b[G\n\

@@ -130,7 +130,7 @@ FLAGS: --help (this message)
 --vrange=[num] sets all ranges to [-num],[num], graph view override, useful for parametric
 --point [char] point style for graphing
 --base=[input],[output] sets the numbers base from 2 to 36
---ticks=[num] sets amount of ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
+--ticks=[num](,[num](,[num])) sets amount of ticks, optionally set different x/y/z ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
 --onaxis toggles showing the ticks on the x/y/z axis on by default for 2d, off by default for 3d
 --prompt toggles the prompt
 --color toggles color output, toggled by default when running from arguments
@@ -195,7 +195,7 @@ Order of Operations:
 - && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)
 
 Functions:
-- sin, cos, tan, asin, acos, atan, atan(x,y)
+- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), cossin(x)={cos(x),sin(x)}
 - csc, sec, cot, acsc, asec, acot
 - sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth

@@ -989,6 +989,13 @@ pub fn input_var(
                                 Num(Number::from(Complex::with_val(options.prec, 1), None)),
                             );
                         }
+                        if let Some(Num(_)) = output.last()
+                        {
+                        }
+                        else
+                        {
+                            output.push(Num(Number::from(Complex::with_val(options.prec, 1), None)))
+                        }
                         output.push(Str('*'.to_string()));
                         output.push(Num(Number::from(
                             Complex::with_val(options.prec, 1) / 100,

@@ -8,7 +8,8 @@ use crate::{
     load_vars::set_commands_or_vars,
     math::do_math,
     misc::{
-        clear, get_terminal_dimensions, handle_err, no_col, parsed_to_string, prompt, to_output,
+        clear, get_terminal_dimensions, handle_err, insert_last, no_col, parsed_to_string, prompt,
+        to_output,
     },
     options::{equal_to, silent_commands},
     parse::input_var,
@@ -162,10 +163,7 @@ pub fn print_concurrent(
         }
     }
     let input = match input_var(
-        &unparsed
-            .iter()
-            .collect::<String>()
-            .replace('_', &format!("({})", last.iter().collect::<String>())),
+        &insert_last(&unparsed, last.iter().collect::<String>().as_str()),
         &vars,
         &mut Vec::new(),
         &mut 0,

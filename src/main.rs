@@ -21,8 +21,8 @@ use crate::{
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
     misc::{
-        clear, clearln, convert, get_terminal_dimensions, handle_err, prompt, read_single_char,
-        write,
+        clear, clearln, convert, get_terminal_dimensions, handle_err, insert_last, prompt,
+        read_single_char, write,
     },
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
@@ -383,7 +383,7 @@ fn main()
                             let mut word = String::new();
                             for c in args.chars()
                             {
-                                if c.is_alphanumeric() || matches!(c, '\'' | '`')
+                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
                                 {
                                     word.push(c)
                                 }
@@ -1666,10 +1666,7 @@ fn main()
                 continue;
             }
             write(
-                input
-                    .iter()
-                    .collect::<String>()
-                    .replace('_', &format!("({})", last.iter().collect::<String>())),
+                insert_last(&input, last.iter().collect::<String>().as_str()),
                 file.as_mut().unwrap(),
                 unmod_lines.as_mut().unwrap(),
                 slow,

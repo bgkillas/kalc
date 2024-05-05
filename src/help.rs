@@ -51,7 +51,7 @@ FLAGS: --help (this message)\x1b[G\n\
 - \"vars\" to list all variables\x1b[G\n\
 - \"option/var;function\" to set a temporal option/var, example: \"a=45;angle=deg;sin(a)\" = sqrt(2)/2\x1b[G\n\
 - \"f(x)=var:function\" to set a temporal var when defining function, example: \"f(x)=a=2:ax\" = f(x)=2x\x1b[G\n\
-- \"_\" to use the previous answer\x1b[G\n\
+- \"_\" or \"ans\" or \"ANS\" to use the previous answer\x1b[G\n\
 - \"a={{expr}}\" to define a variable\x1b[G\n\
 - \"f(x)=...\" to define a function\x1b[G\n\
 - \"f(x,y,z...)=...\" to define a multi variable function\x1b[G\n\
@@ -175,7 +175,6 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\x1b[G\n\
 numbers/minus sign convert to superscript acting as exponents\x1b[G\n"
 ,all_units());
 }
-//TODO
 pub fn help_for(thing: &str) -> String
 {
     match thing

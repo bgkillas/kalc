@@ -160,7 +160,7 @@ FLAGS: --help (this message)
 - "vars" to list all variables
 - "option/var;function" to set a temporal option/var, example: "a=45;angle=deg;sin(a)" = sqrt(2)/2
 - "f(x)=var:function" to set a temporal var when defining function, example: "f(x)=a=2:ax" = f(x)=2x
-- "_" to use the previous answer
+- "_" or "ans" or "ANS" to use the previous answer
 - "a={expr}" to define a variable
 - "f(x)=..." to define a function
 - "f(x,y,z...)=..." to define a multi variable function

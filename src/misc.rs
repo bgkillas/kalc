@@ -664,3 +664,53 @@ pub fn parsed_to_string(
     }
     to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
 }
+pub fn insert_last(input: &[char], last: &str) -> String
+{
+    let mut output = String::new();
+    let mut word = String::new();
+    for c in input
+    {
+        if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
+        {
+            output.push(*c);
+            word.push(*c)
+        }
+        else
+        {
+            if word.to_ascii_lowercase() == "ans"
+            {
+                output.drain(output.len() - 3..);
+                output.push('(');
+                output.push_str(last);
+                output.push(')');
+            }
+            else if word == "_"
+            {
+                output.pop();
+                output.push('(');
+                output.push_str(last);
+                output.push(')');
+            }
+            else
+            {
+                output.push(*c);
+            }
+            word.clear()
+        }
+    }
+    if word.to_ascii_lowercase() == "ans"
+    {
+        output.drain(output.len() - 3..);
+        output.push('(');
+        output.push_str(last);
+        output.push(')');
+    }
+    else if word == "_"
+    {
+        output.pop();
+        output.push('(');
+        output.push_str(last);
+        output.push(')');
+    }
+    output
+}

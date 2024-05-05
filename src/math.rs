@@ -860,7 +860,7 @@ pub fn do_math(
                                             let y = row[1].number.clone();
                                             xsum += x.clone();
                                             ysum += y.clone();
-                                            xxsum += x.clone() * x.clone();
+                                            xxsum += x.clone().pow(2);
                                             xysum += x * y;
                                         }
                                         let m: Complex = (a.len() * xysum

@@ -35,7 +35,7 @@ pub fn get_file_vars(
                 let mut b = false;
                 for c in r.chars()
                 {
-                    if c.is_alphanumeric() || matches!(c, '\'' | '`')
+                    if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
                     {
                         word.push(c)
                     }
@@ -953,7 +953,7 @@ pub fn set_commands_or_vars(
     let r = split.next().unwrap();
     if l.is_empty()
         || l.chars()
-            .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ',' | '\'' | '`'))
+            .any(|c| !c.is_alphanumeric() && !matches!(c, '(' | ')' | ',' | '\'' | '`' | '_'))
     {
         return Ok(());
     }

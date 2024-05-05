@@ -3,7 +3,7 @@ use crate::{
     help::{help, help_for},
     load_vars::get_vars,
     math::do_math,
-    misc::{parsed_to_string, to_output},
+    misc::{insert_last, parsed_to_string, to_output},
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
@@ -1258,7 +1258,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         _ =>
         {
             let input = input_var(
-                &l.replace('_', &format!("({})", last)),
+                &insert_last(&l.chars().collect::<Vec<char>>(), &last),
                 vars,
                 &mut Vec::new(),
                 &mut 0,

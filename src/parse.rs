@@ -537,7 +537,10 @@ pub fn input_var(
                     && i + 1 != chars.len()
                     && (chars[i - 1].is_alphanumeric()
                         || (!output.is_empty() && output.last().unwrap().str_is(")"))
-                        || matches!(chars[i - 1], '}' | ']' | ')' | '@' | '°' | '$' | '¢'))
+                        || matches!(
+                            chars[i - 1],
+                            '}' | ']' | ')' | '@' | '°' | '$' | '¢' | '%'
+                        ))
                     && chars[i - 1]
                         != if options.notation == SmallEngineering
                         {
@@ -641,7 +644,10 @@ pub fn input_var(
                             }
                             && (chars[i - 1].is_alphanumeric()
                                 || (!output.is_empty() && output.last().unwrap().str_is(")"))
-                                || matches!(chars[i - 1], '}' | ']' | ')' | '@' | '°' | '$' | '¢')))
+                                || matches!(
+                                    chars[i - 1],
+                                    '}' | ']' | ')' | '@' | '°' | '$' | '¢' | '%'
+                                )))
                     {
                         if i + 1 != chars.len()
                             && matches!(chars[i + 1], '(' | '{' | '[' | '|' | '-' | '!')
@@ -958,11 +964,20 @@ pub fn input_var(
                     }
                     output.push(Str(','.to_string()))
                 }
-                '%' if i != 0
-                    && i + 1 != chars.len()
-                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                '%' if i != 0 =>
                 {
-                    output.push(Str('%'.to_string()))
+                    if i + 1 == chars.len() || matches!(chars[i + 1], '+' | '-' | '*' | '/' | '^')
+                    {
+                        output.push(Str('*'.to_string()));
+                        output.push(Num(Number::from(
+                            Complex::with_val(options.prec, 1) / 100,
+                            None,
+                        )));
+                    }
+                    else if !matches!(chars[i + 1], ')' | '}' | ']')
+                    {
+                        output.push(Str('%'.to_string()))
+                    }
                 }
                 '∞' => output.push(Num(Number::from(
                     Complex::with_val(options.prec, Infinity),

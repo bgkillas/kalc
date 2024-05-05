@@ -261,6 +261,7 @@ pub fn do_math(
                                     | "percentile"
                                     | "eigenvalues"
                                     | "eigenvectors"
+                                    | "mod"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -3932,6 +3933,22 @@ fn functions(
                     else
                     {
                         Complex::with_val(options.prec, Nan)
+                    }
+                }
+                "mod" =>
+                {
+                    if let Some(b) = d
+                    {
+                        let c = a.clone() / b.clone();
+                        let c = Complex::with_val(
+                            options.prec,
+                            (c.real().clone().floor(), c.imag().clone().floor()),
+                        );
+                        a - b * c
+                    }
+                    else
+                    {
+                        return Err("not enough args");
                     }
                 }
                 "lcm" =>

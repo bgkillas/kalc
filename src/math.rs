@@ -848,7 +848,7 @@ pub fn do_math(
                             {
                                 if function.len() > i + 1
                                 {
-                                    if !a.is_empty() && a[0].len() == 2
+                                    if !a.is_empty() && a.iter().all(|a| a.len() == 2)
                                     {
                                         let mut xsum = Complex::new(options.prec);
                                         let mut ysum = Complex::new(options.prec);
@@ -884,7 +884,7 @@ pub fn do_math(
                             {
                                 if function.len() > i + 1
                                 {
-                                    if !a.is_empty() && a[0].len() == 2
+                                    if !a.is_empty() && a.iter().all(|a| a.len() == 2)
                                     {
                                         let x = function.remove(i + 1).num()?.number;
                                         let mut sum = Complex::new(options.prec);
@@ -1212,7 +1212,7 @@ pub fn do_math(
                                     .fold(Complex::new(options.prec), |sum, val| {
                                         sum + val.number.clone()
                                     })
-                                    / (a.len() * a[0].len()),
+                                    / a.iter().fold(0, |sum, a| sum + a.len()),
                                 None,
                             )),
                             "mode" =>
@@ -3082,14 +3082,15 @@ fn do_functions(
                 }
                 return Ok(Matrix(mat));
             }
-            (Matrix(a), Matrix(b)) if a.len() == b.len() && a[0].len() == b[0].len() =>
+            (Matrix(a), Matrix(b))
+                if a.len() == b.len() && (0..a.len()).all(|i| a[i].len() == b[i].len()) =>
             {
                 function.remove(k + 1);
                 let mut mat = Vec::new();
                 for i in 0..a.len()
                 {
                     let mut vec = Vec::new();
-                    for j in 0..a[0].len()
+                    for j in 0..a[i].len()
                     {
                         vec.push(functions(
                             a[i][j].clone(),
@@ -3160,7 +3161,7 @@ fn do_functions(
                 for i in 0..a.len()
                 {
                     let mut vec = Vec::new();
-                    for j in 0..a[0].len()
+                    for j in 0..a[i].len()
                     {
                         vec.push(functions(
                             a[i][j].clone(),
@@ -3181,7 +3182,7 @@ fn do_functions(
                 for i in 0..b.len()
                 {
                     let mut vec = Vec::new();
-                    for j in 0..b[0].len()
+                    for j in 0..b[i].len()
                     {
                         vec.push(functions(
                             a[i].clone(),

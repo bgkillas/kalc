@@ -104,7 +104,7 @@ impl NumStr
                     .map(|a| a.iter().map(|a| m(a, b)).collect())
                     .collect(),
             ),
-            (Matrix(a), Vector(b)) if a[0].len() == b.len() => Vector(
+            (Matrix(a), Vector(b)) if a.iter().all(|a| a.len() == b.len()) => Vector(
                 a.iter()
                     .map(|a| {
                         let mut iter = a.iter().zip(b.iter()).map(|(a, b)| m(a, b));
@@ -131,7 +131,7 @@ impl NumStr
                     })
                     .collect::<Vec<Number>>(),
             ),
-            (Matrix(a), Matrix(b)) if a[0].len() == b.len() => Matrix(
+            (Matrix(a), Matrix(b)) if a.iter().all(|a| a.len() == b.len()) => Matrix(
                 a.iter()
                     .map(|a| {
                         transpose(b)
@@ -257,7 +257,7 @@ impl NumStr
                     .map(|b| b.iter().map(|b| p(a, b)).collect())
                     .collect(),
             ),
-            (Matrix(a), Num(b)) if a.len() == a[0].len() =>
+            (Matrix(a), Num(b)) if a.iter().all(|c| a.len() == c.len()) =>
             {
                 let b = b.number.clone();
                 if b.imag().is_zero() && b.real().clone().fract().is_zero()
@@ -1306,7 +1306,15 @@ pub fn determinant(a: &[Vec<Number>]) -> Result<Number, &'static str>
 }
 pub fn transpose(a: &[Vec<Number>]) -> Vec<Vec<Number>>
 {
-    let mut b = vec![vec![Number::from(Complex::new(1), None); a.len()]; a[0].len()];
+    let mut max = 0;
+    for i in a
+    {
+        if i.len() > max
+        {
+            max = i.len()
+        }
+    }
+    let mut b = vec![vec![Number::from(Complex::new(1), None); a.len()]; max];
     for (i, l) in a.iter().enumerate()
     {
         for (j, n) in l.iter().enumerate()
@@ -1318,7 +1326,7 @@ pub fn transpose(a: &[Vec<Number>]) -> Vec<Vec<Number>>
 }
 pub fn minors(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
-    if (0..a.len()).all(|j| a.len() == a[j].len())
+    if a.iter().all(|j| a.len() == j.len())
     {
         let mut result = vec![vec![Number::from(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()
@@ -1337,7 +1345,7 @@ pub fn minors(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 }
 pub fn cofactor(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
-    if (0..a.len()).all(|j| a.len() == a[j].len())
+    if a.iter().all(|j| a.len() == j.len())
     {
         let mut result = vec![vec![Number::from(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()

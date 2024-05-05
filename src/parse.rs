@@ -966,13 +966,40 @@ pub fn input_var(
                 }
                 '%' if i != 0 =>
                 {
-                    if i + 1 == chars.len() || matches!(chars[i + 1], '+' | '-' | '*' | '/' | '^')
+                    if i + 1 == chars.len()
+                        || matches!(chars[i + 1], '+' | '-' | '*' | '/' | '^' | '}' | ')')
                     {
+                        let mut j: isize = -1;
+                        for (k, c) in chars[0..i].iter().rev().enumerate()
+                        {
+                            if !c.is_alphanumeric()
+                            {
+                                j = (i as isize - k as isize) - 1;
+                                break;
+                            }
+                        }
+                        if j > 0
+                            && matches!(chars[j as usize], '+' | '-' | '±')
+                            && chars[j as usize - 1].is_alphanumeric()
+                        {
+                            output.insert(output.len() - 2, Str('*'.to_string()));
+                            output.insert(output.len() - 2, Str('('.to_string()));
+                            output.insert(
+                                output.len() - 2,
+                                Num(Number::from(Complex::with_val(options.prec, 1), None)),
+                            );
+                        }
                         output.push(Str('*'.to_string()));
                         output.push(Num(Number::from(
                             Complex::with_val(options.prec, 1) / 100,
                             None,
                         )));
+                        if j > 0
+                            && matches!(chars[j as usize], '+' | '-' | '±')
+                            && chars[j as usize - 1].is_alphanumeric()
+                        {
+                            output.push(Str(')'.to_string()));
+                        }
                     }
                     else if !matches!(chars[i + 1], ')' | '}' | ']')
                     {

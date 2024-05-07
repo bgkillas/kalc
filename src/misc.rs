@@ -691,26 +691,35 @@ pub fn insert_last(input: &[char], last: &str) -> String
                 output.push_str(last);
                 output.push(')');
             }
-            else
-            {
-                output.push(*c);
-            }
+            output.push(*c);
             word.clear()
         }
     }
     if word.to_ascii_lowercase() == "ans"
     {
         output.drain(output.len() - 3..);
-        output.push('(');
+        if !last.contains('#')
+        {
+            output.push('(');
+        }
         output.push_str(last);
-        output.push(')');
+        if !last.contains('#')
+        {
+            output.push(')');
+        }
     }
     else if word == "_"
     {
         output.pop();
-        output.push('(');
+        if !last.contains('#')
+        {
+            output.push('(');
+        }
         output.push_str(last);
-        output.push(')');
+        if !last.contains('#')
+        {
+            output.push(')');
+        }
     }
     output
 }

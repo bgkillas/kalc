@@ -492,6 +492,7 @@ fn main()
         let mut input = Vec::new();
         let mut graphable = HowGraphing::default();
         let mut varcheck = false;
+        let mut last = Vec::new();
         if !args.is_empty()
         {
             let watch = if options.debug
@@ -627,7 +628,7 @@ fn main()
             let mut lines = unmod_lines.clone().unwrap();
             let mut i = lines.len();
             let mut placement = 0;
-            let last = if i == 0
+            last = if i == 0
             {
                 Vec::new()
             }
@@ -1702,9 +1703,7 @@ fn main()
         }
         else if graphable.graph
         {
-            let inputs: Vec<String> = input
-                .iter()
-                .collect::<String>()
+            let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
                 .split('#')
                 .map(String::from)
                 .collect();

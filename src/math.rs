@@ -2043,7 +2043,10 @@ pub fn do_math(
                                                 / (c.sqrt() * d.sqrt()))
                                             .acos()
                                                 * to_deg.clone(),
-                                            None,
+                                            Some(Units {
+                                                angle: 1.0,
+                                                ..Units::default()
+                                            }),
                                         ))
                                     }
                                     else if a.len() == 2 && b.len() == 2
@@ -2058,7 +2061,10 @@ pub fn do_math(
                                                 / (c.sqrt() * d.sqrt()))
                                             .acos()
                                                 * to_deg.clone(),
-                                            None,
+                                            Some(Units {
+                                                angle: 1.0,
+                                                ..Units::default()
+                                            }),
                                         ))
                                     }
                                     else

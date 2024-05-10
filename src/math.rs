@@ -37,15 +37,28 @@ pub fn do_math(
     while i < func_vars.len()
     {
         let v = func_vars[i].clone();
-        if (v.1.len() != 1
-            || (if let Str(s) = &v.1[0]
+        let mut cont = false;
+        for f in function.iter_mut()
+        {
+            if let Str(s) = &f
             {
-                matches!(s.as_str(), "rnd" | "epoch")
+                if *s == v.0
+                {
+                    cont = true;
+                    break;
+                }
             }
-            else
-            {
-                false
-            }))
+        }
+        if cont
+            && (v.1.len() != 1
+                || (if let Str(s) = &v.1[0]
+                {
+                    matches!(s.as_str(), "rnd" | "epoch")
+                }
+                else
+                {
+                    false
+                }))
             && !v.0.ends_with(')')
         {
             if let Ok(n) = do_math(v.1.clone(), options, func_vars[..i].to_vec())

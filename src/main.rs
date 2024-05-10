@@ -12,8 +12,6 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
-//remove funcvars if they are used once
-//merge funcvars if equal
 //lib, gui
 use crate::{
     complex::NumStr,

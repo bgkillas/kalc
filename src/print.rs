@@ -171,6 +171,7 @@ pub fn print_concurrent(
         false,
         0,
         Vec::new(),
+        false,
     )
     {
         Ok(f) => f,
@@ -256,6 +257,7 @@ pub fn print_concurrent(
                     true,
                     0,
                     Vec::new(),
+                    false,
                 )
                 {
                     Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),

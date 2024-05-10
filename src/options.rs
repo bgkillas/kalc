@@ -313,6 +313,7 @@ pub fn set_commands(
                                 false,
                                 0,
                                 Vec::new(),
+                                false,
                             )?;
                             args.push(
                                 do_math(parsed.0, *options, parsed.1)?
@@ -336,6 +337,7 @@ pub fn set_commands(
                     false,
                     0,
                     Vec::new(),
+                    false,
                 )?;
                 args.push(
                     do_math(parsed.0, *options, parsed.1)?
@@ -544,6 +546,7 @@ pub fn set_commands(
                                                     false,
                                                     0,
                                                     s.chars().collect::<Vec<char>>(),
+                                                    false,
                                                 )?;
                                                 func_vars.push((-1, s.clone()));
                                                 fvs.push((s, parsed.0));
@@ -560,6 +563,7 @@ pub fn set_commands(
                                         false,
                                         0,
                                         var.name.clone(),
+                                        false,
                                     )
                                     {
                                         Ok(n) => (n.0, n.1),
@@ -1266,6 +1270,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
                 true,
                 0,
                 Vec::new(),
+                false,
             );
             if let Ok(f) = input
             {

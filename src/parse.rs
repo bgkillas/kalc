@@ -26,6 +26,7 @@ pub fn input_var(
     print: bool,
     depth: usize,
     blacklist: Vec<char>,
+    isgraphing: bool,
 ) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, HowGraphing, bool), &'static str>
 {
     // if input == "debugtest"
@@ -1056,7 +1057,7 @@ pub fn input_var(
                 depthcheck = !depthcheck;
             }
             else if c.is_alphabetic()
-                || matches!(*c, '°' | '`' | '∫' | '$' | '¢')
+                || matches!(*c, '°' | '\'' | '`' | '_' | '∫' | '$' | '¢')
                 || (c == &'2' && word == "atan")
             {
                 word.push(*c);
@@ -1120,6 +1121,8 @@ pub fn input_var(
         else if matches!(
             word.as_str(),
             "∫" | "area"
+                | "surfacearea"
+                | "sarea"
                 | "solve"
                 | "length"
                 | "slope"
@@ -1169,7 +1172,7 @@ pub fn input_var(
                 for c in chars[i + countv + 1..].iter()
                 {
                     count += 1;
-                    if c.is_alphabetic()
+                    if c.is_alphabetic() || matches!(c, '\'' | '`' | '_')
                     {
                         sum.1.push(*c);
                     }
@@ -1207,6 +1210,40 @@ pub fn input_var(
                         output.push(Str(sum.1));
                     }
                     output.push(Str(",".to_string()));
+                    if matches!(word.as_str(), "surfacearea" | "sarea")
+                    {
+                        sum.0 = *bracket + 1;
+                        sum.1 = String::new();
+                        for c in chars[i + countv + count + 1..].iter()
+                        {
+                            count += 1;
+                            if c.is_alphabetic() || matches!(c, '\'' | '`' | '_')
+                            {
+                                sum.1.push(*c);
+                            }
+                            else if c == &','
+                            {
+                                break;
+                            }
+                        }
+                        for (i, j) in sumrec.iter().enumerate()
+                        {
+                            if j.1.chars().count() <= sum.1.len()
+                            {
+                                sumrec.insert(i, sum.clone());
+                                break;
+                            }
+                        }
+                        if sumrec.iter().any(|c| c.0 == -1)
+                        {
+                            output.push(Str("@".to_owned() + &sum.1));
+                        }
+                        else
+                        {
+                            output.push(Str(sum.1));
+                        }
+                        output.push(Str(",".to_string()));
+                    }
                     *bracket += 1;
                     i += count + countv + 1;
                     continue;
@@ -1698,6 +1735,7 @@ pub fn input_var(
                                         print,
                                         depth + 1,
                                         blacklist.clone(),
+                                        false,
                                     )
                                     {
                                         Ok(f) => f,
@@ -1952,6 +1990,7 @@ pub fn input_var(
                                     print,
                                     depth + 1,
                                     blacklist.clone(),
+                                    false,
                                 )
                                 {
                                     Ok(f) => f,
@@ -2561,7 +2600,7 @@ pub fn input_var(
     {
         return Err(err);
     }
-    if graph.graph && !print
+    if isgraphing && (graph.x || graph.y)
     {
         i = output.len();
         count = 0;

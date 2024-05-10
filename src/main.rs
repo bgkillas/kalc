@@ -12,7 +12,8 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
-//surface area function
+//remove funcvars if they are used once
+//merge funcvars if equal
 //lib, gui
 use crate::{
     complex::NumStr,
@@ -568,6 +569,7 @@ fn main()
                 false,
                 0,
                 Vec::new(),
+                false,
             )
             {
                 Ok(f) => f,

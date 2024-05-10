@@ -1,7 +1,7 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
     math::do_math,
-    misc::do_math_with_var,
+    misc::{do_math_with_var, place_funcvar, place_var},
     Number, Options, Units,
 };
 use rug::{
@@ -2514,6 +2514,136 @@ fn subfactorial_recursion(z: Complex, iter: usize, max: usize) -> Complex
         (z.clone() + iter + 1) - iter / subfactorial_recursion(z, iter + 1, max)
     }
 }
+#[allow(clippy::too_many_arguments)]
+pub fn surface_area(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    options: Options,
+    varx: String,
+    mut startx: Complex,
+    endx: Number,
+    vary: String,
+    starty_func: Vec<NumStr>,
+    endy_func: Vec<NumStr>,
+) -> Result<Number, &'static str>
+{
+    if starty_func.is_empty() || endy_func.is_empty()
+    {
+        return Err("bad start/end");
+    }
+    let starty_test = do_math(starty_func.clone(), options, func_vars.clone());
+    let endy_test = do_math(endy_func.clone(), options, func_vars.clone());
+    let points = options.prec as usize / 16;
+    let unitsx = endx.units;
+    let endx = endx.number;
+    let deltax: Complex = (endx.clone() - startx.clone()) / (points - 1);
+    let starty;
+    let endy;
+    let unitsy;
+    let deltay: Complex = if let (Ok(Num(start)), Ok(Num(end))) = (starty_test, endy_test)
+    {
+        starty = start.number;
+        endy = end.number;
+        unitsy = end.units;
+        (endy.clone() - starty.clone()) / (points - 1)
+    }
+    else
+    {
+        starty = Complex::new(0);
+        endy = Complex::new(0);
+        unitsy = None;
+        Complex::new(0)
+    };
+    let mut data: Vec<Vec<Complex>> = vec![Vec::new(); points];
+    let units;
+    data[0].push({
+        let n = Num(Number::from(startx.clone(), unitsx));
+        let func = place_var(func.clone(), &varx, n.clone());
+        let func_vars = place_funcvar(func_vars.clone(), &varx, n);
+        let num = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &vary,
+            Num(Number::from(starty.clone(), unitsy)),
+        )?
+        .num()?;
+        units = num.units;
+        num.number
+    });
+    for (nx, row) in data.iter_mut().enumerate()
+    {
+        if nx + 1 == points
+        {
+            startx.clone_from(&endx)
+        }
+        else if nx != 0
+        {
+            startx += deltax.clone();
+        }
+        let n = Num(Number::from(startx.clone(), unitsx));
+        let func = place_var(func.clone(), &varx, n.clone());
+        let func_vars = place_funcvar(func_vars.clone(), &varx, n);
+        let mut starty = starty.clone();
+        for ny in 0..points
+        {
+            if nx == 0 && ny == 0
+            {
+                continue;
+            }
+            if ny + 1 == points
+            {
+                starty.clone_from(&endy)
+            }
+            else if ny != 0
+            {
+                starty += deltay.clone();
+            }
+            row.push(
+                do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &vary,
+                    Num(Number::from(starty.clone(), unitsy)),
+                )?
+                .num()?
+                .number,
+            )
+        }
+    }
+    let mut area: Complex = Complex::new(options.prec);
+    let k = deltax.clone() * deltay.clone();
+    let k: Complex = k.pow(2);
+    for (nx, row) in data[..data.len() - 1].iter().enumerate()
+    {
+        for (ny, z) in row[..row.len() - 1].iter().enumerate()
+        {
+            let a = row[ny + 1].clone();
+            let b = data[nx + 1][ny].clone();
+            {
+                let a = a.clone() - z;
+                let b = b.clone() - z;
+                let i = deltay.clone() * b;
+                let j = deltax.clone() * a;
+                let i: Complex = i.pow(2);
+                let j: Complex = j.pow(2);
+                area += (i + j + k.clone()).sqrt() / 2;
+            }
+            {
+                let z = &data[nx + 1][ny + 1];
+                let a = a - z;
+                let b = b - z;
+                let i = deltay.clone() * b;
+                let j = deltax.clone() * a;
+                let i: Complex = i.pow(2);
+                let j: Complex = j.pow(2);
+                area += (i + j + k.clone()).sqrt() / 2
+            }
+        }
+    }
+    Ok(Number::from(area, units))
+}
 pub fn length(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
@@ -2521,16 +2651,13 @@ pub fn length(
     var: String,
     mut start: Complex,
     end: Number,
-    points: usize,
 ) -> Result<Number, &'static str>
 {
+    let points = options.prec as usize / 4;
     let units = end.units;
-    let mut end = end.number;
-    if start.real() > end.real()
-    {
-        (start, end) = (end, start)
-    }
+    let end = end.number;
     let delta: Complex = (end.clone() - start.clone()) / points;
+    let delta2: Complex = delta.clone().pow(2);
     let mut x0: NumStr = do_math_with_var(
         func.clone(),
         options,
@@ -2576,14 +2703,14 @@ pub fn length(
         {
             (Num(xi), Num(xf)) =>
             {
-                let nl: Complex = (xf.number.clone() - xi.number).pow(2) + delta.clone().pow(2);
+                let nl: Complex = (xf.number.clone() - xi.number).pow(2) + delta2.clone();
                 length += nl.sqrt();
                 x0 = Num(xf);
             }
             (Vector(xi), Vector(xf)) if xf.len() == 1 =>
             {
                 let nl: Complex =
-                    (xf[0].number.clone() - xi[0].number.clone()).pow(2) + delta.clone().pow(2);
+                    (xf[0].number.clone() - xi[0].number.clone()).pow(2) + delta2.clone();
                 length += nl.sqrt();
                 x0 = Vector(xf);
             }
@@ -2611,10 +2738,10 @@ pub fn area(
     var: String,
     mut start: Complex,
     end: Number,
-    points: usize,
     combine: bool,
 ) -> Result<NumStr, &'static str>
 {
+    let points = options.prec as usize / 4;
     let units = end.units;
     let end = end.number;
     let mut funcs = Vec::new();

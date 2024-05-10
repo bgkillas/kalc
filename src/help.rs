@@ -83,7 +83,7 @@ Order of Operations:\x1b[G\n\
 - < (lt), <= (le), > (gt), >= (ge), == (eq), != (!eq), >> (a>>b shifts b bits right), << (a<<b shifts b bits left)\x1b[G\n\
 - && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)\x1b[G\n\n\
 Functions:\x1b[G\n\
-- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), cossin(x)={{cos(x),sin(x)}}\x1b[G\n\
+- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), sincos(x)={{sin(x),cos(x)}}, cossin(x)={{cos(x),sin(x)}}\x1b[G\n\
 - csc, sec, cot, acsc, asec, acot\x1b[G\n\
 - sinh, cosh, tanh, asinh, acosh, atanh\x1b[G\n\
 - csch, sech, coth, acsch, asech, acoth\x1b[G\n\
@@ -111,7 +111,7 @@ Functions:\x1b[G\n\
 - An(n,k), Ap(n,t) eulerian numbers and polynomials\x1b[G\n\
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
-- area(x,f(x),from,to (,0) ), length(x,f(x),from,to)\x1b[G\n\
+- area(x,f(x),from,to (,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)\x1b[G\n\
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add \",1\" to args to show steps\x1b[G\n\n\
 Vector operations/functions:\x1b[G\n\

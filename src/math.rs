@@ -4,8 +4,8 @@ use crate::{
         eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
         identity, incomplete_beta, incomplete_gamma, inverse, iter, lambertw, length, limit,
         minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog,
-        slope, solve, sort, sort_mat, sub, subfactorial, sum, tetration, to, to_polar, trace,
-        transpose, unity, variance, zeta,
+        slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area, tetration, to,
+        to_polar, trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -328,6 +328,8 @@ pub fn do_math(
                                 k.as_str(),
                                 "sum"
                                     | "area"
+                                    | "surfacearea"
+                                    | "sarea"
                                     | "solve"
                                     | "∫"
                                     | "length"
@@ -413,6 +415,8 @@ pub fn do_math(
                     s.as_str(),
                     "sum"
                         | "area"
+                        | "sarea"
+                        | "surfacearea"
                         | "solve"
                         | "∫"
                         | "length"
@@ -560,6 +564,39 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
+                        ("surfacearea" | "sarea", Str(var)) if place.len() == 7 =>
+                        {
+                            if let Str(var2) = &function[place[0] + 1]
+                            {
+                                function[i] = Num(surface_area(
+                                    function[place[1] + 1..place[2]].to_vec(),
+                                    func_vars.clone(),
+                                    options,
+                                    var.to_string(),
+                                    do_math(
+                                        function[place[4] + 1..place[5]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .number,
+                                    do_math(
+                                        function[place[5] + 1..place[6]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?,
+                                    var2.to_string(),
+                                    function[place[2] + 1..place[3]].to_vec(),
+                                    function[place[3] + 1..place[4]].to_vec(),
+                                )?);
+                                function.drain(i + 1..=*place.last().unwrap());
+                            }
+                            else
+                            {
+                                return Err("bad var");
+                            }
+                        }
                         ("length" | "arclength", Str(var)) if place.len() == 4 =>
                         {
                             function[i] = Num(length(
@@ -580,7 +617,6 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                options.prec as usize / 4,
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
@@ -605,7 +641,6 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                options.prec as usize / 4,
                                 place.len() != 5,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
@@ -2565,6 +2600,11 @@ pub fn do_math(
                             {
                                 let (a, b) = arg.num()?.number.sin_cos(Complex::new(options.prec));
                                 Vector(vec![Number::from(b, None), Number::from(a, None)])
+                            }
+                            "sincos" =>
+                            {
+                                let (a, b) = arg.num()?.number.sin_cos(Complex::new(options.prec));
+                                Vector(vec![Number::from(a, None), Number::from(b, None)])
                             }
                             "split" =>
                             {

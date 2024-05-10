@@ -226,6 +226,9 @@ pub fn functions() -> HashSet<&'static str>
         "oim",
         "mod",
         "cossin",
+        "sincos",
+        "surfacearea",
+        "sarea",
     ]
     .iter()
     .cloned()

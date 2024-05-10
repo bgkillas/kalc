@@ -195,7 +195,7 @@ Order of Operations:
 - && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)
 
 Functions:
-- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), cossin(x)={cos(x),sin(x)}
+- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), sincos(x)={sin(x),cos(x)}, cossin(x)={cos(x),sin(x)}
 - csc, sec, cot, acsc, asec, acot
 - sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth
@@ -223,7 +223,7 @@ Functions:
 - An(n,k), Ap(n,t) eulerian numbers and polynomials
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
-- area(x,f(x),from,to (,0) ), length(x,f(x),from,to)
+- area(x,f(x),from,to (,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add ",1" to args to show steps
 

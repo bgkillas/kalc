@@ -1,10 +1,10 @@
 use crate::{
     complex::{
-        add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div, eigenvalues,
-        eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma, gcd, ge, gt,
-        identity, incomplete_beta, incomplete_gamma, inverse, iter, lambertw, length, limit,
-        minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr, slog,
-        slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area, tetration, to,
+        about_eq, add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div,
+        eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma,
+        gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter, lambertw, length,
+        limit, minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr,
+        slog, slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area, tetration, to,
         to_polar, trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
@@ -2903,7 +2903,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
                             {
                                 function[i - 1] = function[i + 1].func(&function[i - 1], gt)?;
                                 function[i] = Str("&&".to_string());
@@ -2919,7 +2919,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
                             {
                                 function[i - 1] = function[i + 1].func(&function[i - 1], ge)?;
                                 function[i] = Str("&&".to_string());
@@ -2935,7 +2935,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
                             {
                                 function[i - 1] = function[i - 1].func(&function[i + 1], gt)?;
                                 function[i] = Str("&&".to_string());
@@ -2951,7 +2951,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
                             {
                                 function[i - 1] = function[i - 1].func(&function[i + 1], ge)?;
                                 function[i] = Str("&&".to_string());
@@ -2967,7 +2967,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
                             {
                                 function[i - 1] = function[i - 1].func(&function[i + 1], eq)?;
                                 function[i] = Str("&&".to_string());
@@ -2983,7 +2983,7 @@ pub fn do_math(
                     {
                         if let Str(s) = &function[i + 2]
                         {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=")
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
                             {
                                 function[i - 1] = function[i - 1].func(&function[i + 1], ne)?;
                                 function[i] = Str("&&".to_string());
@@ -2992,6 +2992,23 @@ pub fn do_math(
                         }
                     }
                     function[i] = function[i - 1].func(&function[i + 1], ne)?
+                }
+                "≈" =>
+                {
+                    if i + 3 < function.len()
+                    {
+                        if let Str(s) = &function[i + 2]
+                        {
+                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
+                            {
+                                function[i - 1] =
+                                    function[i - 1].func(&function[i + 1], about_eq)?;
+                                function[i] = Str("&&".to_string());
+                                continue;
+                            }
+                        }
+                    }
+                    function[i] = function[i - 1].func(&function[i + 1], about_eq)?
                 }
                 ">>" => function[i] = function[i - 1].func(&function[i + 1], shr)?,
                 "<<" => function[i] = function[i - 1].func(&function[i + 1], shl)?,

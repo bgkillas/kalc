@@ -668,6 +668,31 @@ pub fn eq(a: &Number, b: &Number) -> Number
         None,
     )
 }
+pub fn about_eq(a: &Number, b: &Number) -> Number
+{
+    let ua = a.units;
+    let ub = b.units;
+    let a = a.number.clone();
+    let b = b.number.clone();
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            ((a.real().is_sign_positive() == b.real().is_sign_positive()
+                && a.imag().is_sign_positive() == b.imag().is_sign_positive()
+                && a.real().clone().abs().log10().floor()
+                    == b.real().clone().abs().log10().floor()
+                && a.imag().clone().abs().log10().floor()
+                    == b.imag().clone().abs().log10().floor())
+                && match (ua, ub)
+                {
+                    (Some(a), Some(b)) => a == b,
+                    (Some(a), None) | (None, Some(a)) => a.is_none(),
+                    (None, None) => true,
+                }) as u8,
+        ),
+        None,
+    )
+}
 pub fn ge(a: &Number, b: &Number) -> Number
 {
     Number::from(

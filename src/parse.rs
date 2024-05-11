@@ -487,6 +487,12 @@ pub fn input_var(
                         pwr.2 = 0
                     }
                 }
+                '≈' if i != 0
+                    && i + 1 != chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                {
+                    output.push(Str("≈".to_string()))
+                }
                 '±' if i + 1 != chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if output.is_empty()

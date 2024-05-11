@@ -1492,13 +1492,17 @@ fn main()
                             }
                             if hit
                             {
-                                placement = 1;
+                                placement = 0;
                             }
                             if placement <= start
                             {
                                 end = placement
                                     + (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 });
+                                if end > input.len()
+                                {
+                                    end = input.len()
+                                }
                                 start = placement;
                                 clearln(&input, start, end, options, &colors);
                                 if end - placement != 0
@@ -1542,13 +1546,14 @@ fn main()
                             }
                             if hit
                             {
-                                placement = input.len().saturating_sub(1);
+                                placement = input.len();
                             }
                             if placement >= end
                             {
-                                start = placement
-                                    - (get_terminal_dimensions().0
-                                        - if options.prompt { 3 } else { 1 });
+                                start = placement.saturating_sub(
+                                    get_terminal_dimensions().0
+                                        - if options.prompt { 3 } else { 1 },
+                                );
                                 end = placement;
                                 clearln(&input, start, end, options, &colors)
                             }

@@ -175,33 +175,6 @@ w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\x1b[G\n\
 numbers/minus sign convert to superscript acting as exponents\x1b[G\n"
 ,all_units());
 }
-pub fn help_for(thing: &str) -> String
-{
-    match thing
-    {
-        "W" | "productlog" | "lambertw" =>
-        {
-            "W(k,z), W(z)\x1b[G\n\
-            kth branch of the inverse of z*e^z\x1b[G\n\
-            given one argument assumes k=0"
-        }
-        "atan" | "arctan" | "atan2" =>
-        {
-            "atan(y/x), atan(x,y), atan2(y,x)\x1b[G\n\
-        inverse of tan(z)\x1b[G\n\
-        using the 2 arg version gives you an angle from 0 instead of from the x axis\x1b[G\n\
-        example using cardinal directions: atan(-2,-3)=-2.15 E->N, atan(-3/-2)=0.98 W->S"
-        }
-        "->"|"to"=>"divides the left number and unit by the right unit after the '+'/'-' step of order of operations, bit more complex for fereignheit/celsius",
-        "units" => "see \"units list\" for a list of all units supported\x1b[G\nsupports metric and binary prefixes, \"units\" function extracts the units of the given input",
-        "units list" =>
-            all_units(),
-        "help" => "W, atan\x1b[G\nunits, ->",
-        "" => "",
-        _ => "not in database",
-    }
-    .to_string()
-}
 fn all_units() -> &'static str
 {
     "\"m\" | \"meter\"\x1b[G\n\
@@ -270,4 +243,45 @@ fn all_units() -> &'static str
 \"parsec\" | \"pc\"\x1b[G\n\
 \"au\"\x1b[G\n\
 \"floz\""
+}
+pub fn help_for(thing: &str) -> String
+{
+    match thing
+    {
+        "W" | "productlog" | "lambertw" =>
+        {
+            "W(k,z), W(z)\x1b[G\n\
+            kth branch of the inverse of z*e^z\x1b[G\n\
+            given one argument assumes k=0"
+        }
+        "atan" | "arctan" | "atan2" =>
+        {
+            "atan(y/x), atan(x,y), atan2(y,x)\x1b[G\n\
+        inverse of tan(z)\x1b[G\n\
+        using the 2 arg version gives you an angle from 0 instead of from the x axis\x1b[G\n\
+        example using cardinal directions: atan(-2,-3)=-2.15 E->N, atan(-3/-2)=0.98 W->S"
+        }
+        "->"|"to"=>"divides the left number and unit by the right unit after the '+'/'-' step of order of operations, bit more complex for fereignheit/celsius",
+        "units" => "see \"units list\" for a list of all units supported\x1b[G\nsupports metric and binary prefixes, \"units\" function extracts the units of the given input",
+        "units list" =>
+            all_units(),
+        "help" => "W, atan\x1b[G\nunits, ->",
+        "point"|"points"=>". - dot\x1b[G\n\
++ - plus\x1b[G\n\
+x - cross\x1b[G\n\
+* - star\x1b[G\n\
+s - empty square\x1b[G\n\
+S - filled square\x1b[G\n\
+o - empty circle\x1b[G\n\
+O - filled circle\x1b[G\n\
+t - empty triangle\x1b[G\n\
+T - filled triangle\x1b[G\n\
+d - empty del (upside down triangle)\x1b[G\n\
+D - filled del (upside down triangle)\x1b[G\n\
+r - empty rhombus\x1b[G\n\
+R - filled rhombus",
+        "" => "",
+        _ => "not in database",
+    }
+    .to_string()
 }

@@ -251,7 +251,7 @@ pub fn set_commands(
                 )
             }
         }
-        "point" =>
+        "point" | "points" =>
         {
             if r.is_empty()
             {
@@ -1184,7 +1184,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "comma" => format!("{}", options.comma),
         "units" => format!("{}", options.units),
         "graphcli" => format!("{}", options.graph_cli),
-        "point" => format!("{}", options.point_style),
+        "point" | "points" => format!("{}", options.point_style),
         "base" => format!("{} {}", options.base.0, options.base.1),
         "ticks" => format!(
             "x:{} y:{} z:{}",

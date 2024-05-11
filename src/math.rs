@@ -4032,7 +4032,7 @@ fn functions(
     }
 }
 pub fn compute_funcvars(
-    function: &mut Vec<NumStr>,
+    function: &mut [NumStr],
     options: Options,
     func_vars: &mut Vec<(String, Vec<NumStr>)>,
 ) -> usize

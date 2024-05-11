@@ -163,7 +163,7 @@ pub fn print_concurrent(
         }
     }
     let input = match input_var(
-        &insert_last(&unparsed, last.iter().collect::<String>().as_str()),
+        &insert_last(unparsed, last.iter().collect::<String>().as_str()),
         &vars,
         &mut Vec::new(),
         &mut 0,

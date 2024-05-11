@@ -1262,7 +1262,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         _ =>
         {
             let input = input_var(
-                &insert_last(&l.chars().collect::<Vec<char>>(), &last),
+                &insert_last(&l.chars().collect::<Vec<char>>(), last),
                 vars,
                 &mut Vec::new(),
                 &mut 0,

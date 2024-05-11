@@ -100,9 +100,9 @@ pub fn graph(
                 )
                 {
                     Ok(f) => (f.0, f.1, options, f.2),
-                    _ =>
+                    Err(s) =>
                     {
-                        print!("\x1b[G\x1b[Kbad input\x1b[G\n{}", prompt(options, &colors));
+                        print!("\x1b[G\x1b[K{}\x1b[G\n{}", s, prompt(options, &colors));
                         stdout().flush().unwrap();
                         return;
                     }

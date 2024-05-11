@@ -1,6 +1,6 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
-    math::do_math,
+    math::{compute_funcvars, do_math},
     misc::{do_math_with_var, place_funcvar, place_var},
     Number, Options, Units,
 };
@@ -2582,8 +2582,9 @@ pub fn surface_area(
             startx += deltax.clone();
         }
         let n = Num(Number::from(startx.clone(), unitsx));
-        let func = place_var(func.clone(), &varx, n.clone());
-        let func_vars = place_funcvar(func_vars.clone(), &varx, n);
+        let mut func = place_var(func.clone(), &varx, n.clone());
+        let mut func_vars = place_funcvar(func_vars.clone(), &varx, n);
+        compute_funcvars(&mut func, options, &mut func_vars);
         let mut starty = starty.clone();
         for ny in 0..points
         {

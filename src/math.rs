@@ -33,69 +33,8 @@ pub fn do_math(
     {
         return Err(" ");
     }
+    compute_funcvars(&mut function, options, &mut func_vars);
     let mut i = 0;
-    while i < func_vars.len()
-    {
-        let v = func_vars[i].clone();
-        let mut cont = false;
-        for f in function.iter_mut()
-        {
-            if let Str(s) = &f
-            {
-                if *s == v.0
-                {
-                    cont = true;
-                    break;
-                }
-            }
-        }
-        if cont
-            && (v.1.len() != 1
-                || (if let Str(s) = &v.1[0]
-                {
-                    matches!(s.as_str(), "rnd" | "epoch")
-                }
-                else
-                {
-                    false
-                }))
-            && !v.0.ends_with(')')
-        {
-            if let Ok(n) = do_math(v.1.clone(), options, func_vars[..i].to_vec())
-            {
-                for f in function.iter_mut()
-                {
-                    if let Str(s) = &f
-                    {
-                        if *s == v.0
-                        {
-                            *f = n.clone();
-                        }
-                    }
-                }
-                if i + 1 < func_vars.len()
-                {
-                    for fv in func_vars[i + 1..].iter_mut()
-                    {
-                        for f in fv.1.iter_mut()
-                        {
-                            if let Str(s) = &f
-                            {
-                                if *s == v.0
-                                {
-                                    *f = n.clone();
-                                }
-                            }
-                        }
-                    }
-                }
-                func_vars.remove(i);
-                continue;
-            }
-        }
-        i += 1;
-    }
-    i = 0;
     while i < function.len()
     {
         if let Str(s) = &function[i]
@@ -4091,4 +4030,74 @@ fn functions(
     {
         Ok(n)
     }
+}
+pub fn compute_funcvars(
+    function: &mut Vec<NumStr>,
+    options: Options,
+    func_vars: &mut Vec<(String, Vec<NumStr>)>,
+) -> usize
+{
+    let mut i = 0;
+    while i < func_vars.len()
+    {
+        let v = func_vars[i].clone();
+        let mut cont = false;
+        for f in function.iter_mut()
+        {
+            if let Str(s) = &f
+            {
+                if *s == v.0
+                {
+                    cont = true;
+                    break;
+                }
+            }
+        }
+        if cont
+            && (v.1.len() != 1
+                || (if let Str(s) = &v.1[0]
+                {
+                    matches!(s.as_str(), "rnd" | "epoch")
+                }
+                else
+                {
+                    false
+                }))
+            && !v.0.ends_with(')')
+        {
+            if let Ok(n) = do_math(v.1.clone(), options, func_vars[..i].to_vec())
+            {
+                for f in function.iter_mut()
+                {
+                    if let Str(s) = &f
+                    {
+                        if *s == v.0
+                        {
+                            *f = n.clone();
+                        }
+                    }
+                }
+                if i + 1 < func_vars.len()
+                {
+                    for fv in func_vars[i + 1..].iter_mut()
+                    {
+                        for f in fv.1.iter_mut()
+                        {
+                            if let Str(s) = &f
+                            {
+                                if *s == v.0
+                                {
+                                    *f = n.clone();
+                                }
+                            }
+                        }
+                    }
+                }
+                func_vars.remove(i);
+                continue;
+            }
+        }
+        i += 1;
+    }
+    i
 }

@@ -8,7 +8,7 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     load_vars::set_commands_or_vars,
-    math::do_math,
+    math::{compute_funcvars, do_math},
     misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     options::silent_commands,
     parse::input_var,
@@ -1605,6 +1605,7 @@ pub fn get_list_3d(
         let num = Num(Number::from(Complex::with_val(func.2.prec, n), None));
         modified = place_var(func.0.clone(), "x", num.clone());
         modifiedvars = place_funcvar(func.1.clone(), "x", num);
+        compute_funcvars(&mut modified, func.2, &mut modifiedvars);
         for g in 0..=func.2.samples_3d.1
         {
             let f = func.2.yr.0 + g as f64 * den_y_range;

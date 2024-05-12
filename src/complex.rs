@@ -2651,8 +2651,8 @@ pub fn surface_area(
                             let z = &data[nx + 1][ny + 1];
                             let a = a - z;
                             let b = b - z;
-                            let i = deltay.clone() * b;
-                            let j = deltax.clone() * a;
+                            let i = deltax.clone() * b;
+                            let j = deltay.clone() * a;
                             let i: Complex = i.pow(2);
                             let j: Complex = j.pow(2);
                             area += (i + j + k.clone()).sqrt() / 2

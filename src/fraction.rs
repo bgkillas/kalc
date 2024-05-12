@@ -30,7 +30,7 @@ pub fn fraction(value: Float, options: Options) -> String
             5 => val.clone() * e.clone(),
             _ => break,
         };
-        if orig.clone().fract().is_zero()
+        if orig.clone().fract() < 1e-32
         {
             return if i == 0
             {
@@ -42,14 +42,7 @@ pub fn fraction(value: Float, options: Options) -> String
                     "{}{}({})",
                     sign,
                     if i == 1 { "sqrt" } else { "cbrt" },
-                    if orig == 1.0
-                    {
-                        String::new()
-                    }
-                    else
-                    {
-                        orig.to_integer().unwrap().to_string()
-                    }
+                    orig.to_integer().unwrap()
                 )
             }
             else

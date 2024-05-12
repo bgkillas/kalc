@@ -1226,7 +1226,7 @@ pub fn input_var(
                     output.push(Str(",".to_string()));
                     if matches!(word.as_str(), "surfacearea" | "sarea")
                     {
-                        sarea += 2;
+                        sarea += 1;
                         sum.0 = *bracket + 1;
                         sum.1 = String::new();
                         for c in chars[i + countv + count + 1..].iter()

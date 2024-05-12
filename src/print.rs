@@ -1627,7 +1627,7 @@ pub fn get_output(
                         "i".to_string()
                     }
             },
-            if options.units && num.imag().is_zero()
+            if options.units && im == "0"
             {
                 units.map(|units| {
                     format!(

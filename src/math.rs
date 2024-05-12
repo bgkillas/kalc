@@ -3293,6 +3293,17 @@ fn functions(
             | "recip"
             | "abs"
             | "norm"
+            | "onlyreal"
+            | "onlyre"
+            | "ore"
+            | "onlyimag"
+            | "onlyim"
+            | "oim"
+            | "re"
+            | "real"
+            | "im"
+            | "imag"
+            | "next"
     )
     {
         if let Some(ref b) = c
@@ -3516,6 +3527,61 @@ fn functions(
             ),
             "recip" => Number::from(a.number.recip(), a.units.map(|a| a.pow(-1.0))),
             "units" => Number::from(Complex::with_val(options.prec, 1), a.units),
+            "onlyreal" | "onlyre" | "ore" =>
+            {
+                if -a.number.imag().clone().abs().log10() > a.number.prec().0 / 4
+                {
+                    Number::from(a.number.real().clone().into(), a.units)
+                }
+                else
+                {
+                    Number::from(Complex::with_val(options.prec, Nan), None)
+                }
+            }
+            "onlyimag" | "onlyim" | "oim" =>
+            {
+                if -a.number.real().clone().abs().log10() > a.number.prec().0 / 4
+                {
+                    Number::from(a.number.imag().clone().into(), a.units)
+                }
+                else
+                {
+                    Number::from(Complex::with_val(options.prec, Nan), None)
+                }
+            }
+            "re" | "real" => Number::from(a.number.real().clone().into(), a.units),
+            "im" | "imag" => Number::from(a.number.imag().clone().into(), a.units),
+            "next" =>
+            {
+                if let Some(b) = c
+                {
+                    let mut real: Float = a.number.real().clone();
+                    let imag: Float = a.number.imag().clone();
+                    if b.number.real().is_infinite()
+                    {
+                        if b.number.real().is_sign_positive()
+                        {
+                            real.next_up()
+                        }
+                        else
+                        {
+                            real.next_down()
+                        }
+                    }
+                    else
+                    {
+                        real.next_toward(b.number.real());
+                    }
+                    Number::from(Complex::with_val(options.prec, (real, imag)), a.units)
+                }
+                else
+                {
+                    let mut real: Float = a.number.real().clone();
+                    let imag: Float = a.number.imag().clone();
+                    real.next_up();
+                    Number::from(Complex::with_val(options.prec, (real, imag)), a.units)
+                }
+            }
             _ => return Err("unreachable"),
         }
     }
@@ -3570,37 +3636,6 @@ fn functions(
                     else
                     {
                         lambertw(a, Integer::new())
-                    }
-                }
-                "next" =>
-                {
-                    if let Some(b) = d
-                    {
-                        let mut real: Float = a.real().clone();
-                        let imag: Float = a.imag().clone();
-                        if b.real().is_infinite()
-                        {
-                            if b.real().is_sign_positive()
-                            {
-                                real.next_up()
-                            }
-                            else
-                            {
-                                real.next_down()
-                            }
-                        }
-                        else
-                        {
-                            real.next_toward(b.real());
-                        }
-                        Complex::with_val(options.prec, (real, imag))
-                    }
-                    else
-                    {
-                        let mut real: Float = a.real().clone();
-                        let imag: Float = a.imag().clone();
-                        real.next_up();
-                        Complex::with_val(options.prec, (real, imag))
                     }
                 }
                 "log" =>
@@ -3794,30 +3829,6 @@ fn functions(
                         gamma(a)
                     }
                 }
-                "onlyreal" | "onlyre" | "ore" =>
-                {
-                    if -a.imag().clone().abs().log10() > a.prec().0 / 4
-                    {
-                        a.real().clone().into()
-                    }
-                    else
-                    {
-                        Complex::with_val(options.prec, Nan)
-                    }
-                }
-                "onlyimag" | "onlyim" | "oim" =>
-                {
-                    if -a.real().clone().abs().log10() > a.prec().0 / 4
-                    {
-                        a.imag().clone().into()
-                    }
-                    else
-                    {
-                        Complex::with_val(options.prec, Nan)
-                    }
-                }
-                "re" | "real" => a.real().clone().into(),
-                "im" | "imag" => a.imag().clone().into(),
                 "sgn" | "sign" =>
                 {
                     if a.is_zero()

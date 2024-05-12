@@ -8,14 +8,7 @@ pub fn fraction(value: Float, options: Options) -> String
         return String::new();
     }
     let e = Float::with_val(options.prec, 1.0).exp();
-    let values = [
-        None,
-        None,
-        None,
-        Some(Float::with_val(options.prec, Pi)),
-        Some(e.clone()),
-        Some(1 / e),
-    ];
+    let pi = Float::with_val(options.prec, Pi);
     let sign: String = if value < 0.0
     {
         '-'.to_string()
@@ -25,23 +18,17 @@ pub fn fraction(value: Float, options: Options) -> String
         String::new()
     };
     let val = value.abs();
-    for (i, constant) in values.iter().enumerate()
+    for i in 0..=5
     {
-        let orig = if i == 0
+        let orig = match i
         {
-            val.clone()
-        }
-        else if i == 1
-        {
-            val.clone().pow(2)
-        }
-        else if i == 2
-        {
-            val.clone().pow(3)
-        }
-        else
-        {
-            val.clone() / constant.clone().unwrap()
+            0 => val.clone(),
+            1 => val.clone().pow(2),
+            2 => val.clone().pow(3),
+            3 => val.clone() / pi.clone(),
+            4 => val.clone() / e.clone(),
+            5 => val.clone() * e.clone(),
+            _ => break,
         };
         if orig.clone().fract().is_zero()
         {
@@ -70,7 +57,7 @@ pub fn fraction(value: Float, options: Options) -> String
                 format!(
                     "{}{}{}",
                     sign,
-                    if orig == 1.0
+                    if orig == 1.0 && i != 5
                     {
                         String::new()
                     }
@@ -82,7 +69,7 @@ pub fn fraction(value: Float, options: Options) -> String
                     {
                         3 => "π",
                         4 => "e",
-                        5 => "1/e",
+                        5 => "/e",
                         _ => "",
                     }
                 )
@@ -119,17 +106,10 @@ pub fn fraction(value: Float, options: Options) -> String
                     format!(
                         "{sign}{}({}{}",
                         if i == 1 { "sqrt" } else { "cbrt" },
-                        if last == 1 && i != 0
-                        {
-                            String::new()
-                        }
-                        else
-                        {
-                            last.to_string()
-                        },
+                        last,
                         if recip == 1
                         {
-                            String::new()
+                            ")".to_string()
                         }
                         else if i == 1
                         {
@@ -161,7 +141,7 @@ pub fn fraction(value: Float, options: Options) -> String
                 {
                     format!(
                         "{sign}{}{}{}",
-                        if last == 1 && i != 0
+                        if (last == 1 && i != 0) || i == 5
                         {
                             String::new()
                         }

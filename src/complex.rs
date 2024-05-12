@@ -2556,14 +2556,15 @@ pub fn surface_area(
     {
         return Err("bad start/end");
     }
-    let starty_test = do_math(starty_func.clone(), options, func_vars.clone());
-    let endy_test = do_math(endy_func.clone(), options, func_vars.clone());
     let points = options.prec as usize / 16;
     let unitsx = endx.units;
     let endx = endx.number;
     let deltax: Complex = (endx.clone() - startx.clone()) / (points - 1);
     let mut area: Complex = Complex::new(options.prec);
-    if let (Ok(Num(start)), Ok(Num(end))) = (starty_test, endy_test)
+    if let (Ok(Num(start)), Ok(Num(end))) = (
+        do_math(starty_func.clone(), options, func_vars.clone()),
+        do_math(endy_func.clone(), options, func_vars.clone()),
+    )
     {
         let starty = start.number;
         let endy = end.number;
@@ -2751,7 +2752,256 @@ pub fn surface_area(
     }
     else
     {
-        Ok(Number::from(area, None)) //units))
+        let n = Num(Number::from(startx.clone(), unitsx));
+        let temp_func = place_var(func.clone(), &varx, n.clone());
+        let temp_func_vars = place_funcvar(func_vars.clone(), &varx, n.clone());
+        let starty = do_math_with_var(
+            starty_func.clone(),
+            options,
+            temp_func_vars.clone(),
+            &varx,
+            n.clone(),
+        )?
+        .num()?
+        .number;
+        let end = do_math_with_var(
+            endy_func.clone(),
+            options,
+            temp_func_vars.clone(),
+            &varx,
+            n.clone(),
+        )?
+        .num()?;
+        let mut endy = end.number;
+        let unitsy = end.units;
+        let mut deltay: Complex = (endy.clone() - starty.clone()) / (points - 1);
+        match do_math_with_var(
+            temp_func.clone(),
+            options,
+            temp_func_vars.clone(),
+            &vary,
+            Num(Number::from(starty.clone(), unitsy)),
+        )?
+        {
+            Num(n) =>
+            {
+                let mut data: Vec<Vec<[Complex; 2]>> = vec![Vec::new(); points];
+                let units = n.units.map(|n| n.pow(2.0));
+                data[0].push([starty.clone(), n.number]);
+                for (nx, row) in data.iter_mut().enumerate()
+                {
+                    if nx + 1 == points
+                    {
+                        startx.clone_from(&endx)
+                    }
+                    else if nx != 0
+                    {
+                        startx += deltax.clone();
+                    }
+                    let n = Num(Number::from(startx.clone(), unitsx));
+                    let mut func = place_var(func.clone(), &varx, n.clone());
+                    let mut func_vars = place_funcvar(func_vars.clone(), &varx, n.clone());
+                    compute_funcvars(&mut func, options, &mut func_vars);
+                    let mut starty = starty.clone();
+                    if nx != 0
+                    {
+                        starty = do_math_with_var(
+                            starty_func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &varx,
+                            n.clone(),
+                        )?
+                        .num()?
+                        .number;
+                        endy = do_math_with_var(
+                            endy_func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &varx,
+                            n.clone(),
+                        )?
+                        .num()?
+                        .number;
+                        deltay = (endy.clone() - starty.clone()) / (points - 1);
+                    }
+                    for ny in 0..points
+                    {
+                        if nx == 0 && ny == 0
+                        {
+                            continue;
+                        }
+                        if ny + 1 == points
+                        {
+                            starty.clone_from(&endy)
+                        }
+                        else if ny != 0
+                        {
+                            starty += deltay.clone();
+                        }
+                        row.push([
+                            starty.clone(),
+                            do_math_with_var(
+                                func.clone(),
+                                options,
+                                func_vars.clone(),
+                                &vary,
+                                Num(Number::from(starty.clone(), unitsy)),
+                            )?
+                            .num()?
+                            .number,
+                        ])
+                    }
+                }
+                for (nx, row) in data[..data.len() - 1].iter().enumerate()
+                {
+                    for (ny, z) in row[..row.len() - 1].iter().enumerate()
+                    {
+                        let a = row[ny + 1].clone();
+                        let b = data[nx + 1][ny].clone();
+                        {
+                            let a1 = a[0].clone() - z[0].clone();
+                            let a2 = a[1].clone() - z[1].clone();
+                            let b0 = deltax.clone();
+                            let b1 = b[0].clone() - z[0].clone();
+                            let b2 = b[1].clone() - z[1].clone();
+                            let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
+                            let j = a2 * b0.clone();
+                            let k = a1 * b0;
+                            let i: Complex = i.pow(2);
+                            let j: Complex = j.pow(2);
+                            let k: Complex = k.pow(2);
+                            area += (i + j + k).sqrt() / 2;
+                        }
+                        {
+                            let z = &data[nx + 1][ny + 1];
+                            let a0 = deltax.clone();
+                            let a1 = a[0].clone() - z[0].clone();
+                            let a2 = a[1].clone() - z[1].clone();
+                            let b1 = b[0].clone() - z[0].clone();
+                            let b2 = b[1].clone() - z[1].clone();
+                            let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
+                            let j = a0.clone() * b2;
+                            let k = a0 * b1;
+                            let i: Complex = i.pow(2);
+                            let j: Complex = j.pow(2);
+                            let k: Complex = k.pow(2);
+                            area += (i + j + k).sqrt() / 2;
+                        }
+                    }
+                }
+                Ok(Number::from(area, units))
+            }
+            Vector(v) if v.len() == 3 =>
+            {
+                let mut data: Vec<Vec<Vec<Complex>>> = vec![Vec::new(); points];
+                let units = v[2].units.map(|n| n.pow(2.0));
+                data[0].push(v.iter().map(|a| a.number.clone()).collect());
+                for (nx, row) in data.iter_mut().enumerate()
+                {
+                    if nx + 1 == points
+                    {
+                        startx.clone_from(&endx)
+                    }
+                    else if nx != 0
+                    {
+                        startx += deltax.clone();
+                    }
+                    let n = Num(Number::from(startx.clone(), unitsx));
+                    let mut func = place_var(func.clone(), &varx, n.clone());
+                    let mut func_vars = place_funcvar(func_vars.clone(), &varx, n.clone());
+                    compute_funcvars(&mut func, options, &mut func_vars);
+                    let mut starty = starty.clone();
+                    if nx != 0
+                    {
+                        starty = do_math_with_var(
+                            starty_func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &varx,
+                            n.clone(),
+                        )?
+                        .num()?
+                        .number;
+                        endy = do_math_with_var(
+                            endy_func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &varx,
+                            n.clone(),
+                        )?
+                        .num()?
+                        .number;
+                        deltay = (endy.clone() - starty.clone()) / (points - 1);
+                    }
+                    for ny in 0..points
+                    {
+                        if nx == 0 && ny == 0
+                        {
+                            continue;
+                        }
+                        if ny + 1 == points
+                        {
+                            starty.clone_from(&endy)
+                        }
+                        else if ny != 0
+                        {
+                            starty += deltay.clone();
+                        }
+                        let v = do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &vary,
+                            Num(Number::from(starty.clone(), unitsy)),
+                        )?
+                        .vec()?;
+                        row.push(v.iter().map(|a| a.number.clone()).collect());
+                    }
+                }
+                for (nx, row) in data[..data.len() - 1].iter().enumerate()
+                {
+                    for (ny, z) in row[..row.len() - 1].iter().enumerate()
+                    {
+                        let a = row[ny + 1].clone();
+                        let b = data[nx + 1][ny].clone();
+                        {
+                            let a0 = a[0].clone() - z[0].clone();
+                            let a1 = a[1].clone() - z[1].clone();
+                            let a2 = a[2].clone() - z[2].clone();
+                            let b0 = b[0].clone() - z[0].clone();
+                            let b1 = b[1].clone() - z[1].clone();
+                            let b2 = b[2].clone() - z[2].clone();
+                            let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
+                            let j = a2 * b0.clone() - a0.clone() * b2;
+                            let k = a0 * b1 - a1 * b0;
+                            let i: Complex = i.pow(2);
+                            let j: Complex = j.pow(2);
+                            let k: Complex = k.pow(2);
+                            area += (i + j + k).sqrt() / 2;
+                        }
+                        {
+                            let z = &data[nx + 1][ny + 1];
+                            let a0 = a[0].clone() - z[0].clone();
+                            let a1 = a[1].clone() - z[1].clone();
+                            let a2 = a[2].clone() - z[2].clone();
+                            let b0 = b[0].clone() - z[0].clone();
+                            let b1 = b[1].clone() - z[1].clone();
+                            let b2 = b[2].clone() - z[2].clone();
+                            let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
+                            let j = a2 * b0.clone() - a0.clone() * b2;
+                            let k = a0 * b1 - a1 * b0;
+                            let i: Complex = i.pow(2);
+                            let j: Complex = j.pow(2);
+                            let k: Complex = k.pow(2);
+                            area += (i + j + k).sqrt() / 2;
+                        }
+                    }
+                }
+                Ok(Number::from(area, units))
+            }
+            _ => Err("bad input"),
+        }
     }
 }
 pub fn length(

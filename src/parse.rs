@@ -60,6 +60,7 @@ pub fn input_var(
     {
         chars.pop();
     }
+    let mut sarea = 0;
     let mut output: Vec<NumStr> = Vec::new();
     let mut stack_end = Vec::new();
     let mut stack_start = Vec::new();
@@ -945,7 +946,14 @@ pub fn input_var(
                     {
                         if &sum.0 == bracket
                         {
-                            sumrec.remove(i);
+                            if sarea > 0
+                            {
+                                sarea -= 1;
+                            }
+                            else
+                            {
+                                sumrec.remove(i);
+                            }
                             break;
                         }
                     }
@@ -1218,6 +1226,7 @@ pub fn input_var(
                     output.push(Str(",".to_string()));
                     if matches!(word.as_str(), "surfacearea" | "sarea")
                     {
+                        sarea += 2;
                         sum.0 = *bracket + 1;
                         sum.1 = String::new();
                         for c in chars[i + countv + count + 1..].iter()

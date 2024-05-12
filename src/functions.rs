@@ -229,6 +229,8 @@ pub fn functions() -> HashSet<&'static str>
         "sincos",
         "surfacearea",
         "sarea",
+        "cov",
+        "covariance",
     ]
     .iter()
     .cloned()

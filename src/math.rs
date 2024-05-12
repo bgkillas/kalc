@@ -214,6 +214,8 @@ pub fn do_math(
                                     | "eigenvalues"
                                     | "eigenvectors"
                                     | "mod"
+                                    | "covariance"
+                                    | "cov"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -1680,7 +1682,7 @@ pub fn do_math(
                             }
                             "percentile" =>
                             {
-                                if function.len() < i + 1
+                                if function.len() <= i + 1
                                 {
                                     return Err("not enough input");
                                 }
@@ -1700,7 +1702,7 @@ pub fn do_math(
                             }
                             "percentilerank" =>
                             {
-                                if function.len() < i + 1
+                                if function.len() <= i + 1
                                 {
                                     return Err("not enough input");
                                 }
@@ -1765,6 +1767,31 @@ pub fn do_math(
                                 Num(Number::from(variance(&a, options.prec).number.sqrt(), None))
                             }
                             "variance" | "var" => Num(variance(&a, options.prec)),
+                            "covariance" | "cov" =>
+                            {
+                                let mut sum = Complex::new(options.prec);
+                                if function.len() <= i + 1
+                                {
+                                    return Err("not enough input");
+                                }
+                                let b = function.remove(i + 1).vec()?;
+                                if a.len() != b.len()
+                                {
+                                    return Err("different sized data sets");
+                                }
+                                let ma = a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                    sum + val.number.clone()
+                                }) / a.len();
+                                let mb = b.iter().fold(Complex::new(options.prec), |sum, val| {
+                                    sum + val.number.clone()
+                                }) / b.len();
+                                for (a, b) in a.iter().zip(b.iter())
+                                {
+                                    sum += (a.number.clone() - ma.clone())
+                                        * (b.number.clone() - mb.clone());
+                                }
+                                Num(Number::from(sum / (a.len() - 1), None))
+                            }
                             "all" =>
                             {
                                 let mut res = true;

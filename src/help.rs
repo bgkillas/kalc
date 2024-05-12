@@ -102,7 +102,7 @@ Functions:\x1b[G\n\
 - piecewise/pw({{value,cond}},{{value2,cond2}}...) (when first condition is met from left to right. value elsewards is nan)\x1b[G\n\
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)\x1b[G\n\
 - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}}, tolist{{a,b,c}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\x1b[G\n\
-- variance/var, standarddeviation/σ (sample-bias corrected)\x1b[G\n\
+- variance/var, covariance/cov, standarddeviation/σ (sample-bias corrected)\x1b[G\n\
 - percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\x1b[G\n\
 - normP(μ,σ,x) (normal distribution pdf) normD(z)/normD(x,μ,σ) (area under curve to the left of z score cdf)\x1b[G\n\
 - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\x1b[G\n\

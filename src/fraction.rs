@@ -30,9 +30,9 @@ pub fn fraction(value: Float, options: Options) -> String
             5 => val.clone() * e.clone(),
             _ => break,
         };
-        if orig.clone().fract() < 1e-32
+        if ((i == 1 || i == 2) && orig.clone().fract() < 1e-32) || orig.clone().fract().is_zero()
         {
-            return if i == 0
+            return if i == 0 || ((i == 1 || i == 2) && orig < 1e-32)
             {
                 String::new()
             }
@@ -56,7 +56,7 @@ pub fn fraction(value: Float, options: Options) -> String
                     }
                     else
                     {
-                        orig.to_integer().unwrap().to_string()
+                        orig.to_integer().unwrap_or_default().to_string()
                     },
                     match i
                     {
@@ -69,28 +69,37 @@ pub fn fraction(value: Float, options: Options) -> String
             };
         }
         let mut number = orig.clone().fract();
-        let mut nums = Vec::new();
-        for _ in 0..32
+        let mut mult = Float::with_val(options.prec, 1);
+        let mut first: Float = Float::new(options.prec);
+        for n in 0..32
         {
             let mut recip = number.clone().recip();
             let fract = recip.clone().fract();
-            if fract < 1e-32
+            if fract > 1e-32
             {
-                let mut last = Float::with_val(options.prec, 1);
-                for j in (0..nums.len()).rev()
+                if n == 0
                 {
-                    last.clone_from(&recip);
-                    recip *= &nums[j];
+                    first.clone_from(&recip);
                 }
+                mult *= recip;
+                number = fract;
+            }
+            else
+            {
+                recip *= mult.clone();
+                let last = recip.clone() / if n == 0 { &recip } else { &first };
                 let recip = match recip.to_integer()
                 {
                     Some(n) => n,
                     None => return String::new(),
                 };
-                let last = (last + recip.clone() * orig.trunc()).to_integer().unwrap();
+                let last = (last + recip.clone() * orig.trunc())
+                    .to_integer()
+                    .unwrap_or_default();
                 return if (recip == 1 && i == 0)
                     || recip.to_string().len() > options.decimal_places
                     || last.to_string().len() > options.decimal_places
+                    || last == 0
                 {
                     String::new()
                 }
@@ -144,7 +153,6 @@ pub fn fraction(value: Float, options: Options) -> String
                         },
                         match i
                         {
-                            0 => String::new(),
                             3 => "π".to_string(),
                             4 => "e".to_string(),
                             5 => last.to_string(),
@@ -172,8 +180,6 @@ pub fn fraction(value: Float, options: Options) -> String
                     )
                 };
             }
-            nums.push(recip);
-            number = fract;
         }
     }
     String::new()

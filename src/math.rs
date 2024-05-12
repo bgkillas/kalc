@@ -4020,8 +4020,8 @@ fn functions(
                         }
                         else
                         {
-                            let a = a.real().to_integer().unwrap();
-                            let b = b.real().to_integer().unwrap();
+                            let a = a.real().to_integer().unwrap_or_default();
+                            let b = b.real().to_integer().unwrap_or_default();
                             Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
                         }
                     }
@@ -4043,8 +4043,8 @@ fn functions(
                             Complex::with_val(
                                 options.prec,
                                 gcd(
-                                    a.real().to_integer().unwrap(),
-                                    b.real().to_integer().unwrap(),
+                                    a.real().to_integer().unwrap_or_default(),
+                                    b.real().to_integer().unwrap_or_default(),
                                 ),
                             )
                         }
@@ -4060,8 +4060,11 @@ fn functions(
                     {
                         Complex::with_val(
                             options.prec,
-                            (a.real().to_integer().unwrap().is_probably_prime(100) != IsPrime::No)
-                                as u8,
+                            (a.real()
+                                .to_integer()
+                                .unwrap_or_default()
+                                .is_probably_prime(100)
+                                != IsPrime::No) as u8,
                         )
                     }
                     else

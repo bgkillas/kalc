@@ -1745,7 +1745,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
                 .unwrap()
                 .complete(num.prec())
                 + 1;
-            l = t.to_integer().unwrap().to_string();
+            l = t.to_integer().unwrap_or_default().to_string();
             d = Integer::new();
         }
         else

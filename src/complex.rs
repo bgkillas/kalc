@@ -2485,7 +2485,7 @@ pub fn binomial(a: Complex, b: Complex) -> Complex
     {
         Complex::with_val(
             a.prec(),
-            a.real().to_integer().unwrap().binomial(
+            a.real().to_integer().unwrap_or_default().binomial(
                 b.real()
                     .to_integer()
                     .unwrap_or_default()

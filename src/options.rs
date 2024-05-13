@@ -286,11 +286,11 @@ pub fn set_commands(
             }
         }
         "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "surface" | "rt"
-        | "siunits" | "line" | "lines" | "polar" | "frac" | "fractions" | "multi" | "tabbed"
-        | "comma" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks"
-        | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
-        | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
-        | "vzr" | "2d" | "3d" =>
+        | "siunits" | "line" | "lines" | "polar" | "frac" | "fractions" | "fractionsv"
+        | "fractionsm" | "multi" | "tabbed" | "comma" | "units" | "scalegraph" | "debug"
+        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
+        | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr"
+        | "vrange" | "vxr" | "vyr" | "vzr" | "2d" | "3d" =>
         {
             let mut args: Vec<Float> = Vec::new();
             {
@@ -358,7 +358,9 @@ pub fn set_commands(
                 "siunits" => options.si_units = args[0] != 0.0,
                 "line" | "lines" => options.lines = args[0] != 0.0,
                 "polar" => options.polar = args[0] != 0.0,
-                "frac" | "fractions" => options.frac = args[0] != 0.0,
+                "frac" | "fractions" => options.frac.num = args[0] != 0.0,
+                "fractionsv" => options.frac.vec = args[0] != 0.0,
+                "fractionsm" => options.frac.mat = args[0] != 0.0,
                 "multi" => options.multi = args[0] != 0.0,
                 "tabbed" => options.tabbed = args[0] != 0.0,
                 "comma" => options.comma = args[0] != 0.0,
@@ -862,7 +864,9 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "siunits" => options.si_units = !options.si_units,
         "line" | "lines" => options.lines = !options.lines,
         "polar" => options.polar = !options.polar,
-        "frac" | "fractions" => options.frac = !options.frac,
+        "frac" | "fractions" => options.frac.num = !options.frac.num,
+        "fractionsv" => options.frac.vec = !options.frac.vec,
+        "fractionsm" => options.frac.mat = !options.frac.mat,
         "multi" => options.multi = !options.multi,
         "tabbed" => options.tabbed = !options.tabbed,
         "comma" => options.comma = !options.comma,
@@ -973,7 +977,19 @@ pub fn commands(
         {
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
-            options.frac = !options.frac;
+            options.frac.num = !options.frac.num;
+        }
+        "fractionsv" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.frac.vec = !options.frac.vec;
+        }
+        "fractionsm" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.frac.mat = !options.frac.mat;
         }
         "multi" =>
         {
@@ -1178,7 +1194,9 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "scalegraph" => format!("{}", options.scale_graph),
         "line" => format!("{}", options.lines),
         "polar" => format!("{}", options.polar),
-        "frac" | "fractions" => format!("{}", options.frac),
+        "frac" | "fractions" => format!("{}", options.frac.num),
+        "fractionsv" => format!("{}", options.frac.vec),
+        "fractionsm" => format!("{}", options.frac.mat),
         "multi" => format!("{}", options.multi),
         "tabbed" => format!("{}", options.tabbed),
         "comma" => format!("{}", options.comma),

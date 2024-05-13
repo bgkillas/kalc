@@ -143,6 +143,13 @@ pub struct HowGraphing
     y: bool,
 }
 #[derive(Copy, Clone, PartialEq)]
+pub struct Fractions
+{
+    num: bool,
+    vec: bool,
+    mat: bool,
+}
+#[derive(Copy, Clone, PartialEq)]
 pub enum Notation
 {
     Normal,
@@ -168,7 +175,7 @@ pub struct Options
     ticks: (f64, f64, f64),
     onaxis: bool,
     polar: bool,
-    frac: bool,
+    frac: Fractions,
     real_time_output: bool,
     decimal_places: usize,
     color: bool,
@@ -212,7 +219,11 @@ impl Default for Options
             ticks: (20.0, 20.0, 20.0),
             onaxis: true,
             polar: false,
-            frac: true,
+            frac: Fractions {
+                num: true,
+                vec: false,
+                mat: false,
+            },
             real_time_output: true,
             decimal_places: 12,
             color: true,

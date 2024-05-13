@@ -530,7 +530,7 @@ pub fn print_concurrent(
         Num(n) =>
         {
             let mut output = get_output(options, &colors, &n);
-            let (mut frac_a, frac_b) = if options.frac
+            let (mut frac_a, frac_b) = if options.frac.num
             {
                 let n = n.number;
                 let fa = fraction(n.real().clone(), options);
@@ -643,7 +643,7 @@ pub fn print_concurrent(
             }
             let len1 = no_col(&output.0, options.color).len();
             let len2 = no_col(&output.1, options.color).len();
-            if (frac == 1 && !options.frac)
+            if (frac == 1 && !options.frac.num)
                 || (frac_a.len() + frac_b.len()
                     - if options.color && !frac_b.is_empty()
                     {
@@ -786,11 +786,13 @@ pub fn print_concurrent(
             let mut frac_out = if options.polar { "[" } else { "{" }.to_string();
             let mut out;
             let mut frac_temp;
+            let (width, height) = get_terminal_dimensions();
+            frac = if options.frac.vec { 1 } else { 0 };
             for (k, i) in v.iter().enumerate()
             {
                 out = get_output(options, &colors, i);
                 let i = &i.number;
-                if options.frac
+                if frac == 1
                 {
                     frac_temp = fraction(i.real().clone(), options);
                     frac_out += if !frac_temp.is_empty()
@@ -838,6 +840,10 @@ pub fn print_concurrent(
                     {
                         out.clone().1
                     };
+                    if frac_out.len() > width
+                    {
+                        frac = 0
+                    }
                 }
                 output += &out.0;
                 output += &out.1;
@@ -862,13 +868,9 @@ pub fn print_concurrent(
                     frac_out += ",";
                 }
             }
-            let (width, height) = get_terminal_dimensions();
             let length = no_col(&output, options.color).len();
-            if frac_out != output
-            {
-                frac = 1;
-            }
-            if (frac == 1 && !options.frac)
+            frac = if frac_out != output { 1 } else { 0 };
+            if (frac == 1 && !options.frac.vec)
                 || no_col(&frac_out, options.color).len() > width
                 || length > width
             {
@@ -881,7 +883,7 @@ pub fn print_concurrent(
                     let num = (length - 1) / width;
                     print!(
                         "\x1b[G\n\x1b[J{}\x1b[G{}{}",
-                        if frac == 1 && options.frac
+                        if frac == 1 && options.frac.vec
                         {
                             format!("{}\x1b[G\n", frac_out)
                         }
@@ -944,6 +946,8 @@ pub fn print_concurrent(
             let mut out;
             let mut frac_temp;
             let mut num = 0;
+            let (width, height) = get_terminal_dimensions();
+            frac = if options.frac.mat { 1 } else { 0 };
             for (l, j) in v.iter().enumerate()
             {
                 if !options.multi
@@ -955,7 +959,7 @@ pub fn print_concurrent(
                 {
                     out = get_output(options, &colors, i);
                     let i = &i.number;
-                    if options.frac
+                    if frac == 1
                     {
                         frac_temp = fraction(i.real().clone(), options);
                         frac_out += if !frac_temp.is_empty()
@@ -1003,6 +1007,10 @@ pub fn print_concurrent(
                         {
                             out.clone().1
                         };
+                        if frac_out.len() > width
+                        {
+                            frac = 0
+                        }
                     }
                     output += &out.0;
                     output += &out.1;
@@ -1055,7 +1063,6 @@ pub fn print_concurrent(
                 output += "}";
                 frac_out += "}";
             }
-            let (width, height) = get_terminal_dimensions();
             let length = no_col(&output, options.color).len().saturating_sub(1);
             if frac_out != output
             {
@@ -1064,7 +1071,7 @@ pub fn print_concurrent(
             if !options.multi
             {
                 num += (length - 1) / width;
-                if (frac == 1 && !options.frac)
+                if (frac == 1 && !options.frac.mat)
                     || no_col(&frac_out, options.color).len() > width
                     || length > width
                 {
@@ -1109,7 +1116,7 @@ pub fn print_concurrent(
                 {
                     print!(
                         "\x1b[G\n\x1b[J{}\x1b[G{}{}",
-                        if frac == 1 && options.frac
+                        if frac == 1 && options.frac.mat
                         {
                             num *= 2;
                             if options.multi
@@ -1141,7 +1148,7 @@ pub fn print_concurrent(
             }
             else
             {
-                if !options.frac
+                if !options.frac.mat
                 {
                     frac = 0;
                 }

@@ -1,7 +1,7 @@
 // as per continued fraction expansion
-use crate::Options;
+use crate::{Colors, Options};
 use rug::{float::Constant::Pi, ops::Pow, Float, Integer};
-pub fn fraction(value: Float, options: Options) -> String
+pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
 {
     if value.clone().fract().is_zero() || !value.is_finite()
     {
@@ -39,10 +39,26 @@ pub fn fraction(value: Float, options: Options) -> String
             else if i == 1 || i == 2
             {
                 format!(
-                    "{}{}({})",
+                    "{}{}{}{}{}",
                     sign,
                     if i == 1 { "sqrt" } else { "cbrt" },
-                    orig.to_integer().unwrap()
+                    if options.color
+                    {
+                        colors.brackets[0].to_owned() + "(" + &colors.text
+                    }
+                    else
+                    {
+                        "(".to_string()
+                    },
+                    orig.to_integer().unwrap(),
+                    if options.color
+                    {
+                        colors.brackets[0].to_owned() + ")" + &colors.text
+                    }
+                    else
+                    {
+                        ")".to_string()
+                    },
                 )
             }
             else
@@ -106,23 +122,55 @@ pub fn fraction(value: Float, options: Options) -> String
                 else if i == 1 || i == 2
                 {
                     format!(
-                        "{sign}{}({}{}",
+                        "{sign}{}{}{}{}",
                         if i == 1 { "sqrt" } else { "cbrt" },
+                        if options.color
+                        {
+                            colors.brackets[0].to_owned() + "(" + &colors.text
+                        }
+                        else
+                        {
+                            "(".to_string()
+                        },
                         last,
                         if recip == 1
                         {
-                            ")".to_string()
+                            if options.color
+                            {
+                                colors.brackets[0].to_owned() + ")" + &colors.text
+                            }
+                            else
+                            {
+                                ")".to_string()
+                            }
                         }
                         else if i == 1
                         {
                             let (root, rem) = recip.clone().sqrt_rem(Integer::new());
                             if rem == 0
                             {
-                                ")/".to_owned() + &root.to_string()
+                                (if options.color
+                                {
+                                    colors.brackets[0].to_owned() + ")" + &colors.text
+                                }
+                                else
+                                {
+                                    ")".to_string()
+                                }) + "/"
+                                    + &root.to_string()
                             }
                             else
                             {
-                                "/".to_owned() + &recip.to_string() + ")"
+                                "/".to_owned()
+                                    + &recip.to_string()
+                                    + &(if options.color
+                                    {
+                                        colors.brackets[0].to_owned() + ")" + &colors.text
+                                    }
+                                    else
+                                    {
+                                        ")".to_string()
+                                    })
                             }
                         }
                         else
@@ -130,11 +178,28 @@ pub fn fraction(value: Float, options: Options) -> String
                             let (root, rem) = recip.clone().root_rem(Integer::new(), 3);
                             if rem == 0
                             {
-                                ")/".to_owned() + &root.to_string()
+                                (if options.color
+                                {
+                                    colors.brackets[0].to_owned() + ")" + &colors.text
+                                }
+                                else
+                                {
+                                    ")".to_string()
+                                }) + "/"
+                                    + &root.to_string()
                             }
                             else
                             {
-                                "/".to_owned() + &recip.to_string() + ")"
+                                "/".to_owned()
+                                    + &recip.to_string()
+                                    + &(if options.color
+                                    {
+                                        colors.brackets[0].to_owned() + ")" + &colors.text
+                                    }
+                                    else
+                                    {
+                                        ")".to_string()
+                                    })
                             }
                         }
                     )
@@ -164,9 +229,20 @@ pub fn fraction(value: Float, options: Options) -> String
                             {
                                 "/".to_owned() + "e"
                             }
+                            else if options.color
+                            {
+                                format!(
+                                    "/{}({}{}e{}){}",
+                                    colors.brackets[0],
+                                    colors.text,
+                                    recip,
+                                    colors.brackets[0],
+                                    colors.text
+                                )
+                            }
                             else
                             {
-                                "/".to_owned() + "(" + &recip.to_string() + "e" + ")"
+                                format!("/({}e)", recip)
                             }
                         }
                         else if recip == 1

@@ -411,25 +411,13 @@ pub fn print_concurrent(
             let out = out.replace('\n', "\x1b[G\n");
             if len > width * (height - 1)
             {
-                if long_output
-                {
-                    print!(
-                        "\x1b[G\n\x1b[J{}{}",
-                        out,
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    (wrap, input.2, false, false)
-                }
-                else
-                {
-                    print!(
-                        "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
-                        prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" },
-                    );
-                    (0, input.2, true, false)
-                }
+                print!(
+        "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
+        prompt(options, &colors),
+        to_output(&unmodified_input[start..end], options.color, &colors),
+        if options.color { "\x1b[0m" } else { "" },
+    );
+                (1, input.2, true, false)
             }
             else
             {
@@ -461,30 +449,18 @@ pub fn print_concurrent(
                 &inputs,
                 &last.iter().collect::<String>(),
             );
-            let (width, height) = get_terminal_dimensions();
+            let width = get_terminal_dimensions().0;
             let len = no_col(&out, options.color).len();
             let wrap = (len - 1) / width + 1;
-            if len > width * (height - 1)
+            if len > width
             {
-                if long_output
-                {
-                    print!(
-                        "\x1b[G\n\x1b[J{}{}",
-                        out,
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    (wrap, input.2, false, false)
-                }
-                else
-                {
-                    print!(
-                        "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
+                print!(
+                        "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
                         prompt(options, &colors),
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" },
                     );
-                    (0, input.2, true, false)
-                }
+                (1, input.2, true, false)
             }
             else
             {
@@ -533,8 +509,8 @@ pub fn print_concurrent(
             let (mut frac_a, frac_b) = if options.frac.num
             {
                 let n = n.number;
-                let fa = fraction(n.real().clone(), options);
-                let fb = fraction(n.imag().clone(), options);
+                let fa = fraction(n.real().clone(), options, &colors);
+                let fb = fraction(n.imag().clone(), options, &colors);
                 let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
                 {
                     "+"
@@ -794,7 +770,7 @@ pub fn print_concurrent(
                 let i = &i.number;
                 if frac == 1
                 {
-                    frac_temp = fraction(i.real().clone(), options);
+                    frac_temp = fraction(i.real().clone(), options, &colors);
                     frac_out += if !frac_temp.is_empty()
                     {
                         &frac_temp
@@ -803,7 +779,7 @@ pub fn print_concurrent(
                     {
                         &out.0
                     };
-                    frac_temp = fraction(i.imag().clone(), options);
+                    frac_temp = fraction(i.imag().clone(), options, &colors);
                     frac_out += &if !frac_temp.is_empty()
                     {
                         format!(
@@ -961,7 +937,7 @@ pub fn print_concurrent(
                     let i = &i.number;
                     if frac == 1
                     {
-                        frac_temp = fraction(i.real().clone(), options);
+                        frac_temp = fraction(i.real().clone(), options, &colors);
                         frac_out += if !frac_temp.is_empty()
                         {
                             &frac_temp
@@ -970,7 +946,7 @@ pub fn print_concurrent(
                         {
                             &out.0
                         };
-                        frac_temp = fraction(i.imag().clone(), options);
+                        frac_temp = fraction(i.imag().clone(), options, &colors);
                         frac_out += &if !frac_temp.is_empty()
                         {
                             format!(

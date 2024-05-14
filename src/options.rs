@@ -192,8 +192,8 @@ pub fn set_commands(
         {
             options.graphtype = match r
             {
-                "normal" => GraphType::Normal,
-                "null" | "none" => GraphType::None,
+                "normal" | "true" => GraphType::Normal,
+                "null" | "none" | "false" => GraphType::None,
                 "depth" => GraphType::Depth,
                 "flat" => GraphType::Flat,
                 _ => return Err("bad graph type"),

@@ -189,8 +189,7 @@ pub fn print_concurrent(
             let mut func = unparsed[..n - 1].to_vec();
             return if matches!(
                 func.iter().collect::<String>().as_str(),
-                "angle"
-                    | "re1col"
+                "re1col"
                     | "im1col"
                     | "re2col"
                     | "im2col"
@@ -202,8 +201,10 @@ pub fn print_concurrent(
                     | "im5col"
                     | "re6col"
                     | "im6col"
+                    | "angle"
                     | "notation"
                     | "graph"
+                    | "saveto"
                     | "textc"
                     | "promptc"
                     | "imagc"
@@ -211,6 +212,8 @@ pub fn print_concurrent(
                     | "unitsc"
                     | "bracketc"
                     | "label"
+                    | "point"
+                    | "points"
             )
             {
                 print!(

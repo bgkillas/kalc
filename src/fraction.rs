@@ -137,56 +137,66 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     {
                         ")".to_string()
                     };
-                    let ((num_root, num_rem), (den_root, den_rem)) = if i == 1
+                    if recip == 1
                     {
-                        (
-                            last.clone().sqrt_rem(Integer::new()),
-                            recip.clone().sqrt_rem(Integer::new()),
-                        )
+                        (if i == 1 { "sqrt" } else { "cbrt" }).to_owned()
+                            + &lb
+                            + &last.to_string()
+                            + &rb
                     }
                     else
                     {
-                        (
-                            last.clone().root_rem(Integer::new(), 3),
-                            recip.clone().root_rem(Integer::new(), 3),
-                        )
-                    };
-                    match (num_rem == 0, den_rem == 0)
-                    {
-                        (false, false) =>
+                        let ((num_root, num_rem), (den_root, den_rem)) = if i == 1
                         {
-                            format!(
-                                "{sign}{}{}{}/{}{}",
-                                if i == 1 { "sqrt" } else { "cbrt" },
-                                lb,
-                                last,
-                                recip,
-                                rb
+                            (
+                                last.clone().sqrt_rem(Integer::new()),
+                                recip.clone().sqrt_rem(Integer::new()),
                             )
                         }
-                        (false, true) =>
+                        else
                         {
-                            format!(
-                                "{sign}{}{}{}{}/{}",
-                                if i == 1 { "sqrt" } else { "cbrt" },
-                                lb,
-                                last,
-                                rb,
-                                den_root
+                            (
+                                last.clone().root_rem(Integer::new(), 3),
+                                recip.clone().root_rem(Integer::new(), 3),
                             )
-                        }
-                        (true, false) =>
+                        };
+                        match (num_rem == 0, den_rem == 0)
                         {
-                            format!(
-                                "{sign}{}/{}{}{}{}",
-                                num_root,
-                                if i == 1 { "sqrt" } else { "cbrt" },
-                                lb,
-                                recip,
-                                rb
-                            )
+                            (false, false) =>
+                            {
+                                format!(
+                                    "{sign}{}{}{}/{}{}",
+                                    if i == 1 { "sqrt" } else { "cbrt" },
+                                    lb,
+                                    last,
+                                    recip,
+                                    rb
+                                )
+                            }
+                            (false, true) =>
+                            {
+                                format!(
+                                    "{sign}{}{}{}{}/{}",
+                                    if i == 1 { "sqrt" } else { "cbrt" },
+                                    lb,
+                                    last,
+                                    rb,
+                                    den_root
+                                )
+                            }
+                            (true, false) =>
+                            {
+                                format!(
+                                    "{sign}{}/{}{}{}{}",
+                                    num_root,
+                                    if i == 1 { "sqrt" } else { "cbrt" },
+                                    lb,
+                                    recip,
+                                    rb
+                                )
+                            }
+                            _ => String::new(),
                         }
-                        _ => String::new(),
                     }
                 }
                 else

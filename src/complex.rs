@@ -1412,11 +1412,15 @@ pub fn inverse(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 }
 pub fn nth_prime(n: Integer) -> Integer
 {
-    let mut count = Integer::new();
-    let mut num = Integer::from(2);
+    let mut count = Integer::from(1);
+    let mut num = Integer::from(3);
     if n == 0
     {
         num = Integer::new()
+    }
+    else if n == 1
+    {
+        num = Integer::from(2);
     }
     while count < n
     {
@@ -1426,7 +1430,7 @@ pub fn nth_prime(n: Integer) -> Integer
         }
         if count < n
         {
-            num += 1;
+            num += 2;
         }
     }
     num

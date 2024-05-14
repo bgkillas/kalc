@@ -58,7 +58,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     else
                     {
                         ")".to_string()
-                    },
+                    }
                 )
             }
             else
@@ -121,88 +121,73 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                 }
                 else if i == 1 || i == 2
                 {
-                    format!(
-                        "{sign}{}{}{}{}",
-                        if i == 1 { "sqrt" } else { "cbrt" },
-                        if options.color
+                    let lb = if options.color
+                    {
+                        colors.brackets[0].to_owned() + "(" + &colors.text
+                    }
+                    else
+                    {
+                        "(".to_string()
+                    };
+                    let rb = if options.color
+                    {
+                        colors.brackets[0].to_owned() + ")" + &colors.text
+                    }
+                    else
+                    {
+                        ")".to_string()
+                    };
+                    let ((num_root, num_rem), (den_root, den_rem)) = if i == 1
+                    {
+                        (
+                            last.clone().sqrt_rem(Integer::new()),
+                            recip.clone().sqrt_rem(Integer::new()),
+                        )
+                    }
+                    else
+                    {
+                        (
+                            last.clone().root_rem(Integer::new(), 3),
+                            recip.clone().root_rem(Integer::new(), 3),
+                        )
+                    };
+                    match (num_rem == 0, den_rem == 0)
+                    {
+                        (false, false) =>
                         {
-                            colors.brackets[0].to_owned() + "(" + &colors.text
+                            format!(
+                                "{sign}{}{}{}/{}{}",
+                                if i == 1 { "sqrt" } else { "cbrt" },
+                                lb,
+                                last,
+                                recip,
+                                rb
+                            )
                         }
-                        else
+                        (false, true) =>
                         {
-                            "(".to_string()
-                        },
-                        last,
-                        if recip == 1
-                        {
-                            if options.color
-                            {
-                                colors.brackets[0].to_owned() + ")" + &colors.text
-                            }
-                            else
-                            {
-                                ")".to_string()
-                            }
+                            format!(
+                                "{sign}{}{}{}{}/{}",
+                                if i == 1 { "sqrt" } else { "cbrt" },
+                                lb,
+                                last,
+                                rb,
+                                den_root
+                            )
                         }
-                        else if i == 1
+                        (true, false) =>
                         {
-                            let (root, rem) = recip.clone().sqrt_rem(Integer::new());
-                            if rem == 0
-                            {
-                                (if options.color
-                                {
-                                    colors.brackets[0].to_owned() + ")" + &colors.text
-                                }
-                                else
-                                {
-                                    ")".to_string()
-                                }) + "/"
-                                    + &root.to_string()
-                            }
-                            else
-                            {
-                                "/".to_owned()
-                                    + &recip.to_string()
-                                    + &(if options.color
-                                    {
-                                        colors.brackets[0].to_owned() + ")" + &colors.text
-                                    }
-                                    else
-                                    {
-                                        ")".to_string()
-                                    })
-                            }
+                            format!(
+                                "{sign}{}/{}{}{}{}",
+                                num_root,
+                                if i == 1 { "sqrt" } else { "cbrt" },
+                                lb,
+                                recip,
+                                rb
+                            )
                         }
-                        else
-                        {
-                            let (root, rem) = recip.clone().root_rem(Integer::new(), 3);
-                            if rem == 0
-                            {
-                                (if options.color
-                                {
-                                    colors.brackets[0].to_owned() + ")" + &colors.text
-                                }
-                                else
-                                {
-                                    ")".to_string()
-                                }) + "/"
-                                    + &root.to_string()
-                            }
-                            else
-                            {
-                                "/".to_owned()
-                                    + &recip.to_string()
-                                    + &(if options.color
-                                    {
-                                        colors.brackets[0].to_owned() + ")" + &colors.text
-                                    }
-                                    else
-                                    {
-                                        ")".to_string()
-                                    })
-                            }
-                        }
-                    )
+                        _ => String::new(),
+                    }
                 }
                 else
                 {

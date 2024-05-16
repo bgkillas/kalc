@@ -1142,6 +1142,7 @@ pub fn input_var(
                 | "slope"
                 | "sum"
                 | "iter"
+                | "extrema"
                 | "summation"
                 | "prod"
                 | "production"

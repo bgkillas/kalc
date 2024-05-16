@@ -1,11 +1,11 @@
 use crate::{
     complex::{
         about_eq, add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div,
-        eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint, gamma,
-        gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter, lambertw, length,
-        limit, minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion, rem, root, shl, shr,
-        slog, slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area, tetration, to,
-        to_polar, trace, transpose, unity, variance, zeta,
+        eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
+        extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
+        lambertw, length, limit, minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion,
+        rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum,
+        surface_area, tetration, to, to_polar, trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -289,6 +289,7 @@ pub fn do_math(
                                     | "length"
                                     | "slope"
                                     | "iter"
+                                    | "extrema"
                                     | "summation"
                                     | "prod"
                                     | "product"
@@ -376,6 +377,7 @@ pub fn do_math(
                         | "length"
                         | "slope"
                         | "iter"
+                        | "extrema"
                         | "product"
                         | "prod"
                         | "summation"
@@ -455,6 +457,29 @@ pub fn do_math(
                                 .to_usize()
                                 .unwrap_or_default(),
                                 place.len() == 5,
+                            )?;
+                            function.drain(i + 1..=*place.last().unwrap());
+                        }
+                        ("extrema", Str(var)) if place.len() == 2 || place.len() == 3 =>
+                        {
+                            function[i] = extrema(
+                                function[place[0] + 1..place[1]].to_vec(),
+                                func_vars.clone(),
+                                options,
+                                var.to_string(),
+                                if place.len() == 3
+                                {
+                                    do_math(
+                                        function[place[1] + 1..place[2]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                }
+                                else
+                                {
+                                    Number::from(Complex::new(options.prec), None)
+                                },
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }

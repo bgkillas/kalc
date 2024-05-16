@@ -113,6 +113,7 @@ Functions:\x1b[G\n\
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
 - area(x,f(x),from,to (,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)\x1b[G\n\
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\
+- extrema(x,f(x) (,point)) employs newtons method to find the extrema of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails, outputs {{x,y,positive/negitive concavity}}\x1b[G\n\
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add \",1\" to args to show steps\x1b[G\n\n\
 Vector operations/functions:\x1b[G\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\x1b[G\n\

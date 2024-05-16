@@ -3466,6 +3466,7 @@ pub fn solve(
                 1,
                 true,
                 Some(y),
+                None,
             )?
             .num()?
             .number
@@ -3490,12 +3491,169 @@ pub fn solve(
             1,
             true,
             Some(y),
+            None,
         )?
         .num()?
         .number;
     if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16
     {
         Ok(Num(Number::from(x, units)))
+    }
+    else
+    {
+        Ok(Num(Number::from(
+            Complex::with_val(options.prec, Nan),
+            None,
+        )))
+    }
+}
+pub fn extrema(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut options: Options,
+    var: String,
+    x: Number,
+) -> Result<NumStr, &'static str>
+{
+    //newtons method, x-f(x)/f'(x)
+    let units = x.units;
+    let mut x = x.number;
+    let op = options.prec;
+    options.prec = options.prec.clamp(256, 1024);
+    x.set_prec(options.prec);
+    for _ in 0..op / 4
+    {
+        let n = Number::from(x.clone(), None);
+        let y = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var.clone(),
+            Num(n.clone()),
+        )?;
+        let yh = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var.clone(),
+            Num(Number::from(
+                x.clone() + Complex::with_val(options.prec, 0.5).pow(options.prec / 8),
+                None,
+            )),
+        )?
+        .num()?
+        .number;
+        x -= slopesided(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            n.clone(),
+            false,
+            1,
+            true,
+            Some(y.clone()),
+            Some(yh.clone()),
+        )?
+        .num()?
+        .number
+            / slopesided(
+                func.clone(),
+                func_vars.clone(),
+                options,
+                var.clone(),
+                n,
+                false,
+                2,
+                true,
+                Some(y),
+                Some(yh),
+            )?
+            .num()?
+            .number
+    }
+    let last = x.clone();
+    let n = Number::from(x.clone(), None);
+    let y = do_math_with_var(
+        func.clone(),
+        options,
+        func_vars.clone(),
+        &var.clone(),
+        Num(n.clone()),
+    )?;
+    let yh = do_math_with_var(
+        func.clone(),
+        options,
+        func_vars.clone(),
+        &var.clone(),
+        Num(Number::from(
+            x.clone() + Complex::with_val(options.prec, 0.5).pow(options.prec / 8),
+            None,
+        )),
+    )?
+    .num()?
+    .number;
+    let k = slopesided(
+        func.clone(),
+        func_vars.clone(),
+        options,
+        var.clone(),
+        n.clone(),
+        false,
+        2,
+        true,
+        Some(y.clone()),
+        Some(yh.clone()),
+    )?
+    .num()?
+    .number;
+    x -= slopesided(
+        func.clone(),
+        func_vars.clone(),
+        options,
+        var.clone(),
+        n,
+        false,
+        1,
+        true,
+        Some(y),
+        Some(yh),
+    )?
+    .num()?
+    .number
+        / k.clone();
+    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16
+    {
+        let n = Number::from(x, units);
+        Ok(Vector(vec![
+            n.clone(),
+            do_math_with_var(
+                func.clone(),
+                options,
+                func_vars.clone(),
+                &var.clone(),
+                Num(n.clone()),
+            )?
+            .num()?,
+            Number::from(
+                Complex::with_val(
+                    options.prec,
+                    if k.clone().abs().real().clone().log2() < op as i32 / -16
+                    {
+                        0
+                    }
+                    else if k.real().is_sign_positive()
+                    {
+                        1
+                    }
+                    else
+                    {
+                        -1
+                    },
+                ),
+                None,
+            ),
+        ]))
     }
     else
     {
@@ -3521,7 +3679,7 @@ pub fn slope(
         options.prec = 256;
         point.number.set_prec(options.prec);
         Ok(slopesided(
-            func, func_vars, options, var, point, combine, nth, true, None,
+            func, func_vars, options, var, point, combine, nth, true, None, None,
         )?)
     }
     else
@@ -3538,9 +3696,10 @@ pub fn slope(
             nth,
             false,
             None,
+            None,
         )?;
         let right = slopesided(
-            func, func_vars, options, var, point, combine, nth, true, None,
+            func, func_vars, options, var, point, combine, nth, true, None, None,
         )?;
         match (left, right)
         {
@@ -3631,6 +3790,7 @@ pub fn slopesided(
     nth: u32,
     right: bool,
     val: Option<NumStr>,
+    val2: Option<Complex>,
 ) -> Result<NumStr, &'static str>
 {
     let units = point.units;
@@ -3672,9 +3832,21 @@ pub fn slopesided(
             {
                 sum *= -1;
             }
+            let bo = val2.is_some();
             for k in 0..nth
             {
-                if k % 2 == 0
+                if bo && nth - k == 1
+                {
+                    if k % 2 == 0
+                    {
+                        sum += num.clone().binomial(k) * val2.clone().unwrap()
+                    }
+                    else
+                    {
+                        sum -= num.clone().binomial(k) * val2.clone().unwrap()
+                    }
+                }
+                else if k % 2 == 0
                 {
                     sum += num.clone().binomial(k)
                         * do_math_with_var(

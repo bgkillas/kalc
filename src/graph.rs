@@ -2053,6 +2053,23 @@ fn get_data(
                 }
                 Matrix(m) =>
                 {
+                    if !m.iter().all(|a| a.len() == m[0].len())
+                    {
+                        print!(
+                            "\x1b[G\x1b[Kbad matrix data in {}\x1b[G\n{}",
+                            input,
+                            prompt(func.2, &colors)
+                        );
+                        stdout().flush().unwrap();
+                        return (
+                            (false, false),
+                            (false, false),
+                            false,
+                            true,
+                            Default::default(),
+                            Default::default(),
+                        );
+                    }
                     lines = true;
                     match m[0].len()
                     {

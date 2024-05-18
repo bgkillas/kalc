@@ -3,7 +3,6 @@ use crate::{Colors, Options};
 use rug::{float::Constant::Pi, ops::Pow, Float, Integer};
 pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
 {
-    //TODO prec
     if value.clone().fract().is_zero() || !value.is_finite() || options.prec < 128
     {
         return String::new();

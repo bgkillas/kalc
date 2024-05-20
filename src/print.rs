@@ -829,27 +829,39 @@ pub fn print_concurrent(
                 if let Some(st) = out.2
                 {
                     output += &st;
-                    frac_out += &st;
+                    if frac == 1
+                    {
+                        frac_out += &st;
+                    }
                 }
                 if options.color
                 {
                     output += "\x1b[0m";
-                    frac_out += "\x1b[0m";
+                    if frac == 1
+                    {
+                        frac_out += "\x1b[0m";
+                    }
                 }
                 if k == v.len().saturating_sub(1)
                 {
                     output += if options.polar { "]" } else { "}" };
-                    frac_out += if options.polar { "]" } else { "}" };
+                    if frac == 1
+                    {
+                        frac_out += if options.polar { "]" } else { "}" };
+                    }
                 }
                 else
                 {
                     output += ",";
-                    frac_out += ",";
+                    if frac == 1
+                    {
+                        frac_out += ",";
+                    }
                 }
             }
             let length = no_col(&output, options.color).len();
-            frac = if frac_out != output { 1 } else { 0 };
-            if (frac == 1 && !options.frac.vec)
+            if frac_out == output
+                || !options.frac.vec
                 || no_col(&frac_out, options.color).len() > width
                 || length > width
             {
@@ -932,7 +944,10 @@ pub fn print_concurrent(
                 if !options.multi
                 {
                     output += "{";
-                    frac_out += "{";
+                    if frac == 1
+                    {
+                        frac_out += "{";
+                    }
                 }
                 for (k, i) in j.iter().enumerate()
                 {
@@ -996,30 +1011,45 @@ pub fn print_concurrent(
                     if let Some(st) = out.2
                     {
                         output += &st;
-                        frac_out += &st;
+                        if frac == 1
+                        {
+                            frac_out += &st;
+                        }
                     }
                     if options.color
                     {
                         output += "\x1b[0m";
-                        frac_out += "\x1b[0m";
+                        if frac == 1
+                        {
+                            frac_out += "\x1b[0m";
+                        }
                     }
                     if k == j.len().saturating_sub(1)
                     {
                         if !options.multi
                         {
                             output += "}";
-                            frac_out += "}";
+                            if frac == 1
+                            {
+                                frac_out += "}";
+                            }
                         }
                     }
                     else if options.tabbed
                     {
                         output += "\t";
-                        frac_out += "\t";
+                        if frac == 1
+                        {
+                            frac_out += "\t";
+                        }
                     }
                     else
                     {
                         output += ",";
-                        frac_out += ",";
+                        if frac == 1
+                        {
+                            frac_out += ",";
+                        }
                     }
                 }
                 if l != v.len().saturating_sub(1)
@@ -1028,29 +1058,38 @@ pub fn print_concurrent(
                     {
                         num += 1;
                         output += "\x1b[K\x1b[G\n";
-                        frac_out += "\x1b[K\x1b[G\n";
+                        if frac == 1
+                        {
+                            frac_out += "\x1b[K\x1b[G\n";
+                        }
                     }
                     else
                     {
                         output += ",";
-                        frac_out += ",";
+                        if frac == 1
+                        {
+                            frac_out += ",";
+                        }
                     }
                 }
             }
             if !options.multi
             {
                 output += "}";
-                frac_out += "}";
+                if frac == 1
+                {
+                    frac_out += "}";
+                }
             }
             let length = no_col(&output, options.color).len().saturating_sub(1);
-            if frac_out != output
+            if frac_out == output && frac == 1
             {
-                frac = 1;
+                frac = 0;
             }
             if !options.multi
             {
                 num += (length - 1) / width;
-                if (frac == 1 && !options.frac.mat)
+                if !options.frac.mat
                     || no_col(&frac_out, options.color).len() > width
                     || length > width
                 {

@@ -87,7 +87,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
         let mut number = orig.clone().fract();
         let mut mult = Float::with_val(options.prec, 1);
         let mut first: Float = Float::new(options.prec);
-        for n in 0..32
+        for n in 0..64
         {
             let mut recip = number.clone().recip();
             let fract = recip.clone().fract();

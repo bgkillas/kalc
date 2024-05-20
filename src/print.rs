@@ -1759,7 +1759,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     }
     if radix == 10
         && d.to_string().trim_end_matches('0') == "1"
-        && d.to_string().len() > decimals
+        && d.to_string().len() + zeros.len() > decimals
         && r.trim_start_matches('0')
             .trim_start_matches('.')
             .starts_with('9')

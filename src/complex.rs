@@ -3480,22 +3480,22 @@ pub fn solve(
         &var.clone(),
         Num(n.clone()),
     )?;
-    x -= y.num()?.number
-        / slopesided(
-            func.clone(),
-            func_vars.clone(),
-            options,
-            var.clone(),
-            n,
-            false,
-            1,
-            true,
-            Some(y),
-            None,
-        )?
-        .num()?
-        .number;
-    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16
+    let k = slopesided(
+        func.clone(),
+        func_vars.clone(),
+        options,
+        var.clone(),
+        n,
+        false,
+        1,
+        true,
+        Some(y.clone()),
+        None,
+    )?
+    .num()?
+    .number;
+    x -= y.num()?.number / k.clone();
+    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16 && k.real().is_finite()
     {
         Ok(Num(Number::from(x, units)))
     }
@@ -3515,7 +3515,7 @@ pub fn extrema(
     x: Number,
 ) -> Result<NumStr, &'static str>
 {
-    //newtons method, x-f(x)/f'(x)
+    //newtons method, x-f'(x)/f''(x)
     let units = x.units;
     let mut x = x.number;
     let op = options.prec;
@@ -3622,7 +3622,7 @@ pub fn extrema(
     .num()?
     .number
         / k.clone();
-    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16
+    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16 && k.real().is_finite()
     {
         let n = Number::from(x, units);
         Ok(Vector(vec![
@@ -3876,11 +3876,7 @@ pub fn slopesided(
             if right || nth % 2 == 0
             {
                 Ok(Num(Number::from(
-                    get_infinities(
-                        sum * Float::with_val(options.prec, 2).pow(nth * prec),
-                        prec,
-                        options.prec,
-                    ),
+                    sum * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
                         (Some(a), Some(b)) => Some(a.div(&b)),
@@ -3893,11 +3889,7 @@ pub fn slopesided(
             else
             {
                 Ok(Num(Number::from(
-                    -get_infinities(
-                        sum * Float::with_val(options.prec, 2).pow(nth * prec),
-                        prec,
-                        options.prec,
-                    ),
+                    -sum * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
                         (Some(a), Some(b)) => Some(a.div(&b)),
@@ -3950,21 +3942,11 @@ pub fn slopesided(
                         Number::from(
                             if right || nth % 2 == 0
                             {
-                                get_infinities(
-                                    n.number.clone()
-                                        * Float::with_val(options.prec, 2).pow(nth * prec),
-                                    prec,
-                                    options.prec,
-                                )
+                                n.number.clone() * Float::with_val(options.prec, 2).pow(nth * prec)
                             }
                             else
                             {
-                                -get_infinities(
-                                    n.number.clone()
-                                        * Float::with_val(options.prec, 2).pow(nth * prec),
-                                    prec,
-                                    options.prec,
-                                )
+                                -n.number.clone() * Float::with_val(options.prec, 2).pow(nth * prec)
                             },
                             match (yunits, units)
                             {
@@ -4017,11 +3999,7 @@ pub fn slopesided(
             if right || nth % 2 == 0
             {
                 Ok(Num(Number::from(
-                    get_infinities(
-                        sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
-                        prec,
-                        options.prec,
-                    ),
+                    sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
                         (Some(a), Some(b)) => Some(a.div(&b)),
@@ -4034,11 +4012,7 @@ pub fn slopesided(
             else
             {
                 Ok(Num(Number::from(
-                    -get_infinities(
-                        sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
-                        prec,
-                        options.prec,
-                    ),
+                    -sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
                         (Some(a), Some(b)) => Some(a.div(&b)),
@@ -4088,11 +4062,7 @@ pub fn slopesided(
             if sum.len() == 2
             {
                 Ok(Num(Number::from(
-                    get_infinities(
-                        sum[1].number.clone() / sum[0].number.clone(),
-                        prec,
-                        options.prec,
-                    ),
+                    sum[1].number.clone() / sum[0].number.clone(),
                     match (yunits, units)
                     {
                         (Some(a), Some(b)) => Some(a.div(&b)),
@@ -4110,7 +4080,7 @@ pub fn slopesided(
                         .iter()
                         .map(|n| {
                             Number::from(
-                                get_infinities(nf.clone() / n.number.clone(), prec, options.prec),
+                                nf.clone() / n.number.clone(),
                                 match (yunits, units)
                                 {
                                     (Some(a), Some(b)) => Some(a.div(&b)),
@@ -4125,51 +4095,6 @@ pub fn slopesided(
             }
         }
         _ => Err("not supported slope data"),
-    }
-}
-fn get_infinities(n: Complex, prec: u32, optionsprec: u32) -> Complex
-{
-    match (
-        n.real().clone().abs().log2() > prec as i32 / 2 - 1,
-        n.imag().clone().abs().log2() > prec as i32 / 2 - 1,
-    )
-    {
-        (true, true) => match (n.real().is_sign_positive(), n.imag().is_sign_positive())
-        {
-            (true, true) => Complex::with_val(optionsprec, (Infinity, Infinity)),
-            (true, false) => Complex::with_val(
-                optionsprec,
-                (Infinity, -Float::with_val(optionsprec, Infinity)),
-            ),
-            (false, true) => Complex::with_val(
-                optionsprec,
-                (-Float::with_val(optionsprec, Infinity), Infinity),
-            ),
-            (false, false) => -Complex::with_val(optionsprec, (Infinity, Infinity)),
-        },
-        (true, false) =>
-        {
-            if n.real().is_sign_positive()
-            {
-                Complex::with_val(optionsprec, (Infinity, n.imag()))
-            }
-            else
-            {
-                -Complex::with_val(optionsprec, (Infinity, -n.imag()))
-            }
-        }
-        (false, true) =>
-        {
-            if n.imag().is_sign_positive()
-            {
-                Complex::with_val(optionsprec, (n.real(), Infinity))
-            }
-            else
-            {
-                -Complex::with_val(optionsprec, (-n.real(), Infinity))
-            }
-        }
-        (false, false) => n,
     }
 }
 #[derive(Copy, Clone, PartialEq)]

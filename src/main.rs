@@ -690,13 +690,9 @@ fn main()
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                         }
-                        if !input.is_empty() && !input.starts_with(&['#'])
+                        if !input.is_empty() && !input.starts_with(&['#']) && frac != 0
                         {
-                            let num = frac + if !graphable.graph && !varcheck { 1 } else { 0 };
-                            if num != 0
-                            {
-                                print!("\x1b[{}B", num);
-                            }
+                            print!("\x1b[{}B", frac);
                         }
                         if c == '\x14' || c == '\x06'
                         {

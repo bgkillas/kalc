@@ -162,7 +162,8 @@ pub fn print_concurrent(
             };
         }
     }
-    let input = match input_var(
+    let mut var = false;
+    let mut input = match input_var(
         &insert_last(unparsed, last.iter().collect::<String>().as_str()),
         &vars,
         &mut Vec::new(),
@@ -187,7 +188,7 @@ pub fn print_concurrent(
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
             let mut inputs = unparsed[n..].iter().collect::<String>();
             let mut func = unparsed[..n - 1].to_vec();
-            return if matches!(
+            if matches!(
                 func.iter().collect::<String>().as_str(),
                 "re1col"
                     | "im1col"
@@ -223,13 +224,15 @@ pub fn print_concurrent(
                     to_output(&unmodified_input[start..end], options.color, &colors),
                     if options.color { "\x1b[0m" } else { "" }
                 );
-                (1, input.2, false, true)
+                return (1, input.2, false, true);
             }
             else
             {
                 let mut func_vars: Vec<(isize, String)> = Vec::new();
+                let mut def = false;
                 if func.contains(&'(')
                 {
+                    def = true;
                     func.drain(0..=func.iter().position(|c| c == &'(').unwrap());
                     func.pop();
                     for i in func.split(|c| c == &',')
@@ -251,7 +254,7 @@ pub fn print_concurrent(
                         }
                     }
                 }
-                let out = match input_var(
+                let tinput = input_var(
                     &inputs,
                     &vars,
                     &mut func_vars,
@@ -261,59 +264,76 @@ pub fn print_concurrent(
                     0,
                     Vec::new(),
                     false,
-                )
+                );
+                if def
                 {
-                    Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
-                    _ => String::new(),
-                };
-                if out.is_empty()
-                {
-                    clear(unmodified_input, start, end, options, &colors);
-                    return (0, HowGraphing::default(), false, true);
-                }
-                let (width, height) = get_terminal_dimensions();
-                let len = no_col(&out, options.color).len();
-                let wrap = (len - 1) / width + 1;
-                if len > width * (height - 1)
-                {
-                    if long_output
+                    let out = match tinput
                     {
-                        print!(
-                            "\x1b[G\n\x1b[J{}{}",
-                            out,
-                            if options.color { "\x1b[0m" } else { "" }
-                        );
-                        (wrap, input.2, false, true)
+                        Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
+                        _ => String::new(),
+                    };
+                    if out.is_empty()
+                    {
+                        clear(unmodified_input, start, end, options, &colors);
+                        return (0, HowGraphing::default(), false, true);
                     }
-                    else
+                    let (width, height) = get_terminal_dimensions();
+                    let len = no_col(&out, options.color).len();
+                    let wrap = (len - 1) / width + 1;
+                    return if len > width * (height - 1)
                     {
-                        print!(
+                        if long_output
+                        {
+                            print!(
+                                "\x1b[G\n\x1b[J{}{}",
+                                out,
+                                if options.color { "\x1b[0m" } else { "" }
+                            );
+                            (wrap, input.2, false, true)
+                        }
+                        else
+                        {
+                            print!(
                             "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
                             prompt(options, &colors),
                             to_output(&unmodified_input[start..end], options.color, &colors),
                             if options.color { "\x1b[0m" } else { "" },
                         );
-                        (0, input.2, true, true)
+                            (0, input.2, true, true)
+                        }
                     }
+                    else
+                    {
+                        print!(
+                            "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
+                            out,
+                            if wrap == 0
+                            {
+                                String::new()
+                            }
+                            else
+                            {
+                                format!("\x1b[{}A", wrap)
+                            },
+                            prompt(options, &colors),
+                            to_output(&unmodified_input[start..end], options.color, &colors),
+                            if options.color { "\x1b[0m" } else { "" }
+                        );
+                        (wrap - 1, input.2, false, true)
+                    };
                 }
                 else
                 {
-                    print!(
-                        "\x1b[G\n\x1b[J{}{}\x1b[G\x1b[K{}{}{}",
-                        out,
-                        if wrap == 0
+                    var = true;
+                    input = match tinput
+                    {
+                        Ok(f) => f,
+                        Err(s) =>
                         {
-                            String::new()
+                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            return (0, HowGraphing::default(), false, false);
                         }
-                        else
-                        {
-                            format!("\x1b[{}A", wrap)
-                        },
-                        prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
-                    );
-                    (wrap, input.2, false, true)
+                    };
                 }
             };
         }
@@ -397,7 +417,7 @@ pub fn print_concurrent(
             out.pop();
             let width = get_terminal_dimensions().0;
             let no_col = no_col(&out, options.color);
-            let wrap = no_col
+            let wrap: usize = no_col
                 .split(|c| c == &'\n')
                 .map(|i| {
                     if i.is_empty()
@@ -1204,7 +1224,7 @@ pub fn print_concurrent(
         }
         _ => handle_err("str err", unmodified_input, options, &colors, start, end),
     }
-    (frac, HowGraphing::default(), long, false)
+    (frac, HowGraphing::default(), long, var)
 }
 pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
 {

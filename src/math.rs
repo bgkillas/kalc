@@ -860,38 +860,34 @@ pub fn do_math(
                         {
                             "lobf" | "lineofbestfit" =>
                             {
+                                if a.is_empty() || a.iter().any(|a| a.len() != 2)
+                                {
+                                    return Err("dimensions too high");
+                                }
+                                let mut xsum = Complex::new(options.prec);
+                                let mut ysum = Complex::new(options.prec);
+                                let mut xxsum = Complex::new(options.prec);
+                                let mut xysum = Complex::new(options.prec);
+                                for row in &a
+                                {
+                                    let x = row[0].number.clone();
+                                    let y = row[1].number.clone();
+                                    xsum += x.clone();
+                                    ysum += y.clone();
+                                    xxsum += x.clone().pow(2);
+                                    xysum += x * y;
+                                }
+                                let m: Complex = (a.len() * xysum - xsum.clone() * ysum.clone())
+                                    / (a.len() * xxsum - xsum.clone().pow(2));
+                                let b = (ysum - m.clone() * xsum) / a.len();
                                 if function.len() > i + 1
                                 {
-                                    if !a.is_empty() && a.iter().all(|a| a.len() == 2)
-                                    {
-                                        let mut xsum = Complex::new(options.prec);
-                                        let mut ysum = Complex::new(options.prec);
-                                        let mut xxsum = Complex::new(options.prec);
-                                        let mut xysum = Complex::new(options.prec);
-                                        for row in &a
-                                        {
-                                            let x = row[0].number.clone();
-                                            let y = row[1].number.clone();
-                                            xsum += x.clone();
-                                            ysum += y.clone();
-                                            xxsum += x.clone().pow(2);
-                                            xysum += x * y;
-                                        }
-                                        let m: Complex = (a.len() * xysum
-                                            - xsum.clone() * ysum.clone())
-                                            / (a.len() * xxsum - xsum.clone().pow(2));
-                                        let b = (ysum - m.clone() * xsum) / a.len();
-                                        let x = function.remove(i + 1).num()?.number;
-                                        Num(Number::from(m * x + b, a[0][1].units))
-                                    }
-                                    else
-                                    {
-                                        return Err("dimensions too high");
-                                    }
+                                    let x = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(m * x + b, a[0][1].units))
                                 }
                                 else
                                 {
-                                    return Err("no x value given");
+                                    Vector(vec![Number::from(m, None), Number::from(b, None)])
                                 }
                             }
                             "inter" | "interpolate" =>

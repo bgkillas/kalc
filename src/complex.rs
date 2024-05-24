@@ -165,8 +165,8 @@ impl NumStr
             ),
             (Vector(b), Num(a)) => Vector(
                 b.iter()
-                    .map(|b| add(a, b))
-                    .chain(b.iter().map(|b| sub(a, b)))
+                    .map(|b| add(b, a))
+                    .chain(b.iter().map(|b| sub(b, a)))
                     .collect(),
             ),
             (Vector(a), Vector(b)) if a.len() == b.len() => Vector(
@@ -176,12 +176,22 @@ impl NumStr
                     .chain(a.iter().zip(b.iter()).map(|(a, b)| sub(a, b)))
                     .collect(),
             ),
-            (Matrix(a), Num(b)) | (Num(b), Matrix(a)) => Vector(
+            (Matrix(a), Num(b)) => Vector(
                 a.iter()
                     .flat_map(|a| {
                         a.iter()
                             .map(|a| add(a, b))
                             .chain(a.iter().map(|a| sub(a, b)))
+                            .collect::<Vec<Number>>()
+                    })
+                    .collect::<Vec<Number>>(),
+            ),
+            (Num(b), Matrix(a)) => Vector(
+                a.iter()
+                    .flat_map(|a| {
+                        a.iter()
+                            .map(|a| add(b, a))
+                            .chain(a.iter().map(|a| sub(b, a)))
                             .collect::<Vec<Number>>()
                     })
                     .collect::<Vec<Number>>(),

@@ -870,7 +870,13 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             {
                 vec![
                     Number::from(Complex::new(a[0].number.prec()), None),
-                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
                 ]
             }
             else
@@ -918,8 +924,20 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
             {
                 vec![
                     Number::from(Complex::new(a[0].number.prec()), None),
-                    Number::from(Complex::new(a[0].number.prec()), None),
-                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
                 ]
             }
             else

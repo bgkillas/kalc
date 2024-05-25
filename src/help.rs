@@ -138,7 +138,8 @@ Matrix operations/functions:\x1b[G\n\
 - rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix\x1b[G\n\
 - sort(mat) sorts rows by first column\x1b[G\n\
 - interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
-- lineofbestfit/lobf(mat,x) line of best fit for a matrix organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
+- lineofbestfit/lobf(mat,x) line of best fit for numerous 2d values, with no x values it will spit out the m/b values for line equation in form of mx+b, mat should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
+- plane(mat,x,y) finds the plane that 3, 3d points lie on, with no x/y arg it will spit out the a/b/c values for the equation of plane in ax+by+c form, mat should be in form of {{{{x0,y0,z0}},{{x1,y1,z1}},{{x2,y2,z2}}}}\x1b[G\n\
 - other functions are applied like sqrt{{{{2,4}},{{5,6}}}}={{{{sqrt(2),sqrt(4)}},{{sqrt(5),sqrt(6)}}}}\x1b[G\n\n\
 Constants:\x1b[G\n\
 - c: speed of light, 299792458 m/s\x1b[G\n\

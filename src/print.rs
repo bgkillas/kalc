@@ -152,7 +152,7 @@ pub fn print_concurrent(
                         to_output(&unmodified_input[start..end], options.color, &colors),
                         if options.color { "\x1b[0m" } else { "" }
                     );
-                    (wrap - 1, HowGraphing::default(), false, false)
+                    (wrap, HowGraphing::default(), false, false)
                 }
             }
             else
@@ -319,7 +319,7 @@ pub fn print_concurrent(
                             to_output(&unmodified_input[start..end], options.color, &colors),
                             if options.color { "\x1b[0m" } else { "" }
                         );
-                        (wrap - 1, input.2, false, true)
+                        (wrap, input.2, false, true)
                     };
                 }
                 else
@@ -1224,7 +1224,7 @@ pub fn print_concurrent(
         }
         _ => handle_err("str err", unmodified_input, options, &colors, start, end),
     }
-    (frac, HowGraphing::default(), long, var)
+    (frac + 1, HowGraphing::default(), long, var)
 }
 pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
 {

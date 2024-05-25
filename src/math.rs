@@ -164,6 +164,7 @@ pub fn do_math(
                                     | "inter"
                                     | "interpolate"
                                     | "lobf"
+                                    | "plane"
                                     | "lineofbestfit"
                                     | "ψ"
                                     | "rotate"
@@ -858,6 +859,51 @@ pub fn do_math(
                     {
                         Matrix(a) => match s.as_str()
                         {
+                            "plane" =>
+                            {
+                                if a.len() != 3 || a.iter().any(|a| a.len() != 3)
+                                {
+                                    return Err("dimensions too high");
+                                }
+                                let x1 = &a[0][0].number;
+                                let y1 = &a[0][1].number;
+                                let z1 = &a[0][2].number;
+                                let x2 = &a[1][0].number;
+                                let y2 = &a[1][1].number;
+                                let z2 = &a[1][2].number;
+                                let x3 = &a[2][0].number;
+                                let y3 = &a[2][1].number;
+                                let z3 = &a[2][2].number;
+                                let t1 = z2 - z3.clone() * y2 / y3;
+                                let t2 = x2 - x3.clone() * y2 / y3;
+                                let t3 = t1 / t2.clone();
+                                let c1 = z1 - x1 * t3.clone() - y1.clone() / y3 * (z3 - x3 * t3);
+                                let c2 = 1 - x1 / t2.clone() + x1.clone() * y2 / y3 / t2.clone()
+                                    - y1.clone() / y3
+                                    + x3.clone() * y1 / y3 / t2.clone()
+                                    - x3.clone() * y1 * y2 / y3 / y3 / t2.clone();
+                                let c: Complex = c1 / c2;
+                                let b = (z3
+                                    - c.clone()
+                                    - x3 * (z2 - c.clone() - y2.clone() / y3 * (z3 - c.clone()))
+                                        / t2)
+                                    / y3;
+                                let a = (z2 - c.clone() - b.clone() * y2) / x2;
+                                if function.len() > i + 2
+                                {
+                                    let x = function.remove(i + 1).num()?.number;
+                                    let y = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(a * x + b * y + c, None))
+                                }
+                                else
+                                {
+                                    Vector(vec![
+                                        Number::from(a, None),
+                                        Number::from(b, None),
+                                        Number::from(c, None),
+                                    ])
+                                }
+                            }
                             "lobf" | "lineofbestfit" =>
                             {
                                 if a.is_empty() || a.iter().any(|a| a.len() != 2)

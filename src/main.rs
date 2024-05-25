@@ -135,6 +135,13 @@ pub enum AngleType
     Degrees,
     Gradians,
 }
+#[derive(Copy, Clone, PartialEq)]
+pub enum Auto
+{
+    True,
+    False,
+    Auto,
+}
 #[derive(Default, Copy, Clone, PartialEq)]
 pub struct HowGraphing
 {
@@ -178,7 +185,7 @@ pub struct Options
     frac: Fractions,
     real_time_output: bool,
     decimal_places: usize,
-    color: bool,
+    color: Auto,
     prompt: bool,
     comma: bool,
     prec: u32,
@@ -192,7 +199,7 @@ pub struct Options
     samples_2d: usize,
     samples_3d: (usize, usize),
     point_style: char,
-    lines: bool,
+    lines: Auto,
     multi: bool,
     tabbed: bool,
     allow_vars: bool,
@@ -226,7 +233,7 @@ impl Default for Options
             },
             real_time_output: true,
             decimal_places: 12,
-            color: true,
+            color: Auto::Auto,
             prompt: true,
             comma: false,
             prec: 512,
@@ -240,7 +247,7 @@ impl Default for Options
             samples_2d: 8192,
             samples_3d: (256, 256),
             point_style: '.',
-            lines: false,
+            lines: Auto::Auto,
             multi: true,
             tabbed: false,
             allow_vars: true,
@@ -310,11 +317,22 @@ fn main()
     let mut stdout = stdout();
     if options.interactive
     {
+        if options.color == Auto::Auto
+        {
+            options.color = Auto::True;
+        }
         terminal::enable_raw_mode().unwrap();
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color { "\x1b[0m" } else { "" }
+            if options.color == Auto::True
+            {
+                "\x1b[0m"
+            }
+            else
+            {
+                ""
+            }
         );
         stdout.flush().unwrap();
     }
@@ -475,6 +493,10 @@ fn main()
     options.base = base;
     let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive
     {
+        if options.color == Auto::Auto
+        {
+            options.color = Auto::True;
+        }
         let file_path = &(dir.clone() + "/kalc.history");
         if File::open(file_path).is_err()
         {
@@ -492,7 +514,10 @@ fn main()
     }
     else
     {
-        options.color = !options.color;
+        if options.color == Auto::Auto
+        {
+            options.color = Auto::False;
+        }
         (None, None)
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
@@ -618,7 +643,14 @@ fn main()
                 print!(
                     "\x1b[G\x1b[K{}{}",
                     prompt(options, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
                 stdout.flush().unwrap();
             }
@@ -1669,7 +1701,14 @@ fn main()
                 print!(
                     "{}{}",
                     prompt(options, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
             }
             stdout.flush().unwrap();
@@ -1699,7 +1738,14 @@ fn main()
                     print!(
                         "{}{}",
                         prompt(options, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
+                        if options.color == Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     );
                 }
             }
@@ -1708,7 +1754,14 @@ fn main()
                 print!(
                     "{}{}",
                     prompt(options, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
             }
             stdout.flush().unwrap()

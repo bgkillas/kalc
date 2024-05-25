@@ -42,7 +42,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     "{}{}{}{}{}",
                     sign,
                     if i == 1 { "sqrt" } else { "cbrt" },
-                    if options.color
+                    if options.color == crate::Auto::True
                     {
                         colors.brackets[0].to_owned() + "(" + &colors.text
                     }
@@ -51,7 +51,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                         "(".to_string()
                     },
                     orig.to_integer().unwrap(),
-                    if options.color
+                    if options.color == crate::Auto::True
                     {
                         colors.brackets[0].to_owned() + ")" + &colors.text
                     }
@@ -121,7 +121,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                 }
                 else if i == 1 || i == 2
                 {
-                    let lb = if options.color
+                    let lb = if options.color == crate::Auto::True
                     {
                         colors.brackets[0].to_owned() + "(" + &colors.text
                     }
@@ -129,7 +129,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     {
                         "(".to_string()
                     };
-                    let rb = if options.color
+                    let rb = if options.color == crate::Auto::True
                     {
                         colors.brackets[0].to_owned() + ")" + &colors.text
                     }
@@ -224,7 +224,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                             {
                                 "/".to_owned() + "e"
                             }
-                            else if options.color
+                            else if options.color == crate::Auto::True
                             {
                                 format!(
                                     "/{}({}{}e{}){}",

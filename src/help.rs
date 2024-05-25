@@ -25,12 +25,12 @@ FLAGS: --help (this message)\x1b[G\n\
 --ticks=[num](,[num](,[num])) sets amount of ticks, optionally set different x/y/z ticks, -2 will be auto, -1 will be at every whole number, 0 will be none\x1b[G\n\
 --onaxis toggles showing the ticks on the x/y/z axis\x1b[G\n\
 --prompt toggles the prompt\x1b[G\n\
---color toggles color output, toggled by default when running from arguments\x1b[G\n\
+--color=true/false/auto toggles color output, toggled by default when running from arguments\x1b[G\n\
 --comma toggles comma seperation\x1b[G\n\
 --graph toggles graphing\x1b[G\n\
 --vars disables default variables and kalc.vars\x1b[G\n\
 --default sets to default settings and ignores kalc.vars\x1b[G\n\
---line toggles line graphing\x1b[G\n\
+--line=true/false/auto toggles line graphing\x1b[G\n\
 --rt toggles real time printing\x1b[G\n\
 --polar toggles displaying polar vectors\x1b[G\n\
 --frac toggles fraction display\x1b[G\n\

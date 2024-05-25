@@ -75,7 +75,7 @@ pub fn print_concurrent(
             {
                 let width = get_terminal_dimensions().0;
                 let mut len = 0;
-                for i in no_col(&message, options.color)
+                for i in no_col(&message, options.color == crate::Auto::True)
                 {
                     len += 1;
                     if i == '\n'
@@ -94,8 +94,19 @@ pub fn print_concurrent(
                 message,
                 num + 1,
                 prompt(options, &colors),
-                to_output(&unmodified_input[start..end], options.color, &colors),
-                if options.color { "\x1b[0m" } else { "" },
+                to_output(
+                    &unmodified_input[start..end],
+                    options.color == crate::Auto::True,
+                    &colors
+                ),
+                if options.color == crate::Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                },
             );
             return (num, HowGraphing::default(), false, false);
         }
@@ -111,7 +122,7 @@ pub fn print_concurrent(
             return if !out.is_empty()
             {
                 let (width, height) = get_terminal_dimensions();
-                let len = no_col(&out, options.color).len();
+                let len = no_col(&out, options.color == crate::Auto::True).len();
                 let wrap = (len - 1) / width + 1;
                 if len > width * (height - 1)
                 {
@@ -120,7 +131,14 @@ pub fn print_concurrent(
                         print!(
                             "\x1b[G\n\x1b[J{}{}",
                             out,
-                            if options.color { "\x1b[0m" } else { "" }
+                            if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                         );
                         (wrap, HowGraphing::default(), false, false)
                     }
@@ -129,8 +147,19 @@ pub fn print_concurrent(
                         print!(
                             "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
                             prompt(options, &colors),
-                            to_output(&unmodified_input[start..end], options.color, &colors),
-                            if options.color { "\x1b[0m" } else { "" },
+                            to_output(
+                                &unmodified_input[start..end],
+                                options.color == crate::Auto::True,
+                                &colors
+                            ),
+                            if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            },
                         );
                         (0, HowGraphing::default(), true, false)
                     }
@@ -149,8 +178,19 @@ pub fn print_concurrent(
                             format!("\x1b[{}A", wrap)
                         },
                         prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
+                        to_output(
+                            &unmodified_input[start..end],
+                            options.color == crate::Auto::True,
+                            &colors
+                        ),
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     );
                     (wrap, HowGraphing::default(), false, false)
                 }
@@ -215,14 +255,28 @@ pub fn print_concurrent(
                     | "label"
                     | "point"
                     | "points"
+                    | "line"
+                    | "lines"
+                    | "color"
             )
             {
                 print!(
                     "\x1b[G\n\x1b[J{}\x1b[A\x1b[G\x1b[K{}{}{}",
                     inputs,
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
                 return (1, input.2, false, true);
             }
@@ -278,7 +332,7 @@ pub fn print_concurrent(
                         return (0, HowGraphing::default(), false, true);
                     }
                     let (width, height) = get_terminal_dimensions();
-                    let len = no_col(&out, options.color).len();
+                    let len = no_col(&out, options.color == crate::Auto::True).len();
                     let wrap = (len - 1) / width + 1;
                     return if len > width * (height - 1)
                     {
@@ -287,18 +341,25 @@ pub fn print_concurrent(
                             print!(
                                 "\x1b[G\n\x1b[J{}{}",
                                 out,
-                                if options.color { "\x1b[0m" } else { "" }
+                                if options.color == crate::Auto::True
+                                {
+                                    "\x1b[0m"
+                                }
+                                else
+                                {
+                                    ""
+                                }
                             );
                             (wrap, input.2, false, true)
                         }
                         else
                         {
                             print!(
-                            "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
-                            prompt(options, &colors),
-                            to_output(&unmodified_input[start..end], options.color, &colors),
-                            if options.color { "\x1b[0m" } else { "" },
-                        );
+                                "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
+                                prompt(options, &colors),
+                                to_output(&unmodified_input[start..end], options.color==crate::Auto::True, &colors),
+                                if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
+                            );
                             (0, input.2, true, true)
                         }
                     }
@@ -316,8 +377,19 @@ pub fn print_concurrent(
                                 format!("\x1b[{}A", wrap)
                             },
                             prompt(options, &colors),
-                            to_output(&unmodified_input[start..end], options.color, &colors),
-                            if options.color { "\x1b[0m" } else { "" }
+                            to_output(
+                                &unmodified_input[start..end],
+                                options.color == crate::Auto::True,
+                                &colors
+                            ),
+                            if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                         );
                         (wrap, input.2, false, true)
                     };
@@ -351,8 +423,19 @@ pub fn print_concurrent(
                     print!(
                         "\x1b[G\n\x1b[Jtoo many graphs\x1b[G\x1b[A\x1b[K{}{}{}",
                         prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" }
+                        to_output(
+                            &unmodified_input[start..end],
+                            options.color == crate::Auto::True,
+                            &colors
+                        ),
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     );
                     return (1, input.2, false, false);
                 }
@@ -416,7 +499,7 @@ pub fn print_concurrent(
             }
             out.pop();
             let width = get_terminal_dimensions().0;
-            let no_col = no_col(&out, options.color);
+            let no_col = no_col(&out, options.color == crate::Auto::True);
             let wrap: usize = no_col
                 .split(|c| c == &'\n')
                 .map(|i| {
@@ -435,11 +518,11 @@ pub fn print_concurrent(
             if len > width
             {
                 print!(
-        "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
-        prompt(options, &colors),
-        to_output(&unmodified_input[start..end], options.color, &colors),
-        if options.color { "\x1b[0m" } else { "" },
-    );
+                    "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color==crate::Auto::True, &colors),
+                    if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
+                );
                 (1, input.2, true, false)
             }
             else
@@ -456,8 +539,19 @@ pub fn print_concurrent(
                         format!("\x1b[{}A", wrap)
                     },
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
                 (wrap, input.2, false, false)
             }
@@ -473,16 +567,16 @@ pub fn print_concurrent(
                 &last.iter().collect::<String>(),
             );
             let width = get_terminal_dimensions().0;
-            let len = no_col(&out, options.color).len();
+            let len = no_col(&out, options.color == crate::Auto::True).len();
             let wrap = (len - 1) / width + 1;
             if len > width
             {
                 print!(
-                        "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
-                        prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" },
-                    );
+                    "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
+                    prompt(options, &colors),
+                    to_output(&unmodified_input[start..end], options.color==crate::Auto::True, &colors),
+                    if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
+                );
                 (1, input.2, true, false)
             }
             else
@@ -499,8 +593,19 @@ pub fn print_concurrent(
                         format!("\x1b[{}A", wrap)
                     },
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" }
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
                 (wrap, input.2, false, false)
             }
@@ -564,7 +669,7 @@ pub fn print_concurrent(
                             else
                             {
                                 sign + fb.as_str()
-                                    + &if options.color
+                                    + &if options.color == crate::Auto::True
                                     {
                                         format!("{}i\x1b[0m", &colors.imag)
                                     }
@@ -593,7 +698,15 @@ pub fn print_concurrent(
                             }
                             else
                             {
-                                output.1.clone() + if options.color { "\x1b[0m" } else { "" }
+                                output.1.clone()
+                                    + if options.color == crate::Auto::True
+                                    {
+                                        "\x1b[0m"
+                                    }
+                                    else
+                                    {
+                                        ""
+                                    }
                             },
                         )
                     }
@@ -616,7 +729,7 @@ pub fn print_concurrent(
                             else
                             {
                                 sign + fb.as_str()
-                                    + &if options.color
+                                    + &if options.color == crate::Auto::True
                                     {
                                         format!("{}i\x1b[0m", &colors.imag)
                                     }
@@ -640,11 +753,11 @@ pub fn print_concurrent(
                 output.0 += &st;
                 frac_a += &st;
             }
-            let len1 = no_col(&output.0, options.color).len();
-            let len2 = no_col(&output.1, options.color).len();
+            let len1 = no_col(&output.0, options.color == crate::Auto::True).len();
+            let len2 = no_col(&output.1, options.color == crate::Auto::True).len();
             if (frac == 1 && !options.frac.num)
                 || (frac_a.len() + frac_b.len()
-                    - if options.color && !frac_b.is_empty()
+                    - if options.color == crate::Auto::True && !frac_b.is_empty()
                     {
                         5
                     }
@@ -682,7 +795,14 @@ pub fn print_concurrent(
                             ""
                         },
                         &output.1.replace('+', ""),
-                        if options.color { "\x1b[0m" } else { "" },
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        },
                     );
                     frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
                 }
@@ -700,8 +820,19 @@ pub fn print_concurrent(
                         },
                         if frac == 1 { "\x1b[A" } else { "" },
                         prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" },
+                        to_output(
+                            &unmodified_input[start..end],
+                            options.color == crate::Auto::True,
+                            &colors
+                        ),
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        },
                     );
                     long = true;
                 }
@@ -740,8 +871,19 @@ pub fn print_concurrent(
                         format!("\x1b[{}A", temp)
                     },
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
-                    if options.color { "\x1b[0m" } else { "" },
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    },
                 );
                 frac += num + if len1 != 0 && len2 != 0 { 1 } else { 0 };
             }
@@ -750,7 +892,11 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{}\x1b[J{}\x1b[G\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
                     if frac == 1
                     {
                         format!("\x1b[G\n{}{}\x1b[K", frac_a, frac_b)
@@ -763,7 +909,14 @@ pub fn print_concurrent(
                     output.1,
                     if frac == 1 { "\x1b[A" } else { "" },
                     if options.prompt { 2 } else { 0 } + (end - start),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 )
             }
         }
@@ -820,7 +973,7 @@ pub fn print_concurrent(
                             frac_temp,
                             if !i.imag().is_zero()
                             {
-                                if options.color
+                                if options.color == crate::Auto::True
                                 {
                                     format!("{}i", &colors.imag)
                                 }
@@ -854,7 +1007,7 @@ pub fn print_concurrent(
                         frac_out += &st;
                     }
                 }
-                if options.color
+                if options.color == crate::Auto::True
                 {
                     output += "\x1b[0m";
                     if frac == 1
@@ -879,10 +1032,10 @@ pub fn print_concurrent(
                     }
                 }
             }
-            let length = no_col(&output, options.color).len();
+            let length = no_col(&output, options.color == crate::Auto::True).len();
             if frac_out == output
                 || !options.frac.vec
-                || no_col(&frac_out, options.color).len() > width
+                || no_col(&frac_out, options.color == crate::Auto::True).len() > width
                 || length > width
             {
                 frac = 0;
@@ -903,7 +1056,14 @@ pub fn print_concurrent(
                             String::new()
                         },
                         output,
-                        if options.color { "\x1b[0m" } else { "" }
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     );
                     frac += num;
                 }
@@ -912,8 +1072,19 @@ pub fn print_concurrent(
                     print!(
                         "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[G\x1b[A{}{}{}",
                         prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" },
+                        to_output(
+                            &unmodified_input[start..end],
+                            options.color == crate::Auto::True,
+                            &colors
+                        ),
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        },
                     );
                     long = true;
                     frac = 0;
@@ -925,7 +1096,11 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
                     if frac == 1
                     {
                         format!("\x1b[G\n{}\x1b[K", frac_out)
@@ -945,7 +1120,14 @@ pub fn print_concurrent(
                     },
                     if frac == 1 { "\x1b[A" } else { "" },
                     if options.prompt { 2 } else { 0 } + (end - start),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
                 frac += num;
             }
@@ -1002,7 +1184,7 @@ pub fn print_concurrent(
                                 frac_temp,
                                 if !i.imag().is_zero()
                                 {
-                                    if options.color
+                                    if options.color == crate::Auto::True
                                     {
                                         format!("{}i", &colors.imag)
                                     }
@@ -1036,7 +1218,7 @@ pub fn print_concurrent(
                             frac_out += &st;
                         }
                     }
-                    if options.color
+                    if options.color == crate::Auto::True
                     {
                         output += "\x1b[0m";
                         if frac == 1
@@ -1101,7 +1283,9 @@ pub fn print_concurrent(
                     frac_out += "}";
                 }
             }
-            let length = no_col(&output, options.color).len().saturating_sub(1);
+            let length = no_col(&output, options.color == crate::Auto::True)
+                .len()
+                .saturating_sub(1);
             if frac_out == output && frac == 1
             {
                 frac = 0;
@@ -1110,7 +1294,7 @@ pub fn print_concurrent(
             {
                 num += (length - 1) / width;
                 if !options.frac.mat
-                    || no_col(&frac_out, options.color).len() > width
+                    || no_col(&frac_out, options.color == crate::Auto::True).len() > width
                     || length > width
                 {
                     frac = 0;
@@ -1119,7 +1303,7 @@ pub fn print_concurrent(
             else
             {
                 let mut len = 0;
-                for i in no_col(&frac_out, options.color)
+                for i in no_col(&frac_out, options.color == crate::Auto::True)
                 {
                     len += 1;
                     if i == '\n'
@@ -1133,7 +1317,7 @@ pub fn print_concurrent(
                     }
                 }
                 len = 0;
-                for i in no_col(&output, options.color)
+                for i in no_col(&output, options.color == crate::Auto::True)
                 {
                     len += 1;
                     if i == '\n'
@@ -1168,7 +1352,14 @@ pub fn print_concurrent(
                             String::new()
                         },
                         output,
-                        if options.color { "\x1b[0m" } else { "" }
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     );
                     frac += num;
                 }
@@ -1177,8 +1368,19 @@ pub fn print_concurrent(
                     print!(
                         "\x1b[G\x1b[J\ntoo long, will print on enter\x1b[G\x1b[A{}{}{}",
                         prompt(options, &colors),
-                        to_output(&unmodified_input[start..end], options.color, &colors),
-                        if options.color { "\x1b[0m" } else { "" },
+                        to_output(
+                            &unmodified_input[start..end],
+                            options.color == crate::Auto::True,
+                            &colors
+                        ),
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        },
                     );
                     long = true;
                     frac = 0;
@@ -1193,7 +1395,11 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}\x1b[G\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color, &colors),
+                    to_output(
+                        &unmodified_input[start..end],
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
                     if frac == 1
                     {
                         num *= 2;
@@ -1217,7 +1423,14 @@ pub fn print_concurrent(
                         format!("\x1b[{}A", num + frac)
                     },
                     if options.prompt { 2 } else { 0 } + (end - start),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 );
                 frac += num;
             }
@@ -1238,7 +1451,14 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 a.0,
                 a.2.unwrap_or_default(),
                 a.1,
-                if options.color { "\x1b[0m" } else { "" }
+                if options.color == crate::Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                }
             );
         }
         Vector(mut v) =>
@@ -1263,7 +1483,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 output += out.0.as_str();
                 output += out.1.as_str();
                 output += &out.2.unwrap_or_default();
-                if options.color
+                if options.color == crate::Auto::True
                 {
                     output += "\x1b[0m";
                 }
@@ -1283,7 +1503,18 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                     ","
                 }
             }
-            print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+            print!(
+                "{}{}",
+                output,
+                if options.color == crate::Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                }
+            );
         }
         Matrix(v) =>
         {
@@ -1308,7 +1539,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                     output += out.0.as_str();
                     output += out.1.as_str();
                     output += &out.2.unwrap_or_default();
-                    if options.color
+                    if options.color == crate::Auto::True
                     {
                         output += "\x1b[0m";
                     }
@@ -1344,7 +1575,18 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             {
                 output += "}";
             }
-            print!("{}{}", output, if options.color { "\x1b[0m" } else { "" });
+            print!(
+                "{}{}",
+                output,
+                if options.color == crate::Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                }
+            );
         }
         _ =>
         {}
@@ -1388,12 +1630,26 @@ pub fn get_output(
                     if n.chars().filter(|c| *c == '@').count() == 1
                     {
                         n.replace('@', &notate(options, colors))
-                            + if options.color { "\x1b[0m" } else { "" }
+                            + if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                     }
                     else if n.contains('e')
                     {
                         n.replace("e0", "").replace('e', &notate(options, colors))
-                            + if options.color { "\x1b[0m" } else { "" }
+                            + if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                     }
                     else
                     {
@@ -1416,17 +1672,31 @@ pub fn get_output(
                     sign + &if n.chars().filter(|c| *c == '@').count() == 1
                     {
                         n.replace('@', &notate(options, colors))
-                            + if options.color { "\x1b[0m" } else { "" }
+                            + if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                     }
                     else if n.contains('e')
                     {
                         n.replace("e0", "").replace('e', &notate(options, colors))
-                            + if options.color { "\x1b[0m" } else { "" }
+                            + if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                     }
                     else
                     {
                         n.trim_end_matches('0').trim_end_matches('.').to_string()
-                    } + &if options.color
+                    } + &if options.color == crate::Auto::True
                     {
                         format!("{}i", &colors.imag)
                     }
@@ -1444,7 +1714,7 @@ pub fn get_output(
                     units.map(|units| {
                         format!(
                             "{}{}{}",
-                            if options.color
+                            if options.color == crate::Auto::True
                             {
                                 "\x1b[".to_owned() + &colors.units
                             }
@@ -1453,7 +1723,14 @@ pub fn get_output(
                                 String::new()
                             },
                             units.to_string(options),
-                            if options.color { "\x1b[0m" } else { "" }
+                            if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                         )
                     })
                 }
@@ -1495,7 +1772,14 @@ pub fn get_output(
                     }
                     .replace("e0", "")
                     .replace('e', &notate(options, colors))
-                        + if options.color { "\x1b[0m" } else { "" }
+                        + if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                 },
                 if num.imag().is_zero()
                 {
@@ -1503,7 +1787,7 @@ pub fn get_output(
                 }
                 else if num.imag() == &1
                 {
-                    sign + &if options.color
+                    sign + &if options.color == crate::Auto::True
                     {
                         format!("{}i", &colors.imag)
                     }
@@ -1514,7 +1798,7 @@ pub fn get_output(
                 }
                 else if num.imag() == &-1
                 {
-                    sign + &if options.color
+                    sign + &if options.color == crate::Auto::True
                     {
                         format!("-{}i", &colors.imag)
                     }
@@ -1546,7 +1830,7 @@ pub fn get_output(
                     }
                     .replace("e0", "")
                     .replace('e', &notate(options, colors))
-                        + &if options.color
+                        + &if options.color == crate::Auto::True
                         {
                             format!("{}i", &colors.imag)
                         }
@@ -1560,7 +1844,7 @@ pub fn get_output(
                     units.map(|units| {
                         format!(
                             "{}{}{}",
-                            if options.color
+                            if options.color == crate::Auto::True
                             {
                                 "\x1b[".to_owned() + &colors.units
                             }
@@ -1569,7 +1853,14 @@ pub fn get_output(
                                 String::new()
                             },
                             units.to_string(options),
-                            if options.color { "\x1b[0m" } else { "" }
+                            if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                         )
                     })
                 }
@@ -1640,7 +1931,7 @@ pub fn get_output(
             }
             else if im == "1"
             {
-                sign + &if options.color
+                sign + &if options.color == crate::Auto::True
                 {
                     format!("{}i", &colors.imag)
                 }
@@ -1651,7 +1942,7 @@ pub fn get_output(
             }
             else if im == "-1"
             {
-                sign + &if options.color
+                sign + &if options.color == crate::Auto::True
                 {
                     format!("-{}i", &colors.imag)
                 }
@@ -1663,7 +1954,7 @@ pub fn get_output(
             else
             {
                 sign + &im
-                    + &if options.color
+                    + &if options.color == crate::Auto::True
                     {
                         format!("{}i", &colors.imag)
                     }
@@ -1677,7 +1968,7 @@ pub fn get_output(
                 units.map(|units| {
                     format!(
                         "{}{}{}",
-                        if options.color
+                        if options.color == crate::Auto::True
                         {
                             "\x1b[".to_owned() + &colors.units
                         }
@@ -1686,7 +1977,14 @@ pub fn get_output(
                             String::new()
                         },
                         units.to_string(options),
-                        if options.color { "\x1b[0m" } else { "" }
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     )
                 })
             }
@@ -1989,7 +2287,7 @@ fn notate(options: Options, colors: &Colors) -> String
 {
     format!(
         "{}{}",
-        if options.color
+        if options.color == crate::Auto::True
         {
             colors.sci.to_string()
         }

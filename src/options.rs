@@ -7,7 +7,7 @@ use crate::{
     parse::input_var,
     print::get_output,
     AngleType::{Degrees, Gradians, Radians},
-    Colors, GraphType,
+    Auto, Colors, GraphType,
     Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
     Number, Options, Variable,
 };
@@ -167,6 +167,26 @@ pub fn set_commands(
     let r = s.as_str();
     match l
     {
+        "color" =>
+        {
+            options.color = match r
+            {
+                "1" | "true" | "True" => Auto::True,
+                "Auto" | "auto" => Auto::Auto,
+                "0" | "false" | "False" => Auto::False,
+                _ => return Err("not true/false/auto"),
+            }
+        }
+        "line" | "lines" =>
+        {
+            options.lines = match r
+            {
+                "1" | "true" | "True" => Auto::True,
+                "Auto" | "auto" => Auto::Auto,
+                "0" | "false" | "False" => Auto::False,
+                _ => return Err("not true/false/auto"),
+            }
+        }
         "angle" =>
         {
             options.angle = match r
@@ -285,12 +305,12 @@ pub fn set_commands(
                 }
             }
         }
-        "graphcli" | "slowcheck" | "interactive" | "color" | "prompt" | "surface" | "rt"
-        | "siunits" | "line" | "lines" | "polar" | "frac" | "fractions" | "fractionsv"
-        | "fractionsm" | "multi" | "tabbed" | "comma" | "units" | "scalegraph" | "debug"
-        | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals" | "graphprec"
-        | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr"
-        | "vrange" | "vxr" | "vyr" | "vzr" | "2d" | "3d" =>
+        "graphcli" | "slowcheck" | "interactive" | "prompt" | "surface" | "rt" | "siunits"
+        | "polar" | "frac" | "fractions" | "fractionsv" | "fractionsm" | "multi" | "tabbed"
+        | "comma" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks"
+        | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
+        | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
+        | "vzr" | "2d" | "3d" =>
         {
             let mut args: Vec<Float> = Vec::new();
             {
@@ -350,13 +370,11 @@ pub fn set_commands(
             match l
             {
                 "graphcli" => options.graph_cli = args[0] != 0.0,
-                "color" => options.color = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
                 "prompt" => options.prompt = args[0] != 0.0,
                 "surface" => options.surface = args[0] != 0.0,
                 "rt" => options.real_time_output = args[0] != 0.0,
                 "siunits" => options.si_units = args[0] != 0.0,
-                "line" | "lines" => options.lines = args[0] != 0.0,
                 "polar" => options.polar = args[0] != 0.0,
                 "frac" | "fractions" => options.frac.num = args[0] != 0.0,
                 "fractionsv" => options.frac.vec = args[0] != 0.0,
@@ -856,13 +874,27 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "interactive" => options.stay_interactive = !options.stay_interactive,
         "scalegraph" => options.scale_graph = !options.scale_graph,
         "debug" => options.debug = !options.debug,
-        "color" => options.color = !options.color,
+        "color" =>
+        {
+            options.color = match options.color
+            {
+                Auto::Auto | Auto::True => Auto::False,
+                Auto::False => Auto::True,
+            };
+        }
         "prompt" => options.prompt = !options.prompt,
         "onaxis" => options.onaxis = !options.onaxis,
         "surface" => options.surface = !options.surface,
         "rt" => options.real_time_output = !options.real_time_output,
         "siunits" => options.si_units = !options.si_units,
-        "line" | "lines" => options.lines = !options.lines,
+        "line" | "lines" =>
+        {
+            options.lines = match options.lines
+            {
+                Auto::Auto | Auto::False => Auto::True,
+                Auto::True => Auto::False,
+            };
+        }
         "polar" => options.polar = !options.polar,
         "frac" | "fractions" => options.frac.num = !options.frac.num,
         "fractionsv" => options.frac.vec = !options.frac.vec,
@@ -911,7 +943,11 @@ pub fn commands(
         {
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
-            options.color = !options.color;
+            options.color = match options.color
+            {
+                Auto::Auto | Auto::True => Auto::False,
+                Auto::False => Auto::True,
+            };
         }
         "prompt" =>
         {
@@ -965,7 +1001,11 @@ pub fn commands(
         {
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
-            options.lines = !options.lines;
+            options.lines = match options.lines
+            {
+                Auto::Auto | Auto::False => Auto::True,
+                Auto::True => Auto::False,
+            };
         }
         "polar" =>
         {
@@ -1036,7 +1076,7 @@ pub fn commands(
                         v.name.iter().collect::<String>(),
                         to_output(
                             &v.unparsed.chars().collect::<Vec<char>>(),
-                            options.color,
+                            options.color == Auto::True,
                             colors,
                         )
                     );
@@ -1054,7 +1094,14 @@ pub fn commands(
                                 n.0,
                                 n.1,
                                 n.2.unwrap_or_default(),
-                                if options.color { &colors.text } else { "" }
+                                if options.color == Auto::True
+                                {
+                                    &colors.text
+                                }
+                                else
+                                {
+                                    ""
+                                }
                             )
                         }
                         Vector(m) =>
@@ -1066,7 +1113,7 @@ pub fn commands(
                                 st.push_str(&n.0);
                                 st.push_str(&n.1);
                                 st.push_str(&n.2.unwrap_or_default());
-                                if options.color
+                                if options.color == Auto::True
                                 {
                                     st.push_str(&colors.text)
                                 }
@@ -1090,7 +1137,7 @@ pub fn commands(
                                     st.push_str(&n.0);
                                     st.push_str(&n.1);
                                     st.push_str(&n.2.unwrap_or_default());
-                                    if options.color
+                                    if options.color == Auto::True
                                     {
                                         st.push_str(&colors.text)
                                     }
@@ -1185,14 +1232,26 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         }
         "slowcheck" => format!("{}", options.slowcheck),
         "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),
-        "color" => format!("{}", options.color),
+        "color" => (match options.color
+        {
+            Auto::Auto => "auto",
+            Auto::False => "false",
+            Auto::True => "true",
+        })
+        .to_string(),
         "surface" => format!("{}", options.surface),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
         "siunits" => format!("{}", options.si_units),
         "debug" => format!("{}", options.debug),
         "scalegraph" => format!("{}", options.scale_graph),
-        "line" => format!("{}", options.lines),
+        "line" | "lines" => (match options.lines
+        {
+            Auto::Auto => "auto",
+            Auto::False => "false",
+            Auto::True => "true",
+        })
+        .to_string(),
         "polar" => format!("{}", options.polar),
         "frac" | "fractions" => format!("{}", options.frac.num),
         "fractionsv" => format!("{}", options.frac.vec),

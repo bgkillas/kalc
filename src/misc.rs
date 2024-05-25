@@ -269,8 +269,19 @@ pub fn clearln(input: &[char], start: usize, end: usize, options: Options, color
     print!(
         "\x1b[G{}{}\x1b[K{}",
         prompt(options, colors),
-        to_output(&input[start..end], options.color, colors),
-        if options.color { "\x1b[0m" } else { "" }
+        to_output(
+            &input[start..end],
+            options.color == crate::Auto::True,
+            colors
+        ),
+        if options.color == crate::Auto::True
+        {
+            "\x1b[0m"
+        }
+        else
+        {
+            ""
+        }
     );
 }
 pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
@@ -278,8 +289,19 @@ pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors:
     print!(
         "\x1b[G{}{}\x1b[J{}",
         prompt(options, colors),
-        to_output(&input[start..end], options.color, colors),
-        if options.color { "\x1b[0m" } else { "" }
+        to_output(
+            &input[start..end],
+            options.color == crate::Auto::True,
+            colors
+        ),
+        if options.color == crate::Auto::True
+        {
+            "\x1b[0m"
+        }
+        else
+        {
+            ""
+        }
     );
 }
 pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
@@ -397,19 +419,26 @@ pub fn handle_err(
             format!("\x1b[{}A", num)
         },
         prompt(options, colors),
-        to_output(&input[start..end], options.color, colors),
-        if options.color { "\x1b[0m" } else { "" },
+        to_output(
+            &input[start..end],
+            options.color == crate::Auto::True,
+            colors
+        ),
+        if options.color == crate::Auto::True
+        {
+            "\x1b[0m"
+        }
+        else
+        {
+            ""
+        },
     );
 }
 pub fn prompt(options: Options, colors: &Colors) -> String
 {
-    if !options.interactive
+    if options.prompt
     {
-        String::new()
-    }
-    else if options.prompt
-    {
-        if options.color
+        if options.color == crate::Auto::True
         {
             format!("{}>{} ", colors.prompt, colors.text)
         }
@@ -418,7 +447,7 @@ pub fn prompt(options: Options, colors: &Colors) -> String
             "> ".to_string()
         }
     }
-    else if options.color
+    else if options.color == crate::Auto::True
     {
         colors.text.to_string()
     }
@@ -632,7 +661,14 @@ pub fn parsed_to_string(
                     n.0,
                     n.1,
                     n.2.unwrap_or_default(),
-                    if options.color { "\x1b[0m" } else { "" }
+                    if options.color == crate::Auto::True
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    }
                 )
             }
             Vector(n) =>
@@ -647,7 +683,14 @@ pub fn parsed_to_string(
                         num.0,
                         num.1,
                         num.2.unwrap_or_default(),
-                        if options.color { "\x1b[0m" } else { "" }
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
                     ));
                 }
                 str.pop();
@@ -668,7 +711,14 @@ pub fn parsed_to_string(
                             num.0,
                             num.1,
                             num.2.unwrap_or_default(),
-                            if options.color { "\x1b[0m" } else { "" }
+                            if options.color == crate::Auto::True
+                            {
+                                "\x1b[0m"
+                            }
+                            else
+                            {
+                                ""
+                            }
                         ));
                     }
                     str.insert(str.len().saturating_sub(1), '}');
@@ -683,7 +733,11 @@ pub fn parsed_to_string(
             Str(n) => n.replace('@', ""),
         })
     }
-    to_output(&out.chars().collect::<Vec<char>>(), options.color, colors)
+    to_output(
+        &out.chars().collect::<Vec<char>>(),
+        options.color == crate::Auto::True,
+        colors,
+    )
 }
 pub fn insert_last(input: &[char], last: &str) -> String
 {

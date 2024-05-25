@@ -293,7 +293,7 @@ pub fn graph(
             {
                 Auto
             };
-            if (options.lines || lines) && lines ^ options.lines
+            if (options.lines == crate::Auto::Auto && lines) || options.lines == crate::Auto::True
             {
                 fg.axes2d()
                     .set_x_grid(!cli)
@@ -774,7 +774,8 @@ pub fn graph(
                         &[PointSymbol(options.point_style), Color(&colors.re1col)],
                     );
             }
-            else if options.lines || lines
+            else if (options.lines == crate::Auto::Auto && lines)
+                || options.lines == crate::Auto::True
             {
                 fg.axes3d()
                     .set_x_grid(!cli)

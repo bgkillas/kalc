@@ -541,130 +541,135 @@ fn main()
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
-            let mut options = options;
-            let mut unparsed = input.clone();
             {
-                let split = input.split(|c| c == &';');
-                let count = split.clone().count();
-                if count != 1
+                let mut options = options;
+                let mut unparsed = input.clone();
                 {
-                    unparsed = split.clone().last().unwrap().to_vec();
-                    for (i, s) in split.enumerate()
+                    let split = input.split(|c| c == &';');
+                    let count = split.clone().count();
+                    if count != 1
                     {
-                        if i == count - 1
+                        unparsed = split.clone().last().unwrap().to_vec();
+                        for (i, s) in split.enumerate()
                         {
-                            break;
-                        }
-                        silent_commands(
-                            &mut options,
-                            &s.iter()
-                                .copied()
-                                .filter(|&c| !c.is_whitespace())
-                                .collect::<Vec<char>>(),
-                        );
-                        if s.contains(&'=')
-                        {
-                            if let Err(s) =
-                                set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
+                            if i == count - 1
                             {
-                                println!("{}", s);
-                                continue 'main;
+                                break;
+                            }
+                            silent_commands(
+                                &mut options,
+                                &s.iter()
+                                    .copied()
+                                    .filter(|&c| !c.is_whitespace())
+                                    .collect::<Vec<char>>(),
+                            );
+                            if s.contains(&'=')
+                            {
+                                if let Err(s) =
+                                    set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
+                                {
+                                    println!("{}", s);
+                                    continue 'main;
+                                }
                             }
                         }
                     }
+                    let tempinput = unparsed.iter().collect::<String>();
+                    if tempinput.starts_with("help ")
+                    {
+                        println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
+                        continue;
+                    }
+                    else if tempinput.ends_with('=')
+                    {
+                        println!(
+                            "{}",
+                            equal_to(
+                                options,
+                                &colors,
+                                &vars,
+                                &tempinput[..tempinput.len().saturating_sub(1)],
+                                "",
+                            )
+                        );
+                        continue;
+                    }
                 }
-                let tempinput = unparsed.iter().collect::<String>();
-                if tempinput.starts_with("help ")
+                (output, funcvar, graphable, varcheck) = match input_var(
+                    &unparsed.iter().map(convert).collect::<String>(),
+                    &vars,
+                    &mut Vec::new(),
+                    &mut 0,
+                    options,
+                    false,
+                    0,
+                    Vec::new(),
+                    false,
+                )
                 {
-                    println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
-                    continue;
-                }
-                else if tempinput.ends_with('=')
-                {
-                    println!(
-                        "{}",
-                        equal_to(
-                            options,
-                            &colors,
-                            &vars,
-                            &tempinput[..tempinput.len().saturating_sub(1)],
-                            "",
-                        )
-                    );
-                    continue;
-                }
-            }
-            (output, funcvar, graphable, varcheck) = match input_var(
-                &unparsed.iter().map(convert).collect::<String>(),
-                &vars,
-                &mut Vec::new(),
-                &mut 0,
-                options,
-                false,
-                0,
-                Vec::new(),
-                false,
-            )
-            {
-                Ok(f) => f,
-                Err(s) =>
-                {
-                    println!("{}: {}", input.iter().collect::<String>(), s);
-                    continue;
-                }
-            };
-            if !graphable.graph && !varcheck
-            {
-                match do_math(output, options, funcvar)
-                {
-                    Ok(n) => print_answer(n, options, &colors),
+                    Ok(f) => f,
                     Err(s) =>
                     {
                         println!("{}: {}", input.iter().collect::<String>(), s);
                         continue;
                     }
-                }
-            }
-            if !graphable.graph && !varcheck
-            {
-                if let Some(time) = watch
+                };
+                if !graphable.graph && !varcheck
                 {
-                    println!(" {}", time.elapsed().as_nanos());
-                }
-                else
-                {
-                    println!();
-                }
-            }
-            if args.is_empty() && options.stay_interactive
-            {
-                options.interactive = true;
-                terminal::enable_raw_mode().unwrap();
-                print!(
-                    "\x1b[G\x1b[K{}{}",
-                    prompt(options, &colors),
-                    if options.color == Auto::True
+                    match do_math(output, options, funcvar)
                     {
-                        "\x1b[0m"
+                        Ok(n) => print_answer(n, options, &colors),
+                        Err(s) =>
+                        {
+                            println!("{}: {}", input.iter().collect::<String>(), s);
+                            continue;
+                        }
+                    }
+                }
+                if !graphable.graph && !varcheck
+                {
+                    if let Some(time) = watch
+                    {
+                        println!(" {}", time.elapsed().as_nanos());
                     }
                     else
                     {
-                        ""
+                        println!();
                     }
-                );
-                stdout.flush().unwrap();
+                }
+            }
+            if args.is_empty()
+            {
+                if options.stay_interactive
+                {
+                    options.interactive = true;
+                    terminal::enable_raw_mode().unwrap();
+                    print!(
+                        "\x1b[G\x1b[K{}{}",
+                        prompt(options, &colors),
+                        if options.color == Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
+                    );
+                    stdout.flush().unwrap();
+                }
+                else
+                {
+                    for handle in handles
+                    {
+                        handle.join().unwrap();
+                    }
+                    break;
+                }
             }
         }
         else
         {
-            if file.is_none()
-            {
-                for handle in handles
-                {
-                    handle.join().unwrap();
-                }
-                break;
-            }
             let mut long = false;
             let mut frac = 0;
             let mut current = Vec::new();

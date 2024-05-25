@@ -436,7 +436,11 @@ pub fn handle_err(
 }
 pub fn prompt(options: Options, colors: &Colors) -> String
 {
-    if options.prompt
+    if !options.interactive
+    {
+        String::new()
+    }
+    else if options.prompt
     {
         if options.color == crate::Auto::True
         {

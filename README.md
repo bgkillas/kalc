@@ -209,7 +209,7 @@ Functions:
 - zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
 - re, im, onlyreal, onlyimag, split(x+yi), next(n,to)
 - unity(n,k) gets all solutions for x in x^k=n
-- factors, prime, isprime, gcd, lcm
+- factors, nth_prime, is_prime, is_nan, is_inf, is_finite, gcd, lcm
 - slog(a,b), ssrt(k,a) (k is lambert w branch)
 - piecewise/pw({value,cond},{value2,cond2}...) (when first condition is met from left to right. value elsewards is nan)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)

@@ -227,6 +227,11 @@ pub fn functions() -> HashSet<&'static str>
         "covariance",
         "extrema",
         "plane",
+        "is_nan",
+        "is_inf",
+        "is_fin",
+        "is_finite",
+        "nth_prime",
     ]
     .iter()
     .cloned()

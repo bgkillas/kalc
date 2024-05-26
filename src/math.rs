@@ -4047,7 +4047,7 @@ fn functions(
                         zeta(a)
                     }
                 }
-                "prime" =>
+                "nth_prime" | "prime" =>
                 {
                     if a.imag().is_zero() && a.real().clone().fract() == 0.0
                     {
@@ -4121,6 +4121,12 @@ fn functions(
                         return Err("not enough args");
                     }
                 }
+                "is_nan" => Complex::with_val(options.prec, a.real().is_nan() as u8),
+                "is_inf" => Complex::with_val(options.prec, a.real().is_infinite() as u8),
+                "is_fin" | "is_finite" =>
+                {
+                    Complex::with_val(options.prec, a.real().is_finite() as u8)
+                }
                 "isprime" | "is_prime" =>
                 {
                     if a.imag().is_zero() && a.real().clone().fract() == 0.0 && a.real().is_finite()
@@ -4136,7 +4142,7 @@ fn functions(
                     }
                     else
                     {
-                        Complex::with_val(options.prec, Nan)
+                        Complex::new(options.prec)
                     }
                 }
                 _ =>

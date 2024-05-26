@@ -719,7 +719,7 @@ pub fn add_var(
             let mut l = l.clone();
             l.pop();
             let st = l
-                .drain(0..=l.iter().position(|c| c == &'(').unwrap())
+                .drain(0..=l.iter().position(|c| c == &'(').unwrap_or(0))
                 .collect::<String>();
             if st.contains(',') || st.len() == 1
             {

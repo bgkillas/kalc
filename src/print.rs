@@ -62,7 +62,7 @@ pub fn print_concurrent(
                     if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                     {
                         handle_err(s, unmodified_input, options, &colors, start, end);
-                        return (0, HowGraphing::default(), false, false);
+                        return (1, HowGraphing::default(), false, false);
                     }
                 }
             }
@@ -219,7 +219,7 @@ pub fn print_concurrent(
         Err(s) =>
         {
             handle_err(s, unmodified_input, options, &colors, start, end);
-            return (0, HowGraphing::default(), false, false);
+            return (1, HowGraphing::default(), false, false);
         }
     };
     {
@@ -403,7 +403,7 @@ pub fn print_concurrent(
                         Err(s) =>
                         {
                             handle_err(s, unmodified_input, options, &colors, start, end);
-                            return (0, HowGraphing::default(), false, false);
+                            return (1, HowGraphing::default(), false, false);
                         }
                     };
                 }
@@ -481,7 +481,7 @@ pub fn print_concurrent(
                                             start,
                                             end,
                                         );
-                                        return (0, HowGraphing::default(), false, false);
+                                        return (1, HowGraphing::default(), false, false);
                                     }
                                 }
                             }
@@ -618,13 +618,14 @@ pub fn print_concurrent(
         {
             if s == " "
             {
-                clear(unmodified_input, start, end, options, &colors)
+                clear(unmodified_input, start, end, options, &colors);
+                return (0, HowGraphing::default(), false, false);
             }
             else
             {
                 handle_err(s, unmodified_input, options, &colors, start, end);
+                return (1, HowGraphing::default(), false, false);
             }
-            return (0, HowGraphing::default(), false, false);
         }
     };
     let mut frac = 0;

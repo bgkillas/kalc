@@ -294,7 +294,7 @@ pub fn input_var(
             {
                 if let Str(s) = output.last_mut().unwrap()
                 {
-                    if functions.contains(s.as_str())
+                    if functions.contains(s.as_str()) && !sumrec.iter().any(|a| a.1 == *s)
                     {
                         if i + 4 < chars.len()
                             && chars[i] == '^'
@@ -1295,7 +1295,79 @@ pub fn input_var(
                             && chars[i..i + a.name.len()] == a.name))
             })
         };
-        if var_overrule
+        if sumrec.iter().any(|a| {
+            if wordv == a.1
+            {
+                num = a.0;
+                word.clone_from(&a.1);
+                true
+            }
+            else
+            {
+                false
+            }
+        }) || (!vars
+            .iter()
+            .any(|c| c.name.iter().collect::<String>().split('(').next().unwrap() == wordv)
+            && !functions.contains(wordv.as_str())
+            && sumrec.iter().any(|a| {
+                if wordv.starts_with(&a.1) && !a.1.is_empty()
+                {
+                    num = a.0;
+                    word.clone_from(&a.1);
+                    true
+                }
+                else
+                {
+                    false
+                }
+            }))
+        {
+            place_multiplier(&mut output, sumrec);
+            if neg
+            {
+                output.push(Num(Number::from(n1.clone(), None)));
+                output.push(Str('×'.to_string()));
+                neg = false;
+            }
+            i += if c == '@'
+            {
+                chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 2
+            }
+            else
+            {
+                word.chars().count()
+            };
+            if num > 0 && sumrec.iter().any(|c| c.0 == -1)
+            {
+                output.push(Str("@".to_owned() + &word));
+            }
+            else
+            {
+                output.push(Str(word));
+            }
+            if pwr.0 && pwr.1 == *bracket && chars[i] != '^'
+            {
+                for _ in 0..pwr.2
+                {
+                    output.push(Str(')'.to_string()))
+                }
+                pwr.0 = false;
+                pwr.2 = 0
+            }
+            if scientific
+            {
+                output.push(Str(")".to_string()));
+                scientific = false;
+            }
+            if subfact.0 && subfact.1 == 0
+            {
+                subfact.0 = false;
+                output.push(Str(")".to_string()));
+                output.push(Str(")".to_string()))
+            }
+        }
+        else if var_overrule
             && ((functions.contains(word.as_str())
                 && i + countv < chars.len()
                 && (matches!(
@@ -1363,77 +1435,6 @@ pub fn input_var(
             else
             {
                 output.push(Str(word))
-            }
-        }
-        else if sumrec.iter().any(|a| {
-            if wordv == a.1
-            {
-                num = a.0;
-                word.clone_from(&a.1);
-                true
-            }
-            else
-            {
-                false
-            }
-        }) || (!vars
-            .iter()
-            .any(|c| c.name.iter().collect::<String>().split('(').next().unwrap() == wordv)
-            && sumrec.iter().any(|a| {
-                if wordv.starts_with(&a.1) && !a.1.is_empty()
-                {
-                    num = a.0;
-                    word.clone_from(&a.1);
-                    true
-                }
-                else
-                {
-                    false
-                }
-            }))
-        {
-            place_multiplier(&mut output, sumrec);
-            if neg
-            {
-                output.push(Num(Number::from(n1.clone(), None)));
-                output.push(Str('×'.to_string()));
-                neg = false;
-            }
-            i += if c == '@'
-            {
-                chars[i + 1..].iter().position(|a| a == &'@').unwrap_or(0) + 2
-            }
-            else
-            {
-                word.chars().count()
-            };
-            if num > 0 && sumrec.iter().any(|c| c.0 == -1)
-            {
-                output.push(Str("@".to_owned() + &word));
-            }
-            else
-            {
-                output.push(Str(word));
-            }
-            if pwr.0 && pwr.1 == *bracket && chars[i] != '^'
-            {
-                for _ in 0..pwr.2
-                {
-                    output.push(Str(')'.to_string()))
-                }
-                pwr.0 = false;
-                pwr.2 = 0
-            }
-            if scientific
-            {
-                output.push(Str(")".to_string()));
-                scientific = false;
-            }
-            if subfact.0 && subfact.1 == 0
-            {
-                subfact.0 = false;
-                output.push(Str(")".to_string()));
-                output.push(Str(")".to_string()))
             }
         }
         else if options.units
@@ -2562,7 +2563,10 @@ pub fn input_var(
             {
                 "(" =>
                 {
-                    if output.len() > i + 2 && output[i + 2].str_is(")") && !print
+                    if output.len() > i + 2
+                        && output[i + 2].str_is(")")
+                        && !(output[i + 1].str_is("epoch") || output[i + 1].str_is("rnd"))
+                        && !print
                     {
                         output.remove(i + 2);
                         output.remove(i);
@@ -2594,7 +2598,10 @@ pub fn input_var(
                         brackets.pop();
                     }
                 }
-                _ if print && functions.contains(s.as_str()) && i + 1 < output.len() =>
+                _ if print
+                    && functions.contains(s.as_str())
+                    && !sumrec.iter().any(|a| a.1 == *s)
+                    && i + 1 < output.len() =>
                 {
                     if let Str(s) = &output[i + 1]
                     {

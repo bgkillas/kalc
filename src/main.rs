@@ -37,7 +37,7 @@ use rug::Complex;
 use std::{
     env::args,
     fs::{File, OpenOptions},
-    io::{stdin, stdout, BufRead, BufReader, IsTerminal, Write},
+    io::{stdin, stdout, BufRead, BufReader, IsTerminal, Stdout, Write},
     thread::JoinHandle,
     time::Instant,
 };
@@ -638,38 +638,25 @@ fn main()
                     }
                 }
             }
-            if args.is_empty()
+            if is_done(&colors, &mut options, &args, &mut stdout)
             {
-                if options.stay_interactive
+                for handle in handles
                 {
-                    options.interactive = true;
-                    terminal::enable_raw_mode().unwrap();
-                    print!(
-                        "\x1b[G\x1b[K{}{}",
-                        prompt(options, &colors),
-                        if options.color == Auto::True
-                        {
-                            "\x1b[0m"
-                        }
-                        else
-                        {
-                            ""
-                        }
-                    );
-                    stdout.flush().unwrap();
+                    handle.join().unwrap();
                 }
-                else
-                {
-                    for handle in handles
-                    {
-                        handle.join().unwrap();
-                    }
-                    break;
-                }
+                break;
             }
         }
         else
         {
+            if !options.interactive && is_done(&colors, &mut options, &args, &mut stdout)
+            {
+                for handle in handles
+                {
+                    handle.join().unwrap();
+                }
+                break;
+            }
             let mut long = false;
             let mut frac = 0;
             let mut current = Vec::new();
@@ -1815,4 +1802,35 @@ fn main()
             }
         }
     }
+}
+
+fn is_done(colors: &Colors, options: &mut Options, args: &Vec<String>, stdout: &mut Stdout)
+    -> bool
+{
+    if args.is_empty()
+    {
+        if options.stay_interactive
+        {
+            options.interactive = true;
+            terminal::enable_raw_mode().unwrap();
+            print!(
+                "\x1b[G\x1b[K{}{}",
+                prompt(*options, &colors),
+                if options.color == Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                }
+            );
+            stdout.flush().unwrap();
+        }
+        else
+        {
+            return true;
+        }
+    }
+    false
 }

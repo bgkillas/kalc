@@ -217,6 +217,7 @@ Functions:
 - variance/var, covariance/cov, standarddeviation/σ (sample-bias corrected)
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
 - normP(μ,σ,x) (normal distribution pdf) normD(z)/normD(x,μ,σ) (area under curve to the left of z score cdf)
+- rand_norm(μ,σ), rand_uniform(a,b)
 - betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
 - roll{a,b,c...} rolls die, dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{first_dice_face,# of die},{second_dice_face,# of die}...}
 - weighted{{a,n1},{b,n2}..} rolls a weighted die where a and b are face values and n1 and n2 are their weights
@@ -233,7 +234,7 @@ Vector functions:
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len, any, all
-- max, min, mean, median, mode, sort
+- max, min, mean, median, mode, sort, geo_mean
 - reverse, link
 - part({vec},col), sum, prod
 - pol{vec} outputs (radius, theta, phi)

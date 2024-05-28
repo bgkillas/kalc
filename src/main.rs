@@ -1804,8 +1804,7 @@ fn main()
     }
 }
 
-fn is_done(colors: &Colors, options: &mut Options, args: &Vec<String>, stdout: &mut Stdout)
-    -> bool
+fn is_done(colors: &Colors, options: &mut Options, args: &[String], stdout: &mut Stdout) -> bool
 {
     if args.is_empty()
     {
@@ -1815,7 +1814,7 @@ fn is_done(colors: &Colors, options: &mut Options, args: &Vec<String>, stdout: &
             terminal::enable_raw_mode().unwrap();
             print!(
                 "\x1b[G\x1b[K{}{}",
-                prompt(*options, &colors),
+                prompt(*options, colors),
                 if options.color == Auto::True
                 {
                     "\x1b[0m"

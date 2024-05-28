@@ -252,6 +252,37 @@ pub fn no_col(input: &str, color: bool) -> Vec<char>
         input.chars().collect::<Vec<char>>()
     }
 }
+pub fn no_col_len(input: &str, color: bool) -> usize
+{
+    if color
+    {
+        let mut skip = false;
+        let mut count = 0;
+        for c in input.chars()
+        {
+            if skip
+            {
+                if c == 'm' || c == 'G' || c == 'K'
+                {
+                    skip = false
+                }
+            }
+            else if c == '\x1b'
+            {
+                skip = true
+            }
+            else
+            {
+                count += 1
+            }
+        }
+        count
+    }
+    else
+    {
+        input.len()
+    }
+}
 pub fn write(mut input: String, file: &mut File, lines: &mut Vec<String>, slow: bool, last: String)
 {
     if last != input && !input.replace(' ', "").is_empty() && !input.starts_with('#')

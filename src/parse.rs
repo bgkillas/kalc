@@ -175,7 +175,7 @@ pub fn input_var(
                     output.push(Str('^'.to_string()))
                 }
                 Some(Str(s))
-                    if matches!(s.as_str(), "x" | "y" | "rnd" | "epoch")
+                    if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch")
                         || sumrec.iter().any(|v| &v.1 == s) =>
                 {
                     output.push(Str('^'.to_string()))
@@ -1376,7 +1376,7 @@ pub fn input_var(
                 ) || (chars[i + countv] == '^' && chars[i] != 'C' && countv != 1)))
                 || matches!(
                     word.as_str(),
-                    "rnd" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
+                    "rnd" | "rand" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
                 ))
         {
             place_multiplier(&mut output, sumrec);
@@ -2514,7 +2514,7 @@ pub fn input_var(
         {
             Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Str('^'.to_string())),
             Some(Str(s))
-                if matches!(s.as_str(), "x" | "y" | "rnd" | "epoch")
+                if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch")
                     || sumrec.iter().any(|v| &v.1 == s) =>
             {
                 output.push(Str('^'.to_string()))
@@ -2565,7 +2565,14 @@ pub fn input_var(
                 {
                     if output.len() > i + 2
                         && output[i + 2].str_is(")")
-                        && !(output[i + 1].str_is("epoch") || output[i + 1].str_is("rnd"))
+                        && if let Str(s) = &output[i + 1]
+                        {
+                            !matches!(s.as_str(), "epoch" | "rnd" | "rand")
+                        }
+                        else
+                        {
+                            false
+                        }
                         && !print
                     {
                         output.remove(i + 2);
@@ -2635,7 +2642,7 @@ pub fn input_var(
             {
                 match s.as_str()
                 {
-                    "x" | "y" | "roll" | "rnd" | "epoch" =>
+                    "x" | "y" | "roll" | "rnd" | "rand" | "epoch" =>
                     {
                         to = 0;
                     }
@@ -2673,7 +2680,7 @@ pub fn input_var(
             if (v.1.len() != 1
                 || (if let Str(s) = &v.1[0]
                 {
-                    matches!(s.as_str(), "rnd" | "epoch")
+                    matches!(s.as_str(), "rnd" | "rand" | "epoch")
                 }
                 else
                 {
@@ -2747,7 +2754,7 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
         Some(Str(s))
             if matches!(
                 s.as_str(),
-                ")" | "x" | "y" | "]" | "}" | "rnd" | "epoch" | "@"
+                ")" | "x" | "y" | "]" | "}" | "rnd" | "rand" | "epoch" | "@"
             ) || sumrec
                 .iter()
                 .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s) =>

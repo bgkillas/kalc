@@ -8,8 +8,8 @@ use crate::{
     load_vars::set_commands_or_vars,
     math::do_math,
     misc::{
-        clear, get_terminal_dimensions, handle_err, insert_last, no_col, parsed_to_string, prompt,
-        to_output,
+        clear, get_terminal_dimensions, handle_err, insert_last, no_col, no_col_len,
+        parsed_to_string, prompt, to_output,
     },
     options::{equal_to, silent_commands},
     parse::input_var,
@@ -122,9 +122,9 @@ pub fn print_concurrent(
             return if !out.is_empty()
             {
                 let (width, height) = get_terminal_dimensions();
-                let len = no_col(&out, options.color == crate::Auto::True).len();
-                let wrap = (len - 1) / width + 1;
-                if len > width * (height - 1)
+                let len = no_col_len(&out, options.color == crate::Auto::True);
+                let wrap = len.saturating_sub(1) / width + 1;
+                if len > width * height.saturating_sub(1)
                 {
                     if long_output
                     {
@@ -332,9 +332,9 @@ pub fn print_concurrent(
                         return (0, HowGraphing::default(), false, true);
                     }
                     let (width, height) = get_terminal_dimensions();
-                    let len = no_col(&out, options.color == crate::Auto::True).len();
-                    let wrap = (len - 1) / width + 1;
-                    return if len > width * (height - 1)
+                    let len = no_col_len(&out, options.color == crate::Auto::True);
+                    let wrap = len.saturating_sub(1) / width + 1;
+                    return if len > width * height.saturating_sub(1)
                     {
                         if long_output
                         {
@@ -567,8 +567,8 @@ pub fn print_concurrent(
                 &last.iter().collect::<String>(),
             );
             let width = get_terminal_dimensions().0;
-            let len = no_col(&out, options.color == crate::Auto::True).len();
-            let wrap = (len - 1) / width + 1;
+            let len = no_col_len(&out, options.color == crate::Auto::True);
+            let wrap = len.saturating_sub(1) / width + 1;
             if len > width
             {
                 print!(
@@ -616,15 +616,15 @@ pub fn print_concurrent(
         Ok(n) => n,
         Err(s) =>
         {
-            if s == " "
+            return if s == " "
             {
                 clear(unmodified_input, start, end, options, &colors);
-                return (0, HowGraphing::default(), false, false);
+                (0, HowGraphing::default(), false, false)
             }
             else
             {
                 handle_err(s, unmodified_input, options, &colors, start, end);
-                return (1, HowGraphing::default(), false, false);
+                (1, HowGraphing::default(), false, false)
             }
         }
     };
@@ -754,8 +754,8 @@ pub fn print_concurrent(
                 output.0 += &st;
                 frac_a += &st;
             }
-            let len1 = no_col(&output.0, options.color == crate::Auto::True).len();
-            let len2 = no_col(&output.1, options.color == crate::Auto::True).len();
+            let len1 = no_col_len(&output.0, options.color == crate::Auto::True);
+            let len2 = no_col_len(&output.1, options.color == crate::Auto::True);
             if (frac == 1 && !options.frac.num)
                 || (frac_a.len() + frac_b.len()
                     - if options.color == crate::Auto::True && !frac_b.is_empty()
@@ -770,7 +770,7 @@ pub fn print_concurrent(
             {
                 frac = 0;
             }
-            if len1 + len2 > width * (height - 1)
+            if len1 + len2 > width * height.saturating_sub(1)
             {
                 if long_output
                 {
@@ -993,7 +993,7 @@ pub fn print_concurrent(
                     {
                         out.clone().1
                     };
-                    if frac_out.len() > width
+                    if no_col_len(&frac_out, options.color == crate::Auto::True) > width
                     {
                         frac = 0
                     }
@@ -1032,20 +1032,26 @@ pub fn print_concurrent(
                         frac_out += ",";
                     }
                 }
+                if !long_output
+                    && no_col_len(&output, options.color == crate::Auto::True)
+                        > width * height.saturating_sub(1)
+                {
+                    break;
+                }
             }
-            let length = no_col(&output, options.color == crate::Auto::True).len();
+            let length = no_col_len(&output, options.color == crate::Auto::True);
             if frac_out == output
                 || !options.frac.vec
-                || no_col(&frac_out, options.color == crate::Auto::True).len() > width
+                || no_col_len(&frac_out, options.color == crate::Auto::True) > width
                 || length > width
             {
                 frac = 0;
             }
-            if length > width * (height - 1)
+            if length > width * height.saturating_sub(1)
             {
                 if long_output
                 {
-                    let num = (length - 1) / width;
+                    let num = length.saturating_sub(1) / width;
                     print!(
                         "\x1b[G\n\x1b[J{}\x1b[G{}{}",
                         if frac == 1 && options.frac.vec
@@ -1093,7 +1099,7 @@ pub fn print_concurrent(
             }
             else
             {
-                let num = (length - 1) / width;
+                let num = length.saturating_sub(1) / width;
                 print!(
                     "\x1b[G{}{}\x1b[K{}\x1b[G\n{}\x1b[J{}{}\x1b[G\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
@@ -1204,7 +1210,7 @@ pub fn print_concurrent(
                         {
                             out.clone().1
                         };
-                        if frac_out.len() > width
+                        if no_col_len(&frac_out, options.color == crate::Auto::True) > width
                         {
                             frac = 0
                         }
@@ -1284,18 +1290,16 @@ pub fn print_concurrent(
                     frac_out += "}";
                 }
             }
-            let length = no_col(&output, options.color == crate::Auto::True)
-                .len()
-                .saturating_sub(1);
+            let length = no_col_len(&output, options.color == crate::Auto::True).saturating_sub(1);
             if frac_out == output && frac == 1
             {
                 frac = 0;
             }
             if !options.multi
             {
-                num += (length - 1) / width;
+                num += length.saturating_sub(1) / width;
                 if !options.frac.mat
-                    || no_col(&frac_out, options.color == crate::Auto::True).len() > width
+                    || no_col_len(&frac_out, options.color == crate::Auto::True) > width
                     || length > width
                 {
                     frac = 0;
@@ -1333,7 +1337,7 @@ pub fn print_concurrent(
                 }
                 frac_out += "\x1b[K\x1b[G\n\x1b[K";
             }
-            if length > width * (height - 1) || num > (height - 2)
+            if length > width * height.saturating_sub(1) || num > height.saturating_sub(2)
             {
                 if long_output
                 {
@@ -2071,7 +2075,10 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     if exp > 0
     {
         zeros = "0".repeat(r.to_string().len() - r.to_string().trim_start_matches('0').len());
-        if d.to_string() == (radix as f64).powi(decimals as i32 - 1).to_string()
+        if d.to_string()
+            == (radix as f64)
+                .powi((decimals as i32).saturating_sub(1))
+                .to_string()
         {
             zeros.pop();
         }

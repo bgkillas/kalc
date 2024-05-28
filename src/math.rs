@@ -217,6 +217,8 @@ pub fn do_math(
                                     | "mod"
                                     | "covariance"
                                     | "cov"
+                                    | "rand_norm"
+                                    | "rand_uniform"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -341,7 +343,7 @@ pub fn do_math(
     {
         if let Str(s) = &function[0]
         {
-            if !matches!(s.as_str(), "rnd" | "epoch")
+            if !matches!(s.as_str(), "rnd" | "rand" | "epoch")
             {
                 return Ok(function[0].clone());
             }
@@ -364,7 +366,7 @@ pub fn do_math(
         {
             if (s.len() > 1
                 && s.chars().next().unwrap().is_alphabetic()
-                && !matches!(s.as_str(), "epoch" | "rnd"))
+                && !matches!(s.as_str(), "epoch" | "rnd" | "rand"))
                 || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D" | "∫")
             {
                 if matches!(
@@ -1896,6 +1898,14 @@ pub fn do_math(
                                 }) / a.len(),
                                 None,
                             )),
+                            "geo_mean" => Num(Number::from(
+                                a.iter()
+                                    .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                        sum * val.number.clone()
+                                    })
+                                    .pow(Float::with_val(options.prec, 1) / a.len()),
+                                None,
+                            )),
                             "median" =>
                             {
                                 let a = sort(a);
@@ -2812,7 +2822,7 @@ pub fn do_math(
         {
             function[i] = match s.as_str()
             {
-                "rnd" => Num(Number::from(
+                "rnd" | "rand" => Num(Number::from(
                     Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
                     None,
                 )),
@@ -3398,6 +3408,8 @@ fn functions(
             | "im"
             | "imag"
             | "next"
+            | "rand_norm"
+            | "rand_uniform"
     )
     {
         if let Some(ref b) = c
@@ -3674,6 +3686,55 @@ fn functions(
                     let imag: Float = a.number.imag().clone();
                     real.next_up();
                     Number::from(Complex::with_val(options.prec, (real, imag)), a.units)
+                }
+            }
+            "rand_norm" =>
+            {
+                if let Some(b) = c
+                {
+                    let mut u: Float =
+                        2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX)) / u64::MAX
+                            - 1;
+                    let mut v: Float =
+                        2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX)) / u64::MAX
+                            - 1;
+                    let mut s: Float = u.clone().pow(2) + v.pow(2);
+                    while s >= 1
+                    {
+                        u = 2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX))
+                            / u64::MAX
+                            - 1;
+                        v = 2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX))
+                            / u64::MAX
+                            - 1;
+                        s = u.clone().pow(2) + v.pow(2);
+                    }
+                    let d: Float = -2 * s.clone().ln() / s;
+                    let r: Float = u * d.sqrt();
+                    Number::from(r * b.number + a.number, a.units)
+                }
+                else
+                {
+                    return Err("not enough args");
+                }
+            }
+            "rand_uniform" =>
+            {
+                if let Some(b) = c
+                {
+                    let units = a.units;
+                    let a = a.number;
+                    let b = b.number;
+                    Number::from(
+                        (b.clone() - a.clone()) * Float::with_val(options.prec, fastrand::u64(..))
+                            / u64::MAX
+                            + if a.real() < b.real() { a } else { b },
+                        units,
+                    )
+                }
+                else
+                {
+                    return Err("not enough args");
                 }
             }
             _ => return Err("unreachable"),
@@ -4188,7 +4249,7 @@ pub fn compute_funcvars(
             && (v.1.len() != 1
                 || (if let Str(s) = &v.1[0]
                 {
-                    matches!(s.as_str(), "rnd" | "epoch")
+                    matches!(s.as_str(), "rnd" | "rand" | "epoch")
                 }
                 else
                 {

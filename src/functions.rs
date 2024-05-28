@@ -232,6 +232,9 @@ pub fn functions() -> HashSet<&'static str>
         "is_fin",
         "is_finite",
         "nth_prime",
+        "rand_norm",
+        "rand_uniform",
+        "geo_mean",
     ]
     .iter()
     .cloned()

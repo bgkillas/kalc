@@ -294,6 +294,41 @@ pub fn print_concurrent(
                         func_vars.push((-1, i.iter().collect()));
                     }
                 }
+                else if inputs.contains(',')
+                    && matches!(
+                        func.iter().collect::<String>().as_str(),
+                        "base"
+                            | "ticks"
+                            | "xr"
+                            | "yr"
+                            | "zr"
+                            | "vxr"
+                            | "vyr"
+                            | "vzr"
+                            | "3d"
+                            | "windowsize"
+                            | "range"
+                            | "vrange"
+                    )
+                {
+                    let mut brackets = 0;
+                    for c in inputs.chars()
+                    {
+                        match c
+                        {
+                            '(' => brackets += 1,
+                            ')' => brackets -= 1,
+                            ',' if brackets == 0 =>
+                            {
+                                inputs.insert(0, '{');
+                                inputs.push('}');
+                                break;
+                            }
+                            _ =>
+                            {}
+                        }
+                    }
+                }
                 if inputs.contains(':')
                 {
                     let inp = inputs;
@@ -403,7 +438,7 @@ pub fn print_concurrent(
                         Err(s) =>
                         {
                             handle_err(s, unmodified_input, options, &colors, start, end);
-                            return (1, HowGraphing::default(), false, false);
+                            return (1, HowGraphing::default(), false, true);
                         }
                     };
                 }

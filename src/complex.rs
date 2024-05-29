@@ -754,8 +754,7 @@ pub fn gamma(a: Complex) -> Complex
 {
     if !a.imag().is_zero()
     {
-        let p = a.prec();
-        incomplete_gamma(a, Complex::new(p))
+        gamma0(a)
     }
     else if a.real().is_sign_negative() && a.real().clone().fract().is_zero()
     {
@@ -2412,12 +2411,14 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
 {
     if z.is_zero()
     {
-        gamma0(s)
+        gamma(s)
     }
-    else if !s.real().clone().fract().is_zero() && *z.real() < 1
+    else if s.real().is_sign_positive()
+        && !s.real().clone().fract().is_zero()
+        && *z.real() <= 0.25
     {
         let p = z.prec().0 as usize / 4;
-        gamma0(s.clone()) - lower_incomplete_gamma_recursion(s, z, 0, p)
+        gamma(s.clone()) - lower_incomplete_gamma_recursion(s, z, 0, p)
     }
     else
     {
@@ -2427,7 +2428,7 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
 }
 pub fn lower_incomplete_gamma(s: Complex, z: Complex) -> Complex
 {
-    if !s.real().clone().fract().is_zero() && *z.real() < 1
+    if s.real().is_sign_positive() && !s.real().clone().fract().is_zero() && *z.real() <= 1
     {
         let p = z.prec().0 as usize / 4;
         lower_incomplete_gamma_recursion(s, z, 0, p)

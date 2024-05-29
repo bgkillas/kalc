@@ -3,9 +3,10 @@ use crate::{
         about_eq, add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
         extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
-        lambertw, length, limit, minors, mvec, ne, nth_prime, or, quadratic, quartic, rand_gamma,
-        recursion, rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum,
-        surface_area, tetration, to, to_polar, trace, transpose, unity, variance, zeta,
+        lambertw, length, limit, lower_incomplete_gamma, minors, mvec, ne, nth_prime, or,
+        quadratic, quartic, rand_gamma, recursion, rem, root, shl, shr, slog, slope, solve, sort,
+        sort_mat, sub, subfactorial, sum, surface_area, tetration, to, to_polar, trace, transpose,
+        unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -4053,7 +4054,7 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        gamma(a.clone()) - incomplete_gamma(a, b)
+                        lower_incomplete_gamma(a, b)
                     }
                     else
                     {

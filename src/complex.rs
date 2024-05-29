@@ -2414,10 +2414,27 @@ pub fn incomplete_gamma(s: Complex, z: Complex) -> Complex
     {
         gamma0(s)
     }
+    else if !s.real().clone().fract().is_zero() && *z.real() < 1
+    {
+        let p = z.prec().0 as usize / 4;
+        gamma0(s.clone()) - lower_incomplete_gamma_recursion(s, z, 0, p)
+    }
     else
     {
         let p = z.prec().0 as usize / 4;
         incomplete_gamma_recursion(s, z, 0, p)
+    }
+}
+pub fn lower_incomplete_gamma(s: Complex, z: Complex) -> Complex
+{
+    if !s.real().clone().fract().is_zero() && *z.real() < 1
+    {
+        let p = z.prec().0 as usize / 4;
+        lower_incomplete_gamma_recursion(s, z, 0, p)
+    }
+    else
+    {
+        gamma(s.clone()) - incomplete_gamma(s, z)
     }
 }
 pub fn eta(s: Complex) -> Complex
@@ -2549,6 +2566,30 @@ fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -
     else
     {
         1 + (iter.div_ceil(2) / incomplete_gamma_recursion(s, z, iter + 1, max))
+    }
+}
+fn lower_incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -> Complex
+{
+    if iter == max
+    {
+        Complex::with_val(s.prec(), 1)
+    }
+    else if iter == 0
+    {
+        (z.clone().pow(s.clone()) / z.clone().exp())
+            / lower_incomplete_gamma_recursion(s, z, 1, max)
+    }
+    else if iter % 2 == 1
+    {
+        s.clone() + iter
+            - 1
+            - ((s.clone() + iter - 1) * z.clone())
+                / lower_incomplete_gamma_recursion(s, z, iter + 1, max)
+    }
+    else
+    {
+        s.clone() + iter - 1
+            + (iter / 2 * z.clone() / lower_incomplete_gamma_recursion(s, z, iter + 1, max))
     }
 }
 pub fn subfactorial(z: Complex) -> Complex

@@ -5283,3 +5283,46 @@ fn initpoint(z: Complex, k: Integer) -> Complex
     let zln = z.clone().ln() + two_pi_k_i;
     zln.clone() - zln.ln()
 }
+pub fn rand_gamma(k: Float, t: Float) -> Float
+{
+    let prec = k.prec();
+    let mut sum = Float::new(prec);
+    for _ in 1..=k
+        .clone()
+        .floor()
+        .to_integer()
+        .unwrap_or_default()
+        .to_usize()
+        .unwrap_or_default()
+    {
+        let u: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
+        sum += u.ln();
+    }
+    let s = k.clone().fract();
+    let e = Float::with_val(prec, 1).exp();
+    let check = e.clone() / (e + s.clone());
+    let mut eta: Float;
+    loop
+    {
+        let u: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
+        let v: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
+        let w: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
+        let n;
+        if u <= check
+        {
+            eta = v.pow(1 / s.clone());
+            n = w * eta.clone().pow(s.clone() - 1);
+        }
+        else
+        {
+            eta = 1 - v.ln();
+            n = w * (-eta.clone()).exp();
+        };
+        if n <= eta.clone().pow(s.clone() - 1) * (-eta.clone()).exp()
+        {
+            break;
+        }
+    }
+    let f: Float = eta - sum;
+    t * f
+}

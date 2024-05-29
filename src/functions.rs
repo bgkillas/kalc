@@ -235,6 +235,16 @@ pub fn functions() -> HashSet<&'static str>
         "rand_norm",
         "rand_uniform",
         "geo_mean",
+        "γ",
+        "lower_gamma",
+        "gamma_pdf",
+        "gamma_cdf",
+        "beta_cdf",
+        "beta_pdf",
+        "norm_cdf",
+        "norm_pdf",
+        "rand_gamma",
+        "rand_beta",
     ]
     .iter()
     .cloned()

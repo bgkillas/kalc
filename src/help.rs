@@ -94,7 +94,7 @@ Functions:\x1b[G\n\
 - ceil, floor, round, int, frac\x1b[G\n\
 - fact, doublefact, subfact\x1b[G\n\
 - sinc, cis, exp\x1b[G\n\
-- zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\
+- zeta, eta, gamma, lower_gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\
 - re, im, onlyreal, onlyimag, split(x+yi), next(n,to)\x1b[G\n\
 - unity(n,k) gets all solutions for x in x^k=n\x1b[G\n\
 - factors, nth_prime, is_prime, is_nan, is_inf, is_finite, gcd, lcm\x1b[G\n\
@@ -104,9 +104,10 @@ Functions:\x1b[G\n\
 - tofreq{{a,b,c...}}, tolist{{{{a,b}},{{c,d}}...}}, tolist{{a,b,c}} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)\x1b[G\n\
 - variance/var, covariance/cov, standarddeviation/σ (sample-bias corrected)\x1b[G\n\
 - percentile({{vec}},nth) (gets number at nth percentile), percentilerank({{vec}},x) (gets percentile rank for x point), quartiles{{vec}} (gets quartiles for data set)\x1b[G\n\
-- normP(μ,σ,x) (normal distribution pdf) normD(z)/normD(x,μ,σ) (area under curve to the left of z score cdf)\x1b[G\n\
-- rand_norm(μ,σ), rand_uniform(a,b)\x1b[G\n\
-- betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\x1b[G\n\
+- norm_pdf(x,μ,σ) (normal distribution pdf) normD(z)/norm_cdf(x,μ,σ) (area under curve to the left of z score cdf)\x1b[G\n\
+- beta_pdf(x,α,β) (beta distribution pdf) beta_cdf/I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)\x1b[G\n\
+- gamma_pdf(x,k,θ), gamma_cdf(x,k,θ)\x1b[G\n\
+- rand_norm(μ,σ), rand_uniform(a,b), rand_gamma(k,θ)\x1b[G\n\
 - roll{{a,b,c...}} rolls die, dice{{a,b,c...}} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{{{first_dice_face,# of die}},{{second_dice_face,# of die}}...}}\x1b[G\n\
 - weighted{{{{a,n1}},{{b,n2}}..}} rolls a weighted die where a and b are face values and n1 and n2 are their weights\x1b[G\n\
 - An(n,k), Ap(n,t) eulerian numbers and polynomials\x1b[G\n\

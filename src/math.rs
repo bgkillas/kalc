@@ -3,8 +3,8 @@ use crate::{
         about_eq, add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
         extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
-        lambertw, length, limit, minors, mvec, ne, nth_prime, or, quadratic, quartic, recursion,
-        rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum,
+        lambertw, length, limit, minors, mvec, ne, nth_prime, or, quadratic, quartic, rand_gamma,
+        recursion, rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum,
         surface_area, tetration, to, to_polar, trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
@@ -200,6 +200,9 @@ pub fn do_math(
                                     | "Ap"
                                     | "An"
                                     | "gamma"
+                                    | "Γ"
+                                    | "γ"
+                                    | "lower_gamma"
                                     | "ph"
                                     | "pochhammer"
                                     | "Β"
@@ -219,6 +222,14 @@ pub fn do_math(
                                     | "cov"
                                     | "rand_norm"
                                     | "rand_uniform"
+                                    | "rand_gamma"
+                                    | "rand_beta"
+                                    | "gamma_pdf"
+                                    | "gamma_cdf"
+                                    | "beta_cdf"
+                                    | "beta_pdf"
+                                    | "norm_cdf"
+                                    | "norm_pdf"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -2397,7 +2408,43 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
-                            "I" | "betaC" =>
+                            "gamma_pdf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let x = arg.num()?.number;
+                                    let a = function.remove(i + 1).num()?.number;
+                                    let b = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        b.clone().pow(-a.clone()) / gamma(a.clone())
+                                            * x.clone().pow(a - 1)
+                                            * (-x / b).exp(),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "gamma_cdf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let x = arg.num()?.number;
+                                    let a = function.remove(i + 1).num()?.number;
+                                    let b = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        1 - incomplete_gamma(a.clone(), x / b) / gamma(a),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "I" | "betaC" | "beta_cdf" =>
                             {
                                 if i + 2 < function.len()
                                 {
@@ -2416,13 +2463,13 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
-                            "betaP" =>
+                            "betaP" | "beta_pdf" =>
                             {
                                 if i + 2 < function.len()
                                 {
-                                    let alpha = arg.num()?.number;
+                                    let x = arg.num()?.number;
+                                    let alpha = function.remove(i + 1).num()?.number;
                                     let beta = function.remove(i + 1).num()?.number;
-                                    let x = function.remove(i + 1).num()?.number;
                                     let c: Complex = 1 - x.clone();
                                     Num(Number::from(
                                         gamma(alpha.clone() + beta.clone())
@@ -2437,13 +2484,13 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
-                            "normP" =>
+                            "normP" | "norm_pdf" =>
                             {
                                 if i + 2 < function.len()
                                 {
-                                    let mu = arg.num()?.number;
+                                    let x = arg.num()?.number;
+                                    let mu = function.remove(i + 1).num()?.number;
                                     let sigma = function.remove(i + 1).num()?.number;
-                                    let x = function.remove(i + 1).num()?.number;
                                     let n: Complex = (x - mu).pow(2);
                                     let n: Complex = -n / (2 * sigma.clone().pow(2));
                                     let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
@@ -2454,7 +2501,7 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
-                            "normD" =>
+                            "normD" | "norm_cdf" =>
                             {
                                 let mut a = arg.num()?.number;
                                 if i + 2 < function.len()
@@ -3410,6 +3457,8 @@ fn functions(
             | "next"
             | "rand_norm"
             | "rand_uniform"
+            | "rand_gamma"
+            | "rand_beta"
     )
     {
         if let Some(ref b) = c
@@ -3686,6 +3735,33 @@ fn functions(
                     let imag: Float = a.number.imag().clone();
                     real.next_up();
                     Number::from(Complex::with_val(options.prec, (real, imag)), a.units)
+                }
+            }
+            "rand_gamma" =>
+            {
+                if let Some(b) = c
+                {
+                    Number::from(
+                        rand_gamma(a.number.real().clone(), b.number.real().clone()).into(),
+                        b.units,
+                    )
+                }
+                else
+                {
+                    return Err("not enough args");
+                }
+            }
+            "rand_beta" =>
+            {
+                if let Some(b) = c
+                {
+                    let x = rand_gamma(a.number.real().clone(), Float::with_val(options.prec, 1));
+                    let y = rand_gamma(b.number.real().clone(), Float::with_val(options.prec, 1));
+                    Number::from((x.clone() / (x + y)).into(), b.units)
+                }
+                else
+                {
+                    return Err("not enough args");
                 }
             }
             "rand_norm" =>
@@ -3967,6 +4043,17 @@ fn functions(
                         {
                             gamma(b.clone() + a.clone()) / gamma(a.clone())
                         }
+                    }
+                    else
+                    {
+                        return Err("not enough args");
+                    }
+                }
+                "lower_gamma" | "γ" =>
+                {
+                    if let Some(b) = d
+                    {
+                        gamma(a.clone()) - incomplete_gamma(a, b)
                     }
                     else
                     {

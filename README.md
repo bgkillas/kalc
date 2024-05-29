@@ -206,7 +206,7 @@ Functions:
 - ceil, floor, round, int, frac
 - fact, doublefact, subfact
 - sinc, cis, exp
-- zeta, eta, gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
+- zeta, eta, gamma, lower_gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)
 - re, im, onlyreal, onlyimag, split(x+yi), next(n,to)
 - unity(n,k) gets all solutions for x in x^k=n
 - factors, nth_prime, is_prime, is_nan, is_inf, is_finite, gcd, lcm
@@ -216,9 +216,10 @@ Functions:
 - tofreq{a,b,c...}, tolist{{a,b},{c,d}...}, tolist{a,b,c} (sorts and counts how many time each number occurs, tolist takes that kind of data and reverses it)
 - variance/var, covariance/cov, standarddeviation/σ (sample-bias corrected)
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
-- normP(μ,σ,x) (normal distribution pdf) normD(z)/normD(x,μ,σ) (area under curve to the left of z score cdf)
-- rand_norm(μ,σ), rand_uniform(a,b)
-- betaP(α,β,x) (beta distribution pdf) I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
+- norm_pdf(x,μ,σ) (normal distribution pdf) normD(z)/norm_cdf(x,μ,σ) (area under curve to the left of z score cdf)
+- beta_pdf(x,α,β) (beta distribution pdf) beta_cdf/I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
+- gamma_pdf(x,k,θ), gamma_cdf(x,k,θ)
+- rand_norm(μ,σ), rand_uniform(a,b), rand_gamma(k,θ)
 - roll{a,b,c...} rolls die, dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{first_dice_face,# of die},{second_dice_face,# of die}...}
 - weighted{{a,n1},{b,n2}..} rolls a weighted die where a and b are face values and n1 and n2 are their weights
 - An(n,k), Ap(n,t) eulerian numbers and polynomials

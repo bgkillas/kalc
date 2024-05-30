@@ -219,9 +219,9 @@ Functions:
 - norm_pdf(x,μ,σ) (normal distribution pdf) normD(z)/norm_cdf(x,μ,σ) (area under curve to the left of z score cdf)
 - beta_pdf(x,α,β) (beta distribution pdf) beta_cdf/I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
 - gamma_pdf(x,k,θ), gamma_cdf(x,k,θ)
-- rand_norm(μ,σ), rand_uniform(a,b), rand_gamma(k,θ)
+- rand_norm(μ,σ), rand_uniform(a,b), rand_int(a,b), rand_gamma(k,θ)
 - roll{a,b,c...} rolls die, dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{first_dice_face,# of die},{second_dice_face,# of die}...}
-- weighted{{a,n1},{b,n2}..} rolls a weighted die where a and b are face values and n1 and n2 are their weights
+- rand_weighted{{a,n1},{b,n2}..} rolls a weighted die where a and b are face values and n1 and n2 are their weights
 - An(n,k), Ap(n,t) eulerian numbers and polynomials
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
@@ -249,7 +249,7 @@ Matrix functions:
 - part({mat},col,row), flatten, sum, prod
 - abs, norm
 - len, wid
-- max, min, mean, mode
+- max, min, mean, mode, weighted_mean{{n,weight}...}
 - iden(n) produces an n dimension identity matrix
 - rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix
 - sort(mat) sorts rows by first column

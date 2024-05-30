@@ -223,6 +223,7 @@ pub fn do_math(
                                     | "cov"
                                     | "rand_norm"
                                     | "rand_uniform"
+                                    | "rand_int"
                                     | "rand_gamma"
                                     | "rand_beta"
                                     | "gamma_pdf"
@@ -1276,6 +1277,21 @@ pub fn do_math(
                                 }
                                 Num(Number::from(n.sqrt(), None))
                             }
+                            "weighted_mean" =>
+                            {
+                                if a.iter().any(|a| a.len() != 2)
+                                {
+                                    return Err("bad data");
+                                }
+                                Num(Number::from(
+                                    a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                        sum + val[0].number.clone() * val[1].number.clone()
+                                    }) / a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                        sum + val[1].number.clone()
+                                    }),
+                                    None,
+                                ))
+                            }
                             "mean" | "μ" => Num(Number::from(
                                 a.iter()
                                     .flatten()
@@ -1408,19 +1424,27 @@ pub fn do_math(
                                 }
                                 Vector(sort(vec))
                             }
-                            "weighted" =>
+                            "rand_weighted" =>
                             {
+                                if a.iter().any(|a| a.len() != 2)
+                                {
+                                    return Err("bad data");
+                                }
                                 let mut sum = Integer::new();
                                 for i in &a
                                 {
                                     sum += i[1].number.real().to_integer().unwrap_or_default();
                                 }
-                                let n = sum.to_u64().unwrap_or_default();
-                                let max = u64::MAX - u64::MAX.rem(n);
-                                let mut rnd = u64::MAX;
+                                let n = sum.to_u128().unwrap_or_default();
+                                if n == 0
+                                {
+                                    return Err("bad data");
+                                }
+                                let max = u128::MAX - u128::MAX.rem(n);
+                                let mut rnd = u128::MAX;
                                 while rnd >= max
                                 {
-                                    rnd = fastrand::u64(..);
+                                    rnd = fastrand::u128(..);
                                 }
                                 rnd = rnd.rem(n) + 1;
                                 let mut num =
@@ -1432,7 +1456,7 @@ pub fn do_math(
                                             .real()
                                             .to_integer()
                                             .unwrap_or_default()
-                                            .to_u64()
+                                            .to_u128()
                                             .unwrap_or_default(),
                                     );
                                     if rnd == 0
@@ -1453,23 +1477,23 @@ pub fn do_math(
                                         return Err("bad dice data");
                                     }
                                     let a = i[0].number.real().to_integer().unwrap_or_default();
-                                    if a > u64::MAX || a == 0
+                                    if a > u128::MAX || a == 0
                                     {
                                         return Err("dice too large or bad dice data");
                                     }
-                                    let n = a.to_u64().unwrap_or_default();
-                                    let max = u64::MAX - u64::MAX.rem(n);
+                                    let n = a.to_u128().unwrap_or_default();
+                                    let max = u128::MAX - u128::MAX.rem(n);
                                     let end = i[1]
                                         .number
                                         .real()
                                         .to_integer()
                                         .unwrap_or_default()
-                                        .to_u64()
+                                        .to_u128()
                                         .unwrap_or_default();
                                     let mut i = 0;
                                     while i < end
                                     {
-                                        let rnd = fastrand::u64(..);
+                                        let rnd = fastrand::u128(..);
                                         if rnd < max
                                         {
                                             sum += rnd.rem(n) + 1;
@@ -1604,13 +1628,13 @@ pub fn do_math(
                                 while i < a.len()
                                 {
                                     let a = a[i].number.real().to_integer().unwrap_or_default();
-                                    if a > u64::MAX as f64 || a == 0
+                                    if a > u128::MAX as f64 || a == 0
                                     {
                                         return Err("dice too large or bad dice data");
                                     }
-                                    let n = a.to_u64().unwrap_or_default();
-                                    let max = u64::MAX - u64::MAX.rem(n);
-                                    let rnd = fastrand::u64(..);
+                                    let n = a.to_u128().unwrap_or_default();
+                                    let max = u128::MAX - u128::MAX.rem(n);
+                                    let rnd = fastrand::u128(..);
                                     if rnd < max
                                     {
                                         sum += rnd.rem(n) + 1;
@@ -2887,7 +2911,7 @@ pub fn do_math(
             function[i] = match s.as_str()
             {
                 "rnd" | "rand" => Num(Number::from(
-                    Complex::with_val(options.prec, fastrand::u64(..)) / u64::MAX,
+                    Complex::with_val(options.prec, fastrand::u128(..)) / u128::MAX,
                     None,
                 )),
                 "epoch" => Num(Number::from(
@@ -3474,6 +3498,7 @@ fn functions(
             | "next"
             | "rand_norm"
             | "rand_uniform"
+            | "rand_int"
             | "rand_gamma"
             | "rand_beta"
     )
@@ -3786,19 +3811,19 @@ fn functions(
                 if let Some(b) = c
                 {
                     let mut u: Float =
-                        2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX)) / u64::MAX
+                        2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX)) / u128::MAX
                             - 1;
                     let mut v: Float =
-                        2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX)) / u64::MAX
+                        2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX)) / u128::MAX
                             - 1;
                     let mut s: Float = u.clone().pow(2) + v.pow(2);
                     while s >= 1
                     {
-                        u = 2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX))
-                            / u64::MAX
+                        u = 2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX))
+                            / u128::MAX
                             - 1;
-                        v = 2 * Float::with_val(options.prec, fastrand::u64(1..u64::MAX))
-                            / u64::MAX
+                        v = 2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX))
+                            / u128::MAX
                             - 1;
                         s = u.clone().pow(2) + v.pow(2);
                     }
@@ -3819,9 +3844,38 @@ fn functions(
                     let a = a.number;
                     let b = b.number;
                     Number::from(
-                        (b.clone() - a.clone()) * Float::with_val(options.prec, fastrand::u64(..))
-                            / u64::MAX
+                        (b.clone() - a.clone()) * Float::with_val(options.prec, fastrand::u128(..))
+                            / u128::MAX
                             + if a.real() < b.real() { a } else { b },
+                        units,
+                    )
+                }
+                else
+                {
+                    return Err("not enough args");
+                }
+            }
+            "rand_int" =>
+            {
+                if let Some(b) = c
+                {
+                    let units = a.units;
+                    let a = a
+                        .number
+                        .real()
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_u128()
+                        .unwrap_or_default();
+                    let b = b
+                        .number
+                        .real()
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_u128()
+                        .unwrap_or_default();
+                    Number::from(
+                        Complex::with_val(options.prec, fastrand::u128(a..=b)),
                         units,
                     )
                 }

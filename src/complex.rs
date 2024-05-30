@@ -5343,7 +5343,7 @@ pub fn rand_gamma(k: Float, t: Float) -> Float
         .to_usize()
         .unwrap_or_default()
     {
-        let u: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
+        let u: Float = Float::with_val(prec, fastrand::u128(1..)) / u128::MAX;
         sum += u.ln();
     }
     let s = k.clone().fract();
@@ -5352,9 +5352,9 @@ pub fn rand_gamma(k: Float, t: Float) -> Float
     let mut eta: Float;
     loop
     {
-        let u: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
-        let v: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
-        let w: Float = Float::with_val(prec, fastrand::u64(1..)) / u64::MAX;
+        let u: Float = Float::with_val(prec, fastrand::u128(1..)) / u128::MAX;
+        let v: Float = Float::with_val(prec, fastrand::u128(1..)) / u128::MAX;
+        let w: Float = Float::with_val(prec, fastrand::u128(1..)) / u128::MAX;
         let n;
         if u <= check
         {

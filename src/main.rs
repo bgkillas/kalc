@@ -15,6 +15,7 @@ mod units;
 //lib, gui
 use crate::{
     complex::NumStr,
+    functions::functions_with_args,
     graph::graph,
     help::help_for,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
@@ -1596,6 +1597,155 @@ fn main()
                             else
                             {
                                 print!("\x1b[{}C", placement - s);
+                            }
+                        }
+                    }
+                    '\x21' =>
+                    {
+                        //tab completion
+                        let mut word = String::new();
+                        for c in input[..placement].iter().rev()
+                        {
+                            if c.is_alphabetic()
+                                || matches!(*c, '°' | '\'' | '`' | '_' | '∫' | '$' | '¢')
+                            {
+                                word.insert(0, *c)
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        if !word.is_empty()
+                        {
+                            let mut bank1 = Vec::new();
+                            for v in &vars
+                            {
+                                let s = v.name.iter().collect::<String>();
+                                if s.starts_with(&word)
+                                {
+                                    bank1.push(s)
+                                }
+                            }
+                            let mut bank2 = Vec::new();
+                            for f in functions_with_args()
+                            {
+                                if f.starts_with(&word)
+                                    && !bank1.iter().any(|b| {
+                                        b.contains('(')
+                                            && b.split('(').next().unwrap()
+                                                == f.split('(').next().unwrap()
+                                    })
+                                {
+                                    bank2.push(f.to_string())
+                                }
+                            }
+                            if bank1.len() + bank2.len() == 1
+                            {
+                                let mut w = if bank1.is_empty()
+                                {
+                                    &bank2[0]
+                                }
+                                else
+                                {
+                                    &bank1[0]
+                                }
+                                .to_string();
+                                if w.contains('(')
+                                {
+                                    w = w.split('(').next().unwrap().to_string() + "("
+                                }
+                                input.splice(
+                                    placement..placement,
+                                    w[word.len()..].chars().collect::<Vec<char>>(),
+                                );
+                                placement += w.len() - word.len();
+                                end = start + get_terminal_dimensions().0
+                                    - if options.prompt { 3 } else { 1 }
+                                    + 1;
+                                if end > input.len()
+                                {
+                                    end = input.len()
+                                }
+                                else if placement == end
+                                {
+                                    start += 1;
+                                }
+                                else
+                                {
+                                    end -= 1;
+                                }
+                                if i == lines.len()
+                                {
+                                    current.clone_from(&input);
+                                }
+                                else
+                                {
+                                    lines[i] = input.clone().iter().collect::<String>();
+                                }
+                                if options.real_time_output && !slow
+                                {
+                                    execute!(stdout, DisableBlinking).unwrap();
+                                    (frac, graphable, long, varcheck) = print_concurrent(
+                                        &input,
+                                        &last,
+                                        vars.clone(),
+                                        options,
+                                        colors.clone(),
+                                        start,
+                                        end,
+                                        false,
+                                    );
+                                    if watch.elapsed().as_millis() > options.slowcheck
+                                    {
+                                        firstslow = true;
+                                        slow = true;
+                                    }
+                                }
+                                else if firstslow
+                                {
+                                    firstslow = false;
+                                    handle_err(
+                                        "too slow, will print on enter",
+                                        &input,
+                                        options,
+                                        &colors,
+                                        start,
+                                        end,
+                                    )
+                                }
+                                else
+                                {
+                                    clearln(&input, start, end, options, &colors);
+                                }
+                                if end - placement != 0
+                                {
+                                    print!("\x1b[{}D", end - placement)
+                                }
+                            }
+                            else if !bank1.is_empty() || !bank2.is_empty()
+                            {
+                                let width = get_terminal_dimensions().0;
+                                let mut n = 0;
+                                bank1.sort();
+                                for b in bank1.chunks(5)
+                                {
+                                    let b = b.join("   ");
+                                    n += b.len().div_ceil(width);
+                                    print!("\x1b[G\n\x1b[K{}", b)
+                                }
+                                bank2.sort();
+                                for b in bank2.chunks(5)
+                                {
+                                    let b = b.join("   ");
+                                    n += b.len().div_ceil(width);
+                                    print!("\x1b[G\n\x1b[K{}", b)
+                                }
+                                print!(
+                                    "\x1b[G\x1b[{}A\x1b[{}C",
+                                    n,
+                                    placement + if options.prompt { 2 } else { 0 }
+                                )
                             }
                         }
                     }

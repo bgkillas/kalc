@@ -1843,11 +1843,27 @@ pub fn do_math(
                                 ]);
                                 Matrix(mat)
                             }
-                            "standarddeviation" | "σ" =>
+                            "skewness" =>
                             {
-                                Num(Number::from(variance(&a, options.prec).number.sqrt(), None))
+                                let mean = a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                    sum + val.number.clone()
+                                }) / a.len();
+                                Num(Number::from(
+                                    a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                        sum + (val.number.clone() - mean.clone()).pow(3)
+                                    }) / a.len()
+                                        / variance(&a, Some(mean.clone()), options.prec)
+                                            .number
+                                            .sqrt()
+                                            .pow(3),
+                                    None,
+                                ))
                             }
-                            "variance" | "var" => Num(variance(&a, options.prec)),
+                            "standarddeviation" | "σ" => Num(Number::from(
+                                variance(&a, None, options.prec).number.sqrt(),
+                                None,
+                            )),
+                            "variance" | "var" => Num(variance(&a, None, options.prec)),
                             "covariance" | "cov" =>
                             {
                                 let mut sum = Complex::new(options.prec);

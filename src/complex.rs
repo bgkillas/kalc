@@ -2078,12 +2078,18 @@ pub fn quartic(
         ]
     }
 }
-pub fn variance(a: &[Number], prec: u32) -> Number
+pub fn variance(a: &[Number], mean: Option<Complex>, prec: u32) -> Number
 {
-    let mean = a
-        .iter()
-        .fold(Complex::new(prec), |sum, val| sum + val.number.clone())
-        / a.len();
+    let mean = if let Some(n) = mean
+    {
+        n
+    }
+    else
+    {
+        a.iter()
+            .fold(Complex::new(prec), |sum, val| sum + val.number.clone())
+            / a.len()
+    };
     let mut variance = Complex::new(prec);
     for a in a
     {

@@ -22,7 +22,7 @@ use crate::{
     math::do_math,
     misc::{
         clear, clearln, convert, get_terminal_dimensions, handle_err, insert_last, prompt,
-        read_single_char, write,
+        read_single_char, to_output, write,
     },
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
@@ -1640,6 +1640,7 @@ fn main()
                                     bank2.push(f.to_string())
                                 }
                             }
+                            let mut var = false;
                             if bank1.len() + bank2.len() == 1
                             {
                                 let mut w = if bank1.is_empty()
@@ -1654,6 +1655,10 @@ fn main()
                                 if w.contains('(')
                                 {
                                     w = w.split('(').next().unwrap().to_string() + "("
+                                }
+                                else
+                                {
+                                    var = true
                                 }
                                 input.splice(
                                     placement..placement,
@@ -1723,7 +1728,7 @@ fn main()
                                     print!("\x1b[{}D", end - placement)
                                 }
                             }
-                            else if !bank1.is_empty() || !bank2.is_empty()
+                            if !var && (!bank1.is_empty() || !bank2.is_empty())
                             {
                                 let width = get_terminal_dimensions().0;
                                 let mut n = 0;
@@ -1732,14 +1737,28 @@ fn main()
                                 {
                                     let b = b.join("   ");
                                     n += b.len().div_ceil(width);
-                                    print!("\x1b[G\n\x1b[K{}", b)
+                                    print!(
+                                        "\x1b[G\n\x1b[K{}",
+                                        to_output(
+                                            &b.chars().collect::<Vec<char>>(),
+                                            options.color == Auto::True,
+                                            &colors
+                                        )
+                                    )
                                 }
                                 bank2.sort();
                                 for b in bank2.chunks(5)
                                 {
                                     let b = b.join("   ");
                                     n += b.len().div_ceil(width);
-                                    print!("\x1b[G\n\x1b[K{}", b)
+                                    print!(
+                                        "\x1b[G\n\x1b[K{}",
+                                        to_output(
+                                            &b.chars().collect::<Vec<char>>(),
+                                            options.color == Auto::True,
+                                            &colors
+                                        )
+                                    )
                                 }
                                 print!(
                                     "\x1b[G\x1b[{}A\x1b[{}C",

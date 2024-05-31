@@ -1875,7 +1875,23 @@ pub fn do_math(
                                 ]);
                                 Matrix(mat)
                             }
-                            "skewness" =>
+                            "kurtosis" =>
+                            {
+                                let mean = a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                    sum + val.number.clone()
+                                }) / a.len();
+                                Num(Number::from(
+                                    a.iter().fold(Complex::new(options.prec), |sum, val| {
+                                        sum + (val.number.clone() - mean.clone()).pow(4)
+                                    }) / a.len()
+                                        / variance(&a, Some(mean.clone()), options.prec)
+                                            .number
+                                            .pow(2)
+                                        - 3,
+                                    None,
+                                ))
+                            }
+                            "skew" | "skewness" =>
                             {
                                 let mean = a.iter().fold(Complex::new(options.prec), |sum, val| {
                                     sum + val.number.clone()
@@ -1891,7 +1907,7 @@ pub fn do_math(
                                     None,
                                 ))
                             }
-                            "standarddeviation" | "σ" => Num(Number::from(
+                            "sd" | "standarddeviation" | "σ" => Num(Number::from(
                                 variance(&a, None, options.prec).number.sqrt(),
                                 None,
                             )),

@@ -214,7 +214,7 @@ Functions:
 - piecewise/pw({value,cond},{value2,cond2}...) (when first condition is met from left to right. value elsewards is nan)
 - vec(var,func,start,end) mat(var,func,start,end) (makes a vector/matrix) start..end is a shortcut to vec(n,n,start,end)
 - to_freq{a,b,c...}, to_list{{a,b},{c,d}...}, to_list{a,b,c} (sorts and counts how many time each number occurs, to_list takes that kind of data and reverses it)
-- variance/var, covariance/cov, standarddeviation/σ (sample-bias corrected), skewness
+- variance/var, covariance/cov, standarddeviation/sd/σ (sample-bias corrected), skew/skewness, kurtosis
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
 - norm_pdf(x,μ,σ) (normal distribution pdf) normD(z)/norm_cdf(x,μ,σ) (area under curve to the left of z score cdf)
 - beta_pdf(x,α,β) (beta distribution pdf) beta_cdf/I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)

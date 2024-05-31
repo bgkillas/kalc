@@ -255,6 +255,9 @@ pub fn functions() -> HashSet<&'static str>
         "rand_binomial",
         "rand_geometric",
         "rand_bernoulli",
+        "sd",
+        "skew",
+        "kurtosis",
     ]
     .iter()
     .cloned()
@@ -360,7 +363,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "reverse(vec)",
         "link(vec,vec)",
         "flatten(mat)",
-        "I(x,α,β)",
+        "I(x,α,β(,z))",
         "P(n,r)",
         "C(n,r)",
         "split(x)",

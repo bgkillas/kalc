@@ -855,7 +855,7 @@ pub fn add_var(
                     .unwrap_or(redef[k].len().saturating_sub(1))]
                     .iter()
                     .collect::<String>();
-                if redef[k] != v.name && v.unparsed.contains(check)
+                if !redef.contains(&v.name) && v.unparsed.contains(check)
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();
                     if v.name.contains(&'(')

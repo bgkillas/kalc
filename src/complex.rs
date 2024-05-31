@@ -5374,3 +5374,24 @@ pub fn rand_gamma(k: Float, t: Float) -> Float
     let f: Float = eta - sum;
     t * f
 }
+pub fn rand_norm(m: Complex, s: Complex) -> Complex
+{
+    let prec = s.prec().0;
+    let mut u: Float = 2 * Float::with_val(prec, fastrand::u128(1..u128::MAX)) / u128::MAX - 1;
+    let mut v: Float = 2 * Float::with_val(prec, fastrand::u128(1..u128::MAX)) / u128::MAX - 1;
+    let mut g: Float = u.clone().pow(2) + v.pow(2);
+    while g >= 1
+    {
+        u = 2 * Float::with_val(prec, fastrand::u128(1..u128::MAX)) / u128::MAX - 1;
+        v = 2 * Float::with_val(prec, fastrand::u128(1..u128::MAX)) / u128::MAX - 1;
+        g = u.clone().pow(2) + v.pow(2);
+    }
+    let d: Float = -2 * g.clone().ln() / g;
+    let z: Float = u * d.sqrt();
+    m + z * s
+}
+pub fn regularized_incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
+{
+    (gamma(a.clone() + b.clone())) * incomplete_beta(x, a.clone(), b.clone())
+        / (gamma(a) * gamma(b))
+}

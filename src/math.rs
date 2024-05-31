@@ -4,9 +4,9 @@ use crate::{
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
         extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
         lambertw, length, limit, lower_incomplete_gamma, minors, mvec, ne, nth_prime, or,
-        quadratic, quartic, rand_gamma, recursion, rem, root, shl, shr, slog, slope, solve, sort,
-        sort_mat, sub, subfactorial, sum, surface_area, tetration, to, to_polar, trace, transpose,
-        unity, variance, zeta,
+        quadratic, quartic, rand_gamma, rand_norm, recursion, regularized_incomplete_beta, rem,
+        root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area,
+        tetration, to, to_polar, trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -232,6 +232,14 @@ pub fn do_math(
                                     | "beta_pdf"
                                     | "norm_cdf"
                                     | "norm_pdf"
+                                    | "lognorm_cdf"
+                                    | "binomial_cdf"
+                                    | "geometric_cdf"
+                                    | "lognorm_pdf"
+                                    | "binomial_pmf"
+                                    | "geometric_pmf"
+                                    | "rand_lognorm"
+                                    | "rand_binomial"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -1398,7 +1406,7 @@ pub fn do_math(
                                     eigenvectors(&a, false)?
                                 }
                             }
-                            "tolist" =>
+                            "to_list" =>
                             {
                                 let mut vec = Vec::new();
                                 for a in a
@@ -1597,7 +1605,7 @@ pub fn do_math(
                         Vector(a) => match s.as_str()
                         {
                             "transpose" | "trans" => Matrix(transpose(&[a])),
-                            "tolist" =>
+                            "to_list" =>
                             {
                                 let mut vec = Vec::new();
                                 for (i, a) in a.iter().enumerate()
@@ -1834,7 +1842,7 @@ pub fn do_math(
                                     None,
                                 ))
                             }
-                            "tofreq" =>
+                            "to_freq" =>
                             {
                                 if a.is_empty()
                                 {
@@ -2489,15 +2497,25 @@ pub fn do_math(
                             {
                                 if i + 2 < function.len()
                                 {
-                                    let a = arg.num()?.number;
+                                    let x = arg.num()?.number;
+                                    let a = function.remove(i + 1).num()?.number;
                                     let b = function.remove(i + 1).num()?.number;
-                                    let x = function.remove(i + 1).num()?.number;
-                                    Num(Number::from(
-                                        gamma(x.clone() + b.clone())
-                                            * incomplete_beta(a, b.clone(), x.clone())
-                                            / (gamma(x) * gamma(b)),
-                                        None,
-                                    ))
+                                    if i + 1 < function.len()
+                                    {
+                                        let z = function.remove(i + 1).num()?.number;
+                                        Num(Number::from(
+                                            regularized_incomplete_beta(a, b.clone(), z.clone())
+                                                - regularized_incomplete_beta(x, b, z),
+                                            None,
+                                        ))
+                                    }
+                                    else
+                                    {
+                                        Num(Number::from(
+                                            regularized_incomplete_beta(x, a, b),
+                                            None,
+                                        ))
+                                    }
                                 }
                                 else
                                 {
@@ -2563,6 +2581,112 @@ pub fn do_math(
                                 {
                                     let two = Float::with_val(options.prec, 2);
                                     Num(Number::from(erf(-a / two.clone().sqrt()) / two, None))
+                                }
+                            }
+                            "lognorm_cdf" =>
+                            {
+                                let mut a = arg.num()?.number.ln();
+                                if i + 2 < function.len()
+                                {
+                                    a -= function.remove(i + 1).num()?.number;
+                                    a /= function.remove(i + 1).num()?.number;
+                                }
+                                if a.imag().is_zero()
+                                {
+                                    let two = Float::with_val(options.prec, 2);
+                                    Num(Number::from(
+                                        ((-a / two.clone().sqrt()).real().clone().erfc() / two)
+                                            .into(),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    let two = Float::with_val(options.prec, 2);
+                                    Num(Number::from(erf(-a / two.clone().sqrt()) / two, None))
+                                }
+                            }
+                            "lognorm_pdf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let x = arg.num()?.number;
+                                    let mu = function.remove(i + 1).num()?.number;
+                                    let sigma = function.remove(i + 1).num()?.number;
+                                    let n: Complex = (x.clone().ln() - mu).pow(2);
+                                    let n: Complex = -n / (2 * sigma.clone().pow(2));
+                                    let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
+                                    Num(Number::from(n.exp() / (sigma * tau.sqrt() * x), None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "binomial_cdf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let n = function.remove(i + 1).num()?.number;
+                                    let p = function.remove(i + 1).num()?.number;
+                                    let q: Complex = 1 - p.clone();
+                                    Num(Number::from(
+                                        regularized_incomplete_beta(q, n - k.clone(), 1 + k),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "binomial_pmf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let n = function.remove(i + 1).num()?.number;
+                                    let p = function.remove(i + 1).num()?.number;
+                                    let q: Complex = 1 - p.clone();
+                                    Num(Number::from(
+                                        binomial(n.clone(), k.clone())
+                                            * p.pow(k.clone())
+                                            * q.pow(n - k),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "geometric_cdf" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let p = function.remove(i + 1).num()?.number;
+                                    let q: Complex = 1 - p.clone();
+                                    Num(Number::from(1 - q.pow(k), None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "geometric_pmf" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let p = function.remove(i + 1).num()?.number;
+                                    let q: Complex = 1 - p.clone();
+                                    Num(Number::from(q.pow(k - 1) * p, None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
                                 }
                             }
                             "quartic" =>
@@ -3501,6 +3625,10 @@ fn functions(
             | "rand_int"
             | "rand_gamma"
             | "rand_beta"
+            | "rand_lognorm"
+            | "rand_binomial"
+            | "rand_geometric"
+            | "rand_bernoulli"
     )
     {
         if let Some(ref b) = c
@@ -3810,26 +3938,7 @@ fn functions(
             {
                 if let Some(b) = c
                 {
-                    let mut u: Float =
-                        2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX)) / u128::MAX
-                            - 1;
-                    let mut v: Float =
-                        2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX)) / u128::MAX
-                            - 1;
-                    let mut s: Float = u.clone().pow(2) + v.pow(2);
-                    while s >= 1
-                    {
-                        u = 2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX))
-                            / u128::MAX
-                            - 1;
-                        v = 2 * Float::with_val(options.prec, fastrand::u128(1..u128::MAX))
-                            / u128::MAX
-                            - 1;
-                        s = u.clone().pow(2) + v.pow(2);
-                    }
-                    let d: Float = -2 * s.clone().ln() / s;
-                    let r: Float = u * d.sqrt();
-                    Number::from(r * b.number + a.number, a.units)
+                    Number::from(rand_norm(a.number, b.number), a.units)
                 }
                 else
                 {
@@ -3883,6 +3992,57 @@ fn functions(
                 {
                     return Err("not enough args");
                 }
+            }
+            "rand_lognorm" =>
+            {
+                if let Some(b) = c
+                {
+                    Number::from(rand_norm(a.number, b.number).exp(), a.units)
+                }
+                else
+                {
+                    return Err("not enough args");
+                }
+            }
+            "rand_bernoulli" =>
+            {
+                if *a.number.real() > Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX
+                {
+                    Number::from(Complex::with_val(options.prec, 1), None)
+                }
+                else
+                {
+                    Number::from(Complex::new(options.prec), None)
+                }
+            }
+            "rand_binomial" =>
+            {
+                if let Some(b) = c
+                {
+                    let p = b.number.real();
+                    let mut n = a.number.real().to_integer().unwrap_or_default();
+                    let mut sum = Integer::new();
+                    while n != 0
+                    {
+                        if *p > Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX
+                        {
+                            sum += 1;
+                        }
+                        n -= 1
+                    }
+                    Number::from(Complex::with_val(options.prec, sum), None)
+                }
+                else
+                {
+                    return Err("not enough args");
+                }
+            }
+            "rand_geometric" =>
+            {
+                let q: Float = 1 - a.number.real().clone();
+                let n: Float =
+                    (Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX).ln() / q.ln();
+                Number::from(n.ceil().into(), None)
             }
             _ => return Err("unreachable"),
         }

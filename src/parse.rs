@@ -241,8 +241,10 @@ pub fn input_var(
             place_multiplier(&mut output, sumrec);
             if neg
             {
-                if chars.len() > i + 1
-                    && (chars[i] == '^' || (chars[i] == '/' && chars[i + 1] == '/'))
+                if chars.len() > i
+                    && (chars[i] == '^'
+                        || chars[i] == '!'
+                        || (chars.len() > i + 1 && chars[i] == '/' && chars[i + 1] == '/'))
                 {
                     output.push(Num(Number::from(n1.clone(), None)));
                     output.push(Str('×'.to_string()));
@@ -835,24 +837,6 @@ pub fn input_var(
                                 && (output.last().unwrap().str_is(")")
                                     || output.last().unwrap().str_is("}"))))
                     {
-                        if let Num(a) = match output.clone().last()
-                        {
-                            Some(n) => n,
-                            _ => return Err("factorial err"),
-                        }
-                        {
-                            let a = &a.number;
-                            if a.real().is_sign_negative()
-                            {
-                                output.pop();
-                                output.push(Num(Number::from(-a.clone(), None)));
-                                output.insert(
-                                    output.len().saturating_sub(1),
-                                    Num(Number::from(n1.clone(), None)),
-                                );
-                                output.insert(output.len().saturating_sub(1), Str("×".to_string()));
-                            }
-                        }
                         if output.clone().last().unwrap().str_is(")")
                             || output.last().unwrap().str_is("}")
                         {

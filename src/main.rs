@@ -1600,7 +1600,7 @@ fn main()
                             }
                         }
                     }
-                    '\x21' =>
+                    '\x1F' =>
                     {
                         //tab completion
                         let mut word = String::new();

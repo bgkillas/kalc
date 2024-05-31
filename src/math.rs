@@ -240,6 +240,8 @@ pub fn do_math(
                                     | "geometric_pmf"
                                     | "rand_lognorm"
                                     | "rand_binomial"
+                                    | "poisson_pmf"
+                                    | "poisson_cdf"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -2639,6 +2641,38 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
+                            "poisson_pmf" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let l = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        l.clone().pow(k.clone()) * (-l).exp() / gamma(k + 1),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "poisson_cdf" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let l = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        incomplete_gamma(k.clone() + 1, l) / gamma(k + 1),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
                             "binomial_cdf" =>
                             {
                                 if i + 2 < function.len()
@@ -3645,6 +3679,7 @@ fn functions(
             | "rand_binomial"
             | "rand_geometric"
             | "rand_bernoulli"
+            | "rand_poisson"
     )
     {
         if let Some(ref b) = c
@@ -4059,6 +4094,18 @@ fn functions(
                 let n: Float =
                     (Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX).ln() / q.ln();
                 Number::from(n.ceil().into(), None)
+            }
+            "rand_poisson" =>
+            {
+                let mut prod = Complex::with_val(options.prec, 1);
+                let lim = (-a.number).exp();
+                let mut n = Integer::new();
+                while lim.real() < prod.real()
+                {
+                    prod *= Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX;
+                    n += 1;
+                }
+                Number::from(Complex::with_val(options.prec, n - 1), None)
             }
             _ => return Err("unreachable"),
         }

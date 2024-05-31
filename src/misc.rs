@@ -210,7 +210,7 @@ pub fn read_single_char() -> char
                     (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
                     (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
                     (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
-                    (KeyCode::Tab, KeyModifiers::NONE) => '\x21',
+                    (KeyCode::Tab, KeyModifiers::NONE) => '\x1F',
                     _ => '\0',
                 }
             }

@@ -258,6 +258,9 @@ pub fn functions() -> HashSet<&'static str>
         "sd",
         "skew",
         "kurtosis",
+        "rand_poisson",
+        "poisson_pmf",
+        "poisson_cdf",
     ]
     .iter()
     .cloned()
@@ -456,6 +459,9 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "rand_binomial(n,p)",
         "rand_geometric(k,p)",
         "rand_bernoulli(p)",
+        "rand_poisson(λ)",
+        "poisson_pmf(x,λ)",
+        "poisson_cdf(x,λ)",
     ]
     .iter()
     .cloned()

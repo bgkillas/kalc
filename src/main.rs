@@ -1655,7 +1655,11 @@ fn main()
                                 .to_string();
                                 if w.contains('(')
                                 {
-                                    w = w.split('(').next().unwrap().to_string() + "("
+                                    w = w.split('(').next().unwrap().to_string();
+                                    if placement == input.len() || input[placement] != '('
+                                    {
+                                        w.push('(')
+                                    }
                                 }
                                 else
                                 {

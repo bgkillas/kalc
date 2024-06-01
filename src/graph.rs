@@ -1268,7 +1268,7 @@ pub fn get_list_2d(
         {
             matches!(
                 s.as_str(),
-                "±" | "cubic" | "quadratic" | "quartic" | "unity"
+                "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity"
             )
         }
         else
@@ -1281,7 +1281,7 @@ pub fn get_list_2d(
             {
                 matches!(
                     s.as_str(),
-                    "±" | "cubic" | "quadratic" | "quartic" | "unity"
+                    "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity"
                 )
             }
             else
@@ -1578,7 +1578,7 @@ pub fn get_list_3d(
         {
             matches!(
                 s.as_str(),
-                "±" | "cubic" | "quadratic" | "quartic" | "unity"
+                "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity"
             )
         }
         else
@@ -1591,7 +1591,7 @@ pub fn get_list_3d(
             {
                 matches!(
                     s.as_str(),
-                    "±" | "cubic" | "quadratic" | "quartic" | "unity"
+                    "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity"
                 )
             }
             else

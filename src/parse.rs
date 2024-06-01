@@ -27,12 +27,19 @@ pub fn input_var(
     depth: usize,
     blacklist: Vec<char>,
     isgraphing: bool,
-) -> Result<(Vec<NumStr>, Vec<(String, Vec<NumStr>)>, HowGraphing, bool), &'static str>
+    collectvars: &mut (isize, usize),
+) -> Result<
+    (
+        Vec<NumStr>,
+        Vec<(String, Vec<NumStr>)>,
+        HowGraphing,
+        bool,
+        Option<String>,
+    ),
+    &'static str,
+>
 {
-    // if input == "debugtest"
-    // {
-    //     return Err("debugfail");
-    // }
+    let mut sumvar = None;
     let mut graph = HowGraphing::default();
     let prec = (options.prec, options.prec);
     let mut funcvars = Vec::new();
@@ -450,7 +457,7 @@ pub fn input_var(
                 {
                     if i == 0
                     {
-                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true));
+                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true, None));
                     }
                     else if chars[i + 1] == '='
                     {
@@ -467,7 +474,7 @@ pub fn input_var(
                     }
                     else
                     {
-                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true));
+                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true, None));
                     }
                 }
                 '{' =>
@@ -752,6 +759,11 @@ pub fn input_var(
                 }
                 ')' if i != 0 =>
                 {
+                    if collectvars.0 == *bracket
+                    {
+                        output.insert(collectvars.1, Str(",".to_string()));
+                        *collectvars = (0, 0);
+                    }
                     if piecewise == *bracket as usize
                     {
                         piecewise = 0;
@@ -1163,7 +1175,15 @@ pub fn input_var(
                     count2 -= 1;
                 }
             }
-            if place > 0
+            if match word.as_str()
+            {
+                "integrate" | "vec" | "arclength" | "mat" | "prod" | "production" | "iter"
+                | "length" | "∫" | "area" | "sum" | "Σ" | "summation" | "Π" => place >= 3,
+                "sarea" | "surfacearea" => place >= 6,
+                "solve" | "extrema" => place >= 1,
+                "D" | "slope" | "lim" | "limit" => place >= 2,
+                _ => place > 0,
+            }
             {
                 sum.0 = *bracket + 1;
                 sum.1 = String::new();
@@ -1178,6 +1198,16 @@ pub fn input_var(
                     else if c == &','
                     {
                         break;
+                    }
+                    else
+                    {
+                        *bracket += 1;
+                        place_multiplier(&mut output, sumrec);
+                        output.push(Str(word.clone()));
+                        output.push(Str("(".to_string()));
+                        *collectvars = (*bracket, output.len());
+                        i += countv + 1;
+                        continue 'main;
                     }
                 }
                 if !sum.1.is_empty()
@@ -1248,6 +1278,29 @@ pub fn input_var(
                     i += count + countv + 1;
                     continue;
                 }
+            }
+            else if place == 0
+            {
+                if matches!(word.as_str(), "extrema" | "solve")
+                {
+                    *bracket += 1;
+                    place_multiplier(&mut output, sumrec);
+                    output.push(Str(word.clone()));
+                    output.push(Str("(".to_string()));
+                    *collectvars = (*bracket, output.len());
+                    i += countv + 1;
+                    continue 'main;
+                }
+            }
+            else
+            {
+                *bracket += 1;
+                place_multiplier(&mut output, sumrec);
+                output.push(Str(word.clone()));
+                output.push(Str("(".to_string()));
+                *collectvars = (*bracket, output.len());
+                i += countv + 1;
+                continue 'main;
             }
         }
         let (mut unit, mul);
@@ -1422,6 +1475,7 @@ pub fn input_var(
             }
         }
         else if options.units
+            && (collectvars.0 == 0 || word.len() > 1)
             && {
                 (unit, mul) = prefixes(word.clone(), prec);
                 is_unit(&mut unit)
@@ -1727,7 +1781,20 @@ pub fn input_var(
                                     let exit;
                                     let func;
                                     let tempgraph;
-                                    (parsed, func, tempgraph, exit) = match input_var(
+                                    let sum_var;
+                                    let mut cv = *collectvars;
+                                    if cv.0 != 0
+                                    {
+                                        if cv.0 < 0
+                                        {
+                                            cv.0 -= 1;
+                                        }
+                                        else
+                                        {
+                                            cv.0 = -1
+                                        }
+                                    }
+                                    (parsed, func, tempgraph, exit, sum_var) = match input_var(
                                         &varf.iter().collect::<String>(),
                                         vars,
                                         sumrec,
@@ -1737,6 +1804,7 @@ pub fn input_var(
                                         depth + 1,
                                         blacklist.clone(),
                                         false,
+                                        &mut cv,
                                     )
                                     {
                                         Ok(f) => f,
@@ -1765,7 +1833,21 @@ pub fn input_var(
                                             Vec::new(),
                                             HowGraphing::default(),
                                             true,
+                                            None,
                                         ));
+                                    }
+                                    if let Some(s) = sum_var
+                                    {
+                                        if collectvars.0 < 0
+                                        {
+                                            sumvar = Some(s)
+                                        }
+                                        else
+                                        {
+                                            output.insert(collectvars.1, Str(",".to_string()));
+                                            output.insert(collectvars.1, Str(s.clone()));
+                                            *collectvars = (0, 0);
+                                        }
                                     }
                                     if (tempgraph.graph && parsed.len() > 1)
                                         || print
@@ -1779,6 +1861,18 @@ pub fn input_var(
                                             {
                                                 false
                                             }
+                                        })
+                                        || func.iter().any(|c| {
+                                            c.1.iter().any(|c| {
+                                                if let Str(s) = c
+                                                {
+                                                    sumrec.iter().any(|r| &r.1 == s)
+                                                }
+                                                else
+                                                {
+                                                    false
+                                                }
+                                            })
                                         })
                                     {
                                         let iden =
@@ -1982,7 +2076,20 @@ pub fn input_var(
                                 let exit;
                                 let func;
                                 let tempgraph;
-                                (parsed, func, tempgraph, exit) = match input_var(
+                                let sum_var;
+                                let mut cv = *collectvars;
+                                if cv.0 != 0
+                                {
+                                    if cv.0 < 0
+                                    {
+                                        cv.0 -= 1;
+                                    }
+                                    else
+                                    {
+                                        cv.0 = -1
+                                    }
+                                }
+                                (parsed, func, tempgraph, exit, sum_var) = match input_var(
                                     &temp.iter().collect::<String>(),
                                     vars,
                                     sumrec,
@@ -1992,6 +2099,7 @@ pub fn input_var(
                                     depth + 1,
                                     blacklist.clone(),
                                     false,
+                                    &mut cv,
                                 )
                                 {
                                     Ok(f) => f,
@@ -2020,7 +2128,21 @@ pub fn input_var(
                                         Vec::new(),
                                         HowGraphing::default(),
                                         true,
+                                        None,
                                     ));
+                                }
+                                if let Some(s) = sum_var
+                                {
+                                    if collectvars.0 < 0
+                                    {
+                                        sumvar = Some(s)
+                                    }
+                                    else
+                                    {
+                                        output.insert(collectvars.1, Str(",".to_string()));
+                                        output.insert(collectvars.1, Str(s.clone()));
+                                        *collectvars = (0, 0);
+                                    }
                                 }
                                 if (tempgraph.graph && parsed.len() > 1)
                                     || print
@@ -2034,6 +2156,18 @@ pub fn input_var(
                                         {
                                             false
                                         }
+                                    })
+                                    || func.iter().any(|c| {
+                                        c.1.iter().any(|c| {
+                                            if let Str(s) = c
+                                            {
+                                                sumrec.iter().any(|r| &r.1 == s)
+                                            }
+                                            else
+                                            {
+                                                false
+                                            }
+                                        })
                                     })
                                 {
                                     let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
@@ -2364,7 +2498,7 @@ pub fn input_var(
                             output.push(Str(")".to_string()));
                         }
                     }
-                    'x' | 'y' if options.graphtype != GraphType::None =>
+                    'x' | 'y' if collectvars.0 == 0 && options.graphtype != GraphType::None =>
                     {
                         graph.graph = true;
                         if c == 'x'
@@ -2430,7 +2564,7 @@ pub fn input_var(
                             output.push(Str(")".to_string()))
                         }
                     }
-                    'z' if options.graphtype != GraphType::None =>
+                    'z' if collectvars.0 == 0 && options.graphtype != GraphType::None =>
                     {
                         graph.graph = true;
                         graph.x = true;
@@ -2470,8 +2604,53 @@ pub fn input_var(
                         }
                     }
                     _ =>
-                    {}
+                    {
+                        if collectvars.0 != 0
+                        {
+                            if neg
+                            {
+                                output.push(Num(Number::from(n1.clone(), None)));
+                                output.push(Str('×'.to_string()));
+                                neg = false;
+                            }
+                            sumrec.push((*bracket, wordv.clone()));
+                            if collectvars.0 < 0
+                            {
+                                sumvar = Some(wordv.clone());
+                            }
+                            else
+                            {
+                                output.insert(collectvars.1, Str(",".to_string()));
+                                output.insert(collectvars.1, Str(wordv.clone()));
+                            }
+                            place_multiplier(&mut output, sumrec);
+                            output.push(Str(wordv));
+                            *collectvars = (0, 0);
+                        }
+                    }
                 }
+            }
+            else if collectvars.0 != 0
+            {
+                if neg
+                {
+                    output.push(Num(Number::from(n1.clone(), None)));
+                    output.push(Str('×'.to_string()));
+                    neg = false;
+                }
+                sumrec.push((*bracket, word.clone()));
+                if collectvars.0 < 0
+                {
+                    sumvar = Some(word.clone());
+                }
+                else
+                {
+                    output.insert(collectvars.1, Str(",".to_string()));
+                    output.insert(collectvars.1, Str(word.clone()));
+                }
+                place_multiplier(&mut output, sumrec);
+                output.push(Str(word));
+                *collectvars = (0, 0);
             }
             else
             {
@@ -2729,7 +2908,7 @@ pub fn input_var(
     {
         graph = HowGraphing::default()
     }
-    Ok((output, funcvars, graph, false))
+    Ok((output, funcvars, graph, false, sumvar))
 }
 fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)])
 {

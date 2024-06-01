@@ -4020,22 +4020,42 @@ fn functions(
                 if let Some(b) = c
                 {
                     let units = a.units;
-                    let a = a
+                    let ar = a
                         .number
                         .real()
                         .to_integer()
                         .unwrap_or_default()
-                        .to_u128()
+                        .to_i128()
                         .unwrap_or_default();
-                    let b = b
+                    let br = b
                         .number
                         .real()
                         .to_integer()
                         .unwrap_or_default()
-                        .to_u128()
+                        .to_i128()
+                        .unwrap_or_default();
+                    let ai = a
+                        .number
+                        .imag()
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_i128()
+                        .unwrap_or_default();
+                    let bi = b
+                        .number
+                        .imag()
+                        .to_integer()
+                        .unwrap_or_default()
+                        .to_i128()
                         .unwrap_or_default();
                     Number::from(
-                        Complex::with_val(options.prec, fastrand::u128(a..=b)),
+                        Complex::with_val(
+                            options.prec,
+                            (
+                                fastrand::i128(ar.min(br)..=br.max(ar)),
+                                fastrand::i128(ai.min(bi)..=bi.max(ai)),
+                            ),
+                        ),
                         units,
                     )
                 }

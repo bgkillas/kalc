@@ -462,6 +462,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "rand_poisson(λ)",
         "poisson_pmf(x,λ)",
         "poisson_cdf(x,λ)",
+        "kurtosis(vec)",
     ]
     .iter()
     .cloned()

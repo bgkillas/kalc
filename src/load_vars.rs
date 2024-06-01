@@ -774,6 +774,7 @@ pub fn add_var(
                         0,
                         s.chars().collect::<Vec<char>>(),
                         false,
+                        &mut (0, 0),
                     )?;
                     func_vars.push((-1, s.clone()));
                     fvs.push((s, parsed.0));
@@ -791,6 +792,7 @@ pub fn add_var(
             0,
             l.clone(),
             false,
+            &mut (0, 0),
         )?;
         parsed.1.extend(fvs);
         if l.contains(&'(')
@@ -891,6 +893,7 @@ pub fn add_var(
                                     0,
                                     s.chars().collect::<Vec<char>>(),
                                     false,
+                                    &mut (0, 0),
                                 )?;
                                 func_vars.push((-1, s.clone()));
                                 fvs.push((s, parsed.0));
@@ -908,6 +911,7 @@ pub fn add_var(
                         0,
                         v.name.clone(),
                         false,
+                        &mut (0, 0),
                     )?;
                     parsed.1.extend(fvs);
                     if v.name.contains(&'(')

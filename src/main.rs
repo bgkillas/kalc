@@ -596,7 +596,7 @@ fn main()
                         continue;
                     }
                 }
-                (output, funcvar, graphable, varcheck) = match input_var(
+                (output, funcvar, graphable, varcheck, _) = match input_var(
                     &unparsed.iter().map(convert).collect::<String>(),
                     &vars,
                     &mut Vec::new(),
@@ -606,6 +606,7 @@ fn main()
                     0,
                     Vec::new(),
                     false,
+                    &mut (0, 0),
                 )
                 {
                     Ok(f) => f,

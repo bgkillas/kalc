@@ -520,17 +520,20 @@ pub fn place_funcvar(
     num: NumStr,
 ) -> Vec<(String, Vec<NumStr>)>
 {
-    for i in funcvar.iter_mut()
+    if !var.is_empty()
     {
-        if !i.0.contains('(')
+        for i in funcvar.iter_mut()
         {
-            for j in i.1.iter_mut()
+            if !i.0.contains('(')
             {
-                match j
+                for j in i.1.iter_mut()
                 {
-                    Str(s) if s == var => *j = num.clone(),
-                    _ =>
-                    {}
+                    match j
+                    {
+                        Str(s) if s == var => *j = num.clone(),
+                        _ =>
+                        {}
+                    }
                 }
             }
         }
@@ -601,47 +604,51 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
 }
 pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
 {
-    let mut sum = Vec::new();
-    let mut bracket = 0;
-    let mut i = 0;
-    while func.len() > i
+    if !var.is_empty()
     {
-        if let Str(s) = &func[i]
+        let mut sum = Vec::new();
+        let mut bracket = 0;
+        let mut i = 0;
+        while func.len() > i
         {
-            if s == var && sum.is_empty()
+            if let Str(s) = &func[i]
             {
-                func[i] = num.clone();
-            }
-            else
-            {
-                match s.as_str()
+                if s == var && sum.is_empty()
                 {
-                    "(" => bracket += 1,
-                    ")" => bracket -= 1,
-                    "," if sum.contains(&bracket) =>
+                    func[i] = num.clone();
+                }
+                else
+                {
+                    match s.as_str()
                     {
-                        sum.remove(0);
+                        "(" => bracket += 1,
+                        ")" => bracket -= 1,
+                        "," if sum.contains(&bracket) =>
+                        {
+                            sum.remove(0);
+                        }
+                        "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
+                        | "D" | "integrate" | "arclength" | "∫" | "area" | "solve" | "length"
+                        | "slope" | "lim" | "limit" | "iter" | "extrema" | "surfacearea"
+                        | "sarea"
+                            if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
+                        {
+                            i += 3;
+                            sum.push(bracket)
+                        }
+                        "surfacearea" | "sarea"
+                            if i + 4 < func.len() && func[i + 4] == Str(var.to_string()) =>
+                        {
+                            i += 5;
+                            sum.push(bracket)
+                        }
+                        _ =>
+                        {}
                     }
-                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
-                    | "integrate" | "arclength" | "∫" | "area" | "solve" | "length" | "slope"
-                    | "lim" | "limit" | "iter" | "extrema" | "surfacearea" | "sarea"
-                        if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
-                    {
-                        i += 3;
-                        sum.push(bracket)
-                    }
-                    "surfacearea" | "sarea"
-                        if i + 4 < func.len() && func[i + 4] == Str(var.to_string()) =>
-                    {
-                        i += 5;
-                        sum.push(bracket)
-                    }
-                    _ =>
-                    {}
                 }
             }
+            i += 1;
         }
-        i += 1;
     }
     func
 }

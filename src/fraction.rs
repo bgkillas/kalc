@@ -1,7 +1,7 @@
 // as per continued fraction expansion
 use crate::{Colors, Options};
 use rug::{float::Constant::Pi, ops::Pow, Float, Integer};
-pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
+pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> String
 {
     if value.clone().fract().is_zero() || !value.is_finite() || options.prec < 128
     {
@@ -44,7 +44,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     if i == 1 { "sqrt" } else { "cbrt" },
                     if options.color == crate::Auto::True
                     {
-                        colors.brackets[0].to_owned() + "(" + &colors.text
+                        colors.brackets[n % colors.brackets.len()].to_owned() + "(" + &colors.text
                     }
                     else
                     {
@@ -53,7 +53,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     orig.to_integer().unwrap(),
                     if options.color == crate::Auto::True
                     {
-                        colors.brackets[0].to_owned() + ")" + &colors.text
+                        colors.brackets[n % colors.brackets.len()].to_owned() + ")" + &colors.text
                     }
                     else
                     {
@@ -123,7 +123,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                 {
                     let lb = if options.color == crate::Auto::True
                     {
-                        colors.brackets[0].to_owned() + "(" + &colors.text
+                        colors.brackets[n % colors.brackets.len()].to_owned() + "(" + &colors.text
                     }
                     else
                     {
@@ -131,7 +131,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                     };
                     let rb = if options.color == crate::Auto::True
                     {
-                        colors.brackets[0].to_owned() + ")" + &colors.text
+                        colors.brackets[n % colors.brackets.len()].to_owned() + ")" + &colors.text
                     }
                     else
                     {
@@ -228,10 +228,10 @@ pub fn fraction(value: Float, options: Options, colors: &Colors) -> String
                             {
                                 format!(
                                     "/{}({}{}e{}){}",
-                                    colors.brackets[0],
+                                    colors.brackets[n % colors.brackets.len()],
                                     colors.text,
                                     recip,
-                                    colors.brackets[0],
+                                    colors.brackets[n % colors.brackets.len()],
                                     colors.text
                                 )
                             }

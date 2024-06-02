@@ -5436,13 +5436,13 @@ pub fn rand_gamma(k: Float, t: Float) -> Float
 pub fn rand_norm(m: Complex, s: Complex) -> Complex
 {
     let prec = s.prec().0;
-    let mut u: Float = Float::with_val(prec, fastrand::i128(i128::MIN + 1..i128::MAX)) / i128::MAX;
-    let mut v: Float = Float::with_val(prec, fastrand::i128(i128::MIN + 1..i128::MAX)) / i128::MAX;
+    let mut u: Float = Float::with_val(prec, fastrand::i128(i128::MIN + 2..i128::MAX)) / i128::MAX;
+    let mut v: Float = Float::with_val(prec, fastrand::i128(i128::MIN + 2..i128::MAX)) / i128::MAX;
     let mut g: Float = u.clone().pow(2) + v.pow(2);
     while g >= 1
     {
-        u = Float::with_val(prec, fastrand::i128(i128::MIN + 1..i128::MAX)) / i128::MAX;
-        v = Float::with_val(prec, fastrand::i128(i128::MIN + 1..i128::MAX)) / i128::MAX;
+        u = Float::with_val(prec, fastrand::i128(i128::MIN + 2..i128::MAX)) / i128::MAX;
+        v = Float::with_val(prec, fastrand::i128(i128::MIN + 2..i128::MAX)) / i128::MAX;
         g = u.clone().pow(2) + v.pow(2);
     }
     let d: Float = -2 * g.clone().ln() / g;

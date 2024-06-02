@@ -675,8 +675,8 @@ pub fn print_concurrent(
             let (mut frac_a, frac_b) = if options.frac.num
             {
                 let n = n.number;
-                let fa = fraction(n.real().clone(), options, &colors);
-                let fb = fraction(n.imag().clone(), options, &colors);
+                let fa = fraction(n.real().clone(), options, &colors, 0);
+                let fb = fraction(n.imag().clone(), options, &colors, 0);
                 let sign = if !output.0.is_empty() && n.imag().is_sign_positive()
                 {
                     "+"
@@ -972,8 +972,23 @@ pub fn print_concurrent(
                     },
                 );
             }
-            let mut output = if options.polar { "[" } else { "{" }.to_string();
-            let mut frac_out = if options.polar { "[" } else { "{" }.to_string();
+            let mut output = if options.color == crate::Auto::True
+            {
+                colors.brackets[0].clone()
+            }
+            else
+            {
+                String::new()
+            } + if options.polar { "[" } else { "{" }
+                + if options.color == crate::Auto::True
+                {
+                    &colors.text
+                }
+                else
+                {
+                    ""
+                };
+            let mut frac_out = output.clone();
             let mut out;
             let mut frac_temp;
             let (width, height) = get_terminal_dimensions();
@@ -984,7 +999,7 @@ pub fn print_concurrent(
                 let i = &i.number;
                 if frac == 1
                 {
-                    frac_temp = fraction(i.real().clone(), options, &colors);
+                    frac_temp = fraction(i.real().clone(), options, &colors, 1);
                     frac_out += if !frac_temp.is_empty()
                     {
                         &frac_temp
@@ -993,7 +1008,7 @@ pub fn print_concurrent(
                     {
                         &out.0
                     };
-                    frac_temp = fraction(i.imag().clone(), options, &colors);
+                    frac_temp = fraction(i.imag().clone(), options, &colors, 1);
                     frac_out += &if !frac_temp.is_empty()
                     {
                         format!(
@@ -1047,18 +1062,34 @@ pub fn print_concurrent(
                 }
                 if options.color == crate::Auto::True
                 {
-                    output += "\x1b[0m";
+                    output += &colors.text;
                     if frac == 1
                     {
-                        frac_out += "\x1b[0m";
+                        frac_out += &colors.text;
                     }
                 }
                 if k == v.len().saturating_sub(1)
                 {
+                    if options.color == crate::Auto::True
+                    {
+                        output += &colors.brackets[0].clone()
+                    }
                     output += if options.polar { "]" } else { "}" };
+                    if options.color == crate::Auto::True
+                    {
+                        output += &colors.text
+                    }
                     if frac == 1
                     {
+                        if options.color == crate::Auto::True
+                        {
+                            frac_out += &colors.brackets[0].clone()
+                        }
                         frac_out += if options.polar { "]" } else { "}" };
+                        if options.color == crate::Auto::True
+                        {
+                            frac_out += &colors.text
+                        }
                     }
                 }
                 else
@@ -1178,8 +1209,23 @@ pub fn print_concurrent(
         }
         Matrix(v) =>
         {
-            let mut output = if !options.multi { "{" } else { "" }.to_string();
-            let mut frac_out = if !options.multi { "{" } else { "" }.to_string();
+            let mut output = if options.color == crate::Auto::True
+            {
+                colors.brackets[0].clone()
+            }
+            else
+            {
+                String::new()
+            } + if options.multi { "" } else { "{" }
+                + if options.color == crate::Auto::True
+                {
+                    &colors.text
+                }
+                else
+                {
+                    ""
+                };
+            let mut frac_out = output.clone();
             let mut out;
             let mut frac_temp;
             let mut num = 0;
@@ -1189,10 +1235,25 @@ pub fn print_concurrent(
             {
                 if !options.multi
                 {
-                    output += "{";
-                    if frac == 1
+                    if options.color == crate::Auto::True
                     {
-                        frac_out += "{";
+                        output += &(colors.brackets[1 % colors.brackets.len()].clone()
+                            + "{"
+                            + &colors.text);
+                        if frac == 1
+                        {
+                            frac_out += &(colors.brackets[1 % colors.brackets.len()].clone()
+                                + "{"
+                                + &colors.text);
+                        }
+                    }
+                    else
+                    {
+                        output += "{";
+                        if frac == 1
+                        {
+                            frac_out += "{";
+                        }
                     }
                 }
                 for (k, i) in j.iter().enumerate()
@@ -1201,7 +1262,7 @@ pub fn print_concurrent(
                     let i = &i.number;
                     if frac == 1
                     {
-                        frac_temp = fraction(i.real().clone(), options, &colors);
+                        frac_temp = fraction(i.real().clone(), options, &colors, 2);
                         frac_out += if !frac_temp.is_empty()
                         {
                             &frac_temp
@@ -1210,7 +1271,7 @@ pub fn print_concurrent(
                         {
                             &out.0
                         };
-                        frac_temp = fraction(i.imag().clone(), options, &colors);
+                        frac_temp = fraction(i.imag().clone(), options, &colors, 2);
                         frac_out += &if !frac_temp.is_empty()
                         {
                             format!(
@@ -1264,20 +1325,36 @@ pub fn print_concurrent(
                     }
                     if options.color == crate::Auto::True
                     {
-                        output += "\x1b[0m";
+                        output += &colors.text;
                         if frac == 1
                         {
-                            frac_out += "\x1b[0m";
+                            frac_out += &colors.text;
                         }
                     }
                     if k == j.len().saturating_sub(1)
                     {
                         if !options.multi
                         {
-                            output += "}";
-                            if frac == 1
+                            if options.color == crate::Auto::True
                             {
-                                frac_out += "}";
+                                output += &(colors.brackets[1 % colors.brackets.len()].clone()
+                                    + "}"
+                                    + &colors.text);
+                                if frac == 1
+                                {
+                                    frac_out += &(colors.brackets[1 % colors.brackets.len()]
+                                        .clone()
+                                        + "}"
+                                        + &colors.text);
+                                }
+                            }
+                            else
+                            {
+                                output += "}";
+                                if frac == 1
+                                {
+                                    frac_out += "}";
+                                }
                             }
                         }
                     }
@@ -1321,10 +1398,21 @@ pub fn print_concurrent(
             }
             if !options.multi
             {
-                output += "}";
-                if frac == 1
+                if options.color == crate::Auto::True
                 {
-                    frac_out += "}";
+                    output += &(colors.brackets[0].clone() + "}" + &colors.text);
+                    if frac == 1
+                    {
+                        frac_out += &(colors.brackets[0].clone() + "}" + &colors.text);
+                    }
+                }
+                else
+                {
+                    output += "}";
+                    if frac == 1
+                    {
+                        frac_out += "}";
+                    }
                 }
             }
             let length = no_col_len(&output, options.color == crate::Auto::True).saturating_sub(1);
@@ -1517,7 +1605,22 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                     },
                 );
             }
-            let mut output = if options.polar { "[" } else { "{" }.to_string();
+            let mut output = if options.color == crate::Auto::True
+            {
+                colors.brackets[0].clone()
+            }
+            else
+            {
+                String::new()
+            } + if options.polar { "[" } else { "{" }
+                + if options.color == crate::Auto::True
+                {
+                    &colors.text
+                }
+                else
+                {
+                    ""
+                };
             let mut out;
             for (k, i) in v.iter().enumerate()
             {
@@ -1527,22 +1630,23 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 output += &out.2.unwrap_or_default();
                 if options.color == crate::Auto::True
                 {
-                    output += "\x1b[0m";
+                    output += &colors.text;
                 }
-                output += if k == v.len().saturating_sub(1)
+                if k == v.len().saturating_sub(1)
                 {
-                    if options.polar
+                    if options.color == crate::Auto::True
                     {
-                        "]"
+                        output += &colors.brackets[0].clone()
                     }
-                    else
+                    output += if options.polar { "]" } else { "}" };
+                    if options.color == crate::Auto::True
                     {
-                        "}"
+                        output += &colors.text
                     }
                 }
                 else
                 {
-                    ","
+                    output += ",";
                 }
             }
             print!(
@@ -1564,6 +1668,10 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             {
                 String::new()
             }
+            else if options.color == crate::Auto::True
+            {
+                colors.brackets[0].clone() + "{" + &colors.text
+            }
             else
             {
                 "{".to_string()
@@ -1573,7 +1681,18 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             {
                 if !options.multi
                 {
-                    output += "{";
+                    if options.color == crate::Auto::True
+                    {
+                        output += &format!(
+                            "{}{{{}",
+                            colors.brackets[1 % colors.brackets.len()].clone(),
+                            colors.text
+                        );
+                    }
+                    else
+                    {
+                        output += "{"
+                    };
                 }
                 for (k, i) in j.iter().enumerate()
                 {
@@ -1583,13 +1702,24 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                     output += &out.2.unwrap_or_default();
                     if options.color == crate::Auto::True
                     {
-                        output += "\x1b[0m";
+                        output += &colors.text;
                     }
                     if k == j.len().saturating_sub(1)
                     {
                         if !options.multi
                         {
-                            output += "}";
+                            if options.color == crate::Auto::True
+                            {
+                                output += &format!(
+                                    "{}}}{}",
+                                    colors.brackets[1 % colors.brackets.len()].clone(),
+                                    colors.text
+                                );
+                            }
+                            else
+                            {
+                                output += "}"
+                            };
                         }
                     }
                     else if options.tabbed
@@ -1615,7 +1745,14 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             }
             if !options.multi
             {
-                output += "}";
+                if options.color == crate::Auto::True
+                {
+                    output += &format!("{}}}{}", colors.brackets[0].clone(), colors.text);
+                }
+                else
+                {
+                    output += "}"
+                };
             }
             print!(
                 "{}{}",

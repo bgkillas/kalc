@@ -627,9 +627,6 @@ fn main()
                             continue;
                         }
                     }
-                }
-                if !graphable.graph && !varcheck
-                {
                     if let Some(time) = watch
                     {
                         println!(" {}", time.elapsed().as_nanos());
@@ -640,24 +637,23 @@ fn main()
                     }
                 }
             }
-            if is_done(&colors, &mut options, &args, &mut stdout)
-            {
-                for handle in handles
-                {
-                    handle.join().unwrap();
-                }
-                break;
-            }
         }
         else
         {
-            if !options.interactive && is_done(&colors, &mut options, &args, &mut stdout)
+            if !options.interactive
             {
-                for handle in handles
+                if options.stay_interactive
                 {
-                    handle.join().unwrap();
+                    setup_for_interactive(&colors, &mut options, &mut stdout)
                 }
-                break;
+                else
+                {
+                    for handle in handles
+                    {
+                        handle.join().unwrap();
+                    }
+                    break;
+                }
             }
             let mut long = false;
             let mut frac = 0;
@@ -1977,33 +1973,21 @@ fn main()
         }
     }
 }
-
-fn is_done(colors: &Colors, options: &mut Options, args: &[String], stdout: &mut Stdout) -> bool
+fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut Stdout)
 {
-    if args.is_empty()
-    {
-        if options.stay_interactive
+    options.interactive = true;
+    terminal::enable_raw_mode().unwrap();
+    print!(
+        "\x1b[G\x1b[K{}{}",
+        prompt(*options, colors),
+        if options.color == Auto::True
         {
-            options.interactive = true;
-            terminal::enable_raw_mode().unwrap();
-            print!(
-                "\x1b[G\x1b[K{}{}",
-                prompt(*options, colors),
-                if options.color == Auto::True
-                {
-                    "\x1b[0m"
-                }
-                else
-                {
-                    ""
-                }
-            );
-            stdout.flush().unwrap();
+            &colors.text
         }
         else
         {
-            return true;
+            ""
         }
-    }
-    false
+    );
+    stdout.flush().unwrap();
 }

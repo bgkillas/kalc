@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/kalc.svg)](https://crates.io/crates/kalc) [![AUR](https://img.shields.io/aur/version/kalc.svg)](https://aur.archlinux.org/packages/kalc/)
 
-![image](https://github.com/bgkillas/kalc/assets/55570525/5ef1fa92-ca42-480b-a2a5-71cc1e254c1e)
+![img.png](img.png)
 
 history file is stored in [config_dir](https://docs.rs/dirs/latest/dirs/fn.config_dir.html)/kalc/kalc.history
 

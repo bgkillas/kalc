@@ -1409,7 +1409,7 @@ pub fn input_var(
                 && i + countv < chars.len()
                 && (matches!(
                     chars[i + countv],
-                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '⁻'
+                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '⁻' | '*'
                 ) || (chars[i + countv] == '^' && chars[i] != 'C' && countv != 1)))
                 || matches!(
                     word.as_str(),
@@ -1424,7 +1424,10 @@ pub fn input_var(
                 neg = false;
             }
             i += countv;
-            if matches!(word.as_str(), "inf" | "nan" | "NaN" | "true" | "false")
+            if matches!(
+                word.as_str(),
+                "rnd" | "rand" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
+            )
             {
                 if matches!(word.as_str(), "nan" | "NaN")
                 {
@@ -1471,6 +1474,10 @@ pub fn input_var(
             }
             else
             {
+                if chars[i] == '*'
+                {
+                    chars.remove(i);
+                }
                 output.push(Str(word))
             }
         }
@@ -1900,7 +1907,16 @@ pub fn input_var(
                                         }]
                                     }
                                 };
-                                if print && num.len() == 1
+                                if print
+                                    && num.len() == 1
+                                    && if let Num(n) = num[0].clone()
+                                    {
+                                        n.number.real().is_sign_negative()
+                                    }
+                                    else
+                                    {
+                                        false
+                                    }
                                 {
                                     num.insert(0, Str("(".to_string()));
                                     num.push(Str(")".to_string()));
@@ -2201,7 +2217,16 @@ pub fn input_var(
                                 num.push(Str(")".to_string()));
                                 num.push(Str(")".to_string()))
                             }
-                            if print && num.len() == 1
+                            if print
+                                && num.len() == 1
+                                && if let Num(n) = num[0].clone()
+                                {
+                                    n.number.real().is_sign_negative()
+                                }
+                                else
+                                {
+                                    false
+                                }
                             {
                                 num.insert(0, Str("(".to_string()));
                                 num.push(Str(")".to_string()));
@@ -2399,6 +2424,15 @@ pub fn input_var(
                             output.push(Str('×'.to_string()));
                             neg = false;
                         }
+                        let print = print
+                            && if let Num(n) = var.parsed[0].clone()
+                            {
+                                n.number.real().is_sign_negative()
+                            }
+                            else
+                            {
+                                false
+                            };
                         if print
                         {
                             output.push(Str("(".to_string()));

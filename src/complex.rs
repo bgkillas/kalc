@@ -340,6 +340,11 @@ impl NumStr
                     .map(|(a, b)| a.iter().map(|a| p(a, b)).collect())
                     .collect(),
             ),
+            (Matrix(a), Vector(b)) if a.iter().all(|a| a.len() == b.len()) => Matrix(
+                a.iter()
+                    .map(|a| a.iter().zip(b.iter()).map(|(a, b)| p(a, b)).collect())
+                    .collect(),
+            ),
             (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
@@ -387,6 +392,11 @@ impl NumStr
                 a.iter()
                     .zip(b.iter())
                     .map(|(a, b)| a.iter().map(|a| func(a, b)).collect())
+                    .collect(),
+            ),
+            (Matrix(a), Vector(b)) if a.iter().all(|a| a.len() == b.len()) => Matrix(
+                a.iter()
+                    .map(|a| a.iter().zip(b.iter()).map(|(a, b)| func(a, b)).collect())
                     .collect(),
             ),
             (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(

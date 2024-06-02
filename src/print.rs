@@ -24,7 +24,7 @@ use std::cmp::Ordering;
 pub fn print_concurrent(
     unmodified_input: &[char],
     last: &[char],
-    mut vars: Vec<Variable>,
+    vars: &[Variable],
     mut options: Options,
     mut colors: Colors,
     start: usize,
@@ -37,6 +37,7 @@ pub fn print_concurrent(
         clear(unmodified_input, start, end, options, &colors);
         return (0, HowGraphing::default(), false, false);
     }
+    let mut optinput = None;
     let mut unparsed = unmodified_input;
     {
         let split = unmodified_input.split(|c| c == &';');
@@ -59,11 +60,32 @@ pub fn print_concurrent(
                 );
                 if s.contains(&'=')
                 {
-                    if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
+                    let mut var = vars.to_vec();
+                    if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut var, s)
                     {
                         handle_err(s, unmodified_input, options, &colors, start, end);
                         return (1, HowGraphing::default(), false, false);
                     }
+                    optinput = match input_var(
+                        &insert_last(unparsed, last.iter().collect::<String>().as_str()),
+                        &var,
+                        &mut Vec::new(),
+                        &mut 0,
+                        options,
+                        true,
+                        0,
+                        Vec::new(),
+                        false,
+                        &mut (0, 0),
+                    )
+                    {
+                        Ok(f) => Some(f),
+                        Err(s) =>
+                        {
+                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            return (1, HowGraphing::default(), false, false);
+                        }
+                    };
                 }
             }
         }
@@ -112,13 +134,20 @@ pub fn print_concurrent(
         }
         else if tempinput.ends_with('=')
         {
-            let out = equal_to(
-                options,
-                &colors,
-                &vars,
-                &tempinput[..tempinput.len().saturating_sub(1)],
-                &last.iter().collect::<String>(),
-            );
+            let out = if let Some(n) = optinput
+            {
+                parsed_to_string(n.0, n.1, &options, &colors)
+            }
+            else
+            {
+                equal_to(
+                    options,
+                    &colors,
+                    vars,
+                    &tempinput[..tempinput.len().saturating_sub(1)],
+                    &last.iter().collect::<String>(),
+                )
+            };
             return if !out.is_empty()
             {
                 let (width, height) = get_terminal_dimensions();
@@ -203,24 +232,31 @@ pub fn print_concurrent(
         }
     }
     let mut var = false;
-    let mut input = match input_var(
-        &insert_last(unparsed, last.iter().collect::<String>().as_str()),
-        &vars,
-        &mut Vec::new(),
-        &mut 0,
-        options,
-        false,
-        0,
-        Vec::new(),
-        false,
-        &mut (0, 0),
-    )
+    let mut input = if let Some(n) = optinput
     {
-        Ok(f) => f,
-        Err(s) =>
+        n
+    }
+    else
+    {
+        match input_var(
+            &insert_last(unparsed, last.iter().collect::<String>().as_str()),
+            vars,
+            &mut Vec::new(),
+            &mut 0,
+            options,
+            false,
+            0,
+            Vec::new(),
+            false,
+            &mut (0, 0),
+        )
         {
-            handle_err(s, unmodified_input, options, &colors, start, end);
-            return (1, HowGraphing::default(), false, false);
+            Ok(f) => f,
+            Err(s) =>
+            {
+                handle_err(s, unmodified_input, options, &colors, start, end);
+                return (1, HowGraphing::default(), false, false);
+            }
         }
     };
     {
@@ -346,11 +382,11 @@ pub fn print_concurrent(
                 }
                 let tinput = input_var(
                     &inputs,
-                    &vars,
+                    vars,
                     &mut func_vars,
                     &mut 0,
                     options,
-                    true,
+                    false,
                     0,
                     Vec::new(),
                     false,
@@ -476,9 +512,9 @@ pub fn print_concurrent(
                     );
                     return (1, input.2, false, false);
                 }
-                let mut vars = vars.clone();
                 let mut options = options;
                 let mut colors = colors.clone();
+                let mut vars = vars.to_vec();
                 for input in split
                 {
                     if !input.is_empty()
@@ -595,14 +631,7 @@ pub fn print_concurrent(
         }
         else
         {
-            let inputs = unparsed.iter().collect::<String>();
-            let out = equal_to(
-                options,
-                &colors,
-                &vars,
-                &inputs,
-                &last.iter().collect::<String>(),
-            );
+            let out = parsed_to_string(input.0, input.1, &options, &colors);
             let width = get_terminal_dimensions().0;
             let len = no_col_len(&out, options.color == crate::Auto::True);
             let wrap = len.saturating_sub(1) / width + 1;

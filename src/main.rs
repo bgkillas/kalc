@@ -703,7 +703,7 @@ fn main()
                             (frac, graphable, _, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -824,7 +824,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -904,7 +904,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -987,7 +987,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1064,7 +1064,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1109,7 +1109,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1156,7 +1156,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1203,7 +1203,7 @@ fn main()
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input,
                                     &last,
-                                    vars.clone(),
+                                    &vars,
                                     options,
                                     colors.clone(),
                                     start,
@@ -1247,7 +1247,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1361,7 +1361,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1440,7 +1440,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,
@@ -1698,7 +1698,7 @@ fn main()
                                     (frac, graphable, long, varcheck) = print_concurrent(
                                         &input,
                                         &last,
-                                        vars.clone(),
+                                        &vars,
                                         options,
                                         colors.clone(),
                                         start,
@@ -1807,7 +1807,7 @@ fn main()
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
-                                vars.clone(),
+                                &vars,
                                 options,
                                 colors.clone(),
                                 start,

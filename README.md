@@ -11,7 +11,7 @@ repo
 
 you can set permanent variables and functions in the
 file [config_dir](https://docs.rs/dirs/latest/dirs/fn.config_dir.html)/kalc/kalc.vars example in repo, also contains
-more advanced example usage, suggested not to use entire kalc.vars example on lower end systems as it may cause lag
+more advanced example usage
 
 config defaults listed in kalc.config
 

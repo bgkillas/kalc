@@ -231,9 +231,11 @@ pub fn print_concurrent(
             };
         }
     }
+    let mut parsed = false;
     let mut var = false;
     let mut input = if let Some(n) = optinput
     {
+        parsed = true;
         n
     }
     else
@@ -631,7 +633,20 @@ pub fn print_concurrent(
         }
         else
         {
-            let out = parsed_to_string(input.0, input.1, &options, &colors);
+            let out = if parsed
+            {
+                parsed_to_string(input.0, input.1, &options, &colors)
+            }
+            else
+            {
+                equal_to(
+                    options,
+                    &colors,
+                    vars,
+                    &unparsed.iter().collect::<String>(),
+                    &last.iter().collect::<String>(),
+                )
+            };
             let width = get_terminal_dimensions().0;
             let len = no_col_len(&out, options.color == crate::Auto::True);
             let wrap = len.saturating_sub(1) / width + 1;

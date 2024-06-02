@@ -38,28 +38,40 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
             }
             else if i == 1 || i == 2
             {
-                format!(
-                    "{}{}{}{}{}",
-                    sign,
-                    if i == 1 { "sqrt" } else { "cbrt" },
-                    if options.color == crate::Auto::True
-                    {
-                        colors.brackets[n % colors.brackets.len()].to_owned() + "(" + &colors.text
-                    }
-                    else
-                    {
-                        "(".to_string()
-                    },
-                    orig.to_integer().unwrap(),
-                    if options.color == crate::Auto::True
-                    {
-                        colors.brackets[n % colors.brackets.len()].to_owned() + ")" + &colors.text
-                    }
-                    else
-                    {
-                        ")".to_string()
-                    }
-                )
+                let num = orig.to_integer().unwrap();
+                if num == 1
+                {
+                    String::new()
+                }
+                else
+                {
+                    format!(
+                        "{}{}{}{}{}",
+                        sign,
+                        if i == 1 { "sqrt" } else { "cbrt" },
+                        if options.color == crate::Auto::True
+                        {
+                            colors.brackets[n % colors.brackets.len()].to_owned()
+                                + "("
+                                + &colors.text
+                        }
+                        else
+                        {
+                            "(".to_string()
+                        },
+                        num,
+                        if options.color == crate::Auto::True
+                        {
+                            colors.brackets[n % colors.brackets.len()].to_owned()
+                                + ")"
+                                + &colors.text
+                        }
+                        else
+                        {
+                            ")".to_string()
+                        }
+                    )
+                }
             }
             else
             {

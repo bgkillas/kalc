@@ -1850,7 +1850,6 @@ pub fn input_var(
                                         }
                                     }
                                     if (tempgraph.graph && parsed.len() > 1)
-                                        || print
                                         || sumrec.iter().any(|c| c.0 == -1)
                                         || parsed.iter().any(|c| {
                                             if let Str(s) = c
@@ -2145,7 +2144,6 @@ pub fn input_var(
                                     }
                                 }
                                 if (tempgraph.graph && parsed.len() > 1)
-                                    || print
                                     || sumrec.iter().any(|c| c.0 == -1)
                                     || parsed.iter().any(|c| {
                                         if let Str(s) = c

@@ -712,28 +712,31 @@ fn main()
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                         }
-                        if !input.is_empty() && !input.starts_with(&['#']) && frac != 0
-                        {
-                            print!("\x1b[{}B", frac);
-                        }
-                        if c == '\x14' || c == '\x06'
-                        {
-                            if input.is_empty()
-                            {
-                                print!("\x1b[G\x1b[J");
-                            }
-                            else
-                            {
-                                print!("\x1b[G\n\x1b[J");
-                            }
-                            terminal::disable_raw_mode().unwrap();
-                            std::process::exit(0);
-                        }
-                        print!("\x1b[G\n\x1b[K");
                         if c == '\x09'
                         {
-                            graphable = HowGraphing::default();
+                            clear(&input, start, end, options, &colors);
                         }
+                        else
+                        {
+                            if !input.is_empty() && !input.starts_with(&['#']) && frac != 0
+                            {
+                                print!("\x1b[{}B", frac);
+                            }
+                            if c == '\x14' || c == '\x06'
+                            {
+                                if input.is_empty()
+                                {
+                                    print!("\x1b[G\x1b[J");
+                                }
+                                else
+                                {
+                                    print!("\x1b[G\n\x1b[J");
+                                }
+                                terminal::disable_raw_mode().unwrap();
+                                std::process::exit(0);
+                            }
+                        }
+                        print!("\x1b[G\n\x1b[K");
                         break;
                     }
                     '\x03' =>

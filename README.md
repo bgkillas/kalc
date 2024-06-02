@@ -178,7 +178,7 @@ FLAGS: --help (this message)
 - "{{a,b,c},{d,e,f},{g,h,i}}" to define a 3x3 matrix
 - "rnd" to generate a random number
 - "epoch" to get time in seconds since unix epoch
-- Alt+Enter will not graph whatever is present
+- Alt+Enter will not print output while still graphing/defining variables
 - "help {thing}" to get more detail on a function/option/feature
 - "help help" to list all things to query
 

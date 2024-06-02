@@ -68,7 +68,7 @@ FLAGS: --help (this message)\x1b[G\n\
 - \"{{{{a,b,c}},{{d,e,f}},{{g,h,i}}}}\" to define a 3x3 matrix\x1b[G\n\
 - \"rnd\" to generate a random number\x1b[G\n\
 - \"epoch\" to get time in seconds since unix epoch\x1b[G\n\
-- Alt+Enter will not graph whatever is present\x1b[G\n\
+- Alt+Enter will not print output while still graphing/defining variables\x1b[G\n\
 - \"help {{thing}}\" to get more detail on a function/option/feature\x1b[G\n\
 - \"help help\" to list all things to query\x1b[G\n\n\
 Order of Operations:\x1b[G\n\

@@ -665,9 +665,11 @@ fn main()
             {
                 Vec::new()
             }
-            else if lines[i - 1].starts_with('\0')
+            else if lines[i - 1].ends_with('\t')
             {
-                lines[i - 1][1..].chars().collect::<Vec<char>>()
+                lines[i - 1][..lines[i - 1].len() - 1]
+                    .chars()
+                    .collect::<Vec<char>>()
             }
             else
             {
@@ -1310,10 +1312,11 @@ fn main()
                             continue;
                         }
                         input = lines[i].clone().chars().collect::<Vec<char>>();
-                        slow = input.starts_with(&['\0']);
+                        slow = input.ends_with(&['\t']);
+
                         if slow
                         {
-                            input.remove(0);
+                            input.pop();
                             firstslow = false;
                             placement = input.len();
                             end = input.len();
@@ -1389,10 +1392,10 @@ fn main()
                         {
                             input = lines[i].clone().chars().collect::<Vec<char>>();
                         }
-                        slow = input.starts_with(&['\0']);
+                        slow = input.ends_with(&['\t']);
                         if slow
                         {
-                            input.remove(0);
+                            input.pop();
                             firstslow = false;
                             placement = input.len();
                             end = input.len();

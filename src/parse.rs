@@ -1444,12 +1444,16 @@ pub fn input_var(
                 {
                     output.push(Num(Number::from(Complex::new(options.prec), None)));
                 }
-                else
+                else if word == "inf"
                 {
                     output.push(Num(Number::from(
                         Complex::with_val(options.prec, Infinity),
                         None,
                     )));
+                }
+                else
+                {
+                    output.push(Str(word))
                 }
                 if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                 {
@@ -1857,6 +1861,7 @@ pub fn input_var(
                                         }
                                     }
                                     if (tempgraph.graph && parsed.len() > 1)
+                                        || print
                                         || sumrec.iter().any(|c| c.0 == -1)
                                         || parsed.iter().any(|c| {
                                             if let Str(s) = c
@@ -2160,6 +2165,7 @@ pub fn input_var(
                                     }
                                 }
                                 if (tempgraph.graph && parsed.len() > 1)
+                                    || print
                                     || sumrec.iter().any(|c| c.0 == -1)
                                     || parsed.iter().any(|c| {
                                         if let Str(s) = c

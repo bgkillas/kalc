@@ -290,7 +290,7 @@ pub fn write(mut input: String, file: &mut File, lines: &mut Vec<String>, slow: 
     {
         if slow
         {
-            input.insert(0, '\0');
+            input.push('\t');
         }
         lines.push(input.clone());
         writeln!(file, "{}", input).unwrap();

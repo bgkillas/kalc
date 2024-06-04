@@ -2395,13 +2395,20 @@ fn remove_trailing_zeros(input: &str, options: Options) -> String
                     .trim_end_matches('.')
                     .to_string()
             };
-            return if s.is_empty()
+            return if s.is_empty() || s == "-" || s == "-0" || s == "0"
             {
-                "0".to_string()
-            }
-            else if s == "-"
-            {
-                "-0".to_string()
+                format!(
+                    "{}0{}",
+                    if s == "-" { "-" } else { "" },
+                    if options.keep_zeros && options.decimal_places < usize::MAX - 2
+                    {
+                        format!(".{}", "0".repeat(options.decimal_places - 1))
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+                )
             }
             else
             {

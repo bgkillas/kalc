@@ -1645,18 +1645,12 @@ fn main()
                                     bank2.push(f.to_string())
                                 }
                             }
+                            bank1.extend(bank2);
+                            bank1.sort();
                             let mut var = false;
-                            if bank1.len() + bank2.len() == 1
+                            if bank1.len() == 1
                             {
-                                let mut w = if bank1.is_empty()
-                                {
-                                    &bank2[0]
-                                }
-                                else
-                                {
-                                    &bank1[0]
-                                }
-                                .to_string();
+                                let mut w = bank1[0].to_string();
                                 if w.contains('(')
                                 {
                                     w = w.split('(').next().unwrap().to_string();
@@ -1669,11 +1663,12 @@ fn main()
                                 {
                                     var = true
                                 }
+                                let w = w.chars().collect::<Vec<char>>();
                                 input.splice(
                                     placement..placement,
-                                    w[word.len()..].chars().collect::<Vec<char>>(),
+                                    w[word.chars().count()..].iter().collect::<String>().chars(),
                                 );
-                                placement += w.len() - word.len();
+                                placement += w.len() - word.chars().count();
                                 end = start + get_terminal_dimensions().0
                                     - if options.prompt { 3 } else { 1 }
                                     + 1;
@@ -1737,36 +1732,86 @@ fn main()
                                     print!("\x1b[{}D", end - placement)
                                 }
                             }
-                            if !var && (!bank1.is_empty() || !bank2.is_empty())
+                            else
+                            {
+                                let mut k = 0;
+                                let mut char = '\0';
+                                'upper: for n in
+                                    0..bank1.iter().fold(usize::MAX, |min, str| min.min(str.len()))
+                                {
+                                    for b in &bank1
+                                    {
+                                        let c = b.chars().nth(n).unwrap();
+                                        if char == '\0'
+                                        {
+                                            char = c
+                                        }
+                                        else if c != char
+                                        {
+                                            break 'upper;
+                                        }
+                                    }
+                                    k += 1;
+                                    char = '\0'
+                                }
+                                input.splice(
+                                    placement..placement,
+                                    bank1[0][word.chars().count()..k].chars(),
+                                );
+                                placement += k - word.chars().count();
+                                end = start + get_terminal_dimensions().0
+                                    - if options.prompt { 3 } else { 1 }
+                                    + 1;
+                                if end > input.len()
+                                {
+                                    end = input.len()
+                                }
+                                else if placement == end
+                                {
+                                    start += 1;
+                                }
+                                else
+                                {
+                                    end -= 1;
+                                }
+                                if i == lines.len()
+                                {
+                                    current.clone_from(&input);
+                                }
+                                else
+                                {
+                                    lines[i] = input.clone().iter().collect::<String>();
+                                }
+                                clearln(&input, start, end, options, &colors);
+                                if end - placement != 0
+                                {
+                                    print!("\x1b[{}D", end - placement)
+                                }
+                            }
+                            if !var && !bank1.is_empty()
                             {
                                 let width = get_terminal_dimensions().0;
-                                let mut n = 0;
-                                bank1.sort();
-                                for b in bank1.chunks(5)
+                                let mut n = 1;
+                                let tab = bank1.iter().fold(0, |max, str| max.max(str.len())) + 3;
+                                let mut len = 0;
+                                print!("\x1b[G\n\x1b[K");
+                                for b in bank1
                                 {
-                                    let b = b.join("   ");
-                                    n += b.len().div_ceil(width);
+                                    if len + tab > width
+                                    {
+                                        len = 0;
+                                        n += 1;
+                                        print!("\x1b[G\n\x1b[K")
+                                    }
+                                    len += tab;
                                     print!(
-                                        "\x1b[G\n\x1b[K{}",
+                                        "{}{}",
                                         to_output(
                                             &b.chars().collect::<Vec<char>>(),
                                             options.color == Auto::True,
                                             &colors
-                                        )
-                                    )
-                                }
-                                bank2.sort();
-                                for b in bank2.chunks(5)
-                                {
-                                    let b = b.join("   ");
-                                    n += b.len().div_ceil(width);
-                                    print!(
-                                        "\x1b[G\n\x1b[K{}",
-                                        to_output(
-                                            &b.chars().collect::<Vec<char>>(),
-                                            options.color == Auto::True,
-                                            &colors
-                                        )
+                                        ),
+                                        " ".repeat(tab - b.chars().count())
                                     )
                                 }
                                 print!(

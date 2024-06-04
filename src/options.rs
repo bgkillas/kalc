@@ -306,9 +306,9 @@ pub fn set_commands(
             }
         }
         "graphcli" | "slowcheck" | "interactive" | "prompt" | "surface" | "rt" | "siunits"
-        | "polar" | "frac" | "fractions" | "fractionsv" | "fractionsm" | "multi" | "tabbed"
-        | "comma" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base" | "ticks"
-        | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
+        | "keepzeros" | "polar" | "frac" | "fractions" | "fractionsv" | "fractionsm" | "multi"
+        | "tabbed" | "comma" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base"
+        | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
         | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
         | "vzr" | "2d" | "3d" =>
         {
@@ -377,6 +377,7 @@ pub fn set_commands(
                 "surface" => options.surface = args[0] != 0.0,
                 "rt" => options.real_time_output = args[0] != 0.0,
                 "siunits" => options.si_units = args[0] != 0.0,
+                "keepzeros" => options.keep_zeros = args[0] != 0.0,
                 "polar" => options.polar = args[0] != 0.0,
                 "frac" | "fractions" => options.frac.num = args[0] != 0.0,
                 "fractionsv" => options.frac.vec = args[0] != 0.0,
@@ -891,6 +892,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "surface" => options.surface = !options.surface,
         "rt" => options.real_time_output = !options.real_time_output,
         "siunits" => options.si_units = !options.si_units,
+        "keepzeros" => options.keep_zeros = !options.keep_zeros,
         "line" | "lines" =>
         {
             options.lines = match options.lines
@@ -982,6 +984,12 @@ pub fn commands(
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.si_units = !options.si_units;
+        }
+        "keepzeros" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.keep_zeros = !options.keep_zeros;
         }
         "clear" =>
         {
@@ -1247,6 +1255,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
         "siunits" => format!("{}", options.si_units),
+        "keepzeros" => format!("{}", options.keep_zeros),
         "debug" => format!("{}", options.debug),
         "scalegraph" => format!("{}", options.scale_graph),
         "line" | "lines" => (match options.lines

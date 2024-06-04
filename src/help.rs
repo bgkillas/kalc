@@ -42,7 +42,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --surface displays a colored surface(based on z value) for 3d graphing, only supports 1 graph\x1b[G\n\
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution\x1b[G\n\
---siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\n\
+--siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\
+--keepzeros dont remove trailing zeros\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
 - \"colors=\" to see color settings\x1b[G\n\
 - \"exit\" to exit the program\x1b[G\n\

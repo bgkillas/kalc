@@ -1782,14 +1782,6 @@ pub fn get_output(
 {
     let num = number.number.clone();
     let units = number.units;
-    let dec = if options.decimal_places == 0
-    {
-        1
-    }
-    else
-    {
-        options.decimal_places
-    };
     if options.notation != Normal
     {
         if options.base.1 != 10
@@ -1944,13 +1936,12 @@ pub fn get_output(
                     {
                         add_commas(&remove_trailing_zeros(
                             &format!("{:e}", num.real()),
-                            dec,
-                            options.prec,
+                            options,
                         ))
                     }
                     else
                     {
-                        remove_trailing_zeros(&format!("{:e}", num.real()), dec, options.prec)
+                        remove_trailing_zeros(&format!("{:e}", num.real()), options)
                     }
                     .replace("e0", "")
                     .replace('e', &notate(options, colors))
@@ -1994,21 +1985,12 @@ pub fn get_output(
                     if options.comma
                     {
                         add_commas(
-                            &(sign
-                                + &remove_trailing_zeros(
-                                    &format!("{:e}", num.imag()),
-                                    dec,
-                                    options.prec,
-                                )),
+                            &(sign + &remove_trailing_zeros(&format!("{:e}", num.imag()), options)),
                         )
                     }
                     else
                     {
-                        sign + &remove_trailing_zeros(
-                            &format!("{:e}", num.imag()),
-                            dec,
-                            options.prec,
-                        )
+                        sign + &remove_trailing_zeros(&format!("{:e}", num.imag()), options)
                     }
                     .replace("e0", "")
                     .replace('e', &notate(options, colors))
@@ -2057,29 +2039,19 @@ pub fn get_output(
     {
         let mut re = if options.comma
         {
-            add_commas(&to_string(
-                num.real(),
-                options.decimal_places,
-                false,
-                options.base.1,
-            ))
+            add_commas(&to_string(num.real(), options, false, options.base.1))
         }
         else
         {
-            to_string(num.real(), options.decimal_places, false, options.base.1)
+            to_string(num.real(), options, false, options.base.1)
         };
         let mut im = if options.comma
         {
-            add_commas(&to_string(
-                num.imag(),
-                options.decimal_places,
-                true,
-                options.base.1,
-            ))
+            add_commas(&to_string(num.imag(), options, true, options.base.1))
         }
         else
         {
-            to_string(num.imag(), options.decimal_places, true, options.base.1)
+            to_string(num.imag(), options, true, options.base.1)
         };
         if re == "-0"
         {
@@ -2177,17 +2149,29 @@ pub fn get_output(
         )
     }
 }
-fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
+fn to_string(num: &Float, options: Options, imag: bool, radix: i32) -> String
 {
     let (neg, mut str, exp) = num.to_sign_string_exp(radix, None);
     let mut neg = if neg { "-" } else { "" };
     if exp.is_none()
     {
-        return format!("{}{}", neg, str);
+        return format!(
+            "{}{}{}",
+            neg,
+            str,
+            if options.keep_zeros && options.decimal_places < usize::MAX - 2
+            {
+                format!(".{}", "0".repeat(options.decimal_places))
+            }
+            else
+            {
+                String::new()
+            }
+        );
     }
     let exp = exp.unwrap();
     let width = get_terminal_dimensions().0;
-    let decimals = if decimals == usize::MAX - 1 && (width as i32) > (2i32 + exp)
+    let decimals = if options.decimal_places == usize::MAX - 1 && (width as i32) > (2i32 + exp)
     {
         (width as i32
             - match exp.cmp(&0)
@@ -2201,7 +2185,7 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     }
     else
     {
-        decimals
+        options.decimal_places
     };
     if str.len() as i32 == exp
     {
@@ -2214,7 +2198,18 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
     let mut zeros = String::new();
     if -exp as i128 > decimals as i128
     {
-        return neg.to_owned() + "0";
+        return format!(
+            "{}0{}",
+            neg,
+            if options.keep_zeros && options.decimal_places < usize::MAX - 2
+            {
+                format!(".{}", "0".repeat(options.decimal_places))
+            }
+            else
+            {
+                String::new()
+            }
+        );
     }
     if exp < 0
     {
@@ -2307,6 +2302,16 @@ fn to_string(num: &Float, decimals: usize, imag: bool, radix: i32) -> String
             format!("{}{}", neg, if l.is_empty() { "0" } else { &l })
         }
     }
+    else if options.keep_zeros
+    {
+        format!(
+            "{}{}.{}{}",
+            neg,
+            if l.is_empty() { "0" } else { &l },
+            zeros,
+            d.to_string_radix(radix)
+        )
+    }
     else
     {
         format!(
@@ -2372,17 +2377,24 @@ fn add_commas(input: &str) -> String
     }
     result.chars().rev().collect::<String>()
 }
-fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
+fn remove_trailing_zeros(input: &str, options: Options) -> String
 {
     let pos = match input.find('e')
     {
         Some(n) => n,
         None =>
         {
-            let s = input
-                .trim_end_matches('0')
-                .trim_end_matches('.')
-                .to_string();
+            let s = if options.keep_zeros
+            {
+                input.to_string()
+            }
+            else
+            {
+                input
+                    .trim_end_matches('0')
+                    .trim_end_matches('.')
+                    .to_string()
+            };
             return if s.is_empty()
             {
                 "0".to_string()
@@ -2397,7 +2409,7 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             };
         }
     };
-    let dec = if dec == usize::MAX - 1
+    let dec = if options.decimal_places == usize::MAX - 1
     {
         get_terminal_dimensions().0
             - (if &input[pos..] == "e0"
@@ -2410,17 +2422,28 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
             })
             - if input.starts_with('-') { 1 } else { 0 }
     }
+    else if options.decimal_places == 0
+    {
+        1
+    }
     else
     {
-        dec
+        options.decimal_places
     };
     if dec > pos
     {
-        input[..pos]
-            .trim_end_matches('0')
-            .trim_end_matches('.')
-            .to_string()
-            + &input[pos..]
+        if options.keep_zeros
+        {
+            input.to_string()
+        }
+        else
+        {
+            input[..pos]
+                .trim_end_matches('0')
+                .trim_end_matches('.')
+                .to_string()
+                + &input[pos..]
+        }
     }
     else
     {
@@ -2437,24 +2460,37 @@ fn remove_trailing_zeros(input: &str, dec: usize, prec: u32) -> String
         num.remove(1);
         if dec >= num.len()
         {
-            input[..pos]
-                .trim_end_matches('0')
-                .trim_end_matches('.')
-                .to_string()
-                + &input[pos..]
+            if options.keep_zeros
+            {
+                input.to_string()
+            }
+            else
+            {
+                input[..pos]
+                    .trim_end_matches('0')
+                    .trim_end_matches('.')
+                    .to_string()
+                    + &input[pos..]
+            }
         }
         else
         {
             num.insert(dec, '.');
             num = Float::parse(num)
                 .unwrap()
-                .complete(prec)
+                .complete(options.prec)
                 .to_integer()
                 .unwrap()
                 .to_string();
             num.insert(1, '.');
-            sign + num.trim_end_matches('0').trim_end_matches('.')
-                + "e"
+            sign + if options.keep_zeros
+            {
+                &num
+            }
+            else
+            {
+                num.trim_end_matches('0').trim_end_matches('.')
+            } + "e"
                 + &(input[pos + 1..].parse::<isize>().unwrap()
                     + if num.len().saturating_sub(1) > dec
                     {

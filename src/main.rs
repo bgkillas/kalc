@@ -214,6 +214,7 @@ pub struct Options
     units: bool,
     si_units: bool,
     window_size: (usize, usize),
+    keep_zeros: bool,
 }
 impl Default for Options
 {
@@ -262,6 +263,7 @@ impl Default for Options
             units: true,
             si_units: false,
             window_size: (0, 0),
+            keep_zeros: false,
         }
     }
 }
@@ -1695,7 +1697,7 @@ fn main()
                                 {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
-                                if options.real_time_output && !slow
+                                if options.real_time_output && !slow && var
                                 {
                                     execute!(stdout, DisableBlinking).unwrap();
                                     (frac, graphable, long, varcheck) = print_concurrent(
@@ -1714,7 +1716,7 @@ fn main()
                                         slow = true;
                                     }
                                 }
-                                else if firstslow
+                                else if firstslow && var
                                 {
                                     firstslow = false;
                                     handle_err(

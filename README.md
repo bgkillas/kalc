@@ -151,6 +151,7 @@ FLAGS: --help (this message)
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'
+--keepzeros dont remove trailing zeros
 
 - flags can be executed in runtime just without the dashes
 - "colors=" to see color settings

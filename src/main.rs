@@ -1609,14 +1609,14 @@ fn main()
                     {
                         //tab completion
                         let mut word = String::new();
-                        for c in input[..placement].iter().rev()
+                        for (i, c) in input[..placement].iter().rev().enumerate()
                         {
                             if c.is_alphabetic()
                                 || matches!(*c, '°' | '\'' | '`' | '_' | '∫' | '$' | '¢')
                             {
                                 word.insert(0, *c)
                             }
-                            else
+                            else if !(*c == '(' && i == 0)
                             {
                                 break;
                             }
@@ -1654,7 +1654,8 @@ fn main()
                                 if w.contains('(')
                                 {
                                     w = w.split('(').next().unwrap().to_string();
-                                    if placement == input.len() || input[placement] != '('
+                                    if (placement == input.len() || input[placement] != '(')
+                                        && input[placement - 1] != '('
                                     {
                                         w.push('(')
                                     }
@@ -1725,7 +1726,7 @@ fn main()
                                 }
                                 else
                                 {
-                                    clearln(&input, start, end, options, &colors);
+                                    clear(&input, start, end, options, &colors);
                                 }
                                 if end - placement != 0
                                 {
@@ -1782,7 +1783,7 @@ fn main()
                                 {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
-                                clearln(&input, start, end, options, &colors);
+                                clear(&input, start, end, options, &colors);
                                 if end - placement != 0
                                 {
                                     print!("\x1b[{}D", end - placement)

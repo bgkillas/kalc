@@ -261,6 +261,15 @@ pub fn functions() -> HashSet<&'static str>
         "rand_poisson",
         "poisson_pmf",
         "poisson_cdf",
+        "rand_neg_binomial",
+        "neg_binomial_cdf",
+        "neg_binomial_pmf",
+        "hypergeometric_pmf",
+        "hypergeometric_cdf",
+        "rand_hypergeometric",
+        "neg_hypergeometric_pmf",
+        "neg_hypergeometric_cdf",
+        "rand_neg_hypergeometric",
     ]
     .iter()
     .cloned()
@@ -463,6 +472,15 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "poisson_pmf(x,λ)",
         "poisson_cdf(x,λ)",
         "kurtosis(vec)",
+        "rand_neg_binomial(r,p)",
+        "neg_binomial_cdf(k,r,p)",
+        "neg_binomial_pmf(k,r,p)",
+        "hypergeometric_pmf(k,N,K,n)",
+        "hypergeometric_cdf(k,N,K,n)",
+        "rand_hypergeometric(N,K,n)",
+        "neg_hypergeometric_pmf(k,N,K,r)",
+        "neg_hypergeometric_cdf(k,N,K,r)",
+        "rand_neg_hypergeometric(N,K,r)",
     ]
     .iter()
     .cloned()

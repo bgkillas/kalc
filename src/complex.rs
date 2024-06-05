@@ -2607,6 +2607,8 @@ pub fn binomial(a: Complex, b: Complex) -> Complex
         && a.real().clone().fract().is_zero()
         && b.real().clone().fract().is_zero()
         && a.real().is_finite()
+        && a.real() > &0
+        && b.real() > &0
     {
         Complex::with_val(
             a.prec(),

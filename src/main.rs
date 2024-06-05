@@ -1732,7 +1732,7 @@ fn main()
                                     print!("\x1b[{}D", end - placement)
                                 }
                             }
-                            else
+                            else if !bank1.is_empty()
                             {
                                 let mut k = 0;
                                 let mut char = '\0';

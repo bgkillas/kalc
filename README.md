@@ -219,8 +219,10 @@ Functions:
 - percentile({vec},nth) (gets number at nth percentile), percentilerank({vec},x) (gets percentile rank for x point), quartiles{vec} (gets quartiles for data set)
 - norm_pdf(x,μ,σ) (normal distribution pdf) normD(z)/norm_cdf(x,μ,σ) (area under curve to the left of z score cdf)
 - beta_pdf(x,α,β) (beta distribution pdf) beta_cdf/I(x,a,b) (regularized incomplete beta function, or beta distributions cdf)
-- gamma_pdf(x,k,θ), gamma_cdf(x,k,θ), lognorm_pdf(x,μ,σ), lognorm_cdf(x,μ,σ), binomial_pmf(k,n,p), binomial_cdf(k,n,p), geometric_pmf(k,p), geometric_cdf(k,p), poisson_pmf(x,λ), poisson_cdf(x,λ)
-- rand_norm(μ,σ), rand_uniform(a,b), rand_int(a,b), rand_gamma(k,θ), rand_lognorm(μ,σ), rand_binomial(n,p), rand_geometric(k,p), rand_bernoulli(p), rand_poisson(λ)
+- gamma_pdf(x,k,θ), gamma_cdf(x,k,θ), lognorm_pdf(x,μ,σ), lognorm_cdf(x,μ,σ), binomial_pmf(k,n,p), binomial_cdf(k,n,p), neg_binomial_pmf(k,r,p), neg_binomial_cdf(k,r,p)
+- geometric_pmf(k,p), geometric_cdf(k,p), poisson_pmf(x,λ), poisson_cdf(x,λ), hypergeometric_pmf(k,N,K,n), hypergeometric_cdf(k,N,K,n), neg_hypergeometric_pmf(k,N,K,r), neg_hypergeometric_cdf(k,N,K,r)
+- rand_norm(μ,σ), rand_uniform(a,b), rand_int(a,b), rand_gamma(k,θ), rand_lognorm(μ,σ), rand_binomial(n,p), rand_neg_binomial(r,p)
+- rand_geometric(k,p), rand_bernoulli(p), rand_poisson(λ), rand_hypergeometric(N,K,n), rand_neg_hypergeometric(N,K,r)
 - roll{a,b,c...} rolls die, dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{first_dice_face,# of die},{second_dice_face,# of die}...}
 - rand_weighted{{a,n1},{b,n2}..} rolls a weighted die where a and b are face values and n1 and n2 are their weights
 - An(n,k), Ap(n,t) eulerian numbers and polynomials

@@ -242,6 +242,15 @@ pub fn do_math(
                                     | "rand_binomial"
                                     | "poisson_pmf"
                                     | "poisson_cdf"
+                                    | "rand_neg_binomial"
+                                    | "neg_binomial_cdf"
+                                    | "neg_binomial_pmf"
+                                    | "hypergeometric_pmf"
+                                    | "hypergeometric_cdf"
+                                    | "rand_hypergeometric"
+                                    | "neg_hypergeometric_pmf"
+                                    | "neg_hypergeometric_cdf"
+                                    | "rand_neg_hypergeometric"
                             )
                             {
                                 let v = function[i + 1..j - 1].to_vec();
@@ -2751,6 +2760,203 @@ pub fn do_math(
                                     return Err("not enough args");
                                 }
                             }
+                            "neg_binomial_cdf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let r = function.remove(i + 1).num()?.number;
+                                    let p = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        regularized_incomplete_beta(p, r, k + 1),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "neg_binomial_pmf" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let r = function.remove(i + 1).num()?.number;
+                                    let p = function.remove(i + 1).num()?.number;
+                                    let q: Complex = 1 - p.clone();
+                                    Num(Number::from(
+                                        binomial(k.clone() + r.clone() - 1, k.clone())
+                                            * p.pow(r)
+                                            * q.pow(k),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "hypergeometric_cdf" =>
+                            {
+                                if i + 3 < function.len()
+                                {
+                                    let mut k = arg.num()?.number.real().clone().floor();
+                                    let pop = function.remove(i + 1).num()?.number;
+                                    let success = function.remove(i + 1).num()?.number;
+                                    let draws = function.remove(i + 1).num()?.number;
+                                    let mut sum = Complex::new(options.prec);
+                                    while k >= 0
+                                    {
+                                        sum += binomial(success.clone(), k.clone().into())
+                                            * binomial(
+                                                pop.clone() - success.clone(),
+                                                draws.clone() - k.clone(),
+                                            )
+                                            / binomial(pop.clone(), draws.clone());
+                                        k -= 1
+                                    }
+                                    Num(Number::from(Complex::with_val(options.prec, sum), None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "hypergeometric_pmf" =>
+                            {
+                                if i + 3 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let pop = function.remove(i + 1).num()?.number;
+                                    let success = function.remove(i + 1).num()?.number;
+                                    let draws = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        binomial(success.clone(), k.clone())
+                                            * binomial(
+                                                pop.clone() - success.clone(),
+                                                draws.clone() - k,
+                                            )
+                                            / binomial(pop, draws),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "rand_hypergeometric" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let mut pop = arg.num()?.number.real().clone();
+                                    let mut success =
+                                        function.remove(i + 1).num()?.number.real().clone();
+                                    let mut draws =
+                                        function.remove(i + 1).num()?.number.real().clone();
+                                    let mut sum = Integer::new();
+                                    while draws > 0
+                                    {
+                                        if success.clone() / pop.clone()
+                                            > Float::with_val(options.prec, fastrand::u128(..))
+                                                / u128::MAX
+                                        {
+                                            sum += 1;
+                                            success -= 1;
+                                        }
+                                        pop -= 1;
+                                        draws -= 1
+                                    }
+                                    Num(Number::from(Complex::with_val(options.prec, sum), None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "neg_hypergeometric_cdf" =>
+                            {
+                                if i + 3 < function.len()
+                                {
+                                    let mut k = arg.num()?.number.real().clone().floor();
+                                    let pop = function.remove(i + 1).num()?.number;
+                                    let success = function.remove(i + 1).num()?.number;
+                                    let fails = function.remove(i + 1).num()?.number;
+                                    let mut sum = Complex::new(options.prec);
+                                    while k >= 0
+                                    {
+                                        sum += binomial(
+                                            k.clone() + fails.clone() - 1,
+                                            k.clone().into(),
+                                        ) * binomial(
+                                            pop.clone() - k.clone() - fails.clone(),
+                                            success.clone() - k.clone(),
+                                        ) / binomial(pop.clone(), success.clone());
+                                        k -= 1
+                                    }
+                                    Num(Number::from(Complex::with_val(options.prec, sum), None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "neg_hypergeometric_pmf" =>
+                            {
+                                if i + 3 < function.len()
+                                {
+                                    let k = arg.num()?.number;
+                                    let pop = function.remove(i + 1).num()?.number;
+                                    let success = function.remove(i + 1).num()?.number;
+                                    let fails = function.remove(i + 1).num()?.number;
+                                    Num(Number::from(
+                                        binomial(k.clone() + fails.clone() - 1, k.clone())
+                                            * binomial(
+                                                pop.clone() - k.clone() - fails,
+                                                success.clone() - k,
+                                            )
+                                            / binomial(pop, success),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
+                            "rand_neg_hypergeometric" =>
+                            {
+                                if i + 2 < function.len()
+                                {
+                                    let mut pop = arg.num()?.number.real().clone();
+                                    let mut success =
+                                        function.remove(i + 1).num()?.number.real().clone();
+                                    let mut fails =
+                                        function.remove(i + 1).num()?.number.real().clone();
+                                    let mut sum = Integer::new();
+                                    while fails > 0
+                                    {
+                                        if success.clone() / pop.clone()
+                                            > Float::with_val(options.prec, fastrand::u128(..))
+                                                / u128::MAX
+                                        {
+                                            sum += 1;
+                                            success -= 1;
+                                        }
+                                        else
+                                        {
+                                            fails -= 1
+                                        }
+                                        pop -= 1;
+                                    }
+                                    Num(Number::from(Complex::with_val(options.prec, sum), None))
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
                             "geometric_cdf" =>
                             {
                                 if i + 1 < function.len()
@@ -4612,13 +4818,42 @@ fn functions(
                         let p = b.real();
                         let mut n = a.real().to_integer().unwrap_or_default();
                         let mut sum = Integer::new();
-                        while n != 0
+                        while n > 0
                         {
                             if *p > Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX
                             {
                                 sum += 1;
                             }
                             n -= 1
+                        }
+                        Complex::with_val(options.prec, sum)
+                    }
+                    else
+                    {
+                        return Err("not enough args");
+                    }
+                }
+                "rand_neg_binomial" =>
+                {
+                    if let Some(b) = d
+                    {
+                        let p = b.real();
+                        if *p <= 0
+                        {
+                            return Err("p must be greater then 0");
+                        }
+                        let mut r = a.real().to_integer().unwrap_or_default();
+                        let mut sum = Integer::new();
+                        while r > 0
+                        {
+                            if *p > Float::with_val(options.prec, fastrand::u128(..)) / u128::MAX
+                            {
+                                r -= 1
+                            }
+                            else
+                            {
+                                sum += 1;
+                            }
                         }
                         Complex::with_val(options.prec, sum)
                     }

@@ -99,13 +99,13 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
         let mut number = orig.clone().fract();
         let mut mult = Float::with_val(options.prec, 1);
         let mut first: Float = Float::new(options.prec);
-        for n in 0..64
+        for j in 0..64
         {
             let mut recip = number.clone().recip();
             let fract = recip.clone().fract();
             if fract > 1e-32
             {
-                if n == 0
+                if j == 0
                 {
                     first.clone_from(&recip);
                 }
@@ -115,7 +115,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
             else
             {
                 recip *= mult.clone();
-                let last = recip.clone() / if n == 0 { &recip } else { &first };
+                let last = recip.clone() / if j == 0 { &recip } else { &first };
                 let recip = match recip.to_integer()
                 {
                     Some(n) => n,

@@ -27,7 +27,7 @@ pub fn input_var(
     depth: usize,
     blacklist: Vec<char>,
     isgraphing: bool,
-    collectvars: &mut (isize, usize),
+    collectvars: &mut Vec<(isize, usize)>,
 ) -> Result<
     (
         Vec<NumStr>,
@@ -759,10 +759,10 @@ pub fn input_var(
                 }
                 ')' if i != 0 =>
                 {
-                    if collectvars.0 == *bracket
+                    if !collectvars.is_empty() && collectvars[0].0 == *bracket
                     {
-                        output.insert(collectvars.1, Str(",".to_string()));
-                        *collectvars = (0, 0);
+                        output.insert(collectvars[0].1, Str(",".to_string()));
+                        collectvars.remove(0);
                     }
                     if piecewise == *bracket as usize
                     {
@@ -1207,7 +1207,7 @@ pub fn input_var(
                         place_multiplier(&mut output, sumrec);
                         output.push(Str(word.clone()));
                         output.push(Str("(".to_string()));
-                        *collectvars = (*bracket, output.len());
+                        collectvars.insert(0, (*bracket, output.len()));
                         i += countv + 1;
                         continue 'main;
                     }
@@ -1289,7 +1289,7 @@ pub fn input_var(
                     place_multiplier(&mut output, sumrec);
                     output.push(Str(word.clone()));
                     output.push(Str("(".to_string()));
-                    *collectvars = (*bracket, output.len());
+                    collectvars.insert(0, (*bracket, output.len()));
                     i += countv + 1;
                     continue 'main;
                 }
@@ -1300,7 +1300,7 @@ pub fn input_var(
                 place_multiplier(&mut output, sumrec);
                 output.push(Str(word.clone()));
                 output.push(Str("(".to_string()));
-                *collectvars = (*bracket, output.len());
+                collectvars.insert(0, (*bracket, output.len()));
                 i += countv + 1;
                 continue 'main;
             }
@@ -1488,7 +1488,7 @@ pub fn input_var(
             }
         }
         else if options.units
-            && (collectvars.0 == 0 || word.len() > 1)
+            && (collectvars.is_empty() || word.len() > 1)
             && {
                 (unit, mul) = prefixes(word.clone(), prec);
                 is_unit(&mut unit)
@@ -1795,16 +1795,16 @@ pub fn input_var(
                                     let func;
                                     let tempgraph;
                                     let sum_var;
-                                    let mut cv = *collectvars;
-                                    if cv.0 != 0
+                                    let mut cv = collectvars.clone();
+                                    if !cv.is_empty()
                                     {
-                                        if cv.0 < 0
+                                        if cv[0].0 < 0
                                         {
-                                            cv.0 -= 1;
+                                            cv[0].0 -= 1;
                                         }
                                         else
                                         {
-                                            cv.0 = -1
+                                            cv[0].0 = -1
                                         }
                                     }
                                     (parsed, func, tempgraph, exit, sum_var) = match input_var(
@@ -1851,15 +1851,15 @@ pub fn input_var(
                                     }
                                     if let Some(s) = sum_var
                                     {
-                                        if collectvars.0 < 0
+                                        if collectvars[0].0 < 0
                                         {
                                             sumvar = Some(s)
                                         }
                                         else
                                         {
-                                            output.insert(collectvars.1, Str(",".to_string()));
-                                            output.insert(collectvars.1, Str(s.clone()));
-                                            *collectvars = (0, 0);
+                                            output.insert(collectvars[0].1, Str(",".to_string()));
+                                            output.insert(collectvars[0].1, Str(s.clone()));
+                                            collectvars.remove(0);
                                         }
                                     }
                                     if (tempgraph.graph && parsed.len() > 1)
@@ -2099,16 +2099,16 @@ pub fn input_var(
                                 let func;
                                 let tempgraph;
                                 let sum_var;
-                                let mut cv = *collectvars;
-                                if cv.0 != 0
+                                let mut cv = collectvars.clone();
+                                if !cv.is_empty()
                                 {
-                                    if cv.0 < 0
+                                    if cv[0].0 < 0
                                     {
-                                        cv.0 -= 1;
+                                        cv[0].0 -= 1;
                                     }
                                     else
                                     {
-                                        cv.0 = -1
+                                        cv[0].0 = -1
                                     }
                                 }
                                 (parsed, func, tempgraph, exit, sum_var) = match input_var(
@@ -2155,15 +2155,15 @@ pub fn input_var(
                                 }
                                 if let Some(s) = sum_var
                                 {
-                                    if collectvars.0 < 0
+                                    if collectvars[0].0 < 0
                                     {
                                         sumvar = Some(s)
                                     }
                                     else
                                     {
-                                        output.insert(collectvars.1, Str(",".to_string()));
-                                        output.insert(collectvars.1, Str(s.clone()));
-                                        *collectvars = (0, 0);
+                                        output.insert(collectvars[0].1, Str(",".to_string()));
+                                        output.insert(collectvars[0].1, Str(s.clone()));
+                                        collectvars.remove(0);
                                     }
                                 }
                                 if (tempgraph.graph && parsed.len() > 1)
@@ -2538,7 +2538,7 @@ pub fn input_var(
                             output.push(Str(")".to_string()));
                         }
                     }
-                    'x' | 'y' if collectvars.0 == 0 && options.graphtype != GraphType::None =>
+                    'x' | 'y' if collectvars.is_empty() && options.graphtype != GraphType::None =>
                     {
                         graph.graph = true;
                         if c == 'x'
@@ -2604,7 +2604,7 @@ pub fn input_var(
                             output.push(Str(")".to_string()))
                         }
                     }
-                    'z' if collectvars.0 == 0 && options.graphtype != GraphType::None =>
+                    'z' if collectvars.is_empty() && options.graphtype != GraphType::None =>
                     {
                         graph.graph = true;
                         graph.x = true;
@@ -2645,7 +2645,7 @@ pub fn input_var(
                     }
                     _ =>
                     {
-                        if collectvars.0 != 0
+                        if !collectvars.is_empty()
                         {
                             if neg
                             {
@@ -2653,24 +2653,24 @@ pub fn input_var(
                                 output.push(Str('×'.to_string()));
                                 neg = false;
                             }
-                            sumrec.push((*bracket, wordv.clone()));
-                            if collectvars.0 < 0
+                            sumrec.push((collectvars[0].0, wordv.clone()));
+                            if collectvars[0].0 < 0
                             {
                                 sumvar = Some(wordv.clone());
                             }
                             else
                             {
-                                output.insert(collectvars.1, Str(",".to_string()));
-                                output.insert(collectvars.1, Str(wordv.clone()));
+                                output.insert(collectvars[0].1, Str(",".to_string()));
+                                output.insert(collectvars[0].1, Str(wordv.clone()));
                             }
                             place_multiplier(&mut output, sumrec);
                             output.push(Str(wordv));
-                            *collectvars = (0, 0);
+                            collectvars.remove(0);
                         }
                     }
                 }
             }
-            else if collectvars.0 != 0
+            else if !collectvars.is_empty()
             {
                 if neg
                 {
@@ -2678,19 +2678,19 @@ pub fn input_var(
                     output.push(Str('×'.to_string()));
                     neg = false;
                 }
-                sumrec.push((*bracket, word.clone()));
-                if collectvars.0 < 0
+                sumrec.push((collectvars[0].0, word.clone()));
+                if collectvars[0].0 < 0
                 {
                     sumvar = Some(word.clone());
                 }
                 else
                 {
-                    output.insert(collectvars.1, Str(",".to_string()));
-                    output.insert(collectvars.1, Str(word.clone()));
+                    output.insert(collectvars[0].1, Str(",".to_string()));
+                    output.insert(collectvars[0].1, Str(word.clone()));
                 }
                 place_multiplier(&mut output, sumrec);
                 output.push(Str(word));
-                *collectvars = (0, 0);
+                collectvars.remove(0);
             }
             else
             {

@@ -97,7 +97,7 @@ pub fn graph(
                     0,
                     Vec::new(),
                     true,
-                    &mut (0, 0),
+                    &mut Vec::new(),
                 )
                 {
                     Ok(f) => (f.0, f.1, options, f.2),

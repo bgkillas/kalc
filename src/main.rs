@@ -608,7 +608,7 @@ fn main()
                     0,
                     Vec::new(),
                     false,
-                    &mut (0, 0),
+                    &mut Vec::new(),
                 )
                 {
                     Ok(f) => f,

@@ -2607,8 +2607,8 @@ pub fn binomial(a: Complex, b: Complex) -> Complex
         && a.real().clone().fract().is_zero()
         && b.real().clone().fract().is_zero()
         && a.real().is_finite()
-        && a.real() > &0
-        && b.real() > &0
+        && a.real() >= &0
+        && b.real() >= &0
     {
         Complex::with_val(
             a.prec(),
@@ -2620,6 +2620,18 @@ pub fn binomial(a: Complex, b: Complex) -> Complex
                     .unwrap_or_default(),
             ),
         )
+    }
+    else if a.real().is_sign_negative()
+        && a.real().clone().fract().is_zero()
+        && a.imag().is_zero()
+        && b.imag().is_zero()
+    {
+        let prec = a.prec().0;
+        let a = a + Complex::with_val(prec, (0, 1)) * Float::with_val(prec, 0.5).pow(prec / 2);
+        (gamma(a.clone() + 1) / (gamma(b.clone() + 1) * gamma(a.clone() - b.clone() + 1)))
+            .real()
+            .clone()
+            .into()
     }
     else
     {

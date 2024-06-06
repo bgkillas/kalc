@@ -849,8 +849,9 @@ pub fn input_var(
                                 && (output.last().unwrap().str_is(")")
                                     || output.last().unwrap().str_is("}"))))
                     {
-                        if output.clone().last().unwrap().str_is(")")
-                            || output.last().unwrap().str_is("}")
+                        if !output.is_empty()
+                            && (output.clone().last().unwrap().str_is(")")
+                                || output.last().unwrap().str_is("}"))
                         {
                             let mut count = 0;
                             for (j, c) in output.iter().enumerate().rev()
@@ -872,7 +873,8 @@ pub fn input_var(
                                     {
                                         if let Str(s) = &output[j - 1]
                                         {
-                                            if s.chars().next().unwrap().is_alphabetic()
+                                            if !s.is_empty()
+                                                && s.chars().next().unwrap().is_alphabetic()
                                             {
                                                 output.insert(j - 1, Str("(".to_string()));
                                                 if i + 1 != chars.len() && chars[i + 1] == '!'

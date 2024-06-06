@@ -171,9 +171,9 @@ pub fn set_commands(
         {
             options.color = match r
             {
-                "1" | "true" | "True" => Auto::True,
+                "1" | "true" | "True" | "always" => Auto::True,
                 "Auto" | "auto" => Auto::Auto,
-                "0" | "false" | "False" => Auto::False,
+                "0" | "false" | "False" | "never" => Auto::False,
                 _ => return Err("not true/false/auto"),
             }
         }
@@ -181,9 +181,9 @@ pub fn set_commands(
         {
             options.lines = match r
             {
-                "1" | "true" | "True" => Auto::True,
+                "1" | "true" | "True" | "always" => Auto::True,
                 "Auto" | "auto" => Auto::Auto,
-                "0" | "false" | "False" => Auto::False,
+                "0" | "false" | "False" | "never" => Auto::False,
                 _ => return Err("not true/false/auto"),
             }
         }

@@ -1947,7 +1947,11 @@ fn main()
             {
                 if !s.is_empty()
                 {
-                    print!("\x1b[G\x1b[K{}\x1b[G\n{}", s, prompt(options, &colors));
+                    print!(
+                        "\x1b[G\x1b[A\x1b[K{}\x1b[G\n{}",
+                        s,
+                        prompt(options, &colors)
+                    );
                 }
                 else
                 {

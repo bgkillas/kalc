@@ -365,7 +365,11 @@ pub fn print_concurrent(
                     let out = match tinput
                     {
                         Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
-                        _ => String::new(),
+                        Err(s) =>
+                        {
+                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            return (1, HowGraphing::default(), false, false);
+                        }
                     };
                     if out.is_empty()
                     {

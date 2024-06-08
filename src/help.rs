@@ -59,7 +59,7 @@ FLAGS: --help (this message)\x1b[G\n\
 - \"...=\" display parsed input, show values of stuff like xr/deci/prec etc\x1b[G\n\
 - \"f...=null\" to delete a function or variable\x1b[G\n\
 - \"{{x,y,z...}}\" to define a cartesian vector\x1b[G\n\
-- \"[radius,theta,phi]\" to define a polar vector (same as car{{vec}})\x1b[G\n\
+- \"[r,θ,φ]\" to define a polar vector (same as car{{r,θ,φ}})\x1b[G\n\
 - \"f(x)#g(x)\" to graph multiple things\x1b[G\n\
 - \"{{vec}}#\" to graph a vector\x1b[G\n\
 - \"{{mat}}#\" to graph a matrix\x1b[G\n\
@@ -128,8 +128,11 @@ Vector operations/functions:\x1b[G\n\
 - max, min, mean, median, mode, sort, geo_mean\x1b[G\n\
 - reverse, link\x1b[G\n\
 - part({{vec}},col), sum, prod\x1b[G\n\
-- convert to polar: pol{{vec}} outputs (radius, theta, phi)\x1b[G\n\
-- convert to cartesian: car{{vec}} outputs (x, y, z)\x1b[G\n\
+- pol{{x,y,z}} outputs (r, θ, φ)\x1b[G\n\
+- pol{{x,y}} outputs (r, θ)\x1b[G\n\
+- car{{r,θ,φ}} outputs (x, y, z)\x1b[G\n\
+- car{{r,θ}} outputs (x, y)\x1b[G\n\
+- cyl{{x,y,z}} outputs (p, θ, z)\x1b[G\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\n\n\
 Matrix operations/functions:\x1b[G\n\
 - eigenvalues, eigenvectors\x1b[G\n\
@@ -140,7 +143,7 @@ Matrix operations/functions:\x1b[G\n\
 - len, wid\x1b[G\n\
 - max, min, mean, mode, weighted_mean{{{{n,weight}}...}}\x1b[G\n\
 - iden(n) produces an n dimension identity matrix\x1b[G\n\
-- rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix\x1b[G\n\
+- rotate(θ), rotate(yaw,pitch,roll) produces a rotational matrix\x1b[G\n\
 - sort(mat) sorts rows by first column\x1b[G\n\
 - interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\
 - lineofbestfit/lobf(mat,x) line of best fit for numerous 2d values, with no x values it will spit out the m/b values for line equation in form of mx+b, mat should be organized like {{{{x0,y0}},{{x1,y1}} ... {{xN,yN}}}}\x1b[G\n\

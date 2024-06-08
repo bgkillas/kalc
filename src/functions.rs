@@ -270,6 +270,8 @@ pub fn functions() -> HashSet<&'static str>
         "neg_hypergeometric_pmf",
         "neg_hypergeometric_cdf",
         "rand_neg_hypergeometric",
+        "cyl",
+        "cylinder",
     ]
     .iter()
     .cloned()
@@ -298,8 +300,8 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "norm(num/vec/mat)",
         "abs(num/vec/mat)",
         "normalize(vec)",
-        "cartesian(vec)",
-        "polar(vec)",
+        "cartesian({r,θ(,φ)})",
+        "polar({x,y(,z)})",
         "angle(vec(,vec))",
         "cross(vec,vec)",
         "project(vec,vec)",
@@ -481,6 +483,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "neg_hypergeometric_pmf(k,N,K,r)",
         "neg_hypergeometric_cdf(k,N,K,r)",
         "rand_neg_hypergeometric(N,K,r)",
+        "cylinder({x,y,z})",
     ]
     .iter()
     .cloned()

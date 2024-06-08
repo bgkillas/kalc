@@ -879,7 +879,7 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
     }
     if a.len() != 2 && a.len() != 3
     {
-        Vec::new()
+        a
     }
     else if a.len() == 2
     {
@@ -1025,6 +1025,135 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
                     ..Units::default()
                 }),
             ),
+        ]
+    }
+}
+pub fn to_cyl(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
+{
+    if a.len() == 1
+    {
+        a.push(Number::from(Complex::new(a[0].number.prec()), None));
+    }
+    if a.len() != 2 && a.len() != 3
+    {
+        a
+    }
+    else if a.len() == 2
+    {
+        if a[1].number.is_zero()
+        {
+            if a[0].number.is_zero()
+            {
+                vec![
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
+                ]
+            }
+            else
+            {
+                vec![
+                    Number::from(a[0].number.clone().abs(), a[0].units),
+                    Number::from(
+                        if a[0].number.real().is_sign_positive()
+                        {
+                            Complex::new(a[0].number.prec())
+                        }
+                        else
+                        {
+                            to_deg * Float::with_val(a[0].number.prec().0, Pi)
+                        },
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
+                ]
+            }
+        }
+        else
+        {
+            let mut n: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+            n = n.sqrt();
+            vec![
+                Number::from(n.clone(), a[0].units),
+                Number::from(
+                    atan(a[0].number.clone(), a[1].number.clone()) * to_deg,
+                    Some(Units {
+                        angle: 1.0,
+                        ..Units::default()
+                    }),
+                ),
+            ]
+        }
+    }
+    else if a[1].number.is_zero()
+    {
+        if a[0].number.is_zero()
+        {
+            if a[2].number.is_zero()
+            {
+                vec![
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                ]
+            }
+            else
+            {
+                vec![
+                    Number::from(Complex::new(a[0].number.prec()), None),
+                    Number::from(
+                        Complex::new(a[0].number.prec()),
+                        Some(Units {
+                            angle: 1.0,
+                            ..Units::default()
+                        }),
+                    ),
+                    Number::from(a[2].number.clone().abs(), a[2].units),
+                ]
+            }
+        }
+        else
+        {
+            let nxy: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+            vec![
+                Number::from(nxy.sqrt(), a[0].units),
+                Number::from(
+                    atan(a[0].number.clone(), a[1].number.clone()) * to_deg.clone(),
+                    Some(Units {
+                        angle: 1.0,
+                        ..Units::default()
+                    }),
+                ),
+                a[2].clone(),
+            ]
+        }
+    }
+    else
+    {
+        let nxy: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+        vec![
+            Number::from(nxy.sqrt(), a[0].units),
+            Number::from(
+                atan(a[0].number.clone(), a[1].number.clone()) * to_deg.clone(),
+                Some(Units {
+                    angle: 1.0,
+                    ..Units::default()
+                }),
+            ),
+            a[2].clone(),
         ]
     }
 }

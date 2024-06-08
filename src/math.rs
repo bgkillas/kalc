@@ -6,7 +6,7 @@ use crate::{
         lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne, nth_prime,
         or, quadratic, quartic, rand_gamma, rand_norm, recursion, regularized_incomplete_beta, rem,
         root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area,
-        tetration, to, to_polar, trace, transpose, unity, variance, zeta,
+        tetration, to, to_cyl, to_polar, trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -2191,6 +2191,7 @@ pub fn do_math(
                                 }
                             }
                             "polar" | "pol" => Vector(to_polar(a.clone(), to_deg.clone())),
+                            "cyl" | "cylinder" => Vector(to_cyl(a.clone(), to_deg.clone())),
                             "angle" =>
                             {
                                 if function.len() > i + 1

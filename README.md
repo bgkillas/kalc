@@ -168,7 +168,7 @@ FLAGS: --help (this message)
 - "...=" display parsed input, show values of stuff like xr/deci/prec etc
 - "f...=null" to delete a function or variable
 - "{x,y,z...}" to define a cartesian vector
-- "[radius,theta,phi]" to define a polar vector (same as car{vec})
+- "[r,θ,φ]" to define a polar vector (same as car{r,θ,φ})
 - "f(x)#g(x)" to graph multiple things
 - "{vec}#" to graph a vector
 - "{mat}#" to graph a matrix
@@ -241,8 +241,11 @@ Vector functions:
 - max, min, mean, median, mode, sort, geo_mean
 - reverse, link
 - part({vec},col), sum, prod
-- pol{vec} outputs (radius, theta, phi)
-- car{vec} outputs (x, y, z)
+- pol{x,y,z} outputs (r, θ, φ)
+- pol{x,y} outputs (r, θ)
+- car{r,θ,φ} outputs (x, y, z)
+- car{r,θ} outputs (x, y)
+- cyl{x,y,z} outputs (p, θ, z)
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
 Matrix functions:
@@ -254,7 +257,7 @@ Matrix functions:
 - len, wid
 - max, min, mean, mode, weighted_mean{{n,weight}...}
 - iden(n) produces an n dimension identity matrix
-- rotate(theta), rotate(yaw,pitch,roll) produces a rotational matrix
+- rotate(θ), rotate(yaw,pitch,roll) produces a rotational matrix
 - sort(mat) sorts rows by first column
 - interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - lineofbestfit/lobf(mat,x) line of best fit for numerous 2d values, with no x values it will spit out the m/b values for line equation in form of mx+b, mat should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
@@ -399,7 +402,7 @@ x+y+2+5
 > |z| // graphs |(x+yi)| in 3D
 norm((x+y+1i))
 > deg // enables degrees
-> pol({5,3,2}+{1,2,3}) // prints {magnitude, theta, phi} of {5,3,2}+{1,2,3}
+> pol({5,3,2}+{1,2,3}) // prints {magnitude, θ, φ} of {5,3,2}+{1,2,3}
 {9.273618495496,57.373262293469,39.805571092265}
 > piecewise({+-sqrt(2^2-x^2),(x<2)&&(x>-2)}) # 3{cos(x),sin(x)} # [5,x] # graph=flat;exp(ix) //graphing circles 4 different ways
 piecewise({0±sqrt(2^2-x^2),(x<2)&&(x>-2)})

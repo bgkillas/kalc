@@ -453,13 +453,11 @@ pub fn input_var(
                 {
                     output.push(Str("&&".to_string()));
                 }
-                '=' if i + 1 < chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
+                '=' if i != 0
+                    && i + 1 < chars.len()
+                    && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    if i == 0
-                    {
-                        return Ok((Vec::new(), Vec::new(), HowGraphing::default(), true, None));
-                    }
-                    else if chars[i + 1] == '='
+                    if chars[i + 1] == '='
                     {
                         output.push(Str("==".to_string()));
                         i += 1;

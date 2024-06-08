@@ -1363,13 +1363,10 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
                 false,
                 &mut Vec::new(),
             );
-            if let Ok(f) = input
+            match input
             {
-                parsed_to_string(f.0, f.1, &options, colors)
-            }
-            else
-            {
-                String::new()
+                Ok(f) => parsed_to_string(f.0, f.1, &options, colors),
+                Err(s) => s.to_string(),
             }
         }
     }

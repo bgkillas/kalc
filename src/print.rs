@@ -71,7 +71,7 @@ pub fn print_concurrent(
             }
             vars = &var;
         }
-        let tempinput = unparsed.iter().collect::<String>();
+        let mut tempinput = unparsed.iter().collect::<String>();
         if tempinput.starts_with("help ")
         {
             let message = help_for(tempinput.splitn(2, ' ').last().unwrap());
@@ -116,19 +116,107 @@ pub fn print_concurrent(
         }
         else if tempinput.ends_with('=')
         {
-            let out = equal_to(
+            let (width, height) = get_terminal_dimensions();
+            let mut wrap = 0;
+            tempinput.pop();
+            let mut split = tempinput.split('#');
+            let n = equal_to(
                 options,
                 &colors,
                 vars,
-                &tempinput[..tempinput.len().saturating_sub(1)],
+                split.next().unwrap(),
                 &last.iter().collect::<String>(),
             );
+            let len = no_col_len(&n, options.color == crate::Auto::True);
+            wrap += len.saturating_sub(1) / width + 1;
+            let mut out = n + "\x1b[G\n";
+            {
+                if split.clone().count() > 5
+                {
+                    print!(
+                        "\x1b[G\n\x1b[Jtoo many graphs\x1b[G\x1b[A\x1b[K{}{}{}",
+                        prompt(options, &colors),
+                        to_output(
+                            &unmodified_input[start..end],
+                            options.color == crate::Auto::True,
+                            &colors
+                        ),
+                        if options.color == crate::Auto::True
+                        {
+                            "\x1b[0m"
+                        }
+                        else
+                        {
+                            ""
+                        }
+                    );
+                    return (1, HowGraphing::default(), false, false);
+                }
+                let mut options = options;
+                let mut colors = colors.clone();
+                let mut vars = vars.to_vec();
+                for input in split
+                {
+                    if !input.is_empty()
+                    {
+                        let mut input = input;
+                        let split = input.split(|c| c == ';');
+                        let count = split.clone().count();
+                        if count != 1
+                        {
+                            input = split.clone().last().unwrap();
+                            for (i, s) in split.enumerate()
+                            {
+                                if i == count - 1
+                                {
+                                    break;
+                                }
+                                silent_commands(
+                                    &mut options,
+                                    &s.chars()
+                                        .filter(|c| !c.is_whitespace())
+                                        .collect::<Vec<char>>(),
+                                );
+                                if s.contains('=')
+                                {
+                                    if let Err(s) = set_commands_or_vars(
+                                        &mut colors,
+                                        &mut options,
+                                        &mut vars,
+                                        &s.chars().collect::<Vec<char>>(),
+                                    )
+                                    {
+                                        handle_err(
+                                            s,
+                                            unmodified_input,
+                                            options,
+                                            &colors,
+                                            start,
+                                            end,
+                                        );
+                                        return (1, HowGraphing::default(), false, false);
+                                    }
+                                }
+                            }
+                        }
+                        let n = &equal_to(
+                            options,
+                            &colors,
+                            &vars,
+                            input,
+                            &last.iter().collect::<String>(),
+                        );
+                        let len = no_col_len(&n, options.color == crate::Auto::True);
+                        wrap += len.saturating_sub(1) / width + 1;
+                        out += n;
+                        out += "\x1b[G\n"
+                    }
+                }
+            }
+            out.pop();
             return if !out.is_empty()
             {
-                let (width, height) = get_terminal_dimensions();
-                let len = no_col_len(&out, options.color == crate::Auto::True);
-                let wrap = len.saturating_sub(1) / width + 1;
-                if len > width * height.saturating_sub(1)
+                if wrap > height.saturating_sub(1)
                 {
                     if long_output
                     {
@@ -364,10 +452,22 @@ pub fn print_concurrent(
                 {
                     let out = match tinput
                     {
-                        Ok(n) => parsed_to_string(n.0, n.1, &options, &colors),
+                        Ok(n) if !n.0.is_empty() => parsed_to_string(n.0, n.1, &options, &colors),
                         Err(s) =>
                         {
                             handle_err(s, unmodified_input, options, &colors, start, end);
+                            return (1, HowGraphing::default(), false, false);
+                        }
+                        _ =>
+                        {
+                            handle_err(
+                                "equal sign on right side of definition",
+                                unmodified_input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            );
                             return (1, HowGraphing::default(), false, false);
                         }
                     };
@@ -444,11 +544,23 @@ pub fn print_concurrent(
                     var = true;
                     input = match tinput
                     {
-                        Ok(f) => f,
+                        Ok(f) if !f.0.is_empty() => f,
                         Err(s) =>
                         {
                             handle_err(s, unmodified_input, options, &colors, start, end);
-                            return (1, HowGraphing::default(), false, true);
+                            return (1, HowGraphing::default(), false, false);
+                        }
+                        _ =>
+                        {
+                            handle_err(
+                                "equal sign on right side of definition",
+                                unmodified_input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            );
+                            return (1, HowGraphing::default(), false, false);
                         }
                     };
                 }

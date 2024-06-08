@@ -41,35 +41,38 @@ pub fn print_concurrent(
     let mut var;
     let mut unparsed = unmodified_input;
     {
-        let split = unmodified_input.split(|c| c == &';');
-        let count = split.clone().count();
-        if count != 1
+        if !unmodified_input.contains(&'#')
         {
-            unparsed = split.clone().last().unwrap();
-            var = vars.to_vec();
-            for (i, s) in split.enumerate()
+            let split = unmodified_input.split(|c| c == &';');
+            let count = split.clone().count();
+            if count != 1
             {
-                if i == count - 1
+                unparsed = split.clone().last().unwrap();
+                var = vars.to_vec();
+                for (i, s) in split.enumerate()
                 {
-                    break;
-                }
-                silent_commands(
-                    &mut options,
-                    &s.iter()
-                        .copied()
-                        .filter(|&c| !c.is_whitespace())
-                        .collect::<Vec<char>>(),
-                );
-                if s.contains(&'=')
-                {
-                    if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut var, s)
+                    if i == count - 1
                     {
-                        handle_err(s, unmodified_input, options, &colors, start, end);
-                        return (1, HowGraphing::default(), false, false);
+                        break;
+                    }
+                    silent_commands(
+                        &mut options,
+                        &s.iter()
+                            .copied()
+                            .filter(|&c| !c.is_whitespace())
+                            .collect::<Vec<char>>(),
+                    );
+                    if s.contains(&'=')
+                    {
+                        if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut var, s)
+                        {
+                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            return (1, HowGraphing::default(), false, false);
+                        }
                     }
                 }
+                vars = &var;
             }
-            vars = &var;
         }
         let mut tempinput = unparsed.iter().collect::<String>();
         if tempinput.starts_with("help ")
@@ -119,19 +122,10 @@ pub fn print_concurrent(
             let (width, height) = get_terminal_dimensions();
             let mut wrap = 0;
             tempinput.pop();
-            let mut split = tempinput.split('#');
-            let n = equal_to(
-                options,
-                &colors,
-                vars,
-                split.next().unwrap(),
-                &last.iter().collect::<String>(),
-            );
-            let len = no_col_len(&n, options.color == crate::Auto::True);
-            wrap += len.saturating_sub(1) / width + 1;
-            let mut out = n + "\x1b[G\n";
+            let mut out = String::new();
+            let split = tempinput.split('#');
             {
-                if split.clone().count() > 5
+                if split.clone().count() > 6
                 {
                     print!(
                         "\x1b[G\n\x1b[Jtoo many graphs\x1b[G\x1b[A\x1b[K{}{}{}",
@@ -152,64 +146,87 @@ pub fn print_concurrent(
                     );
                     return (1, HowGraphing::default(), false, false);
                 }
-                let mut options = options;
-                let mut colors = colors.clone();
-                let mut vars = vars.to_vec();
-                for input in split
+                if tempinput.contains(';')
                 {
-                    if !input.is_empty()
+                    let mut options = options;
+                    let mut colors = colors.clone();
+                    let mut vars = vars.to_vec();
+                    for input in split
                     {
-                        let mut input = input;
-                        let split = input.split(|c| c == ';');
-                        let count = split.clone().count();
-                        if count != 1
+                        if !input.is_empty()
                         {
-                            input = split.clone().last().unwrap();
-                            for (i, s) in split.enumerate()
+                            let mut input = input;
+                            let split = input.split(|c| c == ';');
+                            let count = split.clone().count();
+                            if count != 1
                             {
-                                if i == count - 1
+                                input = split.clone().last().unwrap();
+                                for (i, s) in split.enumerate()
                                 {
-                                    break;
-                                }
-                                silent_commands(
-                                    &mut options,
-                                    &s.chars()
-                                        .filter(|c| !c.is_whitespace())
-                                        .collect::<Vec<char>>(),
-                                );
-                                if s.contains('=')
-                                {
-                                    if let Err(s) = set_commands_or_vars(
-                                        &mut colors,
-                                        &mut options,
-                                        &mut vars,
-                                        &s.chars().collect::<Vec<char>>(),
-                                    )
+                                    if i == count - 1
                                     {
-                                        handle_err(
-                                            s,
-                                            unmodified_input,
-                                            options,
-                                            &colors,
-                                            start,
-                                            end,
-                                        );
-                                        return (1, HowGraphing::default(), false, false);
+                                        break;
+                                    }
+                                    silent_commands(
+                                        &mut options,
+                                        &s.chars()
+                                            .filter(|c| !c.is_whitespace())
+                                            .collect::<Vec<char>>(),
+                                    );
+                                    if s.contains('=')
+                                    {
+                                        if let Err(s) = set_commands_or_vars(
+                                            &mut colors,
+                                            &mut options,
+                                            &mut vars,
+                                            &s.chars().collect::<Vec<char>>(),
+                                        )
+                                        {
+                                            handle_err(
+                                                s,
+                                                unmodified_input,
+                                                options,
+                                                &colors,
+                                                start,
+                                                end,
+                                            );
+                                            return (1, HowGraphing::default(), false, false);
+                                        }
                                     }
                                 }
                             }
+                            let n = &equal_to(
+                                options,
+                                &colors,
+                                &vars,
+                                input,
+                                &last.iter().collect::<String>(),
+                            );
+                            let len = no_col_len(n, options.color == crate::Auto::True);
+                            wrap += len.saturating_sub(1) / width + 1;
+                            out += n;
+                            out += "\x1b[G\n"
                         }
-                        let n = &equal_to(
-                            options,
-                            &colors,
-                            &vars,
-                            input,
-                            &last.iter().collect::<String>(),
-                        );
-                        let len = no_col_len(&n, options.color == crate::Auto::True);
-                        wrap += len.saturating_sub(1) / width + 1;
-                        out += n;
-                        out += "\x1b[G\n"
+                    }
+                }
+                else
+                {
+                    for input in split
+                    {
+                        if !input.is_empty()
+                        {
+                            let n = &equal_to(
+                                options,
+                                &colors,
+                                vars,
+                                input,
+                                &last.iter().collect::<String>(),
+                            );
+                            let len = no_col_len(n, options.color == crate::Auto::True);
+                            wrap += len.saturating_sub(1) / width + 1;
+                            out += n;
+                            out += "\x1b[G\n"
+                        }
                     }
                 }
             }
@@ -320,7 +337,7 @@ pub fn print_concurrent(
         {
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
             let mut inputs = unparsed[n..].iter().collect::<String>();
-            let mut func = unparsed[..n - 1].to_vec();
+            let func = unparsed[..n - 1].to_vec();
             if matches!(
                 func.iter().collect::<String>().as_str(),
                 "re1col"
@@ -380,6 +397,7 @@ pub fn print_concurrent(
                 if func.contains(&'(')
                 {
                     def = true;
+                    let mut func = func.clone();
                     func.drain(0..=func.iter().position(|c| c == &'(').unwrap());
                     func.pop();
                     for i in func.split(|c| c == &',')
@@ -444,7 +462,7 @@ pub fn print_concurrent(
                     options,
                     false,
                     0,
-                    Vec::new(),
+                    func,
                     false,
                     &mut Vec::new(),
                 );
@@ -596,61 +614,81 @@ pub fn print_concurrent(
                     );
                     return (1, input.2, false, false);
                 }
-                let mut options = options;
-                let mut colors = colors.clone();
-                let mut vars = vars.to_vec();
-                for input in split
+                if unmodified_input.contains(&';')
                 {
-                    if !input.is_empty()
+                    let mut options = options;
+                    let mut colors = colors.clone();
+                    let mut vars = vars.to_vec();
+                    for input in split
                     {
-                        let mut input = input;
-                        let split = input.split(|c| c == ';');
-                        let count = split.clone().count();
-                        if count != 1
+                        if !input.is_empty()
                         {
-                            input = split.clone().last().unwrap();
-                            for (i, s) in split.enumerate()
+                            let mut input = input;
+                            let split = input.split(|c| c == ';');
+                            let count = split.clone().count();
+                            if count != 1
                             {
-                                if i == count - 1
+                                input = split.clone().last().unwrap();
+                                for (i, s) in split.enumerate()
                                 {
-                                    break;
-                                }
-                                silent_commands(
-                                    &mut options,
-                                    &s.chars()
-                                        .filter(|c| !c.is_whitespace())
-                                        .collect::<Vec<char>>(),
-                                );
-                                if s.contains('=')
-                                {
-                                    if let Err(s) = set_commands_or_vars(
-                                        &mut colors,
-                                        &mut options,
-                                        &mut vars,
-                                        &s.chars().collect::<Vec<char>>(),
-                                    )
+                                    if i == count - 1
                                     {
-                                        handle_err(
-                                            s,
-                                            unmodified_input,
-                                            options,
-                                            &colors,
-                                            start,
-                                            end,
-                                        );
-                                        return (1, HowGraphing::default(), false, false);
+                                        break;
+                                    }
+                                    silent_commands(
+                                        &mut options,
+                                        &s.chars()
+                                            .filter(|c| !c.is_whitespace())
+                                            .collect::<Vec<char>>(),
+                                    );
+                                    if s.contains('=')
+                                    {
+                                        if let Err(s) = set_commands_or_vars(
+                                            &mut colors,
+                                            &mut options,
+                                            &mut vars,
+                                            &s.chars().collect::<Vec<char>>(),
+                                        )
+                                        {
+                                            handle_err(
+                                                s,
+                                                unmodified_input,
+                                                options,
+                                                &colors,
+                                                start,
+                                                end,
+                                            );
+                                            return (1, HowGraphing::default(), false, false);
+                                        }
                                     }
                                 }
                             }
+                            out += &equal_to(
+                                options,
+                                &colors,
+                                &vars,
+                                input,
+                                &last.iter().collect::<String>(),
+                            );
+                            out += "\n"
                         }
-                        out += &equal_to(
-                            options,
-                            &colors,
-                            &vars,
-                            input,
-                            &last.iter().collect::<String>(),
-                        );
-                        out += "\n"
+                    }
+                }
+                else
+                {
+                    for input in split
+                    {
+                        if !input.is_empty()
+                        {
+                            out += &equal_to(
+                                options,
+                                &colors,
+                                vars,
+                                input,
+                                &last.iter().collect::<String>(),
+                            );
+                            out += "\n"
+                        }
                     }
                 }
             }

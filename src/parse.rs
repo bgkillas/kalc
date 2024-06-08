@@ -2755,55 +2755,44 @@ pub fn input_var(
     }
     let mut count = 0;
     i = 0;
-    let mut brackets: Vec<(usize, usize)> = Vec::new();
+    let mut double = Vec::new();
     while i < output.len()
     {
         if let Str(s) = &output[i]
         {
             match s.as_str()
             {
-                "(" =>
+                "(" if i + 1 < output.len() =>
                 {
-                    if output.len() > i + 2
-                        && output[i + 2].str_is(")")
-                        && if let Str(s) = &output[i + 1]
-                        {
-                            !matches!(s.as_str(), "epoch" | "rnd" | "rand")
-                        }
-                        else
-                        {
-                            false
-                        }
-                        && !print
+                    count += 1;
+                    if output[i + 1].str_is(")")
                     {
-                        output.remove(i + 2);
+                        output.remove(i + 1);
                         output.remove(i);
+                        i = i.saturating_sub(1);
+                        count -= 1;
+                        continue;
                     }
-                    else
+                    else if output[i + 1].str_is("(")
                     {
-                        if output.len() > i + 1 && output[i + 1].str_is(")")
-                        {
-                            output.remove(i + 1);
-                            output.remove(i);
-                            i = i.saturating_sub(1);
-                            count -= 1;
-                            continue;
-                        }
-                        brackets.push((i, count as usize));
-                        count += 1
+                        double.push((i, count));
                     }
                 }
                 ")" =>
                 {
                     count -= 1;
-                    if let Some(k) = brackets.last()
+                    if let Some(d) = double.last()
                     {
-                        if k.0 == 0 && i == output.len().saturating_sub(1)
+                        if d.1 == count
                         {
-                            output.pop();
-                            output.remove(0);
+                            if output.len() > i + 1 && output[i + 1].str_is(")")
+                            {
+                                output.remove(i);
+                                output.remove(d.0);
+                                i -= 2;
+                            }
+                            double.pop();
                         }
-                        brackets.pop();
                     }
                 }
                 _ if print

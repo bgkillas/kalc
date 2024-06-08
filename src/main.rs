@@ -470,7 +470,7 @@ fn main()
                                     continue 'upper;
                                 }
                             }
-                            for (i, j) in vars.clone().iter().enumerate()
+                            for (i, j) in vars.iter().enumerate()
                             {
                                 if j.name.len() <= le.len()
                                 {

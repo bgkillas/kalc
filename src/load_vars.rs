@@ -734,66 +734,112 @@ pub fn add_var(
         {
             return Err("bad var name");
         }
-        let mut k = 0;
-        for (j, v) in vars.iter().enumerate()
-        {
-            if v.name.len() <= l.len()
-            {
-                k = j;
-                break;
-            }
-        }
-        let mut tempvars = vars.clone();
-        tempvars.insert(
-            k,
-            Variable {
-                name: l.clone(),
-                parsed: Vec::new(),
-                unparsed: String::new(),
-                funcvars: Vec::new(),
-            },
-        );
         let mut fvs = Vec::new();
-        if r.contains(':')
+        let mut parsed = if r.contains("pw") || r.contains("piecewise")
         {
-            let mut split = r.split(':').collect::<Vec<&str>>();
-            r = split.pop().unwrap();
-            for i in split
+            let mut k = 0;
+            for (j, v) in vars.iter().enumerate()
             {
-                if i.contains('=')
+                if v.name.len() <= l.len()
                 {
-                    let mut split = i.splitn(2, '=');
-                    let s = split.next().unwrap().to_string();
-                    let parsed = input_var(
-                        split.next().unwrap(),
-                        &tempvars,
-                        &mut func_vars,
-                        &mut 0,
-                        options,
-                        false,
-                        0,
-                        s.chars().collect::<Vec<char>>(),
-                        false,
-                        &mut Vec::new(),
-                    )?;
-                    func_vars.push((-1, s.clone()));
-                    fvs.push((s, parsed.0));
-                    fvs.extend(parsed.1)
+                    k = j;
+                    break;
                 }
             }
+            let mut tempvars = vars.clone();
+            tempvars.insert(
+                k,
+                Variable {
+                    name: l.clone(),
+                    parsed: Vec::new(),
+                    unparsed: String::new(),
+                    funcvars: Vec::new(),
+                },
+            );
+            if r.contains(':')
+            {
+                let mut split = r.split(':').collect::<Vec<&str>>();
+                r = split.pop().unwrap();
+                for i in split
+                {
+                    if i.contains('=')
+                    {
+                        let mut split = i.splitn(2, '=');
+                        let s = split.next().unwrap().to_string();
+                        let parsed = input_var(
+                            split.next().unwrap(),
+                            &tempvars,
+                            &mut func_vars,
+                            &mut 0,
+                            options,
+                            false,
+                            0,
+                            s.chars().collect::<Vec<char>>(),
+                            false,
+                            &mut Vec::new(),
+                        )?;
+                        func_vars.push((-1, s.clone()));
+                        fvs.push((s, parsed.0));
+                        fvs.extend(parsed.1)
+                    }
+                }
+            }
+            input_var(
+                r,
+                &tempvars,
+                &mut func_vars,
+                &mut 0,
+                options,
+                false,
+                0,
+                l.clone(),
+                false,
+                &mut Vec::new(),
+            )?
         }
-        let mut parsed = input_var(
-            r,
-            &tempvars,
-            &mut func_vars,
-            &mut 0,
-            options,
-            false,
-            0,
-            l.clone(),
-            false,
-            &mut Vec::new(),
-        )?;
+        else
+        {
+            if r.contains(':')
+            {
+                let mut split = r.split(':').collect::<Vec<&str>>();
+                r = split.pop().unwrap();
+                for i in split
+                {
+                    if i.contains('=')
+                    {
+                        let mut split = i.splitn(2, '=');
+                        let s = split.next().unwrap().to_string();
+                        let parsed = input_var(
+                            split.next().unwrap(),
+                            vars,
+                            &mut func_vars,
+                            &mut 0,
+                            options,
+                            false,
+                            0,
+                            s.chars().collect::<Vec<char>>(),
+                            false,
+                            &mut Vec::new(),
+                        )?;
+                        func_vars.push((-1, s.clone()));
+                        fvs.push((s, parsed.0));
+                        fvs.extend(parsed.1)
+                    }
+                }
+            }
+            input_var(
+                r,
+                vars,
+                &mut func_vars,
+                &mut 0,
+                options,
+                false,
+                0,
+                l.clone(),
+                false,
+                &mut Vec::new(),
+            )?
+        };
         parsed.1.extend(fvs);
         if l.contains(&'(')
             && r.contains(l.split(|c| c == &'(').next().unwrap())

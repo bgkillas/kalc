@@ -340,7 +340,15 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
 {
     if color
     {
-        let mut count: isize = 0;
+        let mut count: isize = (input
+            .iter()
+            .filter(|a| matches!(a, ')' | '}' | ']'))
+            .count() as isize
+            - input
+                .iter()
+                .filter(|a| matches!(a, '(' | '{' | '['))
+                .count() as isize)
+            .max(0);
         let mut output = String::new();
         let mut abs = Vec::new();
         let mut i = 0;

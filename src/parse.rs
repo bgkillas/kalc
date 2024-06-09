@@ -2756,6 +2756,7 @@ pub fn input_var(
     let mut count = 0;
     i = 0;
     let mut double = Vec::new();
+    let mut brackets = Vec::new();
     while i < output.len()
     {
         if let Str(s) = &output[i]
@@ -2777,6 +2778,10 @@ pub fn input_var(
                     {
                         double.push((i, count));
                     }
+                    if i == 0 || output[i - 1].str_is(",")
+                    {
+                        brackets.push((i, count));
+                    }
                 }
                 ")" =>
                 {
@@ -2794,8 +2799,41 @@ pub fn input_var(
                             double.pop();
                         }
                     }
+                    if let Some(d) = brackets.last()
+                    {
+                        if d.1 == count + 1
+                        {
+                            if i == output.len() - 1
+                            {
+                                output.remove(i);
+                                output.remove(d.0);
+                                i -= 2;
+                            }
+                            if i + 1 == output.len() || !output[i + 1].str_is(",")
+                            {
+                                brackets.pop();
+                            }
+                        }
+                    }
                 }
-                _ if print
+                "," =>
+                {
+                    if let Some(d) = brackets.last()
+                    {
+                        if d.1 == count + 1
+                        {
+                            output.remove(i - 1);
+                            output.remove(d.0);
+                            i -= 2;
+                            brackets.pop();
+                        }
+                    }
+                }
+                _ if (print
+                    || (i + 1 < output.len()
+                        && (output[i + 1].str_is("rnd")
+                            || output[i + 1].str_is("rand")
+                            || output[i + 1].str_is("epoch"))))
                     && functions.contains(s.as_str())
                     && !sumrec.iter().any(|a| a.1 == *s)
                     && i + 1 < output.len() =>

@@ -810,7 +810,6 @@ pub fn units() -> HashSet<&'static str>
         "gram",
         "g",
         "h",
-        "d",
         "lumen",
         "lm",
         "lux",
@@ -824,7 +823,6 @@ pub fn units() -> HashSet<&'static str>
         "katal",
         "kat",
         "bit",
-        "b",
         "steradian",
         "sr",
         "kph",
@@ -893,7 +891,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             };
             units.angle = 2.0
         }
-        "bit" | "b" =>
+        "bit" =>
         {
             num /= 8;
             units.byte = 1.0;
@@ -1190,7 +1188,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             units.second = 1.0;
             num *= 3600;
         }
-        "d" | "day" =>
+        "day" =>
         {
             units.second = 1.0;
             num *= 86400;

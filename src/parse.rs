@@ -848,7 +848,7 @@ pub fn input_var(
                                     || output.last().unwrap().str_is("}"))))
                     {
                         if !output.is_empty()
-                            && (output.clone().last().unwrap().str_is(")")
+                            && (output.last().unwrap().str_is(")")
                                 || output.last().unwrap().str_is("}"))
                         {
                             let mut count = 0;

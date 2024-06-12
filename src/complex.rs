@@ -2404,9 +2404,9 @@ pub fn recursion(
                         {
                             if let Str(s) = &fv.1[i]
                             {
-                                for v in processed.iter().zip(vars.clone())
+                                for v in processed.iter().zip(vars.iter())
                                 {
-                                    if *s == v.1
+                                    if s == v.1
                                     {
                                         fv.1.remove(i);
                                         fv.1.splice(i..i, v.0.clone());
@@ -2432,13 +2432,11 @@ pub fn recursion(
                     if func[x].str_is(&fv.0)
                     {
                         let mut fv = fv.clone();
-                        for (i, j) in func_vars.clone().iter().enumerate()
-                        {
-                            if j.0 == var
-                            {
-                                func_vars.remove(i);
-                            }
-                        }
+                        func_vars =
+                            func_vars
+                                .into_iter()
+                                .filter(|v| v.0 == var)
+                                .collect::<Vec<(String, Vec<NumStr>)>>();
                         let mut bracket = 0;
                         let mut k = 0;
                         for (i, n) in func[x + 2..].iter().enumerate()

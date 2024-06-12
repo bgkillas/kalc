@@ -891,19 +891,23 @@ pub fn add_var(
     }
     if redef
     {
-        let mut redef = vec![l.clone()];
+        let mut redef = vec![(l.clone(), Vec::new())];
         let mut k = 0;
         while k < redef.len()
         {
-            for (j, v) in vars.clone().iter().enumerate()
+            let mut j = 0;
+            while j < vars.len()
             {
-                let check = &redef[k][0..=redef[k]
+                let v = &vars[j];
+                let check = &redef[k].0[0..=redef[k]
+                    .0
                     .iter()
                     .position(|a| a == &'(')
-                    .unwrap_or(redef[k].len().saturating_sub(1))]
+                    .unwrap_or(redef[k].0.len().saturating_sub(1))]
                     .iter()
                     .collect::<String>();
-                if !redef.contains(&v.name) && v.unparsed.contains(check)
+                if !redef.iter().any(|a| a.0 == v.name && a.1 == redef[k].0)
+                    && v.unparsed.contains(check)
                 {
                     let mut func_vars: Vec<(isize, String)> = Vec::new();
                     if v.name.contains(&'(')
@@ -971,22 +975,23 @@ pub fn add_var(
                     }
                     if v.name.contains(&'(')
                     {
-                        if vars[j].parsed != parsed.0 || vars[j].funcvars != parsed.1
+                        if v.parsed != parsed.0 || v.funcvars != parsed.1
                         {
-                            redef.push(v.name.clone());
+                            redef.push((v.name.clone(), redef[k].0.clone()));
                             vars[j].parsed = parsed.0;
                             vars[j].funcvars = parsed.1;
                         }
                     }
                     else if let Ok(n) = do_math(parsed.0.clone(), options, parsed.1.clone())
                     {
-                        if n != vars[j].parsed[0]
+                        if n != v.parsed[0]
                         {
-                            redef.push(v.name.clone());
+                            redef.push((v.name.clone(), redef[k].0.clone()));
                             vars[j].parsed = vec![n];
                         }
                     }
                 }
+                j += 1;
             }
             k += 1;
         }

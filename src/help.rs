@@ -222,7 +222,7 @@ fn all_units() -> &'static str
 \"Ω\" | \"ohm\"\x1b[G\n\
 \"min\" | \"minute\"\x1b[G\n\
 \"h\" | \"hour\"\x1b[G\n\
-\"d\" | \"day\"\x1b[G\n\
+\"day\"\x1b[G\n\
 \"week\"\x1b[G\n\
 \"N\" | \"newton\"\x1b[G\n\
 \"C\" | \"coulomb\"\x1b[G\n\
@@ -238,7 +238,7 @@ fn all_units() -> &'static str
 \"gray\" | \"Gy\"\x1b[G\n\
 \"sievert\" | \"Sv\"\x1b[G\n\
 \"katal\" | \"kat\"\x1b[G\n\
-\"bit\" | \"b\"\x1b[G\n\
+\"bit\"\x1b[G\n\
 \"steradian\" | \"sr\"\x1b[G\n\
 \"atm\"\x1b[G\n\
 \"psi\"\x1b[G\n\

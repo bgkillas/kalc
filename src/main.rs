@@ -15,7 +15,7 @@ mod units;
 //lib, gui
 use crate::{
     complex::NumStr,
-    functions::functions_with_args,
+    functions::{functions_with_args, options_list, units_list},
     graph::graph,
     help::help_for,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
@@ -1623,34 +1623,65 @@ fn main()
                         }
                         if !word.is_empty()
                         {
-                            let mut bank1 = Vec::new();
+                            let mut bank = Vec::new();
                             for v in &vars
                             {
                                 let s = v.name.iter().collect::<String>();
                                 if s.starts_with(&word)
                                 {
-                                    bank1.push(s)
+                                    bank.push(s)
                                 }
                             }
-                            let mut bank2 = Vec::new();
+                            let mut bank_temp = Vec::new();
                             for f in functions_with_args()
                             {
                                 if f.starts_with(&word)
-                                    && !bank1.iter().any(|b| {
+                                    && !bank.iter().any(|b| {
                                         b.contains('(')
                                             && b.split('(').next().unwrap()
                                                 == f.split('(').next().unwrap()
                                     })
                                 {
-                                    bank2.push(f.to_string())
+                                    bank_temp.push(f.to_string())
                                 }
                             }
-                            bank1.extend(bank2);
-                            bank1.sort();
-                            let mut var = false;
-                            if bank1.len() == 1
+                            bank.extend(bank_temp);
+                            let mut bank_temp = Vec::new();
+                            for f in options_list()
                             {
-                                let mut w = bank1[0].to_string();
+                                if f.starts_with(&word)
+                                    && !bank.iter().any(|b| {
+                                        b.contains('(')
+                                            && b.split('(').next().unwrap()
+                                                == f.split('(').next().unwrap()
+                                    })
+                                {
+                                    bank_temp.push(f.to_string())
+                                }
+                            }
+                            bank.extend(bank_temp);
+                            if options.units
+                            {
+                                let mut bank_temp = Vec::new();
+                                for f in units_list()
+                                {
+                                    if f.starts_with(&word)
+                                        && !bank.iter().any(|b| {
+                                            b.contains('(')
+                                                && b.split('(').next().unwrap()
+                                                    == f.split('(').next().unwrap()
+                                        })
+                                    {
+                                        bank_temp.push(f.to_string())
+                                    }
+                                }
+                                bank.extend(bank_temp);
+                            }
+                            bank.sort();
+                            let mut var = false;
+                            if bank.len() == 1
+                            {
+                                let mut w = bank[0].to_string();
                                 if w.contains('(')
                                 {
                                     w = w.split('(').next().unwrap().to_string();
@@ -1733,14 +1764,14 @@ fn main()
                                     print!("\x1b[{}D", end - placement)
                                 }
                             }
-                            else if !bank1.is_empty()
+                            else if !bank.is_empty()
                             {
                                 let mut k = 0;
                                 let mut char = '\0';
                                 'upper: for n in
-                                    0..bank1.iter().fold(usize::MAX, |min, str| min.min(str.len()))
+                                    0..bank.iter().fold(usize::MAX, |min, str| min.min(str.len()))
                                 {
-                                    for b in &bank1
+                                    for b in &bank
                                     {
                                         let c = b.chars().nth(n).unwrap();
                                         if char == '\0'
@@ -1757,7 +1788,7 @@ fn main()
                                 }
                                 input.splice(
                                     placement..placement,
-                                    bank1[0][word.chars().count()..k].chars(),
+                                    bank[0][word.chars().count()..k].chars(),
                                 );
                                 placement += k - word.chars().count();
                                 end = start + get_terminal_dimensions().0
@@ -1789,14 +1820,14 @@ fn main()
                                     print!("\x1b[{}D", end - placement)
                                 }
                             }
-                            if !var && !bank1.is_empty()
+                            if !var && !bank.is_empty()
                             {
                                 let width = get_terminal_dimensions().0;
                                 let mut n = 1;
-                                let tab = bank1.iter().fold(0, |max, str| max.max(str.len())) + 3;
+                                let tab = bank.iter().fold(0, |max, str| max.max(str.len())) + 3;
                                 let mut len = 0;
                                 print!("\x1b[G\n\x1b[K");
-                                for b in bank1
+                                for b in bank
                                 {
                                     if len + tab > width
                                     {

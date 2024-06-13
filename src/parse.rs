@@ -43,7 +43,13 @@ pub fn input_var(
     let mut graph = HowGraphing::default();
     let prec = (options.prec, options.prec);
     let mut funcvars = Vec::new();
-    if input.starts_with("history") || input.starts_with("onaxis") || input.is_empty()
+    if input.starts_with("history")
+        || input.starts_with("his")
+        || input.starts_with("onaxis")
+        || input.starts_with("exit")
+        || input.starts_with("quit")
+        || input.starts_with("break")
+        || input.is_empty()
     {
         return Err(" ");
     }

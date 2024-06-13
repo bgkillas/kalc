@@ -64,7 +64,7 @@ pub fn get_file_vars(
                     let le = l.chars().collect::<Vec<char>>();
                     blacklist.push(l.clone());
                     get_file_vars(options, vars, lines.clone(), r, blacklist);
-                    for (i, j) in vars.clone().iter().enumerate()
+                    for (i, j) in vars.iter().enumerate()
                     {
                         if j.name.len() <= le.len()
                         {

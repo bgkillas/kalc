@@ -121,7 +121,7 @@ Functions:\x1b[G\n\
 - extrema(x,f(x) (,point)) employs newtons method to find the extrema of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails, outputs {{x,y,positive/negitive concavity}}\x1b[G\n\
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add \",1\" to args to show steps\x1b[G\n\n\
 Vector operations/functions:\x1b[G\n\
-- dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}})\x1b[G\n\
+- dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}}), oproj/oproject({{vec1}},{{vec2}})\x1b[G\n\
 - angle({{vec1}},{{vec2}})\x1b[G\n\
 - norm, normalize\x1b[G\n\
 - abs, len, any, all\x1b[G\n\

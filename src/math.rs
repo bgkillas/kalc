@@ -195,6 +195,8 @@ pub fn do_math(
                                     | "part"
                                     | "proj"
                                     | "project"
+                                    | "oproj"
+                                    | "oproject"
                                     | "link"
                                     | "C"
                                     | "P"
@@ -2306,23 +2308,77 @@ pub fn do_math(
                             {
                                 if function.len() > i + 1
                                 {
-                                    let b = function.remove(i + 1).clone();
-                                    if b.vec()?.len() == a.len()
+                                    let b = function.remove(i + 1).clone().vec()?;
+                                    if b.len() == a.len()
                                     {
                                         let mut dot = Complex::new(options.prec);
                                         for i in a
                                             .iter()
-                                            .zip(b.vec()?.iter())
+                                            .zip(b.iter())
                                             .map(|(a, b)| a.number.clone() * b.number.clone())
                                         {
                                             dot += i;
                                         }
                                         let mut norm = Complex::new(options.prec);
-                                        for i in b.vec()?
+                                        for i in &b
                                         {
-                                            norm += i.number.abs().pow(2);
+                                            norm += i.number.clone().abs().pow(2);
                                         }
-                                        Num(Number::from(dot / norm, None)).mul(&b)?
+                                        Vector(
+                                            b.iter()
+                                                .map(|n| {
+                                                    Number::from(
+                                                        dot.clone() / norm.clone()
+                                                            * n.number.clone(),
+                                                        n.units,
+                                                    )
+                                                })
+                                                .collect::<Vec<Number>>(),
+                                        )
+                                    }
+                                    else
+                                    {
+                                        return Err("cant project");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("no args");
+                                }
+                            }
+                            "oproject" | "oproj" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    let b = function.remove(i + 1).clone().vec()?;
+                                    if b.len() == a.len()
+                                    {
+                                        let mut dot = Complex::new(options.prec);
+                                        for i in a
+                                            .iter()
+                                            .zip(b.iter())
+                                            .map(|(a, b)| a.number.clone() * b.number.clone())
+                                        {
+                                            dot += i;
+                                        }
+                                        let mut norm = Complex::new(options.prec);
+                                        for i in &b
+                                        {
+                                            norm += i.number.clone().abs().pow(2);
+                                        }
+                                        Vector(
+                                            b.iter()
+                                                .zip(a.iter())
+                                                .map(|(n, a)| {
+                                                    Number::from(
+                                                        a.number.clone()
+                                                            - dot.clone() / norm.clone()
+                                                                * n.number.clone(),
+                                                        a.units,
+                                                    )
+                                                })
+                                                .collect::<Vec<Number>>(),
+                                        )
                                     }
                                     else
                                     {

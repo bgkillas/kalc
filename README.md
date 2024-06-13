@@ -234,7 +234,7 @@ Functions:
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add ",1" to args to show steps
 
 Vector functions:
-- dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2})
+- dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2}), oproj/oproject({vec1},{vec2})
 - angle({vec1},{vec2})
 - norm, normalize
 - abs, len, any, all

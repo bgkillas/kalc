@@ -73,6 +73,17 @@ pub fn input_var(
     {
         chars.pop();
     }
+    if chars.iter().filter(|a| **a == '|').count() % 2 == 1
+    {
+        if chars.ends_with(&['|'])
+        {
+            chars.insert(0, '|')
+        }
+        else
+        {
+            chars.push('|')
+        }
+    }
     let mut sarea = 0;
     let mut output: Vec<NumStr> = Vec::new();
     let mut stack_end = Vec::new();
@@ -822,7 +833,10 @@ pub fn input_var(
                     }
                     else if i + 1 != chars.len() && chars[i + 1] == '|'
                     {
-                        output.push(Str("||".to_string()));
+                        if i + 2 != chars.len()
+                        {
+                            output.push(Str("||".to_string()));
+                        }
                         i += 2;
                         continue;
                     }

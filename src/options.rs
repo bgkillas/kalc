@@ -1088,6 +1088,7 @@ pub fn commands(
                         v.name.iter().collect::<String>(),
                         to_output(
                             &v.unparsed.chars().collect::<Vec<char>>(),
+                            vars,
                             options.color == Auto::True,
                             colors,
                         )
@@ -1365,7 +1366,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             );
             match input
             {
-                Ok(f) => parsed_to_string(f.0, f.1, &options, colors),
+                Ok(f) => parsed_to_string(f.0, vars, f.1, &options, colors),
                 Err(s) => s.to_string(),
             }
         }

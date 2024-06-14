@@ -2761,7 +2761,7 @@ pub fn input_var(
     }
     let mut count = 0;
     i = 0;
-    let mut double = Vec::new();
+    let mut double: Vec<(usize, isize)> = Vec::new();
     let mut brackets = Vec::new();
     while i < output.len()
     {
@@ -2772,17 +2772,46 @@ pub fn input_var(
                 "(" if i + 1 < output.len() =>
                 {
                     count += 1;
-                    if output[i + 1].str_is(")")
+                    if let Str(s) = &output[i + 1]
                     {
-                        output.remove(i + 1);
-                        output.remove(i);
-                        i = i.saturating_sub(1);
-                        count -= 1;
-                        continue;
-                    }
-                    else if output[i + 1].str_is("(")
-                    {
-                        double.push((i, count));
+                        if s == ")"
+                        {
+                            output.remove(i + 1);
+                            output.remove(i);
+                            i = i.saturating_sub(1);
+                            count -= 1;
+                            continue;
+                        }
+                        else if s == "("
+                            || (i + 2 < output.len()
+                                && output[i + 2].str_is("(")
+                                && functions.contains(s.as_str())
+                                && {
+                                    let mut n: isize = i as isize - 1;
+                                    for d in double.iter().rev()
+                                    {
+                                        if d.0 == n as usize
+                                        {
+                                            n = d.0 as isize - 1;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    n >= 0
+                                        && (if let Str(n) = &output[n as usize]
+                                        {
+                                            !functions.contains(n.as_str())
+                                        }
+                                        else
+                                        {
+                                            true
+                                        })
+                                })
+                        {
+                            double.push((i, count));
+                        }
                     }
                     if i == 0 || output[i - 1].str_is(",")
                     {
@@ -2800,7 +2829,9 @@ pub fn input_var(
                             {
                                 output.remove(i);
                                 output.remove(d.0);
-                                i -= 2;
+                                i = i.saturating_sub(1);
+                                double.pop();
+                                continue;
                             }
                             double.pop();
                         }
@@ -2809,29 +2840,19 @@ pub fn input_var(
                     {
                         if d.1 == count + 1
                         {
-                            if i == output.len() - 1
+                            if (i == output.len() - 1 || output[i + 1].str_is(","))
+                                && output[d.0].str_is("(")
                             {
                                 output.remove(i);
                                 output.remove(d.0);
-                                i -= 2;
+                                i = i.saturating_sub(1);
+                                brackets.pop();
+                                continue;
                             }
-                            if i + 1 == output.len() || !output[i + 1].str_is(",")
+                            if i + 1 >= output.len() || !output[i + 1].str_is(",")
                             {
                                 brackets.pop();
                             }
-                        }
-                    }
-                }
-                "," =>
-                {
-                    if let Some(d) = brackets.last()
-                    {
-                        if d.1 == count + 1
-                        {
-                            output.remove(i - 1);
-                            output.remove(d.0);
-                            i -= 2;
-                            brackets.pop();
                         }
                     }
                 }
@@ -2846,11 +2867,10 @@ pub fn input_var(
                 {
                     if let Str(s) = &output[i + 1]
                     {
-                        if !matches!(s.as_str(), "(" | "{" | "[" | "|")
+                        if !matches!(s.as_str(), "(" | "{" | "[" | "|" | ")" | "}" | "]")
                         {
                             output.insert(i + 2, Str(")".to_string()));
                             output.insert(i + 1, Str("(".to_string()));
-                            i += 1;
                         }
                     }
                 }

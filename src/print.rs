@@ -35,7 +35,7 @@ pub fn print_concurrent(
     let mut vars = vars;
     if unmodified_input.starts_with(&['#']) || unmodified_input.is_empty()
     {
-        clear(unmodified_input, start, end, options, &colors);
+        clear(unmodified_input, vars, start, end, options, &colors);
         return (0, HowGraphing::default(), false, false);
     }
     let mut var;
@@ -66,7 +66,7 @@ pub fn print_concurrent(
                     {
                         if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut var, s)
                         {
-                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            handle_err(s, vars, unmodified_input, options, &colors, start, end);
                             return (1, HowGraphing::default(), false, false);
                         }
                     }
@@ -103,6 +103,7 @@ pub fn print_concurrent(
                 prompt(options, &colors),
                 to_output(
                     &unmodified_input[start..end],
+                    vars,
                     options.color == crate::Auto::True,
                     &colors
                 ),
@@ -132,6 +133,7 @@ pub fn print_concurrent(
                         prompt(options, &colors),
                         to_output(
                             &unmodified_input[start..end],
+                            vars,
                             options.color == crate::Auto::True,
                             &colors
                         ),
@@ -184,6 +186,7 @@ pub fn print_concurrent(
                                         {
                                             handle_err(
                                                 s,
+                                                &vars,
                                                 unmodified_input,
                                                 options,
                                                 &colors,
@@ -258,6 +261,7 @@ pub fn print_concurrent(
                             prompt(options, &colors),
                             to_output(
                                 &unmodified_input[start..end],
+                                vars,
                                 options.color == crate::Auto::True,
                                 &colors
                             ),
@@ -289,6 +293,7 @@ pub fn print_concurrent(
                         prompt(options, &colors),
                         to_output(
                             &unmodified_input[start..end],
+                            vars,
                             options.color == crate::Auto::True,
                             &colors
                         ),
@@ -306,7 +311,7 @@ pub fn print_concurrent(
             }
             else
             {
-                clear(unmodified_input, start, end, options, &colors);
+                clear(unmodified_input, vars, start, end, options, &colors);
                 (0, HowGraphing::default(), false, false)
             };
         }
@@ -328,7 +333,7 @@ pub fn print_concurrent(
         Ok(f) => f,
         Err(s) =>
         {
-            handle_err(s, unmodified_input, options, &colors, start, end);
+            handle_err(s, vars, unmodified_input, options, &colors, start, end);
             return (1, HowGraphing::default(), false, false);
         }
     };
@@ -376,6 +381,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -470,16 +476,20 @@ pub fn print_concurrent(
                 {
                     let out = match tinput
                     {
-                        Ok(n) if !n.0.is_empty() => parsed_to_string(n.0, n.1, &options, &colors),
+                        Ok(n) if !n.0.is_empty() =>
+                        {
+                            parsed_to_string(n.0, vars, n.1, &options, &colors)
+                        }
                         Err(s) =>
                         {
-                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            handle_err(s, vars, unmodified_input, options, &colors, start, end);
                             return (1, HowGraphing::default(), false, false);
                         }
                         _ =>
                         {
                             handle_err(
                                 "equal sign on right side of definition",
+                                vars,
                                 unmodified_input,
                                 options,
                                 &colors,
@@ -491,7 +501,7 @@ pub fn print_concurrent(
                     };
                     if out.is_empty()
                     {
-                        clear(unmodified_input, start, end, options, &colors);
+                        clear(unmodified_input, vars, start, end, options, &colors);
                         return (0, HowGraphing::default(), false, true);
                     }
                     let (width, height) = get_terminal_dimensions();
@@ -520,7 +530,7 @@ pub fn print_concurrent(
                             print!(
                                 "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
                                 prompt(options, &colors),
-                                to_output(&unmodified_input[start..end], options.color==crate::Auto::True, &colors),
+                                to_output(&unmodified_input[start..end],vars, options.color==crate::Auto::True, &colors),
                                 if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
                             );
                             (0, input.2, true, true)
@@ -542,6 +552,7 @@ pub fn print_concurrent(
                             prompt(options, &colors),
                             to_output(
                                 &unmodified_input[start..end],
+                                vars,
                                 options.color == crate::Auto::True,
                                 &colors
                             ),
@@ -565,13 +576,14 @@ pub fn print_concurrent(
                         Ok(f) if !f.0.is_empty() => f,
                         Err(s) =>
                         {
-                            handle_err(s, unmodified_input, options, &colors, start, end);
+                            handle_err(s, vars, unmodified_input, options, &colors, start, end);
                             return (1, HowGraphing::default(), false, false);
                         }
                         _ =>
                         {
                             handle_err(
                                 "equal sign on right side of definition",
+                                vars,
                                 unmodified_input,
                                 options,
                                 &colors,
@@ -600,6 +612,7 @@ pub fn print_concurrent(
                         prompt(options, &colors),
                         to_output(
                             &unmodified_input[start..end],
+                            vars,
                             options.color == crate::Auto::True,
                             &colors
                         ),
@@ -652,6 +665,7 @@ pub fn print_concurrent(
                                         {
                                             handle_err(
                                                 s,
+                                                &vars,
                                                 unmodified_input,
                                                 options,
                                                 &colors,
@@ -715,7 +729,7 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color==crate::Auto::True, &colors),
+                    to_output(&unmodified_input[start..end],vars, options.color==crate::Auto::True, &colors),
                     if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
                 );
                 (1, input.2, true, false)
@@ -736,6 +750,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -768,7 +783,7 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end], options.color==crate::Auto::True, &colors),
+                    to_output(&unmodified_input[start..end],vars, options.color==crate::Auto::True, &colors),
                     if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
                 );
                 (1, input.2, true, false)
@@ -789,6 +804,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -812,12 +828,12 @@ pub fn print_concurrent(
         {
             return if s == " "
             {
-                clear(unmodified_input, start, end, options, &colors);
+                clear(unmodified_input, vars, start, end, options, &colors);
                 (0, HowGraphing::default(), false, false)
             }
             else
             {
-                handle_err(s, unmodified_input, options, &colors, start, end);
+                handle_err(s, vars, unmodified_input, options, &colors, start, end);
                 (1, HowGraphing::default(), false, false)
             }
         }
@@ -1017,6 +1033,7 @@ pub fn print_concurrent(
                         prompt(options, &colors),
                         to_output(
                             &unmodified_input[start..end],
+                            vars,
                             options.color == crate::Auto::True,
                             &colors
                         ),
@@ -1068,6 +1085,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -1089,6 +1107,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -1306,6 +1325,7 @@ pub fn print_concurrent(
                         prompt(options, &colors),
                         to_output(
                             &unmodified_input[start..end],
+                            vars,
                             options.color == crate::Auto::True,
                             &colors
                         ),
@@ -1330,6 +1350,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -1657,6 +1678,7 @@ pub fn print_concurrent(
                         prompt(options, &colors),
                         to_output(
                             &unmodified_input[start..end],
+                            vars,
                             options.color == crate::Auto::True,
                             &colors
                         ),
@@ -1684,6 +1706,7 @@ pub fn print_concurrent(
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
+                        vars,
                         options.color == crate::Auto::True,
                         &colors
                     ),
@@ -1722,7 +1745,15 @@ pub fn print_concurrent(
                 frac += num;
             }
         }
-        _ => handle_err("str err", unmodified_input, options, &colors, start, end),
+        _ => handle_err(
+            "str err",
+            vars,
+            unmodified_input,
+            options,
+            &colors,
+            start,
+            end,
+        ),
     }
     (frac + 1, HowGraphing::default(), long, var)
 }

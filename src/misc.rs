@@ -6,7 +6,7 @@ use crate::{
     functions::functions,
     math::do_math,
     print::get_output,
-    Colors, Options,
+    Colors, Options, Variable,
 };
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 #[cfg(unix)]
@@ -296,13 +296,21 @@ pub fn write(mut input: String, file: &mut File, lines: &mut Vec<String>, slow: 
         writeln!(file, "{}", input).unwrap();
     }
 }
-pub fn clearln(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
+pub fn clearln(
+    input: &[char],
+    vars: &[Variable],
+    start: usize,
+    end: usize,
+    options: Options,
+    colors: &Colors,
+)
 {
     print!(
         "\x1b[G{}{}\x1b[K{}",
         prompt(options, colors),
         to_output(
             &input[start..end],
+            vars,
             options.color == crate::Auto::True,
             colors
         ),
@@ -316,13 +324,21 @@ pub fn clearln(input: &[char], start: usize, end: usize, options: Options, color
         }
     );
 }
-pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors: &Colors)
+pub fn clear(
+    input: &[char],
+    vars: &[Variable],
+    start: usize,
+    end: usize,
+    options: Options,
+    colors: &Colors,
+)
 {
     print!(
         "\x1b[G{}{}\x1b[J{}",
         prompt(options, colors),
         to_output(
             &input[start..end],
+            vars,
             options.color == crate::Auto::True,
             colors
         ),
@@ -336,7 +352,7 @@ pub fn clear(input: &[char], start: usize, end: usize, options: Options, colors:
         }
     );
 }
-pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
+pub fn to_output(input: &[char], vars: &[Variable], color: bool, colors: &Colors) -> String
 {
     if color
     {
@@ -375,8 +391,15 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
                         && abs[0] == count
                         && match input[..i].iter().rev().position(|c| !c.is_alphabetic())
                         {
-                            Some(n) => !functions()
-                                .contains(input[i - n..i].iter().collect::<String>().as_str()),
+                            Some(n) =>
+                            {
+                                let s = input[i - n..i].iter().collect::<String>();
+                                let sb = &(s.clone() + "(");
+                                !(functions().contains(s.as_str())
+                                    || vars
+                                        .iter()
+                                        .any(|c| c.name.iter().collect::<String>().starts_with(sb)))
+                            }
                             _ => true,
                         }
                     {
@@ -439,6 +462,7 @@ pub fn to_output(input: &[char], color: bool, colors: &Colors) -> String
 }
 pub fn handle_err(
     err: &str,
+    vars: &[Variable],
     input: &[char],
     options: Options,
     colors: &Colors,
@@ -461,6 +485,7 @@ pub fn handle_err(
         prompt(options, colors),
         to_output(
             &input[start..end],
+            vars,
             options.color == crate::Auto::True,
             colors
         ),
@@ -676,6 +701,7 @@ pub fn do_math_with_var(
 }
 pub fn parsed_to_string(
     mut input: Vec<NumStr>,
+    vars: &[Variable],
     func_vars: Vec<(String, Vec<NumStr>)>,
     options: &Options,
     colors: &Colors,
@@ -786,6 +812,7 @@ pub fn parsed_to_string(
     }
     to_output(
         &out.chars().collect::<Vec<char>>(),
+        vars,
         options.color == crate::Auto::True,
         colors,
     )

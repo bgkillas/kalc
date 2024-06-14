@@ -718,7 +718,7 @@ fn main()
                         }
                         if c == '\x09'
                         {
-                            clear(&input, start, end, options, &colors);
+                            clear(&input, &vars, start, end, options, &colors);
                         }
                         else
                         {
@@ -846,6 +846,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -855,7 +856,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if options.debug
                         {
@@ -873,7 +874,7 @@ fn main()
                         if input.is_empty()
                         {
                             slow = false;
-                            clear(&input, start, end, options, &colors);
+                            clear(&input, &vars, start, end, options, &colors);
                         }
                     }
                     '\x08' =>
@@ -926,6 +927,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -935,7 +937,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if options.debug
                         {
@@ -953,7 +955,7 @@ fn main()
                         if input.is_empty()
                         {
                             slow = false;
-                            clear(&input, start, end, options, &colors);
+                            clear(&input, &vars, start, end, options, &colors);
                         }
                     }
                     '\x7F' =>
@@ -1009,6 +1011,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1018,7 +1021,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if options.debug
                         {
@@ -1036,7 +1039,7 @@ fn main()
                         if input.is_empty()
                         {
                             slow = false;
-                            clear(&input, start, end, options, &colors);
+                            clear(&input, &vars, start, end, options, &colors);
                         }
                     }
                     '\x11' =>
@@ -1054,7 +1057,7 @@ fn main()
                             input.len()
                                 - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
-                        clearln(&input, start, end, options, &colors);
+                        clearln(&input, &vars, start, end, options, &colors);
                     }
                     '\x18' =>
                     {
@@ -1086,6 +1089,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1095,7 +1099,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if end - placement != 0
                         {
@@ -1131,6 +1135,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1140,7 +1145,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if end - placement != 0
                         {
@@ -1178,6 +1183,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1187,7 +1193,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if end - placement != 0
                         {
@@ -1225,6 +1231,7 @@ fn main()
                                 firstslow = false;
                                 handle_err(
                                     "too slow, will print on enter",
+                                    &vars,
                                     &input,
                                     options,
                                     &colors,
@@ -1234,7 +1241,7 @@ fn main()
                             }
                             else
                             {
-                                clearln(&input, start, end, options, &colors);
+                                clearln(&input, &vars, start, end, options, &colors);
                             }
                             if end - placement != 0
                             {
@@ -1269,6 +1276,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1278,7 +1286,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if end - placement != 0
                         {
@@ -1299,7 +1307,7 @@ fn main()
                         {
                             get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                         };
-                        clearln(&input, start, end, options, &colors);
+                        clearln(&input, &vars, start, end, options, &colors);
                         if end - placement != 0
                         {
                             print!("\x1b[{}D", end - placement)
@@ -1336,6 +1344,7 @@ fn main()
                             };
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1378,7 +1387,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                     }
                     '\x1E' | '\x04' =>
@@ -1415,6 +1424,7 @@ fn main()
                             };
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1457,7 +1467,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                     }
                     '\x1B' =>
@@ -1473,7 +1483,7 @@ fn main()
                             {
                                 end = input.len()
                             }
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                             print!("\x1b[{}D", end - placement)
                         }
                         else if placement != 0
@@ -1496,7 +1506,7 @@ fn main()
                             start += 1;
                             placement += 1;
                             end += 1;
-                            clearln(&input, start, end, options, &colors)
+                            clearln(&input, &vars, start, end, options, &colors)
                         }
                         else if placement != input.len()
                         {
@@ -1541,7 +1551,7 @@ fn main()
                                     end = input.len()
                                 }
                                 start = placement;
-                                clearln(&input, start, end, options, &colors);
+                                clearln(&input, &vars, start, end, options, &colors);
                                 if end - placement != 0
                                 {
                                     print!("\x1b[{}D", end - placement)
@@ -1592,7 +1602,7 @@ fn main()
                                         - if options.prompt { 3 } else { 1 },
                                 );
                                 end = placement;
-                                clearln(&input, start, end, options, &colors)
+                                clearln(&input, &vars, start, end, options, &colors)
                             }
                             else if placement == s
                             {
@@ -1748,6 +1758,7 @@ fn main()
                                     firstslow = false;
                                     handle_err(
                                         "too slow, will print on enter",
+                                        &vars,
                                         &input,
                                         options,
                                         &colors,
@@ -1757,7 +1768,7 @@ fn main()
                                 }
                                 else
                                 {
-                                    clear(&input, start, end, options, &colors);
+                                    clear(&input, &vars, start, end, options, &colors);
                                 }
                                 if end - placement != 0
                                 {
@@ -1814,7 +1825,7 @@ fn main()
                                 {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
-                                clear(&input, start, end, options, &colors);
+                                clear(&input, &vars, start, end, options, &colors);
                                 if end - placement != 0
                                 {
                                     print!("\x1b[{}D", end - placement)
@@ -1840,6 +1851,7 @@ fn main()
                                         "{}{}",
                                         to_output(
                                             &b.chars().collect::<Vec<char>>(),
+                                            &vars,
                                             options.color == Auto::True,
                                             &colors
                                         ),
@@ -1907,6 +1919,7 @@ fn main()
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
+                                &vars,
                                 &input,
                                 options,
                                 &colors,
@@ -1916,7 +1929,7 @@ fn main()
                         }
                         else
                         {
-                            clearln(&input, start, end, options, &colors);
+                            clearln(&input, &vars, start, end, options, &colors);
                         }
                         if options.debug
                         {

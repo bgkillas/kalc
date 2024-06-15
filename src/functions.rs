@@ -420,7 +420,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "beta_cdf(x,α,β)",
         "slope(a,f(a),x(,nth)(,combine))",
         "lim(a,f(a),x(,side))",
-        "area(a,f(a),start,end(,combine)",
+        "area(a,f(a),start,end(,nth)(,combine)",
         "arclength(a,f(a),start,end)",
         "roll(vec/mat)",
         "erfi(x)",

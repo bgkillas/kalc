@@ -63,6 +63,7 @@ pub struct Units
     angle: f64,
     byte: f64,
     usd: f64,
+    unit: f64,
 }
 #[derive(Clone, PartialEq)]
 pub struct Number

@@ -228,7 +228,7 @@ Functions:
 - An(n,k), Ap(n,t) eulerian numbers and polynomials
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
-- area(x,f(x),from,to (,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)
+- area(x,f(x),from,to(,nth)(,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
 - extrema(x,f(x) (,point)) employs newtons method to find the extrema of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails, outputs {x,y,positive/negitive concavity}
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add ",1" to args to show steps
@@ -292,6 +292,7 @@ the following units are supported
 "s" | "second"
 "A" | "ampere"
 "K" | "kelvin"
+"u" | "unit"
 "mol" | "mole"
 "cd" | "candela"
 "g" | "gram"

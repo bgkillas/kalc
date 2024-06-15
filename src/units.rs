@@ -32,6 +32,7 @@ impl Units
             angle: self.angle + b.angle,
             byte: self.byte + b.byte,
             usd: self.usd + b.usd,
+            unit: self.unit + b.unit,
         }
     }
     pub fn div(&self, b: &Self) -> Self
@@ -47,6 +48,7 @@ impl Units
             angle: self.angle - b.angle,
             byte: self.byte - b.byte,
             usd: self.usd - b.usd,
+            unit: self.unit - b.unit,
         }
     }
     pub fn pow(&self, b: f64) -> Self
@@ -62,6 +64,7 @@ impl Units
             angle: self.angle * b,
             byte: self.byte * b,
             usd: self.usd * b,
+            unit: self.unit * b,
         }
     }
     pub fn root(&self, b: f64) -> Self
@@ -77,6 +80,7 @@ impl Units
             angle: self.angle / b,
             byte: self.byte / b,
             usd: self.usd / b,
+            unit: self.unit / b,
         }
     }
     pub fn to_string(mut self, options: Options) -> String
@@ -353,7 +357,7 @@ impl Units
             }
         }
         format!(
-            "{}{}{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}{}{}",
             siunits,
             if self.meter != 0.0
             {
@@ -551,6 +555,25 @@ impl Units
             {
                 String::new()
             },
+            if self.unit != 0.0
+            {
+                " u".to_owned()
+                    + &if self.unit != 1.0
+                    {
+                        format!("^{:.12}", self.unit)
+                            .trim_end_matches('0')
+                            .trim_end_matches('.')
+                            .to_string()
+                    }
+                    else
+                    {
+                        String::new()
+                    }
+            }
+            else
+            {
+                String::new()
+            },
         )
     }
 }
@@ -569,6 +592,7 @@ impl Default for Units
             angle: 0.0,
             byte: 0.0,
             usd: 0.0,
+            unit: 0.0,
         }
     }
 }
@@ -856,6 +880,8 @@ pub fn units() -> HashSet<&'static str>
         "arcsec",
         "arcmin",
         "micron",
+        "unit",
+        "u",
     ]
     .iter()
     .cloned()
@@ -867,6 +893,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
     let mut add = None;
     match unit.as_str()
     {
+        "u" | "unit" => units.unit = 1.0,
         "m" | "meter" => units.meter = 1.0,
         "s" | "second" => units.second = 1.0,
         "A" | "ampere" => units.ampere = 1.0,

@@ -3388,6 +3388,7 @@ pub fn area(
     var: String,
     mut start: Complex,
     end: Number,
+    nth: Complex,
     combine: bool,
 ) -> Result<NumStr, &'static str>
 {
@@ -3395,7 +3396,7 @@ pub fn area(
     let units = end.units;
     let end = end.number;
     let mut funcs = Vec::new();
-    if combine && !func.is_empty() && func[0].str_is("{")
+    if combine && !func.is_empty() && func[0].str_is("{") && func[func.len() - 1].str_is("}")
     {
         let mut brackets = 0;
         let mut last = 1;
@@ -3505,12 +3506,37 @@ pub fn area(
         {
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
             {
-                area += 2
-                    * h.clone()
-                    * (7 * (nx0.number + nx4.number)
-                        + 12 * nx2.number
-                        + 32 * (nx1.number + nx3.number))
-                    / 45;
+                let n0;
+                let n1;
+                let n2;
+                let n3;
+                let n4;
+                if nth != 1.0
+                {
+                    let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                    n0 = nx0.number * nt;
+                    let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                    let nt = n.pow(nth.clone() - 1);
+                    n1 = nx1.number * nt;
+                    let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                    let nt = n.pow(nth.clone() - 1);
+                    n2 = nx2.number * nt;
+                    let n: Complex = end.clone() - start.clone() + h.clone();
+                    let nt = n.pow(nth.clone() - 1);
+                    n3 = nx3.number * nt;
+                    let n: Complex = end.clone() - start.clone();
+                    let nt = n.pow(nth.clone() - 1);
+                    n4 = nx4.number * nt;
+                }
+                else
+                {
+                    n0 = nx0.number;
+                    n1 = nx1.number;
+                    n2 = nx2.number;
+                    n3 = nx3.number;
+                    n4 = nx4.number;
+                }
+                area += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
                 x0 = x4;
             }
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
@@ -3608,26 +3634,87 @@ pub fn area(
                         / div.clone())
                     .pow(2);
                 }
-                let x4 = nx4.number * nx4t.sqrt();
-                area += 2
-                    * h.clone()
-                    * (7 * (nx0.number + x4.clone())
-                        + 12 * (nx2.number * nx2t.sqrt())
-                        + 32 * ((nx1.number * nx1t.sqrt()) + (nx3.number * nx3t.sqrt())))
-                    / 45;
-                x0 = Num(Number::from(x4, units));
+                let nx1 = nx1.number * nx1t.sqrt();
+                let nx2 = nx2.number * nx2t.sqrt();
+                let nx3 = nx3.number * nx3t.sqrt();
+                let nx4 = nx4.number * nx4t.sqrt();
+                let n0;
+                let n1;
+                let n2;
+                let n3;
+                let n4;
+                if nth != 1.0
+                {
+                    if i == 0
+                    {
+                        let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                        n0 = nx0.number * nt;
+                    }
+                    else
+                    {
+                        n0 = nx0.number;
+                    }
+                    let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                    let nt: Complex = n.pow(nth.clone() - 1);
+                    n1 = nx1 * nt;
+                    let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                    let nt: Complex = n.pow(nth.clone() - 1);
+                    n2 = nx2 * nt;
+                    let n: Complex = end.clone() - start.clone() + h.clone();
+                    let nt: Complex = n.pow(nth.clone() - 1);
+                    n3 = nx3 * nt;
+                    let n: Complex = end.clone() - start.clone();
+                    let nt: Complex = n.pow(nth.clone() - 1);
+                    n4 = nx4 * nt;
+                }
+                else
+                {
+                    n0 = nx0.number;
+                    n1 = nx1;
+                    n2 = nx2;
+                    n3 = nx3;
+                    n4 = nx4;
+                }
+                area += 2 * h.clone() * (7 * (n0 + n4.clone()) + 12 * n2 + 32 * (n1 + n3)) / 45;
+                x0 = Num(Number::from(n4, units));
             }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
                 if areavec.is_empty() && !combine =>
             {
                 for i in 0..nx0.len()
                 {
+                    let n0;
+                    let n1;
+                    let n2;
+                    let n3;
+                    let n4;
+                    if nth != 1.0
+                    {
+                        let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                        n0 = nx0[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n1 = nx1[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n2 = nx2[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone() + h.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n3 = nx3[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n4 = nx4[i].number.clone() * nt;
+                    }
+                    else
+                    {
+                        n0 = nx0[i].number.clone();
+                        n1 = nx1[i].number.clone();
+                        n2 = nx2[i].number.clone();
+                        n3 = nx3[i].number.clone();
+                        n4 = nx4[i].number.clone();
+                    }
                     areavec.push(Number::from(
-                        2 * h.clone()
-                            * (7 * (nx0[i].number.clone() + nx4[i].number.clone())
-                                + 12 * nx2[i].number.clone()
-                                + 32 * (nx1[i].number.clone() + nx3[i].number.clone()))
-                            / 45,
+                        2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45,
                         match (units, nx1[i].units)
                         {
                             (Some(a), Some(b)) => Some(a.mul(&b)),
@@ -3642,22 +3729,48 @@ pub fn area(
             {
                 for (i, v) in areavec.iter_mut().enumerate()
                 {
-                    v.number += 2
-                        * h.clone()
-                        * (7 * (nx0[i].number.clone() + nx4[i].number.clone())
-                            + 12 * nx2[i].number.clone()
-                            + 32 * (nx1[i].number.clone() + nx3[i].number.clone()))
-                        / 45
+                    let n0;
+                    let n1;
+                    let n2;
+                    let n3;
+                    let n4;
+                    if nth != 1.0
+                    {
+                        let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                        n0 = nx0[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n1 = nx1[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n2 = nx2[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone() + h.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n3 = nx3[i].number.clone() * nt;
+                        let n: Complex = end.clone() - start.clone();
+                        let nt = n.pow(nth.clone() - 1);
+                        n4 = nx4[i].number.clone() * nt;
+                    }
+                    else
+                    {
+                        n0 = nx0[i].number.clone();
+                        n1 = nx1[i].number.clone();
+                        n2 = nx2[i].number.clone();
+                        n3 = nx3[i].number.clone();
+                        n4 = nx4[i].number.clone();
+                    }
+                    v.number += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
                 }
                 x0 = x4;
             }
             (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         }
     }
+    let g = gamma(nth.clone());
     if areavec.is_empty()
     {
         Ok(Num(Number::from(
-            area,
+            area / g,
             match (units, yunits)
             {
                 (Some(a), Some(b)) => Some(a.mul(&b)),
@@ -3668,7 +3781,12 @@ pub fn area(
     }
     else
     {
-        Ok(Vector(areavec))
+        Ok(Vector(
+            areavec
+                .iter()
+                .map(|a| Number::from(a.number.clone() / g.clone(), a.units))
+                .collect::<Vec<Number>>(),
+        ))
     }
 }
 pub fn iter(

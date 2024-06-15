@@ -637,7 +637,7 @@ pub fn do_math(
                             function.drain(i + 1..=*place.last().unwrap());
                         }
                         ("∫" | "area" | "integrate", Str(var))
-                            if place.len() == 4 || place.len() == 5 =>
+                            if place.len() == 4 || place.len() == 5 || place.len() == 6 =>
                         {
                             function[i] = area(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -657,7 +657,21 @@ pub fn do_math(
                                     func_vars.clone(),
                                 )?
                                 .num()?,
-                                place.len() != 5,
+                                if place.len() == 5
+                                {
+                                    do_math(
+                                        function[place[3] + 1..place[4]].to_vec(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?
+                                    .num()?
+                                    .number
+                                }
+                                else
+                                {
+                                    Complex::with_val(options.prec, 1)
+                                },
+                                place.len() != 6,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }

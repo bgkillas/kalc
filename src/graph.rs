@@ -44,7 +44,7 @@ pub fn graph(
             }
             {
                 options.prec = options.graph_prec;
-                let split = s.split(|c| c == ';');
+                let split = s.split(';');
                 let count = split.clone().count();
                 if count != 1
                 {

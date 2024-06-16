@@ -158,7 +158,7 @@ pub fn print_concurrent(
                         if !input.is_empty()
                         {
                             let mut input = input;
-                            let split = input.split(|c| c == ';');
+                            let split = input.split(';');
                             let count = split.clone().count();
                             if count != 1
                             {
@@ -637,7 +637,7 @@ pub fn print_concurrent(
                         if !input.is_empty()
                         {
                             let mut input = input;
-                            let split = input.split(|c| c == ';');
+                            let split = input.split(';');
                             let count = split.clone().count();
                             if count != 1
                             {

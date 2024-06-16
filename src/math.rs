@@ -69,7 +69,7 @@ pub fn do_math(
                         return Err("no interior vector");
                     }
                     let mut single = 0;
-                    let v = function[i + 1..j - 1].to_vec();
+                    let v = &function[i + 1..j - 1];
                     let mut vec = Vec::new();
                     let mut mat = Vec::<Vec<Number>>::new();
                     for (f, n) in v.iter().enumerate()
@@ -255,7 +255,9 @@ pub fn do_math(
                                     | "rand_neg_hypergeometric"
                             )
                             {
-                                let v = function[i + 1..j - 1].to_vec();
+                                function.remove(j - 1);
+                                function.remove(i);
+                                let v = function.drain(i..j - 2).collect::<Vec<NumStr>>();
                                 count = 0;
                                 let mut place = Vec::new();
                                 for (f, n) in v.iter().enumerate()
@@ -275,7 +277,6 @@ pub fn do_math(
                                 if !place.is_empty()
                                 {
                                     let mut func = vec![function[i - 1].clone()];
-                                    function.drain(i..j);
                                     func.push(do_math(
                                         v[..place[0]].to_vec(),
                                         options,
@@ -304,14 +305,9 @@ pub fn do_math(
                                 {
                                     let v = vec![
                                         function[i - 1].clone(),
-                                        do_math(
-                                            function[i + 1..j - 1].to_vec(),
-                                            options,
-                                            func_vars.clone(),
-                                        )?,
+                                        do_math(v, options, func_vars.clone())?,
                                     ];
                                     function[i - 1] = do_math(v, options, func_vars.clone())?;
-                                    function.drain(i..j);
                                 }
                                 continue;
                             }
@@ -349,23 +345,30 @@ pub fn do_math(
                             else if k.len() > 1 && k.chars().next().unwrap().is_alphabetic()
                                 || matches!(k.as_str(), "C" | "B" | "P" | "I" | "W" | "D")
                             {
-                                let v = vec![
-                                    function[i - 1].clone(),
-                                    do_math(
-                                        function[i + 1..j - 1].to_vec(),
-                                        options,
-                                        func_vars.clone(),
-                                    )?,
-                                ];
-                                function[i - 1] = do_math(v, options, func_vars.clone())?;
-                                function.drain(i..j);
+                                function.remove(j - 1);
+                                function.remove(i);
+                                function[i - 1] = do_math(
+                                    vec![
+                                        function[i - 1].clone(),
+                                        do_math(
+                                            function.drain(i..j - 2).collect::<Vec<NumStr>>(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?,
+                                    ],
+                                    options,
+                                    func_vars.clone(),
+                                )?;
                                 continue;
                             }
                         }
                     }
-                    let v = function[i + 1..j - 1].to_vec();
-                    function[i] = do_math(v, options, func_vars.clone())?;
-                    function.drain(i + 1..j);
+                    function.remove(j - 1);
+                    function[i] = do_math(
+                        function.drain(i + 1..j - 1).collect::<Vec<NumStr>>(),
+                        options,
+                        func_vars.clone(),
+                    )?;
                 }
                 _ =>
                 {}

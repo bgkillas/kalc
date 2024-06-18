@@ -45,6 +45,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\
 --keepzeros dont remove trailing zeros\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
+- any function with ' appeneded to the name will be converted like f'(x) goes to slope(t,f(t),x)\x1b[G\n\
+- any function with ` appeneded to the name will be converted like f`(x) goes to area(t,f(t),0,x)\x1b[G\n\
 - \"colors=\" to see color settings\x1b[G\n\
 - \"exit\" to exit the program\x1b[G\n\
 - \"clear\" to clear the screen\x1b[G\n\

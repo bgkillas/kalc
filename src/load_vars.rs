@@ -43,7 +43,8 @@ pub fn get_file_vars(
                     {
                         if l.contains('(')
                         {
-                            b = word == left && matches!(c, '(' | '{' | '[' | '|');
+                            b = word.trim_end_matches('\'').trim_end_matches('`') == left
+                                && matches!(c, '(' | '{' | '[' | '|');
                         }
                         else
                         {

@@ -64,6 +64,7 @@ pub fn input_var(
     let mut exp = (String::new(), 0);
     let mut subfact = (false, 0);
     let mut err = "";
+    let mut slope = Vec::new();
     let mut chars = input
         .replace('[', "(car{")
         .replace(']', "})")
@@ -360,10 +361,7 @@ pub fn input_var(
                             {
                                 return Err("bad exponent");
                             }
-                            exp = (
-                                chars[i + 1..i + 1 + pos.unwrap()].iter().collect(),
-                                *bracket,
-                            );
+                            exp = (chars[i + 1..=i + pos.unwrap()].iter().collect(), *bracket);
                             i += pos.unwrap() + 1;
                             continue;
                         }
@@ -1123,8 +1121,12 @@ pub fn input_var(
                 .iter()
                 .any(|a| a.name.iter().collect::<String>() == word)
         };
+        let mut is_slope = false;
+        let mut is_area = false;
+        let mut nth = 0;
         if var_overrule
-            && ((word.ends_with('x')
+        {
+            if (word.ends_with('x')
                 && word != "max"
                 && !word.ends_with("lx")
                 && !word.ends_with("lux"))
@@ -1139,10 +1141,29 @@ pub fn input_var(
                 || (word.ends_with('z')
                     && !word.ends_with("Hz")
                     && !word.ends_with("hertz")
-                    && !word.ends_with("oz")))
-        {
-            countv -= 1;
-            word.pop();
+                    && !word.ends_with("oz"))
+            {
+                countv -= 1;
+                word.pop();
+            }
+            while word.ends_with('\'')
+            {
+                is_slope = true;
+                nth += 1;
+                countv -= 1;
+                word.pop();
+            }
+            while word.ends_with('`')
+            {
+                is_area = true;
+                nth += 1;
+                countv -= 1;
+                word.pop();
+            }
+            if is_area && is_slope
+            {
+                return Err("both ' and `");
+            }
         }
         if (word == "piecewise" || word == "pw") && piecewise == 0
         {
@@ -1325,9 +1346,9 @@ pub fn input_var(
         }
         let (mut unit, mul);
         let mut num = 0;
-        let var_overrule = if i + countv < chars.len()
-            && (matches!(chars[i + countv], '(' | '{' | '[')
-                || (!funcfailed && chars[i + countv] == '|'))
+        let var_overrule = if i + countv + nth < chars.len()
+            && (matches!(chars[i + countv + nth], '(' | '{' | '[')
+                || (!funcfailed && chars[i + countv + nth] == '|'))
         {
             !vars.iter().any(|a| {
                 if a.name.contains(&'(')
@@ -1335,7 +1356,7 @@ pub fn input_var(
                     a.name[..a.name.iter().position(|c| c == &'(').unwrap()]
                         .iter()
                         .collect::<String>()
-                        == word
+                        == word.trim_end_matches('\'').trim_end_matches('`')
                 }
                 else
                 {
@@ -1429,7 +1450,7 @@ pub fn input_var(
                 && i + countv < chars.len()
                 && (matches!(
                     chars[i + countv],
-                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '⁻' | '*'
+                    'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '⁻' | '*' | '\'' | '`'
                 ) || (chars[i + countv] == '^' && chars[i] != 'C' && countv != 1)))
                 || matches!(
                     word.as_str(),
@@ -1501,6 +1522,14 @@ pub fn input_var(
                 if chars[i] == '*'
                 {
                     chars.remove(i);
+                }
+                if is_slope
+                {
+                    slope.push((output.len(), true, nth));
+                }
+                if is_area
+                {
+                    slope.push((output.len(), false, nth));
                 }
                 output.push(Str(word))
             }
@@ -1622,10 +1651,34 @@ pub fn input_var(
                         .split(|c| matches!(c, '(' | '{' | '[' | '|'))
                         .next()
                         .unwrap();
+                    let mut slope = 0;
+                    let mut area = 0;
+                    if i + vn.len() < chars.len()
+                    {
+                        for c in &chars[i + vn.len()..]
+                        {
+                            if *c == '\''
+                            {
+                                slope += 1;
+                            }
+                            else if *c == '`'
+                            {
+                                area += 1;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if area != 0 && slope != 0
+                    {
+                        return Err("both ' and `");
+                    }
                     if var.name.contains(&'(')
-                        && i + vn.len() < chars.len()
+                        && i + vn.len() + area + slope < chars.len()
                         && chars[i..i + vn.len()] == *vn
-                        && matches!(chars[i + vn.len()], '(' | '{' | '[' | '|')
+                        && matches!(chars[i + vn.len() + area + slope], '(' | '{' | '[' | '|')
                         && !absfailed
                     {
                         let abs = chars[i + vn.len()] == '|';
@@ -1739,7 +1792,7 @@ pub fn input_var(
                             {
                                 output.push(Str('('.to_string()));
                             }
-                            let mut temp = &chars[j + countj + 1..i + 1];
+                            let mut temp = &chars[j + countj + 1 + area + slope..=i];
                             if temp.ends_with(&[')'])
                             {
                                 temp = &temp[..temp.len().saturating_sub(1)];
@@ -1797,7 +1850,8 @@ pub fn input_var(
                             }
                             let mut parsed = var.parsed.clone();
                             let mut fvs = var.funcvars.clone();
-                            for (varf, func_var) in split.iter().zip(func_vars)
+                            let mut tempf = Vec::new();
+                            for (z, (varf, func_var)) in split.iter().zip(func_vars).enumerate()
                             {
                                 let mut num = if let Ok(n) = Complex::parse_radix(
                                     varf.iter().collect::<String>(),
@@ -1946,6 +2000,22 @@ pub fn input_var(
                                     num.insert(0, Str("(".to_string()));
                                     num.push(Str(")".to_string()));
                                 }
+                                if z == 0 && (area != 0 || slope != 0)
+                                {
+                                    tempf = num;
+                                    if area != 0
+                                    {
+                                        output.push(Str("area".to_string()));
+                                    }
+                                    else
+                                    {
+                                        output.push(Str("slope".to_string()));
+                                    }
+                                    output.push(Str("(".to_string()));
+                                    output.push(Str("@t".to_string() + &i.to_string()));
+                                    output.push(Str(",".to_string()));
+                                    num = vec![Str("@t".to_string() + &i.to_string())]
+                                }
                                 let mut k = 0;
                                 for (x, fv) in fvs.clone().iter().enumerate()
                                 {
@@ -2040,6 +2110,25 @@ pub fn input_var(
                             }
                             funcvars.extend(fvs);
                             output.extend(parsed);
+                            if area != 0 || slope != 0
+                            {
+                                if area != 0
+                                {
+                                    output.push(Str(",".to_string()));
+                                    output.push(Num(Number::from(Complex::new(options.prec), None)))
+                                }
+                                output.push(Str(",".to_string()));
+                                output.extend(tempf);
+                                if area + slope != 1
+                                {
+                                    output.push(Str(",".to_string()));
+                                    output.push(Num(Number::from(
+                                        Complex::with_val(options.prec, area + slope),
+                                        None,
+                                    )))
+                                }
+                                output.push(Str(")".to_string()));
+                            }
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
@@ -2091,7 +2180,7 @@ pub fn input_var(
                             {
                                 output.push(Str('('.to_string()));
                             }
-                            let mut temp = &chars[j + countj + 1..i + 1];
+                            let mut temp = &chars[j + countj + 1..=i];
                             if temp.ends_with(&[')'])
                             {
                                 temp = &temp[..temp.len().saturating_sub(1)];
@@ -2257,6 +2346,23 @@ pub fn input_var(
                                 num.insert(0, Str("(".to_string()));
                                 num.push(Str(")".to_string()));
                             }
+                            let mut tempf = Vec::new();
+                            if area != 0 || slope != 0
+                            {
+                                tempf = num;
+                                if area != 0
+                                {
+                                    output.push(Str("area".to_string()));
+                                }
+                                else
+                                {
+                                    output.push(Str("slope".to_string()));
+                                }
+                                output.push(Str("(".to_string()));
+                                output.push(Str("@t".to_string() + &i.to_string()));
+                                output.push(Str(",".to_string()));
+                                num = vec![Str("@t".to_string() + &i.to_string())]
+                            }
                             while k < parsed.len()
                             {
                                 if parsed[k].str_is(&l)
@@ -2356,6 +2462,25 @@ pub fn input_var(
                             }
                             funcvars.extend(fvs);
                             output.extend(parsed);
+                            if area != 0 || slope != 0
+                            {
+                                if area != 0
+                                {
+                                    output.push(Str(",".to_string()));
+                                    output.push(Num(Number::from(Complex::new(options.prec), None)))
+                                }
+                                output.push(Str(",".to_string()));
+                                output.extend(tempf);
+                                if area + slope != 1
+                                {
+                                    output.push(Str(",".to_string()));
+                                    output.push(Num(Number::from(
+                                        Complex::with_val(options.prec, area + slope),
+                                        None,
+                                    )))
+                                }
+                                output.push(Str(")".to_string()));
+                            }
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
@@ -2777,6 +2902,80 @@ pub fn input_var(
     i = 0;
     let mut double: Vec<(usize, isize)> = Vec::new();
     let mut brackets = Vec::new();
+    for n in slope.iter().rev()
+    {
+        let nth = n.2;
+        let slope = n.1;
+        let n = n.0;
+        output.insert(n, Str(",".to_string()));
+        output.insert(n, Str("@t".to_string() + &n.to_string()));
+        output.insert(n, Str("(".to_string()));
+        if slope
+        {
+            output.insert(n, Str("slope".to_string()));
+        }
+        else
+        {
+            output.insert(n, Str("area".to_string()));
+        }
+        let mut bracket = 0;
+        let mut last = 0;
+        let mut end = 0;
+        if n + 6 > output.len()
+        {
+            break;
+        }
+        for (k, j) in output[n + 6..].iter().enumerate()
+        {
+            if let Str(s) = j
+            {
+                match s.as_str()
+                {
+                    "(" =>
+                    {
+                        bracket += 1;
+                    }
+                    ")" =>
+                    {
+                        if bracket == 0
+                        {
+                            if end == 0
+                            {
+                                end = k;
+                            }
+                            last = k + 2;
+                            break;
+                        }
+                        bracket -= 1;
+                    }
+                    "," if bracket == 0 && end == 0 => end = k,
+                    _ =>
+                    {}
+                }
+            }
+        }
+        let arg = output.drain(n + 6..n + 6 + end).collect::<Vec<NumStr>>();
+        output.insert(n + 6, Str("@t".to_string() + &n.to_string()));
+        output.insert(n + 6 + last - end, Str(")".to_string()));
+        if nth != 1
+        {
+            output.insert(
+                n + 6 + last - end,
+                Num(Number::from(Complex::with_val(options.prec, nth), None)),
+            );
+            output.insert(n + 6 + last - end, Str(",".to_string()));
+        }
+        output.splice(n + 6 + last - end..n + 6 + last - end, arg);
+        output.insert(n + 6 + last - end, Str(",".to_string()));
+        if !slope
+        {
+            output.insert(
+                n + 6 + last - end,
+                Num(Number::from(Complex::new(options.prec), None)),
+            );
+            output.insert(n + 6 + last - end, Str(",".to_string()));
+        }
+    }
     while i < output.len()
     {
         if let Str(s) = &output[i]

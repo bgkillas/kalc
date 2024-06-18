@@ -359,6 +359,7 @@ fn main()
     {
         Vec::new()
     };
+    let mut err = false;
     let base = options.base;
     if !options.interactive && options.allow_vars && !options.stay_interactive
     {
@@ -423,7 +424,9 @@ fn main()
                                 {
                                     if l.contains('(')
                                     {
-                                        b = word == left && matches!(c, '(' | '{' | '[' | '|');
+                                        b = word.trim_end_matches('\'').trim_end_matches('`')
+                                            == left
+                                            && matches!(c, '(' | '{' | '[' | '|');
                                     }
                                     else
                                     {
@@ -460,13 +463,15 @@ fn main()
                                         if let Err(s) =
                                             add_var(le, r, i, &mut vars, options, true, true, true)
                                         {
-                                            println!("{}", s)
+                                            err = true;
+                                            println!("\x1b[G\x1b[K{}", s)
                                         }
                                     }
                                     else if let Err(s) =
                                         add_var(le, r, i, &mut vars, options, true, true, false)
                                     {
-                                        println!("{}", s)
+                                        err = true;
+                                        println!("\x1b[G\x1b[K{}", s)
                                     }
                                     continue 'upper;
                                 }
@@ -478,7 +483,8 @@ fn main()
                                     if let Err(s) =
                                         add_var(le, r, i, &mut vars, options, false, false, false)
                                     {
-                                        println!("{}", s)
+                                        err = true;
+                                        println!("\x1b[G\x1b[K{}", s)
                                     }
                                     continue 'upper;
                                 }
@@ -486,13 +492,30 @@ fn main()
                             if let Err(s) =
                                 add_var(le, r, 0, &mut vars, options, false, false, false)
                             {
-                                println!("{}", s)
+                                err = true;
+                                println!("\x1b[G\x1b[K{}", s)
                             }
                         }
                     }
                 }
             }
         }
+    }
+    if options.interactive && err
+    {
+        print!(
+            "\x1b[G\x1b[K{}{}",
+            prompt(options, &colors),
+            if options.color == Auto::True
+            {
+                "\x1b[0m"
+            }
+            else
+            {
+                ""
+            }
+        );
+        stdout.flush().unwrap();
     }
     options.base = base;
     let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive

@@ -2925,17 +2925,22 @@ pub fn input_var(
         {
             break;
         }
+        if !output[n + 5].str_is("(") && !output[n + 5].str_is("{")
+        {
+            output.insert(n + 5, Str("(".to_string()));
+            output.insert(n + 7, Str(")".to_string()));
+        }
         for (k, j) in output[n + 6..].iter().enumerate()
         {
             if let Str(s) = j
             {
                 match s.as_str()
                 {
-                    "(" =>
+                    "(" | "{" =>
                     {
                         bracket += 1;
                     }
-                    ")" =>
+                    ")" | "}" =>
                     {
                         if bracket == 0
                         {
@@ -3012,7 +3017,7 @@ pub fn input_var(
                                             break;
                                         }
                                     }
-                                    n >= 0
+                                    (n >= 0
                                         && (if let Str(n) = &output[n as usize]
                                         {
                                             !functions.contains(n.as_str())
@@ -3020,7 +3025,8 @@ pub fn input_var(
                                         else
                                         {
                                             true
-                                        })
+                                        }))
+                                        || (n == -1 && !output.last().unwrap().str_is(")"))
                                 })
                         {
                             double.push((i, count));

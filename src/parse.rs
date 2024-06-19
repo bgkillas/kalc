@@ -1959,6 +1959,19 @@ pub fn input_var(
                                                 }
                                             })
                                         })
+                                        || !parsed.iter().all(|v| {
+                                            if let Str(s) = &v
+                                            {
+                                                !(matches!(
+                                                    s.as_str(),
+                                                    "x" | "y" | "rnd" | "rand" | "epoch" | "roll"
+                                                ) || s.starts_with("rand_"))
+                                            }
+                                            else
+                                            {
+                                                true
+                                            }
+                                        })
                                     {
                                         let iden =
                                             format!("@{}{}{}{}@", i, func_var, depth, vars.len());
@@ -2012,9 +2025,9 @@ pub fn input_var(
                                         output.push(Str("slope".to_string()));
                                     }
                                     output.push(Str("(".to_string()));
-                                    output.push(Str("@t".to_string() + &i.to_string()));
+                                    output.push(Str("@p".to_string() + &i.to_string()));
                                     output.push(Str(",".to_string()));
-                                    num = vec![Str("@t".to_string() + &i.to_string())]
+                                    num = vec![Str("@p".to_string() + &i.to_string())]
                                 }
                                 let mut k = 0;
                                 for (x, fv) in fvs.clone().iter().enumerate()
@@ -2298,6 +2311,19 @@ pub fn input_var(
                                             }
                                         })
                                     })
+                                    || !parsed.iter().all(|v| {
+                                        if let Str(s) = &v
+                                        {
+                                            !(matches!(
+                                                s.as_str(),
+                                                "x" | "y" | "rnd" | "rand" | "epoch" | "roll"
+                                            ) || s.starts_with("rand_"))
+                                        }
+                                        else
+                                        {
+                                            true
+                                        }
+                                    })
                                 {
                                     let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
                                     if parsed.len() == 1
@@ -2359,9 +2385,9 @@ pub fn input_var(
                                     output.push(Str("slope".to_string()));
                                 }
                                 output.push(Str("(".to_string()));
-                                output.push(Str("@t".to_string() + &i.to_string()));
+                                output.push(Str("@p".to_string() + &i.to_string()));
                                 output.push(Str(",".to_string()));
-                                num = vec![Str("@t".to_string() + &i.to_string())]
+                                num = vec![Str("@p".to_string() + &i.to_string())]
                             }
                             while k < parsed.len()
                             {
@@ -2908,7 +2934,7 @@ pub fn input_var(
         let slope = n.1;
         let n = n.0;
         output.insert(n, Str(",".to_string()));
-        output.insert(n, Str("@t".to_string() + &n.to_string()));
+        output.insert(n, Str("@p".to_string() + &n.to_string()));
         output.insert(n, Str("(".to_string()));
         if slope
         {
@@ -2960,7 +2986,7 @@ pub fn input_var(
             }
         }
         let arg = output.drain(n + 6..n + 6 + end).collect::<Vec<NumStr>>();
-        output.insert(n + 6, Str("@t".to_string() + &n.to_string()));
+        output.insert(n + 6, Str("@p".to_string() + &n.to_string()));
         output.insert(n + 6 + last - end, Str(")".to_string()));
         if nth != 1
         {
@@ -3017,22 +3043,30 @@ pub fn input_var(
                                             break;
                                         }
                                     }
-                                    (n >= 0
-                                        && (if let Str(n) = &output[n as usize]
+                                    n < 0
+                                        || (if let Str(n) = &output[n as usize]
                                         {
                                             !functions.contains(n.as_str())
                                         }
                                         else
                                         {
                                             true
-                                        }))
-                                        || (n == -1 && !output.last().unwrap().str_is(")"))
+                                        })
                                 })
                         {
                             double.push((i, count));
                         }
                     }
-                    if i == 0 || output[i - 1].str_is(",")
+                    if (i == 0 || output[i - 1].str_is(","))
+                        && (i + 2 > output.len()
+                            || if let Str(s) = &output[i + 1]
+                            {
+                                !(output[i + 2].str_is("(") && functions.contains(s.as_str()))
+                            }
+                            else
+                            {
+                                true
+                            })
                     {
                         brackets.push((i, count));
                     }
@@ -3113,6 +3147,10 @@ pub fn input_var(
             i -= 1;
             if let Str(s) = &output[i]
             {
+                if s.starts_with("rand_")
+                {
+                    to = 0;
+                }
                 match s.as_str()
                 {
                     "x" | "y" | "roll" | "rnd" | "rand" | "epoch" =>
@@ -3150,16 +3188,18 @@ pub fn input_var(
         while i < funcvars.len()
         {
             let v = funcvars[i].clone();
-            if (v.1.len() != 1
-                || (if let Str(s) = &v.1[0]
-                {
-                    matches!(s.as_str(), "rnd" | "rand" | "epoch")
-                }
-                else
-                {
-                    false
-                }))
-                && !v.0.ends_with(')')
+            if !v.0.ends_with(')')
+                && v.1.iter().all(|v| {
+                    if let Str(s) = &v
+                    {
+                        !(matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch" | "roll")
+                            || s.starts_with("rand_"))
+                    }
+                    else
+                    {
+                        true
+                    }
+                })
             {
                 if let Ok(n) = do_math(v.1.clone(), options, funcvars[..i].to_vec())
                 {

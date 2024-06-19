@@ -716,9 +716,20 @@ pub fn parsed_to_string(
             {
                 if *s == v.0 && !v.0.ends_with(')')
                 {
-                    input[i] = Str('('.to_string());
-                    input.splice(i + 1..i + 1, v.1.clone());
-                    input.insert(i + v.1.len() + 1, Str(')'.to_string()));
+                    if i != 0
+                        && i + 1 < input.len()
+                        && input[i - 1].str_is("(")
+                        && input[i + 1].str_is(")")
+                    {
+                        input.remove(i);
+                        input.splice(i..i, v.1.clone());
+                    }
+                    else
+                    {
+                        input[i] = Str('('.to_string());
+                        input.splice(i + 1..i + 1, v.1.clone());
+                        input.insert(i + v.1.len() + 1, Str(')'.to_string()));
+                    }
                     continue 'main;
                 }
             }

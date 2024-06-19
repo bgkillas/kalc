@@ -338,7 +338,7 @@ pub fn print_concurrent(
         }
     };
     {
-        if input.3
+        if input.3 && !unmodified_input.contains(&'#')
         {
             let n = unparsed.iter().position(|c| c == &'=').unwrap_or(0) + 1;
             let mut inputs = unparsed[n..].iter().collect::<String>();
@@ -597,10 +597,11 @@ pub fn print_concurrent(
             };
         }
     }
-    if input.2.graph
+    if input.2.graph || unmodified_input.contains(&'#')
     {
         return if unmodified_input.contains(&'#')
         {
+            input.2.graph = true;
             let mut out = String::new();
             {
                 let split = unmodified_input.iter().collect::<String>();
@@ -1998,7 +1999,7 @@ pub fn get_output(
                                 ""
                             }
                     }
-                    else if n.contains('e')
+                    else if n.contains('e') && options.base.1 < 16
                     {
                         n.replace("e0", "").replace('e', &notate(options, colors))
                             + if options.color == crate::Auto::True
@@ -2040,7 +2041,7 @@ pub fn get_output(
                                 ""
                             }
                     }
-                    else if n.contains('e')
+                    else if n.contains('e') && options.base.1 < 16
                     {
                         n.replace("e0", "").replace('e', &notate(options, colors))
                             + if options.color == crate::Auto::True

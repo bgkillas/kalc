@@ -3846,11 +3846,104 @@ pub fn solve(
     //newtons method, x-f(x)/f'(x)
     let units = x.units;
     let mut x = x.number;
-    let op = options.prec;
-    options.prec = options.prec.clamp(256, 1024);
-    x.set_prec(options.prec);
-    for _ in 0..op / 4
+    if x.real().is_nan()
     {
+        let n1 = solve(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            Number::from(Complex::with_val(options.prec, -2), None),
+        )?
+        .num()?;
+        let n2 = solve(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            Number::from(Complex::new(options.prec), None),
+        )?
+        .num()?;
+        let n3 = solve(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            Number::from(Complex::with_val(options.prec, 2), None),
+        )?
+        .num()?;
+        match (
+            -(n1.number.real() - n2.number.real().clone())
+                .clone()
+                .abs()
+                .log10()
+                < options.prec / 32
+                || -(n1.number.imag() - n2.number.imag().clone())
+                    .clone()
+                    .abs()
+                    .log10()
+                    < options.prec / 32,
+            -(n3.number.real() - n2.number.real().clone())
+                .clone()
+                .abs()
+                .log10()
+                < options.prec / 32
+                || -(n3.number.imag() - n2.number.imag().clone())
+                    .clone()
+                    .abs()
+                    .log10()
+                    < options.prec / 32,
+            -(n1.number.real() - n3.number.real().clone())
+                .clone()
+                .abs()
+                .log10()
+                < options.prec / 32
+                || -(n1.number.imag() - n3.number.imag().clone())
+                    .clone()
+                    .abs()
+                    .log10()
+                    < options.prec / 32,
+        )
+        {
+            (true, true, true) => Ok(Vector(vec![n1, n2, n3])),
+            (true, _, _) => Ok(Vector(vec![n1, n2])),
+            (_, true, _) => Ok(Vector(vec![n2, n3])),
+            (_, _, true) => Ok(Vector(vec![n1, n3])),
+            (false, false, false) => Ok(Num(n1)),
+        }
+    }
+    else
+    {
+        let op = options.prec;
+        options.prec = options.prec.clamp(256, 1024);
+        x.set_prec(options.prec);
+        for _ in 0..(op / 4).max(64)
+        {
+            let n = Number::from(x.clone(), None);
+            let y = do_math_with_var(
+                func.clone(),
+                options,
+                func_vars.clone(),
+                &var.clone(),
+                Num(n.clone()),
+            )?;
+            x -= y.num()?.number
+                / slopesided(
+                    func.clone(),
+                    func_vars.clone(),
+                    options,
+                    var.clone(),
+                    n,
+                    false,
+                    1,
+                    true,
+                    Some(y),
+                    None,
+                )?
+                .num()?
+                .number
+        }
+        let last = x.clone();
         let n = Number::from(x.clone(), None);
         let y = do_math_with_var(
             func.clone(),
@@ -3859,56 +3952,32 @@ pub fn solve(
             &var.clone(),
             Num(n.clone()),
         )?;
-        x -= y.num()?.number
-            / slopesided(
-                func.clone(),
-                func_vars.clone(),
-                options,
-                var.clone(),
-                n,
-                false,
-                1,
-                true,
-                Some(y),
-                None,
-            )?
-            .num()?
-            .number
-    }
-    let last = x.clone();
-    let n = Number::from(x.clone(), None);
-    let y = do_math_with_var(
-        func.clone(),
-        options,
-        func_vars.clone(),
-        &var.clone(),
-        Num(n.clone()),
-    )?;
-    let k = slopesided(
-        func.clone(),
-        func_vars.clone(),
-        options,
-        var.clone(),
-        n,
-        false,
-        1,
-        true,
-        Some(y.clone()),
-        None,
-    )?
-    .num()?
-    .number;
-    x -= y.num()?.number / k.clone();
-    if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16 && k.real().is_finite()
-    {
-        Ok(Num(Number::from(x, units)))
-    }
-    else
-    {
-        Ok(Num(Number::from(
-            Complex::with_val(options.prec, Nan),
+        let k = slopesided(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            n,
+            false,
+            1,
+            true,
+            Some(y.clone()),
             None,
-        )))
+        )?
+        .num()?
+        .number;
+        x -= y.num()?.number / k.clone();
+        if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16 && k.real().is_finite()
+        {
+            Ok(Num(Number::from(x, units)))
+        }
+        else
+        {
+            Ok(Num(Number::from(
+                Complex::with_val(options.prec, Nan),
+                None,
+            )))
+        }
     }
 }
 pub fn extrema(

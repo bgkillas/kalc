@@ -2466,6 +2466,10 @@ fn to_string(num: &Float, options: Options, imag: bool, radix: i32) -> String
     {
         neg = ""
     }
+    if zeros.len() == decimals
+    {
+        zeros.pop();
+    }
     if decimals == 0
     {
         if zeros.is_empty()

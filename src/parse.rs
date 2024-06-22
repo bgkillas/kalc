@@ -3376,11 +3376,11 @@ pub fn input_var(
                                             {
                                                 output.drain(i - 1..=to[0]);
                                                 output.insert(i - 1, n);
-                                            }
-                                            let d = to[0] - i + 1;
-                                            for t in to.iter_mut()
-                                            {
-                                                *t -= d;
+                                                let d = to[0] - i + 1;
+                                                for t in to.iter_mut()
+                                                {
+                                                    *t -= d;
+                                                }
                                             }
                                             to.remove(0);
                                             continue;
@@ -3395,11 +3395,11 @@ pub fn input_var(
                                 {
                                     output.drain(i..=to[0]);
                                     output.insert(i, n);
-                                }
-                                let d = to[0] - i + 1;
-                                for t in to.iter_mut()
-                                {
-                                    *t -= d;
+                                    let d = to[0] - i + 1;
+                                    for t in to.iter_mut()
+                                    {
+                                        *t -= d;
+                                    }
                                 }
                                 to.remove(0);
                             }

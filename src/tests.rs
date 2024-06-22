@@ -20,6 +20,7 @@ fn test_math()
         Vec::new(),
         false,
         &mut Vec::new(),
+        None,
     )
     .unwrap();
     let expected = vec![

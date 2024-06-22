@@ -154,6 +154,8 @@ FLAGS: --help (this message)
 --keepzeros dont remove trailing zeros
 
 - flags can be executed in runtime just without the dashes
+- '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0
+- '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2
 - any function with ' appeneded to the name will be converted like f'(x) goes to slope(t,f(t),x)
 - any function with ` appeneded to the name will be converted like f`(x) goes to area(t,f(t),0,x)
 - "colors=" to see color settings

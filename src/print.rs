@@ -328,6 +328,7 @@ pub fn print_concurrent(
         Vec::new(),
         false,
         &mut Vec::new(),
+        None,
     )
     {
         Ok(f) => f,
@@ -471,6 +472,7 @@ pub fn print_concurrent(
                     func,
                     false,
                     &mut Vec::new(),
+                    None,
                 );
                 if def
                 {

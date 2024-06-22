@@ -28,6 +28,7 @@ pub fn input_var(
     blacklist: Vec<char>,
     isgraphing: bool,
     collectvars: &mut Vec<(isize, usize)>,
+    solven: Option<usize>,
 ) -> Result<
     (
         Vec<NumStr>,
@@ -39,7 +40,7 @@ pub fn input_var(
     &'static str,
 >
 {
-    let mut sumvar = None;
+    let mut sumvar: Option<String> = None;
     let mut graph = HowGraphing::default();
     let prec = (options.prec, options.prec);
     let mut funcvars = Vec::new();
@@ -64,6 +65,8 @@ pub fn input_var(
     let mut exp = (String::new(), 0);
     let mut subfact = (false, 0);
     let mut err = "";
+    let mut solves = Vec::new();
+    let mut solvesp = Vec::new();
     let mut slope = Vec::new();
     let mut chars = input
         .replace('[', "(car{")
@@ -159,6 +162,14 @@ pub fn input_var(
     let mut sum = (0, String::new());
     let functions = functions();
     let mut ceilfoor = 0;
+    let mut solvesn = if let Some(n) = solven
+    {
+        n
+    }
+    else
+    {
+        chars.iter().filter(|a| a == &&'~').count()
+    };
     'main: while i < chars.len()
     {
         let c = chars[i];
@@ -770,8 +781,91 @@ pub fn input_var(
                     place_multiplier(&mut output, sumrec);
                     output.push(Str("(".to_string()))
                 }
+                '~' =>
+                {
+                    if i == 0 || matches!(chars[i - 1], '(' | '{' | '|')
+                    {
+                        place_multiplier(&mut output, sumrec);
+                        output.push(Str("solve".to_string()));
+                        output.push(Str("(".to_string()));
+                        *bracket += 1;
+                        collectvars.insert(0, (*bracket, output.len()));
+                        if i + 1 != chars.len() && chars[i + 1] == '~'
+                        {
+                            i += 1;
+                            solvesn -= 1;
+                            solves.insert(0, (*bracket, true));
+                        }
+                        else
+                        {
+                            solves.insert(0, (*bracket, false));
+                        }
+                    }
+                    else
+                    {
+                        *bracket += 1;
+                        output.push(Str("-".to_string()));
+                        output.push(Str("(".to_string()));
+                        if i + 1 != chars.len() && chars[i + 1] == '~'
+                        {
+                            i += 1;
+                            solvesn -= 1;
+                            solvesp.insert(0, (*bracket, true));
+                        }
+                        else
+                        {
+                            solvesp.insert(0, (*bracket, false));
+                        }
+                        let mut brac = 0;
+                        let mut j = 0;
+                        for (i, f) in output.iter().rev().enumerate()
+                        {
+                            if let Str(s) = f
+                            {
+                                match s.as_str()
+                                {
+                                    "(" if brac == 1 =>
+                                    {
+                                        j = output.len() - i;
+                                        break;
+                                    }
+                                    "(" => brac += 1,
+                                    ")" => brac -= 1,
+                                    _ =>
+                                    {}
+                                }
+                            }
+                        }
+                        if let Some(n) = sumvar.clone()
+                        {
+                            sumrec.push((*bracket, n.clone()));
+                            output.insert(j, Str(",".to_string()));
+                            output.insert(j, Str(n));
+                        }
+                        else
+                        {
+                            collectvars.insert(0, (*bracket, j + 2))
+                        }
+                        output.insert(j, Str("(".to_string()));
+                        output.insert(j, Str("solve".to_string()));
+                    }
+                    solvesn -= 1;
+                }
                 ')' if i != 0 =>
                 {
+                    if !solves.is_empty() && solves[0].0 == *bracket
+                    {
+                        if solves[0].1
+                        {
+                            output.push(Str(",".to_string()));
+                            output.push(Num(Number::from(
+                                Complex::with_val(options.prec, Nan),
+                                None,
+                            )));
+                        }
+                        output.push(Str(")".to_string()));
+                        solves.remove(0);
+                    }
                     if !collectvars.is_empty() && collectvars[0].0 == *bracket
                     {
                         output.insert(collectvars[0].1, Str(",".to_string()));
@@ -788,6 +882,20 @@ pub fn input_var(
                         output.push(Str(")".to_string()))
                     }
                     *bracket -= 1;
+                    if !solvesp.is_empty() && solvesp[0].0 == *bracket
+                    {
+                        output.push(Str(")".to_string()));
+                        if solvesp[0].1
+                        {
+                            output.push(Str(",".to_string()));
+                            output.push(Num(Number::from(
+                                Complex::with_val(options.prec, Nan),
+                                None,
+                            )));
+                        }
+                        output.push(Str(")".to_string()));
+                        solvesp.remove(0);
+                    }
                     output.push(Str(")".to_string()));
                     if !exp.0.is_empty() && exp.1 == *bracket
                     {
@@ -1890,6 +1998,7 @@ pub fn input_var(
                                         blacklist.clone(),
                                         false,
                                         &mut cv,
+                                        Some(solvesn),
                                     )
                                     {
                                         Ok(f) => f,
@@ -1923,7 +2032,7 @@ pub fn input_var(
                                     }
                                     if let Some(s) = sum_var
                                     {
-                                        if collectvars[0].0 < 0
+                                        if collectvars.is_empty() || collectvars[0].0 < 0
                                         {
                                             sumvar = Some(s)
                                         }
@@ -2242,6 +2351,7 @@ pub fn input_var(
                                     blacklist.clone(),
                                     false,
                                     &mut cv,
+                                    Some(solvesn),
                                 )
                                 {
                                     Ok(f) => f,
@@ -2275,7 +2385,7 @@ pub fn input_var(
                                 }
                                 if let Some(s) = sum_var
                                 {
-                                    if collectvars[0].0 < 0
+                                    if collectvars.is_empty() || collectvars[0].0 < 0
                                     {
                                         sumvar = Some(s)
                                     }
@@ -2661,6 +2771,14 @@ pub fn input_var(
                 {
                     matches!(c, 'x' | 'y' | 'z' | 'i' | 'E')
                 } || !c.is_alphabetic())
+                && (solvesn == 0 || {
+                    let a = chars[i..]
+                        .iter()
+                        .filter(|a| matches!(a, '(' | ')' | '~'))
+                        .cloned()
+                        .collect::<Vec<char>>();
+                    a.starts_with(&['(']) && a.ends_with(&[')'])
+                })
             {
                 if neg
                 {
@@ -2839,7 +2957,7 @@ pub fn input_var(
                     }
                 }
             }
-            else if !collectvars.is_empty()
+            else if !collectvars.is_empty() || solvesn != 0
             {
                 if neg
                 {
@@ -2847,19 +2965,37 @@ pub fn input_var(
                     output.push(Str('×'.to_string()));
                     neg = false;
                 }
-                sumrec.push((collectvars[0].0, word.clone()));
-                if collectvars[0].0 < 0
+                if !collectvars.is_empty()
                 {
-                    sumvar = Some(word.clone());
+                    sumrec.push((collectvars[0].0, word.clone()));
+                    if collectvars[0].0 < 0
+                    {
+                        sumvar = Some(word.clone());
+                    }
+                    else
+                    {
+                        output.insert(collectvars[0].1, Str(",".to_string()));
+                        output.insert(collectvars[0].1, Str(word.clone()));
+                    }
+                    collectvars.remove(0);
+                }
+                else if word.is_empty()
+                {
+                    sumvar = Some(wordv.clone());
                 }
                 else
                 {
-                    output.insert(collectvars[0].1, Str(",".to_string()));
-                    output.insert(collectvars[0].1, Str(word.clone()));
+                    sumvar = Some(word.clone());
                 }
                 place_multiplier(&mut output, sumrec);
-                output.push(Str(word));
-                collectvars.remove(0);
+                if word.is_empty()
+                {
+                    output.push(Str(wordv));
+                }
+                else
+                {
+                    output.push(Str(word));
+                }
             }
             else
             {
@@ -2873,6 +3009,31 @@ pub fn input_var(
     for _ in 0..pwr.2 + ceilfoor
     {
         output.push(Str(')'.to_string()))
+    }
+    for s in solves
+    {
+        if s.1
+        {
+            output.push(Str(",".to_string()));
+            output.push(Num(Number::from(
+                Complex::with_val(options.prec, Nan),
+                None,
+            )));
+        }
+        output.push(Str(")".to_string()));
+    }
+    for s in solvesp
+    {
+        output.push(Str(")".to_string()));
+        if s.1
+        {
+            output.push(Str(",".to_string()));
+            output.push(Num(Number::from(
+                Complex::with_val(options.prec, Nan),
+                None,
+            )));
+        }
+        output.push(Str(")".to_string()));
     }
     if !pow.is_empty()
     {

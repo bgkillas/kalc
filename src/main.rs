@@ -633,6 +633,7 @@ fn main()
                     Vec::new(),
                     false,
                     &mut Vec::new(),
+                    None,
                 )
                 {
                     Ok(f) => f,

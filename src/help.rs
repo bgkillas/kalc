@@ -45,6 +45,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\
 --keepzeros dont remove trailing zeros\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
+- '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0\x1b[G\n\
+- '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2\x1b[G\n\
 - any function with ' appeneded to the name will be converted like f'(x) goes to slope(t,f(t),x)\x1b[G\n\
 - any function with ` appeneded to the name will be converted like f`(x) goes to area(t,f(t),0,x)\x1b[G\n\
 - \"colors=\" to see color settings\x1b[G\n\

@@ -881,7 +881,6 @@ pub fn input_var(
                         output.push(Str(")".to_string()));
                         output.push(Str(")".to_string()))
                     }
-                    *bracket -= 1;
                     if !solvesp.is_empty() && solvesp[0].0 == *bracket
                     {
                         output.push(Str(")".to_string()));
@@ -896,6 +895,7 @@ pub fn input_var(
                         output.push(Str(")".to_string()));
                         solvesp.remove(0);
                     }
+                    *bracket -= 1;
                     output.push(Str(")".to_string()));
                     if !exp.0.is_empty() && exp.1 == *bracket
                     {

@@ -920,14 +920,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
     true
 }
 #[allow(clippy::too_many_arguments)]
-pub fn commands(
-    options: &mut Options,
-    colors: &Colors,
-    vars: &mut [Variable],
-    lines: &[String],
-    input: &[char],
-    stdout: &mut Stdout,
-)
+pub fn commands(options: &mut Options, lines: &[String], input: &[char], stdout: &mut Stdout)
 {
     match input.iter().collect::<String>().trim_start().trim_end()
     {
@@ -1080,107 +1073,6 @@ pub fn commands(
             }
             stdout.flush().unwrap();
         }
-        "vars" | "variables" =>
-        {
-            print!("\x1b[G\x1b[A\x1b[K");
-            for v in vars.iter()
-            {
-                if !v.unparsed.is_empty()
-                {
-                    println!(
-                        "{}={}\x1b[G",
-                        v.name.iter().collect::<String>(),
-                        to_output(
-                            &v.unparsed.chars().collect::<Vec<char>>(),
-                            vars,
-                            options.color == Auto::True,
-                            colors,
-                        )
-                    );
-                }
-                else
-                {
-                    match &v.parsed[0]
-                    {
-                        Num(n) =>
-                        {
-                            let n = get_output(*options, colors, n);
-                            println!(
-                                "{}={}{}{}{}\x1b[G",
-                                v.name.iter().collect::<String>(),
-                                n.0,
-                                n.1,
-                                n.2.unwrap_or_default(),
-                                if options.color == Auto::True
-                                {
-                                    &colors.text
-                                }
-                                else
-                                {
-                                    ""
-                                }
-                            )
-                        }
-                        Vector(m) =>
-                        {
-                            let mut st = String::new();
-                            for i in m
-                            {
-                                let n = get_output(*options, colors, i);
-                                st.push_str(&n.0);
-                                st.push_str(&n.1);
-                                st.push_str(&n.2.unwrap_or_default());
-                                if options.color == Auto::True
-                                {
-                                    st.push_str(&colors.text)
-                                }
-                                st.push(',');
-                            }
-                            println!(
-                                "{}={{{}}}\x1b[G",
-                                v.name.iter().collect::<String>(),
-                                st.trim_end_matches(',')
-                            )
-                        }
-                        Matrix(m) =>
-                        {
-                            let mut st = String::new();
-                            for i in m
-                            {
-                                st.push('{');
-                                for g in i
-                                {
-                                    let n = get_output(*options, colors, g);
-                                    st.push_str(&n.0);
-                                    st.push_str(&n.1);
-                                    st.push_str(&n.2.unwrap_or_default());
-                                    if options.color == Auto::True
-                                    {
-                                        st.push_str(&colors.text)
-                                    }
-                                    st.push(',');
-                                }
-                                st = st.trim_end_matches(',').to_string();
-                                st.push('}');
-                                st.push(',');
-                            }
-                            println!(
-                                "{}={{{}}}\x1b[G",
-                                v.name.iter().collect::<String>(),
-                                st.trim_end_matches(',')
-                            )
-                        }
-                        _ => continue,
-                    }
-                }
-            }
-            stdout.flush().unwrap();
-        }
-        "version" => println!(
-            "\x1b[G\x1b[A\x1b[K{} {}\x1b[G",
-            env!("CARGO_PKG_NAME"),
-            env!("CARGO_PKG_VERSION")
-        ),
         "exit" | "quit" | "break" =>
         {
             print!("\x1b[G\x1b[A\x1b[J");
@@ -1212,6 +1104,106 @@ pub fn commands(
             }
         }
     }
+}
+pub fn list_vars(vars: &[Variable], options: &Options, colors: &Colors) -> String
+{
+    let mut out = String::new();
+    for v in vars.iter()
+    {
+        if !v.unparsed.is_empty()
+        {
+            out += format!(
+                "{}={}\x1b[G\n",
+                v.name.iter().collect::<String>(),
+                to_output(
+                    &v.unparsed.chars().collect::<Vec<char>>(),
+                    vars,
+                    options.color == Auto::True,
+                    colors,
+                )
+            )
+            .as_str()
+        }
+        else
+        {
+            match &v.parsed[0]
+            {
+                Num(n) =>
+                {
+                    let n = get_output(*options, colors, n);
+                    out += format!(
+                        "{}={}{}{}{}\x1b[G\n",
+                        v.name.iter().collect::<String>(),
+                        n.0,
+                        n.1,
+                        n.2.unwrap_or_default(),
+                        if options.color == Auto::True
+                        {
+                            &colors.text
+                        }
+                        else
+                        {
+                            ""
+                        }
+                    )
+                    .as_str()
+                }
+                Vector(m) =>
+                {
+                    let mut st = String::new();
+                    for i in m
+                    {
+                        let n = get_output(*options, colors, i);
+                        st.push_str(&n.0);
+                        st.push_str(&n.1);
+                        st.push_str(&n.2.unwrap_or_default());
+                        if options.color == Auto::True
+                        {
+                            st.push_str(&colors.text)
+                        }
+                        st.push(',');
+                    }
+                    out += format!(
+                        "{}={{{}}}\x1b[G\n",
+                        v.name.iter().collect::<String>(),
+                        st.trim_end_matches(',')
+                    )
+                    .as_str()
+                }
+                Matrix(m) =>
+                {
+                    let mut st = String::new();
+                    for i in m
+                    {
+                        st.push('{');
+                        for g in i
+                        {
+                            let n = get_output(*options, colors, g);
+                            st.push_str(&n.0);
+                            st.push_str(&n.1);
+                            st.push_str(&n.2.unwrap_or_default());
+                            if options.color == Auto::True
+                            {
+                                st.push_str(&colors.text)
+                            }
+                            st.push(',');
+                        }
+                        st = st.trim_end_matches(',').to_string();
+                        st.push('}');
+                        st.push(',');
+                    }
+                    out += format!(
+                        "{}={{{}}}\x1b[G\n",
+                        v.name.iter().collect::<String>(),
+                        st.trim_end_matches(',')
+                    )
+                    .as_str()
+                }
+                _ => continue,
+            }
+        }
+    }
+    out
 }
 pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, last: &str)
     -> String

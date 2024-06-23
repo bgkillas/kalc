@@ -1973,14 +1973,7 @@ fn main()
                 }
                 stdout.flush().unwrap();
             }
-            commands(
-                &mut options,
-                &colors,
-                &mut vars,
-                &lines,
-                &input,
-                &mut stdout,
-            );
+            commands(&mut options, &lines, &input, &mut stdout);
             if !varcheck
             {
                 print!(

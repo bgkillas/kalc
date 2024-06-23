@@ -11,7 +11,7 @@ use crate::{
         clear, get_terminal_dimensions, handle_err, insert_last, no_col, no_col_len,
         parsed_to_string, prompt, to_output,
     },
-    options::{equal_to, silent_commands},
+    options::{equal_to, list_vars, silent_commands},
     parse::input_var,
     AngleType::{Degrees, Gradians, Radians},
     Colors, HowGraphing,
@@ -37,6 +37,90 @@ pub fn print_concurrent(
     {
         clear(unmodified_input, vars, start, end, options, &colors);
         return (0, HowGraphing::default(), false, false);
+    }
+    if matches!(
+        unmodified_input.iter().collect::<String>().as_str(),
+        "vars" | "variables"
+    )
+    {
+        let list = list_vars(vars, &options, &colors);
+        let (width, height) = get_terminal_dimensions();
+        let n = no_col(&list, options.color == crate::Auto::True)
+            .iter()
+            .collect::<String>()
+            .split("\n")
+            .map(|a| a.len().div_ceil(width))
+            .sum();
+        return if n + 1 >= height
+        {
+            print!(
+                "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
+                prompt(options, &colors),
+                to_output(
+                    &unmodified_input[start..end],
+                    vars,
+                    options.color == crate::Auto::True,
+                    &colors
+                ),
+                if options.color == crate::Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                },
+            );
+            (0, HowGraphing::default(), true, false)
+        }
+        else
+        {
+            print!(
+                "\x1b[G\n\x1b[J{}\x1b[{}A\x1b[K{}{}{}",
+                list,
+                n + 1,
+                prompt(options, &colors),
+                to_output(
+                    &unmodified_input[start..end],
+                    vars,
+                    options.color == crate::Auto::True,
+                    &colors
+                ),
+                if options.color == crate::Auto::True
+                {
+                    "\x1b[0m"
+                }
+                else
+                {
+                    ""
+                }
+            );
+            (n, HowGraphing::default(), false, false)
+        };
+    }
+    if unmodified_input.iter().collect::<String>() == "version"
+    {
+        print!(
+            "\x1b[J\x1b[G\n{} {}\x1b[G\x1b[A\x1b[K{}{}{}",
+            env!("CARGO_PKG_NAME"),
+            env!("CARGO_PKG_VERSION"),
+            prompt(options, &colors),
+            to_output(
+                &unmodified_input[start..end],
+                vars,
+                options.color == crate::Auto::True,
+                &colors
+            ),
+            if options.color == crate::Auto::True
+            {
+                "\x1b[0m"
+            }
+            else
+            {
+                ""
+            },
+        );
+        return (1, HowGraphing::default(), false, false);
     }
     let mut var;
     let mut unparsed = unmodified_input;

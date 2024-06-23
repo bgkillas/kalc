@@ -132,6 +132,7 @@ dependencies = [
  "crossterm",
  "dirs",
  "fastrand",
+ "gmp-mpfr-sys",
  "gnuplot",
  "libc",
  "rug",

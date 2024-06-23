@@ -27,3 +27,7 @@ term_size = "0.3.2"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.153"
+
+[dependencies.gmp-mpfr-sys]
+version = "1.6.4"
+features = ["force-cross"]

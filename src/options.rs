@@ -1114,7 +1114,7 @@ pub fn list_vars(vars: &[Variable], options: &Options, colors: &Colors) -> Strin
         {
             out += format!(
                 "{}={}\x1b[G\n",
-                v.name.iter().collect::<String>(),
+                to_output(&v.name, vars, options.color == Auto::True, colors,),
                 to_output(
                     &v.unparsed.chars().collect::<Vec<char>>(),
                     vars,

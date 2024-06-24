@@ -2993,7 +2993,10 @@ pub fn input_var(
                         graph.y = true;
                         sumvar = Some(wordv.clone());
                     }
-                    else if !(wordv == "x" || wordv == "y") || sumvar.is_none()
+                    else if !(wordv == "x" || wordv == "y")
+                        || sumvar.is_none()
+                        || sumvar == Some("y".to_string())
+                        || sumvar == Some("x".to_string())
                     {
                         sumvar = Some(wordv.clone());
                     }

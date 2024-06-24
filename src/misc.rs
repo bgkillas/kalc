@@ -534,40 +534,86 @@ pub fn place_funcvarxy(
     {
         if !i.0.contains('(')
         {
-            for j in i.1.iter_mut()
+            let mut sum: Vec<(usize, String)> = Vec::new();
+            let mut bracket = 0;
+            let mut j = 0;
+            while i.1.len() > j
             {
-                match j
+                if let Str(s) = &i.1[j]
                 {
-                    Str(s) if matches!(s.as_str(), "x" | "y") => *j = num.clone(),
-                    _ =>
-                    {}
-                }
-            }
-        }
-    }
-    funcvar
-}
-pub fn place_funcvar(
-    mut funcvar: Vec<(String, Vec<NumStr>)>,
-    var: &str,
-    num: NumStr,
-) -> Vec<(String, Vec<NumStr>)>
-{
-    if !var.is_empty()
-    {
-        for i in funcvar.iter_mut()
-        {
-            if !i.0.contains('(')
-            {
-                for j in i.1.iter_mut()
-                {
-                    match j
+                    if matches!(s.as_str(), "x" | "y") && !sum.iter().any(|a| a.1 == *s)
                     {
-                        Str(s) if s == var => *j = num.clone(),
-                        _ =>
-                        {}
+                        i.1[j] = num.clone();
+                    }
+                    else
+                    {
+                        match s.as_str()
+                        {
+                            "(" => bracket += 1,
+                            ")" => bracket -= 1,
+                            "," if sum[0].0 == bracket =>
+                            {
+                                sum.remove(0);
+                            }
+                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
+                            | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
+                            | "surfacearea" | "sarea" | "solve" | "length" | "slope" | "lim"
+                            | "limit" | "iter" | "extrema"
+                                if j + 2 < i.1.len()
+                                    && if let Str(s) = &i.1[j + 2]
+                                    {
+                                        matches!(s.as_str(), "x" | "y")
+                                    }
+                                    else
+                                    {
+                                        false
+                                    } =>
+                            {
+                                bracket += 1;
+                                j += 3;
+                                sum.push((
+                                    bracket,
+                                    if let Str(s) = &i.1[j - 1]
+                                    {
+                                        s.to_string()
+                                    }
+                                    else
+                                    {
+                                        String::new()
+                                    },
+                                ))
+                            }
+                            "surfacearea" | "sarea"
+                                if j + 4 < i.1.len()
+                                    && if let Str(s) = &i.1[j + 4]
+                                    {
+                                        matches!(s.as_str(), "x" | "y")
+                                    }
+                                    else
+                                    {
+                                        false
+                                    } =>
+                            {
+                                bracket += 1;
+                                j += 5;
+                                sum.push((
+                                    bracket,
+                                    if let Str(s) = &i.1[j - 1]
+                                    {
+                                        s.to_string()
+                                    }
+                                    else
+                                    {
+                                        String::new()
+                                    },
+                                ))
+                            }
+                            _ =>
+                            {}
+                        }
                     }
                 }
+                j += 1;
             }
         }
     }
@@ -575,14 +621,14 @@ pub fn place_funcvar(
 }
 pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
 {
-    let mut sum = Vec::new();
+    let mut sum: Vec<(usize, String)> = Vec::new();
     let mut bracket = 0;
     let mut i = 0;
     while func.len() > i
     {
         if let Str(s) = &func[i]
         {
-            if matches!(s.as_str(), "x" | "y") && sum.is_empty()
+            if matches!(s.as_str(), "x" | "y") && !sum.iter().any(|a| a.1 == *s)
             {
                 func[i] = num.clone();
             }
@@ -592,7 +638,7 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                 {
                     "(" => bracket += 1,
                     ")" => bracket -= 1,
-                    "," if sum.contains(&bracket) =>
+                    "," if sum[0].0 == bracket =>
                     {
                         sum.remove(0);
                     }
@@ -609,8 +655,19 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                                 false
                             } =>
                     {
+                        bracket += 1;
                         i += 3;
-                        sum.push(bracket)
+                        sum.push((
+                            bracket,
+                            if let Str(s) = &func[i - 1]
+                            {
+                                s.to_string()
+                            }
+                            else
+                            {
+                                String::new()
+                            },
+                        ))
                     }
                     "surfacearea" | "sarea"
                         if i + 4 < func.len()
@@ -623,8 +680,19 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                                 false
                             } =>
                     {
+                        bracket += 1;
                         i += 5;
-                        sum.push(bracket)
+                        sum.push((
+                            bracket,
+                            if let Str(s) = &func[i - 1]
+                            {
+                                s.to_string()
+                            }
+                            else
+                            {
+                                String::new()
+                            },
+                        ))
                     }
                     _ =>
                     {}
@@ -634,6 +702,66 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
         i += 1;
     }
     func
+}
+pub fn place_funcvar(
+    mut funcvar: Vec<(String, Vec<NumStr>)>,
+    var: &str,
+    num: NumStr,
+) -> Vec<(String, Vec<NumStr>)>
+{
+    if !var.is_empty()
+    {
+        for i in funcvar.iter_mut()
+        {
+            if !i.0.contains('(')
+            {
+                let mut sum = Vec::new();
+                let mut bracket = 0;
+                let mut j = 0;
+                while i.1.len() > j
+                {
+                    if let Str(s) = &i.1[j]
+                    {
+                        if s == var && sum.is_empty()
+                        {
+                            i.1[j] = num.clone();
+                        }
+                        else
+                        {
+                            match s.as_str()
+                            {
+                                "(" => bracket += 1,
+                                ")" => bracket -= 1,
+                                "," if sum.contains(&bracket) =>
+                                {
+                                    sum.remove(0);
+                                }
+                                "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
+                                | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
+                                | "solve" | "length" | "slope" | "lim" | "limit" | "iter"
+                                | "extrema" | "surfacearea" | "sarea"
+                                    if j + 2 < i.1.len() && i.1[j + 2] == Str(var.to_string()) =>
+                                {
+                                    j += 3;
+                                    sum.push(bracket)
+                                }
+                                "surfacearea" | "sarea"
+                                    if j + 4 < i.1.len() && i.1[j + 4] == Str(var.to_string()) =>
+                                {
+                                    j += 5;
+                                    sum.push(bracket)
+                                }
+                                _ =>
+                                {}
+                            }
+                        }
+                    }
+                    j += 1;
+                }
+            }
+        }
+    }
+    funcvar
 }
 pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
 {

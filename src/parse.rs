@@ -2981,7 +2981,15 @@ pub fn input_var(
                 }
                 else if word.is_empty()
                 {
-                    sumvar = Some(wordv.clone());
+                    if wordv == "y" && sumvar == Some("x".to_string())
+                    {
+                        graph.graph = true;
+                        graph.x = true
+                    }
+                    if !(wordv == "x" && sumvar == Some("y".to_string()))
+                    {
+                        sumvar = Some(wordv.clone());
+                    }
                 }
                 else
                 {

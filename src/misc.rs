@@ -551,7 +551,7 @@ pub fn place_funcvarxy(
                         {
                             "(" => bracket += 1,
                             ")" => bracket -= 1,
-                            "," if sum[0].0 == bracket =>
+                            "," if !sum.is_empty() && sum[0].0 == bracket =>
                             {
                                 sum.remove(0);
                             }
@@ -638,7 +638,7 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                 {
                     "(" => bracket += 1,
                     ")" => bracket -= 1,
-                    "," if sum[0].0 == bracket =>
+                    "," if !sum.is_empty() && sum[0].0 == bracket =>
                     {
                         sum.remove(0);
                     }

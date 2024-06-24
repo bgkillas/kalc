@@ -2981,14 +2981,31 @@ pub fn input_var(
                 }
                 else if word.is_empty()
                 {
-                    if wordv == "y" && sumvar == Some("x".to_string())
+                    if wordv != "x" && sumvar == Some("x".to_string())
                     {
                         graph.graph = true;
-                        graph.x = true
+                        graph.x = true;
+                        sumvar = Some(wordv.clone());
                     }
-                    if !(wordv == "x" && sumvar == Some("y".to_string()))
+                    else if wordv != "y" && wordv != "x" && sumvar == Some("y".to_string())
+                    {
+                        graph.graph = true;
+                        graph.y = true;
+                        sumvar = Some(wordv.clone());
+                    }
+                    else if !(wordv == "x" || wordv == "y") || sumvar.is_none()
                     {
                         sumvar = Some(wordv.clone());
+                    }
+                    else if wordv == "y"
+                    {
+                        graph.graph = true;
+                        graph.y = true;
+                    }
+                    else if wordv == "x"
+                    {
+                        graph.graph = true;
+                        graph.x = true;
                     }
                 }
                 else

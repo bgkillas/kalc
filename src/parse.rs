@@ -2032,7 +2032,41 @@ pub fn input_var(
                                     }
                                     if let Some(s) = sum_var
                                     {
-                                        if collectvars.is_empty() || collectvars[0].0 < 0
+                                        if collectvars.is_empty()
+                                        {
+                                            if s != "x" && sumvar == Some("x".to_string())
+                                            {
+                                                graph.graph = true;
+                                                graph.x = true;
+                                                sumvar = Some(s.clone());
+                                            }
+                                            else if s != "y"
+                                                && s != "x"
+                                                && sumvar == Some("y".to_string())
+                                            {
+                                                graph.graph = true;
+                                                graph.y = true;
+                                                sumvar = Some(s.clone());
+                                            }
+                                            else if !(s == "x" || s == "y")
+                                                || sumvar.is_none()
+                                                || sumvar == Some("y".to_string())
+                                                || sumvar == Some("x".to_string())
+                                            {
+                                                sumvar = Some(s.clone());
+                                            }
+                                            else if s == "y"
+                                            {
+                                                graph.graph = true;
+                                                graph.y = true;
+                                            }
+                                            else if s == "x"
+                                            {
+                                                graph.graph = true;
+                                                graph.x = true;
+                                            }
+                                        }
+                                        else if collectvars[0].0 < 0
                                         {
                                             sumvar = Some(s)
                                         }
@@ -2385,7 +2419,41 @@ pub fn input_var(
                                 }
                                 if let Some(s) = sum_var
                                 {
-                                    if collectvars.is_empty() || collectvars[0].0 < 0
+                                    if collectvars.is_empty()
+                                    {
+                                        if s != "x" && sumvar == Some("x".to_string())
+                                        {
+                                            graph.graph = true;
+                                            graph.x = true;
+                                            sumvar = Some(s.clone());
+                                        }
+                                        else if s != "y"
+                                            && s != "x"
+                                            && sumvar == Some("y".to_string())
+                                        {
+                                            graph.graph = true;
+                                            graph.y = true;
+                                            sumvar = Some(s.clone());
+                                        }
+                                        else if !(s == "x" || s == "y")
+                                            || sumvar.is_none()
+                                            || sumvar == Some("y".to_string())
+                                            || sumvar == Some("x".to_string())
+                                        {
+                                            sumvar = Some(s.clone());
+                                        }
+                                        else if s == "y"
+                                        {
+                                            graph.graph = true;
+                                            graph.y = true;
+                                        }
+                                        else if s == "x"
+                                        {
+                                            graph.graph = true;
+                                            graph.x = true;
+                                        }
+                                    }
+                                    else if collectvars[0].0 < 0
                                     {
                                         sumvar = Some(s)
                                     }

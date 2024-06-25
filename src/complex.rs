@@ -3909,7 +3909,10 @@ pub fn solve(
             (true, _, _) => Ok(Vector(vec![n1, n2])),
             (_, true, _) => Ok(Vector(vec![n2, n3])),
             (_, _, true) => Ok(Vector(vec![n1, n3])),
-            (false, false, false) => Ok(Num(n1)),
+            (false, false, false) if !n1.number.real().is_nan() => Ok(Num(n1)),
+            (false, false, false) if !n2.number.real().is_nan() => Ok(Num(n2)),
+            (false, false, false) if !n3.number.real().is_nan() => Ok(Num(n3)),
+            _ => Ok(Num(n1)),
         }
     }
     else

@@ -242,9 +242,10 @@ impl NumStr
                         Complex::with_val(a.prec(), Nan)
                     }
                     else if b.imag().is_zero()
-                        && b.real().clone().fract().is_zero()
-                        && b.real() <= &256
                         && !b.real().is_zero()
+                        && !a.imag().is_zero()
+                        && b.real() <= &256
+                        && b.real().clone().fract().is_zero()
                     {
                         let mut p = a.clone();
                         for _ in 1..b

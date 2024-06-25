@@ -241,6 +241,31 @@ impl NumStr
                     {
                         Complex::with_val(a.prec(), Nan)
                     }
+                    else if b.imag().is_zero()
+                        && b.real().clone().fract().is_zero()
+                        && b.real() <= &256
+                        && !b.real().is_zero()
+                    {
+                        let mut p = a.clone();
+                        for _ in 1..b
+                            .real()
+                            .to_integer()
+                            .unwrap_or_default()
+                            .abs()
+                            .to_usize()
+                            .unwrap_or_default()
+                        {
+                            p *= a.clone();
+                        }
+                        if b.real().is_sign_positive()
+                        {
+                            p
+                        }
+                        else
+                        {
+                            1 / p
+                        }
+                    }
                     else
                     {
                         a.pow(b.clone())

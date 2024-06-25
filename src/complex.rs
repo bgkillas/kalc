@@ -1354,48 +1354,106 @@ pub fn sum(
     function: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
     var: &str,
-    start: isize,
-    end: isize,
+    mut start: Float,
+    mut end: Float,
     product: bool,
     options: Options,
 ) -> Result<NumStr, &'static str>
 {
-    let mut value = do_math_with_var(
-        function.clone(),
-        options,
-        func_vars.clone(),
-        var,
-        Num(Number::from(
-            Complex::with_val(options.prec, if start < end { start } else { end }),
-            None,
-        )),
-    )?;
-    for z in if start < end
+    if start > end
     {
-        start + 1..=end
+        (start, end) = (end, start)
     }
-    else
+    if end.is_infinite()
     {
-        end + 1..=start
-    }
-    {
-        let math = do_math_with_var(
+        let mut j = 0;
+        let mut n = start
+            .to_integer()
+            .unwrap_or_default()
+            .to_isize()
+            .unwrap_or_default();
+        let k = if end.is_sign_positive() { 1 } else { -1 };
+        let mut last = Num(Number::from(Complex::with_val(options.prec, Nan), None));
+        let mut value = do_math_with_var(
             function.clone(),
             options,
             func_vars.clone(),
             var,
-            Num(Number::from(Complex::with_val(options.prec, z), None)),
+            Num(Number::from(Complex::with_val(options.prec, n), None)),
         )?;
-        if product
+        while last != value
         {
-            value = value.mul(&math)?;
+            if j > 10000
+            {
+                return Ok(Num(Number::from(
+                    Complex::with_val(options.prec, Nan),
+                    None,
+                )));
+            }
+            j += 1;
+            n += k;
+            last = value;
+            let math = do_math_with_var(
+                function.clone(),
+                options,
+                func_vars.clone(),
+                var,
+                Num(Number::from(Complex::with_val(options.prec, n), None)),
+            )?;
+            if product
+            {
+                value = last.mul(&math)?;
+            }
+            else
+            {
+                value = last.func(&math, add)?;
+            }
         }
-        else
-        {
-            value = value.func(&math, add)?;
-        }
+        Ok(value)
     }
-    Ok(value)
+    else if start.is_infinite()
+    {
+        return Err("unsupported due to lack of example for convergence");
+    }
+    else
+    {
+        let start = start
+            .to_integer()
+            .unwrap_or_default()
+            .to_isize()
+            .unwrap_or_default();
+        let end = end
+            .to_integer()
+            .unwrap_or_default()
+            .to_isize()
+            .unwrap_or_default();
+        let mut value = do_math_with_var(
+            function.clone(),
+            options,
+            func_vars.clone(),
+            var,
+            Num(Number::from(Complex::with_val(options.prec, start), None)),
+        )?;
+        for z in start + 1..=end
+        {
+            let math = do_math_with_var(
+                function.clone(),
+                options,
+                func_vars.clone(),
+                var,
+                Num(Number::from(Complex::with_val(options.prec, z), None)),
+            )?;
+            if product
+            {
+                value = value.mul(&math)?;
+            }
+            else
+            {
+                value = value.func(&math, add)?;
+            }
+        }
+        Ok(value)
+    }
 }
 pub fn submatrix(a: &[Vec<Number>], row: usize, col: usize) -> Vec<Vec<Number>>
 {
@@ -3848,95 +3906,97 @@ pub fn solve(
     let mut x = x.number;
     if x.real().is_nan()
     {
-        let n2 = solve(
-            func.clone(),
-            func_vars.clone(),
-            options,
-            var.clone(),
-            Number::from(Complex::new(options.prec), None),
-        )?
-        .num()?;
-        let nan_n2 = n2.number.real().is_nan();
-        if !nan_n2
+        let points = if x.imag().is_zero()
         {
-            func.insert(0, Str("(".to_string()));
-            func.push(Str(")".to_string()));
-            func.push(Str("/".to_string()));
-            func.push(Str("(".to_string()));
-            func.push(Str(var.clone()));
-            func.push(Str("-".to_string()));
-            func.push(Num(n2.clone()));
-            func.push(Str(")".to_string()));
+            vec![
+                Number::from(Complex::new(options.prec), None),
+                Number::from(Complex::with_val(options.prec, -2), None),
+                Number::from(Complex::with_val(options.prec, 2), None),
+            ]
         }
-        let n1 = solve(
-            func.clone(),
-            func_vars.clone(),
-            options,
-            var.clone(),
-            Number::from(Complex::with_val(options.prec, -2), None),
-        )?
-        .num()?;
-        let nan_n1 = n1.number.real().is_nan();
-        if !nan_n1
+        else
         {
-            func.insert(0, Str("(".to_string()));
-            func.push(Str(")".to_string()));
-            func.push(Str("/".to_string()));
-            func.push(Str("(".to_string()));
-            func.push(Str(var.clone()));
-            func.push(Str("-".to_string()));
-            func.push(Num(n1.clone()));
-            func.push(Str(")".to_string()));
+            vec![
+                Number::from(Complex::new(options.prec), None),
+                Number::from(Complex::with_val(options.prec, -2), None),
+                Number::from(Complex::with_val(options.prec, 2), None),
+                Number::from(Complex::with_val(options.prec, (0, -2)), None),
+                Number::from(Complex::with_val(options.prec, (0, 2)), None),
+                Number::from(Complex::with_val(options.prec, (-2, 2)), None),
+                Number::from(Complex::with_val(options.prec, (2, 2)), None),
+                Number::from(Complex::with_val(options.prec, (-2, -2)), None),
+                Number::from(Complex::with_val(options.prec, (2, -2)), None),
+            ]
+        };
+        let mut values = Vec::new();
+        for p in points
+        {
+            let v = solve(
+                func.clone(),
+                func_vars.clone(),
+                options,
+                var.clone(),
+                p.clone(),
+            )?
+            .num()?;
+            if !v.number.real().is_nan()
+            {
+                func.insert(0, Str("(".to_string()));
+                func.push(Str(")".to_string()));
+                func.push(Str("/".to_string()));
+                func.push(Str("(".to_string()));
+                func.push(Str(var.clone()));
+                func.push(Str("-".to_string()));
+                func.push(Num(p));
+                func.push(Str(")".to_string()));
+                values.push(v);
+            }
         }
-        let n3 = solve(
-            func,
-            func_vars,
-            options,
-            var,
-            Number::from(Complex::with_val(options.prec, 2), None),
-        )?
-        .num()?;
-        match (
-            -(n1.number.real() - n2.number.real().clone())
-                .clone()
-                .abs()
-                .log10()
-                < options.prec / 32
-                || -(n1.number.imag() - n2.number.imag().clone())
-                    .clone()
-                    .abs()
-                    .log10()
-                    < options.prec / 32,
-            -(n3.number.real() - n2.number.real().clone())
-                .clone()
-                .abs()
-                .log10()
-                < options.prec / 32
-                || -(n3.number.imag() - n2.number.imag().clone())
-                    .clone()
-                    .abs()
-                    .log10()
-                    < options.prec / 32,
-            -(n1.number.real() - n3.number.real().clone())
-                .clone()
-                .abs()
-                .log10()
-                < options.prec / 32
-                || -(n1.number.imag() - n3.number.imag().clone())
-                    .clone()
-                    .abs()
-                    .log10()
-                    < options.prec / 32,
+        Ok(
+            if values.is_empty()
+            {
+                Num(Number::from(Complex::with_val(options.prec, Nan), None))
+            }
+            else
+            {
+                let mut i = 0;
+                while i < values.len() - 1
+                {
+                    let n1 = values[i].clone();
+                    let mut j = i + 1;
+                    while j < values.len()
+                    {
+                        let n2 = values[j].clone();
+                        if -(n1.number.real() - n2.number.real().clone())
+                            .clone()
+                            .abs()
+                            .log10()
+                            < options.prec / 32
+                            || -(n1.number.imag() - n2.number.imag().clone())
+                                .clone()
+                                .abs()
+                                .log10()
+                                < options.prec / 32
+                        {
+                            j += 1;
+                        }
+                        else
+                        {
+                            values.remove(j);
+                        }
+                    }
+                    i += 1;
+                }
+                if values.len() == 1
+                {
+                    Num(values[0].clone())
+                }
+                else
+                {
+                    Vector(values)
+                }
+            },
         )
-        {
-            (true, true, true) => Ok(Vector(vec![n1, n2, n3])),
-            (true, _, _) => Ok(Vector(vec![n1, n2])),
-            (_, true, _) => Ok(Vector(vec![n2, n3])),
-            (_, _, true) => Ok(Vector(vec![n1, n3])),
-            (false, false, false) if !nan_n1 => Ok(Num(n1)),
-            (false, false, false) if !nan_n2 => Ok(Num(n2)),
-            _ => Ok(Num(n3)),
-        }
     }
     else
     {

@@ -794,11 +794,20 @@ pub fn input_var(
                         {
                             i += 1;
                             solvesn -= 1;
-                            solves.insert(0, (*bracket, true));
+                            if i + 1 != chars.len() && chars[i + 1] == '~'
+                            {
+                                i += 1;
+                                solvesn -= 1;
+                                solves.insert(0, (*bracket, 2));
+                            }
+                            else
+                            {
+                                solves.insert(0, (*bracket, 1));
+                            }
                         }
                         else
                         {
-                            solves.insert(0, (*bracket, false));
+                            solves.insert(0, (*bracket, 0));
                         }
                     }
                     else
@@ -810,11 +819,20 @@ pub fn input_var(
                         {
                             i += 1;
                             solvesn -= 1;
-                            solvesp.insert(0, (*bracket, true));
+                            if i + 1 != chars.len() && chars[i + 1] == '~'
+                            {
+                                i += 1;
+                                solvesn -= 1;
+                                solvesp.insert(0, (*bracket, 2));
+                            }
+                            else
+                            {
+                                solvesp.insert(0, (*bracket, 1));
+                            }
                         }
                         else
                         {
-                            solvesp.insert(0, (*bracket, false));
+                            solvesp.insert(0, (*bracket, 0));
                         }
                         let mut brac = 0;
                         let mut j = 0;
@@ -855,7 +873,15 @@ pub fn input_var(
                 {
                     if !solves.is_empty() && solves[0].0 == *bracket
                     {
-                        if solves[0].1
+                        if solves[0].1 == 2
+                        {
+                            output.push(Str(",".to_string()));
+                            output.push(Num(Number::from(
+                                Complex::with_val(options.prec, (Nan, 1)),
+                                None,
+                            )));
+                        }
+                        else if solves[0].1 == 1
                         {
                             output.push(Str(",".to_string()));
                             output.push(Num(Number::from(
@@ -884,7 +910,15 @@ pub fn input_var(
                     if !solvesp.is_empty() && solvesp[0].0 == *bracket
                     {
                         output.push(Str(")".to_string()));
-                        if solvesp[0].1
+                        if solvesp[0].1 == 2
+                        {
+                            output.push(Str(",".to_string()));
+                            output.push(Num(Number::from(
+                                Complex::with_val(options.prec, (Nan, 1)),
+                                None,
+                            )));
+                        }
+                        else if solvesp[0].1 == 1
                         {
                             output.push(Str(",".to_string()));
                             output.push(Num(Number::from(
@@ -2839,7 +2873,7 @@ pub fn input_var(
                 {
                     matches!(c, 'x' | 'y' | 'z' | 'i' | 'E')
                 } || !c.is_alphabetic())
-                && (solvesn == 0 || {
+                && (solvesn == 0 || c == 'i' || {
                     let a = chars[i..]
                         .iter()
                         .filter(|a| matches!(a, '(' | ')' | '~'))
@@ -3150,7 +3184,15 @@ pub fn input_var(
     }
     for s in solves
     {
-        if s.1
+        if s.1 == 2
+        {
+            output.push(Str(",".to_string()));
+            output.push(Num(Number::from(
+                Complex::with_val(options.prec, (Nan, 1)),
+                None,
+            )));
+        }
+        else if s.1 == 1
         {
             output.push(Str(",".to_string()));
             output.push(Num(Number::from(
@@ -3163,7 +3205,15 @@ pub fn input_var(
     for s in solvesp
     {
         output.push(Str(")".to_string()));
-        if s.1
+        if s.1 == 2
+        {
+            output.push(Str(",".to_string()));
+            output.push(Num(Number::from(
+                Complex::with_val(options.prec, (Nan, 1)),
+                None,
+            )));
+        }
+        else if s.1 == 1
         {
             output.push(Str(",".to_string()));
             output.push(Num(Number::from(

@@ -800,26 +800,23 @@ pub fn do_math(
                             {
                                 return Err("fractional start/end");
                             }
-                            let start = start
-                                .real()
-                                .to_integer()
-                                .unwrap_or_default()
-                                .to_isize()
-                                .unwrap_or_default();
-                            let end = end
-                                .real()
-                                .to_integer()
-                                .unwrap_or_default()
-                                .to_isize()
-                                .unwrap_or_default();
+                            let start = start.real();
+                            let end = end.real();
                             function[i] = match s.as_str()
                             {
                                 "vec" | "mat" => mvec(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     func_vars.clone(),
                                     &var,
-                                    start,
-                                    end,
+                                    start
+                                        .to_integer()
+                                        .unwrap_or_default()
+                                        .to_isize()
+                                        .unwrap_or_default(),
+                                    end.to_integer()
+                                        .unwrap_or_default()
+                                        .to_isize()
+                                        .unwrap_or_default(),
                                     s == "vec",
                                     options,
                                 )?,
@@ -827,8 +824,8 @@ pub fn do_math(
                                     function[place[0] + 1..place[1]].to_vec(),
                                     func_vars.clone(),
                                     &var,
-                                    start,
-                                    end,
+                                    start.clone(),
+                                    end.clone(),
                                     !(s == "sum" || s == "summation" || s == "Σ"),
                                     options,
                                 )?,

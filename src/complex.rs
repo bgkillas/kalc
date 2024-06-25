@@ -3836,7 +3836,7 @@ pub fn iter(
     }
 }
 pub fn solve(
-    func: Vec<NumStr>,
+    mut func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
@@ -3848,14 +3848,6 @@ pub fn solve(
     let mut x = x.number;
     if x.real().is_nan()
     {
-        let n1 = solve(
-            func.clone(),
-            func_vars.clone(),
-            options,
-            var.clone(),
-            Number::from(Complex::with_val(options.prec, -2), None),
-        )?
-        .num()?;
         let n2 = solve(
             func.clone(),
             func_vars.clone(),
@@ -3864,11 +3856,43 @@ pub fn solve(
             Number::from(Complex::new(options.prec), None),
         )?
         .num()?;
-        let n3 = solve(
+        let nan_n2 = n2.number.real().is_nan();
+        if !nan_n2
+        {
+            func.insert(0, Str("(".to_string()));
+            func.push(Str(")".to_string()));
+            func.push(Str("/".to_string()));
+            func.push(Str("(".to_string()));
+            func.push(Str(var.clone()));
+            func.push(Str("-".to_string()));
+            func.push(Num(n2.clone()));
+            func.push(Str(")".to_string()));
+        }
+        let n1 = solve(
             func.clone(),
             func_vars.clone(),
             options,
             var.clone(),
+            Number::from(Complex::with_val(options.prec, -2), None),
+        )?
+        .num()?;
+        let nan_n1 = n1.number.real().is_nan();
+        if !nan_n1
+        {
+            func.insert(0, Str("(".to_string()));
+            func.push(Str(")".to_string()));
+            func.push(Str("/".to_string()));
+            func.push(Str("(".to_string()));
+            func.push(Str(var.clone()));
+            func.push(Str("-".to_string()));
+            func.push(Num(n1.clone()));
+            func.push(Str(")".to_string()));
+        }
+        let n3 = solve(
+            func,
+            func_vars,
+            options,
+            var,
             Number::from(Complex::with_val(options.prec, 2), None),
         )?
         .num()?;
@@ -3909,10 +3933,9 @@ pub fn solve(
             (true, _, _) => Ok(Vector(vec![n1, n2])),
             (_, true, _) => Ok(Vector(vec![n2, n3])),
             (_, _, true) => Ok(Vector(vec![n1, n3])),
-            (false, false, false) if !n1.number.real().is_nan() => Ok(Num(n1)),
-            (false, false, false) if !n2.number.real().is_nan() => Ok(Num(n2)),
-            (false, false, false) if !n3.number.real().is_nan() => Ok(Num(n3)),
-            _ => Ok(Num(n1)),
+            (false, false, false) if !nan_n1 => Ok(Num(n1)),
+            (false, false, false) if !nan_n2 => Ok(Num(n2)),
+            _ => Ok(Num(n3)),
         }
     }
     else
@@ -3956,10 +3979,10 @@ pub fn solve(
             Num(n.clone()),
         )?;
         let k = slopesided(
-            func.clone(),
-            func_vars.clone(),
+            func,
+            func_vars,
             options,
-            var.clone(),
+            var,
             n,
             false,
             1,
@@ -4103,14 +4126,7 @@ pub fn extrema(
         let n = Number::from(x, units);
         Ok(Vector(vec![
             n.clone(),
-            do_math_with_var(
-                func.clone(),
-                options,
-                func_vars.clone(),
-                &var.clone(),
-                Num(n.clone()),
-            )?
-            .num()?,
+            do_math_with_var(func, options, func_vars, &var, Num(n.clone()))?.num()?,
             Number::from(
                 Complex::with_val(
                     options.prec,

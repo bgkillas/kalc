@@ -1,12 +1,13 @@
 use crate::{
     complex::{
-        about_eq, add, and, area, atan, binomial, cofactor, cubic, determinant, digamma, div,
+        about_eq, add, and, area, atan, binomial, cofactor, cube, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
         extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
         lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne, nth_prime,
-        or, quadratic, quartic, rand_gamma, rand_norm, recursion, regularized_incomplete_beta, rem,
-        root, shl, shr, slog, slope, solve, sort, sort_mat, sub, subfactorial, sum, surface_area,
-        tetration, to, to_cyl, to_polar, trace, transpose, unity, variance, zeta,
+        or, pow_nth, quadratic, quartic, rand_gamma, rand_norm, recursion,
+        regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sqr,
+        sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar, trace, transpose,
+        unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -970,11 +971,11 @@ pub fn do_math(
                                     let y = row[1].number.clone();
                                     xsum += x.clone();
                                     ysum += y.clone();
-                                    xxsum += x.clone().pow(2);
+                                    xxsum += sqr(x.clone());
                                     xysum += x * y;
                                 }
                                 let m: Complex = (a.len() * xysum - xsum.clone() * ysum.clone())
-                                    / (a.len() * xxsum - xsum.clone().pow(2));
+                                    / (a.len() * xxsum - sqr(xsum.clone()));
                                 let b = (ysum - m.clone() * xsum) / a.len();
                                 if function.len() > i + 1
                                 {
@@ -1308,7 +1309,7 @@ pub fn do_math(
                                 let mut n = Complex::new(options.prec);
                                 for j in a.iter().flatten()
                                 {
-                                    n += j.number.clone().abs().pow(2);
+                                    n += sqr(j.number.clone().abs());
                                 }
                                 Num(Number::from(n.sqrt(), a[0][0].units))
                             }
@@ -1938,16 +1939,25 @@ pub fn do_math(
                             }
                             "kurtosis" =>
                             {
+                                fn quar(z: Complex) -> Complex
+                                {
+                                    if z.imag().is_zero()
+                                    {
+                                        z.pow(4)
+                                    }
+                                    else
+                                    {
+                                        z.clone() * &z * &z * z
+                                    }
+                                }
                                 let mean = a.iter().fold(Complex::new(options.prec), |sum, val| {
                                     sum + val.number.clone()
                                 }) / a.len();
                                 Num(Number::from(
                                     a.iter().fold(Complex::new(options.prec), |sum, val| {
-                                        sum + (val.number.clone() - mean.clone()).pow(4)
+                                        sum + quar(val.number.clone() - mean.clone())
                                     }) / a.len()
-                                        / variance(&a, Some(mean.clone()), options.prec)
-                                            .number
-                                            .pow(2)
+                                        / sqr(variance(&a, Some(mean.clone()), options.prec).number)
                                         - 3,
                                     None,
                                 ))
@@ -1959,12 +1969,13 @@ pub fn do_math(
                                 }) / a.len();
                                 Num(Number::from(
                                     a.iter().fold(Complex::new(options.prec), |sum, val| {
-                                        sum + (val.number.clone() - mean.clone()).pow(3)
+                                        sum + cube(val.number.clone() - mean.clone())
                                     }) / a.len()
-                                        / variance(&a, Some(mean.clone()), options.prec)
-                                            .number
-                                            .sqrt()
-                                            .pow(3),
+                                        / cube(
+                                            variance(&a, Some(mean.clone()), options.prec)
+                                                .number
+                                                .sqrt(),
+                                        ),
                                     None,
                                 ))
                             }
@@ -2143,7 +2154,7 @@ pub fn do_math(
                                 let mut n = Complex::new(options.prec);
                                 for i in a
                                 {
-                                    n += i.number.abs().pow(2);
+                                    n += sqr(i.number.abs());
                                 }
                                 Num(Number::from(n.sqrt(), units))
                             }
@@ -2152,7 +2163,7 @@ pub fn do_math(
                                 let mut n = Complex::new(options.prec);
                                 for i in a.clone()
                                 {
-                                    n += i.number.pow(2);
+                                    n += sqr(i.number);
                                 }
                                 Vector(
                                     a.iter()
@@ -2215,12 +2226,12 @@ pub fn do_math(
                                     let b = function.remove(i + 1).vec()?;
                                     if a.len() == 3 && b.len() == 3
                                     {
-                                        let c: Complex = a[0].number.clone().pow(2)
-                                            + a[1].number.clone().pow(2)
-                                            + a[2].number.clone().pow(2);
-                                        let d: Complex = b[0].number.clone().pow(2)
-                                            + b[1].number.clone().pow(2)
-                                            + b[2].number.clone().pow(2);
+                                        let c: Complex = sqr(a[0].number.clone())
+                                            + sqr(a[1].number.clone())
+                                            + sqr(a[2].number.clone());
+                                        let d: Complex = sqr(b[0].number.clone())
+                                            + sqr(b[1].number.clone())
+                                            + sqr(b[2].number.clone());
                                         Num(Number::from(
                                             ((a[0].number.clone() * b[0].number.clone()
                                                 + a[1].number.clone() * b[1].number.clone()
@@ -2237,9 +2248,9 @@ pub fn do_math(
                                     else if a.len() == 2 && b.len() == 2
                                     {
                                         let c: Complex =
-                                            a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+                                            sqr(a[0].number.clone()) + sqr(a[1].number.clone());
                                         let d: Complex =
-                                            b[0].number.clone().pow(2) + b[1].number.clone().pow(2);
+                                            sqr(b[0].number.clone()) + sqr(b[1].number.clone());
                                         Num(Number::from(
                                             ((a[0].number.clone() * b[0].number.clone()
                                                 + a[1].number.clone() * b[1].number.clone())
@@ -2336,7 +2347,7 @@ pub fn do_math(
                                         let mut norm = Complex::new(options.prec);
                                         for i in &b
                                         {
-                                            norm += i.number.clone().abs().pow(2);
+                                            norm += sqr(i.number.clone().abs());
                                         }
                                         Vector(
                                             b.iter()
@@ -2378,7 +2389,7 @@ pub fn do_math(
                                         let mut norm = Complex::new(options.prec);
                                         for i in &b
                                         {
-                                            norm += i.number.clone().abs().pow(2);
+                                            norm += sqr(i.number.clone().abs());
                                         }
                                         Vector(
                                             b.iter()
@@ -2603,8 +2614,8 @@ pub fn do_math(
                                     let a = function.remove(i + 1).num()?.number;
                                     let b = function.remove(i + 1).num()?.number;
                                     Num(Number::from(
-                                        b.clone().pow(-a.clone()) / gamma(a.clone())
-                                            * x.clone().pow(a - 1)
+                                        pow_nth(b.clone(), -a.clone()) / gamma(a.clone())
+                                            * pow_nth(x.clone(), a - 1)
                                             * (-x / b).exp(),
                                         None,
                                     ))
@@ -2670,8 +2681,8 @@ pub fn do_math(
                                     let c: Complex = 1 - x.clone();
                                     Num(Number::from(
                                         gamma(alpha.clone() + beta.clone())
-                                            * x.pow(alpha.clone() - 1)
-                                            * c.pow(beta.clone() - 1)
+                                            * pow_nth(x, alpha.clone() - 1)
+                                            * pow_nth(c, beta.clone() - 1)
                                             / (gamma(alpha) * gamma(beta)),
                                         None,
                                     ))
@@ -2688,8 +2699,8 @@ pub fn do_math(
                                     let x = arg.num()?.number;
                                     let mu = function.remove(i + 1).num()?.number;
                                     let sigma = function.remove(i + 1).num()?.number;
-                                    let n: Complex = (x - mu).pow(2);
-                                    let n: Complex = -n / (2 * sigma.clone().pow(2));
+                                    let n: Complex = sqr(x - mu);
+                                    let n: Complex = -n / (2 * sqr(sigma.clone()));
                                     let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
                                     Num(Number::from(n.exp() / (sigma * tau.sqrt()), None))
                                 }
@@ -2751,8 +2762,8 @@ pub fn do_math(
                                     let x = arg.num()?.number;
                                     let mu = function.remove(i + 1).num()?.number;
                                     let sigma = function.remove(i + 1).num()?.number;
-                                    let n: Complex = (x.clone().ln() - mu).pow(2);
-                                    let n: Complex = -n / (2 * sigma.clone().pow(2));
+                                    let n: Complex = sqr(x.clone().ln() - mu);
+                                    let n: Complex = -n / (2 * sqr(sigma.clone()));
                                     let tau: Complex = 2 * Complex::with_val(options.prec, Pi);
                                     Num(Number::from(n.exp() / (sigma * tau.sqrt() * x), None))
                                 }
@@ -2768,7 +2779,7 @@ pub fn do_math(
                                     let k = arg.num()?.number;
                                     let l = function.remove(i + 1).num()?.number;
                                     Num(Number::from(
-                                        l.clone().pow(k.clone()) * (-l).exp() / gamma(k + 1),
+                                        pow_nth(l.clone(), k.clone()) * (-l).exp() / gamma(k + 1),
                                         None,
                                     ))
                                 }
@@ -2821,8 +2832,8 @@ pub fn do_math(
                                     let q: Complex = 1 - p.clone();
                                     Num(Number::from(
                                         binomial(n.clone(), k.clone())
-                                            * p.pow(k.clone())
-                                            * q.pow(n - k),
+                                            * pow_nth(p, k.clone())
+                                            * pow_nth(q, n - k),
                                         None,
                                     ))
                                 }
@@ -2858,8 +2869,8 @@ pub fn do_math(
                                     let q: Complex = 1 - p.clone();
                                     Num(Number::from(
                                         binomial(k.clone() + r.clone() - 1, k.clone())
-                                            * p.pow(r)
-                                            * q.pow(k),
+                                            * pow_nth(p, r)
+                                            * pow_nth(q, k),
                                         None,
                                     ))
                                 }
@@ -3035,7 +3046,7 @@ pub fn do_math(
                                     let k = arg.num()?.number;
                                     let p = function.remove(i + 1).num()?.number;
                                     let q: Complex = 1 - p.clone();
-                                    Num(Number::from(1 - q.pow(k), None))
+                                    Num(Number::from(1 - pow_nth(q, k), None))
                                 }
                                 else
                                 {
@@ -3049,7 +3060,7 @@ pub fn do_math(
                                     let k = arg.num()?.number;
                                     let p = function.remove(i + 1).num()?.number;
                                     let q: Complex = 1 - p.clone();
-                                    Num(Number::from(q.pow(k - 1) * p, None))
+                                    Num(Number::from(pow_nth(q, k - 1) * p, None))
                                 }
                                 else
                                 {
@@ -4059,7 +4070,7 @@ fn functions(
                 if let Some(b) = c
                 {
                     Number::from(
-                        a.number.pow(b.number.clone()),
+                        pow_nth(a.number, b.number.clone()),
                         a.units.map(|a| a.pow(b.number.real().to_f64())),
                     )
                 }
@@ -4068,8 +4079,8 @@ fn functions(
                     Number::from(a.number.exp(), None)
                 }
             }
-            "square" | "asqrt" => Number::from(a.number.pow(2), a.units.map(|a| a.pow(2.0))),
-            "cube" | "acbrt" => Number::from(a.number.pow(3), a.units.map(|a| a.pow(3.0))),
+            "square" | "asqrt" => Number::from(sqr(a.number), a.units.map(|a| a.pow(2.0))),
+            "cube" | "acbrt" => Number::from(cube(a.number), a.units.map(|a| a.pow(3.0))),
             "asin" | "arcsin" => Number::from(
                 a.number.clone().asin() * to_deg,
                 Some(Units {
@@ -4484,6 +4495,22 @@ fn functions(
                         }
                         else
                         {
+                            pub fn pow_n(z: Complex, n: usize) -> Complex
+                            {
+                                if !z.imag().is_zero() && n <= 256
+                                {
+                                    let mut p = z.clone();
+                                    for _ in 1..n
+                                    {
+                                        p *= &z;
+                                    }
+                                    p
+                                }
+                                else
+                                {
+                                    z.pow(n)
+                                }
+                            }
                             let mut sum = Complex::new(options.prec);
                             let n = a
                                 .real()
@@ -4493,7 +4520,7 @@ fn functions(
                                 .unwrap_or_default();
                             for k in 0..=n
                             {
-                                sum += b.clone().pow(k) * euleriannumbersint(n, k)
+                                sum += pow_n(b.clone(), k as usize) * euleriannumbersint(n, k)
                             }
                             sum
                         }

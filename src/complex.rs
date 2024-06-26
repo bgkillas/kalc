@@ -241,35 +241,9 @@ impl NumStr
                     {
                         Complex::with_val(a.prec(), Nan)
                     }
-                    else if b.imag().is_zero()
-                        && !b.real().is_zero()
-                        && !a.imag().is_zero()
-                        && b.real() <= &256
-                        && b.real().clone().fract().is_zero()
-                    {
-                        let mut p = a.clone();
-                        for _ in 1..b
-                            .real()
-                            .to_integer()
-                            .unwrap_or_default()
-                            .abs()
-                            .to_usize()
-                            .unwrap_or_default()
-                        {
-                            p *= a.clone();
-                        }
-                        if b.real().is_sign_positive()
-                        {
-                            p
-                        }
-                        else
-                        {
-                            1 / p
-                        }
-                    }
                     else
                     {
-                        a.pow(b.clone())
+                        pow_nth(a, b)
                     }
                 },
                 match (a.units, b.units)
@@ -637,14 +611,14 @@ pub fn unity(y: Complex, x: Complex) -> Vec<Number>
 pub fn shl(a: &Number, b: &Number) -> Number
 {
     Number::from(
-        a.number.clone() * Complex::with_val(a.number.prec(), 2).pow(b.number.clone()),
+        a.number.clone() * pow_nth(Complex::with_val(a.number.prec(), 2), b.number.clone()),
         None,
     )
 }
 pub fn shr(a: &Number, b: &Number) -> Number
 {
     Number::from(
-        a.number.clone() * Complex::with_val(a.number.prec(), 2).pow(-b.number.clone()),
+        a.number.clone() * pow_nth(Complex::with_val(a.number.prec(), 2), -b.number.clone()),
         None,
     )
 }
@@ -879,8 +853,7 @@ pub fn slog(a: &Complex, b: &Complex) -> Complex
     else
     {
         let a = a.clone().ln();
-        (2 * a.clone() * b.clone() / (1 + a.clone()))
-            + (b.clone().pow(2) * (1 - a.clone()) / (1 + a))
+        (2 * a.clone() * b.clone() / (1 + a.clone())) + (sqr(b.clone()) * (1 - a.clone()) / (1 + a))
             - 1
     }
 }
@@ -893,7 +866,7 @@ pub fn atan(a: Complex, b: Complex) -> Complex
     else
     {
         let i = Complex::with_val(a.prec(), (0, 1));
-        let abs: Complex = a.clone().pow(2) + b.clone().pow(2);
+        let abs: Complex = sqr(a.clone()) + sqr(b.clone());
         -i.clone() * ((a + b * i) / abs.sqrt()).ln()
     }
 }
@@ -947,7 +920,7 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
         }
         else
         {
-            let mut n: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+            let mut n: Complex = sqr(a[0].number.clone()) + sqr(a[1].number.clone());
             n = n.sqrt();
             vec![
                 Number::from(n.clone(), a[0].units),
@@ -1008,8 +981,8 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
         }
         else
         {
-            let nxy: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
-            let mut n: Complex = nxy.clone() + a[2].number.clone().pow(2);
+            let nxy: Complex = sqr(a[0].number.clone()) + sqr(a[1].number.clone());
+            let mut n: Complex = nxy.clone() + sqr(a[2].number.clone());
             n = n.sqrt();
             vec![
                 Number::from(n.clone(), a[0].units),
@@ -1032,8 +1005,8 @@ pub fn to_polar(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
     }
     else
     {
-        let nxy: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
-        let mut n: Complex = nxy.clone() + a[2].number.clone().pow(2);
+        let nxy: Complex = sqr(a[0].number.clone()) + sqr(a[1].number.clone());
+        let mut n: Complex = nxy.clone() + sqr(a[2].number.clone());
         n = n.sqrt();
         vec![
             Number::from(n.clone(), a[0].units),
@@ -1104,7 +1077,7 @@ pub fn to_cyl(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
         }
         else
         {
-            let mut n: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+            let mut n: Complex = sqr(a[0].number.clone()) + sqr(a[1].number.clone());
             n = n.sqrt();
             vec![
                 Number::from(n.clone(), a[0].units),
@@ -1153,7 +1126,7 @@ pub fn to_cyl(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
         }
         else
         {
-            let nxy: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+            let nxy: Complex = sqr(a[0].number.clone()) + sqr(a[1].number.clone());
             vec![
                 Number::from(nxy.sqrt(), a[0].units),
                 Number::from(
@@ -1169,7 +1142,7 @@ pub fn to_cyl(mut a: Vec<Number>, to_deg: Complex) -> Vec<Number>
     }
     else
     {
-        let nxy: Complex = a[0].number.clone().pow(2) + a[1].number.clone().pow(2);
+        let nxy: Complex = sqr(a[0].number.clone()) + sqr(a[1].number.clone());
         vec![
             Number::from(nxy.sqrt(), a[0].units),
             Number::from(
@@ -2039,7 +2012,7 @@ pub fn quadratic(a: Number, b: Number, c: Number, real: bool) -> Vec<Number>
     let a = a.number;
     let b = b.number;
     let c = c.number;
-    let p: Complex = b.clone().pow(2);
+    let p: Complex = sqr(b.clone());
     let p: Complex = p - (4 * c * a.clone());
     let p = p.sqrt();
     let a: Complex = 2 * a;
@@ -2152,9 +2125,9 @@ pub fn cubic(a: Number, b: Number, c: Number, d: Number, real: bool) -> Vec<Numb
     let c = c / a.clone();
     let d = d / a.clone();
     // https://en.wikipedia.org/wiki/Cubic_equation#General_cubic_formula
-    let d0: Complex = b.clone().pow(2) - 3 * c.clone();
-    let d1: Complex = 2 * b.clone().pow(3) - 9 * b.clone() * c.clone() + 27 * d.clone();
-    let c: Complex = d1.clone().pow(2) - 4 * d0.clone().pow(3);
+    let d0: Complex = sqr(b.clone()) - 3 * c.clone();
+    let d1: Complex = 2 * cube(b.clone()) - 9 * b.clone() * c.clone() + 27 * d.clone();
+    let c: Complex = sqr(d1.clone()) - 4 * cube(d0.clone());
     let c: Complex = (d1 + c.sqrt()) / 2;
     let c = c.pow(threerecip.clone());
     let omega: Complex = Complex::with_val(prec, (-0.5, Float::with_val(prec.0, 3).sqrt() / 2));
@@ -2254,13 +2227,13 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
     let c = d / div.clone();
     let d = e / div;
     // https://upload.wikimedia.org/wikipedia/commons/9/99/Quartic_Formula.svg
-    let alpha: Complex = b.clone().pow(2) - 3 * a.clone() * c.clone() + 12 * d.clone();
-    let phi: Complex = 2 * b.clone().pow(3) - 9 * a.clone() * b.clone() * c.clone()
-        + 27 * c.clone().pow(2)
-        + 27 * a.clone().pow(2) * d.clone()
+    let alpha: Complex = sqr(b.clone()) - 3 * a.clone() * c.clone() + 12 * d.clone();
+    let phi: Complex = 2 * cube(b.clone()) - 9 * a.clone() * b.clone() * c.clone()
+        + 27 * sqr(c.clone())
+        + 27 * sqr(a.clone()) * d.clone()
         - 72 * b.clone() * d.clone();
 
-    let omega: Complex = -4 * alpha.clone().pow(3) + phi.clone().pow(2);
+    let omega: Complex = -4 * cube(alpha.clone()) + sqr(phi.clone());
     let omega: Complex = phi + omega.sqrt();
 
     let alpha: Complex = if alpha.is_zero()
@@ -2276,11 +2249,11 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
     let beta: Complex = omega / 54;
     let beta: Complex = beta.pow(threerecip.clone());
 
-    let infirst: Complex = a.clone().pow(2) / 4 - 2 * b.clone() / 3 + alpha.clone() + beta.clone();
+    let infirst: Complex = sqr(a.clone()) / 4 - 2 * b.clone() / 3 + alpha.clone() + beta.clone();
 
     let first: Complex = infirst.clone().sqrt() / 2;
 
-    let third: Complex = -1 * a.clone().pow(3) + 4 * a.clone() * b.clone() - 8 * c.clone();
+    let third: Complex = -1 * cube(a.clone()) + 4 * a.clone() * b.clone() - 8 * c.clone();
     let third: Complex = if third.is_zero()
     {
         Complex::new(prec)
@@ -2292,7 +2265,7 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
 
     let a4: Complex = -a.clone() / 4;
 
-    let second: Complex = a.clone().pow(2) / 2 - 4 * b.clone() / 3 - alpha.clone() - beta.clone();
+    let second: Complex = sqr(a.clone()) / 2 - 4 * b.clone() / 3 - alpha.clone() - beta.clone();
 
     let secondn: Complex = second.clone() - third.clone();
     let secondn: Complex = secondn.sqrt() / 2;
@@ -2372,7 +2345,7 @@ pub fn variance(a: &[Number], mean: Option<Complex>, prec: u32) -> Number
     let mut variance = Complex::new(prec);
     for a in a
     {
-        variance += (a.number.clone() - mean.clone()).pow(2)
+        variance += sqr(a.number.clone() - mean.clone())
     }
     Number::from(
         variance / (a.len().saturating_sub(1)),
@@ -2599,7 +2572,7 @@ pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
     else
     {
         let f: Complex = 1 - x.clone();
-        x.clone().pow(a.clone()) * f.pow(b.clone())
+        pow_nth(x.clone(), a.clone()) * pow_nth(f, b.clone())
             / (a.clone() * (1 + incomplete_beta_recursion(x, a, b, 1, 10)))
     }
 }
@@ -2630,7 +2603,7 @@ pub fn erf(z: Complex) -> Complex
 }
 pub fn erfc(z: Complex) -> Complex
 {
-    let p2: Complex = z.clone().pow(2);
+    let p2: Complex = sqr(z.clone());
     erfc_recursion(z.clone(), 0, z.prec().0 as usize / 4) / Complex::with_val(z.prec(), Pi).sqrt()
         * z
         / p2.exp()
@@ -2647,7 +2620,7 @@ fn erfc_recursion(z: Complex, iter: usize, max: usize) -> Complex
     }
     else if iter % 2 == 1
     {
-        z.clone().pow(2) + iter / (2 * erfc_recursion(z, iter + 1, max))
+        sqr(z.clone()) + iter / (2 * erfc_recursion(z, iter + 1, max))
     }
     else
     {
@@ -2857,7 +2830,7 @@ fn incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: usize) -
     }
     else if iter == 0
     {
-        (z.clone().pow(s.clone()) / z.clone().exp()) / incomplete_gamma_recursion(s, z, 1, max)
+        (pow_nth(z.clone(), s.clone()) / z.clone().exp()) / incomplete_gamma_recursion(s, z, 1, max)
     }
     else if iter % 2 == 1
     {
@@ -2877,7 +2850,7 @@ fn lower_incomplete_gamma_recursion(s: Complex, z: Complex, iter: usize, max: us
     }
     else if iter == 0
     {
-        (z.clone().pow(s.clone()) / z.clone().exp())
+        (pow_nth(z.clone(), s.clone()) / z.clone().exp())
             / lower_incomplete_gamma_recursion(s, z, 1, max)
     }
     else if iter % 2 == 1
@@ -3005,7 +2978,7 @@ pub fn surface_area(
                         )
                     }
                 }
-                let k: Complex = deltax.clone().pow(2) * deltay.clone().pow(2);
+                let k: Complex = sqr(deltax.clone()) * sqr(deltay.clone());
                 for (nx, row) in data[..data.len() - 1].iter().enumerate()
                 {
                     for (ny, z) in row[..row.len() - 1].iter().enumerate()
@@ -3017,8 +2990,8 @@ pub fn surface_area(
                             let b = b.clone() - z;
                             let i = deltay.clone() * b;
                             let j = deltax.clone() * a;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
                             area += (i + j + k.clone()).sqrt() / 2;
                         }
                         {
@@ -3027,8 +3000,8 @@ pub fn surface_area(
                             let b = b - z;
                             let i = deltax.clone() * b;
                             let j = deltay.clone() * a;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
                             area += (i + j + k.clone()).sqrt() / 2
                         }
                     }
@@ -3096,9 +3069,9 @@ pub fn surface_area(
                             let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
                             let j = a2 * b0.clone() - a0.clone() * b2;
                             let k = a0 * b1 - a1 * b0;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
-                            let k: Complex = k.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
+                            let k: Complex = sqr(k);
                             area += (i + j + k).sqrt() / 2;
                         }
                         {
@@ -3112,9 +3085,9 @@ pub fn surface_area(
                             let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
                             let j = a2 * b0.clone() - a0.clone() * b2;
                             let k = a0 * b1 - a1 * b0;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
-                            let k: Complex = k.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
+                            let k: Complex = sqr(k);
                             area += (i + j + k).sqrt() / 2;
                         }
                     }
@@ -3242,9 +3215,9 @@ pub fn surface_area(
                             let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
                             let j = a2 * b0.clone();
                             let k = a1 * b0;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
-                            let k: Complex = k.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
+                            let k: Complex = sqr(k);
                             area += (i + j + k).sqrt() / 2;
                         }
                         {
@@ -3257,9 +3230,9 @@ pub fn surface_area(
                             let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
                             let j = a0.clone() * b2;
                             let k = a0 * b1;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
-                            let k: Complex = k.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
+                            let k: Complex = sqr(k);
                             area += (i + j + k).sqrt() / 2;
                         }
                     }
@@ -3349,9 +3322,9 @@ pub fn surface_area(
                             let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
                             let j = a2 * b0.clone() - a0.clone() * b2;
                             let k = a0 * b1 - a1 * b0;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
-                            let k: Complex = k.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
+                            let k: Complex = sqr(k);
                             area += (i + j + k).sqrt() / 2;
                         }
                         {
@@ -3365,9 +3338,9 @@ pub fn surface_area(
                             let i = a1.clone() * b2.clone() - a2.clone() * b1.clone();
                             let j = a2 * b0.clone() - a0.clone() * b2;
                             let k = a0 * b1 - a1 * b0;
-                            let i: Complex = i.pow(2);
-                            let j: Complex = j.pow(2);
-                            let k: Complex = k.pow(2);
+                            let i: Complex = sqr(i);
+                            let j: Complex = sqr(j);
+                            let k: Complex = sqr(k);
                             area += (i + j + k).sqrt() / 2;
                         }
                     }
@@ -3391,7 +3364,7 @@ pub fn length(
     let units = end.units;
     let end = end.number;
     let delta: Complex = (end.clone() - start.clone()) / points;
-    let delta2: Complex = delta.clone().pow(2);
+    let delta2: Complex = sqr(delta.clone());
     let mut x0: NumStr = do_math_with_var(
         func.clone(),
         options,
@@ -3437,14 +3410,13 @@ pub fn length(
         {
             (Num(xi), Num(xf)) =>
             {
-                let nl: Complex = (xf.number.clone() - xi.number).pow(2) + delta2.clone();
+                let nl: Complex = sqr(xf.number.clone() - xi.number) + delta2.clone();
                 length += nl.sqrt();
                 x0 = Num(xf);
             }
             (Vector(xi), Vector(xf)) if xf.len() == 1 =>
             {
-                let nl: Complex =
-                    (xf[0].number.clone() - xi[0].number.clone()).pow(2) + delta2.clone();
+                let nl: Complex = sqr(xf[0].number.clone() - xi[0].number.clone()) + delta2.clone();
                 length += nl.sqrt();
                 x0 = Vector(xf);
             }
@@ -3454,7 +3426,7 @@ pub fn length(
                     .iter()
                     .zip(xf.clone())
                     .fold(Complex::new(options.prec), |sum, x| {
-                        sum + (x.1.number - x.0.number.clone()).pow(2)
+                        sum + sqr(x.1.number - x.0.number.clone())
                     });
                 length += nl.sqrt();
                 x0 = Vector(xf);
@@ -3524,7 +3496,7 @@ pub fn area(
         let mut nx0t = Complex::new(options.prec);
         for i in &funcs
         {
-            nx0t += ((do_math_with_var(
+            nx0t += sqr((do_math_with_var(
                 i.clone(),
                 options,
                 func_vars.clone(),
@@ -3543,7 +3515,6 @@ pub fn area(
                 .num()?
                 .number)
                 / div.clone())
-            .pow(2);
         }
         x0 = Num(Number::from(x0.num()?.number * nx0t.sqrt(), units));
     }
@@ -3597,19 +3568,19 @@ pub fn area(
                 let n4;
                 if nth != 1.0
                 {
-                    let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                    let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
                     n0 = nx0.number * nt;
                     let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                    let nt = n.pow(nth.clone() - 1);
+                    let nt =pow_nth(n,nth.clone() - 1);
                     n1 = nx1.number * nt;
                     let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                    let nt = n.pow(nth.clone() - 1);
+                    let nt =pow_nth(n,nth.clone() - 1);
                     n2 = nx2.number * nt;
                     let n: Complex = end.clone() - start.clone() + h.clone();
-                    let nt = n.pow(nth.clone() - 1);
+                    let nt = pow_nth(n,nth.clone() - 1);
                     n3 = nx3.number * nt;
                     let n: Complex = end.clone() - start.clone();
-                    let nt = n.pow(nth.clone() - 1);
+                    let nt = pow_nth(n,nth.clone() - 1);
                     n4 = nx4.number * nt;
                 }
                 else
@@ -3631,7 +3602,7 @@ pub fn area(
                 let mut nx4t = Complex::new(options.prec);
                 for i in &funcs
                 {
-                    nx1t += ((do_math_with_var(
+                    nx1t += sqr((do_math_with_var(
                         i.clone(),
                         options,
                         func_vars.clone(),
@@ -3652,9 +3623,8 @@ pub fn area(
                         )?
                         .num()?
                         .number)
-                        / div.clone())
-                    .pow(2);
-                    nx2t += ((do_math_with_var(
+                        / div.clone());
+                    nx2t += sqr((do_math_with_var(
                         i.clone(),
                         options,
                         func_vars.clone(),
@@ -3675,9 +3645,8 @@ pub fn area(
                         )?
                         .num()?
                         .number)
-                        / div.clone())
-                    .pow(2);
-                    nx3t += ((do_math_with_var(
+                        / div.clone());
+                    nx3t += sqr((do_math_with_var(
                         i.clone(),
                         options,
                         func_vars.clone(),
@@ -3695,9 +3664,8 @@ pub fn area(
                         )?
                         .num()?
                         .number)
-                        / div.clone())
-                    .pow(2);
-                    nx4t += ((do_math_with_var(
+                        / div.clone());
+                    nx4t += sqr((do_math_with_var(
                         i.clone(),
                         options,
                         func_vars.clone(),
@@ -3716,7 +3684,6 @@ pub fn area(
                         .num()?
                         .number)
                         / div.clone())
-                    .pow(2);
                 }
                 let nx1 = nx1.number * nx1t.sqrt();
                 let nx2 = nx2.number * nx2t.sqrt();
@@ -3731,7 +3698,7 @@ pub fn area(
                 {
                     if i == 0
                     {
-                        let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
                         n0 = nx0.number * nt;
                     }
                     else
@@ -3739,16 +3706,16 @@ pub fn area(
                         n0 = nx0.number;
                     }
                     let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                    let nt: Complex = n.pow(nth.clone() - 1);
+                    let nt: Complex = pow_nth(n,nth.clone() - 1);
                     n1 = nx1 * nt;
                     let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                    let nt: Complex = n.pow(nth.clone() - 1);
+                    let nt: Complex = pow_nth(n,nth.clone() - 1);
                     n2 = nx2 * nt;
                     let n: Complex = end.clone() - start.clone() + h.clone();
-                    let nt: Complex = n.pow(nth.clone() - 1);
+                    let nt: Complex = pow_nth(n,nth.clone() - 1);
                     n3 = nx3 * nt;
                     let n: Complex = end.clone() - start.clone();
-                    let nt: Complex = n.pow(nth.clone() - 1);
+                    let nt: Complex = pow_nth(n,nth.clone() - 1);
                     n4 = nx4 * nt;
                 }
                 else
@@ -3774,19 +3741,19 @@ pub fn area(
                     let n4;
                     if nth != 1.0
                     {
-                        let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
                         n0 = nx0[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n1 = nx1[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n2 = nx2[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone() + h.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n3 = nx3[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n4 = nx4[i].number.clone() * nt;
                     }
                     else
@@ -3820,19 +3787,19 @@ pub fn area(
                     let n4;
                     if nth != 1.0
                     {
-                        let nt = (end.clone() - start.clone() + delta.clone()).pow(nth.clone() - 1);
+                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
                         n0 = nx0[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n1 = nx1[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n2 = nx2[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone() + h.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n3 = nx3[i].number.clone() * nt;
                         let n: Complex = end.clone() - start.clone();
-                        let nt = n.pow(nth.clone() - 1);
+                        let nt = pow_nth(n,nth.clone() - 1);
                         n4 = nx4[i].number.clone() * nt;
                     }
                     else
@@ -5785,7 +5752,7 @@ pub fn lambertw(z: Complex, k: Integer) -> Complex
         let zexpz_d = zexp.clone() + zexpz.clone();
         let zexpz_dd = (2 * zexp) + zexpz.clone();
         w -= 2 * ((zexpz.clone() - z.clone()) * zexpz_d.clone())
-            / ((2 * zexpz_d.pow(2)) - ((zexpz - z.clone()) * zexpz_dd))
+            / ((2 * sqr(zexpz_d)) - ((zexpz - z.clone()) * zexpz_dd))
     }
     w
 }
@@ -5800,13 +5767,13 @@ fn initpoint(z: Complex, k: Integer) -> Complex
             {
                 let p1: Complex = 2 * e * z.clone() + 2;
                 let p = p1.clone().sqrt();
-                return p.clone() - (p1 / 3) + ((11 * p.pow(3)) / 72) - 1;
+                return p.clone() - (p1 / 3) + ((11 * cube(p)) / 72) - 1;
             }
             else if (k == 1 && z.imag() < &0) || (k == -1 && z.imag() > &0)
             {
                 let p1: Complex = 2 * e * z.clone() + 2;
                 let p = p1.clone().sqrt();
-                return -1 - p.clone() - (p1 / 3) - ((11 * p.pow(3)) / 72);
+                return -1 - p.clone() - (p1 / 3) - ((11 * cube(p)) / 72);
             }
         }
     }
@@ -5896,4 +5863,59 @@ pub fn regularized_incomplete_beta(x: Complex, a: Complex, b: Complex) -> Comple
 {
     (gamma(a.clone() + b.clone())) * incomplete_beta(x, a.clone(), b.clone())
         / (gamma(a) * gamma(b))
+}
+pub fn sqr(z: Complex) -> Complex
+{
+    if z.imag().is_zero()
+    {
+        z.pow(2)
+    }
+    else
+    {
+        z.clone() * z
+    }
+}
+pub fn cube(z: Complex) -> Complex
+{
+    if z.imag().is_zero()
+    {
+        z.pow(3)
+    }
+    else
+    {
+        z.clone() * &z * z
+    }
+}
+pub fn pow_nth(z: Complex, n: Complex) -> Complex
+{
+    if n.imag().is_zero()
+        && !n.real().is_zero()
+        && !z.imag().is_zero()
+        && n.real() <= &256
+        && n.real().clone().fract().is_zero()
+    {
+        let mut p = z.clone();
+        for _ in 1..n
+            .real()
+            .to_integer()
+            .unwrap_or_default()
+            .abs()
+            .to_usize()
+            .unwrap_or_default()
+        {
+            p *= &z;
+        }
+        if n.real().is_sign_positive()
+        {
+            p
+        }
+        else
+        {
+            1 / p
+        }
+    }
+    else
+    {
+        z.pow(n)
+    }
 }

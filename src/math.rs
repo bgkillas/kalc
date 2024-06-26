@@ -2050,11 +2050,13 @@ pub fn do_math(
                                 a[0].units,
                             )),
                             "geo_mean" => Num(Number::from(
-                                a.iter()
-                                    .fold(Complex::with_val(options.prec, 1), |sum, val| {
-                                        sum * val.number.clone()
-                                    })
-                                    .pow(Float::with_val(options.prec, 1) / a.len()),
+                                pow_nth(
+                                    a.iter()
+                                        .fold(Complex::with_val(options.prec, 1), |sum, val| {
+                                            sum * val.number.clone()
+                                        }),
+                                    Complex::with_val(options.prec, 1) / a.len(),
+                                ),
                                 a[0].units,
                             )),
                             "median" =>
@@ -4029,36 +4031,7 @@ fn functions(
             {
                 if let Some(b) = c
                 {
-                    let b = b.number;
-                    let c: Float = b.real().clone() / 2;
-                    if b.is_zero() && !a.number.is_zero()
-                    {
-                        Number::from(Complex::with_val(a.number.prec(), Nan), None)
-                    }
-                    else if b.imag().is_zero()
-                        && !c.fract().is_zero()
-                        && b.real().clone().fract().is_zero()
-                        && a.number.imag().is_zero()
-                    {
-                        Number::from(
-                            {
-                                let a = a.number.real();
-                                let ab = a.clone().abs();
-                                Complex::with_val(
-                                    options.prec,
-                                    a / ab.clone() * ab.pow(b.real().clone().recip()),
-                                )
-                            },
-                            a.units.map(|a| a.root(b.real().to_f64())),
-                        )
-                    }
-                    else
-                    {
-                        Number::from(
-                            a.number.pow(b.clone().recip()),
-                            a.units.map(|a| a.root(b.real().to_f64())),
-                        )
-                    }
+                    root(&a, &b)
                 }
                 else
                 {
@@ -4195,18 +4168,16 @@ fn functions(
                     }
                     else if a.number.real().is_sign_positive()
                     {
-                        a.number.pow(Float::with_val(options.prec, 3).recip())
+                        pow_nth(a.number, Complex::with_val(options.prec, 3).recip())
                     }
                     else
                     {
-                        -(-a.number).pow(Float::with_val(options.prec, 3).recip())
+                        -pow_nth(-a.number, Complex::with_val(options.prec, 3).recip())
                     }
                 }
                 else
                 {
-                    a.number
-                        .clone()
-                        .pow(Float::with_val(options.prec, 3).recip())
+                    pow_nth(a.number, Complex::with_val(options.prec, 3).recip())
                 },
                 a.units.map(|a| a.root(3.0)),
             ),
@@ -4557,8 +4528,10 @@ fn functions(
                             && a.imag().is_zero()
                             && b.imag().is_zero()
                         {
-                            let a = a + Complex::with_val(options.prec, (0, 1))
-                                * Float::with_val(options.prec, 0.5).pow(options.prec / 2);
+                            let a = a + Complex::with_val(
+                                options.prec,
+                                (0, Float::with_val(options.prec, 0.5).pow(options.prec / 2)),
+                            );
                             (gamma(a.clone() + 1) / gamma(a.clone() - b + 1))
                                 .real()
                                 .clone()
@@ -4591,7 +4564,7 @@ fn functions(
                     {
                         if !a.real().is_sign_positive() && a.imag().is_zero() && b.imag().is_zero()
                         {
-                            Complex::with_val(options.prec, -1).pow(b.clone())
+                            pow_nth(Complex::with_val(options.prec, -1), b.clone())
                                 * gamma(1 - a.clone())
                                 / gamma(1 - a - b)
                         }

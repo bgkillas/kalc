@@ -511,15 +511,21 @@ pub fn root(a: &Number, b: &Number) -> Number
         {
             let a = a.number.clone();
             let b = b.number.clone();
-            let c: Float = b.real().clone() / 2;
-            match b.imag().is_zero()
-                && !c.fract().is_zero()
+            if b == 2
+            {
+                a.sqrt()
+            }
+            else if b.imag().is_zero()
+                && b.real().clone() % 2 == 0
                 && b.real().clone().fract().is_zero()
                 && a.imag().is_zero()
+                && a.real().is_sign_negative()
             {
-                true if a.real().is_sign_positive() => a.pow(b.real().clone().recip()),
-                true => -(-a).pow(b.real().clone().recip()),
-                false => a.pow(b.clone().recip()),
+                -pow_nth(-a, b.recip())
+            }
+            else
+            {
+                pow_nth(a, b.recip())
             }
         },
         match (a.units, b.units)
@@ -744,7 +750,7 @@ pub fn digamma(mut z: Complex, mut n: u32) -> Complex
     let op = z.prec().0 / 2;
     let prec = n * op;
     z.set_prec(prec);
-    let h: Complex = Complex::with_val(prec, 0.5).pow(op / 2);
+    let h: Float = Float::with_val(prec, 0.5).pow(op / 2);
     let num = Integer::from(n);
     let mut sum = Complex::new(prec);
     for k in 0..=n
@@ -758,7 +764,7 @@ pub fn digamma(mut z: Complex, mut n: u32) -> Complex
             sum -= num.clone().binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
         }
     }
-    sum * Complex::with_val(prec, 2).pow(op / 2 * n)
+    sum * Float::with_val(prec, 2).pow(op / 2 * n)
 }
 pub fn gamma(a: Complex) -> Complex
 {
@@ -782,7 +788,11 @@ pub fn tetration(a: &Number, b: &Number) -> Number
     Number::from(
         if b.real().clone().fract().is_zero()
         {
-            if b.real().is_sign_positive()
+            if b == 0
+            {
+                Complex::with_val(a.prec(), 1)
+            }
+            else if b.real().is_sign_positive()
             {
                 (1..b
                     .real()
@@ -790,11 +800,11 @@ pub fn tetration(a: &Number, b: &Number) -> Number
                     .unwrap_or_default()
                     .to_usize()
                     .unwrap_or_default())
-                    .fold(a.clone(), |tetration, _| a.clone().pow(tetration))
+                    .fold(a.clone(), |tetration, _| pow_nth(a.clone(), tetration))
             }
             else if b == -1
             {
-                Complex::with_val(a.prec(), 0)
+                Complex::new(a.prec())
             }
             else
             {
@@ -812,7 +822,7 @@ fn tetration_recursion(a: Complex, b: Complex) -> Complex
 {
     if b.real().is_sign_positive()
     {
-        a.clone().pow(tetration_recursion(a, b - 1))
+        pow_nth(a.clone(), tetration_recursion(a, b - 1))
     }
     else if b.real() <= &-1
     {
@@ -820,7 +830,7 @@ fn tetration_recursion(a: Complex, b: Complex) -> Complex
     }
     else
     {
-        let aln = a.clone().ln();
+        let aln = a.abs().clone().ln();
         1 + b.clone() * (aln.clone() * (2 + b.clone()) - b) / (1 + aln)
     }
 }
@@ -828,7 +838,7 @@ pub fn slog(a: &Complex, b: &Complex) -> Complex
 {
     if b.real() <= &0
     {
-        let z = &a.clone().pow(b);
+        let z = &pow_nth(a.clone(), b.clone());
         if z.real() <= b.real()
         {
             Complex::with_val(a.prec(), Nan)
@@ -853,8 +863,7 @@ pub fn slog(a: &Complex, b: &Complex) -> Complex
     else
     {
         let a = a.clone().ln();
-        (2 * a.clone() * b.clone() / (1 + a.clone())) + (sqr(b.clone()) * (1 - a.clone()) / (1 + a))
-            - 1
+        b.clone() * (2 * a.clone() + b * (1 - a.clone())) / (1 + a) - 1
     }
 }
 pub fn atan(a: Complex, b: Complex) -> Complex
@@ -2072,10 +2081,10 @@ pub fn cubic(a: Number, b: Number, c: Number, d: Number, real: bool) -> Vec<Numb
     let threerecip = Float::with_val(prec.0, 3).recip();
     if b.is_zero() && c.is_zero()
     {
-        let reuse = (d / a.clone()).pow(threerecip.clone());
+        let reuse = pow_nth(d / a.clone(), threerecip.clone().into());
         let mut z1 = -reuse.clone();
-        let mut z2 = reuse.clone() * Complex::with_val(prec, -1).pow(threerecip.clone());
-        let mut z3: Complex = -reuse * Complex::with_val(prec, -1).pow(2 * threerecip);
+        let mut z2 = reuse.clone() * Float::with_val(prec.0, -1).pow(threerecip.clone());
+        let mut z3: Complex = -reuse * Float::with_val(prec.0, -1).pow(2 * threerecip);
         if -z1.imag().clone().abs().log10() > a.prec().0 / 4
         {
             z1 = z1.real().clone().into();
@@ -2129,7 +2138,7 @@ pub fn cubic(a: Number, b: Number, c: Number, d: Number, real: bool) -> Vec<Numb
     let d1: Complex = 2 * cube(b.clone()) - 9 * b.clone() * c.clone() + 27 * d.clone();
     let c: Complex = sqr(d1.clone()) - 4 * cube(d0.clone());
     let c: Complex = (d1 + c.sqrt()) / 2;
-    let c = c.pow(threerecip.clone());
+    let c = pow_nth(c, threerecip.clone().into());
     let omega: Complex = Complex::with_val(prec, (-0.5, Float::with_val(prec.0, 3).sqrt() / 2));
     let mut z1: Complex = if d0.is_zero()
     {
@@ -2242,12 +2251,12 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
     }
     else
     {
-        Complex::with_val(prec, 2).pow(threerecip.clone()) * alpha
-            / (3 * omega.clone().pow(threerecip.clone()))
+        Float::with_val(prec.0, 2).pow(threerecip.clone()) * alpha
+            / (3 * pow_nth(omega.clone(), threerecip.clone().into()))
     };
 
     let beta: Complex = omega / 54;
-    let beta: Complex = beta.pow(threerecip.clone());
+    let beta: Complex = pow_nth(beta, threerecip.clone().into());
 
     let infirst: Complex = sqr(a.clone()) / 4 - 2 * b.clone() / 3 + alpha.clone() + beta.clone();
 
@@ -2701,14 +2710,14 @@ pub fn eta(s: Complex) -> Complex
 {
     let prec = s.prec().0;
     let mut sum = Complex::new(prec);
-    let two = Complex::with_val(prec, 2);
+    let two = Float::with_val(prec, 2);
     for n in 0..=(prec / 16).max(16)
     {
         let mut innersum = Complex::new(prec);
         let nb = Integer::from(n);
         for k in 0..=n
         {
-            let num = nb.clone().binomial(k) * Complex::with_val(prec, 1 + k).pow(-s.clone());
+            let num = nb.clone().binomial(k) * pow_nth(Complex::with_val(prec, 1 + k), -s.clone());
             if k % 2 == 0
             {
                 innersum += num;
@@ -2724,7 +2733,7 @@ pub fn eta(s: Complex) -> Complex
 }
 pub fn zeta(s: Complex) -> Complex
 {
-    eta(s.clone()) / (1 - Complex::with_val(s.prec(), 2).pow(1 - s))
+    eta(s.clone()) / (1 - pow_nth(Complex::with_val(s.prec(), 2), 1 - s))
 }
 pub fn euleriannumbers(n: Complex, k: i32) -> Complex
 {
@@ -2739,7 +2748,7 @@ pub fn euleriannumbers(n: Complex, k: i32) -> Complex
         {
             let ic = Complex::with_val(n.prec(), i);
             let num: Complex = k - ic.clone() + 1;
-            let num = binomial(n.clone() + 1, ic) * num.pow(n.clone());
+            let num = binomial(n.clone() + 1, ic) * pow_nth(num, n.clone());
             if i % 2 == 0
             {
                 sum += num
@@ -3480,7 +3489,7 @@ pub fn area(
         }
     }
     let mut areavec: Vec<Number> = Vec::new();
-    let div = Complex::with_val(options.prec, 0.5).pow(options.prec / 2);
+    let div = Float::with_val(options.prec, 0.5).pow(options.prec / 2);
     let delta: Complex = (end.clone() - start.clone()) / points;
     let mut area: Complex = Complex::new(options.prec);
     let mut x0 = do_math_with_var(
@@ -4089,7 +4098,7 @@ pub fn extrema(
             func_vars.clone(),
             &var.clone(),
             Num(Number::from(
-                x.clone() + Complex::with_val(options.prec, 0.5).pow(options.prec / 8),
+                x.clone() + Float::with_val(options.prec, 0.5).pow(options.prec / 8),
                 None,
             )),
         )?
@@ -4139,7 +4148,7 @@ pub fn extrema(
         func_vars.clone(),
         &var.clone(),
         Num(Number::from(
-            x.clone() + Complex::with_val(options.prec, 0.5).pow(options.prec / 8),
+            x.clone() + Float::with_val(options.prec, 0.5).pow(options.prec / 8),
             None,
         )),
     )?
@@ -4344,13 +4353,13 @@ pub fn slopesided(
     let prec = options.prec / 8;
     options.prec = nth.max(1) * options.prec / 2;
     point.set_prec(options.prec);
-    let h: Complex = if right
+    let h: Float = if right
     {
-        Complex::with_val(options.prec, 0.5).pow(prec)
+        Float::with_val(options.prec, 0.5).pow(prec)
     }
     else
     {
-        -Complex::with_val(options.prec, 0.5).pow(prec)
+        -Float::with_val(options.prec, 0.5).pow(prec)
     };
     let n = if let Some(n) = val
     {
@@ -5383,8 +5392,8 @@ fn limsided(
 {
     let xunits = point.units;
     let point = point.number;
-    let h1 = Complex::with_val(options.prec, 0.5).pow(options.prec / 4);
-    let h2 = Complex::with_val(options.prec, 0.5).pow((options.prec / 3) as f64 + 7.0 / 0.94);
+    let h1 = Float::with_val(options.prec, 0.5).pow(options.prec / 4);
+    let h2 = Float::with_val(options.prec, 0.5).pow((options.prec / 3) as f64 + 7.0 / 0.94);
     let n1 = do_math_with_var(
         func.clone(),
         options,
@@ -5888,9 +5897,10 @@ pub fn cube(z: Complex) -> Complex
 }
 pub fn pow_nth(z: Complex, n: Complex) -> Complex
 {
+    let zz = z.imag().is_zero();
     if n.imag().is_zero()
         && !n.real().is_zero()
-        && !z.imag().is_zero()
+        && !zz
         && n.real() <= &256
         && n.real().clone().fract().is_zero()
     {
@@ -5914,8 +5924,12 @@ pub fn pow_nth(z: Complex, n: Complex) -> Complex
             1 / p
         }
     }
-    else
+    else if zz && z.real().clone().fract().is_zero()
     {
         z.pow(n)
+    }
+    else
+    {
+        (z.ln() * n).exp()
     }
 }

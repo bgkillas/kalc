@@ -2,7 +2,7 @@ use crate::{AngleType, Number, Options, Units};
 use rug::{
     float::Constant::Pi,
     ops::{DivRounding, Pow},
-    Complex,
+    Complex, Float,
 };
 use std::collections::HashSet;
 impl Units
@@ -911,8 +911,8 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             match options.angle
             {
-                AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
-                AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Gradians => num *= 40000 / Float::with_val(options.prec, Pi).pow(2),
+                AngleType::Degrees => num *= 32400 / Float::with_val(options.prec, Pi).pow(2),
                 AngleType::Radians =>
                 {}
             };
@@ -957,8 +957,8 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             match options.angle
             {
-                AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
-                AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Gradians => num *= 40000 / Float::with_val(options.prec, Pi).pow(2),
+                AngleType::Degrees => num *= 32400 / Float::with_val(options.prec, Pi).pow(2),
                 AngleType::Radians =>
                 {}
             };
@@ -969,8 +969,8 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             match options.angle
             {
-                AngleType::Gradians => num *= 40000 / Complex::with_val(options.prec, Pi).pow(2),
-                AngleType::Degrees => num *= 32400 / Complex::with_val(options.prec, Pi).pow(2),
+                AngleType::Gradians => num *= 40000 / Float::with_val(options.prec, Pi).pow(2),
+                AngleType::Degrees => num *= 32400 / Float::with_val(options.prec, Pi).pow(2),
                 AngleType::Radians =>
                 {}
             };
@@ -1012,7 +1012,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         "parsec" | "pc" =>
         {
             units.meter = 1.0;
-            num *= 648000 / Complex::with_val(options.prec, Pi);
+            num *= 648000 / Float::with_val(options.prec, Pi);
             num *= 149597870700u64;
         }
         "au" =>
@@ -1275,7 +1275,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
                 }
                 AngleType::Radians =>
                 {
-                    num *= Complex::with_val(options.prec, Pi) / 180;
+                    num *= Float::with_val(options.prec, Pi) / 180;
                     num /= 60;
                 }
             };
@@ -1297,7 +1297,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
                 }
                 AngleType::Radians =>
                 {
-                    num *= Complex::with_val(options.prec, Pi) / 180;
+                    num *= Float::with_val(options.prec, Pi) / 180;
                     num /= 3600;
                 }
             };
@@ -1314,7 +1314,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
                     num *= 200;
                     num /= 180
                 }
-                AngleType::Radians => num *= Complex::with_val(options.prec, Pi) / 180,
+                AngleType::Radians => num *= Float::with_val(options.prec, Pi) / 180,
             };
             units.angle = 1.0;
         }
@@ -1322,8 +1322,8 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         {
             match options.angle
             {
-                AngleType::Degrees => num *= 180 / Complex::with_val(options.prec, Pi),
-                AngleType::Gradians => num *= 200 / Complex::with_val(options.prec, Pi),
+                AngleType::Degrees => num *= 180 / Float::with_val(options.prec, Pi),
+                AngleType::Gradians => num *= 200 / Float::with_val(options.prec, Pi),
                 AngleType::Radians =>
                 {}
             };
@@ -1340,7 +1340,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
                 }
                 AngleType::Gradians =>
                 {}
-                AngleType::Radians => num *= Complex::with_val(options.prec, Pi) / 200,
+                AngleType::Radians => num *= Float::with_val(options.prec, Pi) / 200,
             };
             units.angle = 1.0;
         }

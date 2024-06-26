@@ -1,6 +1,6 @@
 use crate::{
     complex::{
-        NumStr,
+        pow_nth, NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
     functions::functions,
@@ -12,7 +12,7 @@ use crate::{
 };
 use rug::{
     float::Special::{Infinity, Nan},
-    ops::{CompleteRound, Pow},
+    ops::CompleteRound,
     Complex,
 };
 #[allow(clippy::type_complexity)]
@@ -224,7 +224,10 @@ pub fn input_var(
                 {
                     Ok(n) => n.complete(prec),
                     _ => return Err("exponent error"),
-                } * Complex::with_val(options.prec, (0, 1)).pow(Complex::with_val(options.prec, i)),
+                } * pow_nth(
+                    Complex::with_val(options.prec, (0, 1)),
+                    Complex::with_val(options.prec, i),
+                ),
                 None,
             )));
             pow = String::new();
@@ -3248,7 +3251,10 @@ pub fn input_var(
             {
                 Ok(n) => n.complete(prec),
                 _ => return Err("exponent error"),
-            } * Complex::with_val(options.prec, (0, 1)).pow(Complex::with_val(options.prec, i)),
+            } * pow_nth(
+                Complex::with_val(options.prec, (0, 1)),
+                Complex::with_val(options.prec, i),
+            ),
             None,
         )));
     }
@@ -3565,10 +3571,12 @@ pub fn input_var(
                                                 output.drain(i - 1..=to[0]);
                                                 output.insert(i - 1, n);
                                                 let d = to[0] - i + 1;
+                                                to.remove(0);
                                                 for t in to.iter_mut()
                                                 {
                                                     *t -= d;
                                                 }
+                                                continue;
                                             }
                                             to.remove(0);
                                             continue;
@@ -3584,10 +3592,12 @@ pub fn input_var(
                                     output.drain(i..=to[0]);
                                     output.insert(i, n);
                                     let d = to[0] - i + 1;
+                                    to.remove(0);
                                     for t in to.iter_mut()
                                     {
                                         *t -= d;
                                     }
+                                    continue;
                                 }
                                 to.remove(0);
                             }

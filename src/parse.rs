@@ -3485,133 +3485,7 @@ pub fn input_var(
     }
     if isgraphing && (graph.x || graph.y) && !print
     {
-        i = 0;
-        while i < funcvars.len()
-        {
-            let v = funcvars[i].clone();
-            if !v.0.ends_with(')')
-                && v.1.iter().all(|v| {
-                    if let Str(s) = &v
-                    {
-                        !(matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch" | "roll")
-                            || s.starts_with("rand_"))
-                    }
-                    else
-                    {
-                        true
-                    }
-                })
-            {
-                if let Ok(n) = do_math(v.1.clone(), options, funcvars[..i].to_vec())
-                {
-                    for f in output.iter_mut()
-                    {
-                        if let Str(s) = &f
-                        {
-                            if *s == v.0
-                            {
-                                *f = n.clone();
-                            }
-                        }
-                    }
-                    if i + 1 < funcvars.len()
-                    {
-                        for fv in funcvars[i + 1..].iter_mut()
-                        {
-                            for f in fv.1.iter_mut()
-                            {
-                                if let Str(s) = &f
-                                {
-                                    if *s == v.0
-                                    {
-                                        *f = n.clone();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    funcvars.remove(i);
-                    continue;
-                }
-            }
-            i += 1;
-        }
-        i = output.len();
-        let mut to = Vec::new();
-        while i != 0
-        {
-            i -= 1;
-            if let Str(s) = &output[i]
-            {
-                if s.starts_with("rand_")
-                {
-                    to.clear();
-                }
-                else
-                {
-                    match s.as_str()
-                    {
-                        "x" | "y" | "roll" | "rnd" | "rand" | "epoch" => to.clear(),
-                        "(" =>
-                        {
-                            if !to.is_empty()
-                            {
-                                if i != 0
-                                {
-                                    if let Str(s) = &output[i - 1]
-                                    {
-                                        if !s.starts_with("rand_") && functions.contains(s.as_str())
-                                        {
-                                            if let Ok(n) = do_math(
-                                                output[i - 1..=to[0]].to_vec(),
-                                                options,
-                                                funcvars.clone(),
-                                            )
-                                            {
-                                                output.drain(i - 1..=to[0]);
-                                                output.insert(i - 1, n);
-                                                let d = to[0] - i + 1;
-                                                to.remove(0);
-                                                for t in to.iter_mut()
-                                                {
-                                                    *t -= d;
-                                                }
-                                                continue;
-                                            }
-                                            to.remove(0);
-                                            continue;
-                                        }
-                                    }
-                                }
-                                if let Ok(n) = do_math(
-                                    output[i + 1..to[0]].to_vec(),
-                                    options,
-                                    funcvars.clone(),
-                                )
-                                {
-                                    output.drain(i..=to[0]);
-                                    output.insert(i, n);
-                                    let d = to[0] - i + 1;
-                                    to.remove(0);
-                                    for t in to.iter_mut()
-                                    {
-                                        *t -= d;
-                                    }
-                                    continue;
-                                }
-                                to.remove(0);
-                            }
-                        }
-                        ")" =>
-                        {
-                            to.insert(0, i);
-                        }
-                        _ =>
-                        {}
-                    }
-                }
-            }
-        }
+        simplify(&mut output, &mut funcvars, options)
     }
     while let Some(Str(s)) = output.last()
     {
@@ -3671,4 +3545,135 @@ fn can_abs(output: &[NumStr], vars: &[Variable]) -> bool
 fn is_digit(char: char, base: i32) -> bool
 {
     char.is_ascii_digit() || (base > 10 && (97..=97 + (base as u8 - 11)).contains(&(char as u8)))
+}
+pub fn simplify(
+    output: &mut Vec<NumStr>,
+    funcvars: &mut Vec<(String, Vec<NumStr>)>,
+    options: Options,
+)
+{
+    let mut i = 0;
+    while i < funcvars.len()
+    {
+        let v = funcvars[i].clone();
+        if !v.0.ends_with(')')
+            && v.1.iter().all(|v| {
+                if let Str(s) = &v
+                {
+                    !(matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch" | "roll")
+                        || s.starts_with("rand_"))
+                }
+                else
+                {
+                    true
+                }
+            })
+        {
+            if let Ok(n) = do_math(v.1.clone(), options, funcvars[..i].to_vec())
+            {
+                for f in output.iter_mut()
+                {
+                    if let Str(s) = &f
+                    {
+                        if *s == v.0
+                        {
+                            *f = n.clone();
+                        }
+                    }
+                }
+                if i + 1 < funcvars.len()
+                {
+                    for fv in funcvars[i + 1..].iter_mut()
+                    {
+                        for f in fv.1.iter_mut()
+                        {
+                            if let Str(s) = &f
+                            {
+                                if *s == v.0
+                                {
+                                    *f = n.clone();
+                                }
+                            }
+                        }
+                    }
+                }
+                funcvars.remove(i);
+                continue;
+            }
+        }
+        i += 1;
+    }
+    i = output.len();
+    let mut to = Vec::new();
+    while i != 0
+    {
+        i -= 1;
+        if let Str(s) = &output[i]
+        {
+            if s.starts_with("rand_")
+            {
+                to.clear();
+            }
+            else
+            {
+                match s.as_str()
+                {
+                    "x" | "y" | "roll" | "rnd" | "rand" | "epoch" => to.clear(),
+                    "(" =>
+                    {
+                        if !to.is_empty()
+                        {
+                            if i != 0
+                            {
+                                if let Str(s) = &output[i - 1]
+                                {
+                                    if !s.starts_with("rand_") && functions().contains(s.as_str())
+                                    {
+                                        if let Ok(n) = do_math(
+                                            output[i - 1..=to[0]].to_vec(),
+                                            options,
+                                            funcvars.clone(),
+                                        )
+                                        {
+                                            output.drain(i - 1..=to[0]);
+                                            output.insert(i - 1, n);
+                                            let d = to[0] - i + 1;
+                                            to.remove(0);
+                                            for t in to.iter_mut()
+                                            {
+                                                *t -= d;
+                                            }
+                                            continue;
+                                        }
+                                        to.remove(0);
+                                        continue;
+                                    }
+                                }
+                            }
+                            if let Ok(n) =
+                                do_math(output[i + 1..to[0]].to_vec(), options, funcvars.clone())
+                            {
+                                output.drain(i..=to[0]);
+                                output.insert(i, n);
+                                let d = to[0] - i + 1;
+                                to.remove(0);
+                                for t in to.iter_mut()
+                                {
+                                    *t -= d;
+                                }
+                                continue;
+                            }
+                            to.remove(0);
+                        }
+                    }
+                    ")" =>
+                    {
+                        to.insert(0, i);
+                    }
+                    _ =>
+                    {}
+                }
+            }
+        }
+    }
 }

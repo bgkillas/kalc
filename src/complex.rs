@@ -1,7 +1,8 @@
 use crate::{
     complex::NumStr::{Matrix, Num, Str, Vector},
-    math::{compute_funcvars, do_math},
+    math::do_math,
     misc::{do_math_with_var, place_funcvar, place_var},
+    parse::simplify,
     Number, Options, Units,
 };
 use rug::{
@@ -2958,7 +2959,7 @@ pub fn surface_area(
                     let n = Num(Number::from(startx.clone(), unitsx));
                     let mut func = place_var(func.clone(), &varx, n.clone());
                     let mut func_vars = place_funcvar(func_vars.clone(), &varx, n);
-                    compute_funcvars(&mut func, options, &mut func_vars);
+                    simplify(&mut func, &mut func_vars, options);
                     let mut starty = starty.clone();
                     for ny in 0..points
                     {
@@ -3035,7 +3036,7 @@ pub fn surface_area(
                     let n = Num(Number::from(startx.clone(), unitsx));
                     let mut func = place_var(func.clone(), &varx, n.clone());
                     let mut func_vars = place_funcvar(func_vars.clone(), &varx, n);
-                    compute_funcvars(&mut func, options, &mut func_vars);
+                    simplify(&mut func, &mut func_vars, options);
                     let mut starty = starty.clone();
                     for ny in 0..points
                     {
@@ -3157,7 +3158,7 @@ pub fn surface_area(
                     let n = Num(Number::from(startx.clone(), unitsx));
                     let mut func = place_var(func.clone(), &varx, n.clone());
                     let mut func_vars = place_funcvar(func_vars.clone(), &varx, n.clone());
-                    compute_funcvars(&mut func, options, &mut func_vars);
+                    simplify(&mut func, &mut func_vars, options);
                     let mut starty = starty.clone();
                     if nx != 0
                     {
@@ -3266,7 +3267,7 @@ pub fn surface_area(
                     let n = Num(Number::from(startx.clone(), unitsx));
                     let mut func = place_var(func.clone(), &varx, n.clone());
                     let mut func_vars = place_funcvar(func_vars.clone(), &varx, n.clone());
-                    compute_funcvars(&mut func, options, &mut func_vars);
+                    simplify(&mut func, &mut func_vars, options);
                     let mut starty = starty.clone();
                     if nx != 0
                     {

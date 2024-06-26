@@ -8,10 +8,10 @@ use crate::{
         NumStr::{Matrix, Num, Str, Vector},
     },
     load_vars::set_commands_or_vars,
-    math::{compute_funcvars, do_math},
+    math::do_math,
     misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     options::silent_commands,
-    parse::input_var,
+    parse::{input_var, simplify},
     Colors, GraphType, HowGraphing, Number, Options, Variable,
 };
 use gnuplot::{Auto, AxesCommon, Caption, Color, Figure, Fix, PointSymbol, TickOption};
@@ -1497,7 +1497,7 @@ pub fn get_list_3d(
         let num = Num(Number::from(Complex::with_val(func.2.prec, n), None));
         modified = place_var(func.0.clone(), "x", num.clone());
         modifiedvars = place_funcvar(func.1.clone(), "x", num);
-        compute_funcvars(&mut modified, func.2, &mut modifiedvars);
+        simplify(&mut modified, &mut modifiedvars, func.2);
         for g in 0..=func.2.samples_3d.1
         {
             let f = func.2.yr.0 + g as f64 * den_y_range;

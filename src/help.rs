@@ -10,8 +10,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --graph=normal/depth/flat/none changes how a function is graphed\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
 --angle=deg/rad/grad sets your angletype\x1b[G\n\
---2d=[num] number of points to graph in 2D\x1b[G\n\
---3d=[x],[y] number of points to graph in 3D\x1b[G\n\
+--2d=[num] number of points to graph in 2D, 2d=-1 for integer placements\x1b[G\n\
+--3d=[x],[y] number of points to graph in 3D, 3d=-1 for integer placements\x1b[G\n\
 --xr=[min],[max] x range for graphing\x1b[G\n\
 --yr=[min],[max] y range for graphing\x1b[G\n\
 --zr=[min],[max] z range for graphing\x1b[G\n\

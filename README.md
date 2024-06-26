@@ -118,8 +118,8 @@ FLAGS: --help (this message)
 --graph=normal/depth/flat/none changes how a function is graphed
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --angle=deg/rad/grad sets your angletype
---2d=[num] number of points to graph in 2D
---3d=[x],[y] number of points to graph in 3D
+--2d=[num] number of points to graph in 2D, 2d=-1 for integer placements
+--3d=[x],[y] number of points to graph in 3D, 3d=-1 for integer placements
 --xr=[min],[max] x range for graphing
 --yr=[min],[max] y range for graphing
 --zr=[min],[max] z range for graphing

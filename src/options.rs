@@ -316,7 +316,8 @@ pub fn set_commands(
             {
                 let mut bracket = 0;
                 let mut last = 0;
-                for (i, c) in o.chars().enumerate()
+                let oc = o.chars().collect::<Vec<char>>();
+                for (i, c) in oc.iter().enumerate()
                 {
                     match c
                     {
@@ -325,7 +326,7 @@ pub fn set_commands(
                         ',' if bracket == 0 =>
                         {
                             let parsed = input_var(
-                                &o[last..i],
+                                &oc[last..i].iter().collect::<String>(),
                                 vars,
                                 &mut Vec::new(),
                                 &mut 0,
@@ -836,36 +837,68 @@ pub fn set_commands(
                 }
                 "2d" =>
                 {
-                    options.samples_2d = args[0]
-                        .to_integer()
-                        .unwrap_or_default()
-                        .to_usize()
-                        .unwrap_or_default()
+                    if args[0].is_sign_negative()
+                    {
+                        options.samples_2d = (options.xr.1 - options.xr.0) as usize
+                    }
+                    else
+                    {
+                        options.samples_2d = args[0]
+                            .to_integer()
+                            .unwrap_or_default()
+                            .to_usize()
+                            .unwrap_or_default()
+                    }
                 }
                 "3d" =>
                 {
                     if args.len() == 1
                     {
-                        let range = args[0]
-                            .to_integer()
-                            .unwrap_or_default()
-                            .to_usize()
-                            .unwrap_or_default();
-                        options.samples_3d = (range, range)
+                        if args[0].is_sign_negative()
+                        {
+                            options.samples_3d = (
+                                (options.xr.1 - options.xr.0) as usize,
+                                (options.yr.1 - options.yr.0) as usize,
+                            )
+                        }
+                        else
+                        {
+                            let range = args[0]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default();
+                            options.samples_3d = (range, range)
+                        }
                     }
                     else
                     {
-                        let x = args[0]
-                            .to_integer()
-                            .unwrap_or_default()
-                            .to_usize()
-                            .unwrap_or_default();
-                        let y = args[1]
-                            .to_integer()
-                            .unwrap_or_default()
-                            .to_usize()
-                            .unwrap_or_default();
-                        options.samples_3d = (x, y)
+                        if args[0].is_sign_negative()
+                        {
+                            options.samples_3d.0 = (options.xr.1 - options.xr.0) as usize
+                        }
+                        else
+                        {
+                            let range = args[0]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default();
+                            options.samples_3d.0 = range
+                        }
+                        if args[1].is_sign_negative()
+                        {
+                            options.samples_3d.1 = (options.yr.1 - options.yr.0) as usize
+                        }
+                        else
+                        {
+                            let range = args[1]
+                                .to_integer()
+                                .unwrap_or_default()
+                                .to_usize()
+                                .unwrap_or_default();
+                            options.samples_3d.1 = range
+                        }
                     }
                 }
                 _ => return Ok(()),

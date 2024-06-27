@@ -5899,33 +5899,48 @@ pub fn cube(z: Complex) -> Complex
 pub fn pow_nth(z: Complex, n: Complex) -> Complex
 {
     let zz = z.imag().is_zero();
-    if n.imag().is_zero()
-        && !n.real().is_zero()
-        && !zz
-        && n.real() <= &256
-        && n.real().clone().fract().is_zero()
+    let nz = n.imag().is_zero();
+    let nr = n.real();
+    if nr.clone().fract().is_zero() && nz
     {
-        let mut p = z.clone();
-        for _ in 1..n
-            .real()
-            .to_integer()
-            .unwrap_or_default()
-            .abs()
-            .to_usize()
-            .unwrap_or_default()
+        if !zz && nr <= &256
         {
-            p *= &z;
-        }
-        if n.real().is_sign_positive()
-        {
-            p
+            if nr.is_zero()
+            {
+                Complex::with_val(z.prec(), 1)
+            }
+            else
+            {
+                let mut p = z.clone();
+                for _ in 1..n
+                    .real()
+                    .to_integer()
+                    .unwrap_or_default()
+                    .abs()
+                    .to_usize()
+                    .unwrap_or_default()
+                {
+                    p *= &z;
+                }
+                if nr.is_sign_positive()
+                {
+                    p
+                }
+                else
+                {
+                    1 / p
+                }
+            }
         }
         else
         {
-            1 / p
+            z.pow(n)
         }
     }
-    else if zz && z.real().clone().fract().is_zero()
+    else if zz && nz && {
+        let zr = z.real();
+        zr.clone().fract().is_zero() && zr.is_sign_negative()
+    }
     {
         z.pow(n)
     }

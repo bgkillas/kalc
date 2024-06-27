@@ -1,5 +1,5 @@
 // as per continued fraction expansion
-use crate::{Colors, Options};
+use crate::{complex::prime_factors, Colors, Options};
 use rug::{float::Constant::Pi, ops::Pow, Float, Integer};
 pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> String
 {
@@ -38,16 +38,32 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
             }
             else if i == 1 || i == 2
             {
-                let num = orig.to_integer().unwrap();
-                if num == 1
+                if orig == 1
                 {
                     String::new()
                 }
                 else
                 {
+                    let mut num = orig.to_integer().unwrap();
+                    let mut mul = String::new();
+                    if num <= 65536
+                    {
+                        let pf = prime_factors(num.clone());
+                        let mut n = Integer::from(1);
+                        for p in pf
+                        {
+                            n *= p.0.clone().pow((p.1 / if i == 1 { 2 } else { 3 }) as u32);
+                            num /= p.0.pow((p.1 - (p.1 % if i == 1 { 2 } else { 3 })) as u32)
+                        }
+                        if n != 1
+                        {
+                            mul = n.to_string()
+                        }
+                    }
                     format!(
-                        "{}{}{}{}{}",
+                        "{}{}{}{}{}{}",
                         sign,
+                        mul,
                         if i == 1 { "sqrt" } else { "cbrt" },
                         if options.color == crate::Auto::True
                         {
@@ -116,12 +132,12 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
             {
                 recip *= mult.clone();
                 let last = recip.clone() / if j == 0 { &recip } else { &first };
-                let recip = match recip.to_integer()
+                let mut recip = match recip.to_integer()
                 {
                     Some(n) => n,
                     None => return String::new(),
                 };
-                let last = (last + recip.clone() * orig.trunc())
+                let mut last = (last + recip.clone() * orig.trunc())
                     .to_integer()
                     .unwrap_or_default();
                 return if (recip == 1 && i == 0)
@@ -151,56 +167,104 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                     };
                     if recip == 1
                     {
-                        (if i == 1 { "sqrt" } else { "cbrt" }).to_owned()
+                        let mut mul = String::new();
+                        if last <= 65536
+                        {
+                            let pf = prime_factors(last.clone());
+                            let mut n = Integer::from(1);
+                            for p in pf
+                            {
+                                n *= p.0.clone().pow((p.1 / if i == 1 { 2 } else { 3 }) as u32);
+                                last /= p.0.pow((p.1 - (p.1 % if i == 1 { 2 } else { 3 })) as u32)
+                            }
+                            if n != 1
+                            {
+                                mul = n.to_string()
+                            }
+                        }
+                        sign.to_owned()
+                            + &mul
+                            + if i == 1 { "sqrt" } else { "cbrt" }
                             + &lb
                             + &last.to_string()
                             + &rb
                     }
                     else
                     {
-                        let ((num_root, num_rem), (den_root, den_rem)) = if i == 1
+                        let mut mul = String::new();
+                        if last <= 65536
                         {
-                            (
-                                last.clone().sqrt_rem(Integer::new()),
-                                recip.clone().sqrt_rem(Integer::new()),
-                            )
+                            let pf = prime_factors(last.clone());
+                            let mut n = Integer::from(1);
+                            for p in pf
+                            {
+                                n *= p.0.clone().pow((p.1 / if i == 1 { 2 } else { 3 }) as u32);
+                                last /= p.0.pow((p.1 - (p.1 % if i == 1 { 2 } else { 3 })) as u32)
+                            }
+                            if n != 1
+                            {
+                                mul = n.to_string()
+                            }
                         }
-                        else
+                        let mut div = Integer::from(1);
+                        if recip <= 65536
                         {
-                            (
-                                last.clone().root_rem(Integer::new(), 3),
-                                recip.clone().root_rem(Integer::new(), 3),
-                            )
-                        };
-                        match (num_rem == 0, den_rem == 0)
+                            let pf = prime_factors(recip.clone());
+                            let mut n = Integer::from(1);
+                            for p in pf
+                            {
+                                n *= p.0.clone().pow((p.1 / if i == 1 { 2 } else { 3 }) as u32);
+                                recip /= p.0.pow((p.1 - (p.1 % if i == 1 { 2 } else { 3 })) as u32)
+                            }
+                            if n != 1
+                            {
+                                div = n
+                            }
+                        }
+                        match (last == 1, recip == 1)
                         {
                             (false, false) =>
                             {
+                                div *= recip.clone();
                                 format!(
-                                    "{sign}{}{}{}/{}{}",
+                                    "{sign}{mul}{}{}{}{}{}",
                                     if i == 1 { "sqrt" } else { "cbrt" },
                                     lb,
-                                    last,
-                                    recip,
-                                    rb
+                                    last * if i == 1 { recip } else { recip.pow(2) },
+                                    rb,
+                                    if div != 1
+                                    {
+                                        "/".to_owned() + &div.to_string()
+                                    }
+                                    else
+                                    {
+                                        String::new()
+                                    }
                                 )
                             }
                             (false, true) =>
                             {
                                 format!(
-                                    "{sign}{}{}{}{}/{}",
+                                    "{sign}{mul}{}{}{}{}{}",
                                     if i == 1 { "sqrt" } else { "cbrt" },
                                     lb,
                                     last,
                                     rb,
-                                    den_root
+                                    if div != 1
+                                    {
+                                        "/".to_owned() + &div.to_string()
+                                    }
+                                    else
+                                    {
+                                        String::new()
+                                    }
                                 )
                             }
                             (true, false) =>
                             {
                                 format!(
                                     "{sign}{}/{}{}{}{}",
-                                    num_root,
+                                    if mul.is_empty() { "1" } else { &mul },
                                     if i == 1 { "sqrt" } else { "cbrt" },
                                     lb,
                                     recip,

@@ -2374,7 +2374,7 @@ pub fn get_output(
                 }
                 else
                 {
-                    "i".to_string()
+                    "-i".to_string()
                 }
             }
             else

@@ -1077,7 +1077,7 @@ pub fn graph(
         }
         if let Some(time) = watch
         {
-            println!("\x1b[G\x1b[K{}ms\x1b[G\n", time.elapsed().as_millis());
+            println!("\x1b[G\x1b[K{}ms\x1b[G", time.elapsed().as_millis());
         }
         if !colors.graphtofile.is_empty()
         {
@@ -1114,7 +1114,7 @@ pub fn graph(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_2d(
-    mut func: (
+    func: (
         Vec<NumStr>,
         Vec<(String, Vec<NumStr>)>,
         Options,
@@ -1122,16 +1122,6 @@ pub fn get_list_2d(
     ),
 ) -> ([[Vec<f64>; 2]; 2], [Vec<f64>; 2], (bool, bool))
 {
-    {
-        let temp = func.1.clone();
-        for i in func.1.iter_mut()
-        {
-            if let Ok(n) = do_math(i.1.clone(), func.2, temp.clone())
-            {
-                i.1 = vec![n];
-            }
-        }
-    }
     if let Num(n) = &func.0[0]
     {
         if func.0.len() == 1 && n.number.is_zero()
@@ -1419,7 +1409,7 @@ pub fn get_list_2d(
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_3d(
-    mut func: (
+    func: (
         Vec<NumStr>,
         Vec<(String, Vec<NumStr>)>,
         Options,
@@ -1427,16 +1417,6 @@ pub fn get_list_3d(
     ),
 ) -> ([[Vec<f64>; 3]; 2], (bool, bool), bool)
 {
-    {
-        let temp = func.1.clone();
-        for i in func.1.iter_mut()
-        {
-            if let Ok(n) = do_math(i.1.clone(), func.2, temp.clone())
-            {
-                i.1 = vec![n];
-            }
-        }
-    }
     if let Num(n) = &func.0[0]
     {
         let n = &n.number;

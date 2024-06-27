@@ -15,6 +15,9 @@ lto = true
 strip = true
 panic = "abort"
 
+[profile.dev]
+opt-level = 1
+
 [dependencies]
 fastrand = "2.0.2"
 rug = "1.24.1"

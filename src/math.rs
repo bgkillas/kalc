@@ -4998,7 +4998,7 @@ pub fn compute_funcvars(
     function: &mut [NumStr],
     options: Options,
     func_vars: &mut Vec<(String, Vec<NumStr>)>,
-) -> usize
+)
 {
     let mut i = 0;
     while i < func_vars.len()
@@ -5062,5 +5062,4 @@ pub fn compute_funcvars(
         }
         i += 1;
     }
-    i
 }

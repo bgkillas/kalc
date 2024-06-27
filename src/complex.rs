@@ -4049,7 +4049,29 @@ pub fn solve(
             ]
         };
         let mut values = Vec::new();
-        for p in points
+        let v = solve(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            points[0].clone(),
+        )?
+        .num()?;
+        if !v.number.real().is_nan()
+        {
+            func.insert(0, Str("(".to_string()));
+            func.push(Str(")".to_string()));
+            func.push(Str("/".to_string()));
+            func.push(Str("(".to_string()));
+            func.push(Str("(".to_string()));
+            func.push(Str(var.clone()));
+            func.push(Str("-".to_string()));
+            func.push(Num(v.clone()));
+            func.push(Str(")".to_string()));
+            func.push(Str(")".to_string()));
+            values.push(v);
+        }
+        'main: for p in &points[1..]
         {
             let v = solve(
                 func.clone(),
@@ -4061,14 +4083,28 @@ pub fn solve(
             .num()?;
             if !v.number.real().is_nan()
             {
-                func.insert(0, Str("(".to_string()));
-                func.push(Str(")".to_string()));
-                func.push(Str("/".to_string()));
-                func.push(Str("(".to_string()));
-                func.push(Str(var.clone()));
-                func.push(Str("-".to_string()));
-                func.push(Num(p));
-                func.push(Str(")".to_string()));
+                for n1 in &values
+                {
+                    if -(n1.number.real() - v.number.real().clone())
+                        .clone()
+                        .abs()
+                        .log2()
+                        > options.prec / 16
+                        && -(n1.number.imag() - v.number.imag().clone())
+                            .clone()
+                            .abs()
+                            .log2()
+                            > options.prec / 16
+                    {
+                        continue 'main;
+                    }
+                }
+                func.insert(func.len() - 1, Str("*".to_string()));
+                func.insert(func.len() - 1, Str("(".to_string()));
+                func.insert(func.len() - 1, Str(var.clone()));
+                func.insert(func.len() - 1, Str("-".to_string()));
+                func.insert(func.len() - 1, Num(v.clone()));
+                func.insert(func.len() - 1, Str(")".to_string()));
                 values.push(v);
             }
         }
@@ -4077,44 +4113,13 @@ pub fn solve(
             {
                 Num(Number::from(Complex::with_val(options.prec, Nan), None))
             }
+            else if values.len() == 1
+            {
+                Num(values[0].clone())
+            }
             else
             {
-                let mut i = 0;
-                while i < values.len() - 1
-                {
-                    let n1 = values[i].clone();
-                    let mut j = i + 1;
-                    while j < values.len()
-                    {
-                        let n2 = values[j].clone();
-                        if -(n1.number.real() - n2.number.real().clone())
-                            .clone()
-                            .abs()
-                            .log10()
-                            < options.prec / 32
-                            || -(n1.number.imag() - n2.number.imag().clone())
-                                .clone()
-                                .abs()
-                                .log10()
-                                < options.prec / 32
-                        {
-                            j += 1;
-                        }
-                        else
-                        {
-                            values.remove(j);
-                        }
-                    }
-                    i += 1;
-                }
-                if values.len() == 1
-                {
-                    Num(values[0].clone())
-                }
-                else
-                {
-                    Vector(values)
-                }
+                Vector(values)
             },
         )
     }

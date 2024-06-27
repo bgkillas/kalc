@@ -4,7 +4,7 @@ use crate::{
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
         extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
         lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne, nth_prime,
-        or, pow_nth, quadratic, quartic, rand_gamma, rand_norm, recursion,
+        or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm, recursion,
         regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sqr,
         sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar, trace, transpose,
         unity, variance, zeta,
@@ -493,10 +493,7 @@ pub fn do_math(
                                 .num()?
                                 .number
                                 .real()
-                                .to_integer()
-                                .unwrap_or_default()
-                                .to_usize()
-                                .unwrap_or_default(),
+                                .clone(),
                                 place.len() == 5,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
@@ -3346,6 +3343,45 @@ pub fn do_math(
                                     ])
                                 }
                             }
+                            "prime_factors" =>
+                            {
+                                let a = arg.num()?.number;
+                                if a.imag().is_zero() && a.real().clone().fract().is_zero()
+                                {
+                                    let n = a.real().to_integer().unwrap_or_default();
+                                    let m = prime_factors(n);
+                                    if m.is_empty()
+                                    {
+                                        Num(Number::from(
+                                            Complex::with_val(options.prec, Nan),
+                                            None,
+                                        ))
+                                    }
+                                    else
+                                    {
+                                        Matrix(
+                                            m.iter()
+                                                .map(|(a, b)| {
+                                                    vec![
+                                                        Number::from(
+                                                            Complex::with_val(options.prec, a),
+                                                            None,
+                                                        ),
+                                                        Number::from(
+                                                            Complex::with_val(options.prec, b),
+                                                            None,
+                                                        ),
+                                                    ]
+                                                })
+                                                .collect::<Vec<Vec<Number>>>(),
+                                        )
+                                    }
+                                }
+                                else
+                                {
+                                    Num(Number::from(Complex::with_val(options.prec, Nan), None))
+                                }
+                            }
                             "factors" | "factor" =>
                             {
                                 let a = arg.num()?.number;
@@ -4726,7 +4762,7 @@ fn functions(
                 }
                 "nth_prime" | "prime" =>
                 {
-                    if a.imag().is_zero() && a.real().clone().fract() == 0.0
+                    if a.imag().is_zero() && a.real().clone().fract().is_zero()
                     {
                         Complex::with_val(
                             options.prec,
@@ -4806,7 +4842,9 @@ fn functions(
                 }
                 "isprime" | "is_prime" =>
                 {
-                    if a.imag().is_zero() && a.real().clone().fract() == 0.0 && a.real().is_finite()
+                    if a.imag().is_zero()
+                        && a.real().clone().fract().is_zero()
+                        && a.real().is_finite()
                     {
                         Complex::with_val(
                             options.prec,

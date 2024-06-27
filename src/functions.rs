@@ -274,6 +274,7 @@ pub fn functions() -> HashSet<&'static str>
         "rand_neg_hypergeometric",
         "cyl",
         "cylinder",
+        "prime_factors",
     ]
     .iter()
     .cloned()
@@ -447,7 +448,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "surfacearea(a,b,z(a,b),start_b,end_b,start_a,end_a)",
         "covariance(vec)",
         "extrema(a,f(a)(,start))",
-        "plane(mat(,x,y)",
+        "plane(mat(,x,y))",
         "is_nan(x)",
         "is_inf(x)",
         "is_finite(x)",
@@ -487,6 +488,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "neg_hypergeometric_cdf(k,N,K,r)",
         "rand_neg_hypergeometric(N,K,r)",
         "cylinder({x,y,z})",
+        "prime_factors(n)",
     ]
     .iter()
     .cloned()

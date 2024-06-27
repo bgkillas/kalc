@@ -1666,6 +1666,40 @@ pub fn nth_prime(n: Integer) -> Integer
     }
     num
 }
+pub fn prime_factors(mut n: Integer) -> Vec<(Integer, usize)>
+{
+    if n < 2
+    {
+        return Vec::new();
+    }
+    let mut mat = Vec::new();
+    let mut prime = Integer::from(2);
+    let mut k = 0;
+    loop
+    {
+        let (temp, rem) = n.clone().div_rem(prime.clone());
+        if rem == 0
+        {
+            k += 1;
+            if temp == 1
+            {
+                mat.push((prime.clone(), k));
+                break;
+            }
+            n = temp;
+        }
+        else
+        {
+            if k != 0
+            {
+                mat.push((prime.clone(), k));
+            }
+            prime = prime.next_prime();
+            k = 0;
+        }
+    }
+    mat
+}
 pub fn sort(mut a: Vec<Number>) -> Vec<Number>
 {
     a.sort_by(|x, y| {
@@ -3856,44 +3890,127 @@ pub fn iter(
     options: Options,
     var: String,
     mut x: NumStr,
-    n: usize,
+    n: Float,
     all: bool,
 ) -> Result<NumStr, &'static str>
 {
-    if all
+    if n.is_infinite()
     {
-        if let Num(num) = x.clone()
+        let mut last = Num(Number::from(Complex::with_val(options.prec, Nan), None));
+        let mut j = 0;
+        if all
         {
-            let mut vec = vec![num];
-            for _ in 0..n
+            if let Num(num) = x.clone()
             {
-                x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
-                vec.push(x.num()?);
+                let mut vec = vec![num];
+                loop
+                {
+                    if j > 10000
+                    {
+                        return Ok(Num(Number::from(
+                            Complex::with_val(options.prec, Nan),
+                            None,
+                        )));
+                    }
+                    j += 1;
+                    last = x.clone();
+                    x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+                    if last == x
+                    {
+                        break;
+                    }
+                    vec.push(x.num()?);
+                }
+                Ok(Vector(vec))
             }
-            Ok(Vector(vec))
-        }
-        else if let Vector(v) = x.clone()
-        {
-            let mut vec = vec![v];
-            for _ in 0..n
+            else if let Vector(v) = x.clone()
             {
-                x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
-                vec.push(x.vec()?);
+                let mut vec = vec![v];
+                loop
+                {
+                    if j > 10000
+                    {
+                        return Ok(Num(Number::from(
+                            Complex::with_val(options.prec, Nan),
+                            None,
+                        )));
+                    }
+                    j += 1;
+                    last = x.clone();
+                    x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+                    if last == x
+                    {
+                        break;
+                    }
+                    vec.push(x.vec()?);
+                }
+                Ok(Matrix(vec))
             }
-            Ok(Matrix(vec))
+            else
+            {
+                return Err("unsupported iter");
+            }
         }
         else
         {
-            return Err("unsupported iter");
+            while last != x
+            {
+                if j > 10000
+                {
+                    return Ok(Num(Number::from(
+                        Complex::with_val(options.prec, Nan),
+                        None,
+                    )));
+                }
+                j += 1;
+                last = x.clone();
+                x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?
+            }
+            Ok(x)
         }
     }
     else
     {
-        for _ in 0..n
+        let n = n
+            .to_integer()
+            .unwrap_or_default()
+            .to_usize()
+            .unwrap_or_default();
+        if all
         {
-            x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?
+            if let Num(num) = x.clone()
+            {
+                let mut vec = vec![num];
+                for _ in 0..n
+                {
+                    x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+                    vec.push(x.num()?);
+                }
+                Ok(Vector(vec))
+            }
+            else if let Vector(v) = x.clone()
+            {
+                let mut vec = vec![v];
+                for _ in 0..n
+                {
+                    x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?;
+                    vec.push(x.vec()?);
+                }
+                Ok(Matrix(vec))
+            }
+            else
+            {
+                return Err("unsupported iter");
+            }
         }
-        Ok(x)
+        else
+        {
+            for _ in 0..n
+            {
+                x = do_math_with_var(func.clone(), options, func_vars.clone(), &var, x)?
+            }
+            Ok(x)
+        }
     }
 }
 pub fn solve(

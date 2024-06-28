@@ -210,28 +210,6 @@ pub fn print_concurrent(
             let mut out = String::new();
             let split = tempinput.split('#');
             {
-                if split.clone().count() > 6
-                {
-                    print!(
-                        "\x1b[G\n\x1b[Jtoo many graphs\x1b[G\x1b[A\x1b[K{}{}{}",
-                        prompt(options, &colors),
-                        to_output(
-                            &unmodified_input[start..end],
-                            vars,
-                            options.color == crate::Auto::True,
-                            &colors
-                        ),
-                        if options.color == crate::Auto::True
-                        {
-                            "\x1b[0m"
-                        }
-                        else
-                        {
-                            ""
-                        }
-                    );
-                    return (1, HowGraphing::default(), false, false);
-                }
                 if tempinput.contains(';')
                 {
                     let mut options = options;
@@ -430,18 +408,8 @@ pub fn print_concurrent(
             let func = unparsed[..n - 1].to_vec();
             if matches!(
                 func.iter().collect::<String>().as_str(),
-                "re1col"
-                    | "im1col"
-                    | "re2col"
-                    | "im2col"
-                    | "re3col"
-                    | "im3col"
-                    | "re4col"
-                    | "im4col"
-                    | "re5col"
-                    | "im5col"
-                    | "re6col"
-                    | "im6col"
+                "recol"
+                    | "imcol"
                     | "angle"
                     | "notation"
                     | "graph"
@@ -692,28 +660,6 @@ pub fn print_concurrent(
             {
                 let split = unmodified_input.iter().collect::<String>();
                 let split = split.split('#');
-                if split.clone().count() > 6
-                {
-                    print!(
-                        "\x1b[G\n\x1b[Jtoo many graphs\x1b[G\x1b[A\x1b[K{}{}{}",
-                        prompt(options, &colors),
-                        to_output(
-                            &unmodified_input[start..end],
-                            vars,
-                            options.color == crate::Auto::True,
-                            &colors
-                        ),
-                        if options.color == crate::Auto::True
-                        {
-                            "\x1b[0m"
-                        }
-                        else
-                        {
-                            ""
-                        }
-                    );
-                    return (1, input.2, false, false);
-                }
                 if unmodified_input.contains(&';')
                 {
                     let mut options = options;

@@ -230,18 +230,42 @@ pub fn set_commands(
                 colors.graphtofile = r.to_string()
             }
         }
-        "re1col" => colors.re1col = r.to_string(),
-        "im1col" => colors.im1col = r.to_string(),
-        "re2col" => colors.re2col = r.to_string(),
-        "im2col" => colors.im2col = r.to_string(),
-        "re3col" => colors.re3col = r.to_string(),
-        "im3col" => colors.im3col = r.to_string(),
-        "re4col" => colors.re4col = r.to_string(),
-        "im4col" => colors.im4col = r.to_string(),
-        "re5col" => colors.re5col = r.to_string(),
-        "im5col" => colors.im5col = r.to_string(),
-        "re6col" => colors.re6col = r.to_string(),
-        "im6col" => colors.im6col = r.to_string(),
+        "recol" =>
+        {
+            colors.recol = r
+                .split(',')
+                .map(|a| {
+                    if a.len() == 6 && a.chars().all(|c| c.is_ascii_hexdigit())
+                    {
+                        Some("#".to_owned() + a)
+                    }
+                    else
+                    {
+                        None
+                    }
+                })
+                .take_while(|a| a.is_some())
+                .map(|a| a.unwrap())
+                .collect::<Vec<String>>()
+        }
+        "imcol" =>
+        {
+            colors.imcol = r
+                .split(',')
+                .map(|a| {
+                    if a.len() == 6 && a.chars().all(|c| c.is_ascii_hexdigit())
+                    {
+                        Some("#".to_owned() + a)
+                    }
+                    else
+                    {
+                        None
+                    }
+                })
+                .take_while(|a| a.is_some())
+                .map(|a| a.unwrap())
+                .collect::<Vec<String>>()
+        }
         "textc" => colors.text = "\x1b[".to_owned() + r,
         "promptc" => colors.prompt = "\x1b[".to_owned() + r,
         "imagc" => colors.imag = "\x1b[".to_owned() + r,
@@ -280,28 +304,23 @@ pub fn set_commands(
             else
             {
                 let r = r.chars().next().unwrap();
-                if matches!(
-                    r,
-                    '.' | '+'
-                        | 'x'
-                        | '*'
-                        | 's'
-                        | 'S'
-                        | 'o'
-                        | 'O'
-                        | 't'
-                        | 'T'
-                        | 'd'
-                        | 'D'
-                        | 'r'
-                        | 'R'
-                )
+                options.point_style = match r
                 {
-                    options.point_style = r;
-                }
-                else
-                {
-                    return Err("Invalid point type");
+                    '.' => 0,
+                    '+' => 1,
+                    'x' => 2,
+                    '*' => 3,
+                    's' => 4,
+                    'S' => 5,
+                    'o' => 6,
+                    'O' => 7,
+                    't' => 8,
+                    'T' => 9,
+                    'd' => 10,
+                    'D' => 11,
+                    'r' => 12,
+                    'R' => 13,
+                    _ => return Err("invalid point type"),
                 }
             }
         }
@@ -1246,7 +1265,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "colors" =>
         {
             format!(
-            "{}textc={} {}promptc={} {}imagc={} {}scic={} {}unitsc={} \x1b[0mbracketc={} \x1b[0mre1col={} re2col={} re3col={} re4col={} re5col={} re6col={} im1col={} im2col={} im3col={} im4col={} im5col={} im6col={}",
+            "{}textc={} {}promptc={} {}imagc={} {}scic={} {}unitsc={} \x1b[0mbracketc={}\x1b[0m{}{}",
             colors.text,
             &colors.text[2..],
             colors.prompt,
@@ -1258,18 +1277,8 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
             colors.units,
             &colors.units[2..],
             bracketcol(&colors.brackets),
-            formatcol(&colors.re1col),
-            formatcol(&colors.re2col),
-            formatcol(&colors.re3col),
-            formatcol(&colors.re4col),
-            formatcol(&colors.re5col),
-            formatcol(&colors.re6col),
-            formatcol(&colors.im1col),
-            formatcol(&colors.im2col),
-            formatcol(&colors.im3col),
-            formatcol(&colors.im4col),
-            formatcol(&colors.im5col),
-            formatcol(&colors.im6col),
+            colors.recol.iter().enumerate().map(|(i,a)| format!(" re{}col={}",i,formatcol(a))).collect::<Vec<String>>().concat(),
+            colors.imcol.iter().enumerate().map(|(i,a)| format!(" im{}col={}",i,formatcol(a))).collect::<Vec<String>>().concat(),
         )
         }
         "slowcheck" => format!("{}", options.slowcheck),
@@ -1367,18 +1376,20 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "unitsc" => colors.units.to_string(),
         "bracketc" => bracketcol(&colors.brackets),
         "saveto" => colors.graphtofile.to_string(),
-        "re1col" => formatcol(&colors.re1col),
-        "re2col" => formatcol(&colors.re2col),
-        "re3col" => formatcol(&colors.re3col),
-        "re4col" => formatcol(&colors.re4col),
-        "re5col" => formatcol(&colors.re5col),
-        "re6col" => formatcol(&colors.re6col),
-        "im1col" => formatcol(&colors.im1col),
-        "im2col" => formatcol(&colors.im2col),
-        "im3col" => formatcol(&colors.im3col),
-        "im4col" => formatcol(&colors.im4col),
-        "im5col" => formatcol(&colors.im5col),
-        "im6col" => formatcol(&colors.im6col),
+        "recol" => colors
+            .recol
+            .iter()
+            .enumerate()
+            .map(|(i, a)| format!("re{}col={}", i, formatcol(a)))
+            .collect::<Vec<String>>()
+            .join(" "),
+        "imcol" => colors
+            .imcol
+            .iter()
+            .enumerate()
+            .map(|(i, a)| format!("im{}col={}", i, formatcol(a)))
+            .collect::<Vec<String>>()
+            .join(" "),
         _ =>
         {
             let input = input_var(

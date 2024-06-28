@@ -80,18 +80,8 @@ pub struct Colors
     sci: String,
     units: String,
     brackets: Vec<String>,
-    re1col: String,
-    re2col: String,
-    re3col: String,
-    re4col: String,
-    re5col: String,
-    re6col: String,
-    im1col: String,
-    im2col: String,
-    im3col: String,
-    im4col: String,
-    im5col: String,
-    im6col: String,
+    recol: Vec<String>,
+    imcol: Vec<String>,
     label: (String, String, String),
     graphtofile: String,
 }
@@ -113,18 +103,22 @@ impl Default for Colors
                 "\x1b[95m".to_string(),
                 "\x1b[96m".to_string(),
             ],
-            re1col: "#ff5555".to_string(),
-            re2col: "#5555ff".to_string(),
-            re3col: "#ff55ff".to_string(),
-            re4col: "#55ff55".to_string(),
-            re5col: "#55ffff".to_string(),
-            re6col: "#ffff55".to_string(),
-            im1col: "#aa0000".to_string(),
-            im2col: "#0000aa".to_string(),
-            im3col: "#aa00aa".to_string(),
-            im4col: "#00aa00".to_string(),
-            im5col: "#00aaaa".to_string(),
-            im6col: "#aaaa00".to_string(),
+            recol: vec![
+                "#ff5555".to_string(),
+                "#5555ff".to_string(),
+                "#ff55ff".to_string(),
+                "#55ff55".to_string(),
+                "#55ffff".to_string(),
+                "#ffff55".to_string(),
+            ],
+            imcol: vec![
+                "#aa0000".to_string(),
+                "#0000aa".to_string(),
+                "#aa00aa".to_string(),
+                "#00aa00".to_string(),
+                "#00aaaa".to_string(),
+                "#aaaa00".to_string(),
+            ],
             label: ("x".to_string(), "y".to_string(), "z".to_string()),
             graphtofile: String::new(),
         }
@@ -200,7 +194,7 @@ pub struct Options
     vzr: (f64, f64),
     samples_2d: usize,
     samples_3d: (usize, usize),
-    point_style: char,
+    point_style: isize,
     lines: Auto,
     multi: bool,
     tabbed: bool,
@@ -249,7 +243,7 @@ impl Default for Options
             vzr: (0.0, 0.0),
             samples_2d: 8192,
             samples_3d: (256, 256),
-            point_style: '.',
+            point_style: 0,
             lines: Auto::Auto,
             multi: true,
             tabbed: false,
@@ -2054,41 +2048,47 @@ fn main()
                 .split('#')
                 .map(String::from)
                 .collect();
-            if inputs.len() < 7
+            let watch = if options.debug
             {
-                let watch = if options.debug
+                Some(Instant::now())
+            }
+            else
+            {
+                None
+            };
+            if options.graph_cli
+            {
+                if options.interactive
                 {
-                    Some(Instant::now())
+                    terminal::disable_raw_mode().unwrap();
                 }
-                else
+                graph(
+                    inputs,
+                    vars.clone(),
+                    options,
+                    watch,
+                    colors.clone(),
+                    true,
+                    handles.len(),
+                )
+                .join()
+                .unwrap();
+                if options.interactive
                 {
-                    None
-                };
-                if options.graph_cli
-                {
-                    if options.interactive
-                    {
-                        terminal::disable_raw_mode().unwrap();
-                    }
-                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                        .join()
-                        .unwrap();
-                    if options.interactive
-                    {
-                        terminal::enable_raw_mode().unwrap();
-                    }
+                    terminal::enable_raw_mode().unwrap();
                 }
-                else
-                {
-                    handles.push(graph(
-                        inputs,
-                        vars.clone(),
-                        options,
-                        watch,
-                        colors.clone(),
-                        false,
-                    ));
-                }
+            }
+            else
+            {
+                handles.push(graph(
+                    inputs,
+                    vars.clone(),
+                    options,
+                    watch,
+                    colors.clone(),
+                    false,
+                    handles.len(),
+                ));
             }
         }
     }

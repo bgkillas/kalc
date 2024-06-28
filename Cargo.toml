@@ -7,7 +7,7 @@ readme = "README.md"
 keywords = ["cli", "calculator"]
 categories = ["command-line-interface", "command-line-utilities", "mathematics"]
 repository = "https://github.com/bgkillas/kalc"
-version = "1.2.2"
+version = "1.3.0"
 edition = "2021"
 
 [profile.release]
@@ -21,7 +21,6 @@ opt-level = 1
 [dependencies]
 fastrand = "2.0.2"
 rug = "1.24.1"
-gnuplot = "0.0.43"
 crossterm = "0.27.0"
 dirs = "5.0.1"
 

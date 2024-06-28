@@ -30,9 +30,6 @@ needs a modern terminal like 'windows terminal' or alacritty, alacritty has bett
 
 for graphing install gnuplot via winget or [sourceforge](https://sourceforge.net/projects/gnuplot/files/gnuplot/)
 
-kalc.exe may have to be next to gnuplot.exe for graphing, gnuplot.exe is located
-in ```C:\Program Files\gnuplot\bin\```
-
 ### macos
 
 install developer tools via ```xcode-select --install```

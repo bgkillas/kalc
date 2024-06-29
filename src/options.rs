@@ -167,7 +167,7 @@ pub fn set_commands(
     let r = s.as_str();
     match l
     {
-        "color" =>
+        "color" | "colour" =>
         {
             options.color = match r
             {
@@ -324,12 +324,12 @@ pub fn set_commands(
                 }
             }
         }
-        "graphcli" | "slowcheck" | "interactive" | "prompt" | "surface" | "rt" | "siunits"
-        | "keepzeros" | "polar" | "frac" | "fractions" | "fractionsv" | "fractionsm" | "multi"
-        | "tabbed" | "comma" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base"
-        | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
-        | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
-        | "vzr" | "2d" | "3d" =>
+        "graphcli" | "slowcheck" | "interactive" | "prompt" | "surface" | "domain_coloring"
+        | "domain_colouring" | "rt" | "siunits" | "keepzeros" | "polar" | "frac" | "fractions"
+        | "fractionsv" | "fractionsm" | "multi" | "tabbed" | "comma" | "units" | "scalegraph"
+        | "debug" | "vars" | "onaxis" | "base" | "ticks" | "decimal" | "deci" | "decimals"
+        | "graphprec" | "graphprecision" | "prec" | "windowsize" | "precision" | "range" | "xr"
+        | "yr" | "zr" | "vrange" | "vxr" | "vyr" | "vzr" | "2d" | "3d" =>
         {
             let mut args: Vec<Float> = Vec::new();
             {
@@ -393,6 +393,7 @@ pub fn set_commands(
             }
             match l
             {
+                "domain_coloring" | "domain_colouring" => options.domain_coloring = args[0] != 0.0,
                 "graphcli" => options.graph_cli = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
                 "prompt" => options.prompt = args[0] != 0.0,
@@ -935,7 +936,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "interactive" => options.stay_interactive = !options.stay_interactive,
         "scalegraph" => options.scale_graph = !options.scale_graph,
         "debug" => options.debug = !options.debug,
-        "color" =>
+        "color" | "colour" =>
         {
             options.color = match options.color
             {
@@ -946,6 +947,10 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "prompt" => options.prompt = !options.prompt,
         "onaxis" => options.onaxis = !options.onaxis,
         "surface" => options.surface = !options.surface,
+        "domain_coloring" | "domain_colouring" =>
+        {
+            options.domain_coloring = !options.domain_coloring
+        }
         "rt" => options.real_time_output = !options.real_time_output,
         "siunits" => options.si_units = !options.si_units,
         "keepzeros" => options.keep_zeros = !options.keep_zeros,
@@ -994,7 +999,7 @@ pub fn commands(options: &mut Options, lines: &[String], input: &[char], stdout:
             stdout.flush().unwrap();
             options.scale_graph = !options.scale_graph
         }
-        "color" =>
+        "color" | "colour" =>
         {
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
@@ -1015,6 +1020,12 @@ pub fn commands(options: &mut Options, lines: &[String], input: &[char], stdout:
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.onaxis = !options.onaxis;
+        }
+        "domain_coloring" | "domain_colouring" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.domain_coloring = !options.domain_coloring;
         }
         "surface" =>
         {
@@ -1283,13 +1294,14 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         }
         "slowcheck" => format!("{}", options.slowcheck),
         "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),
-        "color" => (match options.color
+        "color" | "colour" => (match options.color
         {
             Auto::Auto => "auto",
             Auto::False => "false",
             Auto::True => "true",
         })
         .to_string(),
+        "domain_coloring" | "domain_colouring" => format!("{}", options.domain_coloring),
         "surface" => format!("{}", options.surface),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),

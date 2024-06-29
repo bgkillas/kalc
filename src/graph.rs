@@ -26,7 +26,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-//TODO domain coloring
 #[allow(clippy::type_complexity)]
 pub fn graph(
     mut input: Vec<String>,
@@ -386,11 +385,11 @@ pub fn graph(
             {
                 writeln!(stdin, "set zrange [{:e}:{:e}]", options.zr.0, options.zr.1).unwrap();
             }
-            writeln!(stdin, "set xlabel \"{}\"", colors.label.0).unwrap();
-            writeln!(stdin, "set ylabel \"{}\"", colors.label.1).unwrap();
+            writeln!(stdin, "set xlabel '{}'", colors.label.0).unwrap();
+            writeln!(stdin, "set ylabel '{}'", colors.label.1).unwrap();
             if d2_or_d3.1
             {
-                writeln!(stdin, "set zlabel \"{}\"", colors.label.2).unwrap();
+                writeln!(stdin, "set zlabel '{}'", colors.label.2).unwrap();
             }
             if options.ticks.0 == -1.0
             {
@@ -443,7 +442,10 @@ pub fn graph(
                     .unwrap();
                 }
             }
-            writeln!(stdin, "set grid").unwrap();
+            if d2_or_d3.0
+            {
+                writeln!(stdin, "set grid").unwrap();
+            }
         }
         if !colors.graphtofile.is_empty()
         {
@@ -455,11 +457,42 @@ pub fn graph(
             .unwrap();
             if colors.graphtofile == *"-"
             {
-                writeln!(stdin, "set output '{base_dir}/kalc-temp.png'").unwrap();
+                writeln!(stdin, "set output'{base_dir}/kalc-temp.png'").unwrap();
             }
             else
             {
-                writeln!(stdin, "set output '{}'", colors.graphtofile).unwrap();
+                writeln!(stdin, "set output'{}'", colors.graphtofile).unwrap();
+            }
+        }
+        writeln!(stdin, "set xlabel'{}'", colors.label.0).unwrap();
+        writeln!(stdin, "set ylabel'{}'", colors.label.1).unwrap();
+        writeln!(stdin, "set zlabel'{}'", colors.label.2).unwrap();
+        if options.surface || options.domain_coloring
+        {
+            writeln!(stdin, "set palette model HSV").unwrap();
+            writeln!(stdin, "set palette defined ( 0 0 1 1, 1 1 1 1 )").unwrap();
+            if options.domain_coloring
+            {
+                writeln!(stdin, "set title'{}'", cap[0]).unwrap();
+                writeln!(stdin, "set xlabel're(z)'").unwrap();
+                writeln!(stdin, "set ylabel'im(z)'").unwrap();
+                writeln!(stdin, "set view map").unwrap();
+                writeln!(stdin, "unset key").unwrap();
+                writeln!(stdin, "unset zrange").unwrap();
+                writeln!(stdin, "set xtics border scale 0,0").unwrap();
+                writeln!(stdin, "set ytics border scale 0,0").unwrap();
+                writeln!(stdin, "set cbtics border scale 0,0").unwrap();
+                writeln!(
+                    stdin,
+                    "set cbtics ('-pi' -3.14159265359, 'pi' 3.14159265359)"
+                )
+                .unwrap();
+                writeln!(stdin, "set cblabel 'arg(f(z))'").unwrap();
+                writeln!(stdin, "set cbrange [-3.14159265359:3.14159265359]").unwrap();
+            }
+            else
+            {
+                writeln!(stdin, "set palette model HSV").unwrap();
             }
         }
         {
@@ -495,19 +528,27 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
-                        if func[n].2.surface&&d2_or_d3.1
+                        if options.domain_coloring
+                            {
+                        format!(
+                            "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d",
+                            f,options.samples_3d.0+1,options.samples_3d.1+1,
+                                    options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64
+                        )
+                            }
+                        else if func[n].2.surface&&d2_or_d3.1
                         {
                                 format!(
-                            " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little array=({},{}) format=\"%float64\"origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc\"{}\"t\"\"",
-                            col, cap[j], f,options.samples_3d.0+1,options.samples_3d.1+1,
+                            "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d t\"{}\"",
+                             f,options.samples_3d.0+1,options.samples_3d.1+1,
                                     options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64
-                                ,col)
+                                ,cap[j])
                         }else if lines[n]
                         {
                             if records[n]==0
                             {
                             format!(
-                            " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little array={} format=\"%float64\"origin={} with linespoints pt {} lc\"{}\"t\"\"",
+                            " NaN with lines lc'{}'t\"{}\",'{}'binary endian=little array={} format='%float64'origin={} with linespoints pt {} lc'{}'t''",
                             col, cap[j], f,
                                 if d2_or_d3.1
                             {
@@ -518,12 +559,12 @@ pub fn graph(
                                 ,func[n].2.point_style, col)
                             }else if func[n].2.point_style == 0
                             {
-                                format!("'{}'binary endian=little record={} format=\"%float64\"with lines lc\"{}\"t\"{}\"", f,records[j], col, cap[j])
+                                format!("'{}'binary endian=little record={} format='%float64'with lines lc'{}'t\"{}\"", f,records[j], col, cap[j])
                             }
                             else
                             {
                                 format!(
-                                    " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with linespoints pt {} lc\"{}\"t\"\"",
+                                    " NaN with lines lc'{}'t\"{}\",'{}'binary endian=little record={} format='%float64'with linespoints pt {} lc'{}'t''",
                                      col, cap[j],f,records[n], func[n].2.point_style, col
                                 )
                             }
@@ -531,7 +572,7 @@ pub fn graph(
                         else  if records[j]==0
                             {
                             format!(
-                            " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little array={} format=\"%float64\"origin={} with points pt {} lc\"{}\"t\"\"",
+                            " NaN with lines lc'{}'t\"{}\",'{}'binary endian=little array={} format='%float64'origin={} with points pt {} lc'{}'t''",
                             col, cap[j], f,
                                 if d2_or_d3.1
                             {
@@ -544,7 +585,7 @@ pub fn graph(
                         else
                         {
                             format!(
-                            " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with points pt {} lc\"{}\"t\"\"",
+                            " NaN with lines lc'{}'t\"{}\",'{}'binary endian=little record={} format='%float64'with points pt {} lc'{}'t''",
                             col, cap[j], f,records[j],func[n].2.point_style, col
                         )
                         }
@@ -1067,61 +1108,69 @@ pub fn get_list_3d(
                 Ok(Num(num)) =>
                 {
                     let num = num.number;
-                    let mut r = 0.0;
-                    let mut i = 0.0;
-                    let re = num.real().is_finite();
-                    let ri = num.imag().is_finite();
-                    if re
+                    if func.2.domain_coloring
                     {
-                        nan = false;
-                        r = num.real().to_f64();
-                        if !zero.0 && ((r * 1e8).round() / 1e8 != 0.0)
-                        {
-                            zero.0 = true
-                        }
-                        if func.2.graphtype == Normal
-                        {
-                            reals.push((n, f, r));
-                        }
+                        real.write_all(&num.arg().real().to_f64().to_le_bytes())
+                            .unwrap()
                     }
                     else
                     {
-                        reals.push((n, f, f64::INFINITY));
-                    }
-                    if ri
-                    {
-                        nan = false;
-                        i = num.imag().to_f64();
-                        if !zero.1 && ((i * 1e8).round() / 1e8 != 0.0)
+                        let mut r = 0.0;
+                        let mut i = 0.0;
+                        let re = num.real().is_finite();
+                        let ri = num.imag().is_finite();
+                        if re
                         {
-                            zero.1 = true
+                            nan = false;
+                            r = num.real().to_f64();
+                            if !zero.0 && ((r * 1e8).round() / 1e8 != 0.0)
+                            {
+                                zero.0 = true
+                            }
+                            if func.2.graphtype == Normal
+                            {
+                                reals.push((n, f, r));
+                            }
                         }
-                        if func.2.graphtype == Normal
+                        else
                         {
-                            imags.push((n, f, r));
+                            reals.push((n, f, f64::INFINITY));
                         }
-                    }
-                    else
-                    {
-                        imags.push((n, f, f64::INFINITY));
-                    }
-                    if re && ri
-                    {
-                        if func.2.graphtype == Flat
+                        if ri
                         {
-                            rec_re += 1;
-                            zero.1 = false;
-                            real.write_all(&n.to_le_bytes()).unwrap();
-                            real.write_all(&r.to_le_bytes()).unwrap();
-                            real.write_all(&i.to_le_bytes()).unwrap();
+                            nan = false;
+                            i = num.imag().to_f64();
+                            if !zero.1 && ((i * 1e8).round() / 1e8 != 0.0)
+                            {
+                                zero.1 = true
+                            }
+                            if func.2.graphtype == Normal
+                            {
+                                imags.push((n, f, i));
+                            }
                         }
-                        else if func.2.graphtype == Depth
+                        else
                         {
-                            rec_re += 1;
-                            zero.1 = false;
-                            real.write_all(&f.to_le_bytes()).unwrap();
-                            real.write_all(&r.to_le_bytes()).unwrap();
-                            real.write_all(&i.to_le_bytes()).unwrap();
+                            imags.push((n, f, f64::INFINITY));
+                        }
+                        if re && ri
+                        {
+                            if func.2.graphtype == Flat
+                            {
+                                rec_re += 1;
+                                zero.1 = false;
+                                real.write_all(&n.to_le_bytes()).unwrap();
+                                real.write_all(&r.to_le_bytes()).unwrap();
+                                real.write_all(&i.to_le_bytes()).unwrap();
+                            }
+                            else if func.2.graphtype == Depth
+                            {
+                                rec_re += 1;
+                                zero.1 = false;
+                                real.write_all(&f.to_le_bytes()).unwrap();
+                                real.write_all(&r.to_le_bytes()).unwrap();
+                                real.write_all(&i.to_le_bytes()).unwrap();
+                            }
                         }
                     }
                 }
@@ -1322,54 +1371,61 @@ pub fn get_list_3d(
             }
         }
     }
-    if no_opt_re
+    if func.2.domain_coloring
     {
-        rec_re += reals.len();
-        for (x, y, z) in reals
-        {
-            real.write_all(&x.to_le_bytes()).unwrap();
-            real.write_all(&y.to_le_bytes()).unwrap();
-            real.write_all(&z.to_le_bytes()).unwrap();
-        }
-    }
-    else
-    {
-        for (_, _, z) in reals
-        {
-            real.write_all(&z.to_le_bytes()).unwrap();
-        }
-    }
-    if no_opt_im
-    {
-        rec_im += imags.len();
-        for (x, y, z) in imags
-        {
-            imag.write_all(&x.to_le_bytes()).unwrap();
-            imag.write_all(&y.to_le_bytes()).unwrap();
-            imag.write_all(&z.to_le_bytes()).unwrap();
-        }
-    }
-    else
-    {
-        for (_, _, z) in imags
-        {
-            imag.write_all(&z.to_le_bytes()).unwrap();
-        }
-    }
-    if nan
-    {
-        fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
         fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
     }
     else
     {
-        if !zero.0 && zero.1
+        if no_opt_re
+        {
+            rec_re += reals.len();
+            for (x, y, z) in reals
+            {
+                real.write_all(&x.to_le_bytes()).unwrap();
+                real.write_all(&y.to_le_bytes()).unwrap();
+                real.write_all(&z.to_le_bytes()).unwrap();
+            }
+        }
+        else
+        {
+            for (_, _, z) in reals
+            {
+                real.write_all(&z.to_le_bytes()).unwrap();
+            }
+        }
+        if no_opt_im
+        {
+            rec_im += imags.len();
+            for (x, y, z) in imags
+            {
+                imag.write_all(&x.to_le_bytes()).unwrap();
+                imag.write_all(&y.to_le_bytes()).unwrap();
+                imag.write_all(&z.to_le_bytes()).unwrap();
+            }
+        }
+        else
+        {
+            for (_, _, z) in imags
+            {
+                imag.write_all(&z.to_le_bytes()).unwrap();
+            }
+        }
+        if nan
         {
             fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
-        }
-        if !zero.1
-        {
             fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+        }
+        else
+        {
+            if !zero.0 && zero.1
+            {
+                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+            }
+            if !zero.1
+            {
+                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+            }
         }
     }
     (zero, d2, rec_re, rec_im)

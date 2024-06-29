@@ -426,6 +426,7 @@ pub fn print_concurrent(
                     | "line"
                     | "lines"
                     | "color"
+                    | "colour"
             )
             {
                 print!(

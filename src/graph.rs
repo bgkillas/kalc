@@ -16,7 +16,7 @@ use crate::{
     GraphType::{Depth, Flat, Normal},
     HowGraphing, Number, Options, Variable,
 };
-use rug::Complex;
+use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
 use std::{
     fs,
     fs::File,
@@ -487,12 +487,8 @@ pub fn graph(
                     "set cbtics ('-pi' -3.14159265359, 'pi' 3.14159265359)"
                 )
                 .unwrap();
-                writeln!(stdin, "set cblabel 'arg(f(z))'").unwrap();
+                writeln!(stdin, "set cblabel 'phase angle'").unwrap();
                 writeln!(stdin, "set cbrange [-3.14159265359:3.14159265359]").unwrap();
-            }
-            else
-            {
-                writeln!(stdin, "set palette model HSV").unwrap();
             }
         }
         {
@@ -531,7 +527,7 @@ pub fn graph(
                         if options.domain_coloring
                             {
                         format!(
-                            "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d",
+                            "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
                             f,options.samples_3d.0+1,options.samples_3d.1+1,
                                     options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64
                         )
@@ -1088,6 +1084,15 @@ pub fn get_list_3d(
     let mut imags = Vec::new();
     let mut no_opt_re = false;
     let mut no_opt_im = false;
+    let pi: Float = if func.2.domain_coloring
+    {
+        Float::with_val(func.2.prec, Pi)
+    }
+    else
+    {
+        Float::new(func.2.prec)
+    };
+    let tau: Float = 2 * pi.clone();
     for i in 0..=func.2.samples_3d.1
     {
         let n = func.2.yr.0 + i as f64 * den_y_range;
@@ -1110,8 +1115,17 @@ pub fn get_list_3d(
                     let num = num.number;
                     if func.2.domain_coloring
                     {
-                        real.write_all(&num.arg().real().to_f64().to_le_bytes())
-                            .unwrap()
+                        let hue: Float = 6 * (-num.clone()).arg().real().clone() / &tau + 3;
+                        let za: Float = num.clone().abs().real().clone();
+                        let sat: Float = (1 - za.clone().floor() + &za) / 2;
+                        let val: Float = {
+                            let np = num * &pi;
+                            let t1: Float = np.clone().real().clone().sin();
+                            let t2: Float = np.clone().imag().clone().sin();
+                            (t1 * t2).abs().pow(0.1)
+                        };
+                        real.write_all(&hsv2rgb(hue, sat, val).to_le_bytes())
+                            .unwrap();
                     }
                     else
                     {
@@ -1830,4 +1844,54 @@ fn get_data(
         }
         (d2_or_d3, re_or_im, lines, false, rec_re, rec_im)
     })
+}
+fn hsv2rgb(hue: Float, sat: Float, val: Float) -> f64
+{
+    if sat.is_zero()
+    {
+        return rgb2val(val.clone(), val.clone(), val);
+    }
+    let i = hue
+        .clone()
+        .floor()
+        .to_integer()
+        .unwrap_or_default()
+        .to_usize()
+        .unwrap_or_default();
+    let f = hue - i;
+    let p = val.clone() * (1 - sat.clone());
+    let q = val.clone() * (1 - sat.clone() * f.clone());
+    let t = val.clone() * (1 - sat * (1 - f));
+    match i % 6
+    {
+        0 => rgb2val(val, t, p),
+        1 => rgb2val(q, val, p),
+        2 => rgb2val(p, val, t),
+        3 => rgb2val(p, q, val),
+        4 => rgb2val(t, p, val),
+        5 => rgb2val(val, p, q),
+        _ => rgb2val(val.clone(), p, q),
+    }
+}
+fn rgb2val(r: Float, g: Float, b: Float) -> f64
+{
+    let r: Float = 255 * r;
+    let g: Float = 255 * g;
+    let b: Float = 255 * b;
+    let v: usize = (r
+        .to_integer()
+        .unwrap_or_default()
+        .to_usize()
+        .unwrap_or_default()
+        << 16)
+        + (g.to_integer()
+            .unwrap_or_default()
+            .to_usize()
+            .unwrap_or_default()
+            << 8)
+        + b.to_integer()
+            .unwrap_or_default()
+            .to_usize()
+            .unwrap_or_default();
+    v as f64
 }

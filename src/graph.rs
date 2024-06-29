@@ -179,18 +179,15 @@ pub fn graph(
         let mut cap: Vec<String> = Vec::new();
         let mut d2_or_d3 = (false, false);
         let mut handles = Vec::new();
-        let data_dir = &if cfg!(unix)
+        let base_dir = if cfg!(unix)
         {
-            format!("/tmp/kalc{}", fastrand::u32(..))
+            "/tmp"
         }
         else
         {
-            format!(
-                "{}/kalc/{}",
-                dirs::cache_dir().unwrap().to_str().unwrap().to_owned(),
-                fastrand::u32(..),
-            )
+            &dirs::cache_dir().unwrap().to_str().unwrap().to_owned()
         };
+        let data_dir = &(base_dir.to_owned() + "/kalc" + &fastrand::u32(..).to_string());
         if fs::read_dir(data_dir).is_ok()
         {
             fs::remove_dir_all(data_dir).unwrap();
@@ -398,6 +395,23 @@ pub fn graph(
             }
             writeln!(stdin, "set grid").unwrap();
         }
+        if !colors.graphtofile.is_empty()
+        {
+            writeln!(
+                stdin,
+                "set terminal pngcairo size {}, {}",
+                options.window_size.0, options.window_size.1
+            )
+            .unwrap();
+            if colors.graphtofile == *"-"
+            {
+                writeln!(stdin, "set output '{base_dir}/kalc-temp.png'").unwrap();
+            }
+            else
+            {
+                writeln!(stdin, "set output '{}'", colors.graphtofile).unwrap();
+            }
+        }
         {
             let mut paths: Vec<_> = fs::read_dir(data_dir)
                 .unwrap()
@@ -460,11 +474,22 @@ pub fn graph(
         }
         writeln!(stdin, "pause mouse close").unwrap();
         stdin.flush().unwrap();
-        if let Some(time) = watch
+        if colors.graphtofile != "-"
         {
-            println!("\x1b[G\x1b[K{}ms\x1b[G", time.elapsed().as_millis());
+            if let Some(time) = watch
+            {
+                println!("\x1b[G\x1b[K{}ms\x1b[G", time.elapsed().as_millis());
+            }
         }
         gnuplot.wait().unwrap();
+        if colors.graphtofile == "-"
+        {
+            if let Ok(n) = fs::read(base_dir.to_owned() + "/kalc-temp.png")
+            {
+                stdout().lock().write_all(&n).unwrap();
+                fs::remove_file(base_dir.to_owned() + "/kalc-temp.png").unwrap()
+            }
+        }
         if fs::read_dir(data_dir).is_ok()
         {
             fs::remove_dir_all(data_dir).unwrap();

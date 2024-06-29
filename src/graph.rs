@@ -196,7 +196,7 @@ pub fn graph(
         {
             &dirs::cache_dir().unwrap().to_str().unwrap().to_owned()
         };
-        let data_dir = &(base_dir.to_owned() + "/kalc" + &fastrand::u32(..).to_string());
+        let data_dir = &(base_dir.to_owned() + "/kalc/" + &fastrand::u64(..).to_string());
         if fs::read_dir(data_dir).is_ok()
         {
             fs::remove_dir_all(data_dir).unwrap();

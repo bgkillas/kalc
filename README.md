@@ -112,7 +112,7 @@ FLAGS: --help (this message)
 --interactive/-i allows interaction after finishing the equations given
 --units toggles units
 --notation=e/E/s/n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300
---graph=normal/depth/flat/none changes how a function is graphed
+--graph=normal/domain/depth/flat/none changes how a function is graphed, domain/depth/flat relate to complex graphs
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --angle=deg/rad/grad sets your angletype
 --2d=[num] number of points to graph in 2D, 2d=-1 for integer placements
@@ -149,7 +149,6 @@ FLAGS: --help (this message)
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'
 --keepzeros dont remove trailing zeros
---domain_coloring graph a function via domain coloring
 
 - flags can be executed in runtime just without the dashes
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0

@@ -7,7 +7,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --interactive/-i allows interaction after finishing the equations given\x1b[G\n\
 --units toggles units\x1b[G\n\
 --notation=e/E/s/n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300\x1b[G\n\
---graph=normal/depth/flat/none changes how a function is graphed\x1b[G\n\
+--graph=normal/domain/depth/flat/none changes how a function is graphed, domain/depth/flat relate to complex graphs\x1b[G\n\
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis\x1b[G\n\
 --angle=deg/rad/grad sets your angletype\x1b[G\n\
 --2d=[num] number of points to graph in 2D, 2d=-1 for integer placements\x1b[G\n\

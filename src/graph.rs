@@ -467,11 +467,11 @@ pub fn graph(
         writeln!(stdin, "set xlabel'{}'", colors.label.0).unwrap();
         writeln!(stdin, "set ylabel'{}'", colors.label.1).unwrap();
         writeln!(stdin, "set zlabel'{}'", colors.label.2).unwrap();
-        if options.surface || options.domain_coloring
+        if options.surface || options.graphtype == GraphType::Domain
         {
             writeln!(stdin, "set palette model HSV").unwrap();
             writeln!(stdin, "set palette defined ( 0 0 1 1, 1 1 1 1 )").unwrap();
-            if options.domain_coloring
+            if options.graphtype == GraphType::Domain
             {
                 writeln!(stdin, "set title'{}'", cap[0]).unwrap();
                 writeln!(stdin, "set xlabel're(z)'").unwrap();
@@ -524,7 +524,7 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
-                        if options.domain_coloring
+                        if options.graphtype==GraphType::Domain
                             {
                         format!(
                             "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
@@ -1084,7 +1084,7 @@ pub fn get_list_3d(
     let mut imags = Vec::new();
     let mut no_opt_re = false;
     let mut no_opt_im = false;
-    let pi: Float = if func.2.domain_coloring
+    let pi: Float = if func.2.graphtype == GraphType::Domain
     {
         Float::with_val(func.2.prec, Pi)
     }
@@ -1113,7 +1113,7 @@ pub fn get_list_3d(
                 Ok(Num(num)) =>
                 {
                     let num = num.number;
-                    if func.2.domain_coloring
+                    if func.2.graphtype == GraphType::Domain
                     {
                         let hue: Float = 6 * (-num.clone()).arg().real().clone() / &tau + 3;
                         let za: Float = num.clone().abs().real().clone();
@@ -1385,7 +1385,7 @@ pub fn get_list_3d(
             }
         }
     }
-    if func.2.domain_coloring
+    if func.2.graphtype == GraphType::Domain
     {
         fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
     }

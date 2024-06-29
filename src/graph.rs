@@ -159,6 +159,14 @@ pub fn graph(
                 .spawn()
                 .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
         }
+        else if cfg!(debug_assertions)
+        {
+            Command::new("gnuplot")
+                .arg("-p")
+                .stdin(Stdio::piped())
+                .spawn()
+                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
+        }
         else
         {
             Command::new("gnuplot")
@@ -458,6 +466,14 @@ pub fn graph(
                                      col, cap[j],f,records[n], func[n].2.point_style, col
                                 )
                             }
+                        }
+                        else if func[n].2.surface&&d2_or_d3.1
+                        {
+                                format!(
+                            " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little array=({},{}) format=\"%float64\" origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc\"{}\"t\"\"",
+                            col, cap[j], f,options.samples_3d.0+1,options.samples_3d.1+1,
+                                    options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/(options.samples_3d.0+1) as f64,(options.yr.1-options.yr.0)/(options.samples_3d.1+1) as f64
+                                ,col)
                         }
                         else
                         {
@@ -953,8 +969,11 @@ pub fn get_list_3d(
                         }
                         if func.2.graphtype == Normal
                         {
-                            real.write_all(&n.to_le_bytes()).unwrap();
-                            real.write_all(&f.to_le_bytes()).unwrap();
+                            if !func.2.surface
+                            {
+                                real.write_all(&n.to_le_bytes()).unwrap();
+                                real.write_all(&f.to_le_bytes()).unwrap();
+                            }
                             real.write_all(&r.to_le_bytes()).unwrap();
                         }
                     }
@@ -968,8 +987,11 @@ pub fn get_list_3d(
                         }
                         if func.2.graphtype == Normal
                         {
-                            imag.write_all(&n.to_le_bytes()).unwrap();
-                            imag.write_all(&f.to_le_bytes()).unwrap();
+                            if !func.2.surface
+                            {
+                                imag.write_all(&n.to_le_bytes()).unwrap();
+                                imag.write_all(&f.to_le_bytes()).unwrap();
+                            }
                             imag.write_all(&i.to_le_bytes()).unwrap();
                         }
                     }
@@ -1017,8 +1039,11 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    real.write_all(&n.to_le_bytes()).unwrap();
-                                    real.write_all(&f.to_le_bytes()).unwrap();
+                                    if !func.2.surface
+                                    {
+                                        real.write_all(&n.to_le_bytes()).unwrap();
+                                        real.write_all(&f.to_le_bytes()).unwrap();
+                                    }
                                     real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                             }
@@ -1032,8 +1057,11 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    imag.write_all(&n.to_le_bytes()).unwrap();
-                                    imag.write_all(&f.to_le_bytes()).unwrap();
+                                    if !func.2.surface
+                                    {
+                                        imag.write_all(&n.to_le_bytes()).unwrap();
+                                        imag.write_all(&f.to_le_bytes()).unwrap();
+                                    }
                                     imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
@@ -1134,8 +1162,11 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    real.write_all(&n.to_le_bytes()).unwrap();
-                                    real.write_all(&f.to_le_bytes()).unwrap();
+                                    if !func.2.surface
+                                    {
+                                        real.write_all(&n.to_le_bytes()).unwrap();
+                                        real.write_all(&f.to_le_bytes()).unwrap();
+                                    }
                                     real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                             }
@@ -1149,8 +1180,11 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    imag.write_all(&n.to_le_bytes()).unwrap();
-                                    imag.write_all(&f.to_le_bytes()).unwrap();
+                                    if !func.2.surface
+                                    {
+                                        imag.write_all(&n.to_le_bytes()).unwrap();
+                                        imag.write_all(&f.to_le_bytes()).unwrap();
+                                    }
                                     imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }

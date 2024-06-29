@@ -34,7 +34,6 @@ pub fn graph(
     watch: Option<Instant>,
     mut colors: Colors,
     cli: bool,
-    instance: usize,
 ) -> JoinHandle<()>
 {
     thread::spawn(move || {
@@ -182,13 +181,15 @@ pub fn graph(
         let mut handles = Vec::new();
         let data_dir = &if cfg!(unix)
         {
-            "/tmp/kalc/".to_owned() + &instance.to_string()
+            format!("/tmp/kalc{}", fastrand::u32(..))
         }
         else
         {
-            dirs::cache_dir().unwrap().to_str().unwrap().to_owned()
-                + "/kalc/"
-                + &instance.to_string()
+            format!(
+                "{}/kalc/{}",
+                dirs::cache_dir().unwrap().to_str().unwrap().to_owned(),
+                fastrand::u32(..),
+            )
         };
         if fs::read_dir(data_dir).is_ok()
         {
@@ -207,6 +208,7 @@ pub fn graph(
         }
         let mut i = 0;
         let mut lines = Vec::new();
+        let mut records = Vec::new();
         #[allow(clippy::explicit_counter_loop)]
         for handle in handles
         {
@@ -214,7 +216,9 @@ pub fn graph(
             let failed;
             let dimen;
             let line;
-            (dimen, re_or_im, line, failed) = handle.join().unwrap();
+            let rec;
+            (dimen, re_or_im, line, failed, rec) = handle.join().unwrap();
+            records.push(rec);
             if failed
             {
                 return;
@@ -339,7 +343,7 @@ pub fn graph(
                 }
                 else
                 {
-                    writeln!(stdin, "set view equal xyz").unwrap();
+                    writeln!(stdin, "set view equal").unwrap();
                 }
             }
             writeln!(stdin, "set xrange [{:e}:{:e}]", options.xr.0, options.xr.1).unwrap();
@@ -427,26 +431,25 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
-                        let rec=if d2_or_d3.0{(func[n].2.samples_2d+1).to_string()}else{((func[n].2.samples_3d.0+1)*(func[n].2.samples_3d.1+1)).to_string()};
                         if lines[n]
                         {
                             if func[n].2.point_style == 0
                             {
-                                format!("'{}'binary endian=little record={} format=\"%float64\"with lines lc \"{}\"t\"{}\"", f,rec, col, cap[j])
+                                format!("'{}'binary endian=little record={} format=\"%float64\"with lines lc\"{}\"t\"{}\"", f,records[j], col, cap[j])
                             }
                             else
                             {
                                 format!(
-                                    " NaN with lines lc \"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with linespoints pt {} lc \"{}\"t\"\"",
-                                     col, cap[j],f,rec, func[n].2.point_style, col
+                                    " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with linespoints pt {} lc\"{}\"t\"\"",
+                                     col, cap[j],f,records[n], func[n].2.point_style, col
                                 )
                             }
                         }
                         else
                         {
                             format!(
-                            " NaN with lines lc \"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\" with points pt {} lc \"{}\"t\"\"",
-                            col, cap[j], f,rec,func[n].2.point_style, col
+                            " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with points pt {} lc\"{}\"t\"\"",
+                            col, cap[j], f,records[n],func[n].2.point_style, col
                         )
                         }
                     })
@@ -462,6 +465,10 @@ pub fn graph(
             println!("\x1b[G\x1b[K{}ms\x1b[G", time.elapsed().as_millis());
         }
         gnuplot.wait().unwrap();
+        if fs::read_dir(data_dir).is_ok()
+        {
+            fs::remove_dir_all(data_dir).unwrap();
+        }
     })
 }
 #[allow(clippy::type_complexity)]
@@ -475,15 +482,9 @@ pub fn get_list_2d(
     i: usize,
     data_dir: &str,
     has_x: bool,
-) -> ((bool, bool), bool)
+) -> ((bool, bool), bool, u64)
 {
-    if let Num(n) = &func.0[0]
-    {
-        if func.0.len() == 1 && n.number.is_zero()
-        {
-            return Default::default();
-        }
-    }
+    let mut rec = 0;
     let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
     let mut d3 = false;
@@ -530,6 +531,7 @@ pub fn get_list_2d(
             Ok(Num(num)) =>
             {
                 let num = num.number;
+                rec += 1;
                 if num.real().is_nan() || num.imag().is_nan()
                 {
                     continue;
@@ -607,6 +609,7 @@ pub fn get_list_2d(
                     for num in v
                     {
                         let num = num.number;
+                        rec += 1;
                         if num.real().is_nan() || num.imag().is_nan()
                         {
                             continue;
@@ -680,6 +683,7 @@ pub fn get_list_2d(
                 }
                 else if v.len() == 3
                 {
+                    rec += 1;
                     d3 = true;
                     nan = false;
                     let xr = v[0].number.real().to_f64();
@@ -709,6 +713,7 @@ pub fn get_list_2d(
                 }
                 else if v.len() == 2
                 {
+                    rec += 1;
                     nan = false;
                     let xr = v[0].number.real().to_f64();
                     let yr = v[1].number.real().to_f64();
@@ -735,6 +740,7 @@ pub fn get_list_2d(
                     for num in v
                     {
                         let num = num.number;
+                        rec += 1;
                         if num.real().is_nan() || num.imag().is_nan()
                         {
                             continue;
@@ -832,7 +838,7 @@ pub fn get_list_2d(
             fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
         }
     }
-    (zero, d3)
+    (zero, d3, rec)
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_3d(
@@ -844,16 +850,9 @@ pub fn get_list_3d(
     ),
     i: usize,
     data_dir: &str,
-) -> ((bool, bool), bool)
+) -> ((bool, bool), bool, u64)
 {
-    if let Num(n) = &func.0[0]
-    {
-        let n = &n.number;
-        if func.0.len() == 1 && n.is_zero()
-        {
-            return Default::default();
-        }
-    }
+    let mut rec = 0;
     let mut d2 = false;
     let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
@@ -910,6 +909,7 @@ pub fn get_list_3d(
                 Ok(Num(num)) =>
                 {
                     let num = num.number;
+                    rec += 1;
                     if num.real().is_nan() || num.imag().is_nan()
                     {
                         continue;
@@ -973,6 +973,7 @@ pub fn get_list_3d(
                         for num in v
                         {
                             let num = num.number;
+                            rec += 1;
                             if num.real().is_nan() || num.imag().is_nan()
                             {
                                 continue;
@@ -1032,6 +1033,7 @@ pub fn get_list_3d(
                     }
                     else if v.len() == 3
                     {
+                        rec += 1;
                         nan = false;
                         let xr = v[0].number.real().to_f64();
                         let yr = v[1].number.real().to_f64();
@@ -1060,6 +1062,7 @@ pub fn get_list_3d(
                     }
                     else if v.len() == 2
                     {
+                        rec += 1;
                         d2 = true;
                         nan = false;
                         let xr = v[0].number.real().to_f64();
@@ -1087,6 +1090,7 @@ pub fn get_list_3d(
                         for num in v
                         {
                             let num = num.number;
+                            rec += 1;
                             if num.real().is_nan() || num.imag().is_nan()
                             {
                                 continue;
@@ -1171,7 +1175,7 @@ pub fn get_list_3d(
             fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
         }
     }
-    (zero, d2)
+    (zero, d2, rec)
 }
 fn fail(options: Options, colors: &Colors, input: String)
 {
@@ -1194,9 +1198,10 @@ fn get_data(
     input: String,
     i: usize,
     data_dir: String,
-) -> JoinHandle<((bool, bool), (bool, bool), bool, bool)>
+) -> JoinHandle<((bool, bool), (bool, bool), bool, bool, u64)>
 {
     thread::spawn(move || {
+        let mut rec = 0;
         let mut lines = false;
         let mut d2_or_d3: (bool, bool) = (false, false);
         let mut re_or_im = (false, false);
@@ -1209,7 +1214,7 @@ fn get_data(
                 _ =>
                 {
                     fail(func.2, &colors, input);
-                    return ((false, false), (false, false), false, true);
+                    return ((false, false), (false, false), false, true, 0);
                 }
             }
             {
@@ -1224,6 +1229,7 @@ fn get_data(
                     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                     for i in 0..func.2.samples_2d
                     {
+                        rec += 1;
                         if re != 0.0 || im == 0.0
                         {
                             real.write_all(&(func.2.xr.0 + change * i as f64).to_le_bytes())
@@ -1254,6 +1260,7 @@ fn get_data(
                     {
                         3 =>
                         {
+                            rec += 2;
                             d2_or_d3.1 = true;
                             let xr = v[0].number.real().to_f64();
                             let yr = v[1].number.real().to_f64();
@@ -1291,34 +1298,83 @@ fn get_data(
                         2 if func.0.iter().any(|c| c.str_is("±")) =>
                         {
                             lines = false;
-                            d2_or_d3.0 = true;
-                            _ = get_list_2d(
-                                (
-                                    vec![Num(Number::from(v[0].number.clone(), None))],
-                                    Vec::new(),
-                                    func.2,
-                                    HowGraphing::default(),
-                                ),
-                                i,
-                                &data_dir,
-                                true,
-                            )
-                            .0;
-                            re_or_im = get_list_2d(
-                                (
-                                    vec![Num(Number::from(v[1].number.clone(), None))],
-                                    Vec::new(),
-                                    func.2,
-                                    HowGraphing::default(),
-                                ),
-                                i,
-                                &data_dir,
-                                true,
-                            )
-                            .0;
+                            let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                            let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
+                            {
+                                let n = v[0].number.clone();
+                                d2_or_d3.0 = true;
+                                let change = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
+                                let im = n.imag().to_f64();
+                                let re = n.real().to_f64();
+                                for i in 0..func.2.samples_2d
+                                {
+                                    rec += 1;
+                                    if re != 0.0 || im == 0.0
+                                    {
+                                        real.write_all(
+                                            &(func.2.xr.0 + change * i as f64).to_le_bytes(),
+                                        )
+                                        .unwrap();
+                                        real.write_all(&re.to_le_bytes()).unwrap();
+                                    }
+                                    if im != 0.0
+                                    {
+                                        imag.write_all(
+                                            &(func.2.xr.0 + change * i as f64).to_le_bytes(),
+                                        )
+                                        .unwrap();
+                                        imag.write_all(&im.to_le_bytes()).unwrap();
+                                    }
+                                }
+                                re_or_im = (re != 0.0 || im == 0.0, im != 0.0);
+                            }
+                            {
+                                let n = v[1].number.clone();
+                                d2_or_d3.0 = true;
+                                let change = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
+                                let im = n.imag().to_f64();
+                                let re = n.real().to_f64();
+                                for i in 0..func.2.samples_2d
+                                {
+                                    rec += 1;
+                                    if re != 0.0 || im == 0.0
+                                    {
+                                        real.write_all(
+                                            &(func.2.xr.0 + change * i as f64).to_le_bytes(),
+                                        )
+                                        .unwrap();
+                                        real.write_all(&re.to_le_bytes()).unwrap();
+                                    }
+                                    if im != 0.0
+                                    {
+                                        imag.write_all(
+                                            &(func.2.xr.0 + change * i as f64).to_le_bytes(),
+                                        )
+                                        .unwrap();
+                                        imag.write_all(&im.to_le_bytes()).unwrap();
+                                    }
+                                }
+                                if !re_or_im.0
+                                {
+                                    re_or_im.0 = re != 0.0 || im == 0.0
+                                }
+                                if !re_or_im.1
+                                {
+                                    re_or_im.1 = im != 0.0
+                                }
+                            }
+                            if !re_or_im.0 && re_or_im.1
+                            {
+                                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                            }
+                            if !re_or_im.1
+                            {
+                                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                            }
                         }
                         2 =>
                         {
+                            rec += 2;
                             d2_or_d3.0 = true;
                             let xr = v[0].number.real().to_f64();
                             let yr = v[1].number.real().to_f64();
@@ -1351,6 +1407,7 @@ fn get_data(
                             let mut zero = (false, false);
                             for (i, p) in v.iter().enumerate()
                             {
+                                rec += 1;
                                 let pr = p.number.real().to_f64();
                                 if (pr * 1e8).round() / 1e8 != 0.0
                                 {
@@ -1395,7 +1452,7 @@ fn get_data(
                             prompt(func.2, &colors)
                         );
                         stdout().flush().unwrap();
-                        return ((false, false), (false, false), false, true);
+                        return ((false, false), (false, false), false, true, 0);
                     }
                     lines = m.len() != 1;
                     match m[0].len()
@@ -1407,6 +1464,7 @@ fn get_data(
                             let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             for v in m
                             {
+                                rec += 1;
                                 let xr = v[0].number.real().to_f64();
                                 let yr = v[1].number.real().to_f64();
                                 let zr = v[2].number.real().to_f64();
@@ -1450,6 +1508,7 @@ fn get_data(
                             let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             for v in m
                             {
+                                rec += 1;
                                 let xr = v[0].number.real().to_f64();
                                 let yr = v[1].number.real().to_f64();
                                 let xi = v[0].number.imag().to_f64();
@@ -1491,7 +1550,7 @@ fn get_data(
         else if !has_y || !has_x
         {
             let d3;
-            (re_or_im, d3) = get_list_2d(func, i, &data_dir, has_x);
+            (re_or_im, d3, rec) = get_list_2d(func, i, &data_dir, has_x);
             if d3
             {
                 d2_or_d3.1 = true;
@@ -1504,7 +1563,7 @@ fn get_data(
         else
         {
             let d2;
-            (re_or_im, d2) = get_list_3d(func, i, &data_dir);
+            (re_or_im, d2, rec) = get_list_3d(func, i, &data_dir);
             if d2
             {
                 d2_or_d3.0 = true;
@@ -1514,6 +1573,6 @@ fn get_data(
                 d2_or_d3.1 = true;
             }
         }
-        (d2_or_d3, re_or_im, lines, false)
+        (d2_or_d3, re_or_im, lines, false, rec)
     })
 }

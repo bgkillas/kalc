@@ -2062,17 +2062,9 @@ fn main()
                 {
                     terminal::disable_raw_mode().unwrap();
                 }
-                graph(
-                    inputs,
-                    vars.clone(),
-                    options,
-                    watch,
-                    colors.clone(),
-                    true,
-                    handles.len(),
-                )
-                .join()
-                .unwrap();
+                graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                    .join()
+                    .unwrap();
                 if options.interactive
                 {
                     terminal::enable_raw_mode().unwrap();
@@ -2087,7 +2079,6 @@ fn main()
                     watch,
                     colors.clone(),
                     false,
-                    handles.len(),
                 ));
             }
         }

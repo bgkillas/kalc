@@ -19,7 +19,7 @@ use crate::{
 use rug::Complex;
 use std::{
     fs,
-    fs::{File, OpenOptions},
+    fs::File,
     io::{stdout, Write},
     process::{Command, Stdio},
     thread,
@@ -427,25 +427,26 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
+                        let rec=if d2_or_d3.0{(func[n].2.samples_2d+1).to_string()}else{((func[n].2.samples_3d.0+1)*(func[n].2.samples_3d.1+1)).to_string()};
                         if lines[n]
                         {
                             if func[n].2.point_style == 0
                             {
-                                format!("'{}'with lines lc \"{}\"t\"{}\"", f, col, cap[j])
+                                format!("'{}'binary endian=little record={} format=\"%float64\"with lines lc \"{}\"t\"{}\"", f,rec, col, cap[j])
                             }
                             else
                             {
                                 format!(
-                                    " NaN with lines lc \"{}\"t\"{}\",'{}'with linespoints pt {} lc \"{}\"t\"\"",
-                                     col, cap[j],f, func[n].2.point_style, col
+                                    " NaN with lines lc \"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with linespoints pt {} lc \"{}\"t\"\"",
+                                     col, cap[j],f,rec, func[n].2.point_style, col
                                 )
                             }
                         }
                         else
                         {
                             format!(
-                            " NaN with lines lc \"{}\"t\"{}\",'{}'with points pt {} lc \"{}\"t\"\"",
-                            col, cap[j], f,func[n].2.point_style, col
+                            " NaN with lines lc \"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\" with points pt {} lc \"{}\"t\"\"",
+                            col, cap[j], f,rec,func[n].2.point_style, col
                         )
                         }
                     })
@@ -483,16 +484,8 @@ pub fn get_list_2d(
             return Default::default();
         }
     }
-    File::create(format!("{data_dir}/re{i}")).unwrap();
-    let mut real = OpenOptions::new()
-        .append(true)
-        .open(format!("{data_dir}/re{i}"))
-        .unwrap();
-    File::create(format!("{data_dir}/im{i}")).unwrap();
-    let mut imag = OpenOptions::new()
-        .append(true)
-        .open(format!("{data_dir}/im{i}"))
-        .unwrap();
+    let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+    let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
     let mut d3 = false;
     let mut nan = true;
     let den_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
@@ -557,11 +550,13 @@ pub fn get_list_2d(
                     {
                         if has_x
                         {
-                            writeln!(real, "{:e} {:e}", n, r).unwrap()
+                            real.write_all(&n.to_le_bytes()).unwrap();
+                            real.write_all(&r.to_le_bytes()).unwrap();
                         }
                         else
                         {
-                            writeln!(real, "{:e} {:e}", r, n).unwrap()
+                            real.write_all(&r.to_le_bytes()).unwrap();
+                            real.write_all(&n.to_le_bytes()).unwrap();
                         }
                     }
                 }
@@ -577,11 +572,13 @@ pub fn get_list_2d(
                     {
                         if has_x
                         {
-                            writeln!(imag, "{:e} {:e}", n, i).unwrap()
+                            imag.write_all(&n.to_le_bytes()).unwrap();
+                            imag.write_all(&i.to_le_bytes()).unwrap();
                         }
                         else
                         {
-                            writeln!(imag, "{:e} {:e}", i, n).unwrap()
+                            imag.write_all(&i.to_le_bytes()).unwrap();
+                            imag.write_all(&n.to_le_bytes()).unwrap();
                         }
                     }
                 }
@@ -590,13 +587,16 @@ pub fn get_list_2d(
                     if func.2.graphtype == Flat
                     {
                         zero.1 = false;
-                        writeln!(real, "{:e} {:e}", r, i).unwrap()
+                        real.write_all(&r.to_le_bytes()).unwrap();
+                        real.write_all(&i.to_le_bytes()).unwrap();
                     }
                     else if func.2.graphtype == Depth
                     {
                         d3 = true;
                         zero.1 = false;
-                        writeln!(real, "{:e} {:e} {:e}", n, r, i).unwrap()
+                        real.write_all(&n.to_le_bytes()).unwrap();
+                        real.write_all(&r.to_le_bytes()).unwrap();
+                        real.write_all(&i.to_le_bytes()).unwrap();
                     }
                 }
             }
@@ -627,11 +627,13 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
-                                    writeln!(real, "{:e} {:e}", n, r).unwrap()
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                                 else
                                 {
-                                    writeln!(real, "{:e} {:e}", r, n).unwrap()
+                                    real.write_all(&r.to_le_bytes()).unwrap();
+                                    real.write_all(&n.to_le_bytes()).unwrap();
                                 }
                             }
                         }
@@ -647,11 +649,13 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
-                                    writeln!(imag, "{:e} {:e}", n, i).unwrap()
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
+                                    imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                                 else
                                 {
-                                    writeln!(imag, "{:e} {:e}", i, n).unwrap()
+                                    imag.write_all(&i.to_le_bytes()).unwrap();
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
                                 }
                             }
                         }
@@ -660,13 +664,16 @@ pub fn get_list_2d(
                             if func.2.graphtype == Flat
                             {
                                 zero.1 = false;
-                                writeln!(real, "{:e} {:e}", r, i).unwrap()
+                                real.write_all(&r.to_le_bytes()).unwrap();
+                                real.write_all(&i.to_le_bytes()).unwrap();
                             }
                             else if func.2.graphtype == Depth
                             {
                                 d3 = true;
                                 zero.1 = false;
-                                writeln!(real, "{:e} {:e} {:e}", n, r, i).unwrap()
+                                real.write_all(&n.to_le_bytes()).unwrap();
+                                real.write_all(&r.to_le_bytes()).unwrap();
+                                real.write_all(&i.to_le_bytes()).unwrap();
                             }
                         }
                     }
@@ -693,8 +700,12 @@ pub fn get_list_2d(
                     {
                         zero.1 = true;
                     }
-                    writeln!(real, "{:e} {:e} {:e}", xr, yr, zr).unwrap();
-                    writeln!(imag, "{:e} {:e} {:e}", xi, yi, zi).unwrap();
+                    real.write_all(&xr.to_le_bytes()).unwrap();
+                    real.write_all(&yr.to_le_bytes()).unwrap();
+                    real.write_all(&zr.to_le_bytes()).unwrap();
+                    imag.write_all(&xi.to_le_bytes()).unwrap();
+                    imag.write_all(&yi.to_le_bytes()).unwrap();
+                    imag.write_all(&zi.to_le_bytes()).unwrap();
                 }
                 else if v.len() == 2
                 {
@@ -711,8 +722,10 @@ pub fn get_list_2d(
                     {
                         zero.1 = true;
                     }
-                    writeln!(real, "{:e} {:e}", xr, yr).unwrap();
-                    writeln!(imag, "{:e} {:e}", xi, yi).unwrap();
+                    real.write_all(&xr.to_le_bytes()).unwrap();
+                    real.write_all(&yr.to_le_bytes()).unwrap();
+                    imag.write_all(&xi.to_le_bytes()).unwrap();
+                    imag.write_all(&yi.to_le_bytes()).unwrap();
                 }
             }
             Ok(Matrix(m)) =>
@@ -742,11 +755,13 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
-                                    writeln!(real, "{:e} {:e}", n, r).unwrap()
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                                 else
                                 {
-                                    writeln!(real, "{:e} {:e}", r, n).unwrap()
+                                    real.write_all(&r.to_le_bytes()).unwrap();
+                                    real.write_all(&n.to_le_bytes()).unwrap();
                                 }
                             }
                         }
@@ -762,11 +777,13 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
-                                    writeln!(imag, "{:e} {:e}", n, i).unwrap()
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
+                                    imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                                 else
                                 {
-                                    writeln!(imag, "{:e} {:e}", i, n).unwrap()
+                                    imag.write_all(&i.to_le_bytes()).unwrap();
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
                                 }
                             }
                         }
@@ -775,13 +792,16 @@ pub fn get_list_2d(
                             if func.2.graphtype == Flat
                             {
                                 zero.1 = false;
-                                writeln!(real, "{:e} {:e}", r, i).unwrap()
+                                real.write_all(&r.to_le_bytes()).unwrap();
+                                real.write_all(&i.to_le_bytes()).unwrap();
                             }
                             else if func.2.graphtype == Depth
                             {
                                 d3 = true;
                                 zero.1 = false;
-                                writeln!(real, "{:e} {:e} {:e}", n, r, i).unwrap()
+                                real.write_all(&n.to_le_bytes()).unwrap();
+                                real.write_all(&r.to_le_bytes()).unwrap();
+                                real.write_all(&i.to_le_bytes()).unwrap();
                             }
                         }
                     }
@@ -835,16 +855,8 @@ pub fn get_list_3d(
         }
     }
     let mut d2 = false;
-    File::create(format!("{data_dir}/re{i}")).unwrap();
-    let mut real = OpenOptions::new()
-        .append(true)
-        .open(format!("{data_dir}/re{i}"))
-        .unwrap();
-    File::create(format!("{data_dir}/im{i}")).unwrap();
-    let mut imag = OpenOptions::new()
-        .append(true)
-        .open(format!("{data_dir}/im{i}"))
-        .unwrap();
+    let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+    let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
     let den_x_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_3d.0 as f64;
     let den_y_range = (func.2.yr.1 - func.2.yr.0) / func.2.samples_3d.1 as f64;
     let mut modified: Vec<NumStr>;
@@ -916,7 +928,9 @@ pub fn get_list_3d(
                         }
                         if func.2.graphtype == Normal
                         {
-                            writeln!(real, "{:e} {:e} {:e}", n, f, r).unwrap()
+                            real.write_all(&n.to_le_bytes()).unwrap();
+                            real.write_all(&f.to_le_bytes()).unwrap();
+                            real.write_all(&r.to_le_bytes()).unwrap();
                         }
                     }
                     if ri
@@ -929,7 +943,9 @@ pub fn get_list_3d(
                         }
                         if func.2.graphtype == Normal
                         {
-                            writeln!(imag, "{:e} {:e} {:e}", n, f, i).unwrap()
+                            imag.write_all(&n.to_le_bytes()).unwrap();
+                            imag.write_all(&f.to_le_bytes()).unwrap();
+                            imag.write_all(&i.to_le_bytes()).unwrap();
                         }
                     }
                     if re && ri
@@ -937,12 +953,16 @@ pub fn get_list_3d(
                         if func.2.graphtype == Flat
                         {
                             zero.1 = false;
-                            writeln!(real, "{:e} {:e} {:e}", n, r, i).unwrap()
+                            real.write_all(&n.to_le_bytes()).unwrap();
+                            real.write_all(&r.to_le_bytes()).unwrap();
+                            real.write_all(&i.to_le_bytes()).unwrap();
                         }
                         else if func.2.graphtype == Depth
                         {
                             zero.1 = false;
-                            writeln!(real, "{:e} {:e} {:e}", f, r, i).unwrap()
+                            real.write_all(&f.to_le_bytes()).unwrap();
+                            real.write_all(&r.to_le_bytes()).unwrap();
+                            real.write_all(&i.to_le_bytes()).unwrap();
                         }
                     }
                 }
@@ -971,7 +991,9 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    writeln!(real, "{:e} {:e} {:e}", n, f, r).unwrap()
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&f.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                             }
                             if ri
@@ -984,7 +1006,9 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    writeln!(imag, "{:e} {:e} {:e}", n, f, i).unwrap()
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
+                                    imag.write_all(&f.to_le_bytes()).unwrap();
+                                    imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
                             if re && ri
@@ -992,12 +1016,16 @@ pub fn get_list_3d(
                                 if func.2.graphtype == Flat
                                 {
                                     zero.1 = false;
-                                    writeln!(real, "{:e} {:e} {:e}", n, r, i).unwrap()
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
+                                    real.write_all(&i.to_le_bytes()).unwrap();
                                 }
                                 else if func.2.graphtype == Depth
                                 {
                                     zero.1 = false;
-                                    writeln!(real, "{:e} {:e} {:e}", f, r, i).unwrap()
+                                    real.write_all(&f.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
+                                    real.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
                         }
@@ -1023,8 +1051,12 @@ pub fn get_list_3d(
                         {
                             zero.1 = true;
                         }
-                        writeln!(real, "{:e} {:e} {:e}", xr, yr, zr).unwrap();
-                        writeln!(imag, "{:e} {:e} {:e}", xi, yi, zi).unwrap();
+                        real.write_all(&xr.to_le_bytes()).unwrap();
+                        real.write_all(&yr.to_le_bytes()).unwrap();
+                        real.write_all(&zr.to_le_bytes()).unwrap();
+                        imag.write_all(&xi.to_le_bytes()).unwrap();
+                        imag.write_all(&yi.to_le_bytes()).unwrap();
+                        imag.write_all(&zi.to_le_bytes()).unwrap();
                     }
                     else if v.len() == 2
                     {
@@ -1042,8 +1074,10 @@ pub fn get_list_3d(
                         {
                             zero.1 = true;
                         }
-                        writeln!(real, "{:e} {:e}", xr, yr).unwrap();
-                        writeln!(imag, "{:e} {:e}", xi, yi).unwrap();
+                        real.write_all(&xr.to_le_bytes()).unwrap();
+                        real.write_all(&yr.to_le_bytes()).unwrap();
+                        imag.write_all(&xi.to_le_bytes()).unwrap();
+                        imag.write_all(&yi.to_le_bytes()).unwrap();
                     }
                 }
                 Ok(Matrix(m)) =>
@@ -1071,7 +1105,9 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    writeln!(real, "{:e} {:e} {:e}", n, f, r).unwrap()
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&f.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                             }
                             if ri
@@ -1084,7 +1120,9 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    writeln!(imag, "{:e} {:e} {:e}", n, f, i).unwrap()
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
+                                    imag.write_all(&f.to_le_bytes()).unwrap();
+                                    imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
                             if re && ri
@@ -1092,12 +1130,16 @@ pub fn get_list_3d(
                                 if func.2.graphtype == Flat
                                 {
                                     zero.1 = false;
-                                    writeln!(real, "{:e} {:e} {:e}", n, r, i).unwrap()
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
+                                    real.write_all(&i.to_le_bytes()).unwrap();
                                 }
                                 else if func.2.graphtype == Depth
                                 {
                                     zero.1 = false;
-                                    writeln!(real, "{:e} {:e} {:e}", f, r, i).unwrap()
+                                    real.write_all(&f.to_le_bytes()).unwrap();
+                                    real.write_all(&r.to_le_bytes()).unwrap();
+                                    real.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
                         }
@@ -1178,27 +1220,21 @@ fn get_data(
                     let change = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
                     let im = n.imag().to_f64();
                     let re = n.real().to_f64();
-                    File::create(format!("{data_dir}/re{i}")).unwrap();
-                    let mut real = OpenOptions::new()
-                        .append(true)
-                        .open(format!("{data_dir}/re{i}"))
-                        .unwrap();
-                    File::create(format!("{data_dir}/im{i}")).unwrap();
-                    let mut imag = OpenOptions::new()
-                        .append(true)
-                        .open(format!("{data_dir}/im{i}"))
-                        .unwrap();
+                    let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                    let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                     for i in 0..func.2.samples_2d
                     {
                         if re != 0.0 || im == 0.0
                         {
-                            writeln!(real, "{:e} {:e}", func.2.xr.0 + change * i as f64, re)
+                            real.write_all(&(func.2.xr.0 + change * i as f64).to_le_bytes())
                                 .unwrap();
+                            real.write_all(&re.to_le_bytes()).unwrap();
                         }
                         if im != 0.0
                         {
-                            writeln!(imag, "{:e} {:e}", func.2.xr.0 + change * i as f64, im)
+                            imag.write_all(&(func.2.xr.0 + change * i as f64).to_le_bytes())
                                 .unwrap();
+                            imag.write_all(&im.to_le_bytes()).unwrap();
                         }
                     }
                     if re == 0.0 && im != 0.0
@@ -1230,26 +1266,26 @@ fn get_data(
                                 || (zr * 1e8).round() / 1e8 != 0.0
                             {
                                 re_or_im.0 = true;
-                                File::create(format!("{data_dir}/re{i}")).unwrap();
-                                let mut real = OpenOptions::new()
-                                    .append(true)
-                                    .open(format!("{data_dir}/re{i}"))
-                                    .unwrap();
-                                writeln!(real, "{:e} {:e} {:e}", 0, 0, 0).unwrap();
-                                writeln!(real, "{:e} {:e} {:e}", xr, yr, zr).unwrap();
+                                let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                                real.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                real.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                real.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                real.write_all(&xr.to_le_bytes()).unwrap();
+                                real.write_all(&yr.to_le_bytes()).unwrap();
+                                real.write_all(&zr.to_le_bytes()).unwrap();
                             }
                             if (xi * 1e8).round() / 1e8 != 0.0
                                 || (yi * 1e8).round() / 1e8 != 0.0
                                 || (zi * 1e8).round() / 1e8 != 0.0
                             {
                                 re_or_im.1 = true;
-                                File::create(format!("{data_dir}/im{i}")).unwrap();
-                                let mut imag = OpenOptions::new()
-                                    .append(true)
-                                    .open(format!("{data_dir}/im{i}"))
-                                    .unwrap();
-                                writeln!(imag, "{:e} {:e} {:e}", 0, 0, 0).unwrap();
-                                writeln!(imag, "{:e} {:e} {:e}", xi, yi, zi).unwrap();
+                                let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
+                                imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                imag.write_all(&xi.to_le_bytes()).unwrap();
+                                imag.write_all(&yi.to_le_bytes()).unwrap();
+                                imag.write_all(&zi.to_le_bytes()).unwrap();
                             }
                         }
                         2 if func.0.iter().any(|c| c.str_is("±")) =>
@@ -1291,39 +1327,27 @@ fn get_data(
                             if (xr * 1e8).round() / 1e8 != 0.0 || (yr * 1e8).round() / 1e8 != 0.0
                             {
                                 re_or_im.0 = true;
-                                File::create(format!("{data_dir}/re{i}")).unwrap();
-                                let mut real = OpenOptions::new()
-                                    .append(true)
-                                    .open(format!("{data_dir}/re{i}"))
-                                    .unwrap();
-                                writeln!(real, "{:e} {:e}", 0, 0).unwrap();
-                                writeln!(real, "{:e} {:e}", xr, yr).unwrap();
+                                let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                                real.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                real.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                real.write_all(&xr.to_le_bytes()).unwrap();
+                                real.write_all(&yr.to_le_bytes()).unwrap();
                             }
                             if (xi * 1e8).round() / 1e8 != 0.0 || (yi * 1e8).round() / 1e8 != 0.0
                             {
                                 re_or_im.1 = true;
-                                File::create(format!("{data_dir}/im{i}")).unwrap();
-                                let mut imag = OpenOptions::new()
-                                    .append(true)
-                                    .open(format!("{data_dir}/im{i}"))
-                                    .unwrap();
-                                writeln!(imag, "{:e} {:e}", 0, 0).unwrap();
-                                writeln!(imag, "{:e} {:e}", xi, yi).unwrap();
+                                let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
+                                imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
+                                imag.write_all(&xi.to_le_bytes()).unwrap();
+                                imag.write_all(&yi.to_le_bytes()).unwrap();
                             }
                         }
                         _ =>
                         {
                             d2_or_d3.0 = true;
-                            File::create(format!("{data_dir}/re{i}")).unwrap();
-                            let mut real = OpenOptions::new()
-                                .append(true)
-                                .open(format!("{data_dir}/re{i}"))
-                                .unwrap();
-                            File::create(format!("{data_dir}/im{i}")).unwrap();
-                            let mut imag = OpenOptions::new()
-                                .append(true)
-                                .open(format!("{data_dir}/im{i}"))
-                                .unwrap();
+                            let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                            let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             let mut zero = (false, false);
                             for (i, p) in v.iter().enumerate()
                             {
@@ -1337,8 +1361,10 @@ fn get_data(
                                 {
                                     zero.1 = true
                                 }
-                                writeln!(real, "{:e} {:e}", (i + 1) as f64, pr).unwrap();
-                                writeln!(imag, "{:e} {:e}", (i + 1) as f64, pi).unwrap();
+                                real.write_all(&((i + 1) as f64).to_le_bytes()).unwrap();
+                                real.write_all(&pr.to_le_bytes()).unwrap();
+                                imag.write_all(&((i + 1) as f64).to_le_bytes()).unwrap();
+                                imag.write_all(&pi.to_le_bytes()).unwrap();
                             }
                             if !zero.0 && zero.1
                             {
@@ -1377,16 +1403,8 @@ fn get_data(
                         3 =>
                         {
                             d2_or_d3.1 = true;
-                            File::create(format!("{data_dir}/re{i}")).unwrap();
-                            let mut real = OpenOptions::new()
-                                .append(true)
-                                .open(format!("{data_dir}/re{i}"))
-                                .unwrap();
-                            File::create(format!("{data_dir}/im{i}")).unwrap();
-                            let mut imag = OpenOptions::new()
-                                .append(true)
-                                .open(format!("{data_dir}/im{i}"))
-                                .unwrap();
+                            let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                            let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             for v in m
                             {
                                 let xr = v[0].number.real().to_f64();
@@ -1402,7 +1420,6 @@ fn get_data(
                                 {
                                     re_or_im.0 = true;
                                 }
-                                writeln!(real, "{:e} {:e} {:e}", xr, yr, zr).unwrap();
                                 if !re_or_im.1
                                     && ((xi * 1e8).round() / 1e8 != 0.0
                                         || (yi * 1e8).round() / 1e8 != 0.0
@@ -1410,7 +1427,12 @@ fn get_data(
                                 {
                                     re_or_im.1 = true;
                                 }
-                                writeln!(imag, "{:e} {:e} {:e}", xi, yi, zi).unwrap();
+                                real.write_all(&xr.to_le_bytes()).unwrap();
+                                real.write_all(&yr.to_le_bytes()).unwrap();
+                                real.write_all(&zr.to_le_bytes()).unwrap();
+                                imag.write_all(&xi.to_le_bytes()).unwrap();
+                                imag.write_all(&yi.to_le_bytes()).unwrap();
+                                imag.write_all(&zi.to_le_bytes()).unwrap();
                             }
                             if !re_or_im.0
                             {
@@ -1424,16 +1446,8 @@ fn get_data(
                         2 =>
                         {
                             d2_or_d3.0 = true;
-                            File::create(format!("{data_dir}/re{i}")).unwrap();
-                            let mut real = OpenOptions::new()
-                                .append(true)
-                                .open(format!("{data_dir}/re{i}"))
-                                .unwrap();
-                            File::create(format!("{data_dir}/im{i}")).unwrap();
-                            let mut imag = OpenOptions::new()
-                                .append(true)
-                                .open(format!("{data_dir}/im{i}"))
-                                .unwrap();
+                            let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
+                            let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             for v in m
                             {
                                 let xr = v[0].number.real().to_f64();
@@ -1446,14 +1460,16 @@ fn get_data(
                                 {
                                     re_or_im.0 = true;
                                 }
-                                writeln!(real, "{:e} {:e}", xr, yr).unwrap();
                                 if !re_or_im.1
                                     && ((xi * 1e8).round() / 1e8 != 0.0
                                         || (yi * 1e8).round() / 1e8 != 0.0)
                                 {
                                     re_or_im.1 = true;
                                 }
-                                writeln!(imag, "{:e} {:e}", xi, yi).unwrap();
+                                real.write_all(&xr.to_le_bytes()).unwrap();
+                                real.write_all(&yr.to_le_bytes()).unwrap();
+                                imag.write_all(&xi.to_le_bytes()).unwrap();
+                                imag.write_all(&yi.to_le_bytes()).unwrap();
                             }
                             if !re_or_im.0
                             {

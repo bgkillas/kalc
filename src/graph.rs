@@ -222,9 +222,9 @@ pub fn graph(
             let failed;
             let dimen;
             let line;
-            let rec;
-            (dimen, re_or_im, line, failed, rec) = handle.join().unwrap();
-            records.push(rec);
+            let rec_re;
+            let rec_im;
+            (dimen, re_or_im, line, failed, rec_re, rec_im) = handle.join().unwrap();
             if failed
             {
                 return;
@@ -241,6 +241,7 @@ pub fn graph(
             );
             if re_or_im.0 || !re_or_im.1
             {
+                records.push(rec_re);
                 if re_or_im.1
                 {
                     cap.push(format!("re({})", input[i].clone().replace('`', "\\`")));
@@ -252,6 +253,7 @@ pub fn graph(
             }
             if re_or_im.1
             {
+                records.push(rec_im);
                 cap.push(format!("im({})", input[i].clone().replace('`', "\\`")));
             }
             if dimen.0
@@ -274,13 +276,22 @@ pub fn graph(
             return;
         }
         {
+            if d2_or_d3.1
+            {
+                options.onaxis = !options.onaxis
+            }
             writeln!(stdin, "set encoding utf8").unwrap();
             writeln!(stdin, "set termoption noenhanced").unwrap();
             if d2_or_d3.0
             {
                 if options.ticks.1 == -1.0
                 {
-                    writeln!(stdin, "set ytics 1 axis scale 0.5,0.5").unwrap();
+                    writeln!(
+                        stdin,
+                        "set ytics 1 axis scale 0.5,0.5 {}",
+                        if options.onaxis { "axis" } else { "border" }
+                    )
+                    .unwrap();
                 }
                 else if options.ticks.1 == 0.0
                 {
@@ -289,14 +300,25 @@ pub fn graph(
                 else if options.ticks.1 > 0.0
                 {
                     let n = (options.yr.1 - options.yr.0) / options.ticks.1;
-                    writeln!(stdin, "set ytics {:e} axis scale 0.5,0.5", n).unwrap();
+                    writeln!(
+                        stdin,
+                        "set ytics {:e} axis scale 0.5,0.5 {}",
+                        n,
+                        if options.onaxis { "axis" } else { "border" }
+                    )
+                    .unwrap();
                 }
             }
             if d2_or_d3.1
             {
                 if options.ticks.2 == -1.0
                 {
-                    writeln!(stdin, "set ztics 1 axis scale 0.5,0.5").unwrap();
+                    writeln!(
+                        stdin,
+                        "set ztics 1 axis scale 0.5,0.5 {}",
+                        if options.onaxis { "axis" } else { "border" }
+                    )
+                    .unwrap();
                 }
                 else if options.ticks.2 == 0.0
                 {
@@ -305,7 +327,13 @@ pub fn graph(
                 else if options.ticks.2 > 0.0
                 {
                     let n = (options.zr.1 - options.zr.0) / options.ticks.2;
-                    writeln!(stdin, "set ztics {:e} axis scale 0.5,0.5", n).unwrap();
+                    writeln!(
+                        stdin,
+                        "set ztics {:e} axis scale 0.5,0.5 {}",
+                        n,
+                        if options.onaxis { "axis" } else { "border" }
+                    )
+                    .unwrap();
                 }
             }
             if options.vxr.0 != 0.0 || options.vxr.1 != 0.0
@@ -364,18 +392,14 @@ pub fn graph(
             {
                 writeln!(stdin, "set zlabel \"{}\"", colors.label.2).unwrap();
             }
-            if !options.onaxis
-            {
-                writeln!(stdin, "unset xzeroaxis").unwrap();
-                writeln!(stdin, "unset yzeroaxis").unwrap();
-                if d2_or_d3.1
-                {
-                    writeln!(stdin, "unset zzeroaxis").unwrap();
-                }
-            }
             if options.ticks.0 == -1.0
             {
-                writeln!(stdin, "set xtics 1 axis scale 0.5,0.5").unwrap();
+                writeln!(
+                    stdin,
+                    "set xtics 1 axis scale 0.5,0.5 {}",
+                    if options.onaxis { "axis" } else { "border" }
+                )
+                .unwrap();
             }
             else if options.ticks.0 == 0.0
             {
@@ -384,13 +408,24 @@ pub fn graph(
             else if options.ticks.0 > 0.0
             {
                 let n = (options.xr.1 - options.xr.0) / options.ticks.0;
-                writeln!(stdin, "set xtics {:e} axis scale 0.5,0.5", n).unwrap();
+                writeln!(
+                    stdin,
+                    "set xtics {:e} axis scale 0.5,0.5 {}",
+                    n,
+                    if options.onaxis { "axis" } else { "border" }
+                )
+                .unwrap();
             }
             if d2_or_d3.1
             {
                 if options.ticks.1 == -1.0
                 {
-                    writeln!(stdin, "set ytics 1 axis scale 0.5,0.5").unwrap();
+                    writeln!(
+                        stdin,
+                        "set ytics 1 axis scale 0.5,0.5 {}",
+                        if options.onaxis { "axis" } else { "border" }
+                    )
+                    .unwrap();
                 }
                 else if options.ticks.1 == 0.0
                 {
@@ -399,7 +434,13 @@ pub fn graph(
                 else if options.ticks.1 > 0.0
                 {
                     let n = (options.yr.1 - options.yr.0) / options.ticks.1;
-                    writeln!(stdin, "set ytics {:e} axis scale 0.5,0.5", n).unwrap();
+                    writeln!(
+                        stdin,
+                        "set ytics {:e} axis scale 0.5,0.5 {}",
+                        n,
+                        if options.onaxis { "axis" } else { "border" }
+                    )
+                    .unwrap();
                 }
             }
             writeln!(stdin, "set grid").unwrap();
@@ -487,7 +528,7 @@ pub fn graph(
                                 )
                             }
                         }
-                        else  if records[n]==0
+                        else  if records[j]==0
                             {
                             format!(
                             " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little array={} format=\"%float64\"origin={} with points pt {} lc\"{}\"t\"\"",
@@ -504,7 +545,7 @@ pub fn graph(
                         {
                             format!(
                             " NaN with lines lc\"{}\"t\"{}\",'{}'binary endian=little record={} format=\"%float64\"with points pt {} lc\"{}\"t\"\"",
-                            col, cap[j], f,records[n],func[n].2.point_style, col
+                            col, cap[j], f,records[j],func[n].2.point_style, col
                         )
                         }
                     })
@@ -548,9 +589,10 @@ pub fn get_list_2d(
     i: usize,
     data_dir: &str,
     has_x: bool,
-) -> ((bool, bool), bool, u64)
+) -> ((bool, bool), bool, usize, usize)
 {
-    let mut rec = 0;
+    let mut rec_re = 0;
+    let mut rec_im = 0;
     let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
     let mut d3 = false;
@@ -584,6 +626,10 @@ pub fn get_list_2d(
             }
         })
     });
+    let mut reals = Vec::new();
+    let mut imags = Vec::new();
+    let mut no_opt_re = false;
+    let mut no_opt_im = false;
     for i in 0..=func.2.samples_2d
     {
         let n = func.2.xr.0 + i as f64 * den_range;
@@ -597,14 +643,10 @@ pub fn get_list_2d(
             Ok(Num(num)) =>
             {
                 let num = num.number;
-                if num.real().is_nan() || num.imag().is_nan()
-                {
-                    continue;
-                }
                 let mut r = 0.0;
                 let mut i = 0.0;
-                let re = !num.real().is_infinite();
-                let ri = !num.imag().is_infinite();
+                let re = num.real().is_finite();
+                let ri = num.imag().is_finite();
                 if re
                 {
                     nan = false;
@@ -617,11 +659,11 @@ pub fn get_list_2d(
                     {
                         if has_x
                         {
-                            real.write_all(&r.to_le_bytes()).unwrap();
+                            reals.push((n, r));
                         }
                         else
                         {
-                            rec += 1;
+                            rec_re += 1;
                             real.write_all(&r.to_le_bytes()).unwrap();
                             real.write_all(&n.to_le_bytes()).unwrap();
                         }
@@ -629,7 +671,7 @@ pub fn get_list_2d(
                 }
                 else if has_x
                 {
-                    real.write_all(&f64::INFINITY.to_le_bytes()).unwrap();
+                    reals.push((n, f64::INFINITY));
                 }
                 if ri
                 {
@@ -643,11 +685,11 @@ pub fn get_list_2d(
                     {
                         if has_x
                         {
-                            imag.write_all(&i.to_le_bytes()).unwrap();
+                            imags.push((n, i));
                         }
                         else
                         {
-                            rec += 1;
+                            rec_im += 1;
                             imag.write_all(&i.to_le_bytes()).unwrap();
                             imag.write_all(&n.to_le_bytes()).unwrap();
                         }
@@ -655,20 +697,20 @@ pub fn get_list_2d(
                 }
                 else if has_x
                 {
-                    imag.write_all(&f64::INFINITY.to_le_bytes()).unwrap();
+                    imags.push((n, f64::INFINITY));
                 }
                 if re && ri
                 {
                     if func.2.graphtype == Flat
                     {
-                        rec += 1;
+                        rec_re += 1;
                         zero.1 = false;
                         real.write_all(&r.to_le_bytes()).unwrap();
                         real.write_all(&i.to_le_bytes()).unwrap();
                     }
                     else if func.2.graphtype == Depth
                     {
-                        rec += 1;
+                        rec_re += 1;
                         d3 = true;
                         zero.1 = false;
                         real.write_all(&n.to_le_bytes()).unwrap();
@@ -684,17 +726,13 @@ pub fn get_list_2d(
                     for num in v
                     {
                         let num = num.number;
-                        rec += 1;
-                        if num.real().is_nan() || num.imag().is_nan()
-                        {
-                            continue;
-                        }
                         let mut r = 0.0;
                         let mut i = 0.0;
-                        let re = !num.real().is_infinite();
-                        let ri = !num.imag().is_infinite();
+                        let re = num.real().is_finite();
+                        let ri = num.imag().is_finite();
                         if re
                         {
+                            rec_re += 1;
                             nan = false;
                             r = num.real().to_f64();
                             if !zero.0 && ((r * 1e8).round() / 1e8 != 0.0)
@@ -705,6 +743,7 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
+                                    no_opt_re = true;
                                     real.write_all(&n.to_le_bytes()).unwrap();
                                     real.write_all(&r.to_le_bytes()).unwrap();
                                 }
@@ -717,6 +756,7 @@ pub fn get_list_2d(
                         }
                         if ri
                         {
+                            rec_im += 1;
                             nan = false;
                             i = num.imag().to_f64();
                             if !zero.1 && ((i * 1e8).round() / 1e8 != 0.0)
@@ -727,6 +767,7 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
+                                    no_opt_re = true;
                                     imag.write_all(&n.to_le_bytes()).unwrap();
                                     imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
@@ -758,7 +799,8 @@ pub fn get_list_2d(
                 }
                 else if v.len() == 3
                 {
-                    rec += 1;
+                    rec_re += 1;
+                    rec_im += 1;
                     d3 = true;
                     nan = false;
                     let xr = v[0].number.real().to_f64();
@@ -790,7 +832,8 @@ pub fn get_list_2d(
                 }
                 else if v.len() == 2
                 {
-                    rec += 1;
+                    rec_re += 1;
+                    rec_im += 1;
                     nan = false;
                     let xr = v[0].number.real().to_f64();
                     let yr = v[1].number.real().to_f64();
@@ -818,16 +861,12 @@ pub fn get_list_2d(
                 {
                     for num in v
                     {
+                        rec_re += 1;
                         let num = num.number;
-                        rec += 1;
-                        if num.real().is_nan() || num.imag().is_nan()
-                        {
-                            continue;
-                        }
                         let mut r = 0.0;
                         let mut i = 0.0;
-                        let re = !num.real().is_infinite();
-                        let ri = !num.imag().is_infinite();
+                        let re = num.real().is_finite();
+                        let ri = num.imag().is_finite();
                         if re
                         {
                             nan = false;
@@ -840,6 +879,7 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
+                                    no_opt_re = true;
                                     real.write_all(&n.to_le_bytes()).unwrap();
                                     real.write_all(&r.to_le_bytes()).unwrap();
                                 }
@@ -852,6 +892,7 @@ pub fn get_list_2d(
                         }
                         if ri
                         {
+                            rec_im += 1;
                             nan = false;
                             i = num.imag().to_f64();
                             if !zero.1 && ((i * 1e8).round() / 1e8 != 0.0)
@@ -862,6 +903,7 @@ pub fn get_list_2d(
                             {
                                 if has_x
                                 {
+                                    no_opt_im = true;
                                     imag.write_all(&n.to_le_bytes()).unwrap();
                                     imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
@@ -901,6 +943,38 @@ pub fn get_list_2d(
             {}
         }
     }
+    if no_opt_re
+    {
+        rec_re += reals.len();
+        for (x, y) in reals
+        {
+            real.write_all(&x.to_le_bytes()).unwrap();
+            real.write_all(&y.to_le_bytes()).unwrap();
+        }
+    }
+    else
+    {
+        for (_, y) in reals
+        {
+            real.write_all(&y.to_le_bytes()).unwrap();
+        }
+    }
+    if no_opt_im
+    {
+        rec_im += imags.len();
+        for (x, y) in imags
+        {
+            imag.write_all(&x.to_le_bytes()).unwrap();
+            imag.write_all(&y.to_le_bytes()).unwrap();
+        }
+    }
+    else
+    {
+        for (_, y) in imags
+        {
+            imag.write_all(&y.to_le_bytes()).unwrap();
+        }
+    }
     if nan
     {
         fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
@@ -917,7 +991,7 @@ pub fn get_list_2d(
             fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
         }
     }
-    (zero, d3, rec)
+    (zero, d3, rec_re, rec_im)
 }
 #[allow(clippy::type_complexity)]
 pub fn get_list_3d(
@@ -929,9 +1003,10 @@ pub fn get_list_3d(
     ),
     i: usize,
     data_dir: &str,
-) -> ((bool, bool), bool, u64)
+) -> ((bool, bool), bool, usize, usize)
 {
-    let mut rec = 0;
+    let mut rec_re = 0;
+    let mut rec_im = 0;
     let mut d2 = false;
     let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
@@ -968,34 +1043,34 @@ pub fn get_list_3d(
             }
         })
     });
-    for i in 0..=func.2.samples_3d.0
+    let mut reals = Vec::new();
+    let mut imags = Vec::new();
+    let mut no_opt_re = false;
+    let mut no_opt_im = false;
+    for i in 0..=func.2.samples_3d.1
     {
-        let n = func.2.xr.0 + i as f64 * den_x_range;
+        let n = func.2.yr.0 + i as f64 * den_y_range;
         let num = Num(Number::from(Complex::with_val(func.2.prec, n), None));
-        modified = place_var(func.0.clone(), "x", num.clone());
-        modifiedvars = place_funcvar(func.1.clone(), "x", num);
+        modified = place_var(func.0.clone(), "y", num.clone());
+        modifiedvars = place_funcvar(func.1.clone(), "y", num);
         simplify(&mut modified, &mut modifiedvars, func.2);
-        for g in 0..=func.2.samples_3d.1
+        for g in 0..=func.2.samples_3d.0
         {
-            let f = func.2.yr.0 + g as f64 * den_y_range;
+            let f = func.2.xr.0 + g as f64 * den_x_range;
             let num = Num(Number::from(Complex::with_val(func.2.prec, f), None));
             match do_math(
-                place_var(modified.clone(), "y", num.clone()),
+                place_var(modified.clone(), "x", num.clone()),
                 func.2,
-                place_funcvar(modifiedvars.clone(), "y", num),
+                place_funcvar(modifiedvars.clone(), "x", num),
             )
             {
                 Ok(Num(num)) =>
                 {
                     let num = num.number;
-                    if num.real().is_nan() || num.imag().is_nan()
-                    {
-                        continue;
-                    }
                     let mut r = 0.0;
                     let mut i = 0.0;
-                    let re = !num.real().is_infinite();
-                    let ri = !num.imag().is_infinite();
+                    let re = num.real().is_finite();
+                    let ri = num.imag().is_finite();
                     if re
                     {
                         nan = false;
@@ -1006,12 +1081,12 @@ pub fn get_list_3d(
                         }
                         if func.2.graphtype == Normal
                         {
-                            real.write_all(&r.to_le_bytes()).unwrap();
+                            reals.push((n, f, r));
                         }
                     }
                     else
                     {
-                        real.write_all(&f64::INFINITY.to_le_bytes()).unwrap();
+                        reals.push((n, f, f64::INFINITY));
                     }
                     if ri
                     {
@@ -1023,18 +1098,18 @@ pub fn get_list_3d(
                         }
                         if func.2.graphtype == Normal
                         {
-                            imag.write_all(&i.to_le_bytes()).unwrap();
+                            imags.push((n, f, r));
                         }
                     }
                     else
                     {
-                        imag.write_all(&f64::INFINITY.to_le_bytes()).unwrap();
+                        imags.push((n, f, f64::INFINITY));
                     }
                     if re && ri
                     {
                         if func.2.graphtype == Flat
                         {
-                            rec += 1;
+                            rec_re += 1;
                             zero.1 = false;
                             real.write_all(&n.to_le_bytes()).unwrap();
                             real.write_all(&r.to_le_bytes()).unwrap();
@@ -1042,7 +1117,7 @@ pub fn get_list_3d(
                         }
                         else if func.2.graphtype == Depth
                         {
-                            rec += 1;
+                            rec_re += 1;
                             zero.1 = false;
                             real.write_all(&f.to_le_bytes()).unwrap();
                             real.write_all(&r.to_le_bytes()).unwrap();
@@ -1057,17 +1132,13 @@ pub fn get_list_3d(
                         for num in v
                         {
                             let num = num.number;
-                            rec += 1;
-                            if num.real().is_nan() || num.imag().is_nan()
-                            {
-                                continue;
-                            }
                             let mut r = 0.0;
                             let mut i = 0.0;
-                            let re = !num.real().is_infinite();
-                            let ri = !num.imag().is_infinite();
+                            let re = num.real().is_finite();
+                            let ri = num.imag().is_finite();
                             if re
                             {
+                                rec_re += 1;
                                 nan = false;
                                 r = num.real().to_f64();
                                 if !zero.0 && ((r * 1e8).round() / 1e8 != 0.0)
@@ -1076,16 +1147,15 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    if !func.2.surface
-                                    {
-                                        real.write_all(&n.to_le_bytes()).unwrap();
-                                        real.write_all(&f.to_le_bytes()).unwrap();
-                                    }
+                                    no_opt_re = true;
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&f.to_le_bytes()).unwrap();
                                     real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                             }
                             if ri
                             {
+                                rec_im += 1;
                                 nan = false;
                                 i = num.imag().to_f64();
                                 if !zero.1 && ((i * 1e8).round() / 1e8 != 0.0)
@@ -1094,11 +1164,9 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    if !func.2.surface
-                                    {
-                                        imag.write_all(&n.to_le_bytes()).unwrap();
-                                        imag.write_all(&f.to_le_bytes()).unwrap();
-                                    }
+                                    no_opt_im = true;
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
+                                    imag.write_all(&f.to_le_bytes()).unwrap();
                                     imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
@@ -1123,7 +1191,8 @@ pub fn get_list_3d(
                     }
                     else if v.len() == 3
                     {
-                        rec += 1;
+                        rec_re += 1;
+                        rec_im += 1;
                         nan = false;
                         let xr = v[0].number.real().to_f64();
                         let yr = v[1].number.real().to_f64();
@@ -1154,7 +1223,8 @@ pub fn get_list_3d(
                     }
                     else if v.len() == 2
                     {
-                        rec += 1;
+                        rec_re += 1;
+                        rec_im += 1;
                         d2 = true;
                         nan = false;
                         let xr = v[0].number.real().to_f64();
@@ -1184,17 +1254,13 @@ pub fn get_list_3d(
                         for num in v
                         {
                             let num = num.number;
-                            rec += 1;
-                            if num.real().is_nan() || num.imag().is_nan()
-                            {
-                                continue;
-                            }
                             let mut r = 0.0;
                             let mut i = 0.0;
-                            let re = !num.real().is_infinite();
-                            let ri = !num.imag().is_infinite();
+                            let re = num.real().is_finite();
+                            let ri = num.imag().is_finite();
                             if re
                             {
+                                rec_re += 1;
                                 nan = false;
                                 r = num.real().to_f64();
                                 if !zero.0 && ((r * 1e8).round() / 1e8 != 0.0)
@@ -1203,16 +1269,15 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    if !func.2.surface
-                                    {
-                                        real.write_all(&n.to_le_bytes()).unwrap();
-                                        real.write_all(&f.to_le_bytes()).unwrap();
-                                    }
+                                    no_opt_re = true;
+                                    real.write_all(&n.to_le_bytes()).unwrap();
+                                    real.write_all(&f.to_le_bytes()).unwrap();
                                     real.write_all(&r.to_le_bytes()).unwrap();
                                 }
                             }
                             if ri
                             {
+                                rec_im += 1;
                                 nan = false;
                                 i = num.imag().to_f64();
                                 if !zero.1 && ((i * 1e8).round() / 1e8 != 0.0)
@@ -1221,11 +1286,9 @@ pub fn get_list_3d(
                                 }
                                 if func.2.graphtype == Normal
                                 {
-                                    if !func.2.surface
-                                    {
-                                        imag.write_all(&n.to_le_bytes()).unwrap();
-                                        imag.write_all(&f.to_le_bytes()).unwrap();
-                                    }
+                                    no_opt_im = true;
+                                    imag.write_all(&n.to_le_bytes()).unwrap();
+                                    imag.write_all(&f.to_le_bytes()).unwrap();
                                     imag.write_all(&i.to_le_bytes()).unwrap();
                                 }
                             }
@@ -1259,6 +1322,40 @@ pub fn get_list_3d(
             }
         }
     }
+    if no_opt_re
+    {
+        rec_re += reals.len();
+        for (x, y, z) in reals
+        {
+            real.write_all(&x.to_le_bytes()).unwrap();
+            real.write_all(&y.to_le_bytes()).unwrap();
+            real.write_all(&z.to_le_bytes()).unwrap();
+        }
+    }
+    else
+    {
+        for (_, _, z) in reals
+        {
+            real.write_all(&z.to_le_bytes()).unwrap();
+        }
+    }
+    if no_opt_im
+    {
+        rec_im += imags.len();
+        for (x, y, z) in imags
+        {
+            imag.write_all(&x.to_le_bytes()).unwrap();
+            imag.write_all(&y.to_le_bytes()).unwrap();
+            imag.write_all(&z.to_le_bytes()).unwrap();
+        }
+    }
+    else
+    {
+        for (_, _, z) in imags
+        {
+            imag.write_all(&z.to_le_bytes()).unwrap();
+        }
+    }
     if nan
     {
         fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
@@ -1275,7 +1372,7 @@ pub fn get_list_3d(
             fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
         }
     }
-    (zero, d2, rec)
+    (zero, d2, rec_re, rec_im)
 }
 fn fail(options: Options, colors: &Colors, input: String)
 {
@@ -1298,10 +1395,11 @@ fn get_data(
     input: String,
     i: usize,
     data_dir: String,
-) -> JoinHandle<((bool, bool), (bool, bool), bool, bool, u64)>
+) -> JoinHandle<((bool, bool), (bool, bool), bool, bool, usize, usize)>
 {
     thread::spawn(move || {
-        let mut rec = 0;
+        let mut rec_re = 0;
+        let mut rec_im = 0;
         let mut lines = false;
         let mut d2_or_d3: (bool, bool) = (false, false);
         let mut re_or_im = (false, false);
@@ -1314,7 +1412,7 @@ fn get_data(
                 _ =>
                 {
                     fail(func.2, &colors, input);
-                    return ((false, false), (false, false), false, true, 0);
+                    return ((false, false), (false, false), false, true, 0, 0);
                 }
             }
             {
@@ -1354,7 +1452,6 @@ fn get_data(
                     {
                         3 =>
                         {
-                            rec += 2;
                             d2_or_d3.1 = true;
                             let xr = v[0].number.real().to_f64();
                             let yr = v[1].number.real().to_f64();
@@ -1366,6 +1463,7 @@ fn get_data(
                                 || (yr * 1e8).round() / 1e8 != 0.0
                                 || (zr * 1e8).round() / 1e8 != 0.0
                             {
+                                rec_re += 2;
                                 re_or_im.0 = true;
                                 let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
                                 real.write_all(&0.0_f64.to_le_bytes()).unwrap();
@@ -1379,6 +1477,7 @@ fn get_data(
                                 || (yi * 1e8).round() / 1e8 != 0.0
                                 || (zi * 1e8).round() / 1e8 != 0.0
                             {
+                                rec_im += 2;
                                 re_or_im.1 = true;
                                 let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                                 imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
@@ -1402,9 +1501,9 @@ fn get_data(
                                 let re = n.real().to_f64();
                                 for i in 0..func.2.samples_2d
                                 {
-                                    rec += 1;
                                     if re != 0.0 || im == 0.0
                                     {
+                                        rec_re += 1;
                                         real.write_all(
                                             &(func.2.xr.0 + change * i as f64).to_le_bytes(),
                                         )
@@ -1413,6 +1512,7 @@ fn get_data(
                                     }
                                     if im != 0.0
                                     {
+                                        rec_im += 1;
                                         imag.write_all(
                                             &(func.2.xr.0 + change * i as f64).to_le_bytes(),
                                         )
@@ -1430,9 +1530,9 @@ fn get_data(
                                 let re = n.real().to_f64();
                                 for i in 0..func.2.samples_2d
                                 {
-                                    rec += 1;
                                     if re != 0.0 || im == 0.0
                                     {
+                                        rec_re += 1;
                                         real.write_all(
                                             &(func.2.xr.0 + change * i as f64).to_le_bytes(),
                                         )
@@ -1441,6 +1541,7 @@ fn get_data(
                                     }
                                     if im != 0.0
                                     {
+                                        rec_im += 1;
                                         imag.write_all(
                                             &(func.2.xr.0 + change * i as f64).to_le_bytes(),
                                         )
@@ -1468,7 +1569,6 @@ fn get_data(
                         }
                         2 =>
                         {
-                            rec += 2;
                             d2_or_d3.0 = true;
                             let xr = v[0].number.real().to_f64();
                             let yr = v[1].number.real().to_f64();
@@ -1476,6 +1576,7 @@ fn get_data(
                             let yi = v[1].number.imag().to_f64();
                             if (xr * 1e8).round() / 1e8 != 0.0 || (yr * 1e8).round() / 1e8 != 0.0
                             {
+                                rec_re += 2;
                                 re_or_im.0 = true;
                                 let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
                                 real.write_all(&0.0_f64.to_le_bytes()).unwrap();
@@ -1485,6 +1586,7 @@ fn get_data(
                             }
                             if (xi * 1e8).round() / 1e8 != 0.0 || (yi * 1e8).round() / 1e8 != 0.0
                             {
+                                rec_im += 2;
                                 re_or_im.1 = true;
                                 let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                                 imag.write_all(&0.0_f64.to_le_bytes()).unwrap();
@@ -1501,7 +1603,8 @@ fn get_data(
                             let mut zero = (false, false);
                             for (i, p) in v.iter().enumerate()
                             {
-                                rec += 1;
+                                rec_re += 1;
+                                rec_im += 1;
                                 let pr = p.number.real().to_f64();
                                 if (pr * 1e8).round() / 1e8 != 0.0
                                 {
@@ -1546,7 +1649,7 @@ fn get_data(
                             prompt(func.2, &colors)
                         );
                         stdout().flush().unwrap();
-                        return ((false, false), (false, false), false, true, 0);
+                        return ((false, false), (false, false), false, true, 0, 0);
                     }
                     lines = m.len() != 1;
                     match m[0].len()
@@ -1558,7 +1661,8 @@ fn get_data(
                             let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             for v in m
                             {
-                                rec += 1;
+                                rec_re += 1;
+                                rec_im += 1;
                                 let xr = v[0].number.real().to_f64();
                                 let yr = v[1].number.real().to_f64();
                                 let zr = v[2].number.real().to_f64();
@@ -1602,7 +1706,8 @@ fn get_data(
                             let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
                             for v in m
                             {
-                                rec += 1;
+                                rec_re += 1;
+                                rec_im += 1;
                                 let xr = v[0].number.real().to_f64();
                                 let yr = v[1].number.real().to_f64();
                                 let xi = v[0].number.imag().to_f64();
@@ -1644,7 +1749,7 @@ fn get_data(
         else if !has_y || !has_x
         {
             let d3;
-            (re_or_im, d3, rec) = get_list_2d(func, i, &data_dir, has_x);
+            (re_or_im, d3, rec_re, rec_im) = get_list_2d(func, i, &data_dir, has_x);
             if d3
             {
                 d2_or_d3.1 = true;
@@ -1657,7 +1762,7 @@ fn get_data(
         else
         {
             let d2;
-            (re_or_im, d2, rec) = get_list_3d(func, i, &data_dir);
+            (re_or_im, d2, rec_re, rec_im) = get_list_3d(func, i, &data_dir);
             if d2
             {
                 d2_or_d3.0 = true;
@@ -1667,6 +1772,6 @@ fn get_data(
                 d2_or_d3.1 = true;
             }
         }
-        (d2_or_d3, re_or_im, lines, false, rec)
+        (d2_or_d3, re_or_im, lines, false, rec_re, rec_im)
     })
 }

@@ -43,8 +43,7 @@ FLAGS: --help (this message)\x1b[G\n\
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution\x1b[G\n\
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\
---keepzeros dont remove trailing zeros\x1b[G\n\
---domain_coloring graph a function via domain coloring\x1b[G\n\n\
+--keepzeros dont remove trailing zeros\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0\x1b[G\n\
 - '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2\x1b[G\n\

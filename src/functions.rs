@@ -576,7 +576,6 @@ pub fn options_list() -> HashSet<&'static str>
         "interactive=",
         "prompt=",
         "surface=",
-        "domain_coloring=",
         "rt=",
         "siunits=",
         "keepzeros=",

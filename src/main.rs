@@ -212,6 +212,7 @@ pub struct Options
     window_size: (usize, usize),
     keep_zeros: bool,
     progress: bool,
+    keep_data_file: bool,
 }
 impl Default for Options
 {
@@ -262,6 +263,7 @@ impl Default for Options
             window_size: (0, 0),
             keep_zeros: false,
             progress: false,
+            keep_data_file: false,
         }
     }
 }
@@ -273,15 +275,19 @@ fn main()
     let mut default = false;
     let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc";
     std::fs::create_dir_all(dir.clone()).unwrap();
-    let mut check = false;
+    let mut check = Vec::new();
     {
         let file_path = dir.clone() + "/kalc.config";
-        if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &Vec::new(), true)
+        if let Ok(s) = file_opts(
+            &mut options,
+            &mut colors,
+            &file_path,
+            &Vec::new(),
+            Vec::new(),
+            true,
+        )
         {
-            if s == "soft"
-            {
-                check = true;
-            }
+            check = s;
         }
         if let Ok(s) = arg_opts(&mut options, &mut colors, &mut args, &Vec::new(), true)
         {
@@ -354,7 +360,7 @@ fn main()
     let mut err = false;
     let base = options.base;
     let mut argsj = args.join(" ");
-    if check
+    if !check.is_empty()
     {
         argsj += " ";
         let file_path = dir.clone() + "/kalc.config";
@@ -505,10 +511,13 @@ fn main()
     }
     {
         let file_path = dir.clone() + "/kalc.config";
-        if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, false)
+        if !check.is_empty()
         {
-            println!("{}", s);
-            std::process::exit(1);
+            if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false)
+            {
+                println!("{}", s);
+                std::process::exit(1);
+            }
         }
         if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false)
         {

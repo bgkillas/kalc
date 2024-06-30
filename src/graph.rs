@@ -482,13 +482,9 @@ pub fn graph(
                 writeln!(stdin, "set xtics border scale 0,0").unwrap();
                 writeln!(stdin, "set ytics border scale 0,0").unwrap();
                 writeln!(stdin, "set cbtics border scale 0,0").unwrap();
-                writeln!(
-                    stdin,
-                    "set cbtics ('-pi' -3.14159265359, 'pi' 3.14159265359)"
-                )
-                .unwrap();
+                writeln!(stdin, "set cbtics ('0' 0, '2pi' 6.28318530718)").unwrap();
                 writeln!(stdin, "set cblabel 'phase angle'").unwrap();
-                writeln!(stdin, "set cbrange [-3.14159265359:3.14159265359]").unwrap();
+                writeln!(stdin, "set cbrange [0:6.28318530718]").unwrap();
             }
             else
             {
@@ -531,7 +527,7 @@ pub fn graph(
                         if d2_or_d3.1&&options.graphtype==Domain
                             {
                         format!(
-                            "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
+                            "'{}'binary endian=little array=({},{}) format='%uint32'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
                             f,options.samples_3d.0+1,options.samples_3d.1+1,
                                     options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64
                         )
@@ -613,7 +609,7 @@ pub fn graph(
                 fs::remove_file(base_dir.to_owned() + "/kalc-temp.png").unwrap()
             }
         }
-        if fs::read_dir(data_dir).is_ok()
+        if !options.keep_data_file && fs::read_dir(data_dir).is_ok()
         {
             fs::remove_dir_all(data_dir).unwrap();
         }
@@ -1088,6 +1084,10 @@ pub fn get_list_3d(
     let mut d2 = false;
     let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
+    if func.2.graphtype == Domain
+    {
+        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+    }
     let den_x_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_3d.0 as f64;
     let den_y_range = (func.2.yr.1 - func.2.yr.0) / func.2.samples_3d.1 as f64;
     let mut modified: Vec<NumStr>;
@@ -1165,13 +1165,12 @@ pub fn get_list_3d(
                     if func.2.graphtype == Domain
                     {
                         let hue: Float = 6 * (-num.clone()).arg().real().clone() / &tau + 3;
-                        let za: Float = num.clone().abs().real().clone();
-                        let sat: Float = (1 - za.clone().floor() + &za) / 2;
+                        let sat: Float = (1 + num.clone().abs().real().clone().fract()) / 2;
                         let val: Float = {
-                            let np = num * &pi;
-                            let t1: Float = np.clone().real().clone().sin();
-                            let t2: Float = np.clone().imag().clone().sin();
-                            (t1 * t2).abs().pow(0.1)
+                            let (r, i) = (num * &pi).into_real_imag();
+                            let t1: Float = r.sin();
+                            let t2: Float = i.sin();
+                            (t1 * t2).abs().pow(0.125)
                         };
                         real.write_all(&hsv2rgb(hue, sat, val).to_le_bytes())
                             .unwrap();
@@ -1428,7 +1427,10 @@ pub fn get_list_3d(
                 {
                     println!("{}", s);
                     fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
-                    fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                    if func.2.graphtype != Domain
+                    {
+                        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                    }
                     return Default::default();
                 }
                 _ =>
@@ -1463,11 +1465,7 @@ pub fn get_list_3d(
         }
         stdout().flush().unwrap()
     }
-    if func.2.graphtype == Domain
-    {
-        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
-    }
-    else
+    if func.2.graphtype != Domain
     {
         if no_opt_re
         {
@@ -1923,7 +1921,7 @@ fn get_data(
         (d2_or_d3, re_or_im, lines, false, rec_re, rec_im)
     })
 }
-fn hsv2rgb(hue: Float, sat: Float, val: Float) -> f64
+fn hsv2rgb(hue: Float, sat: Float, val: Float) -> u32
 {
     if sat.is_zero()
     {
@@ -1947,29 +1945,28 @@ fn hsv2rgb(hue: Float, sat: Float, val: Float) -> f64
         2 => rgb2val(p, val, t),
         3 => rgb2val(p, q, val),
         4 => rgb2val(t, p, val),
-        5 => rgb2val(val, p, q),
         _ => rgb2val(val, p, q),
     }
 }
-fn rgb2val(r: Float, g: Float, b: Float) -> f64
+fn rgb2val(r: Float, g: Float, b: Float) -> u32
 {
     let r: Float = 255 * r;
     let g: Float = 255 * g;
     let b: Float = 255 * b;
-    let v: usize = (r
+    let v: u32 = (r
         .to_integer()
         .unwrap_or_default()
-        .to_usize()
+        .to_u32()
         .unwrap_or_default()
         << 16)
         + (g.to_integer()
             .unwrap_or_default()
-            .to_usize()
+            .to_u32()
             .unwrap_or_default()
             << 8)
         + b.to_integer()
             .unwrap_or_default()
-            .to_usize()
+            .to_u32()
             .unwrap_or_default();
-    v as f64
+    v
 }

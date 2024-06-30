@@ -143,15 +143,20 @@ pub fn file_opts(
     colors: &mut Colors,
     file_path: &String,
     vars: &[Variable],
+    check: Vec<usize>,
     soft: bool,
-) -> Result<(), &'static str>
+) -> Result<Vec<usize>, &'static str>
 {
+    let mut err = Vec::new();
     if let Ok(file) = File::open(file_path)
     {
-        let mut err = false;
         let reader = BufReader::new(file);
-        for line in reader.lines().map(|l| l.unwrap())
+        for (i, line) in reader.lines().map(|l| l.unwrap()).enumerate()
         {
+            if !(check.is_empty() || check.iter().any(|n| n == &i))
+            {
+                continue;
+            }
             if line.starts_with('#') || line.is_empty()
             {
                 continue;
@@ -171,7 +176,7 @@ pub fn file_opts(
                     {
                         if soft
                         {
-                            err = true
+                            err.push(i)
                         }
                         else
                         {
@@ -182,8 +187,7 @@ pub fn file_opts(
                     {
                         if soft
                         {
-                            err = true;
-                            continue;
+                            err.push(i);
                         }
                         else
                         {
@@ -199,8 +203,7 @@ pub fn file_opts(
             {
                 if soft
                 {
-                    err = true;
-                    continue;
+                    err.push(i);
                 }
                 else
                 {
@@ -209,12 +212,8 @@ pub fn file_opts(
                 }
             }
         }
-        if err
-        {
-            return Err("soft");
-        }
     }
-    Ok(())
+    Ok(err)
 }
 pub fn set_commands(
     options: &mut Options,
@@ -455,6 +454,7 @@ pub fn set_commands(
             }
             match l
             {
+                "keep_data_file" => options.keep_data_file = args[0] != 0.0,
                 "graphcli" => options.graph_cli = args[0] != 0.0,
                 "interactive" => options.stay_interactive = args[0] != 0.0,
                 "prompt" => options.prompt = args[0] != 0.0,
@@ -1011,6 +1011,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "surface" => options.surface = !options.surface,
         "rt" => options.real_time_output = !options.real_time_output,
         "progress" => options.progress = !options.progress,
+        "keep_data_file" => options.keep_data_file = !options.keep_data_file,
         "siunits" => options.si_units = !options.si_units,
         "keepzeros" => options.keep_zeros = !options.keep_zeros,
         "line" | "lines" =>

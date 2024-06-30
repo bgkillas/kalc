@@ -275,6 +275,8 @@ pub fn functions() -> HashSet<&'static str>
         "cyl",
         "cylinder",
         "prime_factors",
+        "hsv_to_rgb",
+        "rgb_to_val",
     ]
     .iter()
     .cloned()
@@ -489,6 +491,8 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "rand_neg_hypergeometric(N,K,r)",
         "cylinder({x,y,z})",
         "prime_factors(n)",
+        "hsv_to_rgb({h,s,v})",
+        "rgb_to_val({r,g,b})",
     ]
     .iter()
     .cloned()
@@ -575,6 +579,7 @@ pub fn options_list() -> HashSet<&'static str>
         "slowcheck=",
         "interactive=",
         "prompt=",
+        "progress=",
         "surface=",
         "rt=",
         "siunits=",

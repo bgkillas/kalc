@@ -149,6 +149,7 @@ FLAGS: --help (this message)
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'
 --keepzeros dont remove trailing zeros
+--progress shows progress on graph
 
 - flags can be executed in runtime just without the dashes
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0
@@ -236,7 +237,7 @@ Functions:
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2}), oproj/oproject({vec1},{vec2})
-- angle({vec1},{vec2})
+- angle({vec1},{vec2}), hsv_to_rgb{h,s,v}, rgb_to_val{r,g,b}
 - norm, normalize
 - abs, len, any, all
 - max, min, mean, median, mode, sort, geo_mean

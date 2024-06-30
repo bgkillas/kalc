@@ -43,7 +43,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --scalegraph scales the y part of a 2d graph to the users screen size, setting --windowsize=x,y makes the ratio more accurate\x1b[G\n\
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution\x1b[G\n\
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\
---keepzeros dont remove trailing zeros\x1b[G\n\n\
+--keepzeros dont remove trailing zeros\x1b[G\n\
+--progress shows progress on graph\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0\x1b[G\n\
 - '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2\x1b[G\n\
@@ -126,7 +127,7 @@ Functions:\x1b[G\n\
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add \",1\" to args to show steps\x1b[G\n\n\
 Vector operations/functions:\x1b[G\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}}), oproj/oproject({{vec1}},{{vec2}})\x1b[G\n\
-- angle({{vec1}},{{vec2}})\x1b[G\n\
+- angle({{vec1}},{{vec2}}), hsv_to_rgb{{h,s,v}}, rgb_to_val{{r,g,b}}\x1b[G\n\
 - norm, normalize\x1b[G\n\
 - abs, len, any, all\x1b[G\n\
 - max, min, mean, median, mode, sort, geo_mean\x1b[G\n\

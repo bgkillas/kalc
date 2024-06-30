@@ -2,12 +2,12 @@ use crate::{
     complex::{
         about_eq, add, and, area, atan, binomial, cofactor, cube, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
-        extrema, gamma, gcd, ge, gt, identity, incomplete_beta, incomplete_gamma, inverse, iter,
-        lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne, nth_prime,
-        or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm, recursion,
-        regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve, sort, sort_mat, sqr,
-        sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar, trace, transpose,
-        unity, variance, zeta,
+        extrema, gamma, gcd, ge, gt, hsv2rgb, identity, incomplete_beta, incomplete_gamma, inverse,
+        iter, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne,
+        nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm,
+        recursion, regularized_incomplete_beta, rem, rgb2val, root, shl, shr, slog, slope, solve,
+        sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar,
+        trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
@@ -2040,6 +2040,44 @@ pub fn do_math(
                                 ))
                             }
                             "sort" => Vector(sort(a)),
+                            "hsv_to_rgb" =>
+                            {
+                                if a.len() == 3
+                                {
+                                    Num(Number::from(
+                                        hsv2rgb(
+                                            a[0].number.real().clone(),
+                                            a[1].number.real().clone(),
+                                            a[2].number.real().clone(),
+                                        )
+                                        .into(),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not 3 length");
+                                }
+                            }
+                            "rgb_to_val" =>
+                            {
+                                if a.len() == 3
+                                {
+                                    Num(Number::from(
+                                        rgb2val(
+                                            a[0].number.real().clone(),
+                                            a[1].number.real().clone(),
+                                            a[2].number.real().clone(),
+                                        )
+                                        .into(),
+                                        None,
+                                    ))
+                                }
+                                else
+                                {
+                                    return Err("not 3 length");
+                                }
+                            }
                             "mean" | "μ" => Num(Number::from(
                                 a.iter().fold(Complex::new(options.prec), |sum, val| {
                                     sum + val.number.clone()

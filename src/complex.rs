@@ -6067,3 +6067,54 @@ pub fn pow_nth(z: Complex, n: Complex) -> Complex
         (z.ln() * n).exp()
     }
 }
+pub fn hsv2rgb(mut hue: Float, sat: Float, val: Float) -> Float
+{
+    if sat.is_zero()
+    {
+        return rgb2val(val.clone(), val.clone(), val);
+    }
+    hue *= 6;
+    let i = hue
+        .clone()
+        .floor()
+        .to_integer()
+        .unwrap_or_default()
+        .to_usize()
+        .unwrap_or_default();
+    let f = hue - i;
+    let p = val.clone() * (1 - sat.clone());
+    let q = val.clone() * (1 - sat.clone() * f.clone());
+    let t = val.clone() * (1 - sat * (1 - f));
+    match i % 6
+    {
+        0 => rgb2val(val, t, p),
+        1 => rgb2val(q, val, p),
+        2 => rgb2val(p, val, t),
+        3 => rgb2val(p, q, val),
+        4 => rgb2val(t, p, val),
+        5 => rgb2val(val, p, q),
+        _ => rgb2val(val, p, q),
+    }
+}
+pub fn rgb2val(r: Float, g: Float, b: Float) -> Float
+{
+    let r: Float = 255 * r;
+    let g: Float = 255 * g;
+    let b: Float = 255 * b;
+    let v: usize = (r
+        .to_integer()
+        .unwrap_or_default()
+        .to_usize()
+        .unwrap_or_default()
+        << 16)
+        + (g.to_integer()
+            .unwrap_or_default()
+            .to_usize()
+            .unwrap_or_default()
+            << 8)
+        + b.to_integer()
+            .unwrap_or_default()
+            .to_usize()
+            .unwrap_or_default();
+    Float::with_val(r.prec(), v)
+}

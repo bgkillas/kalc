@@ -330,7 +330,7 @@ pub fn set_commands(
         | "tabbed" | "comma" | "units" | "scalegraph" | "debug" | "vars" | "onaxis" | "base"
         | "ticks" | "decimal" | "deci" | "decimals" | "graphprec" | "graphprecision" | "prec"
         | "windowsize" | "precision" | "range" | "xr" | "yr" | "zr" | "vrange" | "vxr" | "vyr"
-        | "vzr" | "2d" | "3d" =>
+        | "vzr" | "2d" | "3d" | "progress" =>
         {
             let mut args: Vec<Float> = Vec::new();
             {
@@ -399,6 +399,7 @@ pub fn set_commands(
                 "prompt" => options.prompt = args[0] != 0.0,
                 "surface" => options.surface = args[0] != 0.0,
                 "rt" => options.real_time_output = args[0] != 0.0,
+                "progress" => options.progress = args[0] != 0.0,
                 "siunits" => options.si_units = args[0] != 0.0,
                 "keepzeros" => options.keep_zeros = args[0] != 0.0,
                 "polar" => options.polar = args[0] != 0.0,
@@ -948,6 +949,7 @@ pub fn silent_commands(options: &mut Options, input: &[char]) -> bool
         "onaxis" => options.onaxis = !options.onaxis,
         "surface" => options.surface = !options.surface,
         "rt" => options.real_time_output = !options.real_time_output,
+        "progress" => options.progress = !options.progress,
         "siunits" => options.si_units = !options.si_units,
         "keepzeros" => options.keep_zeros = !options.keep_zeros,
         "line" | "lines" =>
@@ -1028,6 +1030,12 @@ pub fn commands(options: &mut Options, lines: &[String], input: &[char], stdout:
             print!("\x1b[G\x1b[A\x1b[K");
             stdout.flush().unwrap();
             options.real_time_output = !options.real_time_output;
+        }
+        "progress" =>
+        {
+            print!("\x1b[G\x1b[A\x1b[K");
+            stdout.flush().unwrap();
+            options.progress = !options.progress;
         }
         "siunits" =>
         {
@@ -1294,6 +1302,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "surface" => format!("{}", options.surface),
         "prompt" => format!("{}", options.prompt),
         "rt" => format!("{}", options.real_time_output),
+        "progress" => format!("{}", options.progress),
         "siunits" => format!("{}", options.si_units),
         "keepzeros" => format!("{}", options.keep_zeros),
         "debug" => format!("{}", options.debug),

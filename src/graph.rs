@@ -13,7 +13,7 @@ use crate::{
     options::silent_commands,
     parse::{input_var, simplify},
     Auto, Colors, GraphType,
-    GraphType::{Depth, Flat, Normal},
+    GraphType::{Depth, Domain, Flat, Normal},
     HowGraphing, Number, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
@@ -467,11 +467,11 @@ pub fn graph(
         writeln!(stdin, "set xlabel'{}'", colors.label.0).unwrap();
         writeln!(stdin, "set ylabel'{}'", colors.label.1).unwrap();
         writeln!(stdin, "set zlabel'{}'", colors.label.2).unwrap();
-        if options.surface || options.graphtype == GraphType::Domain
+        if d2_or_d3.1 && (options.surface || options.graphtype == Domain)
         {
             writeln!(stdin, "set palette model HSV").unwrap();
             writeln!(stdin, "set palette defined ( 0 0 1 1, 1 1 1 1 )").unwrap();
-            if options.graphtype == GraphType::Domain
+            if options.graphtype == Domain
             {
                 writeln!(stdin, "set title'{}'", cap[0]).unwrap();
                 writeln!(stdin, "set xlabel're(z)'").unwrap();
@@ -489,6 +489,10 @@ pub fn graph(
                 .unwrap();
                 writeln!(stdin, "set cblabel 'phase angle'").unwrap();
                 writeln!(stdin, "set cbrange [-3.14159265359:3.14159265359]").unwrap();
+            }
+            else
+            {
+                writeln!(stdin, "set view 0, 0").unwrap();
             }
         }
         {
@@ -524,7 +528,7 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
-                        if options.graphtype==GraphType::Domain
+                        if d2_or_d3.1&&options.graphtype==Domain
                             {
                         format!(
                             "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
@@ -667,6 +671,14 @@ pub fn get_list_2d(
     let mut imags = Vec::new();
     let mut no_opt_re = false;
     let mut no_opt_im = false;
+    let timer = if func.2.progress
+    {
+        Some(Instant::now())
+    }
+    else
+    {
+        None
+    };
     for i in 0..=func.2.samples_2d
     {
         let n = func.2.xr.0 + i as f64 * den_range;
@@ -692,7 +704,7 @@ pub fn get_list_2d(
                     {
                         zero.0 = true
                     }
-                    if func.2.graphtype == Normal
+                    if func.2.graphtype == Normal || func.2.graphtype == Domain
                     {
                         if has_x
                         {
@@ -718,7 +730,7 @@ pub fn get_list_2d(
                     {
                         zero.1 = true
                     }
-                    if func.2.graphtype == Normal
+                    if func.2.graphtype == Normal || func.2.graphtype == Domain
                     {
                         if has_x
                         {
@@ -776,7 +788,7 @@ pub fn get_list_2d(
                             {
                                 zero.0 = true
                             }
-                            if func.2.graphtype == Normal
+                            if func.2.graphtype == Normal || func.2.graphtype == Domain
                             {
                                 if has_x
                                 {
@@ -800,7 +812,7 @@ pub fn get_list_2d(
                             {
                                 zero.1 = true
                             }
-                            if func.2.graphtype == Normal
+                            if func.2.graphtype == Normal || func.2.graphtype == Domain
                             {
                                 if has_x
                                 {
@@ -912,7 +924,7 @@ pub fn get_list_2d(
                             {
                                 zero.0 = true
                             }
-                            if func.2.graphtype == Normal
+                            if func.2.graphtype == Normal || func.2.graphtype == Domain
                             {
                                 if has_x
                                 {
@@ -936,7 +948,7 @@ pub fn get_list_2d(
                             {
                                 zero.1 = true
                             }
-                            if func.2.graphtype == Normal
+                            if func.2.graphtype == Normal || func.2.graphtype == Domain
                             {
                                 if has_x
                                 {
@@ -979,6 +991,33 @@ pub fn get_list_2d(
             _ =>
             {}
         }
+        if func.2.progress && i % 1024 == 0
+        {
+            let n = i + 1;
+            let d = timer.map_or(0.0, |a| a.elapsed().as_nanos() as f64 / n as f64);
+            let t = func.2.samples_2d + 1;
+            print!(
+                "\x1b[G\x1b[K{:0>wid$}/{}={:.1}% {}s",
+                n,
+                t,
+                100.0 * n as f64 / t as f64,
+                ((t - n) as f64 * d / 1e9) as usize,
+                wid = t.to_string().len()
+            );
+            stdout().flush().unwrap()
+        }
+    }
+    if func.2.progress
+    {
+        if func.2.interactive
+        {
+            print!("\x1b[G\x1b[K{}", prompt(func.2, &Colors::default()))
+        }
+        else
+        {
+            println!();
+        }
+        stdout().flush().unwrap()
     }
     if no_opt_re
     {
@@ -1084,7 +1123,7 @@ pub fn get_list_3d(
     let mut imags = Vec::new();
     let mut no_opt_re = false;
     let mut no_opt_im = false;
-    let pi: Float = if func.2.graphtype == GraphType::Domain
+    let pi: Float = if func.2.graphtype == Domain
     {
         Float::with_val(func.2.prec, Pi)
     }
@@ -1093,6 +1132,14 @@ pub fn get_list_3d(
         Float::new(func.2.prec)
     };
     let tau: Float = 2 * pi.clone();
+    let timer = if func.2.progress
+    {
+        Some(Instant::now())
+    }
+    else
+    {
+        None
+    };
     for i in 0..=func.2.samples_3d.1
     {
         let n = func.2.yr.0 + i as f64 * den_y_range;
@@ -1113,7 +1160,7 @@ pub fn get_list_3d(
                 Ok(Num(num)) =>
                 {
                     let num = num.number;
-                    if func.2.graphtype == GraphType::Domain
+                    if func.2.graphtype == Domain
                     {
                         let hue: Float = 6 * (-num.clone()).arg().real().clone() / &tau + 3;
                         let za: Float = num.clone().abs().real().clone();
@@ -1384,8 +1431,35 @@ pub fn get_list_3d(
                 {}
             }
         }
+        if func.2.progress && i % 8 == 0
+        {
+            let n = (i + 1) * (func.2.samples_3d.0 + 1);
+            let d = timer.map_or(0.0, |a| a.elapsed().as_nanos() as f64 / n as f64);
+            let t = (func.2.samples_3d.1 + 1) * (func.2.samples_3d.1 + 1);
+            print!(
+                "\x1b[G\x1b[K{:0>wid$}/{}={:.1}% {}s",
+                n,
+                t,
+                100.0 * n as f64 / t as f64,
+                ((t - n) as f64 * d / 1e9) as usize,
+                wid = t.to_string().len()
+            );
+            stdout().flush().unwrap();
+        }
     }
-    if func.2.graphtype == GraphType::Domain
+    if func.2.progress
+    {
+        if func.2.interactive
+        {
+            print!("\x1b[G\x1b[K{}", prompt(func.2, &Colors::default()))
+        }
+        else
+        {
+            println!();
+        }
+        stdout().flush().unwrap()
+    }
+    if func.2.graphtype == Domain
     {
         fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
     }
@@ -1870,7 +1944,7 @@ fn hsv2rgb(hue: Float, sat: Float, val: Float) -> f64
         3 => rgb2val(p, q, val),
         4 => rgb2val(t, p, val),
         5 => rgb2val(val, p, q),
-        _ => rgb2val(val.clone(), p, q),
+        _ => rgb2val(val, p, q),
     }
 }
 fn rgb2val(r: Float, g: Float, b: Float) -> f64

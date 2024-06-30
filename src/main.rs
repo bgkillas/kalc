@@ -211,6 +211,7 @@ pub struct Options
     si_units: bool,
     window_size: (usize, usize),
     keep_zeros: bool,
+    progress: bool,
 }
 impl Default for Options
 {
@@ -260,6 +261,7 @@ impl Default for Options
             si_units: false,
             window_size: (0, 0),
             keep_zeros: false,
+            progress: false,
         }
     }
 }

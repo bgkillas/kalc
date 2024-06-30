@@ -1007,9 +1007,11 @@ pub fn get_list_2d(
     }
     if func.2.progress
     {
+        let t = func.2.samples_2d + 1;
+        print!("\x1b[G\x1b[K{}/{}=100%", t, t);
         if func.2.interactive
         {
-            print!("\x1b[G\x1b[K{}", prompt(func.2, &Colors::default()))
+            print!("\x1b[G\n\x1b[K{}", prompt(func.2, &Colors::default()))
         }
         else
         {
@@ -1455,9 +1457,11 @@ pub fn get_list_3d(
     }
     if func.2.progress
     {
+        let t = (func.2.samples_3d.0 + 1) * (func.2.samples_3d.1 + 1);
+        print!("\x1b[G\x1b[K{}/{}=100%", t, t);
         if func.2.interactive
         {
-            print!("\x1b[G\x1b[K{}", prompt(func.2, &Colors::default()))
+            print!("\x1b[G\n\x1b[K{}", prompt(func.2, &Colors::default()))
         }
         else
         {

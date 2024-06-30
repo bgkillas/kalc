@@ -273,26 +273,21 @@ fn main()
     let mut default = false;
     let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc";
     std::fs::create_dir_all(dir.clone()).unwrap();
+    let mut check = false;
     {
         let file_path = dir.clone() + "/kalc.config";
-        if let Err(s) = file_opts(&mut options, &mut colors, &file_path)
+        if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &Vec::new(), true)
         {
-            println!("{}", s);
-            std::process::exit(1);
-        }
-        match arg_opts(&mut options, &mut colors, &mut args)
-        {
-            Ok(s) =>
+            if s == "soft"
             {
-                if s
-                {
-                    default = true
-                }
+                check = true;
             }
-            Err(s) =>
+        }
+        if let Ok(s) = arg_opts(&mut options, &mut colors, &mut args, &Vec::new(), true)
+        {
+            if s
             {
-                println!("{}", s);
-                std::process::exit(1);
+                default = true
             }
         }
     }
@@ -358,9 +353,20 @@ fn main()
     };
     let mut err = false;
     let base = options.base;
+    let mut argsj = args.join(" ");
+    if check
+    {
+        argsj += " ";
+        let file_path = dir.clone() + "/kalc.config";
+        argsj += &BufReader::new(File::open(file_path).unwrap())
+            .lines()
+            .map(|a| a.unwrap())
+            .collect::<Vec<String>>()
+            .join(" ");
+    }
     if !options.interactive && options.allow_vars && !options.stay_interactive
     {
-        get_cli_vars(options, args.join(" "), &mut vars)
+        get_cli_vars(options, argsj.clone(), &mut vars)
     }
     {
         if options.allow_vars && !default
@@ -383,7 +389,6 @@ fn main()
                     })
                     .collect::<Vec<String>>();
                 let mut split;
-                let args = args.join(" ");
                 let mut blacklist = if options.interactive || options.stay_interactive
                 {
                     Vec::new()
@@ -411,7 +416,7 @@ fn main()
                         || (!blacklist.contains(&l) && {
                             let mut b = false;
                             let mut word = String::new();
-                            for c in args.chars()
+                            for c in argsj.chars()
                             {
                                 if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
                                 {
@@ -496,6 +501,19 @@ fn main()
                     }
                 }
             }
+        }
+    }
+    {
+        let file_path = dir.clone() + "/kalc.config";
+        if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, false)
+        {
+            println!("{}", s);
+            std::process::exit(1);
+        }
+        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false)
+        {
+            println!("{}", s);
+            std::process::exit(1);
         }
     }
     if options.interactive && err

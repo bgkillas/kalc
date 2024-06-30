@@ -25,10 +25,15 @@ pub fn arg_opts(
     options: &mut Options,
     colors: &mut Colors,
     args: &mut Vec<String>,
+    vars: &[Variable],
+    soft: bool,
 ) -> Result<bool, &'static str>
 {
     let mut default = false;
-    args.remove(0);
+    if soft
+    {
+        args.remove(0);
+    }
     loop
     {
         if args.is_empty()
@@ -83,16 +88,33 @@ pub fn arg_opts(
                     match set_commands(
                         options,
                         colors,
-                        &mut Vec::new(),
+                        &mut vars.to_vec(),
                         split.next().unwrap(),
                         split.next().unwrap(),
                     )
                     {
-                        Err(s) if !s.is_empty() => return Err(s),
+                        Err(s) if !s.is_empty() =>
+                        {
+                            if soft
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                return Err(s);
+                            }
+                        }
                         Ok(()) =>
                         {
-                            println!("{} failed", arg);
-                            process::exit(1);
+                            if soft
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                println!("{} failed", arg);
+                                process::exit(1);
+                            }
                         }
                         _ =>
                         {}
@@ -100,8 +122,15 @@ pub fn arg_opts(
                 }
                 else if !silent_commands(options, &arg.chars().collect::<Vec<char>>())
                 {
-                    println!("{} failed", args[0]);
-                    process::exit(1);
+                    if soft
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        println!("{} failed", args[0]);
+                        process::exit(1);
+                    }
                 }
                 args.remove(0);
             }
@@ -113,11 +142,13 @@ pub fn file_opts(
     options: &mut Options,
     colors: &mut Colors,
     file_path: &String,
+    vars: &[Variable],
+    soft: bool,
 ) -> Result<(), &'static str>
 {
-    if File::open(file_path).is_ok()
+    if let Ok(file) = File::open(file_path)
     {
-        let file = File::open(file_path).unwrap();
+        let mut err = false;
         let reader = BufReader::new(file);
         for line in reader.lines().map(|l| l.unwrap())
         {
@@ -131,16 +162,34 @@ pub fn file_opts(
                 match set_commands(
                     options,
                     colors,
-                    &mut Vec::new(),
+                    &mut vars.to_vec(),
                     split.next().unwrap(),
                     split.next().unwrap(),
                 )
                 {
-                    Err(s) if !s.is_empty() => return Err(s),
+                    Err(s) if !s.is_empty() =>
+                    {
+                        if soft
+                        {
+                            err = true
+                        }
+                        else
+                        {
+                            return Err(s);
+                        }
+                    }
                     Ok(()) =>
                     {
-                        println!("{} failed", line);
-                        process::exit(1);
+                        if soft
+                        {
+                            err = true;
+                            continue;
+                        }
+                        else
+                        {
+                            println!("{} failed", line);
+                            process::exit(1);
+                        }
                     }
                     _ =>
                     {}
@@ -148,9 +197,21 @@ pub fn file_opts(
             }
             else if !silent_commands(options, &line.chars().collect::<Vec<char>>())
             {
-                println!("{} failed", line);
-                process::exit(1);
+                if soft
+                {
+                    err = true;
+                    continue;
+                }
+                else
+                {
+                    println!("{} failed", line);
+                    process::exit(1);
+                }
             }
+        }
+        if err
+        {
+            return Err("soft");
         }
     }
     Ok(())

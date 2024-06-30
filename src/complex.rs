@@ -5876,38 +5876,30 @@ pub fn lambertw(z: Complex, k: Integer) -> Complex
     for _ in 0..(z.prec().0 / 64).max(8)
     {
         let zexp = w.clone().exp();
-        let zexpz = w.clone() * zexp.clone();
-        let zexpz_d = zexp.clone() + zexpz.clone();
-        let zexpz_dd = (2 * zexp) + zexpz.clone();
-        w -= 2 * ((zexpz.clone() - z.clone()) * zexpz_d.clone())
-            / ((2 * sqr(zexpz_d)) - ((zexpz - z.clone()) * zexpz_dd))
+        let zexpz = &w * zexp.clone();
+        let zexpz_d = &zexp + zexpz.clone();
+        let zexpz_dd = (2 * zexp) + &zexpz;
+        w -=
+            2 * ((zexpz.clone() - &z) * &zexpz_d) / ((2 * sqr(zexpz_d)) - ((zexpz - &z) * zexpz_dd))
     }
     w
 }
 fn initpoint(z: Complex, k: Integer) -> Complex
 {
+    let prec = z.prec();
     {
-        let e = Float::with_val(z.prec().0, 1).exp();
-        let test: Complex = z.clone() + e.clone().recip();
-        if test.abs().real() <= &1.005
+        let e = Float::with_val(prec.0, -1).exp();
+        let test: Complex = z.clone() + &e;
+        if test.abs().real() <= &1.005 && k == 0 && z.real() > &-0.5
         {
-            if k == 0
-            {
-                let p1: Complex = 2 * e * z.clone() + 2;
-                let p = p1.clone().sqrt();
-                return p.clone() - (p1 / 3) + ((11 * cube(p)) / 72) - 1;
-            }
-            else if (k == 1 && z.imag() < &0) || (k == -1 && z.imag() > &0)
-            {
-                let p1: Complex = 2 * e * z.clone() + 2;
-                let p = p1.clone().sqrt();
-                return -1 - p.clone() - (p1 / 3) - ((11 * cube(p)) / 72);
-            }
+            let p1: Complex = 2 * z / e + 2;
+            let p = p1.clone().sqrt();
+            return p.clone() - (p1 / 3) + ((11 * cube(p)) / 72) - 1;
         }
     }
     {
         let test: Complex = z.clone() - 0.5;
-        if test.abs().real() <= &0.5005
+        if test.abs().real() <= &0.6
         {
             if k == 0
             {
@@ -5916,16 +5908,14 @@ fn initpoint(z: Complex, k: Integer) -> Complex
             }
             else if k == -1
             {
-                return (Complex::with_val(z.prec(), (-2.2591588985, -4.22096))
-                    * (Complex::with_val(z.prec(), (-14.073271, 33.767687754)) * z.clone()
-                        + Complex::with_val(z.prec(), (-12.7127, 19.071643))
-                            * (1 + 2 * z.clone())))
-                    / (2 + Complex::with_val(z.prec(), (-17.23103, 10.629721)) * (1 + 2 * z));
+                return (Complex::with_val(prec, (-2.2591588985, -4.22096))
+                    * (Complex::with_val(prec, (-14.073271, -33.767687754)) * &z
+                        + Complex::with_val(prec, (-12.7127, 19.071643)) * (1 + 2 * z.clone())))
+                    / (2 + Complex::with_val(prec, (-17.23103, 10.629721)) * (1 + 2 * z));
             }
         }
     }
-    let two_pi_k_i = Complex::with_val(z.prec(), (0, 2 * Float::with_val(z.prec().0, Pi) * k));
-    let zln = z.clone().ln() + two_pi_k_i;
+    let zln = z.ln() + Complex::with_val(prec, (0, 2 * Float::with_val(prec.0, Pi) * k));
     zln.clone() - zln.ln()
 }
 pub fn rand_gamma(k: Float, t: Float) -> Float

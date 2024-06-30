@@ -460,7 +460,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "rand_uniform(a,b)",
         "geo_mean(vec)",
         "γ(s(,x))",
-        "lower_gamma(s(,x))",
+        "lower_gamma(s,x)",
         "gamma_pdf(k,θ)",
         "gamma_cdf(k,θ)",
         "rand_gamma(k,θ)",

@@ -986,6 +986,8 @@ pub fn get_list_2d(
             Err(s) =>
             {
                 println!("{}", s);
+                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
                 return Default::default();
             }
             _ =>
@@ -1425,6 +1427,8 @@ pub fn get_list_3d(
                 Err(s) =>
                 {
                     println!("{}", s);
+                    fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                    fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
                     return Default::default();
                 }
                 _ =>

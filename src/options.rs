@@ -97,7 +97,7 @@ pub fn arg_opts(
                         {
                             if soft
                             {
-                                continue;
+                                break;
                             }
                             else
                             {
@@ -108,7 +108,7 @@ pub fn arg_opts(
                         {
                             if soft
                             {
-                                continue;
+                                break;
                             }
                             else
                             {
@@ -124,7 +124,7 @@ pub fn arg_opts(
                 {
                     if soft
                     {
-                        continue;
+                        break;
                     }
                     else
                     {

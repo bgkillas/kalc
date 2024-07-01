@@ -42,6 +42,12 @@ may need to run kalc from ```kalc 2> /dev/null``` for gnuplot not to output erro
 
 # build instructions
 
+if build fails due to gmp-mpfr-sys try changing the line
+`features = ["force-cross"]`
+to
+`features = ["use-system-libs"]`
+at the end of cargo.toml
+
 ### linux
 
 dependencys are: rust>=1.73.0, diffutils, gcc, m4, make

@@ -6057,7 +6057,7 @@ pub fn pow_nth(z: Complex, n: Complex) -> Complex
         (z.ln() * n).exp()
     }
 }
-pub fn hsv2rgb(mut hue: Float, sat: Float, val: Float) -> Float
+pub fn hsv2rgb(mut hue: Float, sat: Float, val: Float) -> Vec<Number>
 {
     if sat.is_zero()
     {
@@ -6086,25 +6086,14 @@ pub fn hsv2rgb(mut hue: Float, sat: Float, val: Float) -> Float
         _ => rgb2val(val, p, q),
     }
 }
-pub fn rgb2val(r: Float, g: Float, b: Float) -> Float
+pub fn rgb2val(r: Float, g: Float, b: Float) -> Vec<Number>
 {
     let r: Float = 255 * r;
     let g: Float = 255 * g;
     let b: Float = 255 * b;
-    let v: usize = (r
-        .to_integer()
-        .unwrap_or_default()
-        .to_usize()
-        .unwrap_or_default()
-        << 16)
-        + (g.to_integer()
-            .unwrap_or_default()
-            .to_usize()
-            .unwrap_or_default()
-            << 8)
-        + b.to_integer()
-            .unwrap_or_default()
-            .to_usize()
-            .unwrap_or_default();
-    Float::with_val(r.prec(), v)
+    vec![
+        Number::from(r.into(), None),
+        Number::from(g.into(), None),
+        Number::from(b.into(), None),
+    ]
 }

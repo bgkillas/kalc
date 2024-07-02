@@ -276,7 +276,7 @@ pub fn functions() -> HashSet<&'static str>
         "cylinder",
         "prime_factors",
         "hsv_to_rgb",
-        "rgb_to_val",
+        "domain_coloring_rgb",
     ]
     .iter()
     .cloned()
@@ -492,7 +492,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "cylinder({x,y,z})",
         "prime_factors(n)",
         "hsv_to_rgb({h,s,v})",
-        "rgb_to_val({r,g,b})",
+        "domain_coloring_rgb(x)",
     ]
     .iter()
     .cloned()

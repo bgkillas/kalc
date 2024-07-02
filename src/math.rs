@@ -5,8 +5,8 @@ use crate::{
         extrema, gamma, gcd, ge, gt, hsv2rgb, identity, incomplete_beta, incomplete_gamma, inverse,
         iter, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne,
         nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm,
-        recursion, regularized_incomplete_beta, rem, rgb2val, root, shl, shr, slog, slope, solve,
-        sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar,
+        recursion, regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve, sort,
+        sort_mat, sqr, sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar,
         trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
@@ -2044,33 +2044,10 @@ pub fn do_math(
                             {
                                 if a.len() == 3
                                 {
-                                    Num(Number::from(
-                                        hsv2rgb(
-                                            a[0].number.real().clone(),
-                                            a[1].number.real().clone(),
-                                            a[2].number.real().clone(),
-                                        )
-                                        .into(),
-                                        None,
-                                    ))
-                                }
-                                else
-                                {
-                                    return Err("not 3 length");
-                                }
-                            }
-                            "rgb_to_val" =>
-                            {
-                                if a.len() == 3
-                                {
-                                    Num(Number::from(
-                                        rgb2val(
-                                            a[0].number.real().clone(),
-                                            a[1].number.real().clone(),
-                                            a[2].number.real().clone(),
-                                        )
-                                        .into(),
-                                        None,
+                                    Vector(hsv2rgb(
+                                        a[0].number.real().clone(),
+                                        a[1].number.real().clone(),
+                                        a[2].number.real().clone(),
                                     ))
                                 }
                                 else
@@ -2594,6 +2571,20 @@ pub fn do_math(
                         },
                         _ => match s.as_str()
                         {
+                            "domain_coloring_rgb" =>
+                            {
+                                let pi = Float::with_val(options.prec, Pi);
+                                let num = arg.num()?.number;
+                                let hue: Float = 1 + (-num.clone()).arg().real().clone() / &pi;
+                                let sat: Float = (1 + num.clone().abs().real().clone().fract()) / 2;
+                                let val: Float = {
+                                    let (r, i) = (num * &pi).into_real_imag();
+                                    let t1: Float = r.sin();
+                                    let t2: Float = i.sin();
+                                    (t1 * t2).abs().pow(0.125)
+                                };
+                                Vector(hsv2rgb(3 * hue, sat, val))
+                            }
                             "multinomial" =>
                             {
                                 let mut numerator: Complex = arg.num()?.number + 1;

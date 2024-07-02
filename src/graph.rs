@@ -21,7 +21,7 @@ use std::{
     fs,
     fs::File,
     io::{stdout, Write},
-    process::{Command, Stdio},
+    process::{Child, Command, Stdio},
     thread,
     thread::JoinHandle,
     time::Instant,
@@ -117,73 +117,6 @@ pub fn graph(
         {
             return;
         }
-        let mut gnuplot = if cfg!(not(unix))
-        {
-            if cli
-            {
-                Command::new("gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn().unwrap_or(
-                    Command::new("C:/Program Files/gnuplot/bin/gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH."))
-            }
-            else
-            {
-                Command::new("gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn().unwrap_or(
-                    Command::new("C:/Program Files/gnuplot/bin/gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH."))
-            }
-        }
-        else if cli
-        {
-            Command::new("gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
-        }
-        else if cfg!(debug_assertions)
-        {
-            Command::new("gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .spawn()
-                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
-        }
-        else
-        {
-            Command::new("gnuplot")
-                .arg("-p")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn()
-                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
-        };
-        let stdin = gnuplot.stdin.as_mut().expect("Failed to open stdin");
-        if cli
-        {
-            options.onaxis = false;
-            options.scale_graph = false;
-            writeln!(stdin, "set terminal dumb size 125,60 aspect 1,1").unwrap();
-        }
         let mut cap: Vec<String> = Vec::new();
         let mut d2_or_d3 = (false, false);
         let mut handles = Vec::new();
@@ -210,6 +143,14 @@ pub fn graph(
                 i,
                 data_dir.clone(),
             ));
+        }
+        let mut gnuplot = spawn(cli);
+        let stdin = gnuplot.stdin.as_mut().expect("Failed to open stdin");
+        if cli
+        {
+            options.onaxis = false;
+            options.scale_graph = false;
+            writeln!(stdin, "set terminal dumb size 125,60 aspect 1,1").unwrap();
         }
         let mut i = 0;
         let mut lines = Vec::new();
@@ -641,7 +582,13 @@ pub fn get_list_2d(
         {
             matches!(
                 s.as_str(),
-                "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity" | "solve"
+                "±" | "cubic"
+                    | "domain_coloring_rgb"
+                    | "quadratic"
+                    | "quad"
+                    | "quartic"
+                    | "unity"
+                    | "solve"
             )
         }
         else
@@ -654,7 +601,13 @@ pub fn get_list_2d(
             {
                 matches!(
                     s.as_str(),
-                    "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity" | "solve"
+                    "±" | "cubic"
+                        | "domain_coloring_rgb"
+                        | "quadratic"
+                        | "quad"
+                        | "quartic"
+                        | "unity"
+                        | "solve"
                 )
             }
             else
@@ -667,14 +620,7 @@ pub fn get_list_2d(
     let mut imags = Vec::new();
     let mut no_opt_re = false;
     let mut no_opt_im = false;
-    let timer = if func.2.progress
-    {
-        Some(Instant::now())
-    }
-    else
-    {
-        None
-    };
+    let mut timer = (Instant::now(), Instant::now());
     for i in 0..=func.2.samples_2d
     {
         let n = func.2.xr.0 + i as f64 * den_range;
@@ -989,10 +935,11 @@ pub fn get_list_2d(
             _ =>
             {}
         }
-        if func.2.progress && i % 1024 == 0
+        if func.2.progress && timer.1.elapsed().as_millis() > 128
         {
+            timer.1 = Instant::now();
             let n = i + 1;
-            let d = timer.map_or(0.0, |a| a.elapsed().as_nanos() as f64 / n as f64);
+            let d = timer.0.elapsed().as_nanos() as f64 / n as f64;
             let t = func.2.samples_2d + 1;
             print!(
                 "\x1b[G\x1b[K{:0>wid$}/{}={:.1}% {}s",
@@ -1101,7 +1048,13 @@ pub fn get_list_3d(
         {
             matches!(
                 s.as_str(),
-                "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity" | "solve"
+                "±" | "cubic"
+                    | "domain_coloring_rgb"
+                    | "quadratic"
+                    | "quad"
+                    | "quartic"
+                    | "unity"
+                    | "solve"
             )
         }
         else
@@ -1114,7 +1067,13 @@ pub fn get_list_3d(
             {
                 matches!(
                     s.as_str(),
-                    "±" | "cubic" | "quadratic" | "quad" | "quartic" | "unity" | "solve"
+                    "±" | "cubic"
+                        | "domain_coloring_rgb"
+                        | "quadratic"
+                        | "quad"
+                        | "quartic"
+                        | "unity"
+                        | "solve"
                 )
             }
             else
@@ -1135,15 +1094,7 @@ pub fn get_list_3d(
     {
         Float::new(func.2.prec)
     };
-    let tau: Float = 2 * pi.clone();
-    let timer = if func.2.progress
-    {
-        Some(Instant::now())
-    }
-    else
-    {
-        None
-    };
+    let mut timer = (Instant::now(), Instant::now());
     for i in 0..=func.2.samples_3d.1
     {
         let n = func.2.yr.0 + i as f64 * den_y_range;
@@ -1166,7 +1117,7 @@ pub fn get_list_3d(
                     let num = num.number;
                     if func.2.graphtype == Domain
                     {
-                        let hue: Float = 6 * (-num.clone()).arg().real().clone() / &tau + 3;
+                        let hue: Float = 1 + (-num.clone()).arg().real().clone() / &pi;
                         let sat: Float = (1 + num.clone().abs().real().clone().fract()) / 2;
                         let val: Float = {
                             let (r, i) = (num * &pi).into_real_imag();
@@ -1174,7 +1125,7 @@ pub fn get_list_3d(
                             let t2: Float = i.sin();
                             (t1 * t2).abs().pow(0.125)
                         };
-                        real.write_all(&hsv2rgb(hue, sat, val).to_le_bytes())
+                        real.write_all(&hsv2rgb(3 * hue, sat, val).to_le_bytes())
                             .unwrap();
                     }
                     else
@@ -1438,21 +1389,22 @@ pub fn get_list_3d(
                 _ =>
                 {}
             }
-        }
-        if func.2.progress && i % 8 == 0
-        {
-            let n = (i + 1) * (func.2.samples_3d.0 + 1);
-            let d = timer.map_or(0.0, |a| a.elapsed().as_nanos() as f64 / n as f64);
-            let t = (func.2.samples_3d.1 + 1) * (func.2.samples_3d.1 + 1);
-            print!(
-                "\x1b[G\x1b[K{:0>wid$}/{}={:.1}% {}s",
-                n,
-                t,
-                100.0 * n as f64 / t as f64,
-                ((t - n) as f64 * d / 1e9) as usize,
-                wid = t.to_string().len()
-            );
-            stdout().flush().unwrap();
+            if func.2.progress && timer.1.elapsed().as_millis() > 128
+            {
+                timer.1 = Instant::now();
+                let n = i * (func.2.samples_3d.0 + 1) + g + 1;
+                let d = timer.0.elapsed().as_nanos() as f64 / n as f64;
+                let t = (func.2.samples_3d.0 + 1) * (func.2.samples_3d.1 + 1);
+                print!(
+                    "\x1b[G\x1b[K{:0>wid$}/{}={:.1}% {}s",
+                    n,
+                    t,
+                    100.0 * n as f64 / t as f64,
+                    ((t - n) as f64 * d / 1e9) as usize,
+                    wid = t.to_string().len()
+                );
+                stdout().flush().unwrap();
+            }
         }
     }
     if func.2.progress
@@ -1973,4 +1925,67 @@ fn rgb2val(r: Float, g: Float, b: Float) -> u32
             .to_u32()
             .unwrap_or_default();
     v
+}
+fn spawn(cli: bool) -> Child
+{
+    if cfg!(not(unix))
+    {
+        if cli
+        {
+            Command::new("gnuplot")
+                .arg("-p")
+                .stdin(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn().unwrap_or(
+                    Command::new("C:/Program Files/gnuplot/bin/gnuplot")
+                .arg("-p")
+                .stdin(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH."))
+        }
+        else
+        {
+            Command::new("gnuplot")
+                .arg("-p")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn().unwrap_or(
+                    Command::new("C:/Program Files/gnuplot/bin/gnuplot")
+                .arg("-p")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH."))
+        }
+    }
+    else if cli
+    {
+        Command::new("gnuplot")
+            .arg("-p")
+            .stdin(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
+    }
+    else if cfg!(debug_assertions)
+    {
+        Command::new("gnuplot")
+            .arg("-p")
+            .stdin(Stdio::piped())
+            .spawn()
+            .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
+    }
+    else
+    {
+        Command::new("gnuplot")
+            .arg("-p")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("Couldn't spawn gnuplot. Make sure it is installed and available in PATH.")
+    }
 }

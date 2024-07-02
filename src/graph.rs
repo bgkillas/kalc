@@ -1117,16 +1117,24 @@ pub fn get_list_3d(
                     let num = num.number;
                     if func.2.graphtype == Domain
                     {
-                        let hue: Float = 1 + (-num.clone()).arg().real().clone() / &pi;
-                        let sat: Float = (1 + num.clone().abs().real().clone().fract()) / 2;
-                        let val: Float = {
-                            let (r, i) = (num * &pi).into_real_imag();
-                            let t1: Float = r.sin();
-                            let t2: Float = i.sin();
-                            (t1 * t2).abs().pow(0.125)
-                        };
-                        real.write_all(&hsv2rgb(3 * hue, sat, val).to_le_bytes())
-                            .unwrap();
+                        let abs = num.clone().abs().real().clone();
+                        if abs.clone().log2() < abs.prec() - 16
+                        {
+                            let hue: Float = 1 + (-num.clone()).arg().real().clone() / &pi;
+                            let sat: Float = (1 + abs.fract()) / 2;
+                            let val: Float = {
+                                let (r, i) = (num * &pi).into_real_imag();
+                                let t1: Float = r.sin();
+                                let t2: Float = i.sin();
+                                (t1 * t2).abs().pow(0.125)
+                            };
+                            real.write_all(&hsv2rgb(3 * hue, sat, val).to_le_bytes())
+                                .unwrap();
+                        }
+                        else
+                        {
+                            real.write_all(&16777215u32.to_le_bytes()).unwrap()
+                        }
                     }
                     else
                     {

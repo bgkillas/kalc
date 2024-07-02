@@ -1299,6 +1299,7 @@ pub fn input_var(
                     && word != "any"
                     && word != "unity"
                     && !word.ends_with("day")
+                    && !word.ends_with("gravity")
                     && !word.ends_with("ly")
                     && !word.ends_with("henry")
                     && !word.ends_with("Gy")
@@ -1702,7 +1703,7 @@ pub fn input_var(
         else if options.units
             && (collectvars.is_empty() || word.len() > 1)
             && {
-                (unit, mul) = prefixes(word.clone(), prec);
+                (unit, mul) = prefixes(word.clone(), prec.0);
                 is_unit(&mut unit)
             }
             && var_overrule

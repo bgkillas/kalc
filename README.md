@@ -277,6 +277,7 @@ Constants:
 - gravity: gravity, 9.80665 m/s^2
 - G: gravitational constant, 6.67430E-11 m^3/(kg*s^2)
 - planck: planck's constant, 6.62607015E-34 J*s
+- reduced_planck: reduced planck's constant, ~1.054571817E-34 J*s
 - eV: electron volt, 1.602176634E-19 J
 - eC: elementary charge, 1.602176634E-19 C
 - eM: electron mass, 9.1093837015E-31 kg

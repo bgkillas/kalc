@@ -607,11 +607,11 @@ pub fn is_unit(unit: &mut String) -> bool
             }
         })
 }
-pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
+pub fn prefixes(mut unit: String, prec: u32) -> (String, Float)
 {
     if is_unit(&mut unit)
     {
-        return (unit, Complex::with_val(prec, 1));
+        return (unit, Float::with_val(prec, 1));
     }
     let bak = unit.clone();
     let mut word = String::new();
@@ -622,137 +622,83 @@ pub fn prefixes(mut unit: String, prec: (u32, u32)) -> (String, Complex)
         {
             "quetta" | "Q" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(30))
+                return (unit, Float::with_val(prec, 10).pow(30))
             }
             "ronna" | "R" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(27))
+                return (unit, Float::with_val(prec, 10).pow(27))
             }
             "yotta" | "Y" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(24))
+                return (unit, Float::with_val(prec, 10).pow(24))
             }
             "zetta" | "Z" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(21))
+                return (unit, Float::with_val(prec, 10).pow(21))
             }
-            "exa" | "E" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(18))
-            }
-            "peta" | "P" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(15))
-            }
-            "tera" | "T" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(12))
-            }
-            "giga" | "G" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(9))
-            }
-            "mega" | "M" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(6))
-            }
-            "kilo" | "k" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(3))
-            }
-            "hecto" | "h" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(2))
-            }
-            "deca" | "da" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(1))
-            }
-            "deci" | "d" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(-1))
-            }
+            "exa" | "E" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(18)),
+            "peta" | "P" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(15)),
+            "tera" | "T" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(12)),
+            "giga" | "G" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(9)),
+            "mega" | "M" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(6)),
+            "kilo" | "k" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(3)),
+            "hecto" | "h" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(2)),
+            "deca" | "da" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(1)),
+            "deci" | "d" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(-1)),
             "centi" | "c" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-2))
+                return (unit, Float::with_val(prec, 10).pow(-2))
             }
             "milli" | "m" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-3))
+                return (unit, Float::with_val(prec, 10).pow(-3))
             }
             "micro" | "μ" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-6))
+                return (unit, Float::with_val(prec, 10).pow(-6))
             }
-            "nano" | "n" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 10).pow(-9))
-            }
+            "nano" | "n" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(-9)),
             "pico" | "p" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-12))
+                return (unit, Float::with_val(prec, 10).pow(-12))
             }
             "femto" | "f" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-15))
+                return (unit, Float::with_val(prec, 10).pow(-15))
             }
             "atto" | "a" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-18))
+                return (unit, Float::with_val(prec, 10).pow(-18))
             }
             "zepto" | "z" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-21))
+                return (unit, Float::with_val(prec, 10).pow(-21))
             }
             "yocto" | "y" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-24))
+                return (unit, Float::with_val(prec, 10).pow(-24))
             }
             "ronto" | "r" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-27))
+                return (unit, Float::with_val(prec, 10).pow(-27))
             }
             "qecto" | "q" if is_unit(&mut unit) =>
             {
-                return (unit, Complex::with_val(prec, 10).pow(-30))
+                return (unit, Float::with_val(prec, 10).pow(-30))
             }
-            "kibi" | "Ki" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(10))
-            }
-            "mebi" | "Mi" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(20))
-            }
-            "gibi" | "Gi" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(30))
-            }
-            "tebi" | "Ti" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(40))
-            }
-            "pebi" | "Pi" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(50))
-            }
-            "exbi" | "Ei" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(60))
-            }
-            "zebi" | "Zi" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(70))
-            }
-            "yobi" | "Yi" if is_unit(&mut unit) =>
-            {
-                return (unit, Complex::with_val(prec, 2).pow(80))
-            }
+            "kibi" | "Ki" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(10)),
+            "mebi" | "Mi" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(20)),
+            "gibi" | "Gi" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(30)),
+            "tebi" | "Ti" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(40)),
+            "pebi" | "Pi" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(50)),
+            "exbi" | "Ei" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(60)),
+            "zebi" | "Zi" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(70)),
+            "yobi" | "Yi" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(80)),
             _ =>
             {}
         }
     }
-    (bak, Complex::with_val(prec, 1))
+    (bak, Float::with_val(prec, 1))
 }
 pub fn units() -> HashSet<&'static str>
 {
@@ -882,12 +828,26 @@ pub fn units() -> HashSet<&'static str>
         "micron",
         "unit",
         "u",
+        "c",
+        "gravity",
+        "G",
+        "planck",
+        "reduced_planck",
+        "eV",
+        "eC",
+        "eM",
+        "pM",
+        "nM",
+        "ke",
+        "Na",
+        "R",
+        "boltzmann",
     ]
     .iter()
     .cloned()
     .collect::<HashSet<&str>>()
 }
-pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Option<Number>)
+pub fn to_unit(unit: String, mut num: Float, options: Options) -> (Number, Option<Number>)
 {
     let mut units = Units::default();
     let mut add = None;
@@ -1237,7 +1197,7 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
         }
         "ly" =>
         {
-            num *= 9460730472580800u128;
+            num *= 9460730472580800u64;
             units.meter = 1.0;
         }
         "N" | "newton" =>
@@ -1344,8 +1304,119 @@ pub fn to_unit(unit: String, mut num: Complex, options: Options) -> (Number, Opt
             };
             units.angle = 1.0;
         }
+        "c" =>
+        {
+            units.meter = 1.0;
+            units.second = -1.0;
+            num *= 299792458;
+        }
+        "gravity" =>
+        {
+            units.meter = 1.0;
+            units.second = -2.0;
+            num *= 196133;
+            num /= 20000;
+        }
+        "G" =>
+        {
+            units.meter = 3.0;
+            units.kilogram = -1.0;
+            units.second = -2.0;
+            num *= 66743;
+            num /= 10000;
+            num /= 100000000000u64;
+        }
+        "planck" =>
+        {
+            units.meter = 2.0;
+            units.kilogram = 1.0;
+            units.second = -1.0;
+            num *= 132521403;
+            num /= 20000000;
+            num /= 10000000000000000000000000000000000u128;
+        }
+        "reduced_planck" =>
+        {
+            units.meter = 2.0;
+            units.kilogram = 1.0;
+            units.second = -1.0;
+            num *= 132521403;
+            num /= 40000000;
+            num /= Float::with_val(options.prec, Pi);
+            num /= 10000000000000000000000000000000000u128;
+        }
+        "eV" =>
+        {
+            units.meter = 2.0;
+            units.second = -2.0;
+            units.kilogram = 1.0;
+            num *= 801088317;
+            num /= 5000000000000000000000000000u128;
+        }
+        "eC" =>
+        {
+            units.ampere = 1.0;
+            units.second = 1.0;
+            num *= 801088317;
+            num /= 5000000000000000000000000000u128;
+        }
+        "eM" =>
+        {
+            units.kilogram = 1.0;
+            num *= 18218767403u64;
+            num /= 2000000000;
+            num /= 10000000000000000000000000000000u128;
+        }
+        "pM" =>
+        {
+            units.kilogram = 1.0;
+            num *= 167262192369u64;
+            num /= 100000000000u64;
+            num /= 1000000000000000000000000000u128;
+        }
+        "nM" =>
+        {
+            units.kilogram = 1.0;
+            num *= 167492749804u64;
+            num /= 100000000000u64;
+            num /= 1000000000000000000000000000u128;
+        }
+        "ke" =>
+        {
+            units.meter = 2.0;
+            units.second = -4.0;
+            units.kilogram = 1.0;
+            units.ampere = -2.0;
+            num *= 89875517923u64;
+            num /= 10;
+        }
+        "Na" =>
+        {
+            units.mole = -1.0;
+            num *= 602214076;
+            num *= 1000000000000000u64;
+        }
+        "R" =>
+        {
+            units.meter = 2.0;
+            units.second = -2.0;
+            units.kilogram = 1.0;
+            units.kelvin = -1.0;
+            units.mole = -1.0;
+            num *= 207861565453831u64;
+            num /= 25000000000000u64;
+        }
+        "boltzmann" =>
+        {
+            units.meter = 2.0;
+            units.second = -2.0;
+            units.kilogram = 1.0;
+            units.kelvin = -1.0;
+            num *= 1380649;
+            num /= 100000000000000000000000000000u128;
+        }
         _ =>
         {}
     }
-    (Number::from(num, Some(units)), add)
+    (Number::from(num.into(), Some(units)), add)
 }

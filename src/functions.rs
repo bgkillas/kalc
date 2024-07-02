@@ -501,6 +501,20 @@ pub fn functions_with_args() -> HashSet<&'static str>
 pub fn units_list() -> HashSet<&'static str>
 {
     [
+        "eV",
+        "eC",
+        "eM",
+        "pM",
+        "nM",
+        "ke",
+        "Na",
+        "R",
+        "boltzmann",
+        "gravity",
+        "G",
+        "planck",
+        "reduced_planck",
+        "c",
         "meter",
         "second",
         "ampere",

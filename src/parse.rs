@@ -447,15 +447,15 @@ pub fn input_var(
                     None,
                 ))),
                 '⅜' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.375),
+                    Complex::with_val(options.prec, 3) / 8,
                     None,
                 ))),
                 '⅝' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.625),
+                    Complex::with_val(options.prec, 5) / 8,
                     None,
                 ))),
                 '⅞' => output.push(Num(Number::from(
-                    Complex::with_val(options.prec, 0.875),
+                    Complex::with_val(options.prec, 7) / 8,
                     None,
                 ))),
                 '⅟' =>

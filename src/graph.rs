@@ -465,20 +465,20 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
-                        if d2_or_d3.1&&options.graphtype==Domain
+                        if d2_or_d3.1&&func[n].2.graphtype==Domain
                             {
                         format!(
                             "'{}'binary endian=little array=({},{}) format='%uint32'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
-                            f,options.samples_3d.0+1,options.samples_3d.1+1,
-                                    options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64
+                            f,func[n].2.samples_3d.0+1,func[n].2.samples_3d.1+1,
+                                    func[n].2.xr.0,func[n].2.yr.0,(func[n].2.xr.1-func[n].2.xr.0)/func[n].2.samples_3d.0 as f64,(func[n].2.yr.1-func[n].2.yr.0)/func[n].2.samples_3d.1 as f64
                         )
                             }
                         else if func[n].2.surface&&d2_or_d3.1
                         {
                                 format!(
                             "'{}'binary endian=little array=({},{}) format='%float64'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d t\"{}\"",
-                             f,options.samples_3d.0+1,options.samples_3d.1+1,
-                                    options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64
+                             f,func[n].2.samples_3d.0+1,func[n].2.samples_3d.1+1,
+                                    func[n].2.xr.0,func[n].2.yr.0,(func[n].2.xr.1-func[n].2.xr.0)/func[n].2.samples_3d.0 as f64,(func[n].2.yr.1-func[n].2.yr.0)/func[n].2.samples_3d.1 as f64
                                 ,cap[j])
                         }else if lines[n]
                         {
@@ -489,9 +489,9 @@ pub fn graph(
                             col, cap[j], f,
                                 if d2_or_d3.1
                             {
-                              format!("({},{})" ,options.samples_3d.0+1,options.samples_3d.1+1)}else{(options.samples_2d+1).to_string()},
-                                   if d2_or_d3.1{format!("({:e},{:e},0) dx={:e} dy={:e}",options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64)}else{
-                                       format!("({:e},0) dx={:e}",options.xr.0,(options.xr.1-options.xr.0)/options.samples_2d as f64)
+                              format!("({},{})" ,func[n].2.samples_3d.0+1,func[n].2.samples_3d.1+1)}else{(func[n].2.samples_2d+1).to_string()},
+                                   if d2_or_d3.1{format!("({:e},{:e},0) dx={:e} dy={:e}",func[n].2.xr.0,func[n].2.yr.0,(func[n].2.xr.1-func[n].2.xr.0)/func[n].2.samples_3d.0 as f64,(func[n].2.yr.1-func[n].2.yr.0)/func[n].2.samples_3d.1 as f64)}else{
+                                       format!("({:e},0) dx={:e}",func[n].2.xr.0,(func[n].2.xr.1-func[n].2.xr.0)/func[n].2.samples_2d as f64)
                                    }
                                 ,func[n].2.point_style, col)
                             }else if func[n].2.point_style == 0
@@ -513,9 +513,9 @@ pub fn graph(
                             col, cap[j], f,
                                 if d2_or_d3.1
                             {
-                              format!("({},{})" ,options.samples_3d.0+1,options.samples_3d.1+1)}else{(options.samples_2d+1).to_string()},
-                                   if d2_or_d3.1{format!("({:e},{:e},0) dx={:e} dy={:e}",options.xr.0,options.yr.0,(options.xr.1-options.xr.0)/options.samples_3d.0 as f64,(options.yr.1-options.yr.0)/options.samples_3d.1 as f64)}else{
-                                       format!("({:e},0) dx={:e}",options.xr.0,(options.xr.1-options.xr.0)/options.samples_2d as f64)
+                              format!("({},{})" ,func[n].2.samples_3d.0+1,func[n].2.samples_3d.1+1)}else{(func[n].2.samples_2d+1).to_string()},
+                                   if d2_or_d3.1{format!("({:e},{:e},0) dx={:e} dy={:e}",func[n].2.xr.0,func[n].2.yr.0,(func[n].2.xr.1-func[n].2.xr.0)/func[n].2.samples_3d.0 as f64,(func[n].2.yr.1-func[n].2.yr.0)/func[n].2.samples_3d.1 as f64)}else{
+                                       format!("({:e},0) dx={:e}",func[n].2.xr.0,(func[n].2.xr.1-func[n].2.xr.0)/func[n].2.samples_2d as f64)
                                    }
                                 ,func[n].2.point_style, col)
                             }

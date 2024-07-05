@@ -1169,9 +1169,9 @@ pub fn get_list_3d(
                                 let t2: Float = i.pow(2);
                                 let n1: Float = t1.clone() / (t1 + 1);
                                 let n2: Float = t2.clone() / (t2 + 1);
-                                let sqr: Float = abs.pow(2);
-                                let n3: Float = (n1 * n2).abs().pow(0.03125);
-                                n3.max(&Float::with_val(func.2.prec, 0.8)) * sqr.clone() / (sqr + 1)
+                                let n3: Float = (n1 * n2).abs().pow(0.0625);
+                                let n4 = abs.atan() * 2 / &pi;
+                                0.8 * (n3.clone() * n4 + 0.5 - 0.5 * n3)
                             };
                             let v: Float = if lig < 0.5
                             {

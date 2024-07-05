@@ -1137,7 +1137,7 @@ pub fn print_concurrent(
             else
             {
                 print!(
-                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{} \x1b[J\x1b[G{}{}\x1b[A\x1b[{}C{}",
+                    "\x1b[G{}{}\x1b[K{}\x1b[G\n{}{}{}\x1b[J\x1b[G{}{}\x1b[A\x1b[{}C{}",
                     prompt(options, &colors),
                     to_output(
                         &unmodified_input[start..end],
@@ -1155,6 +1155,14 @@ pub fn print_concurrent(
                     },
                     output.0,
                     output.1,
+                    if len1 == width || len2 == width
+                    {
+                        " "
+                    }
+                    else
+                    {
+                        ""
+                    },
                     if frac == 1 { "\x1b[A" } else { "" },
                     if len1 == width || len2 == width
                     {

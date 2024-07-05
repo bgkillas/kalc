@@ -276,7 +276,8 @@ pub fn set_commands(
                 "null" | "none" | "false" => GraphType::None,
                 "depth" => GraphType::Depth,
                 "flat" => GraphType::Flat,
-                "domain" | "domain_coloring" => GraphType::Domain,
+                "domain" | "domain1" | "domain_coloring" => GraphType::Domain,
+                "domain_alt" | "domainalt" | "domain2" => GraphType::DomainAlt,
                 _ => return Err("bad graph type"),
             }
         }
@@ -1436,6 +1437,7 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         {
             GraphType::Normal => "normal",
             GraphType::Domain => "domain",
+            GraphType::DomainAlt => "domain_alt",
             GraphType::None => "none",
             GraphType::Depth => "depth",
             GraphType::Flat => "flat",

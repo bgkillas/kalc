@@ -165,6 +165,7 @@ pub enum GraphType
 {
     Normal,
     Domain,
+    DomainAlt,
     Flat,
     Depth,
     None,

@@ -118,7 +118,7 @@ FLAGS: --help (this message)
 --interactive/-i allows interaction after finishing the equations given
 --units toggles units
 --notation=e/E/s/n defines what kind of notation you should use,(e) 3e2,(E) 3E2,(s) 3*10^2,(n) 300
---graph=normal/domain/depth/flat/none changes how a function is graphed, domain/depth/flat relate to complex graphs
+--graph=normal/domain/domain_alt/depth/flat/none changes how a function is graphed, domain/depth/flat relate to complex graphs
 --label=[x],[y],[z] sets the labels for the graphs x/y/z axis
 --angle=deg/rad/grad sets your angletype
 --2d=[num] number of points to graph in 2D, 2d=-1 for integer placements

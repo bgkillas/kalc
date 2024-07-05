@@ -13,7 +13,7 @@ use crate::{
     options::silent_commands,
     parse::{input_var, simplify},
     Auto, Colors, GraphType,
-    GraphType::{Depth, Domain, Flat, Normal},
+    GraphType::{Depth, Domain, DomainAlt, Flat, Normal},
     HowGraphing, Number, Options, Variable,
 };
 use rug::{float::Constant::Pi, ops::Pow, Complex, Float};
@@ -408,11 +408,12 @@ pub fn graph(
         writeln!(stdin, "set xlabel'{}'", colors.label.0).unwrap();
         writeln!(stdin, "set ylabel'{}'", colors.label.1).unwrap();
         writeln!(stdin, "set zlabel'{}'", colors.label.2).unwrap();
-        if d2_or_d3.1 && (options.surface || options.graphtype == Domain)
+        if d2_or_d3.1
+            && (options.surface || options.graphtype == Domain || options.graphtype == DomainAlt)
         {
             writeln!(stdin, "set palette model HSV").unwrap();
             writeln!(stdin, "set palette defined ( 0 0 1 1, 1 1 1 1 )").unwrap();
-            if options.graphtype == Domain
+            if options.graphtype == Domain || options.graphtype == DomainAlt
             {
                 writeln!(stdin, "set title'{}'", cap[0]).unwrap();
                 writeln!(stdin, "set xlabel're(z)'").unwrap();
@@ -423,7 +424,11 @@ pub fn graph(
                 writeln!(stdin, "set xtics border scale 0,0").unwrap();
                 writeln!(stdin, "set ytics border scale 0,0").unwrap();
                 writeln!(stdin, "set cbtics border scale 0,0").unwrap();
-                writeln!(stdin, "set cbtics ('0' 0, '2pi' 6.28318530718)").unwrap();
+                writeln!(
+                    stdin,
+                    "set cbtics ('0' 0, 'pi/2' 1.570796326795, 'pi' 3.14159265359, '3pi/2' 4.712388980385, '2pi' 6.28318530718)"
+                )
+                .unwrap();
                 writeln!(stdin, "set cblabel 'phase angle'").unwrap();
                 writeln!(stdin, "set cbrange [0:6.28318530718]").unwrap();
             }
@@ -449,7 +454,7 @@ pub fn graph(
             writeln!(
                 stdin,
                 "{}{}",
-                if d2_or_d3.0 { "plot" } else { "splot" },
+                if d2_or_d3.1 { "splot" } else { "plot" },
                 paths
                     .iter()
                     .enumerate()
@@ -465,7 +470,7 @@ pub fn graph(
                             n = f.split("im").last().unwrap().parse::<usize>().unwrap();
                             colors.imcol[n % colors.recol.len()].clone()
                         };
-                        if d2_or_d3.1&&func[n].2.graphtype==Domain
+                        if d2_or_d3.1&&(func[n].2.graphtype==Domain||func[n].2.graphtype==DomainAlt)
                             {
                         format!(
                             "'{}'binary endian=little array=({},{}) format='%uint32'origin=({:e},{:e},0) dx={:e} dy={:e} with pm3d lc rgb variable nocontour",
@@ -646,7 +651,9 @@ pub fn get_list_2d(
                     {
                         zero.0 = true
                     }
-                    if func.2.graphtype == Normal || func.2.graphtype == Domain
+                    if func.2.graphtype == Normal
+                        || func.2.graphtype == Domain
+                        || func.2.graphtype == DomainAlt
                     {
                         if has_x
                         {
@@ -672,7 +679,9 @@ pub fn get_list_2d(
                     {
                         zero.1 = true
                     }
-                    if func.2.graphtype == Normal || func.2.graphtype == Domain
+                    if func.2.graphtype == Normal
+                        || func.2.graphtype == Domain
+                        || func.2.graphtype == DomainAlt
                     {
                         if has_x
                         {
@@ -730,7 +739,9 @@ pub fn get_list_2d(
                             {
                                 zero.0 = true
                             }
-                            if func.2.graphtype == Normal || func.2.graphtype == Domain
+                            if func.2.graphtype == Normal
+                                || func.2.graphtype == Domain
+                                || func.2.graphtype == DomainAlt
                             {
                                 if has_x
                                 {
@@ -754,7 +765,9 @@ pub fn get_list_2d(
                             {
                                 zero.1 = true
                             }
-                            if func.2.graphtype == Normal || func.2.graphtype == Domain
+                            if func.2.graphtype == Normal
+                                || func.2.graphtype == Domain
+                                || func.2.graphtype == DomainAlt
                             {
                                 if has_x
                                 {
@@ -866,7 +879,9 @@ pub fn get_list_2d(
                             {
                                 zero.0 = true
                             }
-                            if func.2.graphtype == Normal || func.2.graphtype == Domain
+                            if func.2.graphtype == Normal
+                                || func.2.graphtype == Domain
+                                || func.2.graphtype == DomainAlt
                             {
                                 if has_x
                                 {
@@ -890,7 +905,9 @@ pub fn get_list_2d(
                             {
                                 zero.1 = true
                             }
-                            if func.2.graphtype == Normal || func.2.graphtype == Domain
+                            if func.2.graphtype == Normal
+                                || func.2.graphtype == Domain
+                                || func.2.graphtype == DomainAlt
                             {
                                 if has_x
                                 {
@@ -1033,7 +1050,7 @@ pub fn get_list_3d(
     let mut d2 = false;
     let mut real = File::create(format!("{data_dir}/re{i}")).unwrap();
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
-    if func.2.graphtype == Domain
+    if func.2.graphtype == Domain || func.2.graphtype == DomainAlt
     {
         fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
     }
@@ -1086,7 +1103,7 @@ pub fn get_list_3d(
     let mut imags = Vec::new();
     let mut no_opt_re = false;
     let mut no_opt_im = false;
-    let pi: Float = if func.2.graphtype == Domain
+    let pi: Float = if func.2.graphtype == Domain || func.2.graphtype == DomainAlt
     {
         Float::with_val(func.2.prec, Pi)
     }
@@ -1130,6 +1147,56 @@ pub fn get_list_3d(
                             };
                             real.write_all(&hsv2rgb(3 * hue, sat, val).to_le_bytes())
                                 .unwrap();
+                        }
+                        else
+                        {
+                            real.write_all(&16777215u32.to_le_bytes()).unwrap()
+                        }
+                    }
+                    else if func.2.graphtype == DomainAlt
+                    {
+                        let abs = num.clone().abs().real().clone();
+                        if abs.clone().log2() < abs.prec() - 16
+                        {
+                            let hue: Float = 1 + (-num.clone()).arg().real().clone() / &pi;
+                            let sat: Float = {
+                                let t3: Float = (abs.clone() * &pi).sin();
+                                t3.abs().pow(0.125)
+                            };
+                            let lig: Float = {
+                                let (r, i) = num.into_real_imag();
+                                let t1: Float = r.pow(2);
+                                let t2: Float = i.pow(2);
+                                let n1: Float = t1.clone() / (t1 + 1);
+                                let n2: Float = t2.clone() / (t2 + 1);
+                                let sqr: Float = abs.pow(2);
+                                let n3: Float = (n1 * n2).abs().pow(0.03125);
+                                n3.max(&Float::with_val(func.2.prec, 0.8)) * sqr.clone() / (sqr + 1)
+                            };
+                            let v: Float = if lig < 0.5
+                            {
+                                lig.clone() * (1 + sat)
+                            }
+                            else
+                            {
+                                lig.clone() * (1 - sat.clone()) + sat
+                            };
+                            real.write_all(
+                                &hsv2rgb(
+                                    3 * hue,
+                                    if v.is_zero()
+                                    {
+                                        Float::new(func.2.prec)
+                                    }
+                                    else
+                                    {
+                                        2 - 2 * lig / v.clone()
+                                    },
+                                    v,
+                                )
+                                .to_le_bytes(),
+                            )
+                            .unwrap();
                         }
                         else
                         {
@@ -1388,7 +1455,7 @@ pub fn get_list_3d(
                 {
                     println!("{}", s);
                     fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
-                    if func.2.graphtype != Domain
+                    if !(func.2.graphtype == Domain || func.2.graphtype == DomainAlt)
                     {
                         fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
                     }
@@ -1429,7 +1496,7 @@ pub fn get_list_3d(
         }
         stdout().flush().unwrap()
     }
-    if func.2.graphtype != Domain
+    if !(func.2.graphtype == Domain || func.2.graphtype == DomainAlt)
     {
         if no_opt_re
         {

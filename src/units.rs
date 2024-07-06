@@ -1,10 +1,17 @@
 use crate::{AngleType, Number, Options, Units};
 use rug::{
     float::Constant::Pi,
-    ops::{DivRounding, Pow},
+    ops::{CompleteRound, DivRounding, Pow},
     Complex, Float,
 };
-use std::collections::HashSet;
+use std::{
+    collections::HashSet,
+    fs,
+    fs::File,
+    io::{BufRead, BufReader, Read, Write},
+    net::TcpStream,
+    time::SystemTime,
+};
 impl Units
 {
     pub fn is_none(&self) -> bool
@@ -842,6 +849,152 @@ pub fn units() -> HashSet<&'static str>
         "Na",
         "R",
         "boltzmann",
+        "AUD",
+        "CAD",
+        "CNY",
+        "EUR",
+        "GBP",
+        "HKD",
+        "IDR",
+        "INR",
+        "JPY",
+        "KRW",
+        "MYR",
+        "NZD",
+        "PHP",
+        "SGD",
+        "THB",
+        "TWD",
+        "VND",
+        "BGN",
+        "BRL",
+        "CHF",
+        "CLP",
+        "CZK",
+        "DKK",
+        "HUF",
+        "ILS",
+        "ISK",
+        "MXN",
+        "NOK",
+        "PLN",
+        "RON",
+        "SEK",
+        "TRY",
+        "UAH",
+        "ZAR",
+        "EGP",
+        "JOD",
+        "LBP",
+        "AED",
+        "MDL",
+        "RSD",
+        "RUB",
+        "AMD",
+        "AZN",
+        "BDT",
+        "DOP",
+        "DZD",
+        "GEL",
+        "IQD",
+        "IRR",
+        "KGS",
+        "KZT",
+        "LYD",
+        "MAD",
+        "PKR",
+        "SAR",
+        "TJS",
+        "TMT",
+        "TND",
+        "UZS",
+        "XAF",
+        "XOF",
+        "BYN",
+        "PEN",
+        "VES",
+        "ARS",
+        "BOB",
+        "COP",
+        "CRC",
+        "HTG",
+        "PAB",
+        "PYG",
+        "UYU",
+        "NGN",
+        "AFN",
+        "ALL",
+        "ANG",
+        "AOA",
+        "AWG",
+        "BAM",
+        "BBD",
+        "BHD",
+        "BIF",
+        "BND",
+        "BSD",
+        "BWP",
+        "BZD",
+        "CDF",
+        "CUP",
+        "CVE",
+        "DJF",
+        "ERN",
+        "ETB",
+        "FJD",
+        "GHS",
+        "GIP",
+        "GMD",
+        "GNF",
+        "GTQ",
+        "GYD",
+        "HNL",
+        "JMD",
+        "KES",
+        "KHR",
+        "KMF",
+        "KWD",
+        "LAK",
+        "LKR",
+        "LRD",
+        "LSL",
+        "MGA",
+        "MKD",
+        "MMK",
+        "MNT",
+        "MOP",
+        "MRU",
+        "MUR",
+        "MVR",
+        "MWK",
+        "MZN",
+        "NAD",
+        "NIO",
+        "NPR",
+        "OMR",
+        "PGK",
+        "QAR",
+        "RWF",
+        "SBD",
+        "SCR",
+        "SDG",
+        "SOS",
+        "SRD",
+        "SSP",
+        "STN",
+        "SVC",
+        "SYP",
+        "SZL",
+        "TOP",
+        "TTD",
+        "TZS",
+        "UGX",
+        "VUV",
+        "WST",
+        "XCD",
+        "XPF",
+        "YER",
+        "ZMW",
     ]
     .iter()
     .cloned()
@@ -1416,7 +1569,83 @@ pub fn to_unit(unit: String, mut num: Float, options: Options) -> (Number, Optio
             num /= 100000000000000000000000000000u128;
         }
         _ =>
-        {}
+        {
+            if get_new_currency_data()
+            {
+                let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned()
+                    + "/kalc/kalc.currency";
+                let file = File::open(dir).unwrap();
+                for l in BufReader::new(file)
+                    .lines()
+                    .map(|a| a.unwrap())
+                    .collect::<Vec<String>>()
+                {
+                    if l.starts_with(&unit)
+                    {
+                        units.usd = 1.0;
+                        num *= Float::parse(l.split(' ').last().unwrap())
+                            .unwrap()
+                            .complete(options.prec);
+                    }
+                }
+            }
+        }
     }
     (Number::from(num.into(), Some(units)), add)
+}
+fn get_new_currency_data() -> bool
+{
+    let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc/kalc.currency";
+    if fs::metadata(dir.clone()).map_or(true, |a| {
+        SystemTime::now()
+            .duration_since(a.modified().unwrap())
+            .map_or(false, |b| b.as_secs() > 7 * 24 * 3600)
+    })
+    {
+        let mut stream = match TcpStream::connect("www.floatrates.com:80")
+        {
+            Ok(n) => n,
+            _ => return false,
+        };
+        let request =
+            "GET /daily/usd.json HTTP/1.1\r\nHost: www.floatrates.com\r\nConnection: close\r\n\r\n";
+        stream.write_all(request.as_bytes()).unwrap();
+        let mut response = String::new();
+        stream.read_to_string(&mut response).unwrap();
+        let mut output = String::new();
+        let mut word = String::new();
+        let chars = response
+            .replace(['\r', '\n'], "")
+            .chars()
+            .collect::<Vec<char>>();
+        for (i, c) in chars.iter().enumerate()
+        {
+            if c.is_alphabetic()
+            {
+                word.push(*c)
+            }
+            else
+            {
+                if word == "code"
+                {
+                    output.push_str(&chars[i + 3..i + 6].iter().collect::<String>());
+                    output.push(' ')
+                }
+                else if word == "inverseRate"
+                {
+                    output.push_str(
+                        &chars
+                            [i + 2..i + 2 + chars[i + 2..].iter().position(|c| *c == '}').unwrap()]
+                            .iter()
+                            .collect::<String>(),
+                    );
+                    output.push('\n')
+                }
+                word.clear()
+            }
+        }
+        let mut file = File::create(dir).unwrap();
+        file.write_all(output.as_bytes()).unwrap();
+    }
+    true
 }

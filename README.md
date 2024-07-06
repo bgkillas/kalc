@@ -364,6 +364,7 @@ the following units are supported
 "parsec" | "pc"
 "au"
 "floz"
+"AUD","CAD","CNY","EUR","GBP","HKD","IDR","INR","JPY","KRW","MYR","NZD","PHP","SGD","THB","TWD","VND","BGN","BRL","CHF","CLP","CZK","DKK","HUF","ILS","ISK","MXN","NOK","PLN","RON","SEK","TRY","UAH","ZAR","EGP","JOD","LBP","AED","MDL","RSD","RUB","AMD","AZN","BDT","DOP","DZD","GEL","IQD","IRR","KGS","KZT","LYD","MAD","PKR","SAR","TJS","TMT","TND","UZS","XAF","XOF","BYN","PEN","VES","ARS","BOB","COP","CRC","HTG","PAB","PYG","UYU","NGN","AFN","ALL","ANG","AOA","AWG","BAM","BBD","BHD","BIF","BND","BSD","BWP","BZD","CDF","CUP","CVE","DJF","ERN","ETB","FJD","GHS","GIP","GMD","GNF","GTQ","GYD","HNL","JMD","KES","KHR","KMF","KWD","LAK","LKR","LRD","LSL","MGA","MKD","MMK","MNT","MOP","MRU","MUR","MVR","MWK","MZN","NAD","NIO","NPR","OMR","PGK","QAR","RWF","SBD","SCR","SDG","SOS","SRD","SSP","STN","SVC","SYP","SZL","TOP","TTD","TZS","UGX","VUV","WST","XCD","XPF","YER","ZMW"
 
 Digraph:
 hit escape then a letter, or hold alt while typing(only lowercase)

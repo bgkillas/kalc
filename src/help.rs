@@ -44,7 +44,8 @@ FLAGS: --help (this message)\x1b[G\n\
 --saveto=[file] saves the graph as a png to the given file, --windowsize=x,y for resolution\x1b[G\n\
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'\x1b[G\n\
 --keepzeros dont remove trailing zeros\x1b[G\n\
---progress shows progress on graph\x1b[G\n\n\
+--progress shows progress on graph\x1b[G\n\
+--default_units=unit1,unit2... sets the default single dimensional unit\x1b[G\n\n\
 - flags can be executed in runtime just without the dashes\x1b[G\n\
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0\x1b[G\n\
 - '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2\x1b[G\n\

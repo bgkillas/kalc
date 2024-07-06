@@ -5,7 +5,7 @@ use crate::{
     },
     functions::functions,
     math::do_math,
-    print::get_output,
+    print::{custom_units, get_output},
     Colors, Options, Variable,
 };
 use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
@@ -871,6 +871,7 @@ pub fn parsed_to_string(
         {
             Num(n) =>
             {
+                let n = custom_units(n, *options, colors);
                 let n = get_output(*options, colors, &n);
                 format!(
                     "{}{}{}{}",
@@ -893,6 +894,7 @@ pub fn parsed_to_string(
                 let mut num;
                 for i in n
                 {
+                    let i = custom_units(i, *options, colors);
                     num = get_output(*options, colors, &i);
                     str.push_str(&format!(
                         "{}{}{}{},",
@@ -921,6 +923,7 @@ pub fn parsed_to_string(
                     str.push('{');
                     for j in i
                     {
+                        let j = custom_units(j, *options, colors);
                         num = get_output(*options, colors, &j);
                         str.push_str(&format!(
                             "{}{}{}{},",

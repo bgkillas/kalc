@@ -156,6 +156,7 @@ FLAGS: --help (this message)
 --siunits toggles keeping stuff in si units, a newton will show as 'm s^-2 kg' instead of 'N'
 --keepzeros dont remove trailing zeros
 --progress shows progress on graph
+--default_units=unit1,unit2... sets the default single dimensional unit
 
 - flags can be executed in runtime just without the dashes
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0

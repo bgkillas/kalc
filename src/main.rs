@@ -84,6 +84,7 @@ pub struct Colors
     imcol: Vec<String>,
     label: (String, String, String),
     graphtofile: String,
+    default_units: Vec<(String, Number)>,
 }
 impl Default for Colors
 {
@@ -121,6 +122,7 @@ impl Default for Colors
             ],
             label: ("x".to_string(), "y".to_string(), "z".to_string()),
             graphtofile: String::new(),
+            default_units: Vec::new(),
         }
     }
 }

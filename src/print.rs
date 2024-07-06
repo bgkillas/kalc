@@ -16,9 +16,13 @@ use crate::{
     AngleType::{Degrees, Gradians, Radians},
     Colors, HowGraphing,
     Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
-    Number, Options, Variable,
+    Number, Options, Units, Variable,
 };
-use rug::{float::Constant::Pi, ops::CompleteRound, Complex, Float, Integer};
+use rug::{
+    float::Constant::Pi,
+    ops::{CompleteRound, Pow},
+    Complex, Float, Integer,
+};
 use std::cmp::Ordering;
 #[allow(clippy::too_many_arguments)]
 pub fn print_concurrent(
@@ -420,6 +424,7 @@ pub fn print_concurrent(
                     | "scic"
                     | "unitsc"
                     | "bracketc"
+                    | "default_units"
                     | "label"
                     | "point"
                     | "points"
@@ -878,6 +883,7 @@ pub fn print_concurrent(
     {
         Num(n) =>
         {
+            let n = custom_units(n, options, &colors);
             let mut output = get_output(options, &colors, &n);
             let (mut frac_a, frac_b) = if options.frac.num
             {
@@ -1221,7 +1227,8 @@ pub fn print_concurrent(
             frac = if options.frac.vec { 1 } else { 0 };
             for (k, i) in v.iter().enumerate()
             {
-                out = get_output(options, &colors, i);
+                let i = custom_units(i.clone(), options, &colors);
+                out = get_output(options, &colors, &i);
                 let i = &i.number;
                 if frac == 1
                 {
@@ -1486,7 +1493,8 @@ pub fn print_concurrent(
                 }
                 for (k, i) in j.iter().enumerate()
                 {
-                    out = get_output(options, &colors, i);
+                    let i = custom_units(i.clone(), options, &colors);
+                    out = get_output(options, &colors, &i);
                     let i = &i.number;
                     if frac == 1
                     {
@@ -1813,6 +1821,7 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
     {
         Num(n) =>
         {
+            let n = custom_units(n, options, colors);
             let a = get_output(options, colors, &n);
             print!(
                 "{}{}{}{}",
@@ -1862,7 +1871,8 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
             let mut out;
             for (k, i) in v.iter().enumerate()
             {
-                out = get_output(options, colors, i);
+                let i = custom_units(i.clone(), options, colors);
+                out = get_output(options, colors, &i);
                 output += out.0.as_str();
                 output += out.1.as_str();
                 output += &out.2.unwrap_or_default();
@@ -1934,7 +1944,8 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
                 }
                 for (k, i) in j.iter().enumerate()
                 {
-                    out = get_output(options, colors, i);
+                    let i = custom_units(i.clone(), options, colors);
+                    out = get_output(options, colors, &i);
                     output += out.0.as_str();
                     output += out.1.as_str();
                     output += &out.2.unwrap_or_default();
@@ -2008,6 +2019,110 @@ pub fn print_answer(num: NumStr, options: Options, colors: &Colors)
         _ =>
         {}
     }
+}
+pub fn custom_units(mut number: Number, options: Options, colors: &Colors) -> Number
+{
+    if !colors.default_units.is_empty()
+    {
+        let mut meter = Complex::with_val(options.prec, 1);
+        let mut second = Complex::with_val(options.prec, 1);
+        let mut kilogram = Complex::with_val(options.prec, 1);
+        let mut ampere = Complex::with_val(options.prec, 1);
+        let mut mole = Complex::with_val(options.prec, 1);
+        let mut candela = Complex::with_val(options.prec, 1);
+        let mut byte = Complex::with_val(options.prec, 1);
+        let mut usd = Complex::with_val(options.prec, 1);
+        let mut unit = Complex::with_val(options.prec, 1);
+        let m = Units {
+            meter: 1.0,
+            ..Units::default()
+        };
+        let s = Units {
+            second: 1.0,
+            ..Units::default()
+        };
+        let kg = Units {
+            kilogram: 1.0,
+            ..Units::default()
+        };
+        let a = Units {
+            ampere: 1.0,
+            ..Units::default()
+        };
+        let mol = Units {
+            mole: 1.0,
+            ..Units::default()
+        };
+        let cd = Units {
+            candela: 1.0,
+            ..Units::default()
+        };
+        let b = Units {
+            byte: 1.0,
+            ..Units::default()
+        };
+        let us = Units {
+            usd: 1.0,
+            ..Units::default()
+        };
+        let un = Units {
+            unit: 1.0,
+            ..Units::default()
+        };
+        for du in &colors.default_units
+        {
+            let u = du.1.units.unwrap_or_default();
+            if u == m
+            {
+                meter = du.1.number.clone()
+            }
+            else if u == s
+            {
+                second = du.1.number.clone()
+            }
+            else if u == kg
+            {
+                kilogram = du.1.number.clone()
+            }
+            else if u == a
+            {
+                ampere = du.1.number.clone()
+            }
+            else if u == mol
+            {
+                mole = du.1.number.clone()
+            }
+            else if u == cd
+            {
+                candela = du.1.number.clone()
+            }
+            else if u == b
+            {
+                byte = du.1.number.clone()
+            }
+            else if u == us
+            {
+                usd = du.1.number.clone()
+            }
+            else if u == un
+            {
+                unit = du.1.number.clone()
+            }
+        }
+        if let Some(u) = number.units
+        {
+            number.number /= meter.pow(u.meter);
+            number.number /= second.pow(u.second);
+            number.number /= kilogram.pow(u.kilogram);
+            number.number /= ampere.pow(u.ampere);
+            number.number /= mole.pow(u.mole);
+            number.number /= candela.pow(u.candela);
+            number.number /= byte.pow(u.byte);
+            number.number /= usd.pow(u.usd);
+            number.number /= unit.pow(u.unit);
+        }
+    }
+    number
 }
 pub fn get_output(
     options: Options,
@@ -2131,7 +2246,7 @@ pub fn get_output(
                             {
                                 String::new()
                             },
-                            units.to_string(options),
+                            units.to_string(options, colors),
                             if options.color == crate::Auto::True
                             {
                                 "\x1b[0m"
@@ -2251,7 +2366,7 @@ pub fn get_output(
                             {
                                 String::new()
                             },
-                            units.to_string(options),
+                            units.to_string(options, colors),
                             if options.color == crate::Auto::True
                             {
                                 "\x1b[0m"
@@ -2365,7 +2480,7 @@ pub fn get_output(
                         {
                             String::new()
                         },
-                        units.to_string(options),
+                        units.to_string(options, colors),
                         if options.color == crate::Auto::True
                         {
                             "\x1b[0m"

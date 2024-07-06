@@ -1,4 +1,4 @@
-use crate::{AngleType, Number, Options, Units};
+use crate::{AngleType, Colors, Number, Options, Units};
 use rug::{
     float::Constant::Pi,
     ops::{CompleteRound, DivRounding, Pow},
@@ -90,277 +90,367 @@ impl Units
             unit: self.unit / b,
         }
     }
-    pub fn to_string(mut self, options: Options) -> String
+    pub fn to_string(mut self, options: Options, colors: &Colors) -> String
     {
         let mut siunits = String::new();
-        if !options.si_units
+        let mut meter = "m";
+        let mut second = "s";
+        let mut kilogram = "kg";
+        let mut ampere = "A";
+        let mut mole = "mol";
+        let mut candela = "cd";
+        let mut byte = "B";
+        let mut usd = "USD";
+        let mut unit = "u";
+        if colors.default_units.is_empty()
         {
-            let farad = self
-                .meter
-                .div_floor(-2.0)
-                .min(self.second.div_floor(4.0))
-                .min(self.kilogram.div_floor(-1.0))
-                .min(self.ampere.div_floor(2.0))
-                .max(0.0);
-
-            if farad != 0.0
+            if !options.si_units
             {
-                self.meter += 2.0 * farad;
-                self.second -= 4.0 * farad;
-                self.kilogram += 1.0 * farad;
-                self.ampere -= 2.0 * farad;
+                let farad = self
+                    .meter
+                    .div_floor(-2.0)
+                    .min(self.second.div_floor(4.0))
+                    .min(self.kilogram.div_floor(-1.0))
+                    .min(self.ampere.div_floor(2.0))
+                    .max(0.0);
+                if farad != 0.0
+                {
+                    self.meter += 2.0 * farad;
+                    self.second -= 4.0 * farad;
+                    self.kilogram += 1.0 * farad;
+                    self.ampere -= 2.0 * farad;
+                }
+                let ohm = self
+                    .meter
+                    .div_floor(2.0)
+                    .min(self.second.div_floor(-3.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .min(self.ampere.div_floor(-2.0))
+                    .max(0.0);
+                if ohm != 0.0
+                {
+                    self.meter -= 2.0 * ohm;
+                    self.second += 3.0 * ohm;
+                    self.kilogram -= 1.0 * ohm;
+                    self.ampere += 2.0 * ohm;
+                }
+                let henry = self
+                    .meter
+                    .div_floor(2.0)
+                    .min(self.second.div_floor(-2.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .min(self.ampere.div_floor(-2.0))
+                    .max(0.0);
+                if henry != 0.0
+                {
+                    self.meter -= 2.0 * henry;
+                    self.second += 2.0 * henry;
+                    self.kilogram -= 1.0 * henry;
+                    self.ampere += 2.0 * henry;
+                }
+                let volt = self
+                    .meter
+                    .div_floor(2.0)
+                    .min(self.second.div_floor(-3.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .min(self.ampere.div_floor(-1.0))
+                    .max(0.0);
+                if volt != 0.0
+                {
+                    self.meter -= 2.0 * volt;
+                    self.second += 3.0 * volt;
+                    self.kilogram -= 1.0 * volt;
+                    self.ampere += 1.0 * volt;
+                }
+                let watt = self
+                    .meter
+                    .div_floor(2.0)
+                    .min(self.second.div_floor(-3.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .max(0.0);
+                if watt != 0.0
+                {
+                    self.meter -= 2.0 * watt;
+                    self.second += 3.0 * watt;
+                    self.kilogram -= 1.0 * watt;
+                }
+                let joules = self
+                    .meter
+                    .div_floor(2.0)
+                    .min(self.second.div_floor(-2.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .max(0.0);
+                if joules != 0.0
+                {
+                    self.meter -= 2.0 * joules;
+                    self.second += 2.0 * joules;
+                    self.kilogram -= 1.0 * joules;
+                }
+                let newtons = self
+                    .meter
+                    .div_floor(1.0)
+                    .min(self.second.div_floor(-2.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .max(0.0);
+                if newtons != 0.0
+                {
+                    self.meter -= 1.0 * newtons;
+                    self.second += 2.0 * newtons;
+                    self.kilogram -= 1.0 * newtons;
+                }
+                let pascal = self
+                    .meter
+                    .div_floor(-1.0)
+                    .min(self.second.div_floor(-2.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .max(0.0);
+                if pascal != 0.0
+                {
+                    self.meter += 1.0 * pascal;
+                    self.second += 2.0 * pascal;
+                    self.kilogram -= 1.0 * pascal;
+                }
+                let tesla = self
+                    .ampere
+                    .div_floor(-1.0)
+                    .min(self.second.div_floor(-2.0))
+                    .min(self.kilogram.div_floor(1.0))
+                    .max(0.0);
+                if tesla != 0.0
+                {
+                    self.ampere += 1.0 * tesla;
+                    self.second += 2.0 * tesla;
+                    self.kilogram -= 1.0 * tesla;
+                }
+                let coulomb = self
+                    .ampere
+                    .div_floor(1.0)
+                    .min(self.second.div_floor(1.0))
+                    .max(0.0);
+                if coulomb != 0.0
+                {
+                    self.ampere -= 1.0 * coulomb;
+                    self.second -= 1.0 * coulomb;
+                }
+                if farad != 0.0
+                {
+                    siunits.push_str(
+                        &(" F".to_owned()
+                            + &if farad != 1.0
+                            {
+                                format!("^{}", farad)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if ohm != 0.0
+                {
+                    siunits.push_str(
+                        &(" Ω".to_owned()
+                            + &if ohm != 1.0
+                            {
+                                format!("^{}", ohm)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if henry != 0.0
+                {
+                    siunits.push_str(
+                        &(" H".to_owned()
+                            + &if henry != 1.0
+                            {
+                                format!("^{}", henry)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if volt != 0.0
+                {
+                    siunits.push_str(
+                        &(" V".to_owned()
+                            + &if volt != 1.0
+                            {
+                                format!("^{}", volt)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if watt != 0.0
+                {
+                    siunits.push_str(
+                        &(" W".to_owned()
+                            + &if watt != 1.0
+                            {
+                                format!("^{}", watt)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if joules != 0.0
+                {
+                    siunits.push_str(
+                        &(" J".to_owned()
+                            + &if joules != 1.0
+                            {
+                                format!("^{}", joules)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if newtons != 0.0
+                {
+                    siunits.push_str(
+                        &(" N".to_owned()
+                            + &if newtons != 1.0
+                            {
+                                format!("^{}", newtons)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if pascal != 0.0
+                {
+                    siunits.push_str(
+                        &(" Pa".to_owned()
+                            + &if pascal != 1.0
+                            {
+                                format!("^{}", pascal)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if tesla != 0.0
+                {
+                    siunits.push_str(
+                        &(" T".to_owned()
+                            + &if tesla != 1.0
+                            {
+                                format!("^{}", tesla)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
+                if coulomb != 0.0
+                {
+                    siunits.push_str(
+                        &(" C".to_owned()
+                            + &if coulomb != 1.0
+                            {
+                                format!("^{}", coulomb)
+                            }
+                            else
+                            {
+                                String::new()
+                            }),
+                    )
+                }
             }
-            let ohm = self
-                .meter
-                .div_floor(2.0)
-                .min(self.second.div_floor(-3.0))
-                .min(self.kilogram.div_floor(1.0))
-                .min(self.ampere.div_floor(-2.0))
-                .max(0.0);
-            if ohm != 0.0
+        }
+        else
+        {
+            let m = Units {
+                meter: 1.0,
+                ..Units::default()
+            };
+            let s = Units {
+                second: 1.0,
+                ..Units::default()
+            };
+            let kg = Units {
+                kilogram: 1.0,
+                ..Units::default()
+            };
+            let a = Units {
+                ampere: 1.0,
+                ..Units::default()
+            };
+            let mol = Units {
+                mole: 1.0,
+                ..Units::default()
+            };
+            let cd = Units {
+                candela: 1.0,
+                ..Units::default()
+            };
+            let b = Units {
+                byte: 1.0,
+                ..Units::default()
+            };
+            let us = Units {
+                usd: 1.0,
+                ..Units::default()
+            };
+            let un = Units {
+                unit: 1.0,
+                ..Units::default()
+            };
+            for du in &colors.default_units
             {
-                self.meter -= 2.0 * ohm;
-                self.second += 3.0 * ohm;
-                self.kilogram -= 1.0 * ohm;
-                self.ampere += 2.0 * ohm;
-            }
-            let henry = self
-                .meter
-                .div_floor(2.0)
-                .min(self.second.div_floor(-2.0))
-                .min(self.kilogram.div_floor(1.0))
-                .min(self.ampere.div_floor(-2.0))
-                .max(0.0);
-            if henry != 0.0
-            {
-                self.meter -= 2.0 * henry;
-                self.second += 2.0 * henry;
-                self.kilogram -= 1.0 * henry;
-                self.ampere += 2.0 * henry;
-            }
-            let volt = self
-                .meter
-                .div_floor(2.0)
-                .min(self.second.div_floor(-3.0))
-                .min(self.kilogram.div_floor(1.0))
-                .min(self.ampere.div_floor(-1.0))
-                .max(0.0);
-            if volt != 0.0
-            {
-                self.meter -= 2.0 * volt;
-                self.second += 3.0 * volt;
-                self.kilogram -= 1.0 * volt;
-                self.ampere += 1.0 * volt;
-            }
-            let watt = self
-                .meter
-                .div_floor(2.0)
-                .min(self.second.div_floor(-3.0))
-                .min(self.kilogram.div_floor(1.0))
-                .max(0.0);
-            if watt != 0.0
-            {
-                self.meter -= 2.0 * watt;
-                self.second += 3.0 * watt;
-                self.kilogram -= 1.0 * watt;
-            }
-            let joules = self
-                .meter
-                .div_floor(2.0)
-                .min(self.second.div_floor(-2.0))
-                .min(self.kilogram.div_floor(1.0))
-                .max(0.0);
-            if joules != 0.0
-            {
-                self.meter -= 2.0 * joules;
-                self.second += 2.0 * joules;
-                self.kilogram -= 1.0 * joules;
-            }
-            let newtons = self
-                .meter
-                .div_floor(1.0)
-                .min(self.second.div_floor(-2.0))
-                .min(self.kilogram.div_floor(1.0))
-                .max(0.0);
-            if newtons != 0.0
-            {
-                self.meter -= 1.0 * newtons;
-                self.second += 2.0 * newtons;
-                self.kilogram -= 1.0 * newtons;
-            }
-            let pascal = self
-                .meter
-                .div_floor(-1.0)
-                .min(self.second.div_floor(-2.0))
-                .min(self.kilogram.div_floor(1.0))
-                .max(0.0);
-            if pascal != 0.0
-            {
-                self.meter += 1.0 * pascal;
-                self.second += 2.0 * pascal;
-                self.kilogram -= 1.0 * pascal;
-            }
-            let tesla = self
-                .ampere
-                .div_floor(-1.0)
-                .min(self.second.div_floor(-2.0))
-                .min(self.kilogram.div_floor(1.0))
-                .max(0.0);
-            if tesla != 0.0
-            {
-                self.ampere += 1.0 * tesla;
-                self.second += 2.0 * tesla;
-                self.kilogram -= 1.0 * tesla;
-            }
-            let coulomb = self
-                .ampere
-                .div_floor(1.0)
-                .min(self.second.div_floor(1.0))
-                .max(0.0);
-            if coulomb != 0.0
-            {
-                self.ampere -= 1.0 * coulomb;
-                self.second -= 1.0 * coulomb;
-            }
-            if farad != 0.0
-            {
-                siunits.push_str(
-                    &(" F".to_owned()
-                        + &if farad != 1.0
-                        {
-                            format!("^{}", farad)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if ohm != 0.0
-            {
-                siunits.push_str(
-                    &(" Ω".to_owned()
-                        + &if ohm != 1.0
-                        {
-                            format!("^{}", ohm)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if henry != 0.0
-            {
-                siunits.push_str(
-                    &(" H".to_owned()
-                        + &if henry != 1.0
-                        {
-                            format!("^{}", henry)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if volt != 0.0
-            {
-                siunits.push_str(
-                    &(" V".to_owned()
-                        + &if volt != 1.0
-                        {
-                            format!("^{}", volt)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if watt != 0.0
-            {
-                siunits.push_str(
-                    &(" W".to_owned()
-                        + &if watt != 1.0
-                        {
-                            format!("^{}", watt)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if joules != 0.0
-            {
-                siunits.push_str(
-                    &(" J".to_owned()
-                        + &if joules != 1.0
-                        {
-                            format!("^{}", joules)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if newtons != 0.0
-            {
-                siunits.push_str(
-                    &(" N".to_owned()
-                        + &if newtons != 1.0
-                        {
-                            format!("^{}", newtons)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if pascal != 0.0
-            {
-                siunits.push_str(
-                    &(" Pa".to_owned()
-                        + &if pascal != 1.0
-                        {
-                            format!("^{}", pascal)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if tesla != 0.0
-            {
-                siunits.push_str(
-                    &(" T".to_owned()
-                        + &if tesla != 1.0
-                        {
-                            format!("^{}", tesla)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
-            }
-            if coulomb != 0.0
-            {
-                siunits.push_str(
-                    &(" C".to_owned()
-                        + &if coulomb != 1.0
-                        {
-                            format!("^{}", coulomb)
-                        }
-                        else
-                        {
-                            String::new()
-                        }),
-                )
+                let u = du.1.units.unwrap_or_default();
+                if u == m
+                {
+                    meter = &du.0
+                }
+                else if u == s
+                {
+                    second = &du.0
+                }
+                else if u == kg
+                {
+                    kilogram = &du.0
+                }
+                else if u == a
+                {
+                    ampere = &du.0
+                }
+                else if u == mol
+                {
+                    mole = &du.0
+                }
+                else if u == cd
+                {
+                    candela = &du.0
+                }
+                else if u == b
+                {
+                    byte = &du.0
+                }
+                else if u == us
+                {
+                    usd = &du.0
+                }
+                else if u == un
+                {
+                    unit = &du.0
+                }
             }
         }
         format!(
@@ -368,8 +458,9 @@ impl Units
             siunits,
             if self.meter != 0.0
             {
-                " m".to_owned()
-                    + &if self.meter != 1.0
+                format!(
+                    " {meter}{}",
+                    if self.meter != 1.0
                     {
                         format!("^{:.12}", self.meter)
                             .trim_end_matches('0')
@@ -380,6 +471,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -387,8 +479,9 @@ impl Units
             },
             if self.second != 0.0
             {
-                " s".to_owned()
-                    + &if self.second != 1.0
+                format!(
+                    " {second}{}",
+                    if self.second != 1.0
                     {
                         format!("^{:.12}", self.second)
                             .trim_end_matches('0')
@@ -399,6 +492,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -406,8 +500,9 @@ impl Units
             },
             if self.kilogram != 0.0
             {
-                " kg".to_owned()
-                    + &if self.kilogram != 1.0
+                format!(
+                    " {kilogram}{}",
+                    if self.kilogram != 1.0
                     {
                         format!("^{:.12}", self.kilogram)
                             .trim_end_matches('0')
@@ -418,6 +513,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -425,8 +521,9 @@ impl Units
             },
             if self.ampere != 0.0
             {
-                " A".to_owned()
-                    + &if self.ampere != 1.0
+                format!(
+                    " {ampere}{}",
+                    if self.ampere != 1.0
                     {
                         format!("^{:.12}", self.ampere)
                             .trim_end_matches('0')
@@ -437,6 +534,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -444,8 +542,9 @@ impl Units
             },
             if self.kelvin != 0.0
             {
-                " K".to_owned()
-                    + &if self.kelvin != 1.0
+                format!(
+                    " K{}",
+                    if self.kelvin != 1.0
                     {
                         format!("^{:.12}", self.kelvin)
                             .trim_end_matches('0')
@@ -456,6 +555,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -463,8 +563,9 @@ impl Units
             },
             if self.mole != 0.0
             {
-                " mol".to_owned()
-                    + &if self.mole != 1.0
+                format!(
+                    " {mole}{}",
+                    if self.mole != 1.0
                     {
                         format!("^{:.12}", self.mole)
                             .trim_end_matches('0')
@@ -475,6 +576,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -482,8 +584,9 @@ impl Units
             },
             if self.candela != 0.0
             {
-                " cd".to_owned()
-                    + &if self.candela != 1.0
+                format!(
+                    " {candela}{}",
+                    if self.candela != 1.0
                     {
                         format!("^{:.12}", self.candela)
                             .trim_end_matches('0')
@@ -494,6 +597,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -526,8 +630,9 @@ impl Units
             },
             if self.byte != 0.0
             {
-                " B".to_owned()
-                    + &if self.byte != 1.0
+                format!(
+                    " {byte}{}",
+                    if self.byte != 1.0
                     {
                         format!("^{:.12}", self.byte)
                             .trim_end_matches('0')
@@ -538,6 +643,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -545,8 +651,9 @@ impl Units
             },
             if self.usd != 0.0
             {
-                " USD".to_owned()
-                    + &if self.usd != 1.0
+                format!(
+                    " {usd}{}",
+                    if self.usd != 1.0
                     {
                         format!("^{:.12}", self.usd)
                             .trim_end_matches('0')
@@ -557,6 +664,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {
@@ -564,8 +672,9 @@ impl Units
             },
             if self.unit != 0.0
             {
-                " u".to_owned()
-                    + &if self.unit != 1.0
+                format!(
+                    " {unit}{}",
+                    if self.unit != 1.0
                     {
                         format!("^{:.12}", self.unit)
                             .trim_end_matches('0')
@@ -576,6 +685,7 @@ impl Units
                     {
                         String::new()
                     }
+                )
             }
             else
             {

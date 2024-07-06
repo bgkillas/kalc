@@ -5,9 +5,9 @@ use crate::{
     math::do_math,
     misc::{insert_last, parsed_to_string, to_output},
     parse::input_var,
-    print::get_output,
+    print::{custom_units, get_output},
     AngleType::{Degrees, Gradians, Radians},
-    Auto, Colors, GraphType,
+    Auto, Colors, GraphType, HowGraphing,
     Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
     Number, Options, Variable,
 };
@@ -15,7 +15,7 @@ use crossterm::{
     execute, terminal,
     terminal::{Clear, ClearType},
 };
-use rug::{Complex, Float};
+use rug::{float::Special::Nan, Complex, Float};
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
@@ -335,10 +335,59 @@ pub fn set_commands(
         "unitsc" => colors.units = "\x1b[".to_owned() + r,
         "bracketc" =>
         {
-            colors.brackets = r
-                .split(',')
-                .map(|a| "\x1b[".to_owned() + a)
-                .collect::<Vec<String>>()
+            if r == "null"
+            {
+                colors.brackets.clear()
+            }
+            else
+            {
+                colors.brackets = r
+                    .split(',')
+                    .map(|a| "\x1b[".to_owned() + a)
+                    .collect::<Vec<String>>()
+            }
+        }
+        "default_units" =>
+        {
+            if r == "null"
+            {
+                colors.default_units.clear()
+            }
+            else
+            {
+                let n = Number::from(Complex::with_val(options.prec, Nan), None);
+                colors.default_units = r
+                    .split(',')
+                    .map(|a| {
+                        (a.to_string(), {
+                            let i = input_var(
+                                a,
+                                vars,
+                                &mut Vec::new(),
+                                &mut 0,
+                                *options,
+                                false,
+                                0,
+                                Vec::new(),
+                                false,
+                                &mut Vec::new(),
+                                None,
+                            )
+                            .unwrap_or((
+                                Vec::new(),
+                                Vec::new(),
+                                HowGraphing::default(),
+                                false,
+                                None,
+                            ));
+                            do_math(i.0, *options, i.1)
+                                .unwrap_or(Num(n.clone()))
+                                .num()
+                                .unwrap_or(n.clone())
+                        })
+                    })
+                    .collect::<Vec<(String, Number)>>()
+            }
         }
         "label" =>
         {
@@ -1254,7 +1303,8 @@ pub fn list_vars(vars: &[Variable], options: &Options, colors: &Colors) -> Strin
             {
                 Num(n) =>
                 {
-                    let n = get_output(*options, colors, n);
+                    let n = custom_units(n.clone(), *options, colors);
+                    let n = get_output(*options, colors, &n);
                     out += format!(
                         "{}={}{}{}{}\x1b[G\n",
                         v.name.iter().collect::<String>(),
@@ -1277,7 +1327,8 @@ pub fn list_vars(vars: &[Variable], options: &Options, colors: &Colors) -> Strin
                     let mut st = String::new();
                     for i in m
                     {
-                        let n = get_output(*options, colors, i);
+                        let i = custom_units(i.clone(), *options, colors);
+                        let n = get_output(*options, colors, &i);
                         st.push_str(&n.0);
                         st.push_str(&n.1);
                         st.push_str(&n.2.unwrap_or_default());
@@ -1302,7 +1353,8 @@ pub fn list_vars(vars: &[Variable], options: &Options, colors: &Colors) -> Strin
                         st.push('{');
                         for g in i
                         {
-                            let n = get_output(*options, colors, g);
+                            let g = custom_units(g.clone(), *options, colors);
+                            let n = get_output(*options, colors, &g);
                             st.push_str(&n.0);
                             st.push_str(&n.1);
                             st.push_str(&n.2.unwrap_or_default());
@@ -1450,6 +1502,12 @@ pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, l
         "scic" => colors.sci.to_string(),
         "unitsc" => colors.units.to_string(),
         "bracketc" => bracketcol(&colors.brackets),
+        "default_units" => colors
+            .default_units
+            .iter()
+            .map(|a| a.0.clone())
+            .collect::<Vec<String>>()
+            .join(","),
         "saveto" => colors.graphtofile.to_string(),
         "recol" => colors
             .recol

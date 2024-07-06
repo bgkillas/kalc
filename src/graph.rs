@@ -1145,8 +1145,11 @@ pub fn get_list_3d(
                                 let t2: Float = i.sin();
                                 (t1 * t2).abs().pow(0.125)
                             };
-                            real.write_all(&hsv2rgb(3 * hue, sat, val).to_le_bytes())
-                                .unwrap();
+                            let hue: Float = hue * 3;
+                            real.write_all(
+                                &hsv2rgb(hue.to_f64(), sat.to_f64(), val.to_f64()).to_le_bytes(),
+                            )
+                            .unwrap();
                         }
                         else
                         {
@@ -1171,7 +1174,7 @@ pub fn get_list_3d(
                                 let n2: Float = t2.clone() / (t2 + 1);
                                 let n3: Float = (n1 * n2).abs().pow(0.0625);
                                 let n4 = abs.atan() * 2 / &pi;
-                                0.8 * (n3.clone() * n4 + 0.5 - 0.5 * n3)
+                                0.8 * (n3 * (n4 - 0.5) + 0.5)
                             };
                             let v: Float = if lig < 0.5
                             {
@@ -1181,18 +1184,20 @@ pub fn get_list_3d(
                             {
                                 lig.clone() * (1 - sat.clone()) + sat
                             };
+                            let hue: Float = hue * 3;
                             real.write_all(
                                 &hsv2rgb(
-                                    3 * hue,
+                                    hue.to_f64(),
                                     if v.is_zero()
                                     {
-                                        Float::new(func.2.prec)
+                                        0.0
                                     }
                                     else
                                     {
-                                        2 - 2 * lig / v.clone()
+                                        let sat: Float = 2 - 2 * lig / &v;
+                                        sat.to_f64()
                                     },
-                                    v,
+                                    v.to_f64(),
                                 )
                                 .to_le_bytes(),
                             )
@@ -1952,24 +1957,18 @@ fn get_data(
         (d2_or_d3, re_or_im, lines, false, rec_re, rec_im)
     })
 }
-fn hsv2rgb(hue: Float, sat: Float, val: Float) -> u32
+fn hsv2rgb(hue: f64, sat: f64, val: f64) -> u32
 {
-    if sat.is_zero()
+    if sat == 0.0
     {
-        return rgb2val(val.clone(), val.clone(), val);
+        return rgb2val(val, val, val);
     }
-    let i = hue
-        .clone()
-        .floor()
-        .to_integer()
-        .unwrap_or_default()
-        .to_usize()
-        .unwrap_or_default();
+    let i = hue.floor();
     let f = hue - i;
-    let p = val.clone() * (1 - sat.clone());
-    let q = val.clone() * (1 - sat.clone() * f.clone());
-    let t = val.clone() * (1 - sat * (1 - f));
-    match i % 6
+    let p = val * (1.0 - sat);
+    let q = val * (1.0 - sat * f);
+    let t = val * (1.0 - sat * (1.0 - f));
+    match i as usize % 6
     {
         0 => rgb2val(val, t, p),
         1 => rgb2val(q, val, p),
@@ -1979,26 +1978,9 @@ fn hsv2rgb(hue: Float, sat: Float, val: Float) -> u32
         _ => rgb2val(val, p, q),
     }
 }
-fn rgb2val(r: Float, g: Float, b: Float) -> u32
+fn rgb2val(r: f64, g: f64, b: f64) -> u32
 {
-    let r: Float = 255 * r;
-    let g: Float = 255 * g;
-    let b: Float = 255 * b;
-    let v: u32 = (r
-        .to_integer()
-        .unwrap_or_default()
-        .to_u32()
-        .unwrap_or_default()
-        << 16)
-        + (g.to_integer()
-            .unwrap_or_default()
-            .to_u32()
-            .unwrap_or_default()
-            << 8)
-        + b.to_integer()
-            .unwrap_or_default()
-            .to_u32()
-            .unwrap_or_default();
+    let v: u32 = (((255.0 * r) as u32) << 16) + (((255.0 * g) as u32) << 8) + (255.0 * b) as u32;
     v
 }
 fn spawn(cli: bool) -> Child

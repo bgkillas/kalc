@@ -12,6 +12,7 @@ use crate::{
         NumStr,
         NumStr::{Matrix, Num, Str, Vector},
     },
+    misc::do_math_with_var,
     AngleType::{Degrees, Gradians, Radians},
     Number, Options, Units,
 };
@@ -338,6 +339,7 @@ pub fn do_math(
                                     | "arclength"
                                     | "lim"
                                     | "limit"
+                                    | "set"
                             )
                             {
                                 i = j - 1;
@@ -433,6 +435,7 @@ pub fn do_math(
                         | "arclength"
                         | "lim"
                         | "limit"
+                        | "set"
                 )
                 {
                     let mut place = Vec::new();
@@ -541,6 +544,21 @@ pub fn do_math(
                                 {
                                     Number::from(Complex::new(options.prec), None)
                                 },
+                            )?;
+                            function.drain(i + 1..=*place.last().unwrap());
+                        }
+                        ("set", Str(var)) if place.len() == 3 =>
+                        {
+                            function[i] = do_math_with_var(
+                                function[place[0] + 1..place[1]].to_vec(),
+                                options,
+                                func_vars.clone(),
+                                &var,
+                                do_math(
+                                    function[place[1] + 1..place[2]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?,
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
@@ -5042,6 +5060,23 @@ pub fn compute_funcvars(
                 {
                     cont = true;
                     break;
+                }
+            }
+        }
+        if !cont && i + 1 < func_vars.len()
+        {
+            for fv in func_vars[i + 1..].iter_mut()
+            {
+                for f in fv.1.iter_mut()
+                {
+                    if let Str(s) = &f
+                    {
+                        if *s == v.0
+                        {
+                            cont = true;
+                            break;
+                        }
+                    }
                 }
             }
         }

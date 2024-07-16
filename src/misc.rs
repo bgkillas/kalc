@@ -558,7 +558,7 @@ pub fn place_funcvarxy(
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                             | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
                             | "surfacearea" | "sarea" | "solve" | "length" | "slope" | "lim"
-                            | "limit" | "iter" | "extrema"
+                            | "set" | "limit" | "iter" | "extrema"
                                 if j + 2 < i.1.len()
                                     && if let Str(s) = &i.1[j + 2]
                                     {
@@ -644,7 +644,8 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                     }
                     "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
                     | "integrate" | "arclength" | "∫" | "area" | "surfacearea" | "sarea"
-                    | "solve" | "length" | "slope" | "lim" | "limit" | "iter" | "extrema"
+                    | "solve" | "length" | "slope" | "lim" | "limit" | "set" | "iter"
+                    | "extrema"
                         if i + 2 < func.len()
                             && if let Str(s) = &func[i + 2]
                             {
@@ -738,8 +739,8 @@ pub fn place_funcvar(
                                 }
                                 "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                                 | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
-                                | "solve" | "length" | "slope" | "lim" | "limit" | "iter"
-                                | "extrema" | "surfacearea" | "sarea"
+                                | "solve" | "length" | "slope" | "lim" | "limit" | "set"
+                                | "iter" | "extrema" | "surfacearea" | "sarea"
                                     if j + 2 < i.1.len() && i.1[j + 2] == Str(var.to_string()) =>
                                 {
                                     j += 3;
@@ -790,8 +791,8 @@ pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
                         }
                         "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
                         | "D" | "integrate" | "arclength" | "∫" | "area" | "solve" | "length"
-                        | "slope" | "lim" | "limit" | "iter" | "extrema" | "surfacearea"
-                        | "sarea"
+                        | "slope" | "lim" | "set" | "limit" | "iter" | "extrema"
+                        | "surfacearea" | "sarea"
                             if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
                         {
                             i += 3;

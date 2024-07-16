@@ -277,6 +277,7 @@ pub fn functions() -> HashSet<&'static str>
         "prime_factors",
         "hsv_to_rgb",
         "domain_coloring_rgb",
+        "set",
     ]
     .iter()
     .cloned()
@@ -493,6 +494,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "prime_factors(n)",
         "hsv_to_rgb({h,s,v})",
         "domain_coloring_rgb(x)",
+        "set(a,f(a),val)",
     ]
     .iter()
     .cloned()

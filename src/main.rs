@@ -12,6 +12,7 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
+//make '(' and '+' etc its own type in NumStr
 //lib, gui
 use crate::{
     complex::NumStr,

@@ -1357,6 +1357,7 @@ pub fn input_var(
                 | "integrate"
                 | "arclength"
                 | "lim"
+                | "set"
                 | "limit"
         ) && chars.len() > i + countv + 1
             && var_overrule
@@ -1388,7 +1389,7 @@ pub fn input_var(
                 | "length" | "∫" | "area" | "sum" | "Σ" | "summation" | "Π" => place >= 3,
                 "sarea" | "surfacearea" => place >= 6,
                 "solve" | "extrema" => place >= 1,
-                "D" | "slope" | "lim" | "limit" => place >= 2,
+                "D" | "slope" | "lim" | "limit" | "set" => place >= 2,
                 _ => place > 0,
             }
             {

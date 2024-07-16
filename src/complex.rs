@@ -2406,6 +2406,39 @@ pub fn recursion(
     {
         if fv.0.ends_with(')')
         {
+            let mut cont = false;
+            let mut bracket = 0;
+            let mut pw = Vec::new();
+            for f in &func
+            {
+                if let Str(s) = f
+                {
+                    match s.as_str()
+                    {
+                        "pw" => pw.insert(0, bracket),
+                        "(" | "{" => bracket += 1,
+                        ")" | "}" =>
+                        {
+                            bracket -= 1;
+                            if !pw.is_empty() && bracket == pw[0]
+                            {
+                                pw.remove(0);
+                            }
+                        }
+                        _ =>
+                        {
+                            if !pw.is_empty() && fv.0 == *s
+                            {
+                                cont = true
+                            }
+                        }
+                    }
+                }
+            }
+            if cont
+            {
+                continue;
+            }
             if fv.0.contains(',')
             {
                 let mut vars = fv.0.split(',').collect::<Vec<&str>>();
@@ -2421,16 +2454,6 @@ pub fn recursion(
                     if func[x].str_is(&fv.0)
                     {
                         let mut fv = fv.clone();
-                        let mut i = 0;
-                        while i < func_vars.len()
-                        {
-                            if vars.contains(&func_vars[i].0.as_str())
-                            {
-                                func_vars.remove(i);
-                                continue;
-                            }
-                            i += 1;
-                        }
                         let mut bracket = 0;
                         let mut k = 0;
                         let mut processed = Vec::new();
@@ -2533,11 +2556,6 @@ pub fn recursion(
                     if func[x].str_is(&fv.0)
                     {
                         let mut fv = fv.clone();
-                        func_vars =
-                            func_vars
-                                .into_iter()
-                                .filter(|v| v.0 == var)
-                                .collect::<Vec<(String, Vec<NumStr>)>>();
                         let mut bracket = 0;
                         let mut k = 0;
                         for (i, n) in func[x + 2..].iter().enumerate()
@@ -2558,16 +2576,6 @@ pub fn recursion(
                                 }
                             }
                         }
-                        let mut i = 0;
-                        while i < func_vars.len()
-                        {
-                            if var == func_vars[i].0
-                            {
-                                func_vars.remove(i);
-                                break;
-                            }
-                            i += 1;
-                        }
                         let iden = format!("@{}{}@", func_vars.len(), var);
                         let mut i = 0;
                         while i < fv.1.len()
@@ -2581,7 +2589,7 @@ pub fn recursion(
                             }
                             i += 1;
                         }
-                        func_vars.push((iden.clone(), func[i + 2..=k + 1].to_vec()));
+                        func_vars.push((iden.clone(), func[x + 1..=k + x + 2].to_vec()));
                         func.drain(x..=k + x + 2);
                         func.splice(x..x, fv.1.clone());
                     }

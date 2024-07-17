@@ -241,6 +241,7 @@ Functions:
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
 - extrema(x,f(x) (,point)) employs newtons method to find the extrema of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails, outputs {x,y,positive/negitive concavity}
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add ",1" to args to show steps
+- set(a,f(a),val), sets the var 'a' to the value 'val'
 
 Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2}), oproj/oproject({vec1},{vec2})

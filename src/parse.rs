@@ -3213,6 +3213,18 @@ pub fn input_var(
                     output.push(Str(")".to_string()))
                 }
             }
+            else if piecewise != 0
+                && blacklist.contains(&'(')
+                && blacklist
+                    .iter()
+                    .collect::<String>()
+                    .split('(')
+                    .next()
+                    .unwrap()
+                    == wordv
+            {
+                output.push(Str("@".to_owned() + &wordv));
+            }
             else
             {
                 undf = true

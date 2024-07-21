@@ -4841,7 +4841,7 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        if !a.real().is_finite() || !b.real().is_finite()
+                        if !a.real().is_finite() || !b.real().is_finite() || b.real().is_zero()
                         {
                             Complex::with_val(options.prec, Nan)
                         }
@@ -4861,7 +4861,7 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        if !a.real().is_finite() || !b.real().is_finite()
+                        if !a.real().is_finite() || !b.real().is_finite() || b.real().is_zero()
                         {
                             Complex::with_val(options.prec, Nan)
                         }

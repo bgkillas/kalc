@@ -797,7 +797,9 @@ pub fn input_var(
                 }
                 '~' =>
                 {
-                    if i == 0 || matches!(chars[i - 1], '(' | '{' | '|')
+                    if i == 0
+                        || matches!(chars[i - 1], '(' | '{' | '[')
+                        || (chars[i - 1] == '|' && !abs.is_empty())
                     {
                         place_multiplier(&mut output, sumrec, &sumvar);
                         output.push(Func("solve".to_string()));

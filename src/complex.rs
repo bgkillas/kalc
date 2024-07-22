@@ -1,5 +1,8 @@
 use crate::{
-    complex::NumStr::{Matrix, Num, Str, Vector},
+    complex::NumStr::{
+        Comma, Division, Func, LeftBracket, LeftCurlyBracket, Matrix, Minus, Multiplication, Num,
+        RightBracket, RightCurlyBracket, Vector,
+    },
     math::do_math,
     misc::{do_math_with_var, place_funcvar, place_var},
     parse::simplify,
@@ -19,9 +22,37 @@ use std::cmp::Ordering;
 pub enum NumStr
 {
     Num(Number),
-    Str(String),
+    Func(String),
     Vector(Vec<Number>),
     Matrix(Vec<Vec<Number>>),
+    LeftBracket,
+    RightBracket,
+    LeftCurlyBracket,
+    RightCurlyBracket,
+    Comma,
+    Plus,
+    Minus,
+    PlusMinus,
+    Multiplication,
+    Division,
+    InternalMultiplication,
+    Tetration,
+    Root,
+    Exponent,
+    Equal,
+    NotEqual,
+    Greater,
+    GreaterEqual,
+    Lesser,
+    LesserEqual,
+    Modulo,
+    Range,
+    Conversion,
+    NearEqual,
+    ShiftLeft,
+    ShiftRight,
+    And,
+    Or,
 }
 impl Number
 {
@@ -418,7 +449,7 @@ impl NumStr
     {
         match self
         {
-            Str(s2) => s == s2,
+            Func(s2) => s == s2,
             _ => false,
         }
     }
@@ -2411,26 +2442,23 @@ pub fn recursion(
             let mut pw = Vec::new();
             for f in &func
             {
-                if let Str(s) = f
+                match f
                 {
-                    match s.as_str()
+                    LeftBracket | LeftCurlyBracket => bracket += 1,
+                    RightBracket | RightCurlyBracket =>
                     {
-                        "pw" => pw.insert(0, bracket),
-                        "(" | "{" => bracket += 1,
-                        ")" | "}" =>
+                        bracket -= 1;
+                        if !pw.is_empty() && bracket == pw[0]
                         {
-                            bracket -= 1;
-                            if !pw.is_empty() && bracket == pw[0]
-                            {
-                                pw.remove(0);
-                            }
+                            pw.remove(0);
                         }
-                        _ =>
+                    }
+                    Func(s) if s == "pw" => pw.insert(0, bracket),
+                    _ =>
+                    {
+                        if !pw.is_empty() && f.str_is(&fv.0)
                         {
-                            if !pw.is_empty() && fv.0 == *s
-                            {
-                                cont = true
-                            }
+                            cont = true
                         }
                     }
                 }
@@ -2460,13 +2488,10 @@ pub fn recursion(
                         let mut last = 0;
                         for (i, n) in func[x + 2..].iter().enumerate()
                         {
-                            if let Str(s) = n
+                            match n
                             {
-                                if s == "(" || s == "{"
-                                {
-                                    bracket += 1
-                                }
-                                else if s == ")" || s == "}"
+                                LeftBracket | LeftCurlyBracket => bracket += 1,
+                                RightBracket | RightCurlyBracket =>
                                 {
                                     if bracket == 0
                                     {
@@ -2489,14 +2514,14 @@ pub fn recursion(
                                                 iden.clone(),
                                                 func[x + 2 + last..x + 2 + i].to_vec(),
                                             ));
-                                            processed.push(vec![Str(iden)]);
+                                            processed.push(vec![Func(iden)]);
                                         }
                                         k = i;
                                         break;
                                     }
                                     bracket -= 1;
                                 }
-                                else if s == "," && bracket == 0
+                                Comma if bracket == 0 =>
                                 {
                                     if let Ok(n) = do_math(
                                         func[x + 2 + last..x + 2 + i].to_vec(),
@@ -2517,16 +2542,18 @@ pub fn recursion(
                                             iden.clone(),
                                             func[x + 2 + last..x + 2 + i].to_vec(),
                                         ));
-                                        processed.push(vec![Str(iden)]);
+                                        processed.push(vec![Func(iden)]);
                                     }
                                     last = i + 1;
                                 }
+                                _ =>
+                                {}
                             }
                         }
                         let mut i = 0;
                         while i < fv.1.len()
                         {
-                            if let Str(s) = &fv.1[i]
+                            if let Func(s) = &fv.1[i]
                             {
                                 for v in processed.iter().zip(vars.iter())
                                 {
@@ -2560,13 +2587,10 @@ pub fn recursion(
                         let mut k = 0;
                         for (i, n) in func[x + 2..].iter().enumerate()
                         {
-                            if let Str(s) = n
+                            match n
                             {
-                                if s == "(" || s == "{"
-                                {
-                                    bracket += 1
-                                }
-                                else if s == ")" || s == "}"
+                                LeftBracket | LeftCurlyBracket => bracket += 1,
+                                RightBracket | RightCurlyBracket =>
                                 {
                                     if bracket == 0
                                     {
@@ -2574,17 +2598,19 @@ pub fn recursion(
                                     }
                                     bracket -= 1;
                                 }
+                                _ =>
+                                {}
                             }
                         }
                         let iden = format!("@{}{}@", func_vars.len(), var);
                         let mut i = 0;
                         while i < fv.1.len()
                         {
-                            if let Str(s) = &fv.1[i]
+                            if let Func(s) = &fv.1[i]
                             {
                                 if *s == var
                                 {
-                                    fv.1[i] = Str(iden.clone());
+                                    fv.1[i] = Func(iden.clone());
                                 }
                             }
                             i += 1;
@@ -3504,26 +3530,26 @@ pub fn area(
     let units = end.units;
     let end = end.number;
     let mut funcs = Vec::new();
-    if combine && !func.is_empty() && func[0].str_is("{") && func[func.len() - 1].str_is("}")
+    if combine
+        && !func.is_empty()
+        && func[0] == LeftCurlyBracket
+        && func[func.len() - 1] == RightCurlyBracket
     {
         let mut brackets = 0;
         let mut last = 1;
         for (i, f) in func.iter().enumerate()
         {
-            if let Str(s) = f
+            match f
             {
-                match s.as_str()
+                LeftBracket | LeftCurlyBracket => brackets += 1,
+                RightBracket | RightCurlyBracket => brackets -= 1,
+                Comma if brackets == 1 =>
                 {
-                    "(" | "{" => brackets += 1,
-                    ")" | "}" => brackets -= 1,
-                    "," if brackets == 1 =>
-                    {
-                        funcs.push(func[last..i].to_vec());
-                        last = i + 1;
-                    }
-                    _ =>
-                    {}
+                    funcs.push(func[last..i].to_vec());
+                    last = i + 1;
                 }
+                _ =>
+                {}
             }
         }
         if last != 1
@@ -4073,16 +4099,16 @@ pub fn solve(
                 if first
                 {
                     first = false;
-                    func.insert(0, Str("(".to_string()));
-                    func.push(Str(")".to_string()));
-                    func.push(Str("/".to_string()));
-                    func.push(Str("(".to_string()));
-                    func.push(Str("(".to_string()));
-                    func.push(Str(var.clone()));
-                    func.push(Str("-".to_string()));
+                    func.insert(0, LeftBracket);
+                    func.push(RightBracket);
+                    func.push(Division);
+                    func.push(LeftBracket);
+                    func.push(LeftBracket);
+                    func.push(Func(var.clone()));
+                    func.push(Minus);
                     func.push(Num(v.clone()));
-                    func.push(Str(")".to_string()));
-                    func.push(Str(")".to_string()));
+                    func.push(RightBracket);
+                    func.push(RightBracket);
                 }
                 else
                 {
@@ -4102,12 +4128,12 @@ pub fn solve(
                             continue 'main;
                         }
                     }
-                    func.insert(func.len() - 1, Str("*".to_string()));
-                    func.insert(func.len() - 1, Str("(".to_string()));
-                    func.insert(func.len() - 1, Str(var.clone()));
-                    func.insert(func.len() - 1, Str("-".to_string()));
+                    func.insert(func.len() - 1, Multiplication);
+                    func.insert(func.len() - 1, LeftBracket);
+                    func.insert(func.len() - 1, Func(var.clone()));
+                    func.insert(func.len() - 1, Minus);
                     func.insert(func.len() - 1, Num(v.clone()));
-                    func.insert(func.len() - 1, Str(")".to_string()));
+                    func.insert(func.len() - 1, RightBracket);
                 }
                 values.push(v);
             }

@@ -5,7 +5,7 @@ use crate::misc::get_terminal_dimensions_pixel;
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{Func, Matrix, Num, Vector},
     },
     load_vars::set_commands_or_vars,
     math::do_math,
@@ -582,43 +582,43 @@ pub fn get_list_2d(
     let mut nan = true;
     let den_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_2d as f64;
     let mut zero = (false, false);
-    let list = func.0.iter().any(|c| {
-        if let Str(s) = c
-        {
-            matches!(
+    let list = func.0.iter().any(|c| match c
+    {
+        Func(s)
+            if matches!(
                 s.as_str(),
-                "±" | "cubic"
+                "cubic"
                     | "domain_coloring_rgb"
                     | "quadratic"
                     | "quad"
                     | "quartic"
                     | "unity"
                     | "solve"
-            )
-        }
-        else
+            ) =>
         {
-            false
+            true
         }
+        NumStr::PlusMinus => true,
+        _ => false,
     }) || func.1.iter().any(|c| {
-        c.1.iter().any(|c| {
-            if let Str(s) = c
-            {
-                matches!(
+        c.1.iter().any(|c| match c
+        {
+            Func(s)
+                if matches!(
                     s.as_str(),
-                    "±" | "cubic"
+                    "cubic"
                         | "domain_coloring_rgb"
                         | "quadratic"
                         | "quad"
                         | "quartic"
                         | "unity"
                         | "solve"
-                )
-            }
-            else
+                ) =>
             {
-                false
+                true
             }
+            NumStr::PlusMinus => true,
+            _ => false,
         })
     });
     let mut reals = Vec::new();
@@ -1060,43 +1060,43 @@ pub fn get_list_3d(
     let mut modifiedvars: Vec<(String, Vec<NumStr>)>;
     let mut zero = (false, false);
     let mut nan = true;
-    let list = func.0.iter().any(|c| {
-        if let Str(s) = c
-        {
-            matches!(
+    let list = func.0.iter().any(|c| match c
+    {
+        Func(s)
+            if matches!(
                 s.as_str(),
-                "±" | "cubic"
+                "cubic"
                     | "domain_coloring_rgb"
                     | "quadratic"
                     | "quad"
                     | "quartic"
                     | "unity"
                     | "solve"
-            )
-        }
-        else
+            ) =>
         {
-            false
+            true
         }
+        NumStr::PlusMinus => true,
+        _ => false,
     }) || func.1.iter().any(|c| {
-        c.1.iter().any(|c| {
-            if let Str(s) = c
-            {
-                matches!(
+        c.1.iter().any(|c| match c
+        {
+            Func(s)
+                if matches!(
                     s.as_str(),
-                    "±" | "cubic"
+                    "cubic"
                         | "domain_coloring_rgb"
                         | "quadratic"
                         | "quad"
                         | "quartic"
                         | "unity"
                         | "solve"
-                )
-            }
-            else
+                ) =>
             {
-                false
+                true
             }
+            NumStr::PlusMinus => true,
+            _ => false,
         })
     });
     let mut reals = Vec::new();

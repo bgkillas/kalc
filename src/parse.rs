@@ -1,7 +1,12 @@
 use crate::{
     complex::{
         pow_nth, NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{
+            And, Comma, Conversion, Division, Equal, Exponent, Func, Greater, GreaterEqual,
+            InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser, LesserEqual, Matrix,
+            Minus, Modulo, Multiplication, NearEqual, NotEqual, Num, Or, Plus, PlusMinus, Range,
+            RightBracket, RightCurlyBracket, Root, ShiftLeft, ShiftRight, Tetration, Vector,
+        },
     },
     functions::functions,
     math::do_math,
@@ -206,15 +211,12 @@ pub fn input_var(
             }
             match output.last()
             {
-                Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) =>
-                {
-                    output.push(Str('^'.to_string()))
-                }
-                Some(Str(s))
+                Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Tetration),
+                Some(Func(s))
                     if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch")
                         || sumrec.iter().any(|v| &v.1 == s) =>
                 {
-                    output.push(Str('^'.to_string()))
+                    output.push(Tetration)
                 }
                 _ =>
                 {}
@@ -234,7 +236,7 @@ pub fn input_var(
         }
         if c == '.' && i + 1 < chars.len() && chars[i + 1] == '.'
         {
-            output.push(Str("..".to_string()));
+            output.push(Range);
             i += 2;
             continue;
         }
@@ -286,7 +288,7 @@ pub fn input_var(
                         || (chars.len() > i + 1 && chars[i] == '/' && chars[i + 1] == '/'))
                 {
                     output.push(Num(Number::from(n1.clone(), None)));
-                    output.push(Str('×'.to_string()));
+                    output.push(InternalMultiplication);
                 }
                 else
                 {
@@ -309,22 +311,22 @@ pub fn input_var(
             )));
             if scientific
             {
-                output.push(Str(")".to_string()));
+                output.push(RightBracket);
                 scientific = false;
             }
             if pwr.0 && pwr.1 == *bracket && (chars.len() <= i || chars[i] != '^')
             {
                 for _ in 0..pwr.2
                 {
-                    output.push(Str(')'.to_string()))
+                    output.push(RightBracket);
                 }
                 pwr.0 = false;
                 pwr.2 = 0
             }
             if subfact.0 && subfact.1 == 0
             {
-                output.push(Str(')'.to_string()));
-                output.push(Str(')'.to_string()));
+                output.push(RightBracket);
+                output.push(RightBracket);
                 subfact.0 = false;
             }
             continue;
@@ -333,7 +335,7 @@ pub fn input_var(
         {
             if !output.is_empty()
             {
-                if let Str(s) = output.last_mut().unwrap()
+                if let Func(s) = output.last_mut().unwrap()
                 {
                     if functions.contains(s.as_str()) && !sumrec.iter().any(|a| a.1 == *s)
                     {
@@ -384,8 +386,8 @@ pub fn input_var(
             }
             match c
             {
-                '√' => output.push(Str("sqrt".to_string())),
-                '∛' => output.push(Str("cbrt".to_string())),
+                '√' => output.push(Func("sqrt".to_string())),
+                '∛' => output.push(Func("cbrt".to_string())),
                 '¼' => output.push(Num(Number::from(
                     Complex::with_val(options.prec, 0.25),
                     None,
@@ -461,7 +463,7 @@ pub fn input_var(
                 '⅟' =>
                 {
                     output.push(Num(Number::from(Complex::with_val(options.prec, 1), None)));
-                    output.push(Str("/".to_string()))
+                    output.push(Division)
                 }
                 '↉' => output.push(Num(Number::from(Complex::new(options.prec), None))),
                 '⁰' | '₀' => pow.push('0'),
@@ -480,7 +482,7 @@ pub fn input_var(
                     && chars[i + 1] == '&'
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    output.push(Str("&&".to_string()));
+                    output.push(And);
                 }
                 '=' if i != 0
                     && i + 1 < chars.len()
@@ -488,16 +490,16 @@ pub fn input_var(
                 {
                     if chars[i + 1] == '='
                     {
-                        output.push(Str("==".to_string()));
+                        output.push(Equal);
                         i += 1;
                     }
                     else if chars[i - 1] == '>'
                     {
-                        output.push(Str(">=".to_string()));
+                        output.push(GreaterEqual);
                     }
                     else if chars[i - 1] == '<'
                     {
-                        output.push(Str("<=".to_string()));
+                        output.push(LesserEqual);
                     }
                     else
                     {
@@ -508,17 +510,17 @@ pub fn input_var(
                 {
                     *bracket += 1;
                     place_multiplier(&mut output, sumrec, &sumvar);
-                    output.push(Str("{".to_string()));
+                    output.push(LeftCurlyBracket);
                 }
                 '}' =>
                 {
                     *bracket -= 1;
-                    output.push(Str("}".to_string()));
+                    output.push(RightCurlyBracket);
                     if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                     {
                         for _ in 0..pwr.2
                         {
-                            output.push(Str(')'.to_string()))
+                            output.push(RightBracket);
                         }
                         pwr.0 = false;
                         pwr.2 = 0
@@ -528,16 +530,19 @@ pub fn input_var(
                     && i + 1 != chars.len()
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
-                    output.push(Str("≈".to_string()))
+                    output.push(NearEqual)
                 }
                 '±' if i + 1 != chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if output.is_empty()
-                        || matches!(output.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
+                        || matches!(
+                            output.last().unwrap(),
+                            Comma | LeftBracket | LeftCurlyBracket
+                        )
                     {
                         output.push(Num(Number::from(Complex::new(options.prec), None)))
                     }
-                    output.push(Str("±".to_string()))
+                    output.push(PlusMinus)
                 }
                 '*' if i != 0
                     && i + 1 != chars.len()
@@ -547,13 +552,13 @@ pub fn input_var(
                     {
                         if chars.len() > i + 2
                         {
-                            output.push(Str("^".to_string()));
+                            output.push(Exponent);
                         }
                         i += 1;
                     }
                     else
                     {
-                        output.push(Str('*'.to_string()));
+                        output.push(Multiplication);
                     }
                 }
                 '/' if i != 0
@@ -562,25 +567,25 @@ pub fn input_var(
                 {
                     if chars[i + 1] == '/'
                     {
-                        output.push(Str("//".to_string()));
+                        output.push(Root);
                         i += 1;
                     }
                     else if chars[i + 1] == '-'
                     {
                         place_multiplier(&mut output, sumrec, &sumvar);
                         output.push(Num(Number::from(n1.clone(), None)));
-                        output.push(Str('/'.to_string()));
+                        output.push(Division);
                         i += 1;
                     }
                     else
                     {
-                        output.push(Str('/'.to_string()));
+                        output.push(Division);
                     }
                 }
                 '+' if i != 0
                     && i + 1 != chars.len()
                     && (chars[i - 1].is_alphanumeric()
-                        || (!output.is_empty() && output.last().unwrap().str_is(")"))
+                        || (!output.is_empty() && *output.last().unwrap() == RightBracket)
                         || matches!(
                             chars[i - 1],
                             '}' | ']' | ')' | '@' | '°' | '$' | '¢' | '%'
@@ -599,16 +604,19 @@ pub fn input_var(
                     if chars[i + 1] == '-'
                     {
                         if output.is_empty()
-                            || matches!(output.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
+                            || matches!(
+                                output.last().unwrap(),
+                                Comma | LeftBracket | LeftCurlyBracket
+                            )
                         {
                             output.push(Num(Number::from(Complex::new(options.prec), None)))
                         }
                         i += 1;
-                        output.push(Str('±'.to_string()))
+                        output.push(PlusMinus)
                     }
                     else
                     {
-                        output.push(Str('+'.to_string()))
+                        output.push(Plus)
                     }
                 }
                 '+' if i + 1 < chars.len()
@@ -616,12 +624,15 @@ pub fn input_var(
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if output.is_empty()
-                        || matches!(output.last().unwrap(),Str(s) if s==","||s=="{"||s=="(")
+                        || matches!(
+                            output.last().unwrap(),
+                            Comma | LeftBracket | LeftCurlyBracket
+                        )
                     {
                         output.push(Num(Number::from(Complex::new(options.prec), None)))
                     }
                     i += 1;
-                    output.push(Str('±'.to_string()))
+                    output.push(PlusMinus)
                 }
                 '<' if i != 0
                     && i + 1 < chars.len()
@@ -632,13 +643,13 @@ pub fn input_var(
                     {
                         if i + 2 < chars.len()
                         {
-                            output.push(Str("<<".to_string()));
+                            output.push(ShiftLeft);
                             i += 1;
                         }
                     }
                     else
                     {
-                        output.push(Str('<'.to_string()));
+                        output.push(Lesser);
                     }
                 }
                 '>' if i != 0
@@ -650,28 +661,28 @@ pub fn input_var(
                     {
                         if i + 2 < chars.len()
                         {
-                            output.push(Str(">>".to_string()));
+                            output.push(ShiftRight);
                             i += 1;
                         }
                     }
                     else
                     {
-                        output.push(Str('>'.to_string()));
+                        output.push(Greater);
                     }
                 }
                 '-' if i + 1 < chars.len() && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
                     if options.units && chars[i + 1] == '>'
                     {
-                        output.push(Str("->".to_string()));
+                        output.push(Conversion);
                         i += 1;
                     }
                     else if (i != 0 && chars[i - 1] == '^')
                         || (i > 1 && chars[i - 1] == '/' && chars[i - 2] == '/')
                     {
-                        output.push(Str("(".to_string()));
+                        output.push(LeftBracket);
                         output.push(Num(Number::from(n1.clone(), None)));
-                        output.push(Str("×".to_string()));
+                        output.push(InternalMultiplication);
                         pwr.0 = true;
                         pwr.1 = *bracket;
                         pwr.2 += 1;
@@ -687,7 +698,7 @@ pub fn input_var(
                                 'E'
                             }
                             && (chars[i - 1].is_alphanumeric()
-                                || (!output.is_empty() && output.last().unwrap().str_is(")"))
+                                || (!output.is_empty() && *output.last().unwrap() == RightBracket)
                                 || matches!(
                                     chars[i - 1],
                                     '}' | ']' | ')' | '@' | '°' | '$' | '¢' | '%'
@@ -697,7 +708,7 @@ pub fn input_var(
                             && matches!(chars[i + 1], '(' | '{' | '[' | '|' | '-' | '!')
                         {
                             output.push(Num(Number::from(n1.clone(), None)));
-                            output.push(Str("×".to_string()));
+                            output.push(InternalMultiplication);
                         }
                         else
                         {
@@ -706,7 +717,7 @@ pub fn input_var(
                     }
                     else
                     {
-                        output.push(Str('-'.to_string()));
+                        output.push(Minus);
                     }
                 }
                 '^' if !output.is_empty()
@@ -717,42 +728,42 @@ pub fn input_var(
                     {
                         if chars.len() > i + 2
                         {
-                            output.push(Str("^^".to_string()))
+                            output.push(Tetration)
                         }
                         i += 1;
                     }
                     else
                     {
-                        output.push(Str("^".to_string()));
+                        output.push(Exponent);
                     }
                 }
                 '⌈' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;
                     ceilfoor += 2;
-                    output.push(Str("(".to_string()));
-                    output.push(Str("ceil".to_string()));
-                    output.push(Str("(".to_string()));
+                    output.push(LeftBracket);
+                    output.push(Func("ceil".to_string()));
+                    output.push(LeftBracket);
                 }
                 '⌊' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;
                     ceilfoor += 2;
-                    output.push(Str("(".to_string()));
-                    output.push(Str("floor".to_string()));
-                    output.push(Str("(".to_string()));
+                    output.push(LeftBracket);
+                    output.push(Func("floor".to_string()));
+                    output.push(LeftBracket);
                 }
                 '⌉' if i != 0 =>
                 {
                     *bracket -= 1;
                     ceilfoor -= 2;
-                    output.push(Str(")".to_string()));
-                    output.push(Str(")".to_string()));
+                    output.push(RightBracket);
+                    output.push(RightBracket);
                     if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                     {
                         for _ in 0..pwr.2
                         {
-                            output.push(Str(')'.to_string()))
+                            output.push(RightBracket);
                         }
                         pwr.0 = false;
                         pwr.2 = 0
@@ -762,13 +773,13 @@ pub fn input_var(
                 {
                     *bracket -= 1;
                     ceilfoor -= 2;
-                    output.push(Str(")".to_string()));
-                    output.push(Str(")".to_string()));
+                    output.push(RightBracket);
+                    output.push(RightBracket);
                     if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                     {
                         for _ in 0..pwr.2
                         {
-                            output.push(Str(')'.to_string()))
+                            output.push(RightBracket);
                         }
                         pwr.0 = false;
                         pwr.2 = 0
@@ -782,15 +793,15 @@ pub fn input_var(
                         subfact.1 = *bracket;
                     }
                     place_multiplier(&mut output, sumrec, &sumvar);
-                    output.push(Str("(".to_string()))
+                    output.push(LeftBracket);
                 }
                 '~' =>
                 {
                     if i == 0 || matches!(chars[i - 1], '(' | '{' | '|')
                     {
                         place_multiplier(&mut output, sumrec, &sumvar);
-                        output.push(Str("solve".to_string()));
-                        output.push(Str("(".to_string()));
+                        output.push(Func("solve".to_string()));
+                        output.push(LeftBracket);
                         *bracket += 1;
                         collectvars.insert(0, (*bracket, output.len()));
                         if i + 1 != chars.len() && chars[i + 1] == '~'
@@ -851,41 +862,38 @@ pub fn input_var(
                         }
                         else
                         {
-                            output.push(Str("-".to_string()));
-                            output.push(Str("(".to_string()));
+                            output.push(Minus);
+                            output.push(LeftBracket);
                         }
                         let mut brac = 0;
                         let mut j = 0;
                         for (i, f) in output.iter().rev().enumerate()
                         {
-                            if let Str(s) = f
+                            match f
                             {
-                                match s.as_str()
+                                LeftBracket if brac == 1 =>
                                 {
-                                    "(" if brac == 1 =>
-                                    {
-                                        j = output.len() - i;
-                                        break;
-                                    }
-                                    "(" => brac += 1,
-                                    ")" => brac -= 1,
-                                    _ =>
-                                    {}
+                                    j = output.len() - i;
+                                    break;
                                 }
+                                LeftBracket => brac += 1,
+                                RightBracket => brac -= 1,
+                                _ =>
+                                {}
                             }
                         }
                         if let Some(n) = sumvar.clone()
                         {
                             sumrec.push((*bracket, n.clone()));
-                            output.insert(j, Str(",".to_string()));
-                            output.insert(j, Str(n));
+                            output.insert(j, Comma);
+                            output.insert(j, Func(n));
                         }
                         else
                         {
                             collectvars.insert(0, (*bracket, j + 2))
                         }
-                        output.insert(j, Str("(".to_string()));
-                        output.insert(j, Str("solve".to_string()));
+                        output.insert(j, LeftBracket);
+                        output.insert(j, Func("solve".to_string()));
                     }
                     solvesn -= 1;
                 }
@@ -895,7 +903,7 @@ pub fn input_var(
                     {
                         if solves[0].1 == 2
                         {
-                            output.push(Str(",".to_string()));
+                            output.push(Comma);
                             output.push(Num(Number::from(
                                 Complex::with_val(options.prec, (Nan, 1)),
                                 None,
@@ -903,18 +911,18 @@ pub fn input_var(
                         }
                         else if solves[0].1 == 1
                         {
-                            output.push(Str(",".to_string()));
+                            output.push(Comma);
                             output.push(Num(Number::from(
                                 Complex::with_val(options.prec, Nan),
                                 None,
                             )));
                         }
-                        output.push(Str(")".to_string()));
+                        output.push(RightBracket);
                         solves.remove(0);
                     }
                     if !collectvars.is_empty() && collectvars[0].0 == *bracket
                     {
-                        output.insert(collectvars[0].1, Str(",".to_string()));
+                        output.insert(collectvars[0].1, Comma);
                         collectvars.remove(0);
                     }
                     if piecewise == *bracket as usize
@@ -924,18 +932,18 @@ pub fn input_var(
                     if subfact.1 == *bracket
                     {
                         subfact = (false, 0);
-                        output.push(Str(")".to_string()));
-                        output.push(Str(")".to_string()))
+                        output.push(RightBracket);
+                        output.push(RightBracket);
                     }
                     if !solvesp.is_empty() && solvesp[0].0 == *bracket
                     {
                         if !solvesp[0].2
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                         }
                         if solvesp[0].1 == 2
                         {
-                            output.push(Str(",".to_string()));
+                            output.push(Comma);
                             output.push(Num(Number::from(
                                 Complex::with_val(options.prec, (Nan, 1)),
                                 None,
@@ -943,20 +951,20 @@ pub fn input_var(
                         }
                         else if solvesp[0].1 == 1
                         {
-                            output.push(Str(",".to_string()));
+                            output.push(Comma);
                             output.push(Num(Number::from(
                                 Complex::with_val(options.prec, Nan),
                                 None,
                             )));
                         }
-                        output.push(Str(")".to_string()));
+                        output.push(RightBracket);
                         solvesp.remove(0);
                     }
                     *bracket -= 1;
-                    output.push(Str(")".to_string()));
+                    output.push(RightBracket);
                     if !exp.0.is_empty() && exp.1 == *bracket
                     {
-                        output.push(Str("^".to_string()));
+                        output.push(Exponent);
                         output.push(Num(Number::from(
                             match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                             {
@@ -971,7 +979,7 @@ pub fn input_var(
                     {
                         for _ in 0..pwr.2
                         {
-                            output.push(Str(')'.to_string()))
+                            output.push(RightBracket);
                         }
                         pwr.0 = false;
                         pwr.2 = 0
@@ -986,19 +994,19 @@ pub fn input_var(
                         {
                             for _ in 0..pwr.2
                             {
-                                output.push(Str(')'.to_string()))
+                                output.push(RightBracket);
                             }
                             pwr = (false, 0, 0);
                         }
-                        output.push(Str(")".to_string()));
-                        output.push(Str(")".to_string()));
+                        output.push(RightBracket);
+                        output.push(RightBracket);
                         abs.remove(0);
                     }
                     else if i + 1 != chars.len() && chars[i + 1] == '|'
                     {
                         if i + 2 != chars.len()
                         {
-                            output.push(Str("||".to_string()));
+                            output.push(Or);
                         }
                         i += 2;
                         continue;
@@ -1011,9 +1019,9 @@ pub fn input_var(
                             subfact.1 = *bracket;
                         }
                         place_multiplier(&mut output, sumrec, &sumvar);
-                        output.push(Str("(".to_string()));
-                        output.push(Str("norm".to_string()));
-                        output.push(Str("(".to_string()));
+                        output.push(LeftBracket);
+                        output.push(Func("norm".to_string()));
+                        output.push(LeftBracket);
                         abs.insert(0, *bracket);
                     }
                 }
@@ -1021,101 +1029,105 @@ pub fn input_var(
                 {
                     if i + 1 < chars.len() && chars[i + 1] == '='
                     {
-                        output.push(Str("!=".to_string()));
+                        output.push(NotEqual);
                         i += 1;
                     }
                     else if i != 0
                         && (chars[i - 1].is_alphanumeric()
                             || (!output.is_empty()
-                                && (output.last().unwrap().str_is(")")
-                                    || output.last().unwrap().str_is("}"))))
+                                && matches!(
+                                    output.last().unwrap(),
+                                    RightBracket | RightCurlyBracket
+                                )))
                     {
                         if !output.is_empty()
-                            && (output.last().unwrap().str_is(")")
-                                || output.last().unwrap().str_is("}"))
+                            && matches!(output.last().unwrap(), RightBracket | RightCurlyBracket)
                         {
                             let mut count = 0;
                             for (j, c) in output.iter().enumerate().rev()
                             {
-                                if let Str(s) = c
+                                match c
                                 {
-                                    if s == "(" || s == "{"
+                                    LeftBracket | LeftCurlyBracket =>
                                     {
                                         count -= 1;
                                     }
-                                    else if s == ")" || s == "}"
+                                    RightBracket | RightCurlyBracket =>
                                     {
                                         count += 1;
                                     }
+                                    _ =>
+                                    {}
                                 }
                                 if count == 0
                                 {
                                     if j != 0
                                     {
-                                        if let Str(s) = &output[j - 1]
+                                        if let Func(s) = &output[j - 1]
                                         {
                                             if !s.is_empty()
                                                 && s.chars().next().unwrap().is_alphabetic()
                                             {
-                                                output.insert(j - 1, Str("(".to_string()));
+                                                output.insert(j - 1, LeftBracket);
                                                 if i + 1 != chars.len() && chars[i + 1] == '!'
                                                 {
                                                     i += 1;
-                                                    output.insert(j, Str("(".to_string()));
-                                                    output.insert(j, Str("doublefact".to_string()));
+                                                    output.insert(j, LeftBracket);
+                                                    output
+                                                        .insert(j, Func("doublefact".to_string()));
                                                 }
                                                 else
                                                 {
-                                                    output.insert(j, Str("(".to_string()));
-                                                    output.insert(j, Str("fact".to_string()));
+                                                    output.insert(j, LeftBracket);
+                                                    output.insert(j, Func("fact".to_string()));
                                                 }
-                                                output.push(Str(")".to_string()));
-                                                output.push(Str(")".to_string()));
+                                                output.push(RightBracket);
+                                                output.push(RightBracket);
                                                 i += 1;
                                                 continue 'main;
                                             }
                                         }
                                     }
-                                    output.insert(j, Str("(".to_string()));
+                                    output.insert(j, LeftBracket);
                                     if i + 1 != chars.len() && chars[i + 1] == '!'
                                     {
                                         i += 1;
-                                        output.insert(j, Str("doublefact".to_string()));
+                                        output.insert(j, Func("doublefact".to_string()));
                                     }
                                     else
                                     {
-                                        output.insert(j, Str("fact".to_string()));
+                                        output.insert(j, Func("fact".to_string()));
                                     }
-                                    output.push(Str(")".to_string()));
+                                    output.push(RightBracket);
                                     i += 1;
                                     continue 'main;
                                 }
                             }
                         }
-                        output.insert(output.len().saturating_sub(1), Str("(".to_string()));
+                        output.insert(output.len().saturating_sub(1), LeftBracket);
                         if i + 1 != chars.len() && chars[i + 1] == '!'
                         {
                             i += 1;
                             output.insert(
                                 output.len().saturating_sub(1),
-                                Str("doublefact".to_string()),
+                                Func("doublefact".to_string()),
                             );
                         }
                         else
                         {
-                            output.insert(output.len().saturating_sub(1), Str("fact".to_string()));
+                            output.insert(output.len().saturating_sub(1), Func("fact".to_string()));
                         }
-                        output.insert(output.len().saturating_sub(1), Str("(".to_string()));
-                        output.push(Str(")".to_string()));
-                        output.push(Str(")".to_string()));
+                        output.insert(output.len().saturating_sub(1), LeftBracket);
+                        output.push(RightBracket);
+                        output.push(RightBracket);
                     }
                     else if i != chars.len().saturating_sub(1)
                         && (chars[i + 1].is_alphanumeric()
                             || matches!(chars[i + 1], '(' | '{' | '|' | '-' | '!'))
                     {
-                        output.push(Str("(".to_string()));
-                        output.push(Str("subfact".to_string()));
-                        output.push(Str("(".to_string()));
+                        output.push(LeftBracket);
+                        output.push(Func("subfact".to_string()));
+                        output.push(LeftBracket);
                         subfact.0 = true;
                     }
                 }
@@ -1138,14 +1150,14 @@ pub fn input_var(
                     }
                     if scientific
                     {
-                        output.push(Str(")".to_string()));
+                        output.push(RightBracket);
                         scientific = false;
                     }
                     if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                     {
                         for _ in 0..pwr.2
                         {
-                            output.push(Str(')'.to_string()))
+                            output.push(RightBracket);
                         }
                         pwr.0 = false;
                         pwr.2 = 0
@@ -1153,10 +1165,10 @@ pub fn input_var(
                     if subfact.0 && subfact.1 == 0
                     {
                         subfact.0 = false;
-                        output.push(Str(")".to_string()));
-                        output.push(Str(")".to_string()))
+                        output.push(RightBracket);
+                        output.push(RightBracket);
                     }
-                    output.push(Str(','.to_string()))
+                    output.push(Comma)
                 }
                 '%' if i != 0 =>
                 {
@@ -1167,21 +1179,23 @@ pub fn input_var(
                         let mut bracket = 0;
                         for (k, n) in output.iter().rev().enumerate()
                         {
-                            if let Str(s) = n
+                            match n
                             {
-                                if s == ")"
+                                RightBracket =>
                                 {
                                     bracket += 1;
                                 }
-                                else if s == "("
+                                LeftBracket =>
                                 {
                                     bracket -= 1;
                                 }
-                                else if bracket == 0 && matches!(s.as_str(), "+" | "-" | "±")
+                                Plus | Minus | PlusMinus if bracket == 0 =>
                                 {
                                     j = ((output.len() - k) - 1) as isize;
                                     break;
                                 }
+                                _ =>
+                                {}
                             }
                         }
                         if j != -1
@@ -1190,39 +1204,32 @@ pub fn input_var(
                                 j as usize,
                                 Num(Number::from(Complex::with_val(options.prec, 1), None)),
                             );
-                            output.insert(j as usize, Str('('.to_string()));
-                            output.insert(j as usize, Str('*'.to_string()));
+                            output.insert(j as usize, LeftBracket);
+                            output.insert(j as usize, Multiplication);
                         }
-                        if let Some(Num(_)) = output.last()
+                        match output.last()
                         {
+                            Some(Num(_))
+                            | Some(Func(_))
+                            | Some(RightBracket)
+                            | Some(RightCurlyBracket) =>
+                            {}
+                            _ => output
+                                .push(Num(Number::from(Complex::with_val(options.prec, 1), None))),
                         }
-                        else if let Some(Str(s)) = output.last()
-                        {
-                            if !matches!(s.as_str(), ")" | "}")
-                            {
-                                output.push(Num(Number::from(
-                                    Complex::with_val(options.prec, 1),
-                                    None,
-                                )))
-                            }
-                        }
-                        else
-                        {
-                            output.push(Num(Number::from(Complex::with_val(options.prec, 1), None)))
-                        }
-                        output.push(Str('*'.to_string()));
+                        output.push(Multiplication);
                         output.push(Num(Number::from(
                             Complex::with_val(options.prec, 1) / 100,
                             None,
                         )));
                         if j != -1
                         {
-                            output.push(Str(')'.to_string()));
+                            output.push(RightBracket);
                         }
                     }
                     else if !matches!(chars[i + 1], ')' | '}' | ']')
                     {
-                        output.push(Str('%'.to_string()))
+                        output.push(Modulo)
                     }
                 }
                 '∞' => output.push(Num(Number::from(
@@ -1361,6 +1368,7 @@ pub fn input_var(
                 | "limit"
         ) && chars.len() > i + countv + 1
             && var_overrule
+            && chars[i + countv] == '('
         {
             let mut place = 0;
             let mut count2 = 0;
@@ -1411,8 +1419,8 @@ pub fn input_var(
                     {
                         *bracket += 1;
                         place_multiplier(&mut output, sumrec, &sumvar);
-                        output.push(Str(word.clone()));
-                        output.push(Str("(".to_string()));
+                        output.push(Func(word.clone()));
+                        output.push(LeftBracket);
                         collectvars.insert(0, (*bracket, output.len()));
                         i += countv + 1;
                         continue 'main;
@@ -1436,17 +1444,17 @@ pub fn input_var(
                         }
                     }
                     place_multiplier(&mut output, sumrec, &sumvar);
-                    output.push(Str(word.clone()));
-                    output.push(Str("(".to_string()));
+                    output.push(Func(word.clone()));
+                    output.push(LeftBracket);
                     if sumrec.iter().any(|c| c.0 == -1)
                     {
-                        output.push(Str("@".to_owned() + &sum.1));
+                        output.push(Func("@".to_owned() + &sum.1));
                     }
                     else
                     {
-                        output.push(Str(sum.1));
+                        output.push(Func(sum.1));
                     }
-                    output.push(Str(",".to_string()));
+                    output.push(Comma);
                     if matches!(word.as_str(), "surfacearea" | "sarea")
                     {
                         sarea += 1;
@@ -1474,13 +1482,13 @@ pub fn input_var(
                         }
                         if sumrec.iter().any(|c| c.0 == -1)
                         {
-                            output.push(Str("@".to_owned() + &sum.1));
+                            output.push(Func("@".to_owned() + &sum.1));
                         }
                         else
                         {
-                            output.push(Str(sum.1));
+                            output.push(Func(sum.1));
                         }
-                        output.push(Str(",".to_string()));
+                        output.push(Comma);
                     }
                     *bracket += 1;
                     i += count + countv + 1;
@@ -1493,8 +1501,8 @@ pub fn input_var(
                 {
                     *bracket += 1;
                     place_multiplier(&mut output, sumrec, &sumvar);
-                    output.push(Str(word.clone()));
-                    output.push(Str("(".to_string()));
+                    output.push(Func(word.clone()));
+                    output.push(LeftBracket);
                     collectvars.insert(0, (*bracket, output.len()));
                     i += countv + 1;
                     continue 'main;
@@ -1504,8 +1512,8 @@ pub fn input_var(
             {
                 *bracket += 1;
                 place_multiplier(&mut output, sumrec, &sumvar);
-                output.push(Str(word.clone()));
-                output.push(Str("(".to_string()));
+                output.push(Func(word.clone()));
+                output.push(LeftBracket);
                 collectvars.insert(0, (*bracket, output.len()));
                 i += countv + 1;
                 continue 'main;
@@ -1572,7 +1580,7 @@ pub fn input_var(
             if neg
             {
                 output.push(Num(Number::from(n1.clone(), None)));
-                output.push(Str('×'.to_string()));
+                output.push(InternalMultiplication);
                 neg = false;
             }
             i += if c == '@'
@@ -1585,31 +1593,31 @@ pub fn input_var(
             };
             if num > 0 && sumrec.iter().any(|c| c.0 == -1)
             {
-                output.push(Str("@".to_owned() + &word));
+                output.push(Func("@".to_owned() + &word));
             }
             else
             {
-                output.push(Str(word));
+                output.push(Func(word));
             }
             if pwr.0 && pwr.1 == *bracket && chars[i] != '^'
             {
                 for _ in 0..pwr.2
                 {
-                    output.push(Str(')'.to_string()))
+                    output.push(RightBracket);
                 }
                 pwr.0 = false;
                 pwr.2 = 0
             }
             if scientific
             {
-                output.push(Str(")".to_string()));
+                output.push(RightBracket);
                 scientific = false;
             }
             if subfact.0 && subfact.1 == 0
             {
                 subfact.0 = false;
-                output.push(Str(")".to_string()));
-                output.push(Str(")".to_string()))
+                output.push(RightBracket);
+                output.push(RightBracket);
             }
         }
         else if var_overrule
@@ -1628,7 +1636,7 @@ pub fn input_var(
             if neg
             {
                 output.push(Num(Number::from(n1.clone(), None)));
-                output.push(Str('×'.to_string()));
+                output.push(InternalMultiplication);
                 neg = false;
             }
             i += countv;
@@ -1661,27 +1669,27 @@ pub fn input_var(
                 }
                 else
                 {
-                    output.push(Str(word))
+                    output.push(Func(word))
                 }
                 if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                 {
                     for _ in 0..pwr.2
                     {
-                        output.push(Str(')'.to_string()))
+                        output.push(RightBracket);
                     }
                     pwr.0 = false;
                     pwr.2 = 0
                 }
                 if scientific
                 {
-                    output.push(Str(")".to_string()));
+                    output.push(RightBracket);
                     scientific = false;
                 }
                 if subfact.0 && subfact.1 == 0
                 {
                     subfact.0 = false;
-                    output.push(Str(")".to_string()));
-                    output.push(Str(")".to_string()))
+                    output.push(RightBracket);
+                    output.push(RightBracket);
                 }
             }
             else
@@ -1698,7 +1706,7 @@ pub fn input_var(
                 {
                     slope.push((output.len(), false, nth));
                 }
-                output.push(Str(word))
+                output.push(Func(word))
             }
         }
         else if options.units
@@ -1713,19 +1721,20 @@ pub fn input_var(
             if neg
             {
                 output.push(Num(Number::from(n1.clone(), None)));
-                output.push(Str('×'.to_string()));
+                output.push(InternalMultiplication);
                 neg = false;
             }
-            if let Some(Str(s)) = output.last_mut()
+            if output.last() == Some(&Multiplication)
             {
-                if s == "*"
-                {
-                    *s = '×'.to_string()
-                }
+                output.pop();
+                output.push(InternalMultiplication)
             }
-            else if !output.is_empty()
+            else if matches!(
+                output.last(),
+                Some(Func(_)) | Some(Vector(_)) | Some(Matrix(_)) | Some(Num(_))
+            )
             {
-                output.push(Str('×'.to_string()))
+                output.push(InternalMultiplication)
             }
             let (num, add) = to_unit(unit, mul, options);
             output.push(Num(num));
@@ -1737,12 +1746,12 @@ pub fn input_var(
                 {
                     if chars[i - 3] == 'K'
                     {
-                        output.insert(output.len().saturating_sub(2), Str('-'.to_string()));
+                        output.insert(output.len().saturating_sub(2), Minus);
                         output.insert(output.len().saturating_sub(2), Num(num));
                     }
                     else
                     {
-                        output.insert(output.len().saturating_sub(3), Str('-'.to_string()));
+                        output.insert(output.len().saturating_sub(3), Minus);
                         output.insert(output.len().saturating_sub(3), Num(num));
                     }
                 }
@@ -1756,18 +1765,18 @@ pub fn input_var(
                         else if i != 0 && chars[i - 1] == ')'
                         {
                             output.len().saturating_sub(
-                                output.iter().rev().position(|c| c.str_is("(")).unwrap(),
+                                output.iter().rev().position(|c| *c == LeftBracket).unwrap(),
                             )
                         }
                         else
                         {
                             output.len().saturating_sub(1)
                         },
-                        Str('('.to_string()),
+                        LeftBracket,
                     );
-                    output.push(Str('+'.to_string()));
+                    output.push(Plus);
                     output.push(Num(num));
-                    output.push(Str(')'.to_string()));
+                    output.push(RightBracket);
                 }
             }
             i += countv;
@@ -1778,24 +1787,12 @@ pub fn input_var(
             {
                 chars.remove(i - 1);
             }
-            if let Some(Str(s)) = output.last_mut()
+            if output.last() == Some(&Multiplication)
             {
-                if s == "*"
-                {
-                    *s = "->".to_string()
-                }
-                else
-                {
-                    i += 1;
-                    output.push(Str("->".to_string()));
-                }
-            }
-            else
-            {
-                i += 1;
-                output.push(Str("->".to_string()));
+                output.pop();
             }
             i += 1;
+            output.push(Conversion);
             if chars.len() > i && (chars[i] == '*' || chars[i] == '×')
             {
                 chars.remove(i);
@@ -1938,7 +1935,8 @@ pub fn input_var(
                         }
                         if blacklist == var.name && piecewise != 0
                         {
-                            output.push(Str("@".to_owned() + &var.name.iter().collect::<String>()));
+                            output
+                                .push(Func("@".to_owned() + &var.name.iter().collect::<String>()));
                             i = j + var.name.split(|c| c == &'(').next().unwrap().len();
                             continue 'main;
                         }
@@ -1948,7 +1946,7 @@ pub fn input_var(
                             if neg
                             {
                                 output.push(Num(Number::from(n1.clone(), None)));
-                                output.push(Str('×'.to_string()));
+                                output.push(InternalMultiplication);
                                 neg = false;
                             }
                             let nobrackets = i + 1 != chars.len()
@@ -1957,7 +1955,7 @@ pub fn input_var(
                                 && chars[i + 1] == ',';
                             if !nobrackets
                             {
-                                output.push(Str('('.to_string()));
+                                output.push(LeftBracket);
                             }
                             let mut temp = &chars[j + countj + 1 + area + slope..=i];
                             if temp.ends_with(&[')'])
@@ -2131,8 +2129,8 @@ pub fn input_var(
                                         }
                                         else
                                         {
-                                            output.insert(collectvars[0].1, Str(",".to_string()));
-                                            output.insert(collectvars[0].1, Str(s.clone()));
+                                            output.insert(collectvars[0].1, Comma);
+                                            output.insert(collectvars[0].1, Func(s.clone()));
                                             collectvars.remove(0);
                                         }
                                     }
@@ -2140,7 +2138,7 @@ pub fn input_var(
                                         || print
                                         || sumrec.iter().any(|c| c.0 == -1)
                                         || parsed.iter().any(|c| {
-                                            if let Str(s) = c
+                                            if let Func(s) = c
                                             {
                                                 sumrec.iter().any(|r| &r.1 == s)
                                                     || sumvar.clone().map_or(false, |r| r == *s)
@@ -2161,7 +2159,7 @@ pub fn input_var(
                                         })
                                         || func.iter().any(|c| {
                                             c.1.iter().any(|c| {
-                                                if let Str(s) = c
+                                                if let Func(s) = c
                                                 {
                                                     sumrec.iter().any(|r| &r.1 == s)
                                                         || sumvar.clone().map_or(false, |r| r == *s)
@@ -2192,7 +2190,7 @@ pub fn input_var(
                                         {
                                             funcvars.extend(func);
                                             funcvars.push((iden.clone(), parsed));
-                                            vec![Str(iden)]
+                                            vec![Func(iden)]
                                         }
                                     }
                                     else
@@ -2219,24 +2217,24 @@ pub fn input_var(
                                         false
                                     }
                                 {
-                                    num.insert(0, Str("(".to_string()));
-                                    num.push(Str(")".to_string()));
+                                    num.insert(0, LeftBracket);
+                                    num.push(RightBracket);
                                 }
                                 if z == 0 && (area != 0 || slope != 0)
                                 {
                                     tempf = num;
                                     if area != 0
                                     {
-                                        output.push(Str("area".to_string()));
+                                        output.push(Func("area".to_string()));
                                     }
                                     else
                                     {
-                                        output.push(Str("slope".to_string()));
+                                        output.push(Func("slope".to_string()));
                                     }
-                                    output.push(Str("(".to_string()));
-                                    output.push(Str("@p".to_string() + &i.to_string()));
-                                    output.push(Str(",".to_string()));
-                                    num = vec![Str("@p".to_string() + &i.to_string())]
+                                    output.push(LeftBracket);
+                                    output.push(Func("@p".to_string() + &i.to_string()));
+                                    output.push(Comma);
+                                    num = vec![Func("@p".to_string() + &i.to_string())]
                                 }
                                 let mut k = 0;
                                 for (x, fv) in fvs.clone().iter().enumerate()
@@ -2283,11 +2281,11 @@ pub fn input_var(
                                     {
                                         if !fv.0.ends_with(')')
                                         {
-                                            parsed[k] = Str(format!("@{}@{}{}", i, depth, fv.0));
+                                            parsed[k] = Func(format!("@{}@{}{}", i, depth, fv.0));
                                         }
                                         else if !fv.0.starts_with('@')
                                         {
-                                            parsed[k] = Str(format!("@{}", fv.0));
+                                            parsed[k] = Func(format!("@{}", fv.0));
                                         }
                                     }
                                 }
@@ -2301,18 +2299,18 @@ pub fn input_var(
                                     k -= 1;
                                     for fc in fvs.clone()
                                     {
-                                        if let Str(s) = &fv.1[k]
+                                        if let Func(s) = &fv.1[k]
                                         {
                                             if s == &fc.0 && s != &fv.0
                                             {
                                                 if !fc.0.contains('(')
                                                 {
                                                     fvs[x].1[k] =
-                                                        Str(format!("@{}@{}{}", i, depth, fc.0))
+                                                        Func(format!("@{}@{}{}", i, depth, fc.0))
                                                 }
                                                 else if !fc.0.starts_with('@')
                                                 {
-                                                    fvs[x].1[k] = Str(format!("@{}", fc.0))
+                                                    fvs[x].1[k] = Func(format!("@{}", fc.0))
                                                 }
                                             }
                                         }
@@ -2336,42 +2334,42 @@ pub fn input_var(
                             {
                                 if area != 0
                                 {
-                                    output.push(Str(",".to_string()));
+                                    output.push(Comma);
                                     output.push(Num(Number::from(Complex::new(options.prec), None)))
                                 }
-                                output.push(Str(",".to_string()));
+                                output.push(Comma);
                                 output.extend(tempf);
                                 if area + slope != 1
                                 {
-                                    output.push(Str(",".to_string()));
+                                    output.push(Comma);
                                     output.push(Num(Number::from(
                                         Complex::with_val(options.prec, area + slope),
                                         None,
                                     )))
                                 }
-                                output.push(Str(")".to_string()));
+                                output.push(RightBracket);
                             }
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
                                 {
-                                    output.push(Str(')'.to_string()))
+                                    output.push(RightBracket);
                                 }
                                 pwr = (false, 0, 0);
                             }
                             if subfact.1 == *bracket + 1
                             {
                                 subfact = (false, 0);
-                                output.push(Str(")".to_string()));
-                                output.push(Str(")".to_string()))
+                                output.push(RightBracket);
+                                output.push(RightBracket);
                             }
                             if !nobrackets
                             {
-                                output.push(Str(")".to_string()));
+                                output.push(RightBracket);
                             }
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
-                                output.push(Str("^".to_string()));
+                                output.push(Exponent);
                                 output.push(Num(Number::from(
                                     match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                                     {
@@ -2391,7 +2389,7 @@ pub fn input_var(
                             if neg
                             {
                                 output.push(Num(Number::from(n1.clone(), None)));
-                                output.push(Str('×'.to_string()));
+                                output.push(InternalMultiplication);
                                 neg = false;
                             }
                             let nobrackets = j != 0
@@ -2400,7 +2398,7 @@ pub fn input_var(
                                 && chars[i + 1] == ',';
                             if !nobrackets
                             {
-                                output.push(Str('('.to_string()));
+                                output.push(LeftBracket);
                             }
                             let mut temp = &chars[j + countj + 1..=i];
                             if temp.ends_with(&[')'])
@@ -2529,8 +2527,8 @@ pub fn input_var(
                                     }
                                     else
                                     {
-                                        output.insert(collectvars[0].1, Str(",".to_string()));
-                                        output.insert(collectvars[0].1, Str(s.clone()));
+                                        output.insert(collectvars[0].1, Comma);
+                                        output.insert(collectvars[0].1, Func(s.clone()));
                                         collectvars.remove(0);
                                     }
                                 }
@@ -2538,7 +2536,7 @@ pub fn input_var(
                                     || print
                                     || sumrec.iter().any(|c| c.0 == -1)
                                     || parsed.iter().any(|c| {
-                                        if let Str(s) = c
+                                        if let Func(s) = c
                                         {
                                             sumrec.iter().any(|r| &r.1 == s)
                                                 || sumvar.clone().map_or(false, |r| r == *s)
@@ -2555,7 +2553,7 @@ pub fn input_var(
                                     })
                                     || func.iter().any(|c| {
                                         c.1.iter().any(|c| {
-                                            if let Str(s) = c
+                                            if let Func(s) = c
                                             {
                                                 sumrec.iter().any(|r| &r.1 == s)
                                                     || sumvar.clone().map_or(false, |r| r == *s)
@@ -2578,7 +2576,7 @@ pub fn input_var(
                                 {
                                     let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
                                     if parsed.len() == 1
-                                        && if let Str(s) = &parsed[0]
+                                        && if let Func(s) = &parsed[0]
                                         {
                                             !matches!(s.as_str(), "rnd" | "rand" | "epoch")
                                         }
@@ -2593,7 +2591,7 @@ pub fn input_var(
                                     {
                                         funcvars.extend(func);
                                         funcvars.push((iden.clone(), parsed));
-                                        vec![Str(iden)]
+                                        vec![Func(iden)]
                                     }
                                 }
                                 else
@@ -2611,11 +2609,11 @@ pub fn input_var(
                             };
                             if abs
                             {
-                                num.insert(0, Str("(".to_string()));
-                                num.insert(0, Str("norm".to_string()));
-                                num.insert(0, Str("(".to_string()));
-                                num.push(Str(")".to_string()));
-                                num.push(Str(")".to_string()))
+                                num.insert(0, LeftBracket);
+                                num.insert(0, Func("norm".to_string()));
+                                num.insert(0, LeftBracket);
+                                num.push(RightBracket);
+                                num.push(RightBracket)
                             }
                             if print
                                 && num.len() == 1
@@ -2628,8 +2626,8 @@ pub fn input_var(
                                     false
                                 }
                             {
-                                num.insert(0, Str("(".to_string()));
-                                num.push(Str(")".to_string()));
+                                num.insert(0, LeftBracket);
+                                num.push(RightBracket);
                             }
                             let mut tempf = Vec::new();
                             if area != 0 || slope != 0
@@ -2637,16 +2635,16 @@ pub fn input_var(
                                 tempf = num;
                                 if area != 0
                                 {
-                                    output.push(Str("area".to_string()));
+                                    output.push(Func("area".to_string()));
                                 }
                                 else
                                 {
-                                    output.push(Str("slope".to_string()));
+                                    output.push(Func("slope".to_string()));
                                 }
-                                output.push(Str("(".to_string()));
-                                output.push(Str("@p".to_string() + &i.to_string()));
-                                output.push(Str(",".to_string()));
-                                num = vec![Str("@p".to_string() + &i.to_string())]
+                                output.push(LeftBracket);
+                                output.push(Func("@p".to_string() + &i.to_string()));
+                                output.push(Comma);
+                                num = vec![Func("@p".to_string() + &i.to_string())]
                             }
                             while k < parsed.len()
                             {
@@ -2698,11 +2696,11 @@ pub fn input_var(
                                     {
                                         if !fv.0.ends_with(')')
                                         {
-                                            parsed[k] = Str(format!("@{}@{}{}", i, depth, fv.0));
+                                            parsed[k] = Func(format!("@{}@{}{}", i, depth, fv.0));
                                         }
                                         else if !fv.0.starts_with('@')
                                         {
-                                            parsed[k] = Str(format!("@{}", fv.0));
+                                            parsed[k] = Func(format!("@{}", fv.0));
                                         }
                                     }
                                 }
@@ -2716,18 +2714,18 @@ pub fn input_var(
                                     k -= 1;
                                     for fc in fvs.clone()
                                     {
-                                        if let Str(s) = &fv.1[k]
+                                        if let Func(s) = &fv.1[k]
                                         {
                                             if s == &fc.0 && s != &fv.0
                                             {
                                                 if !fc.0.contains('(')
                                                 {
                                                     fvs[x].1[k] =
-                                                        Str(format!("@{}@{}{}", i, depth, fc.0))
+                                                        Func(format!("@{}@{}{}", i, depth, fc.0))
                                                 }
                                                 else if !fc.0.starts_with('@')
                                                 {
-                                                    fvs[x].1[k] = Str(format!("@{}", fc.0))
+                                                    fvs[x].1[k] = Func(format!("@{}", fc.0))
                                                 }
                                             }
                                         }
@@ -2751,42 +2749,42 @@ pub fn input_var(
                             {
                                 if area != 0
                                 {
-                                    output.push(Str(",".to_string()));
+                                    output.push(Comma);
                                     output.push(Num(Number::from(Complex::new(options.prec), None)))
                                 }
-                                output.push(Str(",".to_string()));
+                                output.push(Comma);
                                 output.extend(tempf);
                                 if area + slope != 1
                                 {
-                                    output.push(Str(",".to_string()));
+                                    output.push(Comma);
                                     output.push(Num(Number::from(
                                         Complex::with_val(options.prec, area + slope),
                                         None,
                                     )))
                                 }
-                                output.push(Str(")".to_string()));
+                                output.push(RightBracket);
                             }
                             if pwr.1 == *bracket + 1
                             {
                                 for _ in 0..pwr.2
                                 {
-                                    output.push(Str(')'.to_string()))
+                                    output.push(RightBracket);
                                 }
                                 pwr = (false, 0, 0);
                             }
                             if subfact.1 == *bracket + 1
                             {
                                 subfact = (false, 0);
-                                output.push(Str(")".to_string()));
-                                output.push(Str(")".to_string()))
+                                output.push(RightBracket);
+                                output.push(RightBracket);
                             }
                             if !nobrackets
                             {
-                                output.push(Str(")".to_string()));
+                                output.push(RightBracket);
                             }
                             if !exp.0.is_empty() && exp.1 == *bracket
                             {
-                                output.push(Str("^".to_string()));
+                                output.push(Exponent);
                                 output.push(Num(Number::from(
                                     match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
                                     {
@@ -2857,7 +2855,7 @@ pub fn input_var(
                         if neg
                         {
                             output.push(Num(Number::from(n1.clone(), None)));
-                            output.push(Str('×'.to_string()));
+                            output.push(InternalMultiplication);
                             neg = false;
                         }
                         let print = print
@@ -2871,7 +2869,7 @@ pub fn input_var(
                             };
                         if print
                         {
-                            output.push(Str("(".to_string()));
+                            output.push(LeftBracket);
                         }
                         if !var.parsed.is_empty()
                         {
@@ -2883,11 +2881,11 @@ pub fn input_var(
                         }
                         if print
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                         }
                         if scientific
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                             scientific = false;
                         }
                         if pwr.0
@@ -2896,7 +2894,7 @@ pub fn input_var(
                         {
                             for _ in 0..pwr.2
                             {
-                                output.push(Str(')'.to_string()))
+                                output.push(RightBracket);
                             }
                             pwr.0 = false;
                             pwr.2 = 0
@@ -2904,8 +2902,8 @@ pub fn input_var(
                         if subfact.0 && subfact.1 == 0
                         {
                             subfact.0 = false;
-                            output.push(Str(")".to_string()));
-                            output.push(Str(")".to_string()))
+                            output.push(RightBracket);
+                            output.push(RightBracket);
                         }
                         continue 'main;
                     }
@@ -2932,7 +2930,7 @@ pub fn input_var(
                 if neg
                 {
                     output.push(Num(Number::from(n1.clone(), None)));
-                    output.push(Str('×'.to_string()));
+                    output.push(InternalMultiplication);
                     neg = false;
                 }
                 match c
@@ -2946,7 +2944,7 @@ pub fn input_var(
                         {
                             if last.num().is_ok() || last.str_is("x") || last.str_is("y")
                             {
-                                output.insert(output.len().saturating_sub(1), Str("(".to_string()));
+                                output.insert(output.len().saturating_sub(1), LeftBracket);
                                 if i + 1 != chars.len()
                                     && (matches!(chars[i + 1], '-' | '+' | 'x' | 'y' | 'z' | 'i')
                                         || is_digit(chars[i + 1], options.base.0))
@@ -2965,13 +2963,13 @@ pub fn input_var(
                                 || is_digit(chars[i + 1], options.base.0)
                                 || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '|'))
                         {
-                            output.push(Str('^'.to_string()));
+                            output.push(Tetration);
                         }
                         if !(i + 1 != chars.len()
                             && (matches!(chars[i + 1], '-' | '+' | 'x' | 'y' | 'z' | 'i')
                                 || is_digit(chars[i + 1], options.base.0)))
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                         }
                     }
                     'x' | 'y' if collectvars.is_empty() && options.graphtype != GraphType::None =>
@@ -2986,10 +2984,10 @@ pub fn input_var(
                             graph.y = true
                         }
                         place_multiplier(&mut output, sumrec, &sumvar);
-                        output.push(Str(c.to_string()));
+                        output.push(Func(c.to_string()));
                         if scientific
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                             scientific = false;
                         }
                         if pwr.0
@@ -2998,7 +2996,7 @@ pub fn input_var(
                         {
                             for _ in 0..pwr.2
                             {
-                                output.push(Str(')'.to_string()))
+                                output.push(RightBracket);
                             }
                             pwr.0 = false;
                             pwr.2 = 0
@@ -3006,8 +3004,8 @@ pub fn input_var(
                         if subfact.0 && subfact.1 == 0
                         {
                             subfact.0 = false;
-                            output.push(Str(")".to_string()));
-                            output.push(Str(")".to_string()))
+                            output.push(RightBracket);
+                            output.push(RightBracket);
                         }
                     }
                     'i' =>
@@ -3023,21 +3021,21 @@ pub fn input_var(
                         {
                             for _ in 0..pwr.2
                             {
-                                output.push(Str(')'.to_string()))
+                                output.push(RightBracket);
                             }
                             pwr.0 = false;
                             pwr.2 = 0
                         }
                         if scientific
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                             scientific = false;
                         }
                         if subfact.0 && subfact.1 == 0
                         {
                             subfact.0 = false;
-                            output.push(Str(")".to_string()));
-                            output.push(Str(")".to_string()))
+                            output.push(RightBracket);
+                            output.push(RightBracket);
                         }
                     }
                     'z' if collectvars.is_empty() && options.graphtype != GraphType::None =>
@@ -3046,19 +3044,19 @@ pub fn input_var(
                         graph.x = true;
                         graph.y = true;
                         place_multiplier(&mut output, sumrec, &sumvar);
-                        output.push(Str('('.to_string()));
-                        output.push(Str('x'.to_string()));
-                        output.push(Str('+'.to_string()));
-                        output.push(Str('y'.to_string()));
-                        output.push(Str('*'.to_string()));
+                        output.push(LeftBracket);
+                        output.push(Func('x'.to_string()));
+                        output.push(Plus);
+                        output.push(Func('y'.to_string()));
+                        output.push(Multiplication);
                         output.push(Num(Number::from(
                             Complex::with_val(options.prec, (0, 1)),
                             None,
                         )));
-                        output.push(Str(')'.to_string()));
+                        output.push(RightBracket);
                         if scientific
                         {
-                            output.push(Str(")".to_string()));
+                            output.push(RightBracket);
                             scientific = false;
                         }
                         if pwr.0
@@ -3067,7 +3065,7 @@ pub fn input_var(
                         {
                             for _ in 0..pwr.2
                             {
-                                output.push(Str(')'.to_string()))
+                                output.push(RightBracket);
                             }
                             pwr.0 = false;
                             pwr.2 = 0
@@ -3075,8 +3073,8 @@ pub fn input_var(
                         if subfact.0 && subfact.1 == 0
                         {
                             subfact.0 = false;
-                            output.push(Str(")".to_string()));
-                            output.push(Str(")".to_string()))
+                            output.push(RightBracket);
+                            output.push(RightBracket);
                         }
                     }
                     _ =>
@@ -3086,7 +3084,7 @@ pub fn input_var(
                             if neg
                             {
                                 output.push(Num(Number::from(n1.clone(), None)));
-                                output.push(Str('×'.to_string()));
+                                output.push(InternalMultiplication);
                                 neg = false;
                             }
                             sumrec.push((collectvars[0].0, wordv.clone()));
@@ -3096,11 +3094,11 @@ pub fn input_var(
                             }
                             else
                             {
-                                output.insert(collectvars[0].1, Str(",".to_string()));
-                                output.insert(collectvars[0].1, Str(wordv.clone()));
+                                output.insert(collectvars[0].1, Comma);
+                                output.insert(collectvars[0].1, Func(wordv.clone()));
                             }
                             place_multiplier(&mut output, sumrec, &sumvar);
-                            output.push(Str(wordv));
+                            output.push(Func(wordv));
                             collectvars.remove(0);
                             if pwr.0
                                 && pwr.1 == *bracket
@@ -3108,21 +3106,21 @@ pub fn input_var(
                             {
                                 for _ in 0..pwr.2
                                 {
-                                    output.push(Str(')'.to_string()))
+                                    output.push(RightBracket);
                                 }
                                 pwr.0 = false;
                                 pwr.2 = 0
                             }
                             if scientific
                             {
-                                output.push(Str(")".to_string()));
+                                output.push(RightBracket);
                                 scientific = false;
                             }
                             if subfact.0 && subfact.1 == 0
                             {
                                 subfact.0 = false;
-                                output.push(Str(")".to_string()));
-                                output.push(Str(")".to_string()))
+                                output.push(RightBracket);
+                                output.push(RightBracket);
                             }
                         }
                     }
@@ -3133,7 +3131,7 @@ pub fn input_var(
                 if neg
                 {
                     output.push(Num(Number::from(n1.clone(), None)));
-                    output.push(Str('×'.to_string()));
+                    output.push(InternalMultiplication);
                     neg = false;
                 }
                 if !collectvars.is_empty()
@@ -3145,8 +3143,8 @@ pub fn input_var(
                     }
                     else
                     {
-                        output.insert(collectvars[0].1, Str(",".to_string()));
-                        output.insert(collectvars[0].1, Str(word.clone()));
+                        output.insert(collectvars[0].1, Comma);
+                        output.insert(collectvars[0].1, Func(word.clone()));
                     }
                     collectvars.remove(0);
                 }
@@ -3191,26 +3189,26 @@ pub fn input_var(
                     }
                 }
                 place_multiplier(&mut output, sumrec, &sumvar);
-                output.push(Str(word));
+                output.push(Func(word));
                 if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                 {
                     for _ in 0..pwr.2
                     {
-                        output.push(Str(')'.to_string()))
+                        output.push(RightBracket);
                     }
                     pwr.0 = false;
                     pwr.2 = 0
                 }
                 if scientific
                 {
-                    output.push(Str(")".to_string()));
+                    output.push(RightBracket);
                     scientific = false;
                 }
                 if subfact.0 && subfact.1 == 0
                 {
                     subfact.0 = false;
-                    output.push(Str(")".to_string()));
-                    output.push(Str(")".to_string()))
+                    output.push(RightBracket);
+                    output.push(RightBracket);
                 }
             }
             else if piecewise != 0
@@ -3223,7 +3221,7 @@ pub fn input_var(
                     .unwrap()
                     == wordv
             {
-                output.push(Str("@".to_owned() + &wordv));
+                output.push(Func("@".to_owned() + &wordv));
             }
             else
             {
@@ -3236,13 +3234,13 @@ pub fn input_var(
     }
     for _ in 0..pwr.2 + ceilfoor
     {
-        output.push(Str(')'.to_string()))
+        output.push(RightBracket);
     }
     for s in solves
     {
         if s.1 == 2
         {
-            output.push(Str(",".to_string()));
+            output.push(Comma);
             output.push(Num(Number::from(
                 Complex::with_val(options.prec, (Nan, 1)),
                 None,
@@ -3250,23 +3248,23 @@ pub fn input_var(
         }
         else if s.1 == 1
         {
-            output.push(Str(",".to_string()));
+            output.push(Comma);
             output.push(Num(Number::from(
                 Complex::with_val(options.prec, Nan),
                 None,
             )));
         }
-        output.push(Str(")".to_string()));
+        output.push(RightBracket);
     }
     for s in solvesp
     {
         if !s.2
         {
-            output.push(Str(")".to_string()));
+            output.push(RightBracket);
         }
         if s.1 == 2
         {
-            output.push(Str(",".to_string()));
+            output.push(Comma);
             output.push(Num(Number::from(
                 Complex::with_val(options.prec, (Nan, 1)),
                 None,
@@ -3274,13 +3272,13 @@ pub fn input_var(
         }
         else if s.1 == 1
         {
-            output.push(Str(",".to_string()));
+            output.push(Comma);
             output.push(Num(Number::from(
                 Complex::with_val(options.prec, Nan),
                 None,
             )));
         }
-        output.push(Str(")".to_string()));
+        output.push(RightBracket);
     }
     if !pow.is_empty()
     {
@@ -3292,12 +3290,12 @@ pub fn input_var(
         }
         match output.last()
         {
-            Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Str('^'.to_string())),
-            Some(Str(s))
+            Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Tetration),
+            Some(Func(s))
                 if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch")
                     || sumrec.iter().any(|v| &v.1 == s) =>
             {
-                output.push(Str('^'.to_string()))
+                output.push(Tetration)
             }
             _ =>
             {}
@@ -3316,7 +3314,7 @@ pub fn input_var(
     }
     if !exp.0.is_empty()
     {
-        output.push(Str("^".to_string()));
+        output.push(Exponent);
         output.push(Num(Number::from(
             match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
             {
@@ -3332,8 +3330,8 @@ pub fn input_var(
     }
     for _ in abs
     {
-        output.push(Str(")".to_string()));
-        output.push(Str(")".to_string()));
+        output.push(RightBracket);
+        output.push(RightBracket);
     }
     let mut count = 0;
     i = 0;
@@ -3344,16 +3342,16 @@ pub fn input_var(
         let nth = n.2;
         let slope = n.1;
         let n = n.0;
-        output.insert(n, Str(",".to_string()));
-        output.insert(n, Str("@p".to_string() + &n.to_string()));
-        output.insert(n, Str("(".to_string()));
+        output.insert(n, Comma);
+        output.insert(n, Func("@p".to_string() + &n.to_string()));
+        output.insert(n, LeftBracket);
         if slope
         {
-            output.insert(n, Str("slope".to_string()));
+            output.insert(n, Func("slope".to_string()));
         }
         else
         {
-            output.insert(n, Str("area".to_string()));
+            output.insert(n, Func("area".to_string()));
         }
         let mut bracket = 0;
         let mut last = 0;
@@ -3362,159 +3360,161 @@ pub fn input_var(
         {
             break;
         }
-        if !output[n + 5].str_is("(") && !output[n + 5].str_is("{")
+        if !matches!(output[n + 5], LeftBracket | LeftCurlyBracket)
         {
-            output.insert(n + 5, Str("(".to_string()));
-            output.insert(n + 7, Str(")".to_string()));
+            output.insert(n + 5, LeftBracket);
+            output.insert(n + 7, RightBracket);
         }
         for (k, j) in output[n + 6..].iter().enumerate()
         {
-            if let Str(s) = j
+            match j
             {
-                match s.as_str()
+                LeftBracket | LeftCurlyBracket =>
                 {
-                    "(" | "{" =>
-                    {
-                        bracket += 1;
-                    }
-                    ")" | "}" =>
-                    {
-                        if bracket == 0
-                        {
-                            if end == 0
-                            {
-                                end = k;
-                            }
-                            last = k + 2;
-                            break;
-                        }
-                        bracket -= 1;
-                    }
-                    "," if bracket == 0 && end == 0 => end = k,
-                    _ =>
-                    {}
+                    bracket += 1;
                 }
+                RightBracket | RightCurlyBracket =>
+                {
+                    if bracket == 0
+                    {
+                        if end == 0
+                        {
+                            end = k;
+                        }
+                        last = k + 2;
+                        break;
+                    }
+                    bracket -= 1;
+                }
+                Comma if bracket == 0 && end == 0 => end = k,
+                _ =>
+                {}
             }
         }
         let arg = output.drain(n + 6..n + 6 + end).collect::<Vec<NumStr>>();
-        output.insert(n + 6, Str("@p".to_string() + &n.to_string()));
-        output.insert(n + 6 + last - end, Str(")".to_string()));
+        output.insert(n + 6, Func("@p".to_string() + &n.to_string()));
+        output.insert(n + 6 + last - end, RightBracket);
         if nth != 1
         {
             output.insert(
                 n + 6 + last - end,
                 Num(Number::from(Complex::with_val(options.prec, nth), None)),
             );
-            output.insert(n + 6 + last - end, Str(",".to_string()));
+            output.insert(n + 6 + last - end, Comma);
         }
         output.splice(n + 6 + last - end..n + 6 + last - end, arg);
-        output.insert(n + 6 + last - end, Str(",".to_string()));
+        output.insert(n + 6 + last - end, Comma);
         if !slope
         {
             output.insert(
                 n + 6 + last - end,
                 Num(Number::from(Complex::new(options.prec), None)),
             );
-            output.insert(n + 6 + last - end, Str(",".to_string()));
+            output.insert(n + 6 + last - end, Comma);
         }
     }
     while i < output.len()
     {
-        if let Str(s) = &output[i]
+        match &output[i]
         {
-            match s.as_str()
+            LeftBracket if i + 1 < output.len() =>
             {
-                "(" if i + 1 < output.len() =>
+                count += 1;
+                match &output[i + 1]
                 {
-                    count += 1;
-                    if let Str(s) = &output[i + 1]
+                    RightBracket =>
                     {
-                        if s == ")"
+                        output.remove(i + 1);
+                        output.remove(i);
+                        i = i.saturating_sub(1);
+                        count -= 1;
+                        continue;
+                    }
+                    LeftBracket =>
+                    {
+                        double.push((i, count));
+                    }
+                    Func(s)
+                        if i + 2 < output.len()
+                            && output[i + 2] == LeftBracket
+                            && functions.contains(s.as_str())
+                            && {
+                                let mut n: isize = i as isize - 1;
+                                for d in double.iter().rev()
+                                {
+                                    if d.0 == n as usize
+                                    {
+                                        n = d.0 as isize - 1;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                                n < 0
+                                    || (if let Func(n) = &output[n as usize]
+                                    {
+                                        !functions.contains(n.as_str())
+                                    }
+                                    else
+                                    {
+                                        true
+                                    })
+                            } =>
+                    {
+                        double.push((i, count));
+                    }
+                    _ =>
+                    {}
+                }
+                if i == 0 || output[i - 1] == Comma
+                {
+                    brackets.push((i, count));
+                }
+            }
+            RightBracket =>
+            {
+                count -= 1;
+                if let Some(d) = double.last()
+                {
+                    if d.1 == count
+                    {
+                        if output.len() > i + 1
+                            && (output[i + 1] == RightBracket || output[i + 1] == Comma)
                         {
-                            output.remove(i + 1);
                             output.remove(i);
+                            output.remove(d.0);
                             i = i.saturating_sub(1);
-                            count -= 1;
+                            double.pop();
                             continue;
                         }
-                        else if s == "("
-                            || (i + 2 < output.len()
-                                && output[i + 2].str_is("(")
-                                && functions.contains(s.as_str())
-                                && {
-                                    let mut n: isize = i as isize - 1;
-                                    for d in double.iter().rev()
-                                    {
-                                        if d.0 == n as usize
-                                        {
-                                            n = d.0 as isize - 1;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    }
-                                    n < 0
-                                        || (if let Str(n) = &output[n as usize]
-                                        {
-                                            !functions.contains(n.as_str())
-                                        }
-                                        else
-                                        {
-                                            true
-                                        })
-                                })
-                        {
-                            double.push((i, count));
-                        }
-                    }
-                    if i == 0 || output[i - 1].str_is(",")
-                    {
-                        brackets.push((i, count));
+                        double.pop();
                     }
                 }
-                ")" =>
+                if let Some(d) = brackets.last()
                 {
-                    count -= 1;
-                    if let Some(d) = double.last()
+                    if d.1 == count + 1
                     {
-                        if d.1 == count
+                        if (i == output.len() - 1
+                            || output[i + 1] == Comma
+                            || output[i + 1] == RightBracket)
+                            && output[d.0] == LeftBracket
                         {
-                            if output.len() > i + 1
-                                && (output[i + 1].str_is(")") || output[i + 1].str_is(","))
-                            {
-                                output.remove(i);
-                                output.remove(d.0);
-                                i = i.saturating_sub(1);
-                                double.pop();
-                                continue;
-                            }
-                            double.pop();
+                            output.remove(i);
+                            output.remove(d.0);
+                            i = i.saturating_sub(1);
+                            brackets.pop();
+                            continue;
                         }
-                    }
-                    if let Some(d) = brackets.last()
-                    {
-                        if d.1 == count + 1
+                        if i + 1 >= output.len() || output[i + 1] != Comma
                         {
-                            if (i == output.len() - 1
-                                || output[i + 1].str_is(",")
-                                || output[i + 1].str_is(")"))
-                                && output[d.0].str_is("(")
-                            {
-                                output.remove(i);
-                                output.remove(d.0);
-                                i = i.saturating_sub(1);
-                                brackets.pop();
-                                continue;
-                            }
-                            if i + 1 >= output.len() || !output[i + 1].str_is(",")
-                            {
-                                brackets.pop();
-                            }
+                            brackets.pop();
                         }
                     }
                 }
-                _ if (print
+            }
+            Func(s)
+                if (print
                     || (i + 1 < output.len()
                         && (output[i + 1].str_is("rnd")
                             || output[i + 1].str_is("rand")
@@ -3522,19 +3522,18 @@ pub fn input_var(
                     && functions.contains(s.as_str())
                     && !sumrec.iter().any(|a| a.1 == *s)
                     && i + 1 < output.len() =>
+            {
+                if !matches!(
+                    output[i + 1],
+                    LeftBracket | RightBracket | LeftCurlyBracket | RightCurlyBracket
+                )
                 {
-                    if let Str(s) = &output[i + 1]
-                    {
-                        if !matches!(s.as_str(), "(" | "{" | "[" | "|" | ")" | "}" | "]")
-                        {
-                            output.insert(i + 2, Str(")".to_string()));
-                            output.insert(i + 1, Str("(".to_string()));
-                        }
-                    }
+                    output.insert(i + 2, RightBracket);
+                    output.insert(i + 1, LeftBracket);
                 }
-                _ =>
-                {}
             }
+            _ =>
+            {}
         }
         i += 1;
     }
@@ -3546,7 +3545,7 @@ pub fn input_var(
     {
         simplify(&mut output, &mut funcvars, options)
     }
-    while let Some(Str(s)) = output.last()
+    while let Some(Func(s)) = output.last()
     {
         if matches!(
             s.as_str(),
@@ -3574,25 +3573,24 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)], sumvar
 {
     match output.last()
     {
-        Some(Str(s))
-            if matches!(
-                s.as_str(),
-                ")" | "x" | "y" | "]" | "}" | "rnd" | "rand" | "epoch" | "@"
-            ) || sumrec
-                .iter()
-                .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s)
+        Some(RightCurlyBracket) | Some(RightBracket) => output.push(Multiplication),
+        Some(Func(s))
+            if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch" | "@")
+                || sumrec
+                    .iter()
+                    .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s)
                 || sumvar.clone().map_or(false, |a| a == *s) =>
         {
-            output.push(Str('*'.to_string()))
+            output.push(Multiplication)
         }
-        Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Str('*'.to_string())),
+        Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Multiplication),
         _ =>
         {}
     }
 }
 fn can_abs(output: &[NumStr], vars: &[Variable]) -> bool
 {
-    if let Some(Str(s)) = output.last()
+    if let Some(Func(s)) = output.last()
     {
         !(functions().contains(s.as_str())
             || vars.iter().any(|c| c.name.iter().collect::<String>() == *s))
@@ -3618,7 +3616,7 @@ pub fn simplify(
         let v = funcvars[i].clone();
         if !v.0.ends_with(')')
             && v.1.iter().all(|v| {
-                if let Str(s) = &v
+                if let Func(s) = &v
                 {
                     !(matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch" | "roll")
                         || s.starts_with("rand_"))
@@ -3633,7 +3631,7 @@ pub fn simplify(
             {
                 for f in output.iter_mut()
                 {
-                    if let Str(s) = &f
+                    if let Func(s) = &f
                     {
                         if *s == v.0
                         {
@@ -3647,7 +3645,7 @@ pub fn simplify(
                     {
                         for f in fv.1.iter_mut()
                         {
-                            if let Str(s) = &f
+                            if let Func(s) = &f
                             {
                                 if *s == v.0
                                 {
@@ -3668,72 +3666,67 @@ pub fn simplify(
     while i != 0
     {
         i -= 1;
-        if let Str(s) = &output[i]
+        match &output[i]
         {
-            if s.starts_with("rand_") || funcvars.iter().any(|a| a.0 == *s)
+            LeftBracket =>
+            {
+                if !to.is_empty()
+                {
+                    if i != 0
+                    {
+                        if let Func(s) = &output[i - 1]
+                        {
+                            if !s.starts_with("rand_") && functions().contains(s.as_str())
+                            {
+                                if let Ok(n) = do_math(
+                                    output[i - 1..=to[0]].to_vec(),
+                                    options,
+                                    funcvars.clone(),
+                                )
+                                {
+                                    output.drain(i - 1..=to[0]);
+                                    output.insert(i - 1, n);
+                                    let d = to[0] - i + 1;
+                                    to.remove(0);
+                                    for t in to.iter_mut()
+                                    {
+                                        *t -= d;
+                                    }
+                                    continue;
+                                }
+                                to.remove(0);
+                                continue;
+                            }
+                        }
+                    }
+                    if let Ok(n) = do_math(output[i + 1..to[0]].to_vec(), options, funcvars.clone())
+                    {
+                        output.drain(i..=to[0]);
+                        output.insert(i, n);
+                        let d = to[0] - i + 1;
+                        to.remove(0);
+                        for t in to.iter_mut()
+                        {
+                            *t -= d;
+                        }
+                        continue;
+                    }
+                    to.remove(0);
+                }
+            }
+            RightBracket =>
+            {
+                to.insert(0, i);
+            }
+            Func(s)
+                if s.starts_with("rand_")
+                    || funcvars.iter().any(|a| a.0 == *s)
+                    || matches!(s.as_str(), "x" | "y" | "roll" | "rnd" | "rand" | "epoch") =>
             {
                 to.clear();
             }
-            else
-            {
-                match s.as_str()
-                {
-                    "x" | "y" | "roll" | "rnd" | "rand" | "epoch" => to.clear(),
-                    "(" =>
-                    {
-                        if !to.is_empty()
-                        {
-                            if i != 0
-                            {
-                                if let Str(s) = &output[i - 1]
-                                {
-                                    if !s.starts_with("rand_") && functions().contains(s.as_str())
-                                    {
-                                        if let Ok(n) = do_math(
-                                            output[i - 1..=to[0]].to_vec(),
-                                            options,
-                                            funcvars.clone(),
-                                        )
-                                        {
-                                            output.drain(i - 1..=to[0]);
-                                            output.insert(i - 1, n);
-                                            let d = to[0] - i + 1;
-                                            to.remove(0);
-                                            for t in to.iter_mut()
-                                            {
-                                                *t -= d;
-                                            }
-                                            continue;
-                                        }
-                                        to.remove(0);
-                                        continue;
-                                    }
-                                }
-                            }
-                            if let Ok(n) =
-                                do_math(output[i + 1..to[0]].to_vec(), options, funcvars.clone())
-                            {
-                                output.drain(i..=to[0]);
-                                output.insert(i, n);
-                                let d = to[0] - i + 1;
-                                to.remove(0);
-                                for t in to.iter_mut()
-                                {
-                                    *t -= d;
-                                }
-                                continue;
-                            }
-                            to.remove(0);
-                        }
-                    }
-                    ")" =>
-                    {
-                        to.insert(0, i);
-                    }
-                    _ =>
-                    {}
-                }
-            }
+            _ =>
+            {}
         }
     }
 }

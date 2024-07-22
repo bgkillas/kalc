@@ -10,7 +10,12 @@ use crate::{
         trace, transpose, unity, variance, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{
+            And, Comma, Conversion, Division, Equal, Exponent, Func, Greater, GreaterEqual,
+            InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser, LesserEqual, Matrix,
+            Minus, Modulo, Multiplication, NearEqual, NotEqual, Num, Or, Plus, PlusMinus, Range,
+            RightBracket, RightCurlyBracket, Root, ShiftLeft, ShiftRight, Tetration, Vector,
+        },
     },
     misc::do_math_with_var,
     AngleType::{Degrees, Gradians, Radians},
@@ -40,348 +45,331 @@ pub fn do_math(
     let mut i = 0;
     while i < function.len()
     {
-        if let Str(s) = &function[i]
+        match &function[i]
         {
-            match s.as_str()
+            LeftCurlyBracket =>
             {
-                "{" =>
+                let mut j = i + 1;
+                let mut count = 1;
+                while count > 0
                 {
-                    let mut j = i + 1;
-                    let mut count = 1;
-                    while count > 0
+                    if j >= function.len()
                     {
-                        if j >= function.len()
+                        return Err("curly bracket err");
+                    }
+                    match &function[j]
+                    {
+                        LeftCurlyBracket => count += 1,
+                        RightCurlyBracket => count -= 1,
+                        _ =>
+                        {}
+                    }
+                    j += 1;
+                }
+                if i + 1 == j - 1
+                {
+                    return Err("no interior vector");
+                }
+                let mut single = 0;
+                let v = &function[i + 1..j - 1];
+                let mut vec = Vec::new();
+                let mut mat = Vec::<Vec<Number>>::new();
+                for (f, n) in v.iter().enumerate()
+                {
+                    match &n
+                    {
+                        Comma if count == 0 =>
                         {
-                            return Err("curly bracket err");
-                        }
-                        if let Str(s) = &function[j]
-                        {
-                            match s.as_str()
+                            let z = do_math(v[single..f].to_vec(), options, func_vars.clone())?;
+                            match z
                             {
-                                "{" => count += 1,
-                                "}" => count -= 1,
-                                _ =>
-                                {}
+                                Num(n) => vec.push(n),
+                                Vector(n) => mat.push(n),
+                                _ => return Err("broken matrix"),
                             }
+                            single = f + 1;
                         }
-                        j += 1;
+                        LeftBracket | LeftCurlyBracket => count += 1,
+                        RightBracket | RightCurlyBracket => count -= 1,
+                        _ =>
+                        {}
                     }
-                    if i + 1 == j - 1
+                }
+                if single != v.len()
+                {
+                    let z = do_math(v[single..].to_vec(), options, func_vars.clone())?;
+                    match z
                     {
-                        return Err("no interior vector");
+                        Num(n) => vec.push(n),
+                        Vector(n) => mat.push(n),
+                        _ => return Err("broken matrix"),
                     }
-                    let mut single = 0;
-                    let v = &function[i + 1..j - 1];
-                    let mut vec = Vec::new();
-                    let mut mat = Vec::<Vec<Number>>::new();
-                    for (f, n) in v.iter().enumerate()
+                }
+                function.drain(i..j);
+                if !mat.is_empty()
+                {
+                    if vec.is_empty()
                     {
-                        if let Str(s) = n
-                        {
-                            match s.as_str()
-                            {
-                                "," if count == 0 =>
-                                {
-                                    let z =
-                                        do_math(v[single..f].to_vec(), options, func_vars.clone())?;
-                                    match z
-                                    {
-                                        Num(n) => vec.push(n),
-                                        Vector(n) => mat.push(n),
-                                        _ => return Err("broken matrix"),
-                                    }
-                                    single = f + 1;
-                                }
-                                "{" | "(" => count += 1,
-                                "}" | ")" => count -= 1,
-                                _ =>
-                                {}
-                            }
-                        }
-                    }
-                    if single != v.len()
-                    {
-                        let z = do_math(v[single..].to_vec(), options, func_vars.clone())?;
-                        match z
-                        {
-                            Num(n) => vec.push(n),
-                            Vector(n) => mat.push(n),
-                            _ => return Err("broken matrix"),
-                        }
-                    }
-                    function.drain(i..j);
-                    if !mat.is_empty()
-                    {
-                        if vec.is_empty()
-                        {
-                            function.insert(i, Matrix(mat));
-                        }
-                        else
-                        {
-                            return Err("vector err");
-                        }
+                        function.insert(i, Matrix(mat));
                     }
                     else
                     {
-                        function.insert(i, Vector(vec));
+                        return Err("vector err");
                     }
                 }
-                "(" =>
+                else
                 {
-                    let mut j = i + 1;
-                    let mut count = 1;
-                    while count > 0
+                    function.insert(i, Vector(vec));
+                }
+            }
+            LeftBracket =>
+            {
+                let mut j = i + 1;
+                let mut count = 1;
+                while count > 0
+                {
+                    if j >= function.len()
                     {
-                        if j >= function.len()
-                        {
-                            return Err("round bracket err");
-                        }
-                        if let Str(s) = &function[j]
-                        {
-                            match s.as_str()
-                            {
-                                "(" => count += 1,
-                                ")" => count -= 1,
-                                _ =>
-                                {}
-                            }
-                        }
-                        j += 1;
+                        return Err("round bracket err");
                     }
-                    if i + 1 == j - 1
+                    match &function[j]
                     {
-                        return Err("no interior bracket");
+                        LeftBracket => count += 1,
+                        RightBracket => count -= 1,
+                        _ =>
+                        {}
                     }
-                    if i != 0
+                    j += 1;
+                }
+                if i + 1 == j - 1
+                {
+                    return Err("no interior bracket");
+                }
+                if i != 0
+                {
+                    if let Func(k) = &function[i - 1]
                     {
-                        if let Str(k) = &function[i - 1]
+                        if matches!(
+                            k.as_str(),
+                            "next"
+                                | "log"
+                                | "exp"
+                                | "ζ"
+                                | "polygamma"
+                                | "digamma"
+                                | "inter"
+                                | "interpolate"
+                                | "lobf"
+                                | "plane"
+                                | "lineofbestfit"
+                                | "ψ"
+                                | "rotate"
+                                | "multinomial"
+                                | "gcd"
+                                | "gcf"
+                                | "lcm"
+                                | "ssrt"
+                                | "W"
+                                | "unity"
+                                | "productlog"
+                                | "lambertw"
+                                | "slog"
+                                | "root"
+                                | "atan"
+                                | "arctan"
+                                | "atan2"
+                                | "normP"
+                                | "normD"
+                                | "betaP"
+                                | "betaC"
+                                | "bi"
+                                | "binomial"
+                                | "angle"
+                                | "cross"
+                                | "dot"
+                                | "part"
+                                | "proj"
+                                | "project"
+                                | "oproj"
+                                | "oproject"
+                                | "link"
+                                | "C"
+                                | "P"
+                                | "Ap"
+                                | "An"
+                                | "gamma"
+                                | "Γ"
+                                | "γ"
+                                | "lower_gamma"
+                                | "ph"
+                                | "pochhammer"
+                                | "Β"
+                                | "B"
+                                | "beta"
+                                | "I"
+                                | "quad"
+                                | "quadratic"
+                                | "cubic"
+                                | "quartic"
+                                | "percentilerank"
+                                | "percentile"
+                                | "eigenvalues"
+                                | "eigenvectors"
+                                | "mod"
+                                | "covariance"
+                                | "cov"
+                                | "rand_norm"
+                                | "rand_uniform"
+                                | "rand_int"
+                                | "rand_gamma"
+                                | "rand_beta"
+                                | "gamma_pdf"
+                                | "gamma_cdf"
+                                | "beta_cdf"
+                                | "beta_pdf"
+                                | "norm_cdf"
+                                | "norm_pdf"
+                                | "lognorm_cdf"
+                                | "binomial_cdf"
+                                | "geometric_cdf"
+                                | "lognorm_pdf"
+                                | "binomial_pmf"
+                                | "geometric_pmf"
+                                | "rand_lognorm"
+                                | "rand_binomial"
+                                | "poisson_pmf"
+                                | "poisson_cdf"
+                                | "rand_neg_binomial"
+                                | "neg_binomial_cdf"
+                                | "neg_binomial_pmf"
+                                | "hypergeometric_pmf"
+                                | "hypergeometric_cdf"
+                                | "rand_hypergeometric"
+                                | "neg_hypergeometric_pmf"
+                                | "neg_hypergeometric_cdf"
+                                | "rand_neg_hypergeometric"
+                        )
                         {
-                            if matches!(
-                                k.as_str(),
-                                "next"
-                                    | "log"
-                                    | "exp"
-                                    | "ζ"
-                                    | "polygamma"
-                                    | "digamma"
-                                    | "inter"
-                                    | "interpolate"
-                                    | "lobf"
-                                    | "plane"
-                                    | "lineofbestfit"
-                                    | "ψ"
-                                    | "rotate"
-                                    | "multinomial"
-                                    | "gcd"
-                                    | "gcf"
-                                    | "lcm"
-                                    | "ssrt"
-                                    | "W"
-                                    | "unity"
-                                    | "productlog"
-                                    | "lambertw"
-                                    | "slog"
-                                    | "root"
-                                    | "atan"
-                                    | "arctan"
-                                    | "atan2"
-                                    | "normP"
-                                    | "normD"
-                                    | "betaP"
-                                    | "betaC"
-                                    | "bi"
-                                    | "binomial"
-                                    | "angle"
-                                    | "cross"
-                                    | "dot"
-                                    | "part"
-                                    | "proj"
-                                    | "project"
-                                    | "oproj"
-                                    | "oproject"
-                                    | "link"
-                                    | "C"
-                                    | "P"
-                                    | "Ap"
-                                    | "An"
-                                    | "gamma"
-                                    | "Γ"
-                                    | "γ"
-                                    | "lower_gamma"
-                                    | "ph"
-                                    | "pochhammer"
-                                    | "Β"
-                                    | "B"
-                                    | "beta"
-                                    | "I"
-                                    | "quad"
-                                    | "quadratic"
-                                    | "cubic"
-                                    | "quartic"
-                                    | "percentilerank"
-                                    | "percentile"
-                                    | "eigenvalues"
-                                    | "eigenvectors"
-                                    | "mod"
-                                    | "covariance"
-                                    | "cov"
-                                    | "rand_norm"
-                                    | "rand_uniform"
-                                    | "rand_int"
-                                    | "rand_gamma"
-                                    | "rand_beta"
-                                    | "gamma_pdf"
-                                    | "gamma_cdf"
-                                    | "beta_cdf"
-                                    | "beta_pdf"
-                                    | "norm_cdf"
-                                    | "norm_pdf"
-                                    | "lognorm_cdf"
-                                    | "binomial_cdf"
-                                    | "geometric_cdf"
-                                    | "lognorm_pdf"
-                                    | "binomial_pmf"
-                                    | "geometric_pmf"
-                                    | "rand_lognorm"
-                                    | "rand_binomial"
-                                    | "poisson_pmf"
-                                    | "poisson_cdf"
-                                    | "rand_neg_binomial"
-                                    | "neg_binomial_cdf"
-                                    | "neg_binomial_pmf"
-                                    | "hypergeometric_pmf"
-                                    | "hypergeometric_cdf"
-                                    | "rand_hypergeometric"
-                                    | "neg_hypergeometric_pmf"
-                                    | "neg_hypergeometric_cdf"
-                                    | "rand_neg_hypergeometric"
-                            )
+                            function.remove(j - 1);
+                            function.remove(i);
+                            let v = function.drain(i..j - 2).collect::<Vec<NumStr>>();
+                            count = 0;
+                            let mut place = Vec::new();
+                            for (f, n) in v.iter().enumerate()
                             {
-                                function.remove(j - 1);
-                                function.remove(i);
-                                let v = function.drain(i..j - 2).collect::<Vec<NumStr>>();
-                                count = 0;
-                                let mut place = Vec::new();
-                                for (f, n) in v.iter().enumerate()
+                                match n
                                 {
-                                    if let Str(s) = n
-                                    {
-                                        match s.as_str()
-                                        {
-                                            "," if count == 0 => place.push(f),
-                                            "(" | "{" => count += 1,
-                                            ")" | "}" => count -= 1,
-                                            _ =>
-                                            {}
-                                        }
-                                    }
+                                    Comma if count == 0 => place.push(f),
+                                    LeftBracket | LeftCurlyBracket => count += 1,
+                                    RightBracket | RightCurlyBracket => count -= 1,
+                                    _ =>
+                                    {}
                                 }
-                                if !place.is_empty()
+                            }
+                            if !place.is_empty()
+                            {
+                                let mut func = vec![function[i - 1].clone()];
+                                func.push(do_math(
+                                    v[..place[0]].to_vec(),
+                                    options,
+                                    func_vars.clone(),
+                                )?);
+                                for (k, l) in place.iter().enumerate()
                                 {
-                                    let mut func = vec![function[i - 1].clone()];
                                     func.push(do_math(
-                                        v[..place[0]].to_vec(),
+                                        v[l + 1
+                                            ..if k + 1 != place.len()
+                                            {
+                                                place[k + 1]
+                                            }
+                                            else
+                                            {
+                                                v.len()
+                                            }]
+                                            .to_vec(),
                                         options,
                                         func_vars.clone(),
                                     )?);
-                                    for (k, l) in place.iter().enumerate()
-                                    {
-                                        func.push(do_math(
-                                            v[l + 1
-                                                ..if k + 1 != place.len()
-                                                {
-                                                    place[k + 1]
-                                                }
-                                                else
-                                                {
-                                                    v.len()
-                                                }]
-                                                .to_vec(),
-                                            options,
-                                            func_vars.clone(),
-                                        )?);
-                                    }
-                                    function[i - 1] = do_math(func, options, func_vars.clone())?;
                                 }
-                                else
-                                {
-                                    let v = vec![
-                                        function[i - 1].clone(),
-                                        do_math(v, options, func_vars.clone())?,
-                                    ];
-                                    function[i - 1] = do_math(v, options, func_vars.clone())?;
-                                }
-                                continue;
+                                function[i - 1] = do_math(func, options, func_vars.clone())?;
                             }
-                            else if matches!(
-                                k.as_str(),
-                                "sum"
-                                    | "area"
-                                    | "surfacearea"
-                                    | "sarea"
-                                    | "solve"
-                                    | "∫"
-                                    | "length"
-                                    | "slope"
-                                    | "iter"
-                                    | "extrema"
-                                    | "summation"
-                                    | "prod"
-                                    | "product"
-                                    | "Σ"
-                                    | "Π"
-                                    | "vec"
-                                    | "mat"
-                                    | "piecewise"
-                                    | "pw"
-                                    | "D"
-                                    | "integrate"
-                                    | "arclength"
-                                    | "lim"
-                                    | "limit"
-                                    | "set"
-                            )
+                            else
                             {
-                                i = j - 1;
-                                continue;
+                                let v = vec![
+                                    function[i - 1].clone(),
+                                    do_math(v, options, func_vars.clone())?,
+                                ];
+                                function[i - 1] = do_math(v, options, func_vars.clone())?;
                             }
-                            else if k.len() > 1 && k.chars().next().unwrap().is_alphabetic()
-                                || matches!(k.as_str(), "C" | "B" | "P" | "I" | "W" | "D")
-                            {
-                                function.remove(j - 1);
-                                function.remove(i);
-                                function[i - 1] = do_math(
-                                    vec![
-                                        function[i - 1].clone(),
-                                        do_math(
-                                            function.drain(i..j - 2).collect::<Vec<NumStr>>(),
-                                            options,
-                                            func_vars.clone(),
-                                        )?,
-                                    ],
-                                    options,
-                                    func_vars.clone(),
-                                )?;
-                                continue;
-                            }
+                            continue;
+                        }
+                        else if matches!(
+                            k.as_str(),
+                            "sum"
+                                | "area"
+                                | "surfacearea"
+                                | "sarea"
+                                | "solve"
+                                | "∫"
+                                | "length"
+                                | "slope"
+                                | "iter"
+                                | "extrema"
+                                | "summation"
+                                | "prod"
+                                | "product"
+                                | "Σ"
+                                | "Π"
+                                | "vec"
+                                | "mat"
+                                | "piecewise"
+                                | "pw"
+                                | "D"
+                                | "integrate"
+                                | "arclength"
+                                | "lim"
+                                | "limit"
+                                | "set"
+                        )
+                        {
+                            i = j - 1;
+                            continue;
+                        }
+                        else
+                        {
+                            function.remove(j - 1);
+                            function.remove(i);
+                            function[i - 1] = do_math(
+                                vec![
+                                    function[i - 1].clone(),
+                                    do_math(
+                                        function.drain(i..j - 2).collect::<Vec<NumStr>>(),
+                                        options,
+                                        func_vars.clone(),
+                                    )?,
+                                ],
+                                options,
+                                func_vars.clone(),
+                            )?;
+                            continue;
                         }
                     }
-                    function.remove(j - 1);
-                    function[i] = do_math(
-                        function.drain(i + 1..j - 1).collect::<Vec<NumStr>>(),
-                        options,
-                        func_vars.clone(),
-                    )?;
                 }
-                _ =>
-                {}
+                function.remove(j - 1);
+                function[i] = do_math(
+                    function.drain(i + 1..j - 1).collect::<Vec<NumStr>>(),
+                    options,
+                    func_vars.clone(),
+                )?;
             }
+            _ =>
+            {}
         }
         i += 1;
     }
     if function.len() == 1
     {
-        if let Str(s) = &function[0]
+        if let Func(s) = &function[0]
         {
             if !matches!(s.as_str(), "rnd" | "rand" | "epoch")
             {
@@ -402,12 +390,9 @@ pub fn do_math(
     };
     while i < function.len().saturating_sub(1)
     {
-        if let Str(s) = &function[i].clone()
+        if let Func(s) = &function[i].clone()
         {
-            if (s.len() > 1
-                && s.chars().next().unwrap().is_alphabetic()
-                && !matches!(s.as_str(), "epoch" | "rnd" | "rand"))
-                || matches!(s.as_str(), "C" | "B" | "P" | "I" | "W" | "D" | "∫")
+            if !matches!(s.as_str(), "epoch" | "rnd" | "rand")
             {
                 if matches!(
                     s.as_str(),
@@ -442,18 +427,19 @@ pub fn do_math(
                     let mut count = 0;
                     for (f, n) in function[i + 2..].iter().enumerate()
                     {
-                        if let Str(w) = n
+                        match n
                         {
-                            if w == ","
-                                && (count == 0 || ((s == "piecewise" || s == "pw") && count == 1))
+                            Comma
+                                if count == 0
+                                    || ((s == "piecewise" || s == "pw") && count == 1) =>
                             {
                                 place.push(f + i + 2);
                             }
-                            else if w == "(" || w == "{"
+                            LeftBracket | LeftCurlyBracket =>
                             {
                                 count += 1;
                             }
-                            else if w == ")" || w == "}"
+                            RightBracket | RightCurlyBracket =>
                             {
                                 if count == 0
                                 {
@@ -462,13 +448,15 @@ pub fn do_math(
                                 }
                                 count -= 1;
                             }
+                            _ =>
+                            {}
                         }
                     }
                     match (
                         s.as_str(),
                         if place.is_empty() || place[0] - 1 == i + 1
                         {
-                            Str(String::new())
+                            Func(String::new())
                         }
                         else
                         {
@@ -476,7 +464,7 @@ pub fn do_math(
                         },
                     )
                     {
-                        ("iter", Str(var)) if place.len() == 4 || place.len() == 5 =>
+                        ("iter", Func(var)) if place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = iter(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -501,7 +489,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("extrema", Str(var)) if place.len() == 2 || place.len() == 3 =>
+                        ("extrema", Func(var)) if place.len() == 2 || place.len() == 3 =>
                         {
                             function[i] = extrema(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -524,7 +512,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("solve", Str(var)) if place.len() == 2 || place.len() == 3 =>
+                        ("solve", Func(var)) if place.len() == 2 || place.len() == 3 =>
                         {
                             function[i] = solve(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -547,7 +535,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("set", Str(var)) if place.len() == 3 =>
+                        ("set", Func(var)) if place.len() == 3 =>
                         {
                             function[i] = do_math_with_var(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -562,7 +550,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("lim" | "limit", Str(var)) if place.len() == 3 || place.len() == 4 =>
+                        ("lim" | "limit", Func(var)) if place.len() == 3 || place.len() == 4 =>
                         {
                             function[i] = limit(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -599,9 +587,9 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("surfacearea" | "sarea", Str(var)) if place.len() == 7 =>
+                        ("surfacearea" | "sarea", Func(var)) if place.len() == 7 =>
                         {
-                            if let Str(var2) = &function[place[0] + 1]
+                            if let Func(var2) = &function[place[0] + 1]
                             {
                                 function[i] = Num(surface_area(
                                     function[place[1] + 1..place[2]].to_vec(),
@@ -632,7 +620,7 @@ pub fn do_math(
                                 return Err("bad var");
                             }
                         }
-                        ("length" | "arclength", Str(var)) if place.len() == 4 =>
+                        ("length" | "arclength", Func(var)) if place.len() == 4 =>
                         {
                             function[i] = Num(length(
                                 function[place[0] + 1..place[1]].to_vec(),
@@ -655,7 +643,7 @@ pub fn do_math(
                             )?);
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("∫" | "area" | "integrate", Str(var))
+                        ("∫" | "area" | "integrate", Func(var))
                             if place.len() == 4 || place.len() == 5 || place.len() == 6 =>
                         {
                             function[i] = area(
@@ -694,7 +682,7 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("slope" | "D", Str(var))
+                        ("slope" | "D", Func(var))
                             if place.len() == 3 || place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = slope(
@@ -790,7 +778,7 @@ pub fn do_math(
                         }
                         (
                             "sum" | "product" | "prod" | "summation" | "Σ" | "Π" | "vec" | "mat",
-                            Str(var),
+                            Func(var),
                         ) if place.len() == 4 =>
                         {
                             let start = do_math(
@@ -1427,7 +1415,7 @@ pub fn do_math(
                             }
                             "eigenvalues" =>
                             {
-                                if function.len() > i + 1 && !matches!(&function[i + 1], Str(_))
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Func(_))
                                 {
                                     function.remove(i + 1);
                                     eigenvalues(&a, true)?
@@ -1439,7 +1427,7 @@ pub fn do_math(
                             }
                             "eigenvectors" =>
                             {
-                                if function.len() > i + 1 && !matches!(&function[i + 1], Str(_))
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Func(_))
                                 {
                                     function.remove(i + 1);
                                     eigenvectors(&a, true)?
@@ -2607,7 +2595,7 @@ pub fn do_math(
                             {
                                 let mut numerator: Complex = arg.num()?.number + 1;
                                 let mut divisor = gamma(numerator.clone());
-                                while i + 1 < function.len() && !matches!(&function[i + 1], Str(_))
+                                while i + 1 < function.len() && !matches!(&function[i + 1], Func(_))
                                 {
                                     let temp = function.remove(i + 1).num()?.number;
                                     numerator += temp.clone();
@@ -3471,7 +3459,7 @@ pub fn do_math(
                             "unity" =>
                             {
                                 let vec = if i + 1 < function.len()
-                                    && !matches!(&function[i + 1], Str(_))
+                                    && !matches!(&function[i + 1], Func(_))
                                 {
                                     unity(
                                         arg.num()?.number.ln(),
@@ -3502,7 +3490,7 @@ pub fn do_math(
     i = 0;
     while i < function.len()
     {
-        if let Str(s) = &function[i]
+        if let Func(s) = &function[i]
         {
             function[i] = match s.as_str()
             {
@@ -3539,303 +3527,232 @@ pub fn do_math(
     i = 1;
     while i < function.len().saturating_sub(1)
     {
-        if let Str(s) = &function[i]
+        function[i] = match &function[i]
         {
-            function[i] = match s.as_str()
+            Modulo => function[i - 1].func(&function[i + 1], rem)?,
+            Range => to(&function[i - 1], &function[i + 1])?,
+            _ =>
             {
-                "%" => function[i - 1].func(&function[i + 1], rem)?,
-                ".." => to(&function[i - 1], &function[i + 1])?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
+                i += 1;
+                continue;
+            }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     i = function.len().saturating_sub(2);
     while i != 0
     {
-        if let Str(s) = &function[i]
+        function[i] = match &function[i]
         {
-            function[i] = match s.as_str()
+            Exponent => function[i - 1].pow(&function[i + 1])?,
+            Tetration => function[i - 1].func(&function[i + 1], tetration)?,
+            Root => function[i - 1].func(&function[i + 1], root)?,
+            _ =>
             {
-                "^" => function[i - 1].pow(&function[i + 1])?,
-                "^^" => function[i - 1].func(&function[i + 1], tetration)?,
-                "//" => function[i - 1].func(&function[i + 1], root)?,
-                _ =>
-                {
-                    i -= 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-            i = i.saturating_sub(2);
-        }
-        else
-        {
-            i -= 1;
-        }
+                i -= 1;
+                continue;
+            }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
+        i = i.saturating_sub(2);
     }
     i = 1;
     while i < function.len().saturating_sub(1)
     {
-        if let Str(s) = &function[i]
+        function[i] = match &function[i]
         {
-            function[i] = match s.as_str()
+            InternalMultiplication => function[i - 1].mul(&function[i + 1])?,
+            _ =>
             {
-                "×" => function[i - 1].mul(&function[i + 1])?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
+                i += 1;
+                continue;
+            }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     i = 1;
     while i < function.len().saturating_sub(1)
     {
-        if let Str(s) = &function[i]
+        function[i] = match &function[i]
         {
-            function[i] = match s.as_str()
+            Multiplication => function[i - 1].mul(&function[i + 1])?,
+            Division => function[i - 1].func(&function[i + 1], div)?,
+            _ =>
             {
-                "*" => function[i - 1].mul(&function[i + 1])?,
-                "/" => function[i - 1].func(&function[i + 1], div)?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
+                i += 1;
+                continue;
+            }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     i = 1;
     while i < function.len().saturating_sub(1)
     {
-        if let Str(s) = &function[i]
+        function[i] = match &function[i]
         {
-            function[i] = match s.as_str()
+            PlusMinus => function[i - 1].pm(&function[i + 1])?,
+            Plus => function[i - 1].func(&function[i + 1], add)?,
+            Minus => function[i - 1].func(&function[i + 1], sub)?,
+            _ =>
             {
-                "±" => function[i - 1].pm(&function[i + 1])?,
-                "+" => function[i - 1].func(&function[i + 1], add)?,
-                "-" => function[i - 1].func(&function[i + 1], sub)?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
+                i += 1;
+                continue;
+            }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     if options.units
     {
         i = 1;
         while i < function.len().saturating_sub(1)
         {
-            if let Str(s) = &function[i]
+            function[i] = match &function[i]
             {
-                function[i] = match s.as_str()
+                Conversion => function[i - 1].func(&function[i + 1], div)?,
+                _ =>
                 {
-                    "->" => function[i - 1].func(&function[i + 1], div)?,
-                    _ =>
-                    {
-                        i += 1;
-                        continue;
-                    }
-                };
-                function.remove(i + 1);
-                function.remove(i - 1);
+                    i += 1;
+                    continue;
+                }
+            };
+            function.remove(i + 1);
+            function.remove(i - 1);
+        }
+    }
+    i = 1;
+    while i < function.len().saturating_sub(1)
+    {
+        function[i] = match &function[i]
+        {
+            Lesser =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i + 1].func(&function[i - 1], gt)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i + 1].func(&function[i - 1], gt)?
             }
-            else
+            LesserEqual =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i + 1].func(&function[i - 1], ge)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i + 1].func(&function[i - 1], ge)?
+            }
+            Greater =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i - 1].func(&function[i + 1], gt)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i - 1].func(&function[i + 1], gt)?
+            }
+            GreaterEqual =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i - 1].func(&function[i + 1], ge)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i - 1].func(&function[i + 1], ge)?
+            }
+            Equal =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i - 1].func(&function[i + 1], eq)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i - 1].func(&function[i + 1], eq)?
+            }
+            NotEqual =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i - 1].func(&function[i + 1], ne)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i - 1].func(&function[i + 1], ne)?
+            }
+            NearEqual =>
+            {
+                if i + 3 < function.len()
+                    && matches!(
+                        &function[i + 2],
+                        Lesser | Greater | Equal | NearEqual | LesserEqual | GreaterEqual
+                    )
+                {
+                    function[i - 1] = function[i - 1].func(&function[i + 1], about_eq)?;
+                    function[i] = And;
+                    continue;
+                }
+                function[i - 1].func(&function[i + 1], about_eq)?
+            }
+            ShiftRight => function[i - 1].func(&function[i + 1], shr)?,
+            ShiftLeft => function[i - 1].func(&function[i + 1], shl)?,
+            _ =>
             {
                 i += 1;
+                continue;
             }
-        }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     i = 1;
     while i < function.len().saturating_sub(1)
     {
-        if let Str(s) = &function[i]
+        function[i] = match &function[i]
         {
-            match s.as_str()
+            And => function[i - 1].func(&function[i + 1], and)?,
+            Or => function[i - 1].func(&function[i + 1], or)?,
+            _ =>
             {
-                "<" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] = function[i + 1].func(&function[i - 1], gt)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i + 1].func(&function[i - 1], gt)?
-                }
-                "<=" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] = function[i + 1].func(&function[i - 1], ge)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i + 1].func(&function[i - 1], ge)?
-                }
-                ">" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] = function[i - 1].func(&function[i + 1], gt)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i - 1].func(&function[i + 1], gt)?
-                }
-                ">=" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] = function[i - 1].func(&function[i + 1], ge)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i - 1].func(&function[i + 1], ge)?
-                }
-                "==" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] = function[i - 1].func(&function[i + 1], eq)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i - 1].func(&function[i + 1], eq)?
-                }
-                "!=" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] = function[i - 1].func(&function[i + 1], ne)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i - 1].func(&function[i + 1], ne)?
-                }
-                "≈" =>
-                {
-                    if i + 3 < function.len()
-                    {
-                        if let Str(s) = &function[i + 2]
-                        {
-                            if matches!(s.as_str(), "<" | ">" | "==" | "<=" | "!=" | ">=" | "≈")
-                            {
-                                function[i - 1] =
-                                    function[i - 1].func(&function[i + 1], about_eq)?;
-                                function[i] = Str("&&".to_string());
-                                continue;
-                            }
-                        }
-                    }
-                    function[i] = function[i - 1].func(&function[i + 1], about_eq)?
-                }
-                ">>" => function[i] = function[i - 1].func(&function[i + 1], shr)?,
-                "<<" => function[i] = function[i - 1].func(&function[i + 1], shl)?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
-    }
-    i = 1;
-    while i < function.len().saturating_sub(1)
-    {
-        if let Str(s) = &function[i]
-        {
-            function[i] = match s.as_str()
-            {
-                "&&" => function[i - 1].func(&function[i + 1], and)?,
-                "||" => function[i - 1].func(&function[i + 1], or)?,
-                _ =>
-                {
-                    i += 1;
-                    continue;
-                }
-            };
-            function.remove(i + 1);
-            function.remove(i - 1);
-        }
-        else
-        {
-            i += 1;
-        }
+                i += 1;
+                continue;
+            }
+        };
+        function.remove(i + 1);
+        function.remove(i - 1);
     }
     if function.len() == 1
     {
@@ -4841,14 +4758,17 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        if !a.real().is_finite() || !b.real().is_finite() || b.real().is_zero()
+                        if !a.real().is_finite()
+                            || !b.real().is_finite()
+                            || b.real().is_zero()
+                            || a.real().is_zero()
                         {
                             Complex::with_val(options.prec, Nan)
                         }
                         else
                         {
-                            let a = a.real().to_integer().unwrap_or_default();
-                            let b = b.real().to_integer().unwrap_or_default();
+                            let a = a.real().clone().abs().to_integer().unwrap_or_default();
+                            let b = b.real().clone().abs().to_integer().unwrap_or_default();
                             Complex::with_val(options.prec, a.clone() * b.clone() / gcd(a, b))
                         }
                     }
@@ -4861,7 +4781,10 @@ fn functions(
                 {
                     if let Some(b) = d
                     {
-                        if !a.real().is_finite() || !b.real().is_finite() || b.real().is_zero()
+                        if !a.real().is_finite()
+                            || !b.real().is_finite()
+                            || b.real().is_zero()
+                            || a.real().is_zero()
                         {
                             Complex::with_val(options.prec, Nan)
                         }
@@ -4870,8 +4793,8 @@ fn functions(
                             Complex::with_val(
                                 options.prec,
                                 gcd(
-                                    a.real().to_integer().unwrap_or_default(),
-                                    b.real().to_integer().unwrap_or_default(),
+                                    a.real().clone().abs().to_integer().unwrap_or_default(),
+                                    b.real().clone().abs().to_integer().unwrap_or_default(),
                                 ),
                             )
                         }
@@ -5054,7 +4977,7 @@ pub fn compute_funcvars(
         let mut cont = false;
         for f in function.iter_mut()
         {
-            if let Str(s) = &f
+            if let Func(s) = &f
             {
                 if *s == v.0
                 {
@@ -5069,7 +4992,7 @@ pub fn compute_funcvars(
             {
                 for f in fv.1.iter_mut()
                 {
-                    if let Str(s) = &f
+                    if let Func(s) = &f
                     {
                         if *s == v.0
                         {
@@ -5082,7 +5005,7 @@ pub fn compute_funcvars(
         }
         if cont
             && (v.1.len() != 1
-                || (if let Str(s) = &v.1[0]
+                || (if let Func(s) = &v.1[0]
                 {
                     matches!(s.as_str(), "rnd" | "rand" | "epoch")
                 }
@@ -5096,7 +5019,7 @@ pub fn compute_funcvars(
             {
                 for f in function.iter_mut()
                 {
-                    if let Str(s) = &f
+                    if let Func(s) = &f
                     {
                         if *s == v.0
                         {
@@ -5110,7 +5033,7 @@ pub fn compute_funcvars(
                     {
                         for f in fv.1.iter_mut()
                         {
-                            if let Str(s) = &f
+                            if let Func(s) = &f
                             {
                                 if *s == v.0
                                 {

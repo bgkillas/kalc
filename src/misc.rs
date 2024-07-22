@@ -1,7 +1,12 @@
 use crate::{
     complex::{
         NumStr,
-        NumStr::{Matrix, Num, Str, Vector},
+        NumStr::{
+            And, Comma, Conversion, Division, Equal, Exponent, Func, Greater, GreaterEqual,
+            InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser, LesserEqual, Matrix,
+            Minus, Modulo, Multiplication, NearEqual, NotEqual, Num, Or, Plus, PlusMinus, Range,
+            RightBracket, RightCurlyBracket, Root, ShiftLeft, ShiftRight, Tetration, Vector,
+        },
     },
     functions::functions,
     math::do_math,
@@ -539,79 +544,84 @@ pub fn place_funcvarxy(
             let mut j = 0;
             while i.1.len() > j
             {
-                if let Str(s) = &i.1[j]
+                match &i.1[j]
                 {
-                    if matches!(s.as_str(), "x" | "y") && !sum.iter().any(|a| a.1 == *s)
+                    LeftBracket => bracket += 1,
+                    RightBracket => bracket -= 1,
+                    Comma if !sum.is_empty() && sum[0].0 == bracket =>
                     {
-                        i.1[j] = num.clone();
+                        sum.remove(0);
                     }
-                    else
+                    Func(s) =>
                     {
-                        match s.as_str()
+                        if matches!(s.as_str(), "x" | "y") && !sum.iter().any(|a| a.1 == *s)
                         {
-                            "(" => bracket += 1,
-                            ")" => bracket -= 1,
-                            "," if !sum.is_empty() && sum[0].0 == bracket =>
+                            i.1[j] = num.clone();
+                        }
+                        else
+                        {
+                            match s.as_str()
                             {
-                                sum.remove(0);
+                                "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
+                                | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
+                                | "surfacearea" | "sarea" | "solve" | "length" | "slope"
+                                | "lim" | "set" | "limit" | "iter" | "extrema"
+                                    if j + 2 < i.1.len()
+                                        && if let Func(s) = &i.1[j + 2]
+                                        {
+                                            matches!(s.as_str(), "x" | "y")
+                                        }
+                                        else
+                                        {
+                                            false
+                                        } =>
+                                {
+                                    bracket += 1;
+                                    j += 3;
+                                    sum.push((
+                                        bracket,
+                                        if let Func(s) = &i.1[j - 1]
+                                        {
+                                            s.to_string()
+                                        }
+                                        else
+                                        {
+                                            String::new()
+                                        },
+                                    ))
+                                }
+                                "surfacearea" | "sarea"
+                                    if j + 4 < i.1.len()
+                                        && if let Func(s) = &i.1[j + 4]
+                                        {
+                                            matches!(s.as_str(), "x" | "y")
+                                        }
+                                        else
+                                        {
+                                            false
+                                        } =>
+                                {
+                                    bracket += 1;
+                                    j += 5;
+                                    sum.push((
+                                        bracket,
+                                        if let Func(s) = &i.1[j - 1]
+                                        {
+                                            s.to_string()
+                                        }
+                                        else
+                                        {
+                                            String::new()
+                                        },
+                                    ))
+                                }
+                                _ =>
+                                {}
                             }
-                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
-                            | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
-                            | "surfacearea" | "sarea" | "solve" | "length" | "slope" | "lim"
-                            | "set" | "limit" | "iter" | "extrema"
-                                if j + 2 < i.1.len()
-                                    && if let Str(s) = &i.1[j + 2]
-                                    {
-                                        matches!(s.as_str(), "x" | "y")
-                                    }
-                                    else
-                                    {
-                                        false
-                                    } =>
-                            {
-                                bracket += 1;
-                                j += 3;
-                                sum.push((
-                                    bracket,
-                                    if let Str(s) = &i.1[j - 1]
-                                    {
-                                        s.to_string()
-                                    }
-                                    else
-                                    {
-                                        String::new()
-                                    },
-                                ))
-                            }
-                            "surfacearea" | "sarea"
-                                if j + 4 < i.1.len()
-                                    && if let Str(s) = &i.1[j + 4]
-                                    {
-                                        matches!(s.as_str(), "x" | "y")
-                                    }
-                                    else
-                                    {
-                                        false
-                                    } =>
-                            {
-                                bracket += 1;
-                                j += 5;
-                                sum.push((
-                                    bracket,
-                                    if let Str(s) = &i.1[j - 1]
-                                    {
-                                        s.to_string()
-                                    }
-                                    else
-                                    {
-                                        String::new()
-                                    },
-                                ))
-                            }
-                            _ =>
-                            {}
                         }
                     }
+                    _ =>
+                    {}
                 }
                 j += 1;
             }
@@ -626,79 +636,84 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
     let mut i = 0;
     while func.len() > i
     {
-        if let Str(s) = &func[i]
+        match &func[i]
         {
-            if matches!(s.as_str(), "x" | "y") && !sum.iter().any(|a| a.1 == *s)
+            LeftBracket => bracket += 1,
+            RightBracket => bracket -= 1,
+            Comma if !sum.is_empty() && sum[0].0 == bracket =>
             {
-                func[i] = num.clone();
+                sum.remove(0);
             }
-            else
+            Func(s) =>
             {
-                match s.as_str()
+                if matches!(s.as_str(), "x" | "y") && !sum.iter().any(|a| a.1 == *s)
                 {
-                    "(" => bracket += 1,
-                    ")" => bracket -= 1,
-                    "," if !sum.is_empty() && sum[0].0 == bracket =>
+                    func[i] = num.clone();
+                }
+                else
+                {
+                    match s.as_str()
                     {
-                        sum.remove(0);
+                        "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
+                        | "D" | "integrate" | "arclength" | "∫" | "area" | "surfacearea"
+                        | "sarea" | "solve" | "length" | "slope" | "lim" | "limit" | "set"
+                        | "iter" | "extrema"
+                            if i + 2 < func.len()
+                                && if let Func(s) = &func[i + 2]
+                                {
+                                    matches!(s.as_str(), "x" | "y")
+                                }
+                                else
+                                {
+                                    false
+                                } =>
+                        {
+                            bracket += 1;
+                            i += 3;
+                            sum.push((
+                                bracket,
+                                if let Func(s) = &func[i - 1]
+                                {
+                                    s.to_string()
+                                }
+                                else
+                                {
+                                    String::new()
+                                },
+                            ))
+                        }
+                        "surfacearea" | "sarea"
+                            if i + 4 < func.len()
+                                && if let Func(s) = &func[i + 4]
+                                {
+                                    matches!(s.as_str(), "x" | "y")
+                                }
+                                else
+                                {
+                                    false
+                                } =>
+                        {
+                            bracket += 1;
+                            i += 5;
+                            sum.push((
+                                bracket,
+                                if let Func(s) = &func[i - 1]
+                                {
+                                    s.to_string()
+                                }
+                                else
+                                {
+                                    String::new()
+                                },
+                            ))
+                        }
+                        _ =>
+                        {}
                     }
-                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat" | "D"
-                    | "integrate" | "arclength" | "∫" | "area" | "surfacearea" | "sarea"
-                    | "solve" | "length" | "slope" | "lim" | "limit" | "set" | "iter"
-                    | "extrema"
-                        if i + 2 < func.len()
-                            && if let Str(s) = &func[i + 2]
-                            {
-                                matches!(s.as_str(), "x" | "y")
-                            }
-                            else
-                            {
-                                false
-                            } =>
-                    {
-                        bracket += 1;
-                        i += 3;
-                        sum.push((
-                            bracket,
-                            if let Str(s) = &func[i - 1]
-                            {
-                                s.to_string()
-                            }
-                            else
-                            {
-                                String::new()
-                            },
-                        ))
-                    }
-                    "surfacearea" | "sarea"
-                        if i + 4 < func.len()
-                            && if let Str(s) = &func[i + 4]
-                            {
-                                matches!(s.as_str(), "x" | "y")
-                            }
-                            else
-                            {
-                                false
-                            } =>
-                    {
-                        bracket += 1;
-                        i += 5;
-                        sum.push((
-                            bracket,
-                            if let Str(s) = &func[i - 1]
-                            {
-                                s.to_string()
-                            }
-                            else
-                            {
-                                String::new()
-                            },
-                        ))
-                    }
-                    _ =>
-                    {}
                 }
             }
+            _ =>
+            {}
         }
         i += 1;
     }
@@ -721,41 +736,48 @@ pub fn place_funcvar(
                 let mut j = 0;
                 while i.1.len() > j
                 {
-                    if let Str(s) = &i.1[j]
+                    match &i.1[j]
                     {
-                        if s == var && sum.is_empty()
+                        LeftBracket => bracket += 1,
+                        RightBracket => bracket -= 1,
+                        Comma if sum.contains(&bracket) =>
                         {
-                            i.1[j] = num.clone();
+                            sum.remove(0);
                         }
-                        else
+                        Func(s) =>
                         {
-                            match s.as_str()
+                            if s == var && sum.is_empty()
                             {
-                                "(" => bracket += 1,
-                                ")" => bracket -= 1,
-                                "," if sum.contains(&bracket) =>
+                                i.1[j] = num.clone();
+                            }
+                            else
+                            {
+                                match s.as_str()
                                 {
-                                    sum.remove(0);
+                                    "sum" | "summation" | "prod" | "product" | "Σ" | "Π"
+                                    | "vec" | "mat" | "D" | "integrate" | "arclength" | "∫"
+                                    | "area" | "solve" | "length" | "slope" | "lim" | "limit"
+                                    | "set" | "iter" | "extrema" | "surfacearea" | "sarea"
+                                        if j + 2 < i.1.len()
+                                            && i.1[j + 2] == Func(var.to_string()) =>
+                                    {
+                                        j += 3;
+                                        sum.push(bracket)
+                                    }
+                                    "surfacearea" | "sarea"
+                                        if j + 4 < i.1.len()
+                                            && i.1[j + 4] == Func(var.to_string()) =>
+                                    {
+                                        j += 5;
+                                        sum.push(bracket)
+                                    }
+                                    _ =>
+                                    {}
                                 }
-                                "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
-                                | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
-                                | "solve" | "length" | "slope" | "lim" | "limit" | "set"
-                                | "iter" | "extrema" | "surfacearea" | "sarea"
-                                    if j + 2 < i.1.len() && i.1[j + 2] == Str(var.to_string()) =>
-                                {
-                                    j += 3;
-                                    sum.push(bracket)
-                                }
-                                "surfacearea" | "sarea"
-                                    if j + 4 < i.1.len() && i.1[j + 4] == Str(var.to_string()) =>
-                                {
-                                    j += 5;
-                                    sum.push(bracket)
-                                }
-                                _ =>
-                                {}
                             }
                         }
+                        _ =>
+                        {}
                     }
                     j += 1;
                 }
@@ -773,41 +795,46 @@ pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
         let mut i = 0;
         while func.len() > i
         {
-            if let Str(s) = &func[i]
+            match &func[i]
             {
-                if s == var && sum.is_empty()
+                LeftBracket => bracket += 1,
+                RightBracket => bracket -= 1,
+                Comma if sum.contains(&bracket) =>
                 {
-                    func[i] = num.clone();
+                    sum.remove(0);
                 }
-                else
+                Func(s) =>
                 {
-                    match s.as_str()
+                    if s == var && sum.is_empty()
                     {
-                        "(" => bracket += 1,
-                        ")" => bracket -= 1,
-                        "," if sum.contains(&bracket) =>
+                        func[i] = num.clone();
+                    }
+                    else
+                    {
+                        match s.as_str()
                         {
-                            sum.remove(0);
+                            "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
+                            | "mat" | "D" | "integrate" | "arclength" | "∫" | "area" | "solve"
+                            | "length" | "slope" | "lim" | "set" | "limit" | "iter" | "extrema"
+                            | "surfacearea" | "sarea"
+                                if i + 2 < func.len() && func[i + 2] == Func(var.to_string()) =>
+                            {
+                                i += 3;
+                                sum.push(bracket)
+                            }
+                            "surfacearea" | "sarea"
+                                if i + 4 < func.len() && func[i + 4] == Func(var.to_string()) =>
+                            {
+                                i += 5;
+                                sum.push(bracket)
+                            }
+                            _ =>
+                            {}
                         }
-                        "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
-                        | "D" | "integrate" | "arclength" | "∫" | "area" | "solve" | "length"
-                        | "slope" | "lim" | "set" | "limit" | "iter" | "extrema"
-                        | "surfacearea" | "sarea"
-                            if i + 2 < func.len() && func[i + 2] == Str(var.to_string()) =>
-                        {
-                            i += 3;
-                            sum.push(bracket)
-                        }
-                        "surfacearea" | "sarea"
-                            if i + 4 < func.len() && func[i + 4] == Str(var.to_string()) =>
-                        {
-                            i += 5;
-                            sum.push(bracket)
-                        }
-                        _ =>
-                        {}
                     }
                 }
+                _ =>
+                {}
             }
             i += 1;
         }
@@ -839,7 +866,7 @@ pub fn parsed_to_string(
     let mut i = 0;
     'main: while i < input.len()
     {
-        if let Str(s) = &input[i]
+        if let Func(s) = &input[i]
         {
             for v in &func_vars
             {
@@ -847,17 +874,17 @@ pub fn parsed_to_string(
                 {
                     if i != 0
                         && i + 1 < input.len()
-                        && input[i - 1].str_is("(")
-                        && input[i + 1].str_is(")")
+                        && input[i - 1] == LeftBracket
+                        && input[i + 1] == RightBracket
                     {
                         input.remove(i);
                         input.splice(i..i, v.1.clone());
                     }
                     else
                     {
-                        input[i] = Str('('.to_string());
+                        input[i] = LeftBracket;
                         input.splice(i + 1..i + 1, v.1.clone());
-                        input.insert(i + v.1.len() + 1, Str(')'.to_string()));
+                        input.insert(i + v.1.len() + 1, RightBracket);
                     }
                     continue 'main;
                 }
@@ -946,11 +973,39 @@ pub fn parsed_to_string(
                 str.pop();
                 format!("{{{}}}", str)
             }
-            Str(n) if n.starts_with('@') && n.contains('(') =>
+            Func(n) if n.starts_with('@') && n.contains('(') =>
             {
                 n.split('(').next().unwrap().replace('@', "")
             }
-            Str(n) => n.replace('@', ""),
+            Func(n) => n.replace('@', ""),
+            LeftBracket => "(".to_string(),
+            RightBracket => ")".to_string(),
+            LeftCurlyBracket => "{".to_string(),
+            RightCurlyBracket => "}".to_string(),
+            Comma => ",".to_string(),
+            Plus => "+".to_string(),
+            Minus => "-".to_string(),
+            PlusMinus => "±".to_string(),
+            Multiplication => "*".to_string(),
+            InternalMultiplication => "×".to_string(),
+            Division => "/".to_string(),
+            Root => "//".to_string(),
+            Tetration => "^^".to_string(),
+            Exponent => "^".to_string(),
+            Equal => "==".to_string(),
+            NotEqual => "!=".to_string(),
+            Greater => ">".to_string(),
+            GreaterEqual => ">=".to_string(),
+            Lesser => "<".to_string(),
+            LesserEqual => "<".to_string(),
+            Modulo => "%".to_string(),
+            Range => "..".to_string(),
+            And => "&&".to_string(),
+            Or => "||".to_string(),
+            ShiftLeft => "<<".to_string(),
+            ShiftRight => ">>".to_string(),
+            Conversion => "->".to_string(),
+            NearEqual => "≈".to_string(),
         })
     }
     to_output(

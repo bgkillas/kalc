@@ -289,6 +289,7 @@ pub fn functions() -> HashSet<&'static str>
         "element",
         "remove",
         "extend",
+        "link",
     ]
     .iter()
     .cloned()

@@ -254,6 +254,7 @@ pub fn do_math(
                                 | "cartesian_product"
                                 | "remove"
                                 | "extend"
+                                | "link"
                                 | "subset"
                                 | "element"
                         )
@@ -2811,7 +2812,7 @@ pub fn do_math(
                                     return Err("arg not vector");
                                 }
                             }
-                            "extend" =>
+                            "extend" | "link" =>
                             {
                                 if function.len() > i + 1
                                 {

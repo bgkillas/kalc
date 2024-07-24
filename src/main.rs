@@ -21,8 +21,8 @@ use crate::{
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
     misc::{
-        clear, clearln, convert, get_terminal_dimensions, handle_err, insert_last, prompt,
-        read_single_char, to_output, write,
+        clear, clearln, convert, end_word, get_terminal_dimensions, handle_err, insert_last,
+        prompt, read_single_char, to_output, write,
     },
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
@@ -802,26 +802,7 @@ fn main()
                     '\x03' =>
                     {
                         //ctrl+backspace
-                        if placement != 0
-                            && matches!(
-                                input[placement - 1],
-                                '(' | '{'
-                                    | '['
-                                    | ')'
-                                    | '}'
-                                    | ']'
-                                    | '+'
-                                    | '-'
-                                    | '*'
-                                    | '/'
-                                    | '^'
-                                    | '<'
-                                    | '='
-                                    | '>'
-                                    | '|'
-                                    | '&'
-                                    | '!'
-                            )
+                        if placement != 0 && end_word(input[placement - 1])
                         {
                             placement -= 1;
                             input.remove(placement);
@@ -836,25 +817,7 @@ fn main()
                                     placement -= i + 1;
                                     break;
                                 }
-                                if matches!(
-                                    c,
-                                    '(' | '{'
-                                        | '['
-                                        | ')'
-                                        | '}'
-                                        | ']'
-                                        | '+'
-                                        | '-'
-                                        | '*'
-                                        | '/'
-                                        | '^'
-                                        | '<'
-                                        | '='
-                                        | '>'
-                                        | '|'
-                                        | '&'
-                                        | '!'
-                                )
+                                if end_word(*c)
                                 {
                                     input.drain(placement - i..placement);
                                     placement -= i;
@@ -2005,26 +1968,7 @@ fn main()
                     '\x0D' =>
                     {
                         //ctrl+w
-                        if placement != 0
-                            && matches!(
-                                input[placement - 1],
-                                '(' | '{'
-                                    | '['
-                                    | ')'
-                                    | '}'
-                                    | ']'
-                                    | '+'
-                                    | '-'
-                                    | '*'
-                                    | '/'
-                                    | '^'
-                                    | '<'
-                                    | '='
-                                    | '>'
-                                    | '|'
-                                    | '&'
-                                    | '!'
-                            )
+                        if placement != 0 && end_word(input[placement - 1])
                         {
                             placement -= 1;
                             cut = vec![input.remove(placement)];
@@ -2041,25 +1985,7 @@ fn main()
                                     placement -= i + 1;
                                     break;
                                 }
-                                if matches!(
-                                    c,
-                                    '(' | '{'
-                                        | '['
-                                        | ')'
-                                        | '}'
-                                        | ']'
-                                        | '+'
-                                        | '-'
-                                        | '*'
-                                        | '/'
-                                        | '^'
-                                        | '<'
-                                        | '='
-                                        | '>'
-                                        | '|'
-                                        | '&'
-                                        | '!'
-                                )
+                                if end_word(*c)
                                 {
                                     cut = input
                                         .drain(placement - i..placement)
@@ -2143,26 +2069,7 @@ fn main()
                     '\x0C' =>
                     {
                         //alt+d
-                        if placement < input.len()
-                            && matches!(
-                                input[placement],
-                                '(' | '{'
-                                    | '['
-                                    | ')'
-                                    | '}'
-                                    | ']'
-                                    | '+'
-                                    | '-'
-                                    | '*'
-                                    | '/'
-                                    | '^'
-                                    | '<'
-                                    | '='
-                                    | '>'
-                                    | '|'
-                                    | '&'
-                                    | '!'
-                            )
+                        if placement < input.len() && end_word(input[placement])
                         {
                             cut = vec![input.remove(placement)];
                         }
@@ -2171,29 +2078,11 @@ fn main()
                             let mut pos = 0;
                             for (i, c) in input[placement..].iter().enumerate()
                             {
-                                if c.is_whitespace() || i + 1 == input.len()
+                                if c.is_whitespace() || placement + i + 1 == input.len()
                                 {
                                     pos = i + 1;
                                 }
-                                if matches!(
-                                    c,
-                                    '(' | '{'
-                                        | '['
-                                        | ')'
-                                        | '}'
-                                        | ']'
-                                        | '+'
-                                        | '-'
-                                        | '*'
-                                        | '/'
-                                        | '^'
-                                        | '<'
-                                        | '='
-                                        | '>'
-                                        | '|'
-                                        | '&'
-                                        | '!'
-                                )
+                                if end_word(*c)
                                 {
                                     pos = i;
                                     break;
@@ -2246,10 +2135,104 @@ fn main()
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    //TODO
                     '\x0F' =>
                     {
-                        //Alt+T: Transpose (swap) the words before and after the cursor
+                        //alt+t
+                        let first;
+                        if placement < input.len() && end_word(input[placement])
+                        {
+                            first = vec![input.remove(placement)];
+                        }
+                        else
+                        {
+                            let mut pos = 0;
+                            for (i, c) in input[placement..].iter().enumerate()
+                            {
+                                if c.is_whitespace() || placement + i + 1 == input.len()
+                                {
+                                    pos = i + 1;
+                                }
+                                if end_word(*c)
+                                {
+                                    pos = i;
+                                    break;
+                                }
+                            }
+                            first = input.drain(placement..placement + pos).collect();
+                        }
+                        let second;
+                        if placement != 0 && end_word(input[placement - 1])
+                        {
+                            second = vec![input.remove(placement)];
+                        }
+                        else
+                        {
+                            let mut pos = 0;
+                            for (i, c) in input[..placement].iter().rev().enumerate()
+                            {
+                                if end_word(*c)
+                                {
+                                    pos = i;
+                                    break;
+                                }
+                                if c.is_whitespace() || i + 1 == placement
+                                {
+                                    pos = i + 1;
+                                    break;
+                                }
+                            }
+                            second = input
+                                .drain(placement - pos..placement)
+                                .collect::<Vec<char>>();
+                        }
+                        placement -= second.len();
+                        input.splice(placement..placement, first.clone());
+                        placement += first.len();
+                        if placement > input.len()
+                        {
+                            placement = input.len() - 1
+                        }
+                        input.splice(placement..placement, second.clone());
+                        if options.real_time_output && !slow
+                        {
+                            execute!(stdout, DisableBlinking).unwrap();
+                            (frac, graphable, long, varcheck) = print_concurrent(
+                                &input,
+                                &last,
+                                &vars,
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                firstslow = true;
+                                slow = true;
+                            }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &vars,
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            clearln(&input, &vars, start, end, options, &colors);
+                        }
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
                     }
                     '\0' =>
                     {}

@@ -233,6 +233,30 @@ pub fn read_single_char() -> char
         _ => '\0',
     }
 }
+pub fn end_word(c: char) -> bool
+{
+    matches!(
+        c,
+        '(' | '{'
+            | '['
+            | ')'
+            | '}'
+            | ']'
+            | '+'
+            | '-'
+            | '*'
+            | '/'
+            | '^'
+            | '<'
+            | '='
+            | '>'
+            | '|'
+            | '&'
+            | '!'
+            | '±'
+            | '%'
+    )
+}
 pub fn no_col(input: &str, color: bool) -> Vec<char>
 {
     if color

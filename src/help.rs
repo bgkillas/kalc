@@ -132,7 +132,7 @@ Vector operations/functions:\x1b[G\n\
 - angle({{vec1}},{{vec2}}), hsv_to_rgb{{h,s,v}}\x1b[G\n\
 - norm, normalize\x1b[G\n\
 - abs, len, any, all\x1b[G\n\
-- max, min, mean, median, mode, sort, geo_mean\x1b[G\n\
+- max, min, mean, median, mode, sort, geo_mean, uniq\x1b[G\n\
 - reverse, link\x1b[G\n\
 - part({{vec}},col), sum, prod\x1b[G\n\
 - pol{{x,y,z}} outputs (r, θ, φ)\x1b[G\n\
@@ -182,7 +182,7 @@ ignores \"s\" at the end to allow \"meters\" and stuff\x1b[G\n\
 the following units are supported\x1b[G\n\
 {}\x1b[G\n\n\
 Digraph:\x1b[G\n\
-hit escape then a letter, or hold alt while typing(only lowercase)\x1b[G\n\
+hit escape then a letter\x1b[G\n\
 a=>α, A=>Α, b=>β, B=>Β, c=>ξ, C=>Ξ, d=>Δ, D=>δ,\x1b[G\n\
 e=>ε, E=>Ε, f=>φ, F=>Φ, g=>γ, G=>Γ, h=>η, H=>Η,\x1b[G\n\
 i=>ι, I=>Ι, k=>κ, Κ=>Κ, l=>λ, L=>Λ, m=>μ, M=>Μ,\x1b[G\n\

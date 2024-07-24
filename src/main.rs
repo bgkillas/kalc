@@ -36,6 +36,7 @@ use crossterm::{
 };
 use rug::Complex;
 use std::{
+    cmp::Ordering,
     env::args,
     fs::{File, OpenOptions},
     io::{stdin, stdout, BufRead, BufReader, IsTerminal, Stdout, Write},
@@ -733,6 +734,9 @@ fn main()
             let mut end = 0;
             let mut slow = false;
             let mut firstslow = false;
+            let mut xxbool = false;
+            let mut xxstart = false;
+            let mut xxpos = 0;
             loop
             {
                 let c = read_single_char();
@@ -1162,7 +1166,10 @@ fn main()
                     {
                         //ctrl+k
                         cut = input.drain(placement..).collect();
-                        end = input.len();
+                        if end >= input.len()
+                        {
+                            end = input.len();
+                        }
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();
@@ -1255,10 +1262,9 @@ fn main()
                     '\x16' =>
                     {
                         //ctrl+t
-                        if placement + 1 < input.len()
+                        if placement < input.len() && placement != 0
                         {
-                            let char = input.remove(placement);
-                            input.insert(placement + 1, char);
+                            input.swap(placement - 1, placement);
                             if options.real_time_output && !slow
                             {
                                 execute!(stdout, DisableBlinking).unwrap();
@@ -1304,6 +1310,7 @@ fn main()
                     '\x15' =>
                     {
                         //ctrl+l
+                        print!("\x1b[H\x1b[J");
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();
@@ -1917,6 +1924,332 @@ fn main()
                                 )
                             }
                         }
+                    }
+                    '\x0E' =>
+                    {
+                        //ctrl+xx
+                        if xxbool
+                        {
+                            (placement, xxpos) = (xxpos, placement);
+                            match placement.cmp(&xxpos)
+                            {
+                                Ordering::Greater =>
+                                {
+                                    if placement >= input.len()
+                                    {
+                                        placement = input.len()
+                                    }
+                                    if placement >= end
+                                    {
+                                        start = placement.saturating_sub(
+                                            get_terminal_dimensions().0
+                                                - if options.prompt { 3 } else { 1 },
+                                        );
+                                        end = placement;
+                                        clearln(&input, &vars, start, end, options, &colors)
+                                    }
+                                    else if placement == xxpos
+                                    {
+                                        placement = input.len();
+                                        print!("\x1b[{}C", input.len() - xxpos);
+                                    }
+                                    else
+                                    {
+                                        print!("\x1b[{}C", placement - xxpos);
+                                    }
+                                }
+                                Ordering::Less =>
+                                {
+                                    if placement <= start
+                                    {
+                                        end = placement
+                                            + (get_terminal_dimensions().0
+                                                - if options.prompt { 3 } else { 1 });
+                                        if end > input.len()
+                                        {
+                                            end = input.len()
+                                        }
+                                        start = placement;
+                                        clearln(&input, &vars, start, end, options, &colors);
+                                        if end - placement != 0
+                                        {
+                                            print!("\x1b[{}D", end - placement)
+                                        }
+                                    }
+                                    else if placement == xxpos
+                                    {
+                                        placement = 0;
+                                        print!("\x1b[{}D", xxpos);
+                                    }
+                                    else
+                                    {
+                                        print!("\x1b[{}D", xxpos - placement);
+                                    }
+                                }
+                                _ =>
+                                {}
+                            }
+                            xxbool = false
+                        }
+                        else
+                        {
+                            xxbool = true;
+                            continue;
+                        }
+                        if xxstart
+                        {
+                            xxpos = 0;
+                        }
+                        xxstart = !xxstart;
+                    }
+                    '\x0D' =>
+                    {
+                        //ctrl+w
+                        if placement != 0
+                            && matches!(
+                                input[placement - 1],
+                                '(' | '{'
+                                    | '['
+                                    | ')'
+                                    | '}'
+                                    | ']'
+                                    | '+'
+                                    | '-'
+                                    | '*'
+                                    | '/'
+                                    | '^'
+                                    | '<'
+                                    | '='
+                                    | '>'
+                                    | '|'
+                                    | '&'
+                                    | '!'
+                            )
+                        {
+                            placement -= 1;
+                            cut = vec![input.remove(placement)];
+                        }
+                        else
+                        {
+                            for (i, c) in input[..placement].iter().rev().enumerate()
+                            {
+                                if c.is_whitespace() || i + 1 == placement
+                                {
+                                    cut = input
+                                        .drain(placement - i - 1..placement)
+                                        .collect::<Vec<char>>();
+                                    placement -= i + 1;
+                                    break;
+                                }
+                                if matches!(
+                                    c,
+                                    '(' | '{'
+                                        | '['
+                                        | ')'
+                                        | '}'
+                                        | ']'
+                                        | '+'
+                                        | '-'
+                                        | '*'
+                                        | '/'
+                                        | '^'
+                                        | '<'
+                                        | '='
+                                        | '>'
+                                        | '|'
+                                        | '&'
+                                        | '!'
+                                )
+                                {
+                                    cut = input
+                                        .drain(placement - i..placement)
+                                        .collect::<Vec<char>>();
+                                    placement -= i;
+                                    break;
+                                }
+                            }
+                        }
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
+                        if start >= end
+                        {
+                            start = end;
+                        }
+                        if i == lines.len()
+                        {
+                            current.clone_from(&input);
+                        }
+                        else
+                        {
+                            lines[i] = input.clone().iter().collect::<String>();
+                        }
+                        if options.real_time_output && !slow
+                        {
+                            execute!(stdout, DisableBlinking).unwrap();
+                            (frac, graphable, long, varcheck) = print_concurrent(
+                                &input,
+                                &last,
+                                &vars,
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                firstslow = true;
+                                slow = true;
+                            }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &vars,
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            clearln(&input, &vars, start, end, options, &colors);
+                        }
+                        if options.debug
+                        {
+                            let time = watch.elapsed().as_nanos();
+                            print!(
+                                " {}\x1b[{}D",
+                                time,
+                                time.to_string().len() + 1 + end - placement
+                            );
+                        }
+                        else if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
+                        if input.is_empty()
+                        {
+                            slow = false;
+                            clear(&input, &vars, start, end, options, &colors);
+                        }
+                    }
+                    '\x0C' =>
+                    {
+                        //alt+d
+                        if placement < input.len()
+                            && matches!(
+                                input[placement],
+                                '(' | '{'
+                                    | '['
+                                    | ')'
+                                    | '}'
+                                    | ']'
+                                    | '+'
+                                    | '-'
+                                    | '*'
+                                    | '/'
+                                    | '^'
+                                    | '<'
+                                    | '='
+                                    | '>'
+                                    | '|'
+                                    | '&'
+                                    | '!'
+                            )
+                        {
+                            cut = vec![input.remove(placement)];
+                        }
+                        else
+                        {
+                            let mut pos = 0;
+                            for (i, c) in input[placement..].iter().enumerate()
+                            {
+                                if c.is_whitespace() || i + 1 == input.len()
+                                {
+                                    pos = i + 1;
+                                }
+                                if matches!(
+                                    c,
+                                    '(' | '{'
+                                        | '['
+                                        | ')'
+                                        | '}'
+                                        | ']'
+                                        | '+'
+                                        | '-'
+                                        | '*'
+                                        | '/'
+                                        | '^'
+                                        | '<'
+                                        | '='
+                                        | '>'
+                                        | '|'
+                                        | '&'
+                                        | '!'
+                                )
+                                {
+                                    pos = i;
+                                    break;
+                                }
+                            }
+                            cut = input.drain(placement..placement + pos).collect();
+                        }
+                        if end >= input.len()
+                        {
+                            end = input.len();
+                        }
+                        if options.real_time_output && !slow
+                        {
+                            execute!(stdout, DisableBlinking).unwrap();
+                            (frac, graphable, long, varcheck) = print_concurrent(
+                                &input,
+                                &last,
+                                &vars,
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                firstslow = true;
+                                slow = true;
+                            }
+                        }
+                        else if firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &vars,
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            clearln(&input, &vars, start, end, options, &colors);
+                        }
+                        if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
+                    }
+                    //TODO
+                    '\x0F' =>
+                    {
+                        //Alt+T: Transpose (swap) the words before and after the cursor
                     }
                     '\0' =>
                     {}

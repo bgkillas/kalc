@@ -278,6 +278,7 @@ pub fn functions() -> HashSet<&'static str>
         "hsv_to_rgb",
         "domain_coloring_rgb",
         "set",
+        "uniq",
     ]
     .iter()
     .cloned()
@@ -495,6 +496,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "hsv_to_rgb({h,s,v})",
         "domain_coloring_rgb(x)",
         "set(a,f(a),val)",
+        "uniq({vec})",
     ]
     .iter()
     .cloned()

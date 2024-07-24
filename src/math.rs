@@ -2522,6 +2522,12 @@ pub fn do_math(
                                     })
                                     .collect::<Vec<Vec<Number>>>(),
                             ),
+                            "uniq" =>
+                            {
+                                let mut a = a;
+                                a.dedup();
+                                Vector(a)
+                            }
                             "factors" | "factor" =>
                             {
                                 let mut fail = false;

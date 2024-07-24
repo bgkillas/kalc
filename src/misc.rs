@@ -203,6 +203,10 @@ pub fn read_single_char() -> char
                     (KeyCode::Char('d'), KeyModifiers::CONTROL) => '\x06',
                     (KeyCode::Char('p'), KeyModifiers::CONTROL) => '\x05',
                     (KeyCode::Char('n'), KeyModifiers::CONTROL) => '\x04',
+                    (KeyCode::Char('d'), KeyModifiers::ALT) => '\x0C',
+                    (KeyCode::Char('w'), KeyModifiers::CONTROL) => '\x0D',
+                    (KeyCode::Char('x'), KeyModifiers::CONTROL) => '\x0E',
+                    (KeyCode::Char('t'), KeyModifiers::ALT) => '\x0F',
                     (KeyCode::Char(c), KeyModifiers::NONE | KeyModifiers::SHIFT) => convert(&c),
                     (KeyCode::Char(c), KeyModifiers::ALT) => digraph(Some(c)),
                     (KeyCode::Esc, _) => digraph(None),
@@ -211,8 +215,10 @@ pub fn read_single_char() -> char
                     (KeyCode::Char('h'), KeyModifiers::CONTROL) => '\x03',
                     (KeyCode::Backspace, KeyModifiers::NONE) => '\x08',
                     (KeyCode::Delete, KeyModifiers::NONE) => '\x7F',
-                    (KeyCode::Left, KeyModifiers::NONE) => '\x1B',
-                    (KeyCode::Right, KeyModifiers::NONE) => '\x1C',
+                    (KeyCode::Left, KeyModifiers::NONE)
+                    | (KeyCode::Char('b'), KeyModifiers::CONTROL) => '\x1B',
+                    (KeyCode::Right, KeyModifiers::NONE)
+                    | (KeyCode::Char('f'), KeyModifiers::CONTROL) => '\x1C',
                     (KeyCode::Up, KeyModifiers::NONE) => '\x1D',
                     (KeyCode::Down, KeyModifiers::NONE) => '\x1E',
                     (KeyCode::Tab, KeyModifiers::NONE) => '\x1F',

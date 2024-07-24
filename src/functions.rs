@@ -132,7 +132,6 @@ pub fn functions() -> HashSet<&'static str>
         "mat",
         "prime",
         "reverse",
-        "link",
         "flatten",
         "I",
         "P",
@@ -279,6 +278,17 @@ pub fn functions() -> HashSet<&'static str>
         "domain_coloring_rgb",
         "set",
         "uniq",
+        "union",
+        "intersection",
+        "set_difference",
+        "symmetric_difference",
+        "cartesian_product",
+        "power_set",
+        "set_fix",
+        "subset",
+        "element",
+        "remove",
+        "extend",
     ]
     .iter()
     .cloned()
@@ -383,7 +393,6 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "eigenvectors(mat)",
         "mat(a,f(a),start,end)",
         "reverse(vec)",
-        "link(vec,vec)",
         "flatten(mat)",
         "I(x,α,β(,z))",
         "P(n,r)",
@@ -497,6 +506,17 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "domain_coloring_rgb(x)",
         "set(a,f(a),val)",
         "uniq({vec})",
+        "union(A,B)",
+        "intersection(A,B)",
+        "set_difference(A,B)",
+        "symmetric_difference(A,B)",
+        "cartesian_product(A,B)",
+        "power_set(A)",
+        "set_fix(A)",
+        "subset(A,B)",
+        "element(A,b)",
+        "remove(vec,num/vec)",
+        "extend(vec,num/vec)",
     ]
     .iter()
     .cloned()

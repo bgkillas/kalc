@@ -131,9 +131,10 @@ Vector operations/functions:\x1b[G\n\
 - dot({{vec1}},{{vec2}}), cross({{vec1}},{{vec2}}), proj/project({{vec1}},{{vec2}}), oproj/oproject({{vec1}},{{vec2}})\x1b[G\n\
 - angle({{vec1}},{{vec2}}), hsv_to_rgb{{h,s,v}}\x1b[G\n\
 - norm, normalize\x1b[G\n\
-- abs, len, any, all\x1b[G\n\
-- max, min, mean, median, mode, sort, geo_mean, uniq\x1b[G\n\
-- reverse, link\x1b[G\n\
+- abs, len, any, all, remove({{vec}},{{num}}/{{vec}}), extend({{vec}},{{num}}/{{vec}})\x1b[G\n\
+- max, min, mean, median, mode, sort, geo_mean, uniq, reverse\x1b[G\n\
+- union(A,B), intersection(A,B), set_difference(A,B), symmetric_difference(A,B)\x1b[G\n\
+- cartesian_product(A,B), power_set(A), set(A), subset(A,B), element(A,b)\x1b[G\n\
 - part({{vec}},col), sum, prod\x1b[G\n\
 - pol{{x,y,z}} outputs (r, θ, φ)\x1b[G\n\
 - pol{{x,y}} outputs (r, θ)\x1b[G\n\

@@ -192,7 +192,6 @@ pub fn do_math(
                                 | "project"
                                 | "oproj"
                                 | "oproject"
-                                | "link"
                                 | "C"
                                 | "P"
                                 | "Ap"
@@ -248,6 +247,15 @@ pub fn do_math(
                                 | "neg_hypergeometric_pmf"
                                 | "neg_hypergeometric_cdf"
                                 | "rand_neg_hypergeometric"
+                                | "union"
+                                | "intersection"
+                                | "set_difference"
+                                | "symmetric_difference"
+                                | "cartesian_product"
+                                | "remove"
+                                | "extend"
+                                | "subset"
+                                | "element"
                         )
                         {
                             function.remove(j - 1);
@@ -2150,20 +2158,6 @@ pub fn do_math(
                                 Num(min)
                             }
                             "reverse" => Vector(a.iter().rev().cloned().collect()),
-                            "link" =>
-                            {
-                                if function.len() > i + 1
-                                {
-                                    let b = function.remove(i + 1).vec()?;
-                                    let mut a = a;
-                                    a.extend(b);
-                                    Vector(a)
-                                }
-                                else
-                                {
-                                    return Err("no args");
-                                }
-                            }
                             "len" =>
                             {
                                 Num(Number::from(Complex::with_val(options.prec, a.len()), None))
@@ -2577,6 +2571,321 @@ pub fn do_math(
                                 else
                                 {
                                     Matrix(mat)
+                                }
+                            }
+                            "union" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Vector(b) = function.remove(i + 1)
+                                    {
+                                        let mut a = a;
+                                        a.extend(b);
+                                        a = sort(a);
+                                        a.dedup();
+                                        Vector(a)
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "intersection" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Vector(b) = function.remove(i + 1)
+                                    {
+                                        let mut v = Vec::new();
+                                        'main: for n1 in a
+                                        {
+                                            for n2 in &b
+                                            {
+                                                if &n1 == n2
+                                                {
+                                                    v.push(n2.clone());
+                                                    continue 'main;
+                                                }
+                                            }
+                                        }
+                                        Vector(v)
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "set_difference" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Vector(b) = function.remove(i + 1)
+                                    {
+                                        let mut v = Vec::new();
+                                        'main: for n1 in a
+                                        {
+                                            for n2 in &b
+                                            {
+                                                if &n1 == n2
+                                                {
+                                                    continue 'main;
+                                                }
+                                            }
+                                            v.push(n1);
+                                        }
+                                        Vector(v)
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "symmetric_difference" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Vector(b) = function.remove(i + 1)
+                                    {
+                                        let mut a1 = Vec::new();
+                                        'main: for n1 in a.clone()
+                                        {
+                                            for n2 in &b
+                                            {
+                                                if &n1 == n2
+                                                {
+                                                    continue 'main;
+                                                }
+                                            }
+                                            a1.push(n1);
+                                        }
+                                        let mut a2 = Vec::new();
+                                        'main: for n1 in b.clone()
+                                        {
+                                            for n2 in &a
+                                            {
+                                                if &n1 == n2
+                                                {
+                                                    continue 'main;
+                                                }
+                                            }
+                                            a2.push(n1);
+                                        }
+                                        a2.extend(a1);
+                                        let mut u = sort(a2);
+                                        u.dedup();
+                                        Vector(u)
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "cartesian_product" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Vector(b) = function.remove(i + 1)
+                                    {
+                                        let mut m = Vec::new();
+                                        for n1 in a
+                                        {
+                                            for n2 in b.clone()
+                                            {
+                                                m.push(vec![n1.clone(), n2])
+                                            }
+                                        }
+                                        Matrix(m)
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "power_set" =>
+                            {
+                                let mut m = Vec::new();
+                                for i in 0..1 << a.len()
+                                {
+                                    let mut v = Vec::new();
+                                    for (j, n) in a.iter().enumerate()
+                                    {
+                                        if (i >> j) & 1 == 1
+                                        {
+                                            v.push(n.clone())
+                                        }
+                                    }
+                                    m.push(v);
+                                }
+                                Matrix(m)
+                            }
+                            "set_fix" =>
+                            {
+                                let mut a = sort(a);
+                                a.dedup();
+                                Vector(a)
+                            }
+                            "subset" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Vector(b) = function.remove(i + 1)
+                                    {
+                                        let mut ainb = true;
+                                        'main: for n1 in b
+                                        {
+                                            for n2 in &a
+                                            {
+                                                if &n1 == n2
+                                                {
+                                                    continue 'main;
+                                                }
+                                            }
+                                            ainb = false;
+                                        }
+                                        Num(Number::from(
+                                            Complex::with_val(options.prec, ainb as u8),
+                                            None,
+                                        ))
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "element" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    if let Num(b) = function.remove(i + 1)
+                                    {
+                                        let mut ainb = false;
+                                        for n2 in &a
+                                        {
+                                            if &b == n2
+                                            {
+                                                ainb = true;
+                                            }
+                                        }
+                                        Num(Number::from(
+                                            Complex::with_val(options.prec, ainb as u8),
+                                            None,
+                                        ))
+                                    }
+                                    else
+                                    {
+                                        return Err("arg not vector");
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("arg not vector");
+                                }
+                            }
+                            "extend" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    match function.remove(i + 1)
+                                    {
+                                        Num(n) =>
+                                        {
+                                            let mut a = a;
+                                            a.push(n);
+                                            Vector(a)
+                                        }
+                                        Vector(v) =>
+                                        {
+                                            let mut a = a;
+                                            a.extend(v);
+                                            Vector(a)
+                                        }
+                                        _ => return Err("bad arg"),
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("bad arg");
+                                }
+                            }
+                            "remove" =>
+                            {
+                                if function.len() > i + 1
+                                {
+                                    match function.remove(i + 1)
+                                    {
+                                        Num(n) =>
+                                        {
+                                            let mut a = a;
+                                            let n = n
+                                                .number
+                                                .real()
+                                                .to_integer()
+                                                .unwrap_or_default()
+                                                .to_usize()
+                                                .unwrap_or_default();
+                                            if n >= a.len()
+                                            {
+                                                return Err("bad range");
+                                            }
+                                            a.remove(n);
+                                            Vector(a)
+                                        }
+                                        Vector(v) =>
+                                        {
+                                            let mut a = a;
+                                            for n in v
+                                            {
+                                                let n = n
+                                                    .number
+                                                    .real()
+                                                    .to_integer()
+                                                    .unwrap_or_default()
+                                                    .to_usize()
+                                                    .unwrap_or_default();
+                                                if n >= a.len()
+                                                {
+                                                    return Err("bad range");
+                                                }
+                                                a.remove(n);
+                                            }
+                                            Vector(a)
+                                        }
+                                        _ => return Err("bad range"),
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("bad range");
                                 }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,

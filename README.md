@@ -247,9 +247,10 @@ Vector functions:
 - dot({vec1},{vec2}), cross({vec1},{vec2}), proj/project({vec1},{vec2}), oproj/oproject({vec1},{vec2})
 - angle({vec1},{vec2}), hsv_to_rgb{h,s,v}
 - norm, normalize
-- abs, len, any, all
-- max, min, mean, median, mode, sort, geo_mean, uniq
-- reverse, link
+- abs, len, any, all, remove({vec},{num}/{vec}), extend({vec},{num}/{vec})
+- max, min, mean, median, mode, sort, geo_mean, uniq, reverse
+- union(A,B), intersection(A,B), set_difference(A,B), symmetric_difference(A,B)
+- cartesian_product(A,B), power_set(A), set(A), subset(A,B), element(A,b)
 - part({vec},col), sum, prod
 - pol{x,y,z} outputs (r, θ, φ)
 - pol{x,y} outputs (r, θ)

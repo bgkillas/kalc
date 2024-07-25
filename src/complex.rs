@@ -53,6 +53,12 @@ pub enum NumStr
     ShiftRight,
     And,
     Or,
+    Not,
+    Xor,
+    Nand,
+    Implies,
+    Nor,
+    Converse,
 }
 impl Number
 {
@@ -501,6 +507,102 @@ pub fn or(a: &Number, b: &Number) -> Number
         ),
         None,
     )
+}
+pub fn xor(a: &Number, b: &Number) -> Number
+{
+    let a = &a.number;
+    let b = &b.number;
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && ((a.real() == &1) ^ (b.real() == &1)))
+                as u8,
+        ),
+        None,
+    )
+}
+pub fn nand(a: &Number, b: &Number) -> Number
+{
+    let a = &a.number;
+    let b = &b.number;
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && (a.real() != &1 || b.real() != &1)) as u8,
+        ),
+        None,
+    )
+}
+pub fn nor(a: &Number, b: &Number) -> Number
+{
+    let a = &a.number;
+    let b = &b.number;
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && (a.real() != &1 && b.real() != &1)) as u8,
+        ),
+        None,
+    )
+}
+pub fn implies(a: &Number, b: &Number) -> Number
+{
+    let a = &a.number;
+    let b = &b.number;
+    Number::from(
+        Complex::with_val(
+            a.prec(),
+            (a.imag().is_zero() && b.imag().is_zero() && (a.real() != &1 || b.real() == &1)) as u8,
+        ),
+        None,
+    )
+}
+pub fn not(a: &NumStr) -> Result<NumStr, &'static str>
+{
+    match a
+    {
+        Num(a) =>
+        {
+            let a = &a.number;
+            Ok(Num(Number::from(
+                Complex::with_val(a.prec(), (a.imag().is_zero() && a.real() != &1) as u8),
+                None,
+            )))
+        }
+        Vector(v) =>
+        {
+            let mut o = Vec::new();
+            for a in v
+            {
+                o.push(Number::from(
+                    Complex::with_val(a.number.prec(), a.number.is_zero() && a.number.real() != &1),
+                    None,
+                ));
+            }
+            Ok(Vector(o))
+        }
+        Matrix(m) =>
+        {
+            let mut k = Vec::new();
+            for v in m
+            {
+                let mut o = Vec::new();
+                for a in v
+                {
+                    o.push(Number::from(
+                        Complex::with_val(
+                            a.number.prec(),
+                            a.number.is_zero() && a.number.real() != &1,
+                        ),
+                        None,
+                    ));
+                }
+                k.push(o)
+            }
+            Ok(Matrix(k))
+        }
+        _ => Err("bad not input"),
+    }
 }
 pub fn div(a: &Number, b: &Number) -> Number
 {

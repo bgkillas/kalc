@@ -2,10 +2,11 @@ use crate::{
     complex::{
         pow_nth, NumStr,
         NumStr::{
-            And, Comma, Conversion, Division, Equal, Exponent, Func, Greater, GreaterEqual,
-            InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser, LesserEqual, Matrix,
-            Minus, Modulo, Multiplication, NearEqual, NotEqual, Num, Or, Plus, PlusMinus, Range,
-            RightBracket, RightCurlyBracket, Root, ShiftLeft, ShiftRight, Tetration, Vector,
+            And, Comma, Converse, Conversion, Division, Equal, Exponent, Func, Greater,
+            GreaterEqual, Implies, InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser,
+            LesserEqual, Matrix, Minus, Modulo, Multiplication, Nand, NearEqual, Nor, Not,
+            NotEqual, Num, Or, Plus, PlusMinus, Range, RightBracket, RightCurlyBracket, Root,
+            ShiftLeft, ShiftRight, Tetration, Vector, Xor,
         },
     },
     functions::functions,
@@ -68,7 +69,7 @@ pub fn input_var(
     let n1 = Complex::with_val(options.prec, -1);
     let mut pow = String::new();
     let mut exp = (String::new(), 0);
-    let mut subfact = (false, 0);
+    let mut subfact: Vec<isize> = Vec::new();
     let mut err = "";
     let mut solves = Vec::new();
     let mut solvesp = Vec::new();
@@ -112,8 +113,8 @@ pub fn input_var(
             {
                 chars.remove(i);
             }
-            else if (chars[i - 1].is_alphanumeric() || matches!(chars[i - 1], ')' | '}' | '|'))
-                && (chars[i + 1].is_alphanumeric() || matches!(chars[i + 1], '(' | '{' | '|'))
+            else if (chars[i - 1].is_alphanumeric() || matches!(chars[i - 1], ')' | '}'))
+                && (chars[i + 1].is_alphanumeric() || matches!(chars[i + 1], '(' | '{'))
             {
                 chars[i] = '*'
             }
@@ -323,11 +324,11 @@ pub fn input_var(
                 pwr.0 = false;
                 pwr.2 = 0
             }
-            if subfact.0 && subfact.1 == 0
+            if !subfact.is_empty() && subfact[0] == 0
             {
                 output.push(RightBracket);
                 output.push(RightBracket);
-                subfact.0 = false;
+                subfact.remove(0);
             }
             continue;
         }
@@ -482,7 +483,12 @@ pub fn input_var(
                     && chars[i + 1] == '&'
                     && !matches!(chars[i + 1], ')' | '}' | ']') =>
                 {
+                    i += 1;
                     output.push(And);
+                }
+                '¬' =>
+                {
+                    output.push(Not);
                 }
                 '=' if i != 0
                     && i + 1 < chars.len()
@@ -788,9 +794,9 @@ pub fn input_var(
                 '(' if i + 1 != chars.len() =>
                 {
                     *bracket += 1;
-                    if subfact.0
+                    if !subfact.is_empty()
                     {
-                        subfact.1 = *bracket;
+                        subfact[0] = *bracket;
                     }
                     place_multiplier(&mut output, sumrec, &sumvar);
                     output.push(LeftBracket);
@@ -931,9 +937,9 @@ pub fn input_var(
                     {
                         piecewise = 0;
                     }
-                    if subfact.1 == *bracket
+                    if !subfact.is_empty() && subfact[0] == *bracket
                     {
-                        subfact = (false, 0);
+                        subfact.remove(0);
                         output.push(RightBracket);
                         output.push(RightBracket);
                     }
@@ -1016,9 +1022,9 @@ pub fn input_var(
                     else if i + 1 != chars.len()
                     {
                         *bracket += 1;
-                        if subfact.0
+                        if !subfact.is_empty()
                         {
-                            subfact.1 = *bracket;
+                            subfact[0] = *bracket;
                         }
                         place_multiplier(&mut output, sumrec, &sumvar);
                         output.push(LeftBracket);
@@ -1130,7 +1136,7 @@ pub fn input_var(
                         output.push(LeftBracket);
                         output.push(Func("subfact".to_string()));
                         output.push(LeftBracket);
-                        subfact.0 = true;
+                        subfact.insert(0, 0);
                     }
                 }
                 ',' if i != 0 && i + 1 != chars.len() && chars[i + 1] != ')' =>
@@ -1164,9 +1170,9 @@ pub fn input_var(
                         pwr.0 = false;
                         pwr.2 = 0
                     }
-                    if subfact.0 && subfact.1 == 0
+                    if !subfact.is_empty() && subfact[0] == 0
                     {
-                        subfact.0 = false;
+                        subfact.remove(0);
                         output.push(RightBracket);
                         output.push(RightBracket);
                     }
@@ -1615,9 +1621,9 @@ pub fn input_var(
                 output.push(RightBracket);
                 scientific = false;
             }
-            if subfact.0 && subfact.1 == 0
+            if !subfact.is_empty() && subfact[0] == 0
             {
-                subfact.0 = false;
+                subfact.remove(0);
                 output.push(RightBracket);
                 output.push(RightBracket);
             }
@@ -1630,8 +1636,8 @@ pub fn input_var(
                     'x' | 'y' | 'z' | '(' | '|' | '{' | '0'..='9' | '⁻' | '*' | '\'' | '`'
                 ) || (chars[i + countv] == '^' && chars[i] != 'C' && countv != 1)))
                 || matches!(
-                    word.as_str(),
-                    "rnd" | "rand" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
+                    word.to_ascii_lowercase().as_str(),
+                    "rnd" | "rand" | "epoch" | "inf" | "true" | "false" | "nan"
                 ))
         {
             place_multiplier(&mut output, sumrec, &sumvar);
@@ -1643,35 +1649,35 @@ pub fn input_var(
             }
             i += countv;
             if matches!(
-                word.as_str(),
-                "rnd" | "rand" | "epoch" | "inf" | "true" | "false" | "nan" | "NaN"
+                word.to_ascii_lowercase().as_str(),
+                "rnd" | "rand" | "epoch" | "inf" | "true" | "false" | "nan"
             )
             {
-                if matches!(word.as_str(), "nan" | "NaN")
+                match word.to_ascii_lowercase().as_str()
                 {
-                    output.push(Num(Number::from(
-                        Complex::with_val(options.prec, Nan),
-                        None,
-                    )));
-                }
-                else if word == "true"
-                {
-                    output.push(Num(Number::from(Complex::with_val(options.prec, 1), None)));
-                }
-                else if word == "false"
-                {
-                    output.push(Num(Number::from(Complex::new(options.prec), None)));
-                }
-                else if word == "inf"
-                {
-                    output.push(Num(Number::from(
-                        Complex::with_val(options.prec, Infinity),
-                        None,
-                    )));
-                }
-                else
-                {
-                    output.push(Func(word))
+                    "nan" | "NaN" =>
+                    {
+                        output.push(Num(Number::from(
+                            Complex::with_val(options.prec, Nan),
+                            None,
+                        )));
+                    }
+                    "true" =>
+                    {
+                        output.push(Num(Number::from(Complex::with_val(options.prec, 1), None)));
+                    }
+                    "false" =>
+                    {
+                        output.push(Num(Number::from(Complex::new(options.prec), None)));
+                    }
+                    "inf" =>
+                    {
+                        output.push(Num(Number::from(
+                            Complex::with_val(options.prec, Infinity),
+                            None,
+                        )));
+                    }
+                    _ => output.push(Func(word)),
                 }
                 if pwr.0 && pwr.1 == *bracket && (chars.len() <= i + 1 || chars[i + 1] != '^')
                 {
@@ -1687,9 +1693,9 @@ pub fn input_var(
                     output.push(RightBracket);
                     scientific = false;
                 }
-                if subfact.0 && subfact.1 == 0
+                if !subfact.is_empty() && subfact[0] == 0
                 {
-                    subfact.0 = false;
+                    subfact.remove(0);
                     output.push(RightBracket);
                     output.push(RightBracket);
                 }
@@ -1709,6 +1715,43 @@ pub fn input_var(
                     slope.push((output.len(), false, nth));
                 }
                 output.push(Func(word))
+            }
+        }
+        else if matches!(
+            word.to_ascii_lowercase().as_str(),
+            "and" | "or" | "not" | "xor" | "nand" | "implies" | "nor" | "converse"
+        )
+        {
+            if word.eq_ignore_ascii_case("not")
+            {
+                place_multiplier(&mut output, sumrec, &sumvar);
+                if neg
+                {
+                    output.push(Num(Number::from(n1.clone(), None)));
+                    output.push(InternalMultiplication);
+                    neg = false;
+                }
+            }
+            else if i != 0 && chars[i - 1] == '*'
+            {
+                output.pop();
+            }
+            i += countv;
+            if i < chars.len() && chars[i] == '*'
+            {
+                chars.remove(i);
+            }
+            match word.to_ascii_lowercase().as_str()
+            {
+                "and" => output.push(And),
+                "or" => output.push(Or),
+                "not" => output.push(Not),
+                "xor" => output.push(Xor),
+                "nand" => output.push(Nand),
+                "implies" => output.push(Implies),
+                "nor" => output.push(Nor),
+                "converse" => output.push(Converse),
+                _ => output.push(Func(word)),
             }
         }
         else if options.units
@@ -2359,9 +2402,9 @@ pub fn input_var(
                                 }
                                 pwr = (false, 0, 0);
                             }
-                            if subfact.1 == *bracket + 1
+                            if !subfact.is_empty() && subfact[0] == *bracket + 1
                             {
-                                subfact = (false, 0);
+                                subfact.remove(0);
                                 output.push(RightBracket);
                                 output.push(RightBracket);
                             }
@@ -2774,9 +2817,9 @@ pub fn input_var(
                                 }
                                 pwr = (false, 0, 0);
                             }
-                            if subfact.1 == *bracket + 1
+                            if !subfact.is_empty() && subfact[0] == *bracket + 1
                             {
-                                subfact = (false, 0);
+                                subfact.remove(0);
                                 output.push(RightBracket);
                                 output.push(RightBracket);
                             }
@@ -2901,9 +2944,9 @@ pub fn input_var(
                             pwr.0 = false;
                             pwr.2 = 0
                         }
-                        if subfact.0 && subfact.1 == 0
+                        if !subfact.is_empty() && subfact[0] == 0
                         {
-                            subfact.0 = false;
+                            subfact.remove(0);
                             output.push(RightBracket);
                             output.push(RightBracket);
                         }
@@ -3003,9 +3046,9 @@ pub fn input_var(
                             pwr.0 = false;
                             pwr.2 = 0
                         }
-                        if subfact.0 && subfact.1 == 0
+                        if !subfact.is_empty() && subfact[0] == 0
                         {
-                            subfact.0 = false;
+                            subfact.remove(0);
                             output.push(RightBracket);
                             output.push(RightBracket);
                         }
@@ -3033,9 +3076,9 @@ pub fn input_var(
                             output.push(RightBracket);
                             scientific = false;
                         }
-                        if subfact.0 && subfact.1 == 0
+                        if !subfact.is_empty() && subfact[0] == 0
                         {
-                            subfact.0 = false;
+                            subfact.remove(0);
                             output.push(RightBracket);
                             output.push(RightBracket);
                         }
@@ -3072,9 +3115,9 @@ pub fn input_var(
                             pwr.0 = false;
                             pwr.2 = 0
                         }
-                        if subfact.0 && subfact.1 == 0
+                        if !subfact.is_empty() && subfact[0] == 0
                         {
-                            subfact.0 = false;
+                            subfact.remove(0);
                             output.push(RightBracket);
                             output.push(RightBracket);
                         }
@@ -3118,9 +3161,9 @@ pub fn input_var(
                                 output.push(RightBracket);
                                 scientific = false;
                             }
-                            if subfact.0 && subfact.1 == 0
+                            if !subfact.is_empty() && subfact[0] == 0
                             {
-                                subfact.0 = false;
+                                subfact.remove(0);
                                 output.push(RightBracket);
                                 output.push(RightBracket);
                             }
@@ -3206,9 +3249,9 @@ pub fn input_var(
                     output.push(RightBracket);
                     scientific = false;
                 }
-                if subfact.0 && subfact.1 == 0
+                if !subfact.is_empty() && subfact[0] == 0
                 {
-                    subfact.0 = false;
+                    subfact.remove(0);
                     output.push(RightBracket);
                     output.push(RightBracket);
                 }

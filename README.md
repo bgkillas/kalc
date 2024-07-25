@@ -202,7 +202,7 @@ Order of Operations:
 - + (addition), - (subtraction), +-/± (creates a list of the calculation if plus and the calculation if minus)
 - to/-> (unit conversions, ie 2m->yd=2.2, leaves unitless if perfect conversion)
 - < (lt), <= (le), > (gt), >= (ge), == (eq), != (!eq), >> (a>>b shifts b bits right), << (a<<b shifts b bits left)
-- && (a&&b outputs 1 if both a and b are 1), || (a||b outputs 1 if either a or b are 1)
+- and(&&), or(||), not(¬), xor, nand, nor, implies, converse
 
 Functions:
 - sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), sincos(x)={sin(x),cos(x)}, cossin(x)={cos(x),sin(x)}

@@ -2,10 +2,11 @@ use crate::{
     complex::{
         NumStr,
         NumStr::{
-            And, Comma, Conversion, Division, Equal, Exponent, Func, Greater, GreaterEqual,
-            InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser, LesserEqual, Matrix,
-            Minus, Modulo, Multiplication, NearEqual, NotEqual, Num, Or, Plus, PlusMinus, Range,
-            RightBracket, RightCurlyBracket, Root, ShiftLeft, ShiftRight, Tetration, Vector,
+            And, Comma, Converse, Conversion, Division, Equal, Exponent, Func, Greater,
+            GreaterEqual, Implies, InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser,
+            LesserEqual, Matrix, Minus, Modulo, Multiplication, Nand, NearEqual, Nor, Not,
+            NotEqual, Num, Or, Plus, PlusMinus, Range, RightBracket, RightCurlyBracket, Root,
+            ShiftLeft, ShiftRight, Tetration, Vector, Xor,
         },
     },
     functions::functions,
@@ -156,7 +157,7 @@ pub fn convert(c: &char) -> char
     let valid_chars = [
         '+', '^', '(', ')', '.', '=', ',', '#', '|', '&', '!', '%', '_', '<', '>', ' ', '[', ']',
         '{', '}', '√', '∛', '⁻', 'ⁱ', '`', '±', '∞', ';', ':', '\'', '⌊', '⌈', '⌉', '⌋', '∫', '°',
-        '$', '¢', '≈', '~',
+        '$', '¢', '≈', '~', '¬',
     ];
     match c
     {
@@ -1036,6 +1037,12 @@ pub fn parsed_to_string(
             ShiftRight => ">>".to_string(),
             Conversion => "->".to_string(),
             NearEqual => "≈".to_string(),
+            Xor => " Xor ".to_string(),
+            Implies => " Implies ".to_string(),
+            Nand => " Nand ".to_string(),
+            Not => "¬".to_string(),
+            Nor => " Nor ".to_string(),
+            Converse => " Converse ".to_string(),
         })
     }
     to_output(

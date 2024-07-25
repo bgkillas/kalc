@@ -2,19 +2,20 @@ use crate::{
     complex::{
         about_eq, add, and, area, atan, binomial, cofactor, cube, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
-        extrema, gamma, gcd, ge, gt, hsv2rgb, identity, incomplete_beta, incomplete_gamma, inverse,
-        iter, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, ne,
-        nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm,
-        recursion, regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve, sort,
-        sort_mat, sqr, sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar,
-        trace, transpose, unity, variance, zeta,
+        extrema, gamma, gcd, ge, gt, hsv2rgb, identity, implies, incomplete_beta, incomplete_gamma,
+        inverse, iter, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec,
+        nand, ne, nor, not, nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma,
+        rand_norm, recursion, regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve,
+        sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, tetration, to, to_cyl, to_polar,
+        trace, transpose, unity, variance, xor, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{
-            And, Comma, Conversion, Division, Equal, Exponent, Func, Greater, GreaterEqual,
-            InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser, LesserEqual, Matrix,
-            Minus, Modulo, Multiplication, NearEqual, NotEqual, Num, Or, Plus, PlusMinus, Range,
-            RightBracket, RightCurlyBracket, Root, ShiftLeft, ShiftRight, Tetration, Vector,
+            And, Comma, Converse, Conversion, Division, Equal, Exponent, Func, Greater,
+            GreaterEqual, Implies, InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser,
+            LesserEqual, Matrix, Minus, Modulo, Multiplication, Nand, NearEqual, Nor, Not,
+            NotEqual, Num, Or, Plus, PlusMinus, Range, RightBracket, RightCurlyBracket, Root,
+            ShiftLeft, ShiftRight, Tetration, Vector, Xor,
         },
     },
     misc::do_math_with_var,
@@ -4054,6 +4055,10 @@ pub fn do_math(
         function.remove(i + 1);
         function.remove(i - 1);
     }
+    if !function.is_empty() && function[0] == Not
+    {
+        function[0] = not(&function.remove(1))?;
+    }
     i = 1;
     while i < function.len().saturating_sub(1)
     {
@@ -4061,6 +4066,16 @@ pub fn do_math(
         {
             And => function[i - 1].func(&function[i + 1], and)?,
             Or => function[i - 1].func(&function[i + 1], or)?,
+            Xor => function[i - 1].func(&function[i + 1], xor)?,
+            Implies => function[i - 1].func(&function[i + 1], implies)?,
+            Nand => function[i - 1].func(&function[i + 1], nand)?,
+            Nor => function[i - 1].func(&function[i + 1], nor)?,
+            Converse => function[i + 1].func(&function[i - 1], implies)?,
+            Not =>
+            {
+                function[i] = not(&function.remove(i + 1))?;
+                continue;
+            }
             _ =>
             {
                 i += 1;

@@ -518,6 +518,20 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "element(A,b)",
         "remove(vec,num/vec)",
         "extend(vec,num/vec)",
+        "rand",
+        "epoch",
+        "inf",
+        "true",
+        "false",
+        "nan",
+        "and",
+        "or",
+        "not",
+        "xor",
+        "nand",
+        "implies",
+        "nor",
+        "converse",
     ]
     .iter()
     .cloned()

@@ -50,7 +50,7 @@ at the end of cargo.toml
 
 ### linux
 
-dependencys are: rust>=1.73.0, diffutils, gcc, m4, make
+dependencys are: rust>=1.79.0, diffutils, gcc, m4, make
 
 ```
 git clone https://github.com/bgkillas/kalc

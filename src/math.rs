@@ -18,6 +18,7 @@ use crate::{
             ShiftLeft, ShiftRight, Tetration, Vector, Xor,
         },
     },
+    fraction::{c_to_rational, rationalize},
     misc::do_math_with_var,
     AngleType::{Degrees, Gradians, Radians},
     Number, Options, Units,
@@ -2890,10 +2891,62 @@ pub fn do_math(
                                     return Err("bad range");
                                 }
                             }
+                            "rationalize" => Matrix(
+                                a.iter()
+                                    .map(|c| c_to_rational(c.number.clone(), options))
+                                    .collect::<Vec<Vec<Number>>>(),
+                            ),
+                            "prime_factors" =>
+                            {
+                                if a.len() != 2
+                                {
+                                    return Err("expected vector length 2");
+                                }
+                                let mut p1 = prime_factors(
+                                    a[0].number.real().to_integer().unwrap_or_default(),
+                                );
+                                let p2 = prime_factors(
+                                    a[1].number.real().to_integer().unwrap_or_default(),
+                                );
+                                for p in p1.iter_mut()
+                                {
+                                    for m in &p2
+                                    {
+                                        if p.0 == m.0
+                                        {
+                                            p.1 -= m.1
+                                        }
+                                    }
+                                }
+                                for m in p2.iter()
+                                {
+                                    if !p1.iter().any(|p| p.0 == m.0)
+                                    {
+                                        p1.push((m.0.clone(), -m.1));
+                                    }
+                                }
+                                Matrix(
+                                    p1.iter()
+                                        .map(|p| {
+                                            vec![
+                                                Number::from(
+                                                    Complex::with_val(options.prec, p.0.clone()),
+                                                    None,
+                                                ),
+                                                Number::from(
+                                                    Complex::with_val(options.prec, p.1),
+                                                    None,
+                                                ),
+                                            ]
+                                        })
+                                        .collect::<Vec<Vec<Number>>>(),
+                                )
+                            }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },
                         _ => match s.as_str()
                         {
+                            "rationalize" => Vector(c_to_rational(arg.num()?.number, options)),
                             "domain_coloring_rgb" =>
                             {
                                 let pi = Float::with_val(options.prec, Pi);
@@ -3698,35 +3751,86 @@ pub fn do_math(
                             "prime_factors" =>
                             {
                                 let a = arg.num()?.number;
-                                if a.imag().is_zero() && a.real().clone().fract().is_zero()
+                                if a.imag().is_zero()
                                 {
-                                    let n = a.real().to_integer().unwrap_or_default();
-                                    let m = prime_factors(n);
-                                    if m.is_empty()
+                                    if a.real().clone().fract().is_zero()
                                     {
-                                        Num(Number::from(
-                                            Complex::with_val(options.prec, Nan),
-                                            None,
-                                        ))
+                                        let n = a.real().to_integer().unwrap_or_default();
+                                        let m = prime_factors(n);
+                                        if m.is_empty()
+                                        {
+                                            Num(Number::from(
+                                                Complex::with_val(options.prec, Nan),
+                                                None,
+                                            ))
+                                        }
+                                        else
+                                        {
+                                            Matrix(
+                                                m.iter()
+                                                    .map(|(a, b)| {
+                                                        vec![
+                                                            Number::from(
+                                                                Complex::with_val(options.prec, a),
+                                                                None,
+                                                            ),
+                                                            Number::from(
+                                                                Complex::with_val(options.prec, b),
+                                                                None,
+                                                            ),
+                                                        ]
+                                                    })
+                                                    .collect::<Vec<Vec<Number>>>(),
+                                            )
+                                        }
                                     }
-                                    else
+                                    else if let Some(a) = rationalize(a.real().clone(), options)
                                     {
+                                        let mut p1 = prime_factors(a.0);
+                                        let p2 = prime_factors(a.1);
+                                        for p in p1.iter_mut()
+                                        {
+                                            for m in &p2
+                                            {
+                                                if p.0 == m.0
+                                                {
+                                                    p.1 -= m.1
+                                                }
+                                            }
+                                        }
+                                        for m in p2.iter()
+                                        {
+                                            if !p1.iter().any(|p| p.0 == m.0)
+                                            {
+                                                p1.push((m.0.clone(), -m.1));
+                                            }
+                                        }
                                         Matrix(
-                                            m.iter()
-                                                .map(|(a, b)| {
+                                            p1.iter()
+                                                .map(|p| {
                                                     vec![
                                                         Number::from(
-                                                            Complex::with_val(options.prec, a),
+                                                            Complex::with_val(
+                                                                options.prec,
+                                                                p.0.clone(),
+                                                            ),
                                                             None,
                                                         ),
                                                         Number::from(
-                                                            Complex::with_val(options.prec, b),
+                                                            Complex::with_val(options.prec, p.1),
                                                             None,
                                                         ),
                                                     ]
                                                 })
                                                 .collect::<Vec<Vec<Number>>>(),
                                         )
+                                    }
+                                    else
+                                    {
+                                        Num(Number::from(
+                                            Complex::with_val(options.prec, Nan),
+                                            None,
+                                        ))
                                     }
                                 }
                                 else

@@ -1,6 +1,6 @@
 // as per continued fraction expansion
-use crate::{complex::prime_factors, Colors, Options};
-use rug::{float::Constant::Pi, ops::Pow, Float, Integer};
+use crate::{complex::prime_factors, Colors, Number, Options};
+use rug::{float::Constant::Pi, ops::Pow, Complex, Float, Integer};
 pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> String
 {
     if value.clone().fract().is_zero() || !value.is_finite() || options.prec < 128
@@ -9,7 +9,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
     }
     let e = Float::with_val(options.prec, 1.0).exp();
     let pi = Float::with_val(options.prec, Pi);
-    let sign: String = if value < 0.0
+    let sign: String = if value.is_sign_negative()
     {
         '-'.to_string()
     }
@@ -330,4 +330,76 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
         }
     }
     String::new()
+}
+pub fn rationalize(value: Float, options: Options) -> Option<(Integer, Integer)>
+{
+    if !value.is_finite() || value.is_zero()
+    {
+        return None;
+    }
+    if value.clone().fract().is_zero()
+    {
+        return Some((value.to_integer().unwrap_or_default(), Integer::from(1)));
+    }
+    let mut number = value.clone().fract();
+    let mut mult = Float::with_val(options.prec, 1);
+    let mut first: Float = Float::new(options.prec);
+    for j in 0..256
+    {
+        let mut recip = number.clone().recip();
+        let fract = recip.clone().fract();
+        if fract > 1e-32
+        {
+            if j == 0
+            {
+                first.clone_from(&recip);
+            }
+            mult *= recip;
+            number = fract;
+        }
+        else
+        {
+            recip *= mult.clone();
+            let last = recip.clone() / if j == 0 { &recip } else { &first };
+            let recip = match recip.to_integer()
+            {
+                Some(n) => n,
+                None => return None,
+            };
+            let last = (last + recip.clone() * value.trunc())
+                .to_integer()
+                .unwrap_or_default();
+            return if recip == 1 || last == 0
+            {
+                None
+            }
+            else
+            {
+                Some((last, recip))
+            };
+        }
+    }
+    None
+}
+pub fn c_to_rational(value: Complex, options: Options) -> Vec<Number>
+{
+    let re = rationalize(value.real().clone(), options);
+    let im = rationalize(value.imag().clone(), options);
+    let mut vec = Vec::new();
+    if let Some(n) = re
+    {
+        vec.push(Number::from(Complex::with_val(options.prec, n.0), None));
+        vec.push(Number::from(Complex::with_val(options.prec, n.1), None));
+    }
+    else
+    {
+        vec.push(Number::from(Complex::new(options.prec), None));
+        vec.push(Number::from(Complex::with_val(options.prec, 1), None));
+    }
+    if let Some(n) = im
+    {
+        vec.push(Number::from(Complex::with_val(options.prec, n.0), None));
+        vec.push(Number::from(Complex::with_val(options.prec, n.1), None));
+    }
+    vec
 }

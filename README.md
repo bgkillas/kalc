@@ -235,6 +235,7 @@ Functions:
 - roll{a,b,c...} rolls die, dice{a,b,c...} gets the frequency data any amount of different sided die, where a/b/c are number of faces for each die, both also accept {{first_dice_face,# of die},{second_dice_face,# of die}...}
 - rand_weighted{{a,n1},{b,n2}..} rolls a weighted die where a and b are face values and n1 and n2 are their weights
 - An(n,k), Ap(n,t) eulerian numbers and polynomials
+- rationalize(q), rationalizes q into a 2d vector
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area
 - area(x,f(x),from,to(,nth)(,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)

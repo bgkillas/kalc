@@ -1799,7 +1799,7 @@ pub fn nth_prime(n: Integer) -> Integer
     }
     num
 }
-pub fn prime_factors(mut n: Integer) -> Vec<(Integer, usize)>
+pub fn prime_factors(mut n: Integer) -> Vec<(Integer, isize)>
 {
     if n < 2
     {
@@ -2032,7 +2032,7 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
             )),
             3 =>
             {
-                let l = eigenvalues(mat, real).unwrap().vec().unwrap();
+                let l = eigenvalues(mat, real)?.vec()?;
                 //x=(b(l-i)+hc)/(h(l-a)+bg)
                 //y=(dx+f)/(l-e)
                 let a = mat[0][0].number.clone();
@@ -2065,7 +2065,7 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
             }
             4 =>
             {
-                let w = eigenvalues(mat, real).unwrap().vec().unwrap();
+                let w = eigenvalues(mat, real)?.vec()?;
                 let a = mat[0][0].number.clone();
                 let b = mat[0][1].number.clone();
                 let c = mat[0][2].number.clone();

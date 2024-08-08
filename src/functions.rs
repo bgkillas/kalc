@@ -290,6 +290,7 @@ pub fn functions() -> HashSet<&'static str>
         "remove",
         "extend",
         "link",
+        "rationalize",
     ]
     .iter()
     .cloned()
@@ -532,6 +533,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "implies",
         "nor",
         "converse",
+        "rationalize(x)",
     ]
     .iter()
     .cloned()

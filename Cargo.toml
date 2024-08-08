@@ -22,7 +22,7 @@ opt-level = 1
 [dependencies]
 fastrand = "2.0.2"
 rug = "1.24.1"
-crossterm = "0.27.0"
+crossterm = "0.28.1"
 dirs = "5.0.1"
 
 [target.'cfg(not(unix))'.dependencies]

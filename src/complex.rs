@@ -1837,20 +1837,37 @@ pub fn sort(mut a: Vec<Number>) -> Vec<Number>
 {
     a.sort_by(|x, y| {
         x.number
+            .imag()
+            .partial_cmp(y.number.imag())
+            .unwrap_or(Ordering::Equal)
+    });
+    a.sort_by(|x, y| {
+        x.number
             .real()
             .partial_cmp(y.number.real())
             .unwrap_or(Ordering::Equal)
     });
     a
 }
-pub fn sort_mat(mut a: Vec<Vec<Number>>) -> Vec<Vec<Number>>
+pub fn sort_mat(mut a: Vec<Vec<Number>>, prec: u32) -> Vec<Vec<Number>>
 {
     a.sort_by(|x, y| {
-        x[0].number
-            .real()
-            .partial_cmp(y[0].number.real())
-            .unwrap_or(Ordering::Equal)
+        if x.is_empty() || y.is_empty()
+        {
+            Ordering::Equal
+        }
+        else
+        {
+            x.iter()
+                .fold(Float::new(prec), |sum, val| sum + val.number.real())
+                .partial_cmp(
+                    &y.iter()
+                        .fold(Float::new(prec), |sum, val| sum + val.number.real()),
+                )
+                .unwrap_or(Ordering::Equal)
+        }
     });
+    a.sort_by(|x, y| x.len().partial_cmp(&y.len()).unwrap_or(Ordering::Equal));
     a
 }
 pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>

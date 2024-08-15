@@ -1035,7 +1035,7 @@ pub fn do_math(
                                     return Err("no x value given");
                                 }
                             }
-                            "sort" => Matrix(sort_mat(a)),
+                            "sort" => Matrix(sort_mat(a, options.prec)),
                             "max" =>
                             {
                                 let mut vec = Vec::new();

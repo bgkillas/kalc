@@ -1613,30 +1613,30 @@ pub fn do_math(
                                         )
                                     }
                                 }
-                                if faces.is_empty()
-                                {
-                                    return Err("bad list");
-                                }
                                 if faces.iter().any(|c| c == &0)
                                 {
                                     return Err("bad face value");
                                 }
-                                let mut last = vec![Integer::from(1); faces[0]];
-                                if faces.len() == 1
+                                if faces.is_empty()
                                 {
-                                    Vector(
-                                        last.iter()
-                                            .map(|a| {
-                                                Number::from(
-                                                    Complex::with_val(options.prec, a),
-                                                    None,
-                                                )
-                                            })
-                                            .collect::<Vec<Number>>(),
-                                    )
+                                    Vector(vec![Number::from(
+                                        Complex::with_val(options.prec, 1),
+                                        None,
+                                    )])
+                                }
+                                else if faces.len() == 1
+                                {
+                                    Vector(vec![
+                                        Number::from(
+                                            Complex::with_val(options.prec, 1),
+                                            None
+                                        );
+                                        faces[0]
+                                    ])
                                 }
                                 else
                                 {
+                                    let mut last = vec![Integer::from(1); faces[0]];
                                     let mut current = last.clone();
                                     for i in 1..faces.len()
                                     {
@@ -1658,10 +1658,10 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current)
                                     }
-                                    current.splice(
+                                    /*current.splice(
                                         0..0,
                                         vec![Integer::new(); faces.len().saturating_sub(1)],
-                                    );
+                                    );*/
                                     Vector(
                                         current
                                             .iter()
@@ -1744,7 +1744,14 @@ pub fn do_math(
                                     return Err("bad face value");
                                 }
                                 let mut last = vec![Integer::from(1); faces[0]];
-                                if faces.len() == 1
+                                if a.is_empty()
+                                {
+                                    Vector(vec![Number::from(
+                                        Complex::with_val(options.prec, 1),
+                                        None,
+                                    )])
+                                }
+                                else if faces.len() == 1
                                 {
                                     Vector(
                                         last.iter()
@@ -1780,10 +1787,10 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current);
                                     }
-                                    current.splice(
+                                    /*current.splice(
                                         0..0,
                                         vec![Integer::new(); a.len().saturating_sub(1)],
-                                    );
+                                    );*/
                                     Vector(
                                         current
                                             .iter()

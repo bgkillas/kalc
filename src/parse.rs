@@ -3008,7 +3008,7 @@ pub fn input_var(
                                 || is_digit(chars[i + 1], options.base.0)
                                 || matches!(chars[i + 1], '-' | '+' | '(' | '{' | '|'))
                         {
-                            output.push(Tetration);
+                            output.push(Exponent);
                         }
                         if !(i + 1 != chars.len()
                             && (matches!(chars[i + 1], '-' | '+' | 'x' | 'y' | 'z' | 'i')

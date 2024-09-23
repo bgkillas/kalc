@@ -383,7 +383,7 @@ impl NumStr
                     .map(|a| a.iter().zip(b.iter()).map(|(a, b)| p(a, b)).collect())
                     .collect(),
             ),
-            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+            (Matrix(a), Matrix(b)) if a[0].len() == b[0].len() && a.len() == b.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
                     .map(|(a, b)| {
@@ -437,7 +437,7 @@ impl NumStr
                     .map(|a| a.iter().zip(b.iter()).map(|(a, b)| func(a, b)).collect())
                     .collect(),
             ),
-            (Matrix(a), Matrix(b)) if a.len() == b[0].len() && a.len() == b.len() => Matrix(
+            (Matrix(a), Matrix(b)) if a[0].len() == b[0].len() && a.len() == b.len() => Matrix(
                 a.iter()
                     .zip(b.iter())
                     .map(|(a, b)| {

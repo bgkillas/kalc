@@ -212,12 +212,12 @@ pub fn input_var(
             }
             match output.last()
             {
-                Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Tetration),
+                Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Exponent),
                 Some(Func(s))
                     if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch")
                         || sumrec.iter().any(|v| &v.1 == s) =>
                 {
-                    output.push(Tetration)
+                    output.push(Exponent)
                 }
                 _ =>
                 {}
@@ -3335,12 +3335,12 @@ pub fn input_var(
         }
         match output.last()
         {
-            Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Tetration),
+            Some(Num(_)) | Some(Vector(_)) | Some(Matrix(_)) => output.push(Exponent),
             Some(Func(s))
                 if matches!(s.as_str(), "x" | "y" | "rnd" | "rand" | "epoch")
                     || sumrec.iter().any(|v| &v.1 == s) =>
             {
-                output.push(Tetration)
+                output.push(Exponent)
             }
             _ =>
             {}

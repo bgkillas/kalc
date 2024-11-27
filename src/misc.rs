@@ -596,7 +596,7 @@ pub fn place_funcvarxy(
                                 "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                                 | "mat" | "D" | "integrate" | "arclength" | "∫" | "area"
                                 | "surfacearea" | "sarea" | "solve" | "length" | "slope"
-                                | "lim" | "set" | "limit" | "iter" | "extrema"
+                                | "lim" | "set" | "limit" | "iter" | "extrema" | "taylor"
                                     if j + 2 < i.1.len()
                                         && if let Func(s) = &i.1[j + 2]
                                         {
@@ -688,7 +688,7 @@ pub fn place_varxy(mut func: Vec<NumStr>, num: NumStr) -> Vec<NumStr>
                         "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec" | "mat"
                         | "D" | "integrate" | "arclength" | "∫" | "area" | "surfacearea"
                         | "sarea" | "solve" | "length" | "slope" | "lim" | "limit" | "set"
-                        | "iter" | "extrema"
+                        | "iter" | "extrema" | "taylor"
                             if i + 2 < func.len()
                                 && if let Func(s) = &func[i + 2]
                                 {
@@ -789,6 +789,7 @@ pub fn place_funcvar(
                                     | "vec" | "mat" | "D" | "integrate" | "arclength" | "∫"
                                     | "area" | "solve" | "length" | "slope" | "lim" | "limit"
                                     | "set" | "iter" | "extrema" | "surfacearea" | "sarea"
+                                    | "taylor"
                                         if j + 2 < i.1.len()
                                             && i.1[j + 2] == Func(var.to_string()) =>
                                     {
@@ -847,7 +848,7 @@ pub fn place_var(mut func: Vec<NumStr>, var: &str, num: NumStr) -> Vec<NumStr>
                             "sum" | "summation" | "prod" | "product" | "Σ" | "Π" | "vec"
                             | "mat" | "D" | "integrate" | "arclength" | "∫" | "area" | "solve"
                             | "length" | "slope" | "lim" | "set" | "limit" | "iter" | "extrema"
-                            | "surfacearea" | "sarea"
+                            | "surfacearea" | "sarea" | "taylor"
                                 if i + 2 < func.len() && func[i + 2] == Func(var.to_string()) =>
                             {
                                 i += 3;
@@ -1065,7 +1066,7 @@ pub fn insert_last(input: &[char], last: &str) -> String
         }
         else
         {
-            if word.to_ascii_lowercase() == "ans"
+            if word.eq_ignore_ascii_case("ans")
             {
                 output.drain(output.len() - 3..);
                 output.push('(');
@@ -1083,7 +1084,7 @@ pub fn insert_last(input: &[char], last: &str) -> String
             word.clear()
         }
     }
-    if word.to_ascii_lowercase() == "ans"
+    if word.eq_ignore_ascii_case("ans")
     {
         output.drain(output.len() - 3..);
         if !last.contains('#')

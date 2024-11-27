@@ -1707,9 +1707,14 @@ fn get_new_currency_data() -> bool
 {
     let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc/kalc.currency";
     if fs::metadata(dir.clone()).map_or(true, |a| {
-        SystemTime::now()
-            .duration_since(a.modified().unwrap())
-            .map_or(false, |b| b.as_secs() > 7 * 24 * 3600)
+        if let Ok(n) = SystemTime::now().duration_since(a.modified().unwrap())
+        {
+            n.as_secs() > 7 * 24 * 3600
+        }
+        else
+        {
+            false
+        }
     })
     {
         let mut stream = match TcpStream::connect("www.floatrates.com:80")

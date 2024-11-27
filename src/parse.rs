@@ -1359,6 +1359,7 @@ pub fn input_var(
                 | "solve"
                 | "length"
                 | "slope"
+                | "taylor"
                 | "sum"
                 | "iter"
                 | "extrema"
@@ -1406,6 +1407,7 @@ pub fn input_var(
                 | "length" | "∫" | "area" | "sum" | "Σ" | "summation" | "Π" => place >= 3,
                 "sarea" | "surfacearea" => place >= 6,
                 "solve" | "extrema" => place >= 1,
+                "taylor" => place >= 4,
                 "D" | "slope" | "lim" | "limit" | "set" => place >= 2,
                 _ => place > 0,
             }
@@ -2187,7 +2189,7 @@ pub fn input_var(
                                             if let Func(s) = c
                                             {
                                                 sumrec.iter().any(|r| &r.1 == s)
-                                                    || sumvar.clone().map_or(false, |r| r == *s)
+                                                    || sumvar.clone() == Some(s.clone())
                                                     || matches!(
                                                         s.as_str(),
                                                         "x" | "y"
@@ -2208,7 +2210,7 @@ pub fn input_var(
                                                 if let Func(s) = c
                                                 {
                                                     sumrec.iter().any(|r| &r.1 == s)
-                                                        || sumvar.clone().map_or(false, |r| r == *s)
+                                                        || sumvar.clone() == Some(s.clone())
                                                         || matches!(
                                                             s.as_str(),
                                                             "x" | "y"
@@ -2585,7 +2587,7 @@ pub fn input_var(
                                         if let Func(s) = c
                                         {
                                             sumrec.iter().any(|r| &r.1 == s)
-                                                || sumvar.clone().map_or(false, |r| r == *s)
+                                                || sumvar.clone() == Some(s.clone())
                                                 || matches!(
                                                     s.as_str(),
                                                     "x" | "y" | "rnd" | "rand" | "epoch" | "roll"
@@ -2602,7 +2604,7 @@ pub fn input_var(
                                             if let Func(s) = c
                                             {
                                                 sumrec.iter().any(|r| &r.1 == s)
-                                                    || sumvar.clone().map_or(false, |r| r == *s)
+                                                    || sumvar.clone() == Some(s.clone())
                                                     || matches!(
                                                         s.as_str(),
                                                         "x" | "y"
@@ -3625,7 +3627,7 @@ fn place_multiplier(output: &mut Vec<NumStr>, sumrec: &[(isize, String)], sumvar
                 || sumrec
                     .iter()
                     .any(|a| a.1 == *s || "@".to_owned() + &a.1 == *s)
-                || sumvar.clone().map_or(false, |a| a == *s) =>
+                || sumvar.clone() == Some(s.clone()) =>
         {
             output.push(Multiplication)
         }

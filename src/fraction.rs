@@ -362,11 +362,7 @@ pub fn rationalize(value: Float, options: Options) -> Option<(Integer, Integer)>
         {
             recip *= mult.clone();
             let last = recip.clone() / if j == 0 { &recip } else { &first };
-            let recip = match recip.to_integer()
-            {
-                Some(n) => n,
-                None => return None,
-            };
+            let recip = recip.to_integer()?;
             let last = (last + recip.clone() * value.trunc())
                 .to_integer()
                 .unwrap_or_default();

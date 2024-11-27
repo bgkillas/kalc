@@ -4484,6 +4484,52 @@ pub fn extrema(
     }
 }
 #[allow(clippy::too_many_arguments)]
+pub fn taylor(
+    func: Vec<NumStr>,
+    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut options: Options,
+    var: String,
+    x: Number,
+    a: Number,
+    nth: u32,
+) -> Result<NumStr, &'static str>
+{
+    let mut an = a.number;
+    let mut x = x.number;
+    let op = options.prec;
+    options.prec = options.prec.clamp(256, 1024);
+    x.set_prec(options.prec);
+    an.set_prec(options.prec);
+    let a = Number::from(an.clone(), a.units);
+    let mut sum = Complex::new(op);
+    for n in 0..=nth
+    {
+        let mut fact = 1;
+        for i in 1..=n
+        {
+            fact *= i
+        }
+        sum += slopesided(
+            func.clone(),
+            func_vars.clone(),
+            options,
+            var.clone(),
+            a.clone(),
+            false,
+            n,
+            true,
+            None,
+            None,
+        )?
+        .num()?
+        .number
+            / fact
+            * (x.clone() - an.clone()).pow(n)
+    }
+    Ok(Num(Number::from(sum, None)))
+}
+
+#[allow(clippy::too_many_arguments)]
 pub fn slope(
     func: Vec<NumStr>,
     func_vars: Vec<(String, Vec<NumStr>)>,
@@ -4494,13 +4540,17 @@ pub fn slope(
     nth: u32,
 ) -> Result<NumStr, &'static str>
 {
-    if options.prec < 256
+    if nth == 0
+    {
+        do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(point))
+    }
+    else if options.prec < 256
     {
         options.prec = 256;
         point.number.set_prec(options.prec);
-        Ok(slopesided(
+        slopesided(
             func, func_vars, options, var, point, combine, nth, true, None, None,
-        )?)
+        )
     }
     else
     {
@@ -4613,6 +4663,10 @@ pub fn slopesided(
     val2: Option<Complex>,
 ) -> Result<NumStr, &'static str>
 {
+    if nth == 0
+    {
+        return do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(point));
+    }
     let units = point.units;
     let mut point = point.number;
     options.prec = options.prec.clamp(256, 1024);

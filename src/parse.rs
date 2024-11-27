@@ -1313,6 +1313,7 @@ pub fn input_var(
                 || (word.ends_with('y')
                     && word != "any"
                     && word != "unity"
+                    && word != "identity"
                     && !word.ends_with("day")
                     && !word.ends_with("gravity")
                     && !word.ends_with("ly")

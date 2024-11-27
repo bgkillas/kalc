@@ -436,31 +436,70 @@ pub fn do_math(
                 {
                     let mut place = Vec::new();
                     let mut count = 0;
+                    let mut count2 = 0;
                     for (f, n) in function[i + 2..].iter().enumerate()
                     {
-                        match n
+                        if s == "piecewise" || s == "pw"
                         {
-                            Comma
-                                if count == 0
-                                    || ((s == "piecewise" || s == "pw") && count == 1) =>
+                            match n
                             {
-                                place.push(f + i + 2);
-                            }
-                            LeftBracket | LeftCurlyBracket =>
-                            {
-                                count += 1;
-                            }
-                            RightBracket | RightCurlyBracket =>
-                            {
-                                if count == 0
+                                Comma if (count == 0 || count == 1) && count2 == 0 =>
                                 {
                                     place.push(f + i + 2);
-                                    break;
                                 }
-                                count -= 1;
+                                LeftBracket =>
+                                {
+                                    count += 1;
+                                    count2 += 1;
+                                }
+                                LeftCurlyBracket => count += 1,
+                                RightCurlyBracket =>
+                                {
+                                    if count == 0
+                                    {
+                                        place.push(f + i + 2);
+                                        break;
+                                    }
+                                    count -= 1;
+                                }
+                                RightBracket =>
+                                {
+                                    if count == 0
+                                    {
+                                        place.push(f + i + 2);
+                                        break;
+                                    }
+                                    count -= 1;
+                                    count2 -= 1;
+                                }
+                                _ =>
+                                {}
                             }
-                            _ =>
-                            {}
+                        }
+                        else
+                        {
+                            match n
+                            {
+                                Comma if count == 0 =>
+                                {
+                                    place.push(f + i + 2);
+                                }
+                                LeftBracket | LeftCurlyBracket =>
+                                {
+                                    count += 1;
+                                }
+                                RightBracket | RightCurlyBracket =>
+                                {
+                                    if count == 0
+                                    {
+                                        place.push(f + i + 2);
+                                        break;
+                                    }
+                                    count -= 1;
+                                }
+                                _ =>
+                                {}
+                            }
                         }
                     }
                     match (

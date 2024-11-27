@@ -1837,12 +1837,6 @@ pub fn sort(mut a: Vec<Number>) -> Vec<Number>
 {
     a.sort_by(|x, y| {
         x.number
-            .imag()
-            .partial_cmp(y.number.imag())
-            .unwrap_or(Ordering::Equal)
-    });
-    a.sort_by(|x, y| {
-        x.number
             .real()
             .partial_cmp(y.number.real())
             .unwrap_or(Ordering::Equal)

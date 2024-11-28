@@ -1641,16 +1641,42 @@ fn main()
                     {
                         //tab completion
                         let mut word = String::new();
+                        let mut wait = false;
+                        let mut count = 0;
+                        let mut start_pos = placement;
                         for (i, c) in input[..placement].iter().rev().enumerate()
                         {
-                            if c.is_alphabetic()
-                                || matches!(*c, '°' | '\'' | '`' | '_' | '∫' | '$' | '¢')
+                            if !wait
                             {
-                                word.insert(0, *c)
+                                if c.is_alphabetic()
+                                    || matches!(*c, '°' | '\'' | '`' | '_' | '∫' | '$' | '¢')
+                                {
+                                    word.insert(0, *c)
+                                }
+                                else if i == 0
+                                {
+                                    wait = true
+                                }
+                                else
+                                {
+                                    break;
+                                }
                             }
-                            else if !(*c == '(' && i == 0)
+                            if wait
                             {
-                                break;
+                                if c == &'(' || c == &'{'
+                                {
+                                    count -= 1;
+                                }
+                                else if c == &')' || c == &'}'
+                                {
+                                    count += 1;
+                                }
+                                if count == -1
+                                {
+                                    wait = false;
+                                    start_pos -= i;
+                                }
                             }
                         }
                         if !word.is_empty()
@@ -1719,6 +1745,7 @@ fn main()
                                     w = w.split('(').next().unwrap().to_string();
                                     if (placement == input.len() || input[placement] != '(')
                                         && input[placement - 1] != '('
+                                        && start_pos == placement
                                     {
                                         w.push('(')
                                     }

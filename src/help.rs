@@ -123,6 +123,7 @@ Functions:\x1b[G\n\
 - rationalize(q), rationalizes q into a 2d vector\x1b[G\n\
 - lim(x,f(x),point (,side)) both sides are checked by default, -1 for left, 1 for right\x1b[G\n\
 - slope(x,f(x),point (,nth derivitive) (,0) ), can add a 0 to the args to not combine the x and y slopes for parametric equations, same for area\x1b[G\n\
+- taylor(x,f(x),p,a,n), nth degree taylor approximation accurate around a, evaluated at point p\x1b[G\n\
 - area(x,f(x),from,to(,nth)(,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)\x1b[G\n\
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails\x1b[G\n\
 - extrema(x,f(x) (,point)) employs newtons method to find the extrema of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails, outputs {{x,y,positive/negitive concavity}}\x1b[G\n\

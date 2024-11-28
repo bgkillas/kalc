@@ -259,6 +259,7 @@ Vector functions:
 - car{r,θ,φ} outputs (x, y, z)
 - car{r,θ} outputs (x, y)
 - cyl{x,y,z} outputs (p, θ, z)
+- poly/polynomial(vec, x), evaluates a polynomial, vec={a_n,...,a_1}, as a_n x^n+...+a_1
 - other functions are applied like sqrt{2,4}={sqrt(2),sqrt(4)}
 
 Matrix functions:
@@ -275,6 +276,7 @@ Matrix functions:
 - interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - lineofbestfit/lobf(mat,x) line of best fit for numerous 2d values, with no x values it will spit out the m/b values for line equation in form of mx+b, mat should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - plane(mat,x,y) finds the plane that 3, 3d points lie on, with no x/y arg it will spit out the a/b/c values for the equation of plane in ax+by+c form, mat should be in form of {{x0,y0,z0},{x1,y1,z1},{x2,y2,z2}}
+- poly/polynomial(mat, x), evaluates a polynomial, mat * {x^n,...,1}
 - other functions are applied like sqrt{{2,4},{5,6}}={{sqrt(2),sqrt(4)},{sqrt(5),sqrt(6)}}
 
 Constants:

@@ -250,6 +250,8 @@ pub fn do_math(
                                 | "neg_hypergeometric_cdf"
                                 | "rand_neg_hypergeometric"
                                 | "union"
+                                | "poly"
+                                | "polynomial"
                                 | "intersection"
                                 | "set_difference"
                                 | "symmetric_difference"
@@ -1759,6 +1761,49 @@ pub fn do_math(
                                     )
                                 }
                             }
+                            "poly" | "polynomial" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    if a.is_empty()
+                                    {
+                                        Num(Number::from(Complex::new(options.prec), None))
+                                    }
+                                    else
+                                    {
+                                        let x = function.remove(i + 1).num()?;
+                                        let mut sum =
+                                            vec![
+                                                Number::from(Complex::new(options.prec), None);
+                                                a.len()
+                                            ];
+                                        for (i, v) in transpose(&a).iter().rev().enumerate()
+                                        {
+                                            for (s, a) in sum.iter_mut().zip(v.iter().map(|a| {
+                                                Number::from(
+                                                    a.number.clone() * x.number.clone().pow(i),
+                                                    mul_units(
+                                                        a.units,
+                                                        Some(
+                                                            x.units
+                                                                .unwrap_or_default()
+                                                                .pow(i as f64),
+                                                        ),
+                                                    ),
+                                                )
+                                            }))
+                                            {
+                                                *s = add(s, &a)
+                                            }
+                                        }
+                                        Vector(sum)
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
+                            }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },
                         Vector(a) => match s.as_str()
@@ -3032,6 +3077,37 @@ pub fn do_math(
                                         })
                                         .collect::<Vec<Vec<Number>>>(),
                                 )
+                            }
+                            "poly" | "polynomial" =>
+                            {
+                                if i + 1 < function.len()
+                                {
+                                    let x = function.remove(i + 1).num()?;
+                                    let mut sum = Number::from(Complex::new(options.prec), None);
+                                    for (i, a) in a.iter().rev().enumerate()
+                                    {
+                                        let n = Number::from(
+                                            a.number.clone() * x.number.clone().pow(i),
+                                            mul_units(
+                                                a.units,
+                                                Some(x.units.unwrap_or_default().pow(i as f64)),
+                                            ),
+                                        );
+                                        if i == 0
+                                        {
+                                            sum = n
+                                        }
+                                        else
+                                        {
+                                            sum = add(&sum, &n)
+                                        }
+                                    }
+                                    Num(sum)
+                                }
+                                else
+                                {
+                                    return Err("not enough args");
+                                }
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },

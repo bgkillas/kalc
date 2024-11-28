@@ -1937,139 +1937,553 @@ pub fn input_var(
                         {
                             i = chars.len().saturating_sub(1)
                         }
-                        if blacklist == var.name && piecewise == 0 && collectvars.is_empty()
+                        if blacklist == var.name && piecewise == 0
                         {
-                            return Err("recursive");
+                            if collectvars.is_empty()
+                            {
+                                return Err("recursive");
+                            }
                         }
-                        count = 0;
-                        let mut ccount = 0;
-                        for c in &chars[j..i]
+                        else
                         {
-                            if *c == ','
-                                && count
-                                    == if matches!(chars[j + 1], '{' | '[')
+                            count = 0;
+                            let mut ccount = 0;
+                            for c in &chars[j..i]
+                            {
+                                if *c == ','
+                                    && count
+                                        == if matches!(chars[j + 1], '{' | '[')
+                                        {
+                                            0
+                                        }
+                                        else
+                                        {
+                                            1
+                                        }
+                                {
+                                    ccount += 1;
+                                }
+                                else if abs
+                                    && *c == '|'
+                                    && (count == 0 || (abstest && count == 1))
+                                {
+                                    if abstest
                                     {
-                                        0
+                                        abstest = false;
+                                        count -= 1;
+                                        continue;
+                                    }
+                                    count += 1;
+                                    abstest = true
+                                }
+                                else if matches!(c, '(' | '{' | '[')
+                                {
+                                    count += 1;
+                                }
+                                else if matches!(c, ')' | '}' | ']')
+                                {
+                                    count -= 1;
+                                }
+                            }
+                            if ccount != var.name.iter().filter(|c| c == &&',').count()
+                            {
+                                i = j;
+                                continue;
+                            }
+                            if blacklist == var.name && piecewise != 0
+                            {
+                                output.push(Func(
+                                    "@".to_owned() + &var.name.iter().collect::<String>(),
+                                ));
+                                i = j + var.name.split(|c| c == &'(').next().unwrap().len();
+                                continue 'main;
+                            }
+                            if var.name.contains(&',') && chars.len() > 4
+                            {
+                                place_multiplier(&mut output, sumrec, &sumvar);
+                                if neg
+                                {
+                                    output.push(Num(Number::from(n1.clone(), None)));
+                                    output.push(InternalMultiplication);
+                                    neg = false;
+                                }
+                                let nobrackets = i + 1 != chars.len()
+                                    && j != 0
+                                    && chars[j - 1] == ','
+                                    && chars[i + 1] == ',';
+                                if !nobrackets
+                                {
+                                    output.push(LeftBracket);
+                                }
+                                let mut temp = &chars[j + countj + 1 + area + slope..=i];
+                                if temp.ends_with(&[')'])
+                                {
+                                    temp = &temp[..temp.len().saturating_sub(1)];
+                                }
+                                let mut commas = Vec::new();
+                                count = 0;
+                                for (f, c) in temp.iter().enumerate()
+                                {
+                                    if matches!(c, '(' | '{' | '[')
+                                    {
+                                        count += 1;
+                                    }
+                                    else if matches!(c, ')' | '}' | ']')
+                                    {
+                                        count -= 1;
+                                    }
+                                    else if c == &',' && count == 0
+                                    {
+                                        commas.push(f);
+                                    }
+                                }
+                                let mut start = 0;
+                                let mut split = Vec::new();
+                                for end in commas
+                                {
+                                    split.push(&temp[start..end]);
+                                    start = end + 1;
+                                }
+                                split.push(&temp[start..]);
+                                let mut func_vars: Vec<String> = Vec::new();
+                                start = 0;
+                                for (f, c) in var.name.iter().enumerate()
+                                {
+                                    if matches!(c, '(' | '{' | '[')
+                                    {
+                                        if count == 0
+                                        {
+                                            start = f + 1;
+                                        }
+                                        count += 1;
+                                    }
+                                    else if matches!(c, ')' | '}' | ']')
+                                    {
+                                        count -= 1;
+                                        if count == 0
+                                        {
+                                            func_vars.push(var.name[start..f].iter().collect());
+                                        }
+                                    }
+                                    else if c == &',' && count == 1
+                                    {
+                                        func_vars.push(var.name[start..f].iter().collect());
+                                        start = f + 1;
+                                    }
+                                }
+                                let mut parsed = var.parsed.clone();
+                                let mut fvs = var.funcvars.clone();
+                                let mut tempf = Vec::new();
+                                for (z, (varf, func_var)) in split.iter().zip(func_vars).enumerate()
+                                {
+                                    let mut num = if let Ok(n) = Complex::parse_radix(
+                                        varf.iter().collect::<String>(),
+                                        options.base.0,
+                                    )
+                                    {
+                                        vec![Num(Number::from(n.complete(prec), None))]
                                     }
                                     else
                                     {
-                                        1
-                                    }
-                            {
-                                ccount += 1;
-                            }
-                            else if abs && *c == '|' && (count == 0 || (abstest && count == 1))
-                            {
-                                if abstest
-                                {
-                                    abstest = false;
-                                    count -= 1;
-                                    continue;
-                                }
-                                count += 1;
-                                abstest = true
-                            }
-                            else if matches!(c, '(' | '{' | '[')
-                            {
-                                count += 1;
-                            }
-                            else if matches!(c, ')' | '}' | ']')
-                            {
-                                count -= 1;
-                            }
-                        }
-                        if ccount != var.name.iter().filter(|c| c == &&',').count()
-                        {
-                            i = j;
-                            continue;
-                        }
-                        if blacklist == var.name && piecewise != 0
-                        {
-                            output
-                                .push(Func("@".to_owned() + &var.name.iter().collect::<String>()));
-                            i = j + var.name.split(|c| c == &'(').next().unwrap().len();
-                            continue 'main;
-                        }
-                        if var.name.contains(&',') && chars.len() > 4
-                        {
-                            place_multiplier(&mut output, sumrec, &sumvar);
-                            if neg
-                            {
-                                output.push(Num(Number::from(n1.clone(), None)));
-                                output.push(InternalMultiplication);
-                                neg = false;
-                            }
-                            let nobrackets = i + 1 != chars.len()
-                                && j != 0
-                                && chars[j - 1] == ','
-                                && chars[i + 1] == ',';
-                            if !nobrackets
-                            {
-                                output.push(LeftBracket);
-                            }
-                            let mut temp = &chars[j + countj + 1 + area + slope..=i];
-                            if temp.ends_with(&[')'])
-                            {
-                                temp = &temp[..temp.len().saturating_sub(1)];
-                            }
-                            let mut commas = Vec::new();
-                            count = 0;
-                            for (f, c) in temp.iter().enumerate()
-                            {
-                                if matches!(c, '(' | '{' | '[')
-                                {
-                                    count += 1;
-                                }
-                                else if matches!(c, ')' | '}' | ']')
-                                {
-                                    count -= 1;
-                                }
-                                else if c == &',' && count == 0
-                                {
-                                    commas.push(f);
-                                }
-                            }
-                            let mut start = 0;
-                            let mut split = Vec::new();
-                            for end in commas
-                            {
-                                split.push(&temp[start..end]);
-                                start = end + 1;
-                            }
-                            split.push(&temp[start..]);
-                            let mut func_vars: Vec<String> = Vec::new();
-                            start = 0;
-                            for (f, c) in var.name.iter().enumerate()
-                            {
-                                if matches!(c, '(' | '{' | '[')
-                                {
-                                    if count == 0
+                                        let parsed;
+                                        let exit;
+                                        let func;
+                                        let tempgraph;
+                                        let sum_var;
+                                        let mut cv = collectvars.clone();
+                                        if !cv.is_empty()
+                                        {
+                                            if cv[0].0 < 0
+                                            {
+                                                cv[0].0 -= 1;
+                                            }
+                                            else
+                                            {
+                                                cv[0].0 = -1
+                                            }
+                                        }
+                                        (parsed, func, tempgraph, exit, sum_var) = match input_var(
+                                            &varf.iter().collect::<String>(),
+                                            vars,
+                                            sumrec,
+                                            bracket,
+                                            options,
+                                            print,
+                                            depth + 1,
+                                            blacklist.clone(),
+                                            false,
+                                            &mut cv,
+                                            Some(solvesn),
+                                        )
+                                        {
+                                            Ok(f) => f,
+                                            Err(s) =>
+                                            {
+                                                err = s;
+                                                continue;
+                                            }
+                                        };
+                                        if tempgraph.graph
+                                        {
+                                            graph.graph = true
+                                        }
+                                        if tempgraph.x
+                                        {
+                                            graph.x = true
+                                        }
+                                        if tempgraph.y
+                                        {
+                                            graph.y = true
+                                        }
+                                        if exit
+                                        {
+                                            return Ok((
+                                                Vec::new(),
+                                                Vec::new(),
+                                                HowGraphing::default(),
+                                                true,
+                                                None,
+                                            ));
+                                        }
+                                        if let Some(s) = sum_var
+                                        {
+                                            if collectvars.is_empty()
+                                            {
+                                                if s != "x" && sumvar == Some("x".to_string())
+                                                {
+                                                    graph.graph = true;
+                                                    graph.x = true;
+                                                    sumvar = Some(s.clone());
+                                                }
+                                                else if s != "y"
+                                                    && s != "x"
+                                                    && sumvar == Some("y".to_string())
+                                                {
+                                                    graph.graph = true;
+                                                    graph.y = true;
+                                                    sumvar = Some(s.clone());
+                                                }
+                                                else if !(s == "x" || s == "y")
+                                                    || sumvar.is_none()
+                                                    || sumvar == Some("y".to_string())
+                                                    || sumvar == Some("x".to_string())
+                                                {
+                                                    sumvar = Some(s.clone());
+                                                }
+                                                else if s == "y"
+                                                {
+                                                    graph.graph = true;
+                                                    graph.y = true;
+                                                }
+                                                else if s == "x"
+                                                {
+                                                    graph.graph = true;
+                                                    graph.x = true;
+                                                }
+                                            }
+                                            else if collectvars[0].0 < 0
+                                            {
+                                                sumvar = Some(s)
+                                            }
+                                            else
+                                            {
+                                                output.insert(collectvars[0].1, Comma);
+                                                output.insert(collectvars[0].1, Func(s.clone()));
+                                                collectvars.remove(0);
+                                            }
+                                        }
+                                        if (tempgraph.graph && parsed.len() > 1)
+                                            || print
+                                            || sumrec.iter().any(|c| c.0 == -1)
+                                            || parsed.iter().any(|c| {
+                                                if let Func(s) = c
+                                                {
+                                                    sumrec.iter().any(|r| &r.1 == s)
+                                                        || sumvar.clone() == Some(s.clone())
+                                                        || matches!(
+                                                            s.as_str(),
+                                                            "x" | "y"
+                                                                | "rnd"
+                                                                | "rand"
+                                                                | "epoch"
+                                                                | "roll"
+                                                        )
+                                                        || s.starts_with("rand_")
+                                                }
+                                                else
+                                                {
+                                                    false
+                                                }
+                                            })
+                                            || func.iter().any(|c| {
+                                                c.1.iter().any(|c| {
+                                                    if let Func(s) = c
+                                                    {
+                                                        sumrec.iter().any(|r| &r.1 == s)
+                                                            || sumvar.clone() == Some(s.clone())
+                                                            || matches!(
+                                                                s.as_str(),
+                                                                "x" | "y"
+                                                                    | "rnd"
+                                                                    | "rand"
+                                                                    | "epoch"
+                                                                    | "roll"
+                                                            )
+                                                            || s.starts_with("rand_")
+                                                    }
+                                                    else
+                                                    {
+                                                        false
+                                                    }
+                                                })
+                                            })
+                                        {
+                                            let iden = format!(
+                                                "@{}{}{}{}@",
+                                                i,
+                                                func_var,
+                                                depth,
+                                                vars.len()
+                                            );
+                                            if parsed.len() == 1
+                                            {
+                                                parsed
+                                            }
+                                            else
+                                            {
+                                                funcvars.extend(func);
+                                                funcvars.push((iden.clone(), parsed));
+                                                vec![Func(iden)]
+                                            }
+                                        }
+                                        else
+                                        {
+                                            vec![match do_math(parsed, options, func)
+                                            {
+                                                Ok(f) => f,
+                                                Err(s) =>
+                                                {
+                                                    err = s;
+                                                    continue;
+                                                }
+                                            }]
+                                        }
+                                    };
+                                    if print
+                                        && num.len() == 1
+                                        && if let Num(n) = num[0].clone()
+                                        {
+                                            n.number.real().is_sign_negative()
+                                        }
+                                        else
+                                        {
+                                            false
+                                        }
                                     {
-                                        start = f + 1;
+                                        num.insert(0, LeftBracket);
+                                        num.push(RightBracket);
                                     }
-                                    count += 1;
-                                }
-                                else if matches!(c, ')' | '}' | ']')
-                                {
-                                    count -= 1;
-                                    if count == 0
+                                    if z == 0 && (area != 0 || slope != 0)
                                     {
-                                        func_vars.push(var.name[start..f].iter().collect());
+                                        tempf = num;
+                                        if area != 0
+                                        {
+                                            output.push(Func("area".to_string()));
+                                        }
+                                        else
+                                        {
+                                            output.push(Func("slope".to_string()));
+                                        }
+                                        output.push(LeftBracket);
+                                        output.push(Func("@p".to_string() + &i.to_string()));
+                                        output.push(Comma);
+                                        num = vec![Func("@p".to_string() + &i.to_string())]
+                                    }
+                                    let mut k = 0;
+                                    for (x, fv) in fvs.clone().iter().enumerate()
+                                    {
+                                        if !fv.0.ends_with(')')
+                                        {
+                                            k = fv.1.len();
+                                            while k != 0
+                                            {
+                                                k -= 1;
+                                                if fv.1[k].str_is(&func_var)
+                                                {
+                                                    fvs[x].1.remove(k);
+                                                    fvs[x].1.splice(k..k, num.clone());
+                                                }
+                                            }
+                                        }
+                                    }
+                                    while k < parsed.len()
+                                    {
+                                        if parsed[k].str_is(&func_var)
+                                        {
+                                            parsed.remove(k);
+                                            if num.len() == 1
+                                            {
+                                                parsed.insert(k, num[0].clone());
+                                            }
+                                            else
+                                            {
+                                                parsed.splice(k..k, num.clone());
+                                                k += num.len();
+                                                continue;
+                                            }
+                                        }
+                                        k += 1;
                                     }
                                 }
-                                else if c == &',' && count == 1
+                                let mut k = 0;
+                                while k < parsed.len()
                                 {
-                                    func_vars.push(var.name[start..f].iter().collect());
-                                    start = f + 1;
+                                    for fv in &fvs
+                                    {
+                                        if parsed[k].str_is(&fv.0)
+                                        {
+                                            if !fv.0.ends_with(')')
+                                            {
+                                                parsed[k] =
+                                                    Func(format!("@{}@{}{}", i, depth, fv.0));
+                                            }
+                                            else if !fv.0.starts_with('@')
+                                            {
+                                                parsed[k] = Func(format!("@{}", fv.0));
+                                            }
+                                        }
+                                    }
+                                    k += 1;
                                 }
+                                for (x, fv) in fvs.clone().iter().enumerate()
+                                {
+                                    k = fv.1.len();
+                                    while k != 0
+                                    {
+                                        k -= 1;
+                                        for fc in fvs.clone()
+                                        {
+                                            if let Func(s) = &fv.1[k]
+                                            {
+                                                if s == &fc.0 && s != &fv.0
+                                                {
+                                                    if !fc.0.contains('(')
+                                                    {
+                                                        fvs[x].1[k] = Func(format!(
+                                                            "@{}@{}{}",
+                                                            i, depth, fc.0
+                                                        ))
+                                                    }
+                                                    else if !fc.0.starts_with('@')
+                                                    {
+                                                        fvs[x].1[k] = Func(format!("@{}", fc.0))
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                for (x, fv) in fvs.clone().iter().enumerate()
+                                {
+                                    if !fv.0.ends_with(')')
+                                    {
+                                        fvs[x].0 = format!("@{}@{}{}", i, depth, fv.0);
+                                    }
+                                    else if !fv.0.starts_with('@')
+                                    {
+                                        fvs[x].0 = format!("@{}", fv.0);
+                                    }
+                                }
+                                funcvars.extend(fvs);
+                                output.extend(parsed);
+                                if area != 0 || slope != 0
+                                {
+                                    if area != 0
+                                    {
+                                        output.push(Comma);
+                                        output.push(Num(Number::from(
+                                            Complex::new(options.prec),
+                                            None,
+                                        )))
+                                    }
+                                    output.push(Comma);
+                                    output.extend(tempf);
+                                    if area + slope != 1
+                                    {
+                                        output.push(Comma);
+                                        output.push(Num(Number::from(
+                                            Complex::with_val(options.prec, area + slope),
+                                            None,
+                                        )))
+                                    }
+                                    output.push(RightBracket);
+                                }
+                                if pwr.1 == *bracket + 1
+                                {
+                                    for _ in 0..pwr.2
+                                    {
+                                        output.push(RightBracket);
+                                    }
+                                    pwr = (false, 0, 0);
+                                }
+                                if !subfact.is_empty() && subfact[0] == *bracket + 1
+                                {
+                                    subfact.remove(0);
+                                    output.push(RightBracket);
+                                    output.push(RightBracket);
+                                }
+                                if !nobrackets
+                                {
+                                    output.push(RightBracket);
+                                }
+                                if !exp.0.is_empty() && exp.1 == *bracket
+                                {
+                                    output.push(Exponent);
+                                    output.push(Num(Number::from(
+                                        match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
+                                        {
+                                            Ok(n) => n.complete(prec),
+                                            _ => return Err("exponent error"),
+                                        },
+                                        None,
+                                    )));
+                                    exp = (String::new(), 0);
+                                }
+                                i += 1;
+                                continue 'main;
                             }
-                            let mut parsed = var.parsed.clone();
-                            let mut fvs = var.funcvars.clone();
-                            let mut tempf = Vec::new();
-                            for (z, (varf, func_var)) in split.iter().zip(func_vars).enumerate()
+                            else
                             {
+                                place_multiplier(&mut output, sumrec, &sumvar);
+                                if neg
+                                {
+                                    output.push(Num(Number::from(n1.clone(), None)));
+                                    output.push(InternalMultiplication);
+                                    neg = false;
+                                }
+                                let nobrackets = j != 0
+                                    && chars[j - 1] == ','
+                                    && i + 1 != chars.len()
+                                    && chars[i + 1] == ',';
+                                if !nobrackets
+                                {
+                                    output.push(LeftBracket);
+                                }
+                                let mut temp = &chars[j + countj + 1..=i];
+                                if temp.ends_with(&[')'])
+                                {
+                                    temp = &temp[..temp.len().saturating_sub(1)];
+                                }
+                                let l = var.name[var.name.iter().position(|c| c == &'(').unwrap()
+                                    + 1
+                                    ..var.name.len().saturating_sub(1)]
+                                    .iter()
+                                    .collect::<String>();
+                                let mut parsed = var.parsed.clone();
+                                let mut fvs = var.funcvars.clone();
+                                let mut k = 0;
                                 let mut num = if let Ok(n) = Complex::parse_radix(
-                                    varf.iter().collect::<String>(),
+                                    temp.iter().collect::<String>(),
                                     options.base.0,
                                 )
                                 {
@@ -2095,7 +2509,7 @@ pub fn input_var(
                                         }
                                     }
                                     (parsed, func, tempgraph, exit, sum_var) = match input_var(
-                                        &varf.iter().collect::<String>(),
+                                        &temp.iter().collect::<String>(),
                                         vars,
                                         sumrec,
                                         bracket,
@@ -2137,10 +2551,14 @@ pub fn input_var(
                                             None,
                                         ));
                                     }
-                                    if let Some(s) = sum_var
+                                    if let Some(mut s) = sum_var
                                     {
                                         if collectvars.is_empty()
                                         {
+                                            if s.ends_with('i')
+                                            {
+                                                s.pop();
+                                            }
                                             if s != "x" && sumvar == Some("x".to_string())
                                             {
                                                 graph.graph = true;
@@ -2230,9 +2648,16 @@ pub fn input_var(
                                             })
                                         })
                                     {
-                                        let iden =
-                                            format!("@{}{}{}{}@", i, func_var, depth, vars.len());
+                                        let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
                                         if parsed.len() == 1
+                                            && if let Func(s) = &parsed[0]
+                                            {
+                                                !matches!(s.as_str(), "rnd" | "rand" | "epoch")
+                                            }
+                                            else
+                                            {
+                                                true
+                                            }
                                         {
                                             parsed
                                         }
@@ -2256,6 +2681,14 @@ pub fn input_var(
                                         }]
                                     }
                                 };
+                                if abs
+                                {
+                                    num.insert(0, LeftBracket);
+                                    num.insert(0, Func("norm".to_string()));
+                                    num.insert(0, LeftBracket);
+                                    num.push(RightBracket);
+                                    num.push(RightBracket)
+                                }
                                 if print
                                     && num.len() == 1
                                     && if let Num(n) = num[0].clone()
@@ -2270,7 +2703,8 @@ pub fn input_var(
                                     num.insert(0, LeftBracket);
                                     num.push(RightBracket);
                                 }
-                                if z == 0 && (area != 0 || slope != 0)
+                                let mut tempf = Vec::new();
+                                if area != 0 || slope != 0
                                 {
                                     tempf = num;
                                     if area != 0
@@ -2286,26 +2720,9 @@ pub fn input_var(
                                     output.push(Comma);
                                     num = vec![Func("@p".to_string() + &i.to_string())]
                                 }
-                                let mut k = 0;
-                                for (x, fv) in fvs.clone().iter().enumerate()
-                                {
-                                    if !fv.0.ends_with(')')
-                                    {
-                                        k = fv.1.len();
-                                        while k != 0
-                                        {
-                                            k -= 1;
-                                            if fv.1[k].str_is(&func_var)
-                                            {
-                                                fvs[x].1.remove(k);
-                                                fvs[x].1.splice(k..k, num.clone());
-                                            }
-                                        }
-                                    }
-                                }
                                 while k < parsed.len()
                                 {
-                                    if parsed[k].str_is(&func_var)
+                                    if parsed[k].str_is(&l)
                                     {
                                         parsed.remove(k);
                                         if num.len() == 1
@@ -2321,532 +2738,146 @@ pub fn input_var(
                                     }
                                     k += 1;
                                 }
-                            }
-                            let mut k = 0;
-                            while k < parsed.len()
-                            {
-                                for fv in &fvs
+                                for fv in fvs.iter_mut()
                                 {
-                                    if parsed[k].str_is(&fv.0)
+                                    if !fv.0.ends_with(')')
                                     {
-                                        if !fv.0.ends_with(')')
+                                        k = fv.1.len();
+                                        while k != 0
                                         {
-                                            parsed[k] = Func(format!("@{}@{}{}", i, depth, fv.0));
-                                        }
-                                        else if !fv.0.starts_with('@')
-                                        {
-                                            parsed[k] = Func(format!("@{}", fv.0));
-                                        }
-                                    }
-                                }
-                                k += 1;
-                            }
-                            for (x, fv) in fvs.clone().iter().enumerate()
-                            {
-                                k = fv.1.len();
-                                while k != 0
-                                {
-                                    k -= 1;
-                                    for fc in fvs.clone()
-                                    {
-                                        if let Func(s) = &fv.1[k]
-                                        {
-                                            if s == &fc.0 && s != &fv.0
+                                            k -= 1;
+                                            if fv.1[k].str_is(&l)
                                             {
-                                                if !fc.0.contains('(')
+                                                fv.1.remove(k);
+                                                if num.len() == 1
                                                 {
-                                                    fvs[x].1[k] =
-                                                        Func(format!("@{}@{}{}", i, depth, fc.0))
+                                                    fv.1.insert(k, num[0].clone());
                                                 }
-                                                else if !fc.0.starts_with('@')
+                                                else
                                                 {
-                                                    fvs[x].1[k] = Func(format!("@{}", fc.0))
+                                                    fv.1.splice(k..k, num.clone());
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            for (x, fv) in fvs.clone().iter().enumerate()
-                            {
-                                if !fv.0.ends_with(')')
+                                let mut k = 0;
+                                while k < parsed.len()
                                 {
-                                    fvs[x].0 = format!("@{}@{}{}", i, depth, fv.0);
-                                }
-                                else if !fv.0.starts_with('@')
-                                {
-                                    fvs[x].0 = format!("@{}", fv.0);
-                                }
-                            }
-                            funcvars.extend(fvs);
-                            output.extend(parsed);
-                            if area != 0 || slope != 0
-                            {
-                                if area != 0
-                                {
-                                    output.push(Comma);
-                                    output.push(Num(Number::from(Complex::new(options.prec), None)))
-                                }
-                                output.push(Comma);
-                                output.extend(tempf);
-                                if area + slope != 1
-                                {
-                                    output.push(Comma);
-                                    output.push(Num(Number::from(
-                                        Complex::with_val(options.prec, area + slope),
-                                        None,
-                                    )))
-                                }
-                                output.push(RightBracket);
-                            }
-                            if pwr.1 == *bracket + 1
-                            {
-                                for _ in 0..pwr.2
-                                {
-                                    output.push(RightBracket);
-                                }
-                                pwr = (false, 0, 0);
-                            }
-                            if !subfact.is_empty() && subfact[0] == *bracket + 1
-                            {
-                                subfact.remove(0);
-                                output.push(RightBracket);
-                                output.push(RightBracket);
-                            }
-                            if !nobrackets
-                            {
-                                output.push(RightBracket);
-                            }
-                            if !exp.0.is_empty() && exp.1 == *bracket
-                            {
-                                output.push(Exponent);
-                                output.push(Num(Number::from(
-                                    match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
+                                    for fv in &fvs
                                     {
-                                        Ok(n) => n.complete(prec),
-                                        _ => return Err("exponent error"),
-                                    },
-                                    None,
-                                )));
-                                exp = (String::new(), 0);
-                            }
-                            i += 1;
-                            continue 'main;
-                        }
-                        else
-                        {
-                            place_multiplier(&mut output, sumrec, &sumvar);
-                            if neg
-                            {
-                                output.push(Num(Number::from(n1.clone(), None)));
-                                output.push(InternalMultiplication);
-                                neg = false;
-                            }
-                            let nobrackets = j != 0
-                                && chars[j - 1] == ','
-                                && i + 1 != chars.len()
-                                && chars[i + 1] == ',';
-                            if !nobrackets
-                            {
-                                output.push(LeftBracket);
-                            }
-                            let mut temp = &chars[j + countj + 1..=i];
-                            if temp.ends_with(&[')'])
-                            {
-                                temp = &temp[..temp.len().saturating_sub(1)];
-                            }
-                            let l = var.name[var.name.iter().position(|c| c == &'(').unwrap() + 1
-                                ..var.name.len().saturating_sub(1)]
-                                .iter()
-                                .collect::<String>();
-                            let mut parsed = var.parsed.clone();
-                            let mut fvs = var.funcvars.clone();
-                            let mut k = 0;
-                            let mut num = if let Ok(n) = Complex::parse_radix(
-                                temp.iter().collect::<String>(),
-                                options.base.0,
-                            )
-                            {
-                                vec![Num(Number::from(n.complete(prec), None))]
-                            }
-                            else
-                            {
-                                let parsed;
-                                let exit;
-                                let func;
-                                let tempgraph;
-                                let sum_var;
-                                let mut cv = collectvars.clone();
-                                if !cv.is_empty()
-                                {
-                                    if cv[0].0 < 0
-                                    {
-                                        cv[0].0 -= 1;
-                                    }
-                                    else
-                                    {
-                                        cv[0].0 = -1
-                                    }
-                                }
-                                (parsed, func, tempgraph, exit, sum_var) = match input_var(
-                                    &temp.iter().collect::<String>(),
-                                    vars,
-                                    sumrec,
-                                    bracket,
-                                    options,
-                                    print,
-                                    depth + 1,
-                                    blacklist.clone(),
-                                    false,
-                                    &mut cv,
-                                    Some(solvesn),
-                                )
-                                {
-                                    Ok(f) => f,
-                                    Err(s) =>
-                                    {
-                                        err = s;
-                                        continue;
-                                    }
-                                };
-                                if tempgraph.graph
-                                {
-                                    graph.graph = true
-                                }
-                                if tempgraph.x
-                                {
-                                    graph.x = true
-                                }
-                                if tempgraph.y
-                                {
-                                    graph.y = true
-                                }
-                                if exit
-                                {
-                                    return Ok((
-                                        Vec::new(),
-                                        Vec::new(),
-                                        HowGraphing::default(),
-                                        true,
-                                        None,
-                                    ));
-                                }
-                                if let Some(mut s) = sum_var
-                                {
-                                    if collectvars.is_empty()
-                                    {
-                                        if s.ends_with('i')
+                                        if parsed[k].str_is(&fv.0)
                                         {
-                                            s.pop();
-                                        }
-                                        if s != "x" && sumvar == Some("x".to_string())
-                                        {
-                                            graph.graph = true;
-                                            graph.x = true;
-                                            sumvar = Some(s.clone());
-                                        }
-                                        else if s != "y"
-                                            && s != "x"
-                                            && sumvar == Some("y".to_string())
-                                        {
-                                            graph.graph = true;
-                                            graph.y = true;
-                                            sumvar = Some(s.clone());
-                                        }
-                                        else if !(s == "x" || s == "y")
-                                            || sumvar.is_none()
-                                            || sumvar == Some("y".to_string())
-                                            || sumvar == Some("x".to_string())
-                                        {
-                                            sumvar = Some(s.clone());
-                                        }
-                                        else if s == "y"
-                                        {
-                                            graph.graph = true;
-                                            graph.y = true;
-                                        }
-                                        else if s == "x"
-                                        {
-                                            graph.graph = true;
-                                            graph.x = true;
-                                        }
-                                    }
-                                    else if collectvars[0].0 < 0
-                                    {
-                                        sumvar = Some(s)
-                                    }
-                                    else
-                                    {
-                                        output.insert(collectvars[0].1, Comma);
-                                        output.insert(collectvars[0].1, Func(s.clone()));
-                                        collectvars.remove(0);
-                                    }
-                                }
-                                if (tempgraph.graph && parsed.len() > 1)
-                                    || print
-                                    || sumrec.iter().any(|c| c.0 == -1)
-                                    || parsed.iter().any(|c| {
-                                        if let Func(s) = c
-                                        {
-                                            sumrec.iter().any(|r| &r.1 == s)
-                                                || sumvar.clone() == Some(s.clone())
-                                                || matches!(
-                                                    s.as_str(),
-                                                    "x" | "y" | "rnd" | "rand" | "epoch" | "roll"
-                                                )
-                                                || s.starts_with("rand_")
-                                        }
-                                        else
-                                        {
-                                            false
-                                        }
-                                    })
-                                    || func.iter().any(|c| {
-                                        c.1.iter().any(|c| {
-                                            if let Func(s) = c
+                                            if !fv.0.ends_with(')')
                                             {
-                                                sumrec.iter().any(|r| &r.1 == s)
-                                                    || sumvar.clone() == Some(s.clone())
-                                                    || matches!(
-                                                        s.as_str(),
-                                                        "x" | "y"
-                                                            | "rnd"
-                                                            | "rand"
-                                                            | "epoch"
-                                                            | "roll"
-                                                    )
-                                                    || s.starts_with("rand_")
+                                                parsed[k] =
+                                                    Func(format!("@{}@{}{}", i, depth, fv.0));
                                             }
-                                            else
+                                            else if !fv.0.starts_with('@')
                                             {
-                                                false
+                                                parsed[k] = Func(format!("@{}", fv.0));
                                             }
-                                        })
-                                    })
-                                {
-                                    let iden = format!("@{}{}{}{}@", i, l, depth, vars.len());
-                                    if parsed.len() == 1
-                                        && if let Func(s) = &parsed[0]
-                                        {
-                                            !matches!(s.as_str(), "rnd" | "rand" | "epoch")
                                         }
-                                        else
-                                        {
-                                            true
-                                        }
-                                    {
-                                        parsed
                                     }
-                                    else
-                                    {
-                                        funcvars.extend(func);
-                                        funcvars.push((iden.clone(), parsed));
-                                        vec![Func(iden)]
-                                    }
+                                    k += 1;
                                 }
-                                else
-                                {
-                                    vec![match do_math(parsed, options, func)
-                                    {
-                                        Ok(f) => f,
-                                        Err(s) =>
-                                        {
-                                            err = s;
-                                            continue;
-                                        }
-                                    }]
-                                }
-                            };
-                            if abs
-                            {
-                                num.insert(0, LeftBracket);
-                                num.insert(0, Func("norm".to_string()));
-                                num.insert(0, LeftBracket);
-                                num.push(RightBracket);
-                                num.push(RightBracket)
-                            }
-                            if print
-                                && num.len() == 1
-                                && if let Num(n) = num[0].clone()
-                                {
-                                    n.number.real().is_sign_negative()
-                                }
-                                else
-                                {
-                                    false
-                                }
-                            {
-                                num.insert(0, LeftBracket);
-                                num.push(RightBracket);
-                            }
-                            let mut tempf = Vec::new();
-                            if area != 0 || slope != 0
-                            {
-                                tempf = num;
-                                if area != 0
-                                {
-                                    output.push(Func("area".to_string()));
-                                }
-                                else
-                                {
-                                    output.push(Func("slope".to_string()));
-                                }
-                                output.push(LeftBracket);
-                                output.push(Func("@p".to_string() + &i.to_string()));
-                                output.push(Comma);
-                                num = vec![Func("@p".to_string() + &i.to_string())]
-                            }
-                            while k < parsed.len()
-                            {
-                                if parsed[k].str_is(&l)
-                                {
-                                    parsed.remove(k);
-                                    if num.len() == 1
-                                    {
-                                        parsed.insert(k, num[0].clone());
-                                    }
-                                    else
-                                    {
-                                        parsed.splice(k..k, num.clone());
-                                        k += num.len();
-                                        continue;
-                                    }
-                                }
-                                k += 1;
-                            }
-                            for fv in fvs.iter_mut()
-                            {
-                                if !fv.0.ends_with(')')
+                                for (x, fv) in fvs.clone().iter().enumerate()
                                 {
                                     k = fv.1.len();
                                     while k != 0
                                     {
                                         k -= 1;
-                                        if fv.1[k].str_is(&l)
+                                        for fc in fvs.clone()
                                         {
-                                            fv.1.remove(k);
-                                            if num.len() == 1
+                                            if let Func(s) = &fv.1[k]
                                             {
-                                                fv.1.insert(k, num[0].clone());
-                                            }
-                                            else
-                                            {
-                                                fv.1.splice(k..k, num.clone());
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            let mut k = 0;
-                            while k < parsed.len()
-                            {
-                                for fv in &fvs
-                                {
-                                    if parsed[k].str_is(&fv.0)
-                                    {
-                                        if !fv.0.ends_with(')')
-                                        {
-                                            parsed[k] = Func(format!("@{}@{}{}", i, depth, fv.0));
-                                        }
-                                        else if !fv.0.starts_with('@')
-                                        {
-                                            parsed[k] = Func(format!("@{}", fv.0));
-                                        }
-                                    }
-                                }
-                                k += 1;
-                            }
-                            for (x, fv) in fvs.clone().iter().enumerate()
-                            {
-                                k = fv.1.len();
-                                while k != 0
-                                {
-                                    k -= 1;
-                                    for fc in fvs.clone()
-                                    {
-                                        if let Func(s) = &fv.1[k]
-                                        {
-                                            if s == &fc.0 && s != &fv.0
-                                            {
-                                                if !fc.0.contains('(')
+                                                if s == &fc.0 && s != &fv.0
                                                 {
-                                                    fvs[x].1[k] =
-                                                        Func(format!("@{}@{}{}", i, depth, fc.0))
-                                                }
-                                                else if !fc.0.starts_with('@')
-                                                {
-                                                    fvs[x].1[k] = Func(format!("@{}", fc.0))
+                                                    if !fc.0.contains('(')
+                                                    {
+                                                        fvs[x].1[k] = Func(format!(
+                                                            "@{}@{}{}",
+                                                            i, depth, fc.0
+                                                        ))
+                                                    }
+                                                    else if !fc.0.starts_with('@')
+                                                    {
+                                                        fvs[x].1[k] = Func(format!("@{}", fc.0))
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            for (x, fv) in fvs.clone().iter().enumerate()
-                            {
-                                if !fv.0.ends_with(')')
+                                for (x, fv) in fvs.clone().iter().enumerate()
                                 {
-                                    fvs[x].0 = format!("@{}@{}{}", i, depth, fv.0);
+                                    if !fv.0.ends_with(')')
+                                    {
+                                        fvs[x].0 = format!("@{}@{}{}", i, depth, fv.0);
+                                    }
+                                    else if !fv.0.starts_with('@')
+                                    {
+                                        fvs[x].0 = format!("@{}", fv.0);
+                                    }
                                 }
-                                else if !fv.0.starts_with('@')
+                                funcvars.extend(fvs);
+                                output.extend(parsed);
+                                if area != 0 || slope != 0
                                 {
-                                    fvs[x].0 = format!("@{}", fv.0);
-                                }
-                            }
-                            funcvars.extend(fvs);
-                            output.extend(parsed);
-                            if area != 0 || slope != 0
-                            {
-                                if area != 0
-                                {
+                                    if area != 0
+                                    {
+                                        output.push(Comma);
+                                        output.push(Num(Number::from(
+                                            Complex::new(options.prec),
+                                            None,
+                                        )))
+                                    }
                                     output.push(Comma);
-                                    output.push(Num(Number::from(Complex::new(options.prec), None)))
+                                    output.extend(tempf);
+                                    if area + slope != 1
+                                    {
+                                        output.push(Comma);
+                                        output.push(Num(Number::from(
+                                            Complex::with_val(options.prec, area + slope),
+                                            None,
+                                        )))
+                                    }
+                                    output.push(RightBracket);
                                 }
-                                output.push(Comma);
-                                output.extend(tempf);
-                                if area + slope != 1
+                                if pwr.1 == *bracket + 1
                                 {
-                                    output.push(Comma);
-                                    output.push(Num(Number::from(
-                                        Complex::with_val(options.prec, area + slope),
-                                        None,
-                                    )))
+                                    for _ in 0..pwr.2
+                                    {
+                                        output.push(RightBracket);
+                                    }
+                                    pwr = (false, 0, 0);
                                 }
-                                output.push(RightBracket);
-                            }
-                            if pwr.1 == *bracket + 1
-                            {
-                                for _ in 0..pwr.2
+                                if !subfact.is_empty() && subfact[0] == *bracket + 1
+                                {
+                                    subfact.remove(0);
+                                    output.push(RightBracket);
+                                    output.push(RightBracket);
+                                }
+                                if !nobrackets
                                 {
                                     output.push(RightBracket);
                                 }
-                                pwr = (false, 0, 0);
+                                if !exp.0.is_empty() && exp.1 == *bracket
+                                {
+                                    output.push(Exponent);
+                                    output.push(Num(Number::from(
+                                        match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
+                                        {
+                                            Ok(n) => n.complete(prec),
+                                            _ => return Err("exponent error"),
+                                        },
+                                        None,
+                                    )));
+                                    exp = (String::new(), 0);
+                                }
+                                i += 1;
+                                continue 'main;
                             }
-                            if !subfact.is_empty() && subfact[0] == *bracket + 1
-                            {
-                                subfact.remove(0);
-                                output.push(RightBracket);
-                                output.push(RightBracket);
-                            }
-                            if !nobrackets
-                            {
-                                output.push(RightBracket);
-                            }
-                            if !exp.0.is_empty() && exp.1 == *bracket
-                            {
-                                output.push(Exponent);
-                                output.push(Num(Number::from(
-                                    match Complex::parse_radix(exp.0.as_bytes(), options.base.0)
-                                    {
-                                        Ok(n) => n.complete(prec),
-                                        _ => return Err("exponent error"),
-                                    },
-                                    None,
-                                )));
-                                exp = (String::new(), 0);
-                            }
-                            i += 1;
-                            continue 'main;
                         }
                     }
                     else if i + var.name.len() <= chars.len()
@@ -2854,108 +2885,114 @@ pub fn input_var(
                             || (wordv != chars[i..i + var.name.len()].iter().collect::<String>()
                                 && wordv.starts_with(&var.name.iter().collect::<String>())))
                     {
-                        if blacklist == var.name && collectvars.is_empty()
+                        if blacklist == var.name
                         {
-                            return Err("recursive");
-                        }
-                        i += if chars[i..i + var.name.len()].contains(&'@')
-                            && !var.name.contains(&'@')
-                        {
-                            let mut count = 0;
-                            let mut countw = 0;
-                            let mut depth = false;
-                            let mut word = String::new();
-                            for c in chars[i..].iter()
+                            if collectvars.is_empty()
                             {
-                                if word == var.name.iter().collect::<String>()
-                                {
-                                    if depth
-                                    {
-                                        count += chars[i + count..]
-                                            .iter()
-                                            .position(|a| a == &'@')
-                                            .unwrap()
-                                            + 1;
-                                    }
-                                    break;
-                                }
-                                if c == &'@'
-                                {
-                                    depth = !depth;
-                                }
-                                else if c == &var.name[countw]
-                                {
-                                    word.push(*c);
-                                    countw += 1;
-                                }
-                                else if !depth
-                                {
-                                    i += 1;
-                                    continue 'main;
-                                }
-                                count += 1;
+                                return Err("recursive");
                             }
-                            count
                         }
                         else
                         {
-                            var.name.len()
-                        };
-                        place_multiplier(&mut output, sumrec, &sumvar);
-                        if neg
-                        {
-                            output.push(Num(Number::from(n1.clone(), None)));
-                            output.push(InternalMultiplication);
-                            neg = false;
-                        }
-                        let print = print
-                            && if let Num(n) = var.parsed[0].clone()
+                            i += if chars[i..i + var.name.len()].contains(&'@')
+                                && !var.name.contains(&'@')
                             {
-                                n.number.real().is_sign_negative()
+                                let mut count = 0;
+                                let mut countw = 0;
+                                let mut depth = false;
+                                let mut word = String::new();
+                                for c in chars[i..].iter()
+                                {
+                                    if word == var.name.iter().collect::<String>()
+                                    {
+                                        if depth
+                                        {
+                                            count += chars[i + count..]
+                                                .iter()
+                                                .position(|a| a == &'@')
+                                                .unwrap()
+                                                + 1;
+                                        }
+                                        break;
+                                    }
+                                    if c == &'@'
+                                    {
+                                        depth = !depth;
+                                    }
+                                    else if c == &var.name[countw]
+                                    {
+                                        word.push(*c);
+                                        countw += 1;
+                                    }
+                                    else if !depth
+                                    {
+                                        i += 1;
+                                        continue 'main;
+                                    }
+                                    count += 1;
+                                }
+                                count
                             }
                             else
                             {
-                                false
+                                var.name.len()
                             };
-                        if print
-                        {
-                            output.push(LeftBracket);
-                        }
-                        if !var.parsed.is_empty()
-                        {
-                            output.push(var.parsed[0].clone());
-                        }
-                        else
-                        {
-                            return Err("bad input2");
-                        }
-                        if print
-                        {
-                            output.push(RightBracket);
-                        }
-                        if scientific
-                        {
-                            output.push(RightBracket);
-                            scientific = false;
-                        }
-                        if pwr.0
-                            && pwr.1 == *bracket
-                            && (chars.len() <= i + 1 || chars[i + 1] != '^')
-                        {
-                            for _ in 0..pwr.2
+                            place_multiplier(&mut output, sumrec, &sumvar);
+                            if neg
+                            {
+                                output.push(Num(Number::from(n1.clone(), None)));
+                                output.push(InternalMultiplication);
+                                neg = false;
+                            }
+                            let print = print
+                                && if let Num(n) = var.parsed[0].clone()
+                                {
+                                    n.number.real().is_sign_negative()
+                                }
+                                else
+                                {
+                                    false
+                                };
+                            if print
+                            {
+                                output.push(LeftBracket);
+                            }
+                            if !var.parsed.is_empty()
+                            {
+                                output.push(var.parsed[0].clone());
+                            }
+                            else
+                            {
+                                return Err("bad input2");
+                            }
+                            if print
                             {
                                 output.push(RightBracket);
                             }
-                            pwr.0 = false;
-                            pwr.2 = 0
+                            if scientific
+                            {
+                                output.push(RightBracket);
+                                scientific = false;
+                            }
+                            if pwr.0
+                                && pwr.1 == *bracket
+                                && (chars.len() <= i + 1 || chars[i + 1] != '^')
+                            {
+                                for _ in 0..pwr.2
+                                {
+                                    output.push(RightBracket);
+                                }
+                                pwr.0 = false;
+                                pwr.2 = 0
+                            }
+                            if !subfact.is_empty() && subfact[0] == 0
+                            {
+                                subfact.remove(0);
+                                output.push(RightBracket);
+                                output.push(RightBracket);
+                            }
+                            continue 'main;
                         }
-                        if !subfact.is_empty() && subfact[0] == 0
-                        {
-                            subfact.remove(0);
-                            output.push(RightBracket);
-                            output.push(RightBracket);
-                        }
-                        continue 'main;
                     }
                 }
             }

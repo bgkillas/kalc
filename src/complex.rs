@@ -4496,20 +4496,26 @@ pub fn taylor(
 {
     let mut an = a.number;
     let mut x = x.number;
-    let op = options.prec;
     options.prec = options.prec.clamp(256, 1024);
     x.set_prec(options.prec);
     an.set_prec(options.prec);
     let a = Number::from(an.clone(), a.units);
-    let mut sum = Complex::new(op);
-    for n in 0..=nth
+    let val = do_math_with_var(
+        func.clone(),
+        options,
+        func_vars.clone(),
+        &var,
+        Num(a.clone()),
+    )?;
+    let mut sum = val.clone();
+    for n in 1..=nth
     {
-        let mut fact = 1;
-        for i in 1..=n
+        let mut fact = n;
+        for i in 1..n
         {
             fact *= i
         }
-        sum += slopesided(
+        let d = slopesided(
             func.clone(),
             func_vars.clone(),
             options,
@@ -4518,15 +4524,16 @@ pub fn taylor(
             false,
             n,
             true,
+            Some(val.clone()),
             None,
-            None,
-        )?
-        .num()?
-        .number
-            / fact
-            * (x.clone() - an.clone()).pow(n)
+        )?;
+        let v = d.func(
+            &Num(Number::from(fact / (x.clone() - an.clone()).pow(n), None)),
+            div,
+        )?;
+        sum = sum.func(&v, add)?;
     }
-    Ok(Num(Number::from(sum, None)))
+    Ok(sum)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -4556,6 +4563,13 @@ pub fn slope(
     {
         options.prec = options.prec.clamp(256, 1024);
         point.number.set_prec(options.prec);
+        let val = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var,
+            Num(point.clone()),
+        )?;
         let left = slopesided(
             func.clone(),
             func_vars.clone(),
@@ -4565,11 +4579,20 @@ pub fn slope(
             combine,
             nth,
             false,
-            None,
+            Some(val.clone()),
             None,
         )?;
         let right = slopesided(
-            func, func_vars, options, var, point, combine, nth, true, None, None,
+            func,
+            func_vars,
+            options,
+            var,
+            point,
+            combine,
+            nth,
+            true,
+            Some(val),
+            None,
         )?;
         match (left, right)
         {

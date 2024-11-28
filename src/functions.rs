@@ -436,7 +436,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "beta_pdf(x,α,β)",
         "beta_cdf(x,α,β)",
         "slope(a,f(a),x(,nth)(,combine))",
-        "taylor(a,f(a),x,a,n)",
+        "taylor(a,f(a),p,n(,x))",
         "lim(a,f(a),x(,side))",
         "area(a,f(a),start,end(,nth)(,combine)",
         "arclength(a,f(a),start,end)",

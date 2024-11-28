@@ -771,13 +771,28 @@ pub fn do_math(
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());
                         }
-                        ("taylor", Func(var)) if place.len() == 5 =>
+                        ("taylor", Func(var)) if place.len() == 4 || place.len() == 5 =>
                         {
                             function[i] = taylor(
                                 function[place[0] + 1..place[1]].to_vec(),
                                 func_vars.clone(),
                                 options,
                                 var.to_string(),
+                                if place.len() == 5
+                                {
+                                    Some(
+                                        do_math(
+                                            function[place[3] + 1..place[4]].to_vec(),
+                                            options,
+                                            func_vars.clone(),
+                                        )?
+                                        .num()?,
+                                    )
+                                }
+                                else
+                                {
+                                    None
+                                },
                                 do_math(
                                     function[place[1] + 1..place[2]].to_vec(),
                                     options,
@@ -789,18 +804,12 @@ pub fn do_math(
                                     options,
                                     func_vars.clone(),
                                 )?
-                                .num()?,
-                                do_math(
-                                    function[place[3] + 1..place[4]].to_vec(),
-                                    options,
-                                    func_vars.clone(),
-                                )?
                                 .num()?
                                 .number
                                 .real()
                                 .to_integer()
                                 .unwrap_or_default()
-                                .to_u32()
+                                .to_usize()
                                 .unwrap_or_default(),
                             )?;
                             function.drain(i + 1..=*place.last().unwrap());

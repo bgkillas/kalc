@@ -1404,10 +1404,12 @@ pub fn input_var(
             if match word.as_str()
             {
                 "integrate" | "vec" | "arclength" | "mat" | "prod" | "production" | "iter"
-                | "length" | "∫" | "area" | "sum" | "Σ" | "summation" | "Π" => place >= 3,
+                | "length" | "∫" | "area" | "sum" | "Σ" | "summation" | "Π" | "taylor" =>
+                {
+                    place >= 3
+                }
                 "sarea" | "surfacearea" => place >= 6,
                 "solve" | "extrema" => place >= 1,
-                "taylor" => place >= 4,
                 "D" | "slope" | "lim" | "limit" | "set" => place >= 2,
                 _ => place > 0,
             }

@@ -2420,10 +2420,8 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
         + 27 * sqr(c.clone())
         + 27 * sqr(a.clone()) * d.clone()
         - 72 * b.clone() * d.clone();
-
     let omega: Complex = -4 * cube(alpha.clone()) + sqr(phi.clone());
     let omega: Complex = phi + omega.sqrt();
-
     let alpha: Complex = if alpha.is_zero()
     {
         Complex::new(prec)
@@ -2433,14 +2431,10 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
         Float::with_val(prec.0, 2).pow(threerecip.clone()) * alpha
             / (3 * pow_nth(omega.clone(), threerecip.clone().into()))
     };
-
     let beta: Complex = omega / 54;
     let beta: Complex = pow_nth(beta, threerecip.clone().into());
-
     let infirst: Complex = sqr(a.clone()) / 4 - 2 * b.clone() / 3 + alpha.clone() + beta.clone();
-
     let first: Complex = infirst.clone().sqrt() / 2;
-
     let third: Complex = -1 * cube(a.clone()) + 4 * a.clone() * b.clone() - 8 * c.clone();
     let third: Complex = if third.is_zero()
     {
@@ -2450,14 +2444,10 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
     {
         third / (first.clone() * 8)
     };
-
     let a4: Complex = -a.clone() / 4;
-
     let second: Complex = sqr(a.clone()) / 2 - 4 * b.clone() / 3 - alpha.clone() - beta.clone();
-
     let secondn: Complex = second.clone() - third.clone();
     let secondn: Complex = secondn.sqrt() / 2;
-
     let secondp: Complex = second + third.clone();
     let secondp: Complex = secondp.sqrt() / 2;
     let mut r1 = a4.clone() - first.clone() - secondn.clone();
@@ -3751,180 +3741,133 @@ pub fn area(
         match (x0, x1, x2, x3, x4.clone())
         {
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
-            {
-                let n0;
-                let n1;
-                let n2;
-                let n3;
-                let n4;
-                if nth != 1.0
                 {
-                    let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
-                    n0 = nx0.number * nt;
-                    let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                    let nt =pow_nth(n,nth.clone() - 1);
-                    n1 = nx1.number * nt;
-                    let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                    let nt =pow_nth(n,nth.clone() - 1);
-                    n2 = nx2.number * nt;
-                    let n: Complex = end.clone() - start.clone() + h.clone();
-                    let nt = pow_nth(n,nth.clone() - 1);
-                    n3 = nx3.number * nt;
-                    let n: Complex = end.clone() - start.clone();
-                    let nt = pow_nth(n,nth.clone() - 1);
-                    n4 = nx4.number * nt;
+                    let n0;
+                    let n1;
+                    let n2;
+                    let n3;
+                    let n4;
+                    if nth != 1.0
+                    {
+                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(), nth.clone() - 1);
+                        n0 = nx0.number * nt;
+                        let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                        let nt = pow_nth(n, nth.clone() - 1);
+                        n1 = nx1.number * nt;
+                        let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                        let nt = pow_nth(n, nth.clone() - 1);
+                        n2 = nx2.number * nt;
+                        let n: Complex = end.clone() - start.clone() + h.clone();
+                        let nt = pow_nth(n, nth.clone() - 1);
+                        n3 = nx3.number * nt;
+                        let n: Complex = end.clone() - start.clone();
+                        let nt = pow_nth(n, nth.clone() - 1);
+                        n4 = nx4.number * nt;
+                    } else {
+                        n0 = nx0.number;
+                        n1 = nx1.number;
+                        n2 = nx2.number;
+                        n3 = nx3.number;
+                        n4 = nx4.number;
+                    }
+                    area += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
+                    x0 = x4;
                 }
-                else
-                {
-                    n0 = nx0.number;
-                    n1 = nx1.number;
-                    n2 = nx2.number;
-                    n3 = nx3.number;
-                    n4 = nx4.number;
-                }
-                area += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
-                x0 = x4;
-            }
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
-            {
-                let mut nx1t = Complex::new(options.prec);
-                let mut nx2t = Complex::new(options.prec);
-                let mut nx3t = Complex::new(options.prec);
-                let mut nx4t = Complex::new(options.prec);
-                for i in &funcs
                 {
-                    nx1t += sqr((do_math_with_var(
-                        i.clone(),
-                        options,
-                        func_vars.clone(),
-                        &var,
-                        Num(Number::from(
-                            start.clone() - 3 * h.clone() + div.clone(),
-                            units,
-                        )),
-                    )?
-                    .num()?
-                    .number
-                        - do_math_with_var(
+                    let mut nx1t = Complex::new(options.prec);
+                    let mut nx2t = Complex::new(options.prec);
+                    let mut nx3t = Complex::new(options.prec);
+                    let mut nx4t = Complex::new(options.prec);
+                    for i in &funcs
+                    {
+                        nx1t += sqr((do_math_with_var(
+                            i.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(Number::from(
+                                start.clone() - 3 * h.clone() + div.clone(),
+                                units,
+                            )),
+                        )?
+                            .num()?
+                            .number
+                            - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
                             &var,
                             Num(Number::from(start.clone() - 3 * h.clone(), units)),
                         )?
-                        .num()?
-                        .number)
-                        / div.clone());
-                    nx2t += sqr((do_math_with_var(
-                        i.clone(),
-                        options,
-                        func_vars.clone(),
-                        &var,
-                        Num(Number::from(
-                            start.clone() - 2 * h.clone() + div.clone(),
-                            units,
-                        )),
-                    )?
-                    .num()?
-                    .number
-                        - do_math_with_var(
+                            .num()?
+                            .number)
+                            / div.clone());
+                        nx2t += sqr((do_math_with_var(
+                            i.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(Number::from(
+                                start.clone() - 2 * h.clone() + div.clone(),
+                                units,
+                            )),
+                        )?
+                            .num()?
+                            .number
+                            - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
                             &var,
                             Num(Number::from(start.clone() - 2 * h.clone(), units)),
                         )?
-                        .num()?
-                        .number)
-                        / div.clone());
-                    nx3t += sqr((do_math_with_var(
-                        i.clone(),
-                        options,
-                        func_vars.clone(),
-                        &var,
-                        Num(Number::from(start.clone() - h.clone() + div.clone(), units)),
-                    )?
-                    .num()?
-                    .number
-                        - do_math_with_var(
+                            .num()?
+                            .number)
+                            / div.clone());
+                        nx3t += sqr((do_math_with_var(
+                            i.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(Number::from(start.clone() - h.clone() + div.clone(), units)),
+                        )?
+                            .num()?
+                            .number
+                            - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
                             &var,
                             Num(Number::from(start.clone() - h.clone(), units)),
                         )?
-                        .num()?
-                        .number)
-                        / div.clone());
-                    nx4t += sqr((do_math_with_var(
-                        i.clone(),
-                        options,
-                        func_vars.clone(),
-                        &var,
-                        Num(Number::from(start.clone() + div.clone(), units)),
-                    )?
-                    .num()?
-                    .number
-                        - do_math_with_var(
+                            .num()?
+                            .number)
+                            / div.clone());
+                        nx4t += sqr((do_math_with_var(
+                            i.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(Number::from(start.clone() + div.clone(), units)),
+                        )?
+                            .num()?
+                            .number
+                            - do_math_with_var(
                             i.clone(),
                             options,
                             func_vars.clone(),
                             &var,
                             Num(Number::from(start.clone(), units)),
                         )?
-                        .num()?
-                        .number)
-                        / div.clone())
-                }
-                let nx1 = nx1.number * nx1t.sqrt();
-                let nx2 = nx2.number * nx2t.sqrt();
-                let nx3 = nx3.number * nx3t.sqrt();
-                let nx4 = nx4.number * nx4t.sqrt();
-                let n0;
-                let n1;
-                let n2;
-                let n3;
-                let n4;
-                if nth != 1.0
-                {
-                    if i == 0
-                    {
-                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
-                        n0 = nx0.number * nt;
+                            .num()?
+                            .number)
+                            / div.clone())
                     }
-                    else
-                    {
-                        n0 = nx0.number;
-                    }
-                    let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                    let nt: Complex = pow_nth(n,nth.clone() - 1);
-                    n1 = nx1 * nt;
-                    let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                    let nt: Complex = pow_nth(n,nth.clone() - 1);
-                    n2 = nx2 * nt;
-                    let n: Complex = end.clone() - start.clone() + h.clone();
-                    let nt: Complex = pow_nth(n,nth.clone() - 1);
-                    n3 = nx3 * nt;
-                    let n: Complex = end.clone() - start.clone();
-                    let nt: Complex = pow_nth(n,nth.clone() - 1);
-                    n4 = nx4 * nt;
-                }
-                else
-                {
-                    n0 = nx0.number;
-                    n1 = nx1;
-                    n2 = nx2;
-                    n3 = nx3;
-                    n4 = nx4;
-                }
-                area += 2 * h.clone() * (7 * (n0 + n4.clone()) + 12 * n2 + 32 * (n1 + n3)) / 45;
-                x0 = Num(Number::from(n4, units));
-            }
-            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
-                if areavec.is_empty() && !combine =>
-            {
-                for i in 0..nx0.len()
-                {
+                    let nx1 = nx1.number * nx1t.sqrt();
+                    let nx2 = nx2.number * nx2t.sqrt();
+                    let nx3 = nx3.number * nx3t.sqrt();
+                    let nx4 = nx4.number * nx4t.sqrt();
                     let n0;
                     let n1;
                     let n2;
@@ -3932,79 +3875,116 @@ pub fn area(
                     let n4;
                     if nth != 1.0
                     {
-                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
-                        n0 = nx0[i].number.clone() * nt;
-                        let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n1 = nx1[i].number.clone() * nt;
-                        let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n2 = nx2[i].number.clone() * nt;
-                        let n: Complex = end.clone() - start.clone() + h.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n3 = nx3[i].number.clone() * nt;
-                        let n: Complex = end.clone() - start.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n4 = nx4[i].number.clone() * nt;
-                    }
-                    else
-                    {
-                        n0 = nx0[i].number.clone();
-                        n1 = nx1[i].number.clone();
-                        n2 = nx2[i].number.clone();
-                        n3 = nx3[i].number.clone();
-                        n4 = nx4[i].number.clone();
-                    }
-                    areavec.push(Number::from(
-                        2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45,
-                        match (units, nx1[i].units)
+                        if i == 0
                         {
-                            (Some(a), Some(b)) => Some(a.mul(&b)),
-                            (Some(a), None) | (None, Some(a)) => Some(a),
-                            (None, None) => None,
-                        },
-                    ))
-                }
-                x0 = x4;
-            }
-            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) if !combine =>
-            {
-                for (i, v) in areavec.iter_mut().enumerate()
-                {
-                    let n0;
-                    let n1;
-                    let n2;
-                    let n3;
-                    let n4;
-                    if nth != 1.0
-                    {
-                        let nt = pow_nth(end.clone() - start.clone() + delta.clone(),nth.clone() - 1);
-                        n0 = nx0[i].number.clone() * nt;
+                            let nt = pow_nth(end.clone() - start.clone() + delta.clone(), nth.clone() - 1);
+                            n0 = nx0.number * nt;
+                        } else {
+                            n0 = nx0.number;
+                        }
                         let n: Complex = end.clone() - start.clone() + 3 * h.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n1 = nx1[i].number.clone() * nt;
+                        let nt: Complex = pow_nth(n, nth.clone() - 1);
+                        n1 = nx1 * nt;
                         let n: Complex = end.clone() - start.clone() + 2 * h.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n2 = nx2[i].number.clone() * nt;
+                        let nt: Complex = pow_nth(n, nth.clone() - 1);
+                        n2 = nx2 * nt;
                         let n: Complex = end.clone() - start.clone() + h.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n3 = nx3[i].number.clone() * nt;
+                        let nt: Complex = pow_nth(n, nth.clone() - 1);
+                        n3 = nx3 * nt;
                         let n: Complex = end.clone() - start.clone();
-                        let nt = pow_nth(n,nth.clone() - 1);
-                        n4 = nx4[i].number.clone() * nt;
+                        let nt: Complex = pow_nth(n, nth.clone() - 1);
+                        n4 = nx4 * nt;
+                    } else {
+                        n0 = nx0.number;
+                        n1 = nx1;
+                        n2 = nx2;
+                        n3 = nx3;
+                        n4 = nx4;
                     }
-                    else
-                    {
-                        n0 = nx0[i].number.clone();
-                        n1 = nx1[i].number.clone();
-                        n2 = nx2[i].number.clone();
-                        n3 = nx3[i].number.clone();
-                        n4 = nx4[i].number.clone();
-                    }
-                    v.number += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
+                    area += 2 * h.clone() * (7 * (n0 + n4.clone()) + 12 * n2 + 32 * (n1 + n3)) / 45;
+                    x0 = Num(Number::from(n4, units));
                 }
-                x0 = x4;
-            }
+            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
+            if areavec.is_empty() && !combine =>
+                {
+                    for i in 0..nx0.len()
+                    {
+                        let n0;
+                        let n1;
+                        let n2;
+                        let n3;
+                        let n4;
+                        if nth != 1.0
+                        {
+                            let nt = pow_nth(end.clone() - start.clone() + delta.clone(), nth.clone() - 1);
+                            n0 = nx0[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n1 = nx1[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n2 = nx2[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone() + h.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n3 = nx3[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n4 = nx4[i].number.clone() * nt;
+                        } else {
+                            n0 = nx0[i].number.clone();
+                            n1 = nx1[i].number.clone();
+                            n2 = nx2[i].number.clone();
+                            n3 = nx3[i].number.clone();
+                            n4 = nx4[i].number.clone();
+                        }
+                        areavec.push(Number::from(
+                            2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45,
+                            match (units, nx1[i].units)
+                            {
+                                (Some(a), Some(b)) => Some(a.mul(&b)),
+                                (Some(a), None) | (None, Some(a)) => Some(a),
+                                (None, None) => None,
+                            },
+                        ))
+                    }
+                    x0 = x4;
+                }
+            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) if !combine =>
+                {
+                    for (i, v) in areavec.iter_mut().enumerate()
+                    {
+                        let n0;
+                        let n1;
+                        let n2;
+                        let n3;
+                        let n4;
+                        if nth != 1.0
+                        {
+                            let nt = pow_nth(end.clone() - start.clone() + delta.clone(), nth.clone() - 1);
+                            n0 = nx0[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone() + 3 * h.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n1 = nx1[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone() + 2 * h.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n2 = nx2[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone() + h.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n3 = nx3[i].number.clone() * nt;
+                            let n: Complex = end.clone() - start.clone();
+                            let nt = pow_nth(n, nth.clone() - 1);
+                            n4 = nx4[i].number.clone() * nt;
+                        } else {
+                            n0 = nx0[i].number.clone();
+                            n1 = nx1[i].number.clone();
+                            n2 = nx2[i].number.clone();
+                            n3 = nx3[i].number.clone();
+                            n4 = nx4[i].number.clone();
+                        }
+                        v.number += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
+                    }
+                    x0 = x4;
+                }
             (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
         }
     }
@@ -4489,15 +4469,22 @@ pub fn taylor(
     func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
-    x: Number,
+    x: Option<Number>,
     a: Number,
-    nth: u32,
+    nth: usize,
 ) -> Result<NumStr, &'static str>
 {
+    fn fact(n: usize) -> Integer
+    {
+        let mut fact = Integer::from(1);
+        for i in 1..=n
+        {
+            fact *= i
+        }
+        fact
+    }
     let mut an = a.number;
-    let mut x = x.number;
     options.prec = options.prec.clamp(256, 1024);
-    x.set_prec(options.prec);
     an.set_prec(options.prec);
     let a = Number::from(an.clone(), a.units);
     let val = do_math_with_var(
@@ -4507,35 +4494,131 @@ pub fn taylor(
         &var,
         Num(a.clone()),
     )?;
-    let mut sum = val.clone();
-    for n in 1..=nth
+    if let Some(x) = x
     {
-        let mut fact = n;
-        for i in 1..n
+        let mut x = x.number;
+        x.set_prec(options.prec);
+        let mut sum = val.clone();
+        for n in 1..=nth
         {
-            fact *= i
+            let d = slopesided(
+                func.clone(),
+                func_vars.clone(),
+                options,
+                var.clone(),
+                a.clone(),
+                false,
+                n as u32,
+                true,
+                Some(val.clone()),
+                None,
+            )?;
+            let v = d.func(
+                &Num(Number::from(
+                    fact(n) * (x.clone() - an.clone()).pow(-(n as i32)),
+                    None,
+                )),
+                div,
+            )?;
+            sum = sum.func(&v, add)?;
         }
-        let d = slopesided(
-            func.clone(),
-            func_vars.clone(),
-            options,
-            var.clone(),
-            a.clone(),
-            false,
-            n,
-            true,
-            Some(val.clone()),
-            None,
-        )?;
-        let v = d.func(
-            &Num(Number::from(fact / (x.clone() - an.clone()).pow(n), None)),
-            div,
-        )?;
-        sum = sum.func(&v, add)?;
+        Ok(sum)
     }
-    Ok(sum)
+    else
+    {
+        let mut poly_mat = Vec::with_capacity(nth + 1);
+        let mut poly = Vec::with_capacity(nth + 1);
+        let is_vector = match val.clone()
+        {
+            Vector(a) =>
+            {
+                let empty = vec![Number::from(Complex::new(options.prec), None); a.len()];
+                poly_mat.push(a);
+                for _ in 1..=nth
+                {
+                    poly_mat.push(empty.clone())
+                }
+                true
+            }
+            Num(a) =>
+            {
+                let empty = Number::from(Complex::new(options.prec), None);
+                poly.push(a);
+                for _ in 1..=nth
+                {
+                    poly.push(empty.clone())
+                }
+                false
+            }
+            _ => return Err("unsupported type"),
+        };
+        for n in 1..=nth
+        {
+            let d = slopesided(
+                func.clone(),
+                func_vars.clone(),
+                options,
+                var.clone(),
+                a.clone(),
+                false,
+                n as u32,
+                true,
+                Some(val.clone()),
+                None,
+            )?;
+            if is_vector
+            {
+                let d = d.vec()?;
+                for (i, poly) in poly_mat.iter_mut().enumerate()
+                {
+                    if i > n
+                    {
+                        break;
+                    }
+                    for (d, poly) in d.iter().zip(poly.iter_mut())
+                    {
+                        *poly = add(
+                            poly,
+                            &Number::from(
+                                (-a.clone().number).pow(n - i) * d.number.clone()
+                                    / (fact(n - i) * fact(i)),
+                                None,
+                            ),
+                        )
+                    }
+                }
+            }
+            else
+            {
+                let d = d.num()?.number;
+                for (i, poly) in poly.iter_mut().enumerate()
+                {
+                    if i > n
+                    {
+                        break;
+                    }
+                    *poly = add(
+                        poly,
+                        &Number::from(
+                            (-a.clone().number).pow(n - i) * d.clone() / (fact(n - i) * fact(i)),
+                            None,
+                        ),
+                    )
+                }
+            }
+        }
+        if is_vector
+        {
+            poly_mat.reverse();
+            Ok(Matrix(transpose(&poly_mat)))
+        }
+        else
+        {
+            poly.reverse();
+            Ok(Vector(poly))
+        }
+    }
 }
-
 #[allow(clippy::too_many_arguments)]
 pub fn slope(
     func: Vec<NumStr>,

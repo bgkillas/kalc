@@ -131,7 +131,7 @@ pub fn graph(
         let data_dir = &(base_dir.to_owned() + "/kalc/" + &fastrand::u64(..).to_string());
         if fs::read_dir(data_dir).is_ok()
         {
-            fs::remove_dir_all(data_dir).unwrap();
+            let _ = fs::remove_dir_all(data_dir);
         }
         fs::create_dir_all(data_dir).unwrap();
         for (i, (func, input)) in func.iter().zip(input.iter()).enumerate()
@@ -552,12 +552,12 @@ pub fn graph(
             if let Ok(n) = fs::read(base_dir.to_owned() + "/kalc-temp.png")
             {
                 stdout().lock().write_all(&n).unwrap();
-                fs::remove_file(base_dir.to_owned() + "/kalc-temp.png").unwrap()
+                let _ = fs::remove_file(base_dir.to_owned() + "/kalc-temp.png");
             }
         }
         if !options.keep_data_file && fs::read_dir(data_dir).is_ok()
         {
-            fs::remove_dir_all(data_dir).unwrap();
+            let _ = fs::remove_dir_all(data_dir);
         }
     })
 }
@@ -945,8 +945,8 @@ pub fn get_list_2d(
             Err(s) =>
             {
                 println!("{}", s);
-                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
-                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                let _ = fs::remove_file(format!("{data_dir}/re{i}"));
+                let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                 return Default::default();
             }
             _ =>
@@ -1017,18 +1017,18 @@ pub fn get_list_2d(
     }
     if nan
     {
-        fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
-        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+        let _ = fs::remove_file(format!("{data_dir}/re{i}"));
+        let _ = fs::remove_file(format!("{data_dir}/im{i}"));
     }
     else
     {
         if !zero.0 && zero.1
         {
-            fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+            let _ = fs::remove_file(format!("{data_dir}/re{i}"));
         }
         if !zero.1
         {
-            fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+            let _ = fs::remove_file(format!("{data_dir}/im{i}"));
         }
     }
     (zero, d3, rec_re, rec_im)
@@ -1052,7 +1052,7 @@ pub fn get_list_3d(
     let mut imag = File::create(format!("{data_dir}/im{i}")).unwrap();
     if func.2.graphtype == Domain || func.2.graphtype == DomainAlt
     {
-        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+        let _ = fs::remove_file(format!("{data_dir}/im{i}"));
     }
     let den_x_range = (func.2.xr.1 - func.2.xr.0) / func.2.samples_3d.0 as f64;
     let den_y_range = (func.2.yr.1 - func.2.yr.0) / func.2.samples_3d.1 as f64;
@@ -1459,10 +1459,10 @@ pub fn get_list_3d(
                 Err(s) =>
                 {
                     println!("{}", s);
-                    fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                    let _ = fs::remove_file(format!("{data_dir}/re{i}"));
                     if !(func.2.graphtype == Domain || func.2.graphtype == DomainAlt)
                     {
-                        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                        let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                     }
                     return Default::default();
                 }
@@ -1539,18 +1539,18 @@ pub fn get_list_3d(
         }
         if nan
         {
-            fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
-            fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+            let _ = fs::remove_file(format!("{data_dir}/re{i}"));
+            let _ = fs::remove_file(format!("{data_dir}/im{i}"));
         }
         else
         {
             if !zero.0 && zero.1
             {
-                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                let _ = fs::remove_file(format!("{data_dir}/re{i}"));
             }
             if !zero.1
             {
-                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                let _ = fs::remove_file(format!("{data_dir}/im{i}"));
             }
         }
     }
@@ -1619,11 +1619,11 @@ fn get_data(
                     }
                     if re == 0.0 && im != 0.0
                     {
-                        fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                        let _ = fs::remove_file(format!("{data_dir}/re{i}"));
                     }
                     if im == 0.0
                     {
-                        fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                        let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                     }
                     re_or_im = (re != 0.0 || im == 0.0, im != 0.0);
                 }
@@ -1742,11 +1742,11 @@ fn get_data(
                             }
                             if !re_or_im.0 && re_or_im.1
                             {
-                                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/re{i}"));
                             }
                             if !re_or_im.1
                             {
-                                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                             }
                         }
                         2 =>
@@ -1804,7 +1804,7 @@ fn get_data(
                             }
                             if !zero.0 && zero.1
                             {
-                                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/re{i}"));
                             }
                             else
                             {
@@ -1812,7 +1812,7 @@ fn get_data(
                             }
                             if !zero.1
                             {
-                                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                             }
                             else
                             {
@@ -1874,11 +1874,11 @@ fn get_data(
                             }
                             if !re_or_im.0
                             {
-                                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/re{i}"));
                             }
                             if !re_or_im.1
                             {
-                                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                             }
                         }
                         2 =>
@@ -1913,11 +1913,11 @@ fn get_data(
                             }
                             if !re_or_im.0
                             {
-                                fs::remove_file(format!("{data_dir}/re{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/re{i}"));
                             }
                             if !re_or_im.1
                             {
-                                fs::remove_file(format!("{data_dir}/im{i}")).unwrap();
+                                let _ = fs::remove_file(format!("{data_dir}/im{i}"));
                             }
                         }
                         _ =>

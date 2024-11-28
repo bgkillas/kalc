@@ -1937,7 +1937,7 @@ pub fn input_var(
                         {
                             i = chars.len().saturating_sub(1)
                         }
-                        if blacklist == var.name && piecewise == 0
+                        if blacklist == var.name && piecewise == 0 && collectvars.is_empty()
                         {
                             return Err("recursive");
                         }
@@ -2854,7 +2854,7 @@ pub fn input_var(
                             || (wordv != chars[i..i + var.name.len()].iter().collect::<String>()
                                 && wordv.starts_with(&var.name.iter().collect::<String>())))
                     {
-                        if blacklist == var.name
+                        if blacklist == var.name && collectvars.is_empty()
                         {
                             return Err("recursive");
                         }

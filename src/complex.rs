@@ -4273,6 +4273,7 @@ pub fn solve(
                     true,
                     Some(y),
                     None,
+                    None,
                 )?
                 .num()?
                 .number
@@ -4296,6 +4297,7 @@ pub fn solve(
             1,
             true,
             Some(y.clone()),
+            None,
             None,
         )?
         .num()?
@@ -4361,6 +4363,7 @@ pub fn extrema(
             true,
             Some(y.clone()),
             Some(yh.clone()),
+            None,
         )?
         .num()?
         .number
@@ -4375,6 +4378,7 @@ pub fn extrema(
                 true,
                 Some(y),
                 Some(yh),
+                None,
             )?
             .num()?
             .number
@@ -4411,6 +4415,7 @@ pub fn extrema(
         true,
         Some(y.clone()),
         Some(yh.clone()),
+        None,
     )?
     .num()?
     .number;
@@ -4425,6 +4430,7 @@ pub fn extrema(
         true,
         Some(y),
         Some(yh),
+        None,
     )?
     .num()?
     .number
@@ -4484,7 +4490,8 @@ pub fn taylor(
         fact
     }
     let mut an = a.number;
-    options.prec = options.prec.clamp(256, 1024);
+    let prec;
+    (prec, options.prec) = set_slope_prec(options.prec, nth as u32);
     an.set_prec(options.prec);
     let a = Number::from(an.clone(), a.units);
     let val = do_math_with_var(
@@ -4512,6 +4519,7 @@ pub fn taylor(
                 true,
                 Some(val.clone()),
                 None,
+                Some(prec),
             )?;
             let v = d.func(
                 &Num(Number::from(
@@ -4565,6 +4573,7 @@ pub fn taylor(
                 true,
                 Some(val.clone()),
                 None,
+                Some(prec),
             )?;
             if is_vector
             {
@@ -4619,6 +4628,11 @@ pub fn taylor(
         }
     }
 }
+fn set_slope_prec(prec: u32, nth: u32) -> (u32, u32)
+{
+    let prec = prec.clamp(256, 1024 * nth);
+    (prec / (nth + 8), nth.max(1) * prec / 2)
+}
 #[allow(clippy::too_many_arguments)]
 pub fn slope(
     func: Vec<NumStr>,
@@ -4639,12 +4653,14 @@ pub fn slope(
         options.prec = 256;
         point.number.set_prec(options.prec);
         slopesided(
-            func, func_vars, options, var, point, combine, nth, true, None, None,
+            func, func_vars, options, var, point, combine, nth, true, None, None, None,
         )
     }
     else
     {
-        options.prec = options.prec.clamp(256, 1024);
+        let op = options.prec.clamp(256, 1024);
+        let prec;
+        (prec, options.prec) = set_slope_prec(options.prec, nth);
         point.number.set_prec(options.prec);
         let val = do_math_with_var(
             func.clone(),
@@ -4664,6 +4680,7 @@ pub fn slope(
             false,
             Some(val.clone()),
             None,
+            Some(prec),
         )?;
         let right = slopesided(
             func,
@@ -4676,6 +4693,7 @@ pub fn slope(
             true,
             Some(val),
             None,
+            Some(prec),
         )?;
         match (left, right)
         {
@@ -4690,27 +4708,23 @@ pub fn slope(
                         .abs()
                         .clone()
                         .log2()
-                        < options.prec as i32 / -16)
+                        < op as i32 / -16)
                     || (left.imag().is_infinite()
                         && right.imag().is_infinite()
                         && (left.real().clone() - right.real().clone())
                             .abs()
                             .clone()
                             .log2()
-                            < options.prec as i32 / -16))
+                            < op as i32 / -16))
                     && left.real().is_sign_positive() == right.real().is_sign_positive()
                     && left.imag().is_sign_positive() == right.imag().is_sign_positive())
-                    || (left.clone() - right.clone()).abs().real().clone().log2()
-                        < options.prec as i32 / -16
+                    || (left.clone() - right.clone()).abs().real().clone().log2() < op as i32 / -16
                 {
                     Ok(Num(Number::from((left + right) / 2, units)))
                 }
                 else
                 {
-                    Ok(Num(Number::from(
-                        Complex::with_val(options.prec, Nan),
-                        None,
-                    )))
+                    Ok(Num(Number::from(right, units)))
                 }
             }
             (Vector(left), Vector(right)) =>
@@ -4728,18 +4742,18 @@ pub fn slope(
                                 .abs()
                                 .clone()
                                 .log2()
-                                < options.prec as i32 / -16)
+                                < op as i32 / -16)
                             || (left.imag().is_infinite()
                                 && right.imag().is_infinite()
                                 && (left.real().clone() - right.real().clone())
                                     .abs()
                                     .clone()
                                     .log2()
-                                    < options.prec as i32 / -16))
+                                    < op as i32 / -16))
                             && left.real().is_sign_positive() == right.real().is_sign_positive()
                             && left.imag().is_sign_positive() == right.imag().is_sign_positive())
                             || (left.clone() - right.clone()).abs().real().clone().log2()
-                                < options.prec as i32 / -16
+                                < op as i32 / -16
                         {
                             Number::from((left + right) / 2, units)
                         }
@@ -4755,6 +4769,7 @@ pub fn slope(
         }
     }
 }
+
 #[allow(clippy::too_many_arguments)]
 pub fn slopesided(
     func: Vec<NumStr>,
@@ -4767,6 +4782,7 @@ pub fn slopesided(
     right: bool,
     val: Option<NumStr>,
     val2: Option<Complex>,
+    prec: Option<u32>,
 ) -> Result<NumStr, &'static str>
 {
     if nth == 0
@@ -4775,9 +4791,17 @@ pub fn slopesided(
     }
     let units = point.units;
     let mut point = point.number;
-    options.prec = options.prec.clamp(256, 1024);
-    let prec = options.prec / 8;
-    options.prec = nth.max(1) * options.prec / 2;
+    let prec = if let Some(prec) = prec
+    {
+        prec
+    }
+    else
+    {
+        options.prec = options.prec.clamp(256, 1024 * nth);
+        let prec;
+        (prec, options.prec) = set_slope_prec(options.prec, nth);
+        prec
+    };
     point.set_prec(options.prec);
     let h: Float = if right
     {

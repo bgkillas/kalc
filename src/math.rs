@@ -1744,10 +1744,6 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current)
                                     }
-                                    /*current.splice(
-                                        0..0,
-                                        vec![Integer::new(); faces.len().saturating_sub(1)],
-                                    );*/
                                     Vector(
                                         current
                                             .iter()
@@ -1803,6 +1799,50 @@ pub fn do_math(
                                 {
                                     return Err("not enough args");
                                 }
+                            }
+                            "norm_combine" =>
+                            {
+                                if a.is_empty()
+                                {
+                                    return Err("empty vec");
+                                }
+                                let mut mu = Complex::new(options.prec);
+                                let mut var = Complex::new(options.prec);
+                                let mut ws = Complex::new(options.prec);
+                                for d in &a
+                                {
+                                    if d.len() < 2
+                                    {
+                                        return Err("not enough data");
+                                    }
+                                    if d.len() == 2
+                                    {
+                                        mu += d[0].number.clone();
+                                        var += d[1].number.clone().pow(2);
+                                        ws += 1;
+                                    }
+                                    else
+                                    {
+                                        mu += d[0].number.clone() * d[2].number.clone();
+                                        var += d[1].number.clone().pow(2) * d[2].number.clone();
+                                        ws += d[2].number.clone();
+                                    }
+                                }
+                                mu /= ws.clone();
+                                for d in &a
+                                {
+                                    if d.len() == 2
+                                    {
+                                        var += (mu.clone() - d[0].number.clone()).pow(2);
+                                    }
+                                    else
+                                    {
+                                        var += (mu.clone() - d[0].number.clone()).pow(2)
+                                            * d[2].number.clone();
+                                    }
+                                }
+                                var /= ws;
+                                Vector(vec![Number::from(mu, None), Number::from(var.sqrt(), None)])
                             }
                             _ => do_functions(arg, options, &mut function, i, &to_deg, s)?,
                         },
@@ -1916,10 +1956,6 @@ pub fn do_math(
                                         }
                                         last.clone_from(&current);
                                     }
-                                    /*current.splice(
-                                        0..0,
-                                        vec![Integer::new(); a.len().saturating_sub(1)],
-                                    );*/
                                     Vector(
                                         current
                                             .iter()

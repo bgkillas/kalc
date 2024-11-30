@@ -273,6 +273,7 @@ Matrix functions:
 - iden(n) produces an n dimension identity matrix
 - rotate(θ), rotate(yaw,pitch,roll) produces a rotational matrix
 - sort(mat) sorts rows by first column
+- norm_combine(mat), combines any number of normal distributions, input vectors are of form, {mu,std,weight}, when weight is not present, assumed 1, outputs {mu,std}
 - interpolate/inter(mat,x) using lagrange interpolation interpolates a 2xN matrix along x, matrix should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - lineofbestfit/lobf(mat,x) line of best fit for numerous 2d values, with no x values it will spit out the m/b values for line equation in form of mx+b, mat should be organized like {{x0,y0},{x1,y1} ... {xN,yN}}
 - plane(mat,x,y) finds the plane that 3, 3d points lie on, with no x/y arg it will spit out the a/b/c values for the equation of plane in ax+by+c form, mat should be in form of {{x0,y0,z0},{x1,y1,z1},{x2,y2,z2}}

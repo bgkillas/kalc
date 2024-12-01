@@ -4724,7 +4724,10 @@ pub fn slope(
                 }
                 else
                 {
-                    Ok(Num(Number::from(right, units)))
+                    Ok(Num(Number::from(
+                        Complex::with_val(options.prec, Nan),
+                        None,
+                    )))
                 }
             }
             (Vector(left), Vector(right)) =>
@@ -4800,9 +4803,9 @@ pub fn slopesided(
         options.prec = options.prec.clamp(256, 1024 * nth);
         let prec;
         (prec, options.prec) = set_slope_prec(options.prec, nth);
+        point.set_prec(options.prec);
         prec
     };
-    point.set_prec(options.prec);
     let h: Float = if right
     {
         Float::with_val(options.prec, 0.5).pow(prec)

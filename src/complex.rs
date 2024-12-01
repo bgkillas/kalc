@@ -6224,11 +6224,20 @@ fn initpoint(z: Complex, k: Integer) -> Complex
     {
         let e = Float::with_val(prec.0, -1).exp();
         let test: Complex = z.clone() + &e;
-        if test.abs().real() <= &1.005 && k == 0 && z.real() > &-0.5
+        if test.abs().real() <= &1.005
         {
-            let p1: Complex = 2 * z / e + 2;
-            let p = p1.clone().sqrt();
-            return p.clone() - (p1 / 3) + ((11 * cube(p)) / 72) - 1;
+            if k == 0 && z.real() > &-0.5
+            {
+                let p1: Complex = 2 * z / e + 2;
+                let p = p1.clone().sqrt();
+                return p.clone() - (p1 / 3) + ((11 * cube(p)) / 72) - 1;
+            }
+            else if k == -1 && z.real().is_sign_negative() && z.imag().is_zero()
+            {
+                let p1: Complex = 2 * z / e + 2;
+                let p = p1.clone().sqrt();
+                return -p.clone() - (p1 / 3) - ((11 * cube(p)) / 72) - 1;
+            }
         }
     }
     {

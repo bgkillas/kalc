@@ -4490,8 +4490,9 @@ pub fn taylor(
         fact
     }
     let mut an = a.number;
-    let prec;
-    (prec, options.prec) = set_slope_prec(options.prec, nth as u32);
+    let mut prec;
+    (prec, _) = set_slope_prec(options.prec, nth.min(8) as u32);
+    (_, options.prec) = set_slope_prec(options.prec, nth as u32);
     an.set_prec(options.prec);
     let a = Number::from(an.clone(), a.units);
     let val = do_math_with_var(
@@ -4508,6 +4509,9 @@ pub fn taylor(
         let mut sum = val.clone();
         for n in 1..=nth
         {
+            if n % 8 == 0 {
+                (prec, _) = set_slope_prec(options.prec, nth.min(8 + n) as u32);
+            }
             let d = slopesided(
                 func.clone(),
                 func_vars.clone(),
@@ -4562,6 +4566,9 @@ pub fn taylor(
         };
         for n in 1..=nth
         {
+            if n % 8 == 0 {
+                (prec, _) = set_slope_prec(options.prec, nth.min(8 + n) as u32);
+            }
             let d = slopesided(
                 func.clone(),
                 func_vars.clone(),
@@ -4631,7 +4638,7 @@ pub fn taylor(
 fn set_slope_prec(prec: u32, nth: u32) -> (u32, u32)
 {
     let prec = prec.clamp(256, 1024 * nth);
-    (prec / (nth + 8), nth.max(1) * prec / 2)
+    (prec / (nth + 8), (nth / 8).max(1) * prec / 2)
 }
 #[allow(clippy::too_many_arguments)]
 pub fn slope(
@@ -4648,7 +4655,7 @@ pub fn slope(
     {
         do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(point))
     }
-    else if options.prec < 256
+    else if options.prec <= 256
     {
         options.prec = 256;
         point.number.set_prec(options.prec);
@@ -4814,6 +4821,7 @@ pub fn slopesided(
     {
         -Float::with_val(options.prec, 0.5).pow(prec)
     };
+    let num = Integer::from(nth);
     let n = if let Some(n) = val
     {
         n
@@ -4828,7 +4836,6 @@ pub fn slopesided(
             Num(Number::from(point.clone(), units)),
         )?
     };
-    let num = Integer::from(nth);
     match n
     {
         Num(sum) =>

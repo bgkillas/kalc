@@ -380,12 +380,14 @@ pub fn rationalize(value: Float, options: Options) -> Option<(Integer, Integer)>
 }
 pub fn c_to_rational(value: Complex, options: Options) -> Vec<Number>
 {
-    let re = rationalize(value.real().clone(), options);
-    let im = rationalize(value.imag().clone(), options);
+    let sign_re = value.real().is_sign_positive();
+    let sign_im = value.real().is_sign_positive();
+    let re = rationalize(value.real().clone().abs(), options);
+    let im = rationalize(value.imag().clone().abs(), options);
     let mut vec = Vec::new();
     if let Some(n) = re
     {
-        vec.push(Number::from(Complex::with_val(options.prec, n.0), None));
+        vec.push(Number::from(Complex::with_val(options.prec, if sign_re{n.0}else{-n.0}), None));
         vec.push(Number::from(Complex::with_val(options.prec, n.1), None));
     }
     else
@@ -395,7 +397,7 @@ pub fn c_to_rational(value: Complex, options: Options) -> Vec<Number>
     }
     if let Some(n) = im
     {
-        vec.push(Number::from(Complex::with_val(options.prec, n.0), None));
+        vec.push(Number::from(Complex::with_val(options.prec, if sign_im{n.0}else{-n.0}), None));
         vec.push(Number::from(Complex::with_val(options.prec, n.1), None));
     }
     vec

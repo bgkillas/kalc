@@ -12,6 +12,8 @@ mod print;
 #[cfg(test)]
 mod tests;
 mod units;
+//make dependencys optional via features
+//add symbolica as an optional feature
 //lib, gui
 use crate::{
     complex::NumStr,
@@ -860,7 +862,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -941,7 +943,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -1025,7 +1027,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -1103,7 +1105,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -1152,7 +1154,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -1200,7 +1202,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -1247,7 +1249,7 @@ fn main()
                                     slow = true;
                                 }
                             }
-                            else if firstslow
+                            else if options.real_time_output && firstslow
                             {
                                 firstslow = false;
                                 handle_err(
@@ -1293,7 +1295,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -1346,7 +1348,7 @@ fn main()
                         input = lines[i].clone().chars().collect::<Vec<char>>();
                         slow = input.ends_with(&['\t']);
 
-                        if slow
+                        if slow && options.real_time_output
                         {
                             input.pop();
                             firstslow = false;
@@ -1376,6 +1378,9 @@ fn main()
                         }
                         else
                         {
+                            if slow {
+                                input.pop();
+                            }
                             placement = input.len();
                             end = input.len();
                             start = if get_terminal_dimensions().0
@@ -1426,7 +1431,7 @@ fn main()
                             input = lines[i].clone().chars().collect::<Vec<char>>();
                         }
                         slow = input.ends_with(&['\t']);
-                        if slow
+                        if slow && options.real_time_output
                         {
                             input.pop();
                             firstslow = false;
@@ -1456,6 +1461,9 @@ fn main()
                         }
                         else
                         {
+                            if slow {
+                                input.pop();
+                            }
                             placement = input.len();
                             end = input.len();
                             start = if get_terminal_dimensions().0
@@ -1802,7 +1810,7 @@ fn main()
                                         slow = true;
                                     }
                                 }
-                                else if firstslow && var
+                                else if options.real_time_output && firstslow && var
                                 {
                                     firstslow = false;
                                     handle_err(
@@ -2057,7 +2065,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -2140,7 +2148,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -2239,7 +2247,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(
@@ -2309,7 +2317,7 @@ fn main()
                                 slow = true;
                             }
                         }
-                        else if firstslow
+                        else if options.real_time_output && firstslow
                         {
                             firstslow = false;
                             handle_err(

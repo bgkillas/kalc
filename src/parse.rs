@@ -1612,7 +1612,7 @@ pub fn input_var(
             {
                 output.push(Func(word));
             }
-            if pwr.0 && pwr.1 == *bracket && chars[i] != '^'
+            if pwr.0 && pwr.1 == *bracket && chars.len() < i && chars[i] != '^'
             {
                 for _ in 0..pwr.2
                 {

@@ -66,6 +66,9 @@ impl Number
     {
         Self { number, units }
     }
+    pub fn set_prec(&mut self, prec: u32) {
+        self.number.set_prec(prec)
+    }
 }
 pub fn add(a: &Number, b: &Number) -> Number
 {
@@ -81,8 +84,20 @@ pub fn sub(a: &Number, b: &Number) -> Number
         if a.units == b.units { a.units } else { None },
     )
 }
+pub fn set_prec(function: &mut [NumStr], func_vars: &mut [(String, Vec<NumStr>)], prec: u32) {
+    function.iter_mut().for_each(|n| n.set_prec(prec));
+    func_vars.iter_mut().for_each(|(_, f)| f.iter_mut().for_each(|n| n.set_prec(prec)));
+}
 impl NumStr
 {
+    pub fn set_prec(&mut self, prec: u32) {
+        match self {
+            Num(n) => n.set_prec(prec),
+            Vector(v) => v.iter_mut().for_each(|n| n.set_prec(prec)),
+            Matrix(m) => m.iter_mut().for_each(|v| v.iter_mut().for_each(|n| n.set_prec(prec))),
+            _ => {}
+        }
+    }
     pub fn mul(&self, b: &Self) -> Result<Self, &'static str>
     {
         fn m(a: &Number, b: &Number) -> Number
@@ -881,7 +896,8 @@ pub fn rem(a: &Number, b: &Number) -> Number
 pub fn digamma(mut z: Complex, mut n: u32) -> Complex
 {
     n += 1;
-    let op = z.prec().0 / 2;
+    let oop = z.prec();
+    let op = oop.0 / 2;
     let prec = n * op;
     z.set_prec(prec);
     let h: Float = Float::with_val(prec, 0.5).pow(op / 2);
@@ -898,7 +914,9 @@ pub fn digamma(mut z: Complex, mut n: u32) -> Complex
             sum -= num.clone().binomial(k) * gamma(z.clone() + h.clone() * (n - k)).ln()
         }
     }
-    sum * Float::with_val(prec, 2).pow(op / 2 * n)
+    let mut n = sum * Float::with_val(prec, 2).pow(op / 2 * n);
+    n.set_prec(oop);
+    n
 }
 pub fn gamma(a: Complex) -> Complex
 {
@@ -4142,7 +4160,7 @@ pub fn iter(
 }
 pub fn solve(
     mut func: Vec<NumStr>,
-    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
     x: Number,
@@ -4249,8 +4267,10 @@ pub fn solve(
     else
     {
         let op = options.prec;
-        options.prec = options.prec.clamp(256, 1024);
+        let prec;
+        (prec, options.prec) = set_slope_prec(options.prec, 1);
         x.set_prec(options.prec);
+        set_prec(&mut func, &mut func_vars, options.prec);
         for _ in 0..(op / 4).max(64)
         {
             let n = Number::from(x.clone(), None);
@@ -4273,7 +4293,7 @@ pub fn solve(
                     true,
                     Some(y),
                     None,
-                    None,
+                    Some(prec),
                 )?
                 .num()?
                 .number
@@ -4298,13 +4318,14 @@ pub fn solve(
             true,
             Some(y.clone()),
             None,
-            None,
+            Some(prec),
         )?
         .num()?
         .number;
         x -= y.num()?.number / k.clone();
         if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16 && k.real().is_finite()
         {
+            x.set_prec(op);
             Ok(Num(Number::from(x, units)))
         }
         else
@@ -4317,8 +4338,8 @@ pub fn solve(
     }
 }
 pub fn extrema(
-    func: Vec<NumStr>,
-    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut func: Vec<NumStr>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
     x: Number,
@@ -4328,8 +4349,10 @@ pub fn extrema(
     let units = x.units;
     let mut x = x.number;
     let op = options.prec;
-    options.prec = options.prec.clamp(256, 1024);
+    let prec;
+    (prec, options.prec) = set_slope_prec(options.prec, 2);
     x.set_prec(options.prec);
+    set_prec(&mut func, &mut func_vars, options.prec);
     for _ in 0..op / 4
     {
         let n = Number::from(x.clone(), None);
@@ -4346,12 +4369,10 @@ pub fn extrema(
             func_vars.clone(),
             &var.clone(),
             Num(Number::from(
-                x.clone() + Float::with_val(options.prec, 0.5).pow(options.prec / 8),
+                x.clone() + Float::with_val(options.prec, 0.5).pow(prec),
                 None,
             )),
-        )?
-        .num()?
-        .number;
+        )?;
         x -= slopesided(
             func.clone(),
             func_vars.clone(),
@@ -4363,7 +4384,7 @@ pub fn extrema(
             true,
             Some(y.clone()),
             Some(yh.clone()),
-            None,
+            Some(prec),
         )?
         .num()?
         .number
@@ -4378,7 +4399,7 @@ pub fn extrema(
                 true,
                 Some(y),
                 Some(yh),
-                None,
+                Some(prec),
             )?
             .num()?
             .number
@@ -4398,12 +4419,10 @@ pub fn extrema(
         func_vars.clone(),
         &var.clone(),
         Num(Number::from(
-            x.clone() + Float::with_val(options.prec, 0.5).pow(options.prec / 8),
+            x.clone() + Float::with_val(options.prec, 0.5).pow(prec),
             None,
         )),
-    )?
-    .num()?
-    .number;
+    )?;
     let k = slopesided(
         func.clone(),
         func_vars.clone(),
@@ -4415,7 +4434,7 @@ pub fn extrema(
         true,
         Some(y.clone()),
         Some(yh.clone()),
-        None,
+        Some(prec),
     )?
     .num()?
     .number;
@@ -4430,7 +4449,7 @@ pub fn extrema(
         true,
         Some(y),
         Some(yh),
-        None,
+        Some(prec),
     )?
     .num()?
     .number
@@ -4438,7 +4457,7 @@ pub fn extrema(
     if (last - x.clone()).abs().real().clone().log2() < op as i32 / -16 && k.real().is_finite()
     {
         let n = Number::from(x, units);
-        Ok(Vector(vec![
+        let mut v = Vector(vec![
             n.clone(),
             do_math_with_var(func, options, func_vars, &var, Num(n.clone()))?.num()?,
             Number::from(
@@ -4459,7 +4478,9 @@ pub fn extrema(
                 ),
                 None,
             ),
-        ]))
+        ]);
+        v.set_prec(op);
+        Ok(v)
     }
     else
     {
@@ -4471,8 +4492,8 @@ pub fn extrema(
 }
 #[allow(clippy::too_many_arguments)]
 pub fn taylor(
-    func: Vec<NumStr>,
-    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut func: Vec<NumStr>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
     x: Option<Number>,
@@ -4489,10 +4510,12 @@ pub fn taylor(
         }
         fact
     }
+    let op = options.prec;
     let mut an = a.number;
     let mut prec;
     (prec, _) = set_slope_prec(options.prec, nth.min(8) as u32);
     (_, options.prec) = set_slope_prec(options.prec, nth as u32);
+    set_prec(&mut func, &mut func_vars, options.prec);
     an.set_prec(options.prec);
     let a = Number::from(an.clone(), a.units);
     let val = do_math_with_var(
@@ -4501,6 +4524,16 @@ pub fn taylor(
         func_vars.clone(),
         &var,
         Num(a.clone()),
+    )?;
+    let mut val2 = do_math_with_var(
+        func.clone(),
+        options,
+        func_vars.clone(),
+        &var,
+        Num(Number::from(
+            an.clone() + Float::with_val(options.prec, 0.5).pow(prec),
+            None,
+        )),
     )?;
     if let Some(x) = x
     {
@@ -4511,6 +4544,16 @@ pub fn taylor(
         {
             if n % 8 == 0 {
                 (prec, _) = set_slope_prec(options.prec, nth.min(8 + n) as u32);
+                val2 = do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &var,
+                    Num(Number::from(
+                        an.clone() + Float::with_val(options.prec, 0.5).pow(prec),
+                        None,
+                    )),
+                )?;
             }
             let d = slopesided(
                 func.clone(),
@@ -4522,7 +4565,7 @@ pub fn taylor(
                 n as u32,
                 true,
                 Some(val.clone()),
-                None,
+                Some(val2.clone()),
                 Some(prec),
             )?;
             let v = d.func(
@@ -4534,40 +4577,49 @@ pub fn taylor(
             )?;
             sum = sum.func(&v, add)?;
         }
+        sum.set_prec(op);
         Ok(sum)
-    }
-    else
-    {
+    } else {
         let mut poly_mat = Vec::with_capacity(nth + 1);
         let mut poly = Vec::with_capacity(nth + 1);
         let is_vector = match val.clone()
         {
             Vector(a) =>
-            {
-                let empty = vec![Number::from(Complex::new(options.prec), None); a.len()];
-                poly_mat.push(a);
-                for _ in 1..=nth
                 {
-                    poly_mat.push(empty.clone())
+                    let empty = vec![Number::from(Complex::new(options.prec), None); a.len()];
+                    poly_mat.push(a);
+                    for _ in 1..=nth
+                    {
+                        poly_mat.push(empty.clone())
+                    }
+                    true
                 }
-                true
-            }
             Num(a) =>
-            {
-                let empty = Number::from(Complex::new(options.prec), None);
-                poly.push(a);
-                for _ in 1..=nth
                 {
-                    poly.push(empty.clone())
+                    let empty = Number::from(Complex::new(options.prec), None);
+                    poly.push(a);
+                    for _ in 1..=nth
+                    {
+                        poly.push(empty.clone())
+                    }
+                    false
                 }
-                false
-            }
             _ => return Err("unsupported type"),
         };
         for n in 1..=nth
         {
             if n % 8 == 0 {
                 (prec, _) = set_slope_prec(options.prec, nth.min(8 + n) as u32);
+                val2 = do_math_with_var(
+                    func.clone(),
+                    options,
+                    func_vars.clone(),
+                    &var,
+                    Num(Number::from(
+                        an.clone() + Float::with_val(options.prec, 0.5).pow(prec),
+                        None,
+                    )),
+                )?;
             }
             let d = slopesided(
                 func.clone(),
@@ -4579,7 +4631,7 @@ pub fn taylor(
                 n as u32,
                 true,
                 Some(val.clone()),
-                None,
+                Some(val2.clone()),
                 Some(prec),
             )?;
             if is_vector
@@ -4603,9 +4655,7 @@ pub fn taylor(
                         )
                     }
                 }
-            }
-            else
-            {
+            } else {
                 let d = d.num()?.number;
                 for (i, poly) in poly.iter_mut().enumerate()
                 {
@@ -4626,12 +4676,16 @@ pub fn taylor(
         if is_vector
         {
             poly_mat.reverse();
-            Ok(Matrix(transpose(&poly_mat)))
+            let mut m = Matrix(transpose(&poly_mat));
+            m.set_prec(op);
+            Ok(m)
         }
         else
         {
             poly.reverse();
-            Ok(Vector(poly))
+            let mut v = Vector(poly);
+            v.set_prec(op);
+            Ok(v)
         }
     }
 }
@@ -4651,6 +4705,7 @@ pub fn slope(
     nth: u32,
 ) -> Result<NumStr, &'static str>
 {
+    let oop = options.prec;
     if nth == 0
     {
         do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(point))
@@ -4659,9 +4714,11 @@ pub fn slope(
     {
         options.prec = 256;
         point.number.set_prec(options.prec);
-        slopesided(
+        let mut n = slopesided(
             func, func_vars, options, var, point, combine, nth, true, None, None, None,
-        )
+        )?;
+        n.set_prec(oop);
+        Ok(n)
     }
     else
     {
@@ -4727,7 +4784,9 @@ pub fn slope(
                     && left.imag().is_sign_positive() == right.imag().is_sign_positive())
                     || (left.clone() - right.clone()).abs().real().clone().log2() < op as i32 / -16
                 {
-                    Ok(Num(Number::from((left + right) / 2, units)))
+                    let mut n = Num(Number::from((left + right) / 2, units));
+                    n.set_prec(oop);
+                    Ok(n)
                 }
                 else
                 {
@@ -4773,7 +4832,9 @@ pub fn slope(
                         }
                     })
                 }
-                Ok(Vector(vec))
+                let mut v = Vector(vec);
+                v.set_prec(oop);
+                Ok(v)
             }
             (_, _) => Err("lim err"),
         }
@@ -4791,7 +4852,7 @@ pub fn slopesided(
     nth: u32,
     right: bool,
     val: Option<NumStr>,
-    val2: Option<Complex>,
+    val2: Option<NumStr>,
     prec: Option<u32>,
 ) -> Result<NumStr, &'static str>
 {
@@ -4799,6 +4860,7 @@ pub fn slopesided(
     {
         return do_math_with_var(func.clone(), options, func_vars.clone(), &var, Num(point));
     }
+    let mut oop = 0;
     let units = point.units;
     let mut point = point.number;
     let prec = if let Some(prec) = prec
@@ -4807,6 +4869,7 @@ pub fn slopesided(
     }
     else
     {
+        oop = options.prec;
         options.prec = options.prec.clamp(256, 1024 * nth);
         let prec;
         (prec, options.prec) = set_slope_prec(options.prec, nth);
@@ -4853,11 +4916,11 @@ pub fn slopesided(
                 {
                     if k % 2 == 0
                     {
-                        sum += num.clone().binomial(k) * val2.clone().unwrap()
+                        sum += num.clone().binomial(k) * val2.clone().unwrap().num()?.number
                     }
                     else
                     {
-                        sum -= num.clone().binomial(k) * val2.clone().unwrap()
+                        sum -= num.clone().binomial(k) * val2.clone().unwrap().num()?.number
                     }
                 }
                 else if k % 2 == 0
@@ -4889,7 +4952,7 @@ pub fn slopesided(
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(Number::from(
+                let mut n = Num(Number::from(
                     sum * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
@@ -4898,11 +4961,15 @@ pub fn slopesided(
                         (None, Some(b)) => Some(Units::default().div(&b)),
                         (None, None) => None,
                     },
-                )))
+                ));
+                if oop != 0 {
+                    n.set_prec(oop);
+                }
+                Ok(n)
             }
             else
             {
-                Ok(Num(Number::from(
+                let mut n = Num(Number::from(
                     -sum * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
@@ -4911,7 +4978,11 @@ pub fn slopesided(
                         (None, Some(b)) => Some(Units::default().div(&b)),
                         (None, None) => None,
                     },
-                )))
+                ));
+                if oop != 0 {
+                    n.set_prec(oop);
+                }
+                Ok(n)
             }
         }
         Vector(mut sum) if !combine =>
@@ -4950,7 +5021,7 @@ pub fn slopesided(
                     }
                 }
             }
-            Ok(Vector(
+            let mut v = Vector(
                 sum.iter()
                     .map(|n| {
                         Number::from(
@@ -4972,7 +5043,11 @@ pub fn slopesided(
                         )
                     })
                     .collect::<Vec<Number>>(),
-            ))
+            );
+            if oop != 0 {
+                v.set_prec(oop);
+            }
+            Ok(v)
         }
         Vector(mut sum) if sum.len() == 1 =>
         {
@@ -5012,7 +5087,7 @@ pub fn slopesided(
             }
             if right || nth % 2 == 0
             {
-                Ok(Num(Number::from(
+                let mut n = Num(Number::from(
                     sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
@@ -5021,11 +5096,15 @@ pub fn slopesided(
                         (None, Some(b)) => Some(Units::default().div(&b)),
                         (None, None) => None,
                     },
-                )))
+                ));
+                if oop != 0 {
+                    n.set_prec(oop)
+                }
+                Ok(n)
             }
             else
             {
-                Ok(Num(Number::from(
+                let mut n = Num(Number::from(
                     -sum[0].number.clone() * Float::with_val(options.prec, 2).pow(nth * prec),
                     match (yunits, units)
                     {
@@ -5034,7 +5113,11 @@ pub fn slopesided(
                         (None, Some(b)) => Some(Units::default().div(&b)),
                         (None, None) => None,
                     },
-                )))
+                ));
+                if oop != 0 {
+                    n.set_prec(oop)
+                }
+                Ok(n)
             }
         }
         Vector(mut sum) =>
@@ -5075,7 +5158,7 @@ pub fn slopesided(
             }
             if sum.len() == 2
             {
-                Ok(Num(Number::from(
+                let mut n = Num(Number::from(
                     sum[1].number.clone() / sum[0].number.clone(),
                     match (yunits, units)
                     {
@@ -5084,12 +5167,16 @@ pub fn slopesided(
                         (None, Some(b)) => Some(Units::default().div(&b)),
                         (None, None) => None,
                     },
-                )))
+                ));
+                if oop != 0 {
+                    n.set_prec(oop)
+                }
+                Ok(n)
             }
             else
             {
                 let nf = &sum.last().unwrap().number;
-                Ok(Vector(
+                let mut v = Vector(
                     sum[0..sum.len().saturating_sub(1)]
                         .iter()
                         .map(|n| {
@@ -5105,7 +5192,11 @@ pub fn slopesided(
                             )
                         })
                         .collect::<Vec<Number>>(),
-                ))
+                );
+                if oop != 0 {
+                    v.set_prec(oop)
+                }
+                Ok(v)
             }
         }
         _ => Err("not supported slope data"),
@@ -5119,8 +5210,8 @@ pub enum LimSide
     Both,
 }
 pub fn limit(
-    func: Vec<NumStr>,
-    func_vars: Vec<(String, Vec<NumStr>)>,
+    mut func: Vec<NumStr>,
+    mut func_vars: Vec<(String, Vec<NumStr>)>,
     mut options: Options,
     var: String,
     point: Number,
@@ -5129,15 +5220,11 @@ pub fn limit(
 {
     let xunits = point.units;
     let mut point = point.number;
-    if options.prec < 256
-    {
-        options.prec = 256;
+    let oop = options.prec;
+    options.prec = options.prec.clamp(256, 1024);
+    if oop != options.prec {
         point.set_prec(options.prec);
-    }
-    else if options.prec > 1024
-    {
-        options.prec = 1024;
-        point.set_prec(options.prec);
+        set_prec(&mut func, &mut func_vars, options.prec);
     }
     if point.clone().real().is_infinite() || point.clone().imag().is_infinite()
     {
@@ -5174,21 +5261,21 @@ pub fn limit(
                 let units = n1.units;
                 let n1 = n1.number;
                 let n2 = n2.number;
-                if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
+                let mut n = if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
                 {
-                    Ok(Num(Number::from(n2, units)))
+                    Num(Number::from(n2, units))
                 }
                 else if n1.real().is_sign_positive() != n2.real().is_sign_positive()
                     || n1.imag().is_sign_positive() != n2.imag().is_sign_positive()
                 {
-                    Ok(Num(Number::from(
+                    Num(Number::from(
                         Complex::with_val(options.prec, Nan),
                         None,
-                    )))
+                    ))
                 }
                 else if n2.real().is_infinite() || n2.imag().is_infinite()
                 {
-                    Ok(Num(Number::from(
+                    Num(Number::from(
                         match (n2.real().is_infinite(), n2.imag().is_infinite())
                         {
                             (true, true) =>
@@ -5294,7 +5381,7 @@ pub fn limit(
                             (false, false) => Complex::with_val(options.prec, Nan),
                         },
                         units,
-                    )))
+                    ))
                 }
                 else
                 {
@@ -5328,7 +5415,7 @@ pub fn limit(
                     let n1i = n1.imag().clone().abs();
                     let n2i = n2.imag().clone().abs();
                     let n3i = n3.imag().clone().abs();
-                    Ok(Num(Number::from(
+                    Num(Number::from(
                         if !sign
                         {
                             Complex::with_val(options.prec, Nan)
@@ -5444,8 +5531,10 @@ pub fn limit(
                             }
                         },
                         units,
-                    )))
-                }
+                    ))
+                };
+                n.set_prec(oop);
+                Ok(n)
             }
             (Vector(v1), Vector(v2)) =>
             {
@@ -5736,7 +5825,9 @@ pub fn limit(
                         units,
                     ))
                 }
-                Ok(Vector(vec))
+                let mut v = Vector(vec);
+                v.set_prec(oop);
+                Ok(v)
             }
             (_, _) => Err("unsupported lim data"),
         }
@@ -5785,7 +5876,9 @@ pub fn limit(
                             || (left.clone() - right.clone()).abs().real().clone().log2()
                                 < options.prec as i32 / -16
                         {
-                            Ok(Num(Number::from((left + right) / 2, units)))
+                            let mut n = Num(Number::from((left + right) / 2, units));
+                            n.set_prec(oop);
+                            Ok(n)
                         }
                         else
                         {
@@ -5833,7 +5926,9 @@ pub fn limit(
                                 },
                             )
                         }
-                        Ok(Vector(vec))
+                        let mut v = Vector(vec);
+                        v.set_prec(options.prec);
+                        Ok(v)
                     }
                     (_, _) => Err("lim err"),
                 }

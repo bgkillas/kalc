@@ -213,7 +213,7 @@ Functions:
 - ln, log(base,num), W(k,z) (product log, branch k, defaults to k=0)
 - root(base,exp), sum(var,func,start,end), prod(var,func,start,end)
 - abs, sgn, arg
-- ceil, floor, round, int, frac
+- ceil, floor, round, int, frac, second argument specifies decimal
 - fact, doublefact, subfact
 - sinc, cis, exp
 - zeta, eta, gamma, lower_gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)

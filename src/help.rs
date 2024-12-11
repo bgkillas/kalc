@@ -98,7 +98,7 @@ Functions:\x1b[G\n\
 - ln, log(base,num), W(k,z) (product log, branch k, defaults to k=0)\x1b[G\n\
 - root(base,exp), sum(var,func,start,end), prod(var,func,start,end)\x1b[G\n\
 - abs, sgn, arg\x1b[G\n\
-- ceil, floor, round, int, frac\x1b[G\n\
+- ceil, floor, round, int, frac, second argument specifies decimal\x1b[G\n\
 - fact, doublefact, subfact\x1b[G\n\
 - sinc, cis, exp\x1b[G\n\
 - zeta, eta, gamma, lower_gamma, beta, erf, erfc, digamma, ai, multinomial, binomial/bi/C(n,r), P(n,r), pochhammer(x,n)\x1b[G\n\

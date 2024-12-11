@@ -4,7 +4,7 @@ use crate::misc::get_terminal_dimensions;
 use crate::misc::get_terminal_dimensions_pixel;
 use crate::{
     complex::{
-        NumStr,
+        set_prec, NumStr,
         NumStr::{Func, Matrix, Num, Vector},
     },
     load_vars::set_commands_or_vars,
@@ -26,7 +26,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-use crate::complex::set_prec;
 #[allow(clippy::type_complexity)]
 pub fn graph(
     mut input: Vec<String>,
@@ -40,9 +39,11 @@ pub fn graph(
     thread::spawn(move || {
         let mut func = Vec::new();
         let mut last_prec = options.graph_prec;
-        if options.prec != options.graph_prec {
+        if options.prec != options.graph_prec
+        {
             options.prec = options.graph_prec;
-            vars.iter_mut().for_each(|v| set_prec(&mut v.parsed, &mut v.funcvars, options.prec));
+            vars.iter_mut()
+                .for_each(|v| set_prec(&mut v.parsed, &mut v.funcvars, options.prec));
         }
         for (i, s) in input.clone().iter().enumerate()
         {
@@ -92,10 +93,12 @@ pub fn graph(
             {
                 return;
             }
-            if last_prec != options.graph_prec {
+            if last_prec != options.graph_prec
+            {
                 options.prec = options.graph_prec;
                 last_prec = options.graph_prec;
-                vars.iter_mut().for_each(|v| {set_prec(&mut v.parsed, &mut v.funcvars, options.prec)});
+                vars.iter_mut()
+                    .for_each(|v| set_prec(&mut v.parsed, &mut v.funcvars, options.prec));
             }
             func.push(
                 match input_var(

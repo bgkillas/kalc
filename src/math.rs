@@ -175,6 +175,13 @@ pub fn do_math(
                                 | "unity"
                                 | "productlog"
                                 | "lambertw"
+                                | "ceil"
+                                | "floor"
+                                | "round"
+                                | "int"
+                                | "trunc"
+                                | "frac"
+                                | "fract"
                                 | "slog"
                                 | "root"
                                 | "atan"
@@ -3882,6 +3889,116 @@ pub fn do_math(
                                     Number::from(a.imag().clone().into(), None),
                                 ])
                             }
+                            "ceil" =>
+                            {
+                                let a = arg.num()?;
+                                let units = a.units;
+                                let m = if i + 1 < function.len()
+                                {
+                                    Complex::with_val(a.number.prec(), options.base.1)
+                                        .pow(function.remove(i + 1).num()?.number)
+                                }
+                                else
+                                {
+                                    Complex::with_val(a.number.prec(), 1)
+                                };
+                                let a = a.number * m.clone();
+                                Num(Number::from(
+                                    Complex::with_val(
+                                        options.prec,
+                                        (a.real().clone().ceil(), a.imag().clone().ceil()),
+                                    ) / m,
+                                    units,
+                                ))
+                            }
+                            "floor" =>
+                            {
+                                let a = arg.num()?;
+                                let units = a.units;
+                                let m = if i + 1 < function.len()
+                                {
+                                    Complex::with_val(a.number.prec(), options.base.1)
+                                        .pow(function.remove(i + 1).num()?.number)
+                                }
+                                else
+                                {
+                                    Complex::with_val(a.number.prec(), 1)
+                                };
+                                let a = a.number * m.clone();
+                                Num(Number::from(
+                                    Complex::with_val(
+                                        options.prec,
+                                        (a.real().clone().floor(), a.imag().clone().floor()),
+                                    ) / m,
+                                    units,
+                                ))
+                            }
+                            "round" =>
+                            {
+                                let a = arg.num()?;
+                                let units = a.units;
+                                let m = if i + 1 < function.len()
+                                {
+                                    Complex::with_val(a.number.prec(), options.base.1)
+                                        .pow(function.remove(i + 1).num()?.number)
+                                }
+                                else
+                                {
+                                    Complex::with_val(a.number.prec(), 1)
+                                };
+                                let a = a.number * m.clone();
+                                Num(Number::from(
+                                    Complex::with_val(
+                                        options.prec,
+                                        (a.real().clone().round(), a.imag().clone().round()),
+                                    ) / m,
+                                    units,
+                                ))
+                            }
+                            "int" | "trunc" =>
+                            {
+                                let a = arg.num()?;
+                                let units = a.units;
+                                let m = if i + 1 < function.len()
+                                {
+                                    Complex::with_val(a.number.prec(), options.base.1)
+                                        .pow(function.remove(i + 1).num()?.number)
+                                }
+                                else
+                                {
+                                    Complex::with_val(a.number.prec(), 1)
+                                };
+                                let a = a.number * m.clone();
+                                Num(Number::from(
+                                    Complex::with_val(
+                                        options.prec,
+                                        (a.real().clone().trunc(), a.imag().clone().trunc()),
+                                    ) / m,
+                                    units,
+                                ))
+                            }
+                            "frac" | "fract" =>
+                            {
+                                let a = arg.num()?;
+                                let units = a.units;
+                                let m = if i + 1 < function.len()
+                                {
+                                    Complex::with_val(a.number.prec(), options.base.1)
+                                        .pow(function.remove(i + 1).num()?.number)
+                                }
+                                else
+                                {
+                                    Complex::with_val(a.number.prec(), 1)
+                                };
+                                let a = a.number * m.clone();
+                                Num(Number::from(
+                                    Complex::with_val(
+                                        options.prec,
+                                        (a.real().clone().fract(), a.imag().clone().fract()),
+                                    ) / m,
+                                    units,
+                                ))
+                            }
                             "iden" | "identity" => Matrix(identity(
                                 arg.num()?
                                     .number
@@ -4767,36 +4884,6 @@ fn functions(
                     ..Units::default()
                 }),
             ),
-            "ceil" => Number::from(
-                Complex::with_val(
-                    options.prec,
-                    (
-                        a.number.real().clone().ceil(),
-                        a.number.imag().clone().ceil(),
-                    ),
-                ),
-                a.units,
-            ),
-            "floor" => Number::from(
-                Complex::with_val(
-                    options.prec,
-                    (
-                        a.number.real().clone().floor(),
-                        a.number.imag().clone().floor(),
-                    ),
-                ),
-                a.units,
-            ),
-            "round" => Number::from(
-                Complex::with_val(
-                    options.prec,
-                    (
-                        a.number.real().clone().round(),
-                        a.number.imag().clone().round(),
-                    ),
-                ),
-                a.units,
-            ),
             "cbrt" | "acube" => Number::from(
                 if a.number.imag().is_zero()
                 {
@@ -4820,26 +4907,6 @@ fn functions(
                 a.units.map(|a| a.root(3.0)),
             ),
             "abs" | "norm" => Number::from(a.number.abs(), a.units),
-            "frac" | "fract" => Number::from(
-                Complex::with_val(
-                    options.prec,
-                    (
-                        a.number.real().clone().fract(),
-                        a.number.imag().clone().fract(),
-                    ),
-                ),
-                a.units,
-            ),
-            "int" | "trunc" => Number::from(
-                Complex::with_val(
-                    options.prec,
-                    (
-                        a.number.real().clone().trunc(),
-                        a.number.imag().clone().trunc(),
-                    ),
-                ),
-                a.units,
-            ),
             "recip" => Number::from(a.number.recip(), a.units.map(|a| a.pow(-1.0))),
             "units" => Number::from(Complex::with_val(options.prec, 1), a.units),
             "onlyreal" | "onlyre" | "ore" =>

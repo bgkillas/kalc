@@ -1378,7 +1378,8 @@ fn main()
                         }
                         else
                         {
-                            if slow {
+                            if slow
+                            {
                                 input.pop();
                             }
                             placement = input.len();
@@ -1461,7 +1462,8 @@ fn main()
                         }
                         else
                         {
-                            if slow {
+                            if slow
+                            {
                                 input.pop();
                             }
                             placement = input.len();

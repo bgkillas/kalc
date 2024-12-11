@@ -66,7 +66,8 @@ impl Number
     {
         Self { number, units }
     }
-    pub fn set_prec(&mut self, prec: u32) {
+    pub fn set_prec(&mut self, prec: u32)
+    {
         self.number.set_prec(prec)
     }
 }
@@ -84,18 +85,26 @@ pub fn sub(a: &Number, b: &Number) -> Number
         if a.units == b.units { a.units } else { None },
     )
 }
-pub fn set_prec(function: &mut [NumStr], func_vars: &mut [(String, Vec<NumStr>)], prec: u32) {
+pub fn set_prec(function: &mut [NumStr], func_vars: &mut [(String, Vec<NumStr>)], prec: u32)
+{
     function.iter_mut().for_each(|n| n.set_prec(prec));
-    func_vars.iter_mut().for_each(|(_, f)| f.iter_mut().for_each(|n| n.set_prec(prec)));
+    func_vars
+        .iter_mut()
+        .for_each(|(_, f)| f.iter_mut().for_each(|n| n.set_prec(prec)));
 }
 impl NumStr
 {
-    pub fn set_prec(&mut self, prec: u32) {
-        match self {
+    pub fn set_prec(&mut self, prec: u32)
+    {
+        match self
+        {
             Num(n) => n.set_prec(prec),
             Vector(v) => v.iter_mut().for_each(|n| n.set_prec(prec)),
-            Matrix(m) => m.iter_mut().for_each(|v| v.iter_mut().for_each(|n| n.set_prec(prec))),
-            _ => {}
+            Matrix(m) => m
+                .iter_mut()
+                .for_each(|v| v.iter_mut().for_each(|n| n.set_prec(prec))),
+            _ =>
+            {}
         }
     }
     pub fn mul(&self, b: &Self) -> Result<Self, &'static str>
@@ -4542,7 +4551,8 @@ pub fn taylor(
         let mut sum = val.clone();
         for n in 1..=nth
         {
-            if n % 8 == 0 {
+            if n % 8 == 0
+            {
                 (prec, _) = set_slope_prec(options.prec, nth.min(8 + n) as u32);
                 val2 = do_math_with_var(
                     func.clone(),
@@ -4579,36 +4589,39 @@ pub fn taylor(
         }
         sum.set_prec(op);
         Ok(sum)
-    } else {
+    }
+    else
+    {
         let mut poly_mat = Vec::with_capacity(nth + 1);
         let mut poly = Vec::with_capacity(nth + 1);
         let is_vector = match val.clone()
         {
             Vector(a) =>
+            {
+                let empty = vec![Number::from(Complex::new(options.prec), None); a.len()];
+                poly_mat.push(a);
+                for _ in 1..=nth
                 {
-                    let empty = vec![Number::from(Complex::new(options.prec), None); a.len()];
-                    poly_mat.push(a);
-                    for _ in 1..=nth
-                    {
-                        poly_mat.push(empty.clone())
-                    }
-                    true
+                    poly_mat.push(empty.clone())
                 }
+                true
+            }
             Num(a) =>
+            {
+                let empty = Number::from(Complex::new(options.prec), None);
+                poly.push(a);
+                for _ in 1..=nth
                 {
-                    let empty = Number::from(Complex::new(options.prec), None);
-                    poly.push(a);
-                    for _ in 1..=nth
-                    {
-                        poly.push(empty.clone())
-                    }
-                    false
+                    poly.push(empty.clone())
                 }
+                false
+            }
             _ => return Err("unsupported type"),
         };
         for n in 1..=nth
         {
-            if n % 8 == 0 {
+            if n % 8 == 0
+            {
                 (prec, _) = set_slope_prec(options.prec, nth.min(8 + n) as u32);
                 val2 = do_math_with_var(
                     func.clone(),
@@ -4655,7 +4668,9 @@ pub fn taylor(
                         )
                     }
                 }
-            } else {
+            }
+            else
+            {
                 let d = d.num()?.number;
                 for (i, poly) in poly.iter_mut().enumerate()
                 {
@@ -4962,7 +4977,8 @@ pub fn slopesided(
                         (None, None) => None,
                     },
                 ));
-                if oop != 0 {
+                if oop != 0
+                {
                     n.set_prec(oop);
                 }
                 Ok(n)
@@ -4979,7 +4995,8 @@ pub fn slopesided(
                         (None, None) => None,
                     },
                 ));
-                if oop != 0 {
+                if oop != 0
+                {
                     n.set_prec(oop);
                 }
                 Ok(n)
@@ -5044,7 +5061,8 @@ pub fn slopesided(
                     })
                     .collect::<Vec<Number>>(),
             );
-            if oop != 0 {
+            if oop != 0
+            {
                 v.set_prec(oop);
             }
             Ok(v)
@@ -5097,7 +5115,8 @@ pub fn slopesided(
                         (None, None) => None,
                     },
                 ));
-                if oop != 0 {
+                if oop != 0
+                {
                     n.set_prec(oop)
                 }
                 Ok(n)
@@ -5114,7 +5133,8 @@ pub fn slopesided(
                         (None, None) => None,
                     },
                 ));
-                if oop != 0 {
+                if oop != 0
+                {
                     n.set_prec(oop)
                 }
                 Ok(n)
@@ -5168,7 +5188,8 @@ pub fn slopesided(
                         (None, None) => None,
                     },
                 ));
-                if oop != 0 {
+                if oop != 0
+                {
                     n.set_prec(oop)
                 }
                 Ok(n)
@@ -5193,7 +5214,8 @@ pub fn slopesided(
                         })
                         .collect::<Vec<Number>>(),
                 );
-                if oop != 0 {
+                if oop != 0
+                {
                     v.set_prec(oop)
                 }
                 Ok(v)
@@ -5222,7 +5244,8 @@ pub fn limit(
     let mut point = point.number;
     let oop = options.prec;
     options.prec = options.prec.clamp(256, 1024);
-    if oop != options.prec {
+    if oop != options.prec
+    {
         point.set_prec(options.prec);
         set_prec(&mut func, &mut func_vars, options.prec);
     }
@@ -5261,17 +5284,15 @@ pub fn limit(
                 let units = n1.units;
                 let n1 = n1.number;
                 let n2 = n2.number;
-                let mut n = if (n1.clone() - n2.clone()).abs().real().clone().log2() < options.prec as i32 / -16
+                let mut n = if (n1.clone() - n2.clone()).abs().real().clone().log2()
+                    < options.prec as i32 / -16
                 {
                     Num(Number::from(n2, units))
                 }
                 else if n1.real().is_sign_positive() != n2.real().is_sign_positive()
                     || n1.imag().is_sign_positive() != n2.imag().is_sign_positive()
                 {
-                    Num(Number::from(
-                        Complex::with_val(options.prec, Nan),
-                        None,
-                    ))
+                    Num(Number::from(Complex::with_val(options.prec, Nan), None))
                 }
                 else if n2.real().is_infinite() || n2.imag().is_infinite()
                 {

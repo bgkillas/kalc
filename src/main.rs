@@ -14,6 +14,7 @@ mod tests;
 mod units;
 //make dependencys optional via features
 //add symbolica as an optional feature
+//maybe accept "#define f(x) as x" as "f(x)=x"
 //lib, gui
 use crate::{
     complex::NumStr,

@@ -262,7 +262,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                             }
                             (true, false) =>
                             {
-                                div *= recip.clone().pow(if i == 1 { 2 } else { 3 });
+                                div *= recip.clone();
                                 format!(
                                     "{sign}{}/{}{}{}{}",
                                     if mul.is_empty() { "1" } else { &mul },

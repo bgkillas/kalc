@@ -8,6 +8,7 @@ use crate::{
     parse::simplify,
     Number, Options, Units,
 };
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rug::{
     float::{
         Constant::Pi,
@@ -3657,7 +3658,7 @@ pub fn area(
 ) -> Result<NumStr, &'static str>
 {
     let mut negate = false;
-    if start.real() > end.number.real()
+    if start.real() > end.number.real() && nth == 1
     {
         negate = true;
         (end.number, start) = (start, end.number)
@@ -3830,7 +3831,7 @@ pub fn area(
             false,
             false,
         )?;
-        if end.real().clone() - start.real().clone() > 2.0
+        if nth == 1 && end.real().clone() - start.real().clone() > 2.0
         {
             let mut small_start = false;
             if start.real().is_sign_negative()
@@ -3855,7 +3856,7 @@ pub fn area(
                                 func_vars.clone(),
                                 &var,
                                 Num(Number::from(
-                                    -(Complex::with_val(options.prec, 0.5) << (options.prec / 16)),
+                                    -(Complex::with_val(options.prec, 4) << (options.prec / 16)),
                                     units,
                                 )),
                             )?
@@ -3892,7 +3893,7 @@ pub fn area(
                                 func_vars.clone(),
                                 &var,
                                 Num(Number::from(
-                                    Complex::with_val(options.prec, 0.5) << (options.prec / 16),
+                                    Complex::with_val(options.prec, 4) << (options.prec / 16),
                                     units,
                                 )),
                             )?
@@ -4148,20 +4149,26 @@ pub fn area(
                 .number)
                 / div.clone())
         }
-        x0 = Num(Number::from(x0.num()?.number * nx0t.sqrt(), units));
     }
     let h: Complex = delta.clone() / 4;
-    let mut point = start;
-    for i in 0..points
+    #[allow(clippy::type_complexity)]
+    let data: Vec<Result<(Option<Complex>, Option<Vec<Number>>), &str>> = (0..points).into_par_iter().map(|i|
     {
-        if i + 1 == points
+        let point = if i + 1 == points
         {
-            point.clone_from(&end)
+            end.clone()
         }
         else
         {
-            point += delta.clone();
-        }
+            start.clone() + (i + 1) * delta.clone()
+        };
+        let x0 = do_math_with_var(
+            func.clone(),
+            options,
+            func_vars.clone(),
+            &var,
+            Num(Number::from(point.clone() - 4 * h.clone(), units)),
+        )?;
         let x1 = do_math_with_var(
             func.clone(),
             options,
@@ -4190,7 +4197,7 @@ pub fn area(
             &var,
             Num(Number::from(point.clone(), units)),
         )?;
-        match (x0, x1, x2, x3, x4.clone())
+        match (x0, x1, x2, x3, x4)
         {
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) if funcs.is_empty() =>
                 {
@@ -4222,8 +4229,7 @@ pub fn area(
                         n3 = nx3.number;
                         n4 = nx4.number;
                     }
-                    area += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
-                    x0 = x4;
+                    Ok((Some(2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45), None))
                 }
             (Num(nx0), Num(nx1), Num(nx2), Num(nx3), Num(nx4)) =>
                 {
@@ -4353,12 +4359,12 @@ pub fn area(
                         n3 = nx3;
                         n4 = nx4;
                     }
-                    area += 2 * h.clone() * (7 * (n0 + n4.clone()) + 12 * n2 + 32 * (n1 + n3)) / 45;
-                    x0 = Num(Number::from(n4, units));
+                    Ok((Some(2 * h.clone() * (7 * (n0 + n4.clone()) + 12 * n2 + 32 * (n1 + n3)) / 45), None))
                 }
             (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4))
-            if areavec.is_empty() && !combine =>
+            if !combine =>
                 {
+                    let mut areavec = Vec::new();
                     for i in 0..nx0.len()
                     {
                         let n0;
@@ -4399,45 +4405,37 @@ pub fn area(
                             },
                         ))
                     }
-                    x0 = x4;
+                    Ok((None, Some(areavec)))
                 }
-            (Vector(nx0), Vector(nx1), Vector(nx2), Vector(nx3), Vector(nx4)) if !combine =>
+            (_, _, _, _, _) => Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
+        }
+    }).collect();
+    for d in data
+    {
+        if let Ok(a) = d
+        {
+            if let Some(a) = a.0
+            {
+                area += a
+            }
+            else if let Some(a) = a.1
+            {
+                if areavec.is_empty()
                 {
-                    for (i, v) in areavec.iter_mut().enumerate()
-                    {
-                        let n0;
-                        let n1;
-                        let n2;
-                        let n3;
-                        let n4;
-                        if nth != 1.0
-                        {
-                            let nt = pow_nth(end.clone() - point.clone() + delta.clone(), nth.clone() - 1);
-                            n0 = nx0[i].number.clone() * nt;
-                            let n: Complex = end.clone() - point.clone() + 3 * h.clone();
-                            let nt = pow_nth(n, nth.clone() - 1);
-                            n1 = nx1[i].number.clone() * nt;
-                            let n: Complex = end.clone() - point.clone() + 2 * h.clone();
-                            let nt = pow_nth(n, nth.clone() - 1);
-                            n2 = nx2[i].number.clone() * nt;
-                            let n: Complex = end.clone() - point.clone() + h.clone();
-                            let nt = pow_nth(n, nth.clone() - 1);
-                            n3 = nx3[i].number.clone() * nt;
-                            let n: Complex = end.clone() - point.clone();
-                            let nt = pow_nth(n, nth.clone() - 1);
-                            n4 = nx4[i].number.clone() * nt;
-                        } else {
-                            n0 = nx0[i].number.clone();
-                            n1 = nx1[i].number.clone();
-                            n2 = nx2[i].number.clone();
-                            n3 = nx3[i].number.clone();
-                            n4 = nx4[i].number.clone();
-                        }
-                        v.number += 2 * h.clone() * (7 * (n0 + n4) + 12 * n2 + 32 * (n1 + n3)) / 45;
-                    }
-                    x0 = x4;
+                    areavec = a
                 }
-            (_, _, _, _, _) => return Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
+                else
+                {
+                    for (a, b) in areavec.iter_mut().zip(a.iter())
+                    {
+                        a.number += b.number.clone()
+                    }
+                }
+            }
+        }
+        else if let Err(s) = d
+        {
+            return Err(s);
         }
     }
     let g = gamma(nth.clone());

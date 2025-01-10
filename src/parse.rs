@@ -1985,7 +1985,7 @@ pub fn input_var(
                                     count -= 1;
                                 }
                             }
-                            if ccount != var.name.iter().filter(|c| c == &&',').count()
+                            if ccount != var.name.iter().filter(|c| c == &&',').count() && (!is_area || ccount != 1)
                             {
                                 i = j;
                                 continue;
@@ -1998,7 +1998,7 @@ pub fn input_var(
                                 i = j + var.name.split(|c| c == &'(').next().unwrap().len();
                                 continue 'main;
                             }
-                            if var.name.contains(&',') && chars.len() > 4
+                            if (is_area && ccount == 1)|| var.name.contains(&',') && chars.len() > 4
                             {
                                 place_multiplier(&mut output, sumrec, &sumvar);
                                 if neg
@@ -2071,9 +2071,13 @@ pub fn input_var(
                                         start = f + 1;
                                     }
                                 }
+                                while func_vars.len() < split.len() {
+                                    func_vars.push(format!("@P@{}n@", func_vars.len()));
+                                }
                                 let mut parsed = var.parsed.clone();
                                 let mut fvs = var.funcvars.clone();
                                 let mut tempf = Vec::new();
+                                let mut tempf2 = Vec::new();
                                 for (z, (varf, func_var)) in split.iter().zip(func_vars).enumerate()
                                 {
                                     let mut num = if let Ok(n) = Complex::parse_radix(
@@ -2298,6 +2302,8 @@ pub fn input_var(
                                         output.push(Func("@p".to_string() + &i.to_string()));
                                         output.push(Comma);
                                         num = vec![Func("@p".to_string() + &i.to_string())]
+                                    } else if z == 1 && area != 0 && ccount == 1 {
+                                        tempf2 = num.clone();
                                     }
                                     let mut k = 0;
                                     for (x, fv) in fvs.clone().iter().enumerate()
@@ -2398,7 +2404,7 @@ pub fn input_var(
                                 output.extend(parsed);
                                 if area != 0 || slope != 0
                                 {
-                                    if area != 0
+                                    if area != 0 && (ccount == 0 || var.name.contains(&','))
                                     {
                                         output.push(Comma);
                                         output.push(Num(Number::from(
@@ -2408,6 +2414,10 @@ pub fn input_var(
                                     }
                                     output.push(Comma);
                                     output.extend(tempf);
+                                    if area != 0 && ccount == 1 && !var.name.contains(&',') {
+                                        output.push(Comma);
+                                        output.extend(tempf2);
+                                    }
                                     if area + slope != 1
                                     {
                                         output.push(Comma);
@@ -3452,6 +3462,7 @@ pub fn input_var(
             output.insert(n + 5, LeftBracket);
             output.insert(n + 7, RightBracket);
         }
+        let mut start_to_end = false;
         for (k, j) in output[n + 6..].iter().enumerate()
         {
             match j
@@ -3473,7 +3484,7 @@ pub fn input_var(
                     }
                     bracket -= 1;
                 }
-                Comma if bracket == 0 && end == 0 => end = k,
+                Comma if bracket == 0 && end == 0 => if slope {end = k} else {start_to_end = true},
                 _ =>
                 {}
             }
@@ -3491,7 +3502,7 @@ pub fn input_var(
         }
         output.splice(n + 6 + last - end..n + 6 + last - end, arg);
         output.insert(n + 6 + last - end, Comma);
-        if !slope
+        if !slope && !start_to_end
         {
             output.insert(
                 n + 6 + last - end,

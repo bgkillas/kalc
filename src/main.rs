@@ -15,6 +15,7 @@ mod units;
 //make dependencys optional via features
 //add symbolica as an optional feature
 //maybe accept "#define f(x) as x" as "f(x)=x"
+//rayon-ize graphs, and maybe area
 //lib, gui
 use crate::{
     complex::NumStr,

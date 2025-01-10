@@ -1985,7 +1985,8 @@ pub fn input_var(
                                     count -= 1;
                                 }
                             }
-                            if ccount != var.name.iter().filter(|c| c == &&',').count() && (!is_area || ccount != 1)
+                            if ccount != var.name.iter().filter(|c| c == &&',').count()
+                                && (!is_area || ccount != 1)
                             {
                                 i = j;
                                 continue;
@@ -1998,7 +1999,8 @@ pub fn input_var(
                                 i = j + var.name.split(|c| c == &'(').next().unwrap().len();
                                 continue 'main;
                             }
-                            if (is_area && ccount == 1)|| var.name.contains(&',') && chars.len() > 4
+                            if (is_area && ccount == 1)
+                                || var.name.contains(&',') && chars.len() > 4
                             {
                                 place_multiplier(&mut output, sumrec, &sumvar);
                                 if neg
@@ -2071,7 +2073,8 @@ pub fn input_var(
                                         start = f + 1;
                                     }
                                 }
-                                while func_vars.len() < split.len() {
+                                while func_vars.len() < split.len()
+                                {
                                     func_vars.push(format!("@P@{}n@", func_vars.len()));
                                 }
                                 let mut parsed = var.parsed.clone();
@@ -2302,7 +2305,12 @@ pub fn input_var(
                                         output.push(Func("@p".to_string() + &i.to_string()));
                                         output.push(Comma);
                                         num = vec![Func("@p".to_string() + &i.to_string())]
-                                    } else if z == 1 && area != 0 && ccount == 1 {
+                                    }
+                                    else if z == 1
+                                        && area != 0
+                                        && ccount == 1
+                                        && !var.name.contains(&',')
+                                    {
                                         tempf2 = num.clone();
                                     }
                                     let mut k = 0;
@@ -2404,7 +2412,7 @@ pub fn input_var(
                                 output.extend(parsed);
                                 if area != 0 || slope != 0
                                 {
-                                    if area != 0 && (ccount == 0 || var.name.contains(&','))
+                                    if area != 0 && var.name.contains(&',')
                                     {
                                         output.push(Comma);
                                         output.push(Num(Number::from(
@@ -2414,7 +2422,8 @@ pub fn input_var(
                                     }
                                     output.push(Comma);
                                     output.extend(tempf);
-                                    if area != 0 && ccount == 1 && !var.name.contains(&',') {
+                                    if area != 0 && ccount == 1 && !var.name.contains(&',')
+                                    {
                                         output.push(Comma);
                                         output.extend(tempf2);
                                     }
@@ -3484,7 +3493,17 @@ pub fn input_var(
                     }
                     bracket -= 1;
                 }
-                Comma if bracket == 0 && end == 0 => if slope {end = k} else {start_to_end = true},
+                Comma if bracket == 0 && end == 0 =>
+                {
+                    if slope
+                    {
+                        end = k
+                    }
+                    else
+                    {
+                        start_to_end = true
+                    }
+                }
                 _ =>
                 {}
             }

@@ -3656,6 +3656,12 @@ pub fn area(
     combine: bool,
 ) -> Result<NumStr, &'static str>
 {
+    let mut negate = false;
+    if start.real() > end.number.real()
+    {
+        negate = true;
+        (end.number, start) = (start, end.number)
+    }
     if start.real().is_infinite()
     {
         let neg = start.real().is_sign_negative();
@@ -3833,7 +3839,33 @@ pub fn area(
                 {
                     if a.number.real().clone().abs() < Float::with_val(options.prec, 1) >> 16
                     {
-                        small_start = true;
+                        let a = do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(Number::from(start.clone() * 2 - 1.141, units)),
+                        )?
+                        .num()?;
+                        if a.number.real().clone().abs() < Float::with_val(options.prec, 1) >> 17
+                        {
+                            let a = do_math_with_var(
+                                func.clone(),
+                                options,
+                                func_vars.clone(),
+                                &var,
+                                Num(Number::from(
+                                    -(Complex::with_val(options.prec, 0.5) << (options.prec / 16)),
+                                    units,
+                                )),
+                            )?
+                            .num()?;
+                            if a.number.real().clone().abs()
+                                < Float::with_val(options.prec, 1) >> 18
+                            {
+                                small_start = true;
+                            }
+                        }
                     }
                 }
             }
@@ -3844,7 +3876,33 @@ pub fn area(
                 {
                     if a.number.real().clone().abs() < Float::with_val(options.prec, 1) >> 16
                     {
-                        small_end = true
+                        let a = do_math_with_var(
+                            func.clone(),
+                            options,
+                            func_vars.clone(),
+                            &var,
+                            Num(Number::from(end.clone() * 2 + 1.141, units)),
+                        )?
+                        .num()?;
+                        if a.number.real().clone().abs() < Float::with_val(options.prec, 1) >> 17
+                        {
+                            let a = do_math_with_var(
+                                func.clone(),
+                                options,
+                                func_vars.clone(),
+                                &var,
+                                Num(Number::from(
+                                    Complex::with_val(options.prec, 0.5) << (options.prec / 16),
+                                    units,
+                                )),
+                            )?
+                            .num()?;
+                            if a.number.real().clone().abs()
+                                < Float::with_val(options.prec, 1) >> 18
+                            {
+                                small_end = true
+                            }
+                        }
                     }
                 }
             }
@@ -4386,7 +4444,7 @@ pub fn area(
     if areavec.is_empty()
     {
         Ok(Num(Number::from(
-            area / g,
+            if negate { -area / g } else { area / g },
             match (units, yunits)
             {
                 (Some(a), Some(b)) => Some(a.mul(&b)),
@@ -4400,7 +4458,19 @@ pub fn area(
         Ok(Vector(
             areavec
                 .iter()
-                .map(|a| Number::from(a.number.clone() / g.clone(), a.units))
+                .map(|a| {
+                    Number::from(
+                        if negate
+                        {
+                            -a.number.clone() / g.clone()
+                        }
+                        else
+                        {
+                            a.number.clone() / g.clone()
+                        },
+                        a.units,
+                    )
+                })
                 .collect::<Vec<Number>>(),
         ))
     }

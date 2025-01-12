@@ -14,7 +14,6 @@ mod tests;
 mod units;
 //make dependencys optional via features
 //add symbolica as an optional feature
-//maybe accept "#define f(x) as x" as "f(x)=x"
 //rayon-ize graphs, and maybe area
 //lib, gui
 use crate::{
@@ -608,7 +607,7 @@ fn main()
                     let count = split.clone().count();
                     if count != 1
                     {
-                        unparsed = split.clone().last().unwrap().to_vec();
+                        unparsed = split.clone().next_back().unwrap().to_vec();
                         for (i, s) in split.enumerate()
                         {
                             if i == count - 1

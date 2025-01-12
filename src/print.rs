@@ -135,7 +135,7 @@ pub fn print_concurrent(
             let count = split.clone().count();
             if count != 1
             {
-                unparsed = split.clone().last().unwrap();
+                unparsed = split.clone().next_back().unwrap();
                 var = vars.to_vec();
                 for (i, s) in split.enumerate()
                 {
@@ -228,7 +228,7 @@ pub fn print_concurrent(
                             let count = split.clone().count();
                             if count != 1
                             {
-                                input = split.clone().last().unwrap();
+                                input = split.clone().next_back().unwrap();
                                 for (i, s) in split.enumerate()
                                 {
                                     if i == count - 1
@@ -680,7 +680,7 @@ pub fn print_concurrent(
                             let count = split.clone().count();
                             if count != 1
                             {
-                                input = split.clone().last().unwrap();
+                                input = split.clone().next_back().unwrap();
                                 for (i, s) in split.enumerate()
                                 {
                                     if i == count - 1

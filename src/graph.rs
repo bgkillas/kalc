@@ -56,7 +56,7 @@ pub fn graph(
                 let count = split.clone().count();
                 if count != 1
                 {
-                    input[i] = split.clone().last().unwrap().to_string();
+                    input[i] = split.clone().next_back().unwrap().to_string();
                     for (i, s) in split.enumerate()
                     {
                         if i == count - 1
@@ -179,6 +179,8 @@ pub fn graph(
             (dimen, re_or_im, line, failed, rec_re, rec_im) = handle.join().unwrap();
             if failed
             {
+                writeln!(stdin, "exit").unwrap();
+                gnuplot.wait().unwrap();
                 return;
             }
             lines.push(
@@ -225,6 +227,8 @@ pub fn graph(
                 prompt(options, &colors)
             );
             stdout().flush().unwrap();
+            writeln!(stdin, "exit").unwrap();
+            gnuplot.wait().unwrap();
             return;
         }
         {
@@ -455,12 +459,14 @@ pub fn graph(
                 .map(|p| p.unwrap().path().display().to_string())
                 .collect();
             paths.sort_by_key(|dir| {
-                let st = dir.split('/').last().unwrap();
+                let st = dir.split('/').next_back().unwrap();
                 st[2..].to_string()
             });
             if paths.is_empty()
             {
                 println!("\x1b[G\x1b[Knothing to graph for {}\x1b[G", input.join("#"));
+                writeln!(stdin, "exit").unwrap();
+                gnuplot.wait().unwrap();
                 return;
             }
             writeln!(

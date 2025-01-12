@@ -2601,7 +2601,7 @@ pub fn recursion(
             if fv.0.contains(',')
             {
                 let mut vars = fv.0.split(',').collect::<Vec<&str>>();
-                vars[0] = vars[0].split('(').last().unwrap();
+                vars[0] = vars[0].split('(').next_back().unwrap();
                 {
                     let vl = vars.len().saturating_sub(1);
                     vars[vl] = &vars[vl][0..vars[vl].len().saturating_sub(1)];
@@ -2705,7 +2705,7 @@ pub fn recursion(
             }
             else
             {
-                let var = fv.0.split('(').last().unwrap();
+                let var = fv.0.split('(').next_back().unwrap();
                 let var = &var[0..var.len().saturating_sub(1)];
                 let mut x = func.len();
                 while x > 0

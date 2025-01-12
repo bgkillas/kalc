@@ -1693,7 +1693,7 @@ pub fn to_unit(unit: String, mut num: Float, options: Options) -> (Number, Optio
                     if l.starts_with(&unit)
                     {
                         units.usd = 1.0;
-                        num *= Float::parse(l.split(' ').last().unwrap())
+                        num *= Float::parse(l.split(' ').next_back().unwrap())
                             .unwrap()
                             .complete(options.prec);
                     }

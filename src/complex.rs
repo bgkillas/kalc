@@ -5141,7 +5141,7 @@ pub fn taylor(
 }
 fn set_slope_prec(prec: u32, nth: u32) -> (u32, u32)
 {
-    let prec = prec.clamp(256, 1024 * nth);
+    let prec = prec.clamp(256, 1024 * nth.max(1));
     (prec / (nth + 8), (nth / 8).max(1) * prec / 2)
 }
 #[allow(clippy::too_many_arguments)]
@@ -5320,7 +5320,7 @@ pub fn slopesided(
     else
     {
         oop = options.prec;
-        options.prec = options.prec.clamp(256, 1024 * nth);
+        options.prec = options.prec.clamp(256, 1024 * nth.max(1));
         let prec;
         (prec, options.prec) = set_slope_prec(options.prec, nth);
         point.set_prec(options.prec);

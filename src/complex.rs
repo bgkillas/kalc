@@ -2176,6 +2176,89 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
         Err("not square")
     }
 }
+pub fn rref(mut a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
+{
+    if a.is_empty() || a[0].is_empty() || a.iter().any(|b| a[0].len() != b.len())
+    {
+        return Err("invalid matrix");
+    }
+    let mut count = 0;
+    for i in 0..a[0].len()
+    {
+        if let Some((n, v)) = a
+            .clone()
+            .iter()
+            .enumerate()
+            .find(|(j, b)| *j >= count && !b[i].number.is_zero())
+        {
+            for (a, r) in a.iter_mut().enumerate()
+            {
+                let c = r[i].number.clone() / v[i].number.clone();
+                for (b, num) in r.iter_mut().enumerate()
+                {
+                    if a != n && !v[i].number.is_zero()
+                    {
+                        num.number -= v[b].number.clone() * c.clone();
+                    }
+                    else
+                    {
+                        num.number /= v[i].number.clone()
+                    }
+                }
+            }
+            if n != count
+            {
+                a.swap(count, n);
+            }
+            count += 1;
+        }
+    }
+    Ok(a.to_vec())
+}
+pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
+{
+    let rref = rref(a)?;
+    let mut ker = Vec::new();
+    let mut leading_ones = Vec::new();
+    for r in &rref
+    {
+        if let Some((pos, _)) = r.iter().enumerate().find(|(_, n)| !n.number.is_zero())
+        {
+            leading_ones.push(pos);
+        }
+    }
+    let t = transpose(&rref);
+    for i in 0..rref[0].len()
+    {
+        if !leading_ones.contains(&i)
+        {
+            let mut zero = t[i].clone();
+            zero.iter_mut().for_each(|n| n.number *= -1);
+            zero[i] = Number::from(Complex::with_val(rref[0][0].number.prec().0, 1), None);
+            ker.push(zero);
+        }
+    }
+    Ok(ker)
+}
+pub fn range(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
+{
+    let rref = rref(a.clone())?;
+    let mut ran = Vec::new();
+    let mut leading_ones = Vec::new();
+    for r in &rref
+    {
+        if let Some((pos, _)) = r.iter().enumerate().find(|(_, n)| !n.number.is_zero())
+        {
+            leading_ones.push(pos);
+        }
+    }
+    let t = transpose(&a);
+    for i in leading_ones
+    {
+        ran.push(t[i].clone());
+    }
+    Ok(ran)
+}
 pub fn mul_units(a: Option<Units>, b: Option<Units>) -> Option<Units>
 {
     match (a, b)

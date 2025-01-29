@@ -3,11 +3,11 @@ use crate::{
         about_eq, add, and, area, atan, binomial, cofactor, cube, cubic, determinant, digamma, div,
         eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
         extrema, gamma, gcd, ge, gt, hsv2rgb, identity, implies, incomplete_beta, incomplete_gamma,
-        inverse, iter, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec,
-        nand, ne, nor, not, nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma,
-        rand_norm, recursion, regularized_incomplete_beta, rem, root, shl, shr, slog, slope, solve,
-        sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor, tetration, to, to_cyl,
-        to_polar, trace, transpose, unity, variance, xor, zeta,
+        inverse, iter, kernel, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units,
+        mvec, nand, ne, nor, not, nth_prime, or, pow_nth, prime_factors, quadratic, quartic,
+        rand_gamma, rand_norm, range, recursion, regularized_incomplete_beta, rem, root, rref, shl,
+        shr, slog, slope, solve, sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor,
+        tetration, to, to_cyl, to_polar, trace, transpose, unity, variance, xor, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{
@@ -1178,7 +1178,7 @@ pub fn do_math(
                                 None,
                             )),
                             "tr" | "trace" => Num(trace(&a)),
-                            "det" | "determinant" => Num(determinant(&a)?),
+                            "det" | "norm" | "determinant" => Num(determinant(&a)?),
                             "part" =>
                             {
                                 if function.len() > i + 2
@@ -1411,15 +1411,6 @@ pub fn do_math(
                                     return Err("no arg");
                                 }
                             }
-                            "norm" =>
-                            {
-                                let mut n = Complex::new(options.prec);
-                                for j in a.iter().flatten()
-                                {
-                                    n += sqr(j.number.clone().abs());
-                                }
-                                Num(Number::from(n.sqrt(), a[0][0].units))
-                            }
                             "weighted_mean" =>
                             {
                                 if a.iter().any(|a| a.len() != 2)
@@ -1541,6 +1532,9 @@ pub fn do_math(
                                     eigenvectors(&a, false)?
                                 }
                             }
+                            "rref" => Matrix(rref(a)?),
+                            "ker" => Matrix(kernel(a)?),
+                            "ran" => Matrix(range(a)?),
                             "to_list" =>
                             {
                                 let mut vec = Vec::new();

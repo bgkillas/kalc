@@ -15,6 +15,7 @@ mod units;
 //make dependencys optional via features
 //add symbolica as an optional feature
 //rayon-ize graphs, and maybe area
+//fix ||x|-1|
 //lib, gui
 use crate::{
     complex::NumStr,

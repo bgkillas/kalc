@@ -2057,116 +2057,46 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
         match mat.len()
         {
             1 => Ok(Num(one)),
-            2 => Ok(Matrix(
-                quadratic(
-                    Number::from(-mat[1][0].number.clone(), None),
-                    Number::from(mat[0][0].number.clone() - mat[1][1].number.clone(), None),
-                    Number::from(mat[0][1].number.clone(), None),
-                    real,
-                )
-                .iter()
-                .rev()
-                .map(|n| vec![n.clone(), one.clone()])
-                .collect::<Vec<Vec<Number>>>(),
-            )),
-            3 =>
+            2..5 =>
             {
-                let l = eigenvalues(mat, real)?.vec()?;
-                //x=(b(l-i)+hc)/(h(l-a)+bg)
-                //y=(dx+f)/(l-e)
-                let a = mat[0][0].number.clone();
-                let b = mat[0][1].number.clone();
-                let c = mat[0][2].number.clone();
-                let d = mat[1][0].number.clone();
-                let e = mat[1][1].number.clone();
-                let f = mat[1][2].number.clone();
-                let g = mat[2][0].number.clone();
-                let h = mat[2][1].number.clone();
-                let i = mat[2][2].number.clone();
-                Ok(Matrix(
-                    l.iter()
-                        .map(|l| {
-                            let l = l.number.clone();
-                            let mut x = b.clone() * (l.clone() - i.clone()) + h.clone() * c.clone();
-                            if !x.is_zero()
-                            {
-                                x /= h.clone() * (l.clone() - a.clone()) + b.clone() * g.clone()
-                            };
-                            let mut y = d.clone() * x.clone() + f.clone();
-                            if !y.is_zero()
-                            {
-                                y /= l.clone() - e.clone();
-                            }
-                            vec![Number::from(x, None), Number::from(y, None), one.clone()]
-                        })
-                        .collect::<Vec<Vec<Number>>>(),
-                ))
-            }
-            4 =>
-            {
-                let w = eigenvalues(mat, real)?.vec()?;
-                let a = mat[0][0].number.clone();
-                let b = mat[0][1].number.clone();
-                let c = mat[0][2].number.clone();
-                let d = mat[0][3].number.clone();
-                let e = mat[1][0].number.clone();
-                let f = mat[1][1].number.clone();
-                let g = mat[1][2].number.clone();
-                let h = mat[1][3].number.clone();
-                let i = mat[2][0].number.clone();
-                let j = mat[2][1].number.clone();
-                let k = mat[2][2].number.clone();
-                let l = mat[2][3].number.clone();
-                let m = mat[3][0].number.clone();
-                let n = mat[3][1].number.clone();
-                let o = mat[3][2].number.clone();
-                let p = mat[3][3].number.clone();
-                Ok(Matrix(
-                    w.iter()
-                        .map(|w| {
-                            let w = w.number.clone();
-                            let v1 = o.clone() * (w.clone() - f.clone()) + g.clone() * n.clone();
-                            let v2 = w.clone() - k.clone();
-                            let mut x: Complex = v1.clone() * v2.clone() * d.clone()
-                                + c.clone()
-                                    * (j.clone() * o.clone() * h.clone()
-                                        + j.clone() * g.clone() * (w.clone() - p.clone())
-                                        + v1.clone() * l.clone())
-                                + v2.clone()
-                                    * b.clone()
-                                    * (o.clone() * h.clone() + g.clone() * (w.clone() - p.clone()));
-                            if !x.is_zero()
-                            {
-                                x /= v1.clone() * v2.clone() * (w.clone() - a.clone())
-                                    - c.clone() * o.clone() * e.clone() * j.clone()
-                                    + g.clone() * m.clone() * c.clone() * j.clone()
-                                    - v2.clone() * b.clone() * o.clone() * e.clone()
-                                    + v2.clone() * b.clone() * g.clone() * m.clone()
-                                    - c.clone() * v1.clone() * i.clone();
-                            }
-                            let mut y: Complex = o.clone() * (h.clone() + e.clone() * x.clone())
-                                + g.clone() * (w.clone() - p.clone() - m.clone() * x.clone());
-                            if !y.is_zero()
-                            {
-                                y /= v1.clone();
-                            }
-                            let mut z = w.clone()
-                                - p.clone()
-                                - m.clone() * x.clone()
-                                - n.clone() * y.clone();
-                            if !z.is_zero()
-                            {
-                                z /= o.clone();
-                            }
-                            vec![
-                                Number::from(x, None),
-                                Number::from(y, None),
-                                Number::from(z, None),
-                                one.clone(),
-                            ]
-                        })
-                        .collect::<Vec<Vec<Number>>>(),
-                ))
+                let mut l = eigenvalues(mat, real)?.vec()?;
+                let mut i = 0;
+                while i + 1 < l.len()
+                {
+                    let mut has = false;
+                    for v in l[i + 1..].iter().cloned()
+                    {
+                        if (v.number - l[i].number.clone()).abs().real().clone().log2()
+                            < -(mat[0][0].number.prec().0 as i32 / 8)
+                        {
+                            l.remove(i);
+                            has = true;
+                            break;
+                        }
+                    }
+                    if !has
+                    {
+                        i += 1;
+                    }
+                }
+                let v = l
+                    .iter()
+                    .filter_map(|l| {
+                        let mut l = l.clone();
+                        l.number.set_prec(l.number.prec().0 / 2);
+                        Matrix(identity(mat.len(), l.number.prec().0))
+                            .mul(&Num(l.clone()))
+                            .map(|n| {
+                                Matrix(mat.to_vec())
+                                    .func(&n, sub)
+                                    .map(|m| Some(kernel(m.mat().unwrap()).unwrap()))
+                                    .unwrap_or(None)
+                            })
+                            .unwrap_or(None)
+                    })
+                    .flatten()
+                    .collect::<Vec<Vec<Number>>>();
+                Ok(Matrix(v))
             }
             _ => Err("unsupported"),
         }
@@ -2228,12 +2158,19 @@ pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
         }
     }
     let t = transpose(&rref);
-    for i in 0..rref[0].len()
+    for (i, t) in t.iter().enumerate()
     {
         if !leading_ones.contains(&i)
         {
-            let mut zero = t[i].clone();
-            zero.iter_mut().for_each(|n| n.number *= -1);
+            let mut zero =
+                vec![Number::from(Complex::new(rref[0][0].number.prec().0), None); rref[0].len()];
+            for j in 0..i.min(leading_ones.len())
+            {
+                if leading_ones[j] < i
+                {
+                    zero[leading_ones[j]] = Number::from(-1.0 * t[j].number.clone(), None)
+                }
+            }
             zero[i] = Number::from(Complex::with_val(rref[0][0].number.prec().0, 1), None);
             ker.push(zero);
         }

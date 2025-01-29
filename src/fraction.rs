@@ -60,33 +60,40 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                             mul = n.to_string()
                         }
                     }
-                    format!(
-                        "{}{}{}{}{}{}",
-                        sign,
-                        mul,
-                        if i == 1 { "sqrt" } else { "cbrt" },
-                        if options.color == crate::Auto::True
-                        {
-                            colors.brackets[n % colors.brackets.len()].to_owned()
-                                + "("
-                                + &colors.text
-                        }
-                        else
-                        {
-                            "(".to_string()
-                        },
-                        num,
-                        if options.color == crate::Auto::True
-                        {
-                            colors.brackets[n % colors.brackets.len()].to_owned()
-                                + ")"
-                                + &colors.text
-                        }
-                        else
-                        {
-                            ")".to_string()
-                        }
-                    )
+                    if num != 1
+                    {
+                        format!(
+                            "{}{}{}{}{}{}",
+                            sign,
+                            mul,
+                            if i == 1 { "sqrt" } else { "cbrt" },
+                            if options.color == crate::Auto::True
+                            {
+                                colors.brackets[n % colors.brackets.len()].to_owned()
+                                    + "("
+                                    + &colors.text
+                            }
+                            else
+                            {
+                                "(".to_string()
+                            },
+                            num,
+                            if options.color == crate::Auto::True
+                            {
+                                colors.brackets[n % colors.brackets.len()].to_owned()
+                                    + ")"
+                                    + &colors.text
+                            }
+                            else
+                            {
+                                ")".to_string()
+                            }
+                        )
+                    }
+                    else
+                    {
+                        String::new()
+                    }
                 }
             }
             else

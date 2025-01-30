@@ -1899,57 +1899,83 @@ pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static s
         match mat.len()
         {
             1 => Ok(Num(mat[0][0].clone())),
-            2 => Ok(Vector(quadratic(
-                Number::from(Complex::with_val(mat[0][0].number.prec(), 1), None),
-                Number::from(
-                    -mat[0][0].number.clone() - mat[1][1].number.clone(),
-                    mat[0][0].units,
-                ),
-                Number::from(
-                    mat[0][0].number.clone() * mat[1][1].number.clone()
-                        - mat[0][1].number.clone() * mat[1][0].number.clone(),
-                    mat[0][0].units.map(|a| a.pow(2.0)),
-                ),
-                real,
-            ))),
-            3 => Ok(Vector(cubic(
-                Number::from(Complex::with_val(mat[0][0].number.prec(), -1), None),
-                Number::from(
-                    mat[2][2].number.clone() + mat[1][1].number.clone() + mat[0][0].number.clone(),
-                    mat[0][0].units,
-                ),
-                Number::from(
-                    -mat[0][0].number.clone() * mat[1][1].number.clone()
-                        - mat[0][0].number.clone() * mat[2][2].number.clone()
-                        + mat[0][1].number.clone() * mat[1][0].number.clone()
-                        + mat[0][2].number.clone() * mat[2][0].number.clone()
-                        - mat[1][1].number.clone() * mat[2][2].number.clone()
-                        + mat[1][2].number.clone() * mat[2][1].number.clone(),
-                    mat[0][0].units.map(|a| a.pow(2.0)),
-                ),
-                Number::from(
-                    mat[0][0].number.clone() * mat[1][1].number.clone() * mat[2][2].number.clone()
-                        - mat[0][0].number.clone()
-                            * mat[1][2].number.clone()
-                            * mat[2][1].number.clone()
-                        - mat[0][1].number.clone()
-                            * mat[1][0].number.clone()
-                            * mat[2][2].number.clone()
-                        + mat[0][1].number.clone()
-                            * mat[1][2].number.clone()
-                            * mat[2][0].number.clone()
-                        + mat[0][2].number.clone()
-                            * mat[1][0].number.clone()
-                            * mat[2][1].number.clone()
-                        - mat[0][2].number.clone()
+            2 =>
+            {
+                let pr = mat[0][0].number.prec().0;
+                let mut mat = Matrix(mat.into());
+                mat.set_prec(pr * 2);
+                let mat = mat.mat()?;
+                let mut v = Vector(quadratic(
+                    Number::from(Complex::with_val(mat[0][0].number.prec(), 1), None),
+                    Number::from(
+                        -mat[0][0].number.clone() - mat[1][1].number.clone(),
+                        mat[0][0].units,
+                    ),
+                    Number::from(
+                        mat[0][0].number.clone() * mat[1][1].number.clone()
+                            - mat[0][1].number.clone() * mat[1][0].number.clone(),
+                        mat[0][0].units.map(|a| a.pow(2.0)),
+                    ),
+                    real,
+                ));
+                v.set_prec(pr);
+                Ok(v)
+            }
+            3 =>
+            {
+                let pr = mat[0][0].number.prec().0;
+                let mut mat = Matrix(mat.into());
+                mat.set_prec(pr * 2);
+                let mat = mat.mat()?;
+                let mut v = Vector(cubic(
+                    Number::from(Complex::with_val(mat[0][0].number.prec(), -1), None),
+                    Number::from(
+                        mat[2][2].number.clone()
+                            + mat[1][1].number.clone()
+                            + mat[0][0].number.clone(),
+                        mat[0][0].units,
+                    ),
+                    Number::from(
+                        -mat[0][0].number.clone() * mat[1][1].number.clone()
+                            - mat[0][0].number.clone() * mat[2][2].number.clone()
+                            + mat[0][1].number.clone() * mat[1][0].number.clone()
+                            + mat[0][2].number.clone() * mat[2][0].number.clone()
+                            - mat[1][1].number.clone() * mat[2][2].number.clone()
+                            + mat[1][2].number.clone() * mat[2][1].number.clone(),
+                        mat[0][0].units.map(|a| a.pow(2.0)),
+                    ),
+                    Number::from(
+                        mat[0][0].number.clone()
                             * mat[1][1].number.clone()
-                            * mat[2][0].number.clone(),
-                    mat[0][0].units.map(|a| a.pow(3.0)),
-                ),
-                real,
-            ))),
+                            * mat[2][2].number.clone()
+                            - mat[0][0].number.clone()
+                                * mat[1][2].number.clone()
+                                * mat[2][1].number.clone()
+                            - mat[0][1].number.clone()
+                                * mat[1][0].number.clone()
+                                * mat[2][2].number.clone()
+                            + mat[0][1].number.clone()
+                                * mat[1][2].number.clone()
+                                * mat[2][0].number.clone()
+                            + mat[0][2].number.clone()
+                                * mat[1][0].number.clone()
+                                * mat[2][1].number.clone()
+                            - mat[0][2].number.clone()
+                                * mat[1][1].number.clone()
+                                * mat[2][0].number.clone(),
+                        mat[0][0].units.map(|a| a.pow(3.0)),
+                    ),
+                    real,
+                ));
+                v.set_prec(pr);
+                Ok(v)
+            }
             4 =>
             {
+                let pr = mat[0][0].number.prec().0;
+                let mut mat = Matrix(mat.into());
+                mat.set_prec(pr * 2);
+                let mat = mat.mat()?;
                 let a = mat[0][0].number.clone();
                 let b = mat[0][1].number.clone();
                 let c = mat[0][2].number.clone();
@@ -1966,7 +1992,7 @@ pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static s
                 let n = mat[3][1].number.clone();
                 let p = mat[3][2].number.clone();
                 let q = mat[3][3].number.clone();
-                Ok(Vector(quartic(
+                let mut v = Vector(quartic(
                     Number::from(Complex::with_val(a.prec(), 1), None),
                     Number::from(
                         -a.clone() - f.clone() - k.clone() - q.clone(),
@@ -2039,7 +2065,9 @@ pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static s
                         mat[0][0].units.map(|a| a.pow(4.0)),
                     ),
                     real,
-                )))
+                ));
+                v.set_prec(pr);
+                Ok(v)
             }
             _ => Err("unsupported"),
         }
@@ -2059,6 +2087,7 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
             1 => Ok(Num(one)),
             2..5 =>
             {
+                let p = mat[0][0].number.prec().0;
                 let mut l = eigenvalues(mat, real)?.vec()?;
                 let mut i = 0;
                 while i + 1 < l.len()
@@ -2067,7 +2096,7 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
                     for v in l[i + 1..].iter().cloned()
                     {
                         if (v.number - l[i].number.clone()).abs().real().clone().log2()
-                            < -(mat[0][0].number.prec().0 as i32 / 8)
+                            < -(p as i32 / 8)
                         {
                             l.remove(i);
                             has = true;
@@ -2082,8 +2111,6 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
                 let v = l
                     .iter()
                     .filter_map(|l| {
-                        let mut l = l.clone();
-                        l.number.set_prec(l.number.prec().0 / 2);
                         Matrix(identity(mat.len(), l.number.prec().0))
                             .mul(&Num(l.clone()))
                             .map(|n| {

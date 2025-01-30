@@ -1535,6 +1535,14 @@ pub fn do_math(
                             "rref" => Matrix(rref(a)?),
                             "ker" => Matrix(kernel(a)?),
                             "ran" => Matrix(range(a)?),
+                            "rank" => Num(Number::from(
+                                Complex::with_val(a[0][0].number.prec(), range(a)?.len()),
+                                None,
+                            )),
+                            "null" => Num(Number::from(
+                                Complex::with_val(a[0][0].number.prec(), kernel(a)?.len()),
+                                None,
+                            )),
                             "to_list" =>
                             {
                                 let mut vec = Vec::new();

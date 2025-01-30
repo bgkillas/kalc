@@ -265,7 +265,7 @@ Vector functions:
 Matrix functions:
 - eigenvalues, eigenvectors
 - trace/tr, determinant/det, inverse/inv
-- rref, ker, ran
+- rref, ker, ran, null, rank
 - transpose/trans, adjugate/adj, cofactor/cof, minor
 - part({mat},col,row), flatten, sum, prod
 - abs, norm

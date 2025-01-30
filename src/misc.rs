@@ -1029,7 +1029,7 @@ pub fn parsed_to_string(
             Greater => ">".to_string(),
             GreaterEqual => ">=".to_string(),
             Lesser => "<".to_string(),
-            LesserEqual => "<".to_string(),
+            LesserEqual => "<=".to_string(),
             Modulo => "%".to_string(),
             Range => "..".to_string(),
             And => "&&".to_string(),

@@ -2133,6 +2133,95 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
         Err("not square")
     }
 }
+pub fn generalized_eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
+{
+    if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
+    {
+        let one = Number::from(Complex::with_val(mat[0][0].number.prec(), 1), None);
+        match mat.len()
+        {
+            1 => Ok(Num(one)),
+            2..5 =>
+            {
+                let p = mat[0][0].number.prec().0;
+                let mut l = eigenvalues(mat, real)?.vec()?;
+                let mut i = 0;
+                while i + 1 < l.len()
+                {
+                    let mut has = false;
+                    for v in l[i + 1..].iter().cloned()
+                    {
+                        if (v.number - l[i].number.clone()).abs().real().clone().log2()
+                            < -(p as i32 / 8)
+                        {
+                            l.remove(i);
+                            has = true;
+                            break;
+                        }
+                    }
+                    if !has
+                    {
+                        i += 1;
+                    }
+                }
+                let v = l
+                    .iter()
+                    .filter_map(|l| {
+                        Matrix(identity(mat.len(), l.number.prec().0))
+                            .mul(&Num(l.clone()))
+                            .map(|n| {
+                                Matrix(mat.to_vec())
+                                    .func(&n, sub)
+                                    .map(|m| {
+                                        m.pow(&Num(Number::from(
+                                            Complex::with_val(p, mat.len()),
+                                            None,
+                                        )))
+                                        .map(|m| Some(kernel(m.mat().unwrap()).unwrap()))
+                                        .unwrap_or(None)
+                                    })
+                                    .unwrap_or(None)
+                            })
+                            .unwrap_or(None)
+                    })
+                    .flatten()
+                    .collect::<Vec<Vec<Number>>>();
+                Ok(Matrix(v))
+            }
+            _ => Err("unsupported"),
+        }
+    }
+    else
+    {
+        Err("not square")
+    }
+}
+pub fn change_basis(
+    a: Vec<Vec<Number>>,
+    beta: &[Vec<Number>],
+    gamma: &[Vec<Number>],
+) -> Result<NumStr, &'static str>
+{
+    let m = Matrix(a);
+    let tn = Matrix(inverse(&transpose(gamma))?);
+    let mut c = Vec::new();
+    for b in beta
+    {
+        c.push(tn.mul(&m.mul(&Vector(b.to_vec()))?)?.vec()?)
+    }
+    let tn = Matrix(inverse(&transpose(beta))?);
+    let mut d = Vec::new();
+    for g in gamma
+    {
+        d.push(tn.mul(&m.mul(&Vector(g.to_vec()))?)?.vec()?)
+    }
+    Matrix(c).mul(&m)?.mul(&Matrix(d))
+}
+pub fn coordinate(v: Vec<Number>, beta: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
+{
+    let tn = Matrix(inverse(&transpose(&beta))?);
+    tn.mul(&Vector(v))
+}
 pub fn rref(mut a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
 {
     if a.is_empty() || a[0].is_empty() || a.iter().any(|b| a[0].len() != b.len())

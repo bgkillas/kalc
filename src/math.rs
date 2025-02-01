@@ -1,13 +1,14 @@
 use crate::{
     complex::{
-        about_eq, add, and, area, atan, binomial, cofactor, cube, cubic, determinant, digamma, div,
-        eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers, euleriannumbersint,
-        extrema, gamma, gcd, ge, gt, hsv2rgb, identity, implies, incomplete_beta, incomplete_gamma,
-        inverse, iter, kernel, lambertw, length, limit, lower_incomplete_gamma, minors, mul_units,
-        mvec, nand, ne, nor, not, nth_prime, or, pow_nth, prime_factors, quadratic, quartic,
-        rand_gamma, rand_norm, range, recursion, regularized_incomplete_beta, rem, root, rref, shl,
-        shr, slog, slope, solve, sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor,
-        tetration, to, to_cyl, to_polar, trace, transpose, unity, variance, xor, zeta,
+        about_eq, add, and, area, atan, binomial, change_basis, cofactor, coordinate, cube, cubic,
+        determinant, digamma, div, eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers,
+        euleriannumbersint, extrema, gamma, gcd, ge, generalized_eigenvectors, gt, hsv2rgb,
+        identity, implies, incomplete_beta, incomplete_gamma, inverse, iter, kernel, lambertw,
+        length, limit, lower_incomplete_gamma, minors, mul_units, mvec, nand, ne, nor, not,
+        nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm, range,
+        recursion, regularized_incomplete_beta, rem, root, rref, shl, shr, slog, slope, solve,
+        sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor, tetration, to, to_cyl,
+        to_polar, trace, transpose, unity, variance, xor, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{
@@ -223,6 +224,9 @@ pub fn do_math(
                                 | "percentile"
                                 | "eigenvalues"
                                 | "eigenvectors"
+                                | "generalized_eigenvectors"
+                                | "change_basis"
+                                | "coordinate"
                                 | "mod"
                                 | "covariance"
                                 | "cov"
@@ -1535,6 +1539,54 @@ pub fn do_math(
                             "rref" => Matrix(rref(a)?),
                             "ker" => Matrix(kernel(a)?),
                             "ran" => Matrix(range(a)?),
+                            "generalized_eigenvectors" =>
+                            {
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Func(_))
+                                {
+                                    function.remove(i + 1);
+                                    generalized_eigenvectors(&a, true)?
+                                }
+                                else
+                                {
+                                    generalized_eigenvectors(&a, false)?
+                                }
+                            }
+                            //"companion_matrix"=>{},
+                            //"jordan_matrix"=>{},
+                            "change_basis" =>
+                            {
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Func(_))
+                                {
+                                    let beta = function.remove(i + 1).mat()?;
+
+                                    if function.len() > i + 1
+                                        && !matches!(&function[i + 1], Func(_))
+                                    {
+                                        change_basis(a, &beta, &function.remove(i + 1).mat()?)?
+                                    }
+                                    else
+                                    {
+                                        let i = identity(a.len(), a[0][0].number.prec().0);
+                                        change_basis(a, &i, &beta)?
+                                    }
+                                }
+                                else
+                                {
+                                    return Err("missing arg");
+                                }
+                            }
+                            "coordinate" =>
+                            {
+                                if function.len() > i + 1 && !matches!(&function[i + 1], Func(_))
+                                {
+                                    let v = function.remove(i + 1).vec()?;
+                                    coordinate(v, a)?
+                                }
+                                else
+                                {
+                                    return Err("missing arg");
+                                }
+                            }
                             "rank" => Num(Number::from(
                                 Complex::with_val(a[0][0].number.prec(), range(a)?.len()),
                                 None,

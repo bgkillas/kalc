@@ -2207,13 +2207,13 @@ pub fn change_basis(
     let mut c = Vec::new();
     for b in beta
     {
-        c.push(tn.mul(&m.mul(&Vector(b.to_vec()))?)?.vec()?)
+        c.push(tn.mul(&Vector(b.to_vec()))?.vec()?)
     }
     let tn = Matrix(inverse(&transpose(beta))?);
     let mut d = Vec::new();
     for g in gamma
     {
-        d.push(tn.mul(&m.mul(&Vector(g.to_vec()))?)?.vec()?)
+        d.push(tn.mul(&Vector(g.to_vec()))?.vec()?)
     }
     Matrix(c).mul(&m)?.mul(&Matrix(d))
 }

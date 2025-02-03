@@ -2151,7 +2151,7 @@ pub fn jcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
             .iter()
             .enumerate()
             .map_while(|(j, r)| {
-                if !r[i + j + 1].number.is_zero()
+                if -r[i + j + 1].number.clone().abs().real().clone().ln() < pr / 16
                 {
                     Some(r[i + j + 1].number.clone())
                 }

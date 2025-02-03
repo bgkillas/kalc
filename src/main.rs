@@ -1923,7 +1923,8 @@ fn main()
                                     "\x1b[G\x1b[{}A\x1b[{}C",
                                     n,
                                     placement + if options.prompt { 2 } else { 0 }
-                                )
+                                );
+                                long = true
                             }
                         }
                     }

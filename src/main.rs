@@ -741,10 +741,77 @@ fn main()
             let mut xxbool = false;
             let mut xxstart = false;
             let mut xxpos = 0;
+            let mut lastd = get_terminal_dimensions();
             loop
             {
                 let c = read_single_char();
                 let watch = Instant::now();
+                {
+                    let d = get_terminal_dimensions();
+                    if lastd != d
+                    {
+                        lastd = d;
+                        end = start + get_terminal_dimensions().0
+                            - if options.prompt { 3 } else { 1 };
+                        if end > input.len()
+                        {
+                            end = input.len()
+                        }
+                        if placement > end
+                        {
+                            placement = end
+                        }
+                        if options.real_time_output && !slow
+                        {
+                            execute!(stdout, DisableBlinking).unwrap();
+                            (frac, graphable, long, varcheck) = print_concurrent(
+                                &input,
+                                &last,
+                                &vars,
+                                options,
+                                colors.clone(),
+                                start,
+                                end,
+                                false,
+                            );
+                            if watch.elapsed().as_millis() > options.slowcheck
+                            {
+                                firstslow = true;
+                                slow = true;
+                            }
+                        }
+                        else if options.real_time_output && firstslow
+                        {
+                            firstslow = false;
+                            handle_err(
+                                "too slow, will print on enter",
+                                &vars,
+                                &input,
+                                options,
+                                &colors,
+                                start,
+                                end,
+                            )
+                        }
+                        else
+                        {
+                            clearln(&input, &vars, start, end, options, &colors);
+                        }
+                        if options.debug
+                        {
+                            let time = watch.elapsed().as_nanos();
+                            print!(
+                                " {}\x1b[{}D",
+                                time,
+                                time.to_string().len() + 1 + end - placement
+                            );
+                        }
+                        else if end - placement != 0
+                        {
+                            print!("\x1b[{}D", end - placement)
+                        }
+                    }
+                }
                 match c
                 {
                     '\n' | '\x14' | '\x09' | '\x06' =>

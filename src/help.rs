@@ -146,7 +146,8 @@ Vector operations/functions:\x1b[G\n\
 - poly/polynomial(vec, x), evaluates a polynomial, vec={{a_n,...,a_1}}, as a_n x^n+...+a_1\x1b[G\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\n\n\
 Matrix operations/functions:\x1b[G\n\
-- eigenvalues, eigenvectors\x1b[G\n\
+- eigenvalues, eigenvectors, generalized_eigenvectors\x1b[G\n\
+- jcf, change_basis, rcf\x1b[G\n\
 - trace/tr, determinant/det, inverse/inv\x1b[G\n\
 - rref, ker, ran, null, rank\x1b[G\n\
 - transpose/trans, adjugate/adj, cofactor/cof, minor\x1b[G\n\

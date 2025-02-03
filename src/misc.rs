@@ -256,6 +256,7 @@ pub fn end_word(c: char) -> bool
             | '!'
             | '±'
             | '%'
+            | ';'
     )
 }
 pub fn no_col(input: &str, color: bool) -> Vec<char>

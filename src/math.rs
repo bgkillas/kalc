@@ -3,10 +3,10 @@ use crate::{
         about_eq, add, and, area, atan, binomial, change_basis, cofactor, coordinate, cube, cubic,
         determinant, digamma, div, eigenvalues, eigenvectors, eq, erf, erfc, eta, euleriannumbers,
         euleriannumbersint, extrema, gamma, gcd, ge, generalized_eigenvectors, gt, hsv2rgb,
-        identity, implies, incomplete_beta, incomplete_gamma, inverse, iter, kernel, lambertw,
+        identity, implies, incomplete_beta, incomplete_gamma, inverse, iter, jcf, kernel, lambertw,
         length, limit, lower_incomplete_gamma, minors, mul_units, mvec, nand, ne, nor, not,
         nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm, range,
-        recursion, regularized_incomplete_beta, rem, root, rref, shl, shr, slog, slope, solve,
+        rcf, recursion, regularized_incomplete_beta, rem, root, rref, shl, shr, slog, slope, solve,
         sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor, tetration, to, to_cyl,
         to_polar, trace, transpose, unity, variance, xor, zeta,
         LimSide::{Both, Left, Right},
@@ -1551,8 +1551,8 @@ pub fn do_math(
                                     generalized_eigenvectors(&a, false)?
                                 }
                             }
-                            //"companion_matrix"=>{},
-                            //"jordan_matrix"=>{},
+                            "rcf" => rcf(a)?,
+                            "jcf" => jcf(a)?,
                             "change_basis" =>
                             {
                                 if function.len() > i + 1 && !matches!(&function[i + 1], Func(_))

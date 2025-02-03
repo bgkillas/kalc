@@ -1764,7 +1764,7 @@ pub fn minors(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 }
 pub fn cofactor(a: &[Vec<Number>]) -> Result<Vec<Vec<Number>>, &'static str>
 {
-    if a.iter().all(|j| a.len() == j.len())
+    if a.iter().all(|j| a.len() == j.len()) && !a.is_empty()
     {
         let mut result = vec![vec![Number::from(Complex::new(1), None); a[0].len()]; a.len()];
         for (i, k) in result.iter_mut().enumerate()
@@ -2132,6 +2132,50 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
     {
         Err("not square")
     }
+}
+pub fn rcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
+{
+    Err("")
+}
+pub fn jcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
+{
+    let pr = mat[0][0].number.prec().0;
+    let l = mat.len();
+    let beta = transpose(&generalized_eigenvectors(&mat, false)?.mat()?);
+    let i = identity(l, pr);
+    let mut o = i.clone();
+    let mut d = change_basis(mat, &i, &beta)?.mat()?;
+    for (i, r) in o.iter_mut().enumerate()
+    {
+        r[i].number = d[i..d.len() - 1]
+            .iter()
+            .enumerate()
+            .map_while(|(j, r)| {
+                if !r[i + j + 1].number.is_zero()
+                {
+                    Some(r[i + j + 1].number.clone())
+                }
+                else
+                {
+                    None
+                }
+            })
+            .fold(Complex::with_val(pr, 1), |sum, val| sum * val.clone());
+    }
+    let l = o.len();
+    for k in 1..l
+    {
+        d = change_basis(d, &i, &o)?.mat()?;
+        o = i.clone();
+        let mut sum = Complex::new(pr);
+        for (i, r) in o[1..l - k].iter_mut().enumerate()
+        {
+            let i = i + 1;
+            sum += d[i - 1][i + k].number.clone();
+            r[i + k].number = -sum.clone();
+        }
+    }
+    change_basis(d, &i, &o)
 }
 pub fn generalized_eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
 {
@@ -2618,19 +2662,19 @@ pub fn quartic(div: Number, b: Number, c: Number, d: Number, e: Number, real: bo
     let mut r2 = a4.clone() - first.clone() + secondn.clone();
     let mut r3 = a4.clone() + first.clone() - secondp.clone();
     let mut r4 = a4.clone() + first.clone() + secondp.clone();
-    if -r1.imag().clone().abs().log10() > a.prec().0 / 4
+    if -r1.imag().clone().abs().log10() > a.prec().0 / 8
     {
         r1 = r1.real().clone().into();
     }
-    if -r2.imag().clone().abs().log10() > a.prec().0 / 4
+    if -r2.imag().clone().abs().log10() > a.prec().0 / 8
     {
         r2 = r2.real().clone().into();
     }
-    if -r3.imag().clone().abs().log10() > a.prec().0 / 4
+    if -r3.imag().clone().abs().log10() > a.prec().0 / 8
     {
         r3 = r3.real().clone().into();
     }
-    if -r4.imag().clone().abs().log10() > a.prec().0 / 4
+    if -r4.imag().clone().abs().log10() > a.prec().0 / 8
     {
         r4 = r4.real().clone().into();
     }

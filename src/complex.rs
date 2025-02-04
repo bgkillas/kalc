@@ -2135,10 +2135,51 @@ pub fn eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static 
 }
 pub fn rcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
 {
-    Err("")
+    if mat.is_empty() || (0..mat.len()).any(|j| mat.len() != mat[j].len())
+    {
+        return Err("matrix not square");
+    }
+    let pr = mat[0][0].number.prec().0;
+    let l = mat.len();
+    let mut ev = gen_ev(&mat, false)?;
+    let mut beta = Vec::new();
+    let m = Matrix(mat.clone());
+    while !ev.is_empty()
+    {
+        let v = ev
+            .iter_mut()
+            .filter_map(|e| e.pop().map(Vector))
+            .collect::<Vec<NumStr>>();
+        let l = v.len();
+        if l == 0 {
+            break
+        }
+        let v = if l == 1
+        {
+            v[0].clone()
+        }
+        else
+        {
+            v[1..].iter().fold(v[0].clone(), |sum, val| {
+                sum.func(val, add).unwrap_or(Func(String::new()))
+            })
+        };
+        let mut c = v.vec()?;
+        beta.push(c.clone());
+        for _ in 1..l
+        {
+            c = m.mul(&Vector(c))?.vec()?;
+            beta.push(c.clone())
+        }
+    }
+    change_basis(mat, &identity(l, pr), &transpose(&beta))
 }
 pub fn jcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
 {
+    if mat.is_empty() || (0..mat.len()).any(|j| mat.len() != mat[j].len())
+    {
+        return Err("matrix not square");
+    }
     let pr = mat[0][0].number.prec().0;
     let l = mat.len();
     let beta = transpose(&generalized_eigenvectors(&mat, false)?.mat()?);
@@ -2177,6 +2218,53 @@ pub fn jcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
     }
     change_basis(d, &i, &o)
 }
+fn gen_ev(mat: &[Vec<Number>], real: bool) -> Result<Vec<Vec<Vec<Number>>>, &'static str>
+{
+    if mat.is_empty() || (0..mat.len()).any(|j| mat.len() != mat[j].len())
+    {
+        return Err("matrix not square");
+    }
+    let p = mat[0][0].number.prec().0;
+    let mut l = eigenvalues(mat, real)?.vec()?;
+    let mut i = 0;
+    while i + 1 < l.len()
+    {
+        let mut has = false;
+        for v in l[i + 1..].iter().cloned()
+        {
+            if (v.number - l[i].number.clone()).abs().real().clone().log2() < -(p as i32 / 8)
+            {
+                l.remove(i);
+                has = true;
+                break;
+            }
+        }
+        if !has
+        {
+            i += 1;
+        }
+    }
+    Ok(l.iter()
+        .filter_map(|l| {
+            Matrix(identity(mat.len(), l.number.prec().0))
+                .mul(&Num(l.clone()))
+                .map(|n| {
+                    Matrix(mat.to_vec())
+                        .func(&n, sub)
+                        .map(|m| {
+                            m.pow(&Num(Number::from(Complex::with_val(p, mat.len()), None)))
+                                .map(|m| {
+                                    let ker = kernel(m.mat().unwrap()).unwrap();
+                                    Some(ker)
+                                })
+                                .unwrap_or(None)
+                        })
+                        .unwrap_or(None)
+                })
+                .unwrap_or(None)
+        })
+        .collect::<Vec<Vec<Vec<Number>>>>())
+}
 pub fn generalized_eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
 {
     if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
@@ -2185,53 +2273,13 @@ pub fn generalized_eigenvectors(mat: &[Vec<Number>], real: bool) -> Result<NumSt
         match mat.len()
         {
             1 => Ok(Num(one)),
-            2..5 =>
-            {
-                let p = mat[0][0].number.prec().0;
-                let mut l = eigenvalues(mat, real)?.vec()?;
-                let mut i = 0;
-                while i + 1 < l.len()
-                {
-                    let mut has = false;
-                    for v in l[i + 1..].iter().cloned()
-                    {
-                        if (v.number - l[i].number.clone()).abs().real().clone().log2()
-                            < -(p as i32 / 8)
-                        {
-                            l.remove(i);
-                            has = true;
-                            break;
-                        }
-                    }
-                    if !has
-                    {
-                        i += 1;
-                    }
-                }
-                let v = l
+            2..5 => Ok(Matrix(
+                gen_ev(mat, real)?
                     .iter()
-                    .filter_map(|l| {
-                        Matrix(identity(mat.len(), l.number.prec().0))
-                            .mul(&Num(l.clone()))
-                            .map(|n| {
-                                Matrix(mat.to_vec())
-                                    .func(&n, sub)
-                                    .map(|m| {
-                                        m.pow(&Num(Number::from(
-                                            Complex::with_val(p, mat.len()),
-                                            None,
-                                        )))
-                                        .map(|m| Some(kernel(m.mat().unwrap()).unwrap()))
-                                        .unwrap_or(None)
-                                    })
-                                    .unwrap_or(None)
-                            })
-                            .unwrap_or(None)
-                    })
                     .flatten()
-                    .collect::<Vec<Vec<Number>>>();
-                Ok(Matrix(v))
-            }
+                    .cloned()
+                    .collect::<Vec<Vec<Number>>>(),
+            )),
             _ => Err("unsupported"),
         }
     }
@@ -2307,7 +2355,12 @@ pub fn rref(mut a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
 }
 pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
 {
-    let rref = rref(a)?;
+    if a.is_empty() || a[0].is_empty() || a.iter().any(|b| a[0].len() != b.len())
+    {
+        return Err("invalid matrix");
+    }
+    let pr = a[0][0].number.prec().0;
+    let rref = rref(a.clone())?;
     let mut ker = Vec::new();
     let mut leading_ones = Vec::new();
     for r in &rref
@@ -2318,12 +2371,13 @@ pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
         }
     }
     let t = transpose(&rref);
+    let m = Matrix(a);
     for (i, t) in t.iter().enumerate()
     {
         if !leading_ones.contains(&i)
         {
             let mut zero =
-                vec![Number::from(Complex::new(rref[0][0].number.prec().0), None); rref[0].len()];
+                vec![Number::from(Complex::new(pr), None); rref[0].len()];
             for j in 0..i.min(leading_ones.len())
             {
                 if leading_ones[j] < i
@@ -2331,8 +2385,10 @@ pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
                     zero[leading_ones[j]] = Number::from(-1.0 * t[j].number.clone(), None)
                 }
             }
-            zero[i] = Number::from(Complex::with_val(rref[0][0].number.prec().0, 1), None);
-            ker.push(zero);
+            zero[i] = Number::from(Complex::with_val(pr, 1), None);
+            if m.mul(&Vector(zero.clone()))?.vec()?.iter().all(|n| -n.number.clone().abs().real().clone().log2() > pr / 16) {
+                ker.push(zero);
+            }
         }
     }
     Ok(ker)

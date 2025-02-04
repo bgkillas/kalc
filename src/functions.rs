@@ -413,7 +413,7 @@ pub fn functions_with_args() -> HashSet<&'static str>
         "generalized_eigenvectors(mat)",
         "rcf(mat)",
         "jcf(mat)",
-        "change_basis(mat,beta(,gamma))",
+        "change_basis(mat(,beta),gamma)",
         "coordinate(beta, v)",
         "ran(mat)",
         "rank(mat)",

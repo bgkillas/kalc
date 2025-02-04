@@ -4867,10 +4867,10 @@ pub fn solve(
                 Number::from(Complex::with_val(options.prec, 2), None),
                 Number::from(Complex::with_val(options.prec, (0, -2)), None),
                 Number::from(Complex::with_val(options.prec, (0, 2)), None),
-                Number::from(Complex::with_val(options.prec, (-2, 2)), None),
-                Number::from(Complex::with_val(options.prec, (2, 2)), None),
-                Number::from(Complex::with_val(options.prec, (-2, -2)), None),
-                Number::from(Complex::with_val(options.prec, (2, -2)), None),
+                Number::from(Complex::with_val(options.prec, (-4, 4)), None),
+                Number::from(Complex::with_val(options.prec, (4, 4)), None),
+                Number::from(Complex::with_val(options.prec, (-4, -4)), None),
+                Number::from(Complex::with_val(options.prec, (4, -4)), None),
             ]
         };
         let mut values: Vec<Number> = Vec::new();

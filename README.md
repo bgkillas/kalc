@@ -264,6 +264,7 @@ Vector functions:
 
 Matrix functions:
 - eigenvalues, eigenvectors, generalized_eigenvectors
+- char_poly(mat(,x))
 - jcf, change_basis, rcf
 - trace/tr, determinant/det, inverse/inv
 - rref, ker, ran, null, rank

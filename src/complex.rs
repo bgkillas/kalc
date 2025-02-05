@@ -1892,6 +1892,83 @@ pub fn sort_mat(mut a: Vec<Vec<Number>>, prec: u32) -> Vec<Vec<Number>>
     a.sort_by(|x, y| x.len().partial_cmp(&y.len()).unwrap_or(Ordering::Equal));
     a
 }
+pub fn char_poly(mat: &[Vec<Number>]) -> Result<Vec<Number>, &'static str>
+{
+    fn make_iter(d: usize, n: usize) -> Vec<Vec<usize>>
+    {
+        fn helper(d: usize, n: usize, i: Vec<Vec<usize>>) -> Vec<Vec<usize>>
+        {
+            if n != 0
+            {
+                helper(
+                    d,
+                    n - 1,
+                    i.iter()
+                        .flat_map(|i| {
+                            (0..d)
+                                .filter_map(|j| {
+                                    if i.contains(&j)
+                                    {
+                                        None
+                                    }
+                                    else
+                                    {
+                                        let mut i = i.clone();
+                                        i.push(j);
+                                        Some(i)
+                                    }
+                                })
+                                .collect::<Vec<Vec<usize>>>()
+                        })
+                        .collect(),
+                )
+            }
+            else
+            {
+                i
+            }
+        }
+        helper(d, n - 1, (0..d).map(|v| vec![v]).collect())
+    }
+    if mat.is_empty() || (0..mat.len()).any(|j| mat.len() != mat[j].len())
+    {
+        return Err("matrix not square");
+    }
+    let pr = mat[0][0].number.prec().0;
+    let d = mat.len();
+    let mut poly = vec![Complex::new(pr); d + 1];
+    for (k, i) in make_iter(d, d).iter().enumerate()
+    {
+        let mut n = vec![Complex::new(pr); d + 1];
+        if (k as i64 - 1).rem_euclid(4) >= 2 {
+            n[0] += 1;
+        } else {
+            n[0] -= 1;
+        }
+        for (j, r) in mat.iter().enumerate()
+        {
+            if j == i[j]
+            {
+                let b = n.clone();
+                n[1..].iter_mut().zip(b.iter()).for_each(|(a, b)| *a += b);
+                n.iter_mut()
+                    .zip(b.iter())
+                    .for_each(|(a, b)| *a -= b * (1 + r[i[j]].number.clone()));
+            }
+            else
+            {
+                n.iter_mut().for_each(|v| *v *= -r[i[j]].number.clone());
+            }
+        }
+        println!("{:?} {}", i, (k as i64 - 1).rem_euclid(4) >= 2);
+        poly.iter_mut().zip(n).for_each(|(a, b)| *a += b);
+    }
+    Ok(poly
+        .iter()
+        .map(|a| Number::from(a.clone(), None))
+        .rev()
+        .collect())
+}
 pub fn eigenvalues(mat: &[Vec<Number>], real: bool) -> Result<NumStr, &'static str>
 {
     if !mat.is_empty() && (0..mat.len()).all(|j| mat.len() == mat[j].len())
@@ -2151,8 +2228,9 @@ pub fn rcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
             .filter_map(|e| e.pop().map(Vector))
             .collect::<Vec<NumStr>>();
         let l = v.len();
-        if l == 0 {
-            break
+        if l == 0
+        {
+            break;
         }
         let v = if l == 1
         {
@@ -2216,7 +2294,8 @@ pub fn jcf(mat: Vec<Vec<Number>>) -> Result<NumStr, &'static str>
             r[i + k].number = -sum.clone();
         }
     }
-    change_basis(d, &i, &o)
+    let d = change_basis(d, &i, &o)?;
+    Ok(d)
 }
 fn gen_ev(mat: &[Vec<Number>], real: bool) -> Result<Vec<Vec<Vec<Number>>>, &'static str>
 {
@@ -2376,8 +2455,7 @@ pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
     {
         if !leading_ones.contains(&i)
         {
-            let mut zero =
-                vec![Number::from(Complex::new(pr), None); rref[0].len()];
+            let mut zero = vec![Number::from(Complex::new(pr), None); rref[0].len()];
             for j in 0..i.min(leading_ones.len())
             {
                 if leading_ones[j] < i
@@ -2386,7 +2464,11 @@ pub fn kernel(a: Vec<Vec<Number>>) -> Result<Vec<Vec<Number>>, &'static str>
                 }
             }
             zero[i] = Number::from(Complex::with_val(pr, 1), None);
-            if m.mul(&Vector(zero.clone()))?.vec()?.iter().all(|n| -n.number.clone().abs().real().clone().log2() > pr / 16) {
+            if m.mul(&Vector(zero.clone()))?
+                .vec()?
+                .iter()
+                .all(|n| -n.number.clone().abs().real().clone().log2() > pr / 16)
+            {
                 ker.push(zero);
             }
         }

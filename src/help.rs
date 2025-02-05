@@ -147,6 +147,7 @@ Vector operations/functions:\x1b[G\n\
 - other functions are applied like sqrt{{2,4}}={{sqrt(2),sqrt(4)}}\x1b[G\n\n\
 Matrix operations/functions:\x1b[G\n\
 - eigenvalues, eigenvectors, generalized_eigenvectors\x1b[G\n\
+- char_poly(mat(,x))\x1b[G\n\
 - jcf, change_basis, rcf\x1b[G\n\
 - trace/tr, determinant/det, inverse/inv\x1b[G\n\
 - rref, ker, ran, null, rank\x1b[G\n\

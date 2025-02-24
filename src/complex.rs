@@ -1,4 +1,5 @@
 use crate::{
+    Number, Options, Units,
     complex::NumStr::{
         Comma, Division, Exponent, Func, LeftBracket, LeftCurlyBracket, Matrix, Minus,
         Multiplication, Num, Plus, RightBracket, RightCurlyBracket, Vector,
@@ -6,17 +7,16 @@ use crate::{
     math::do_math,
     misc::{do_math_with_var, place_funcvar, place_var},
     parse::simplify,
-    Number, Options, Units,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rug::{
+    Complex, Float, Integer,
     float::{
         Constant::Pi,
         Special::{Infinity, Nan},
     },
     integer::IsPrime,
     ops::Pow,
-    Complex, Float, Integer,
 };
 use std::cmp::Ordering;
 #[derive(Clone, PartialEq)]
@@ -1940,9 +1940,12 @@ pub fn char_poly(mat: &[Vec<Number>]) -> Result<Vec<Number>, &'static str>
     for (k, i) in make_iter(d, d).iter().enumerate()
     {
         let mut n = vec![Complex::new(pr); d + 1];
-        if (k as i64 - 1).rem_euclid(4) >= 2 {
+        if (k as i64 - 1).rem_euclid(4) >= 2
+        {
             n[0] += 1;
-        } else {
+        }
+        else
+        {
             n[0] -= 1;
         }
         for (j, r) in mat.iter().enumerate()
@@ -1960,7 +1963,6 @@ pub fn char_poly(mat: &[Vec<Number>]) -> Result<Vec<Number>, &'static str>
                 n.iter_mut().for_each(|v| *v *= -r[i[j]].number.clone());
             }
         }
-        println!("{:?} {}", i, (k as i64 - 1).rem_euclid(4) >= 2);
         poly.iter_mut().zip(n).for_each(|(a, b)| *a += b);
     }
     Ok(poly
@@ -3104,7 +3106,7 @@ pub fn incomplete_beta(x: Complex, a: Complex, b: Complex) -> Complex
     }
 }
 fn incomplete_beta_recursion(x: Complex, a: Complex, b: Complex, iter: usize, max: usize)
-    -> Complex
+-> Complex
 {
     if iter == max
     {
@@ -3267,14 +3269,7 @@ pub fn euleriannumbers(n: Complex, k: i32) -> Complex
             let ic = Complex::with_val(n.prec(), i);
             let num: Complex = k - ic.clone() + 1;
             let num = binomial(n.clone() + 1, ic) * pow_nth(num, n.clone());
-            if i % 2 == 0
-            {
-                sum += num
-            }
-            else
-            {
-                sum -= num
-            }
+            if i % 2 == 0 { sum += num } else { sum -= num }
         }
         sum
     }
@@ -3300,14 +3295,7 @@ pub fn euleriannumbersint(n: u32, k: u32) -> Integer
     {
         let num: Integer = k - Integer::from(i) + 1;
         let num = Integer::from(n + 1).binomial(i) * num.pow(n);
-        if i % 2 == 0
-        {
-            sum += num
-        }
-        else
-        {
-            sum -= num
-        }
+        if i % 2 == 0 { sum += num } else { sum -= num }
     }
     sum
 }
@@ -4043,10 +4031,13 @@ pub fn area(
     )?;
     if start == end
     {
-        return match x0 {
+        return match x0
+        {
             Num(_) => Ok(Num(Number::from(Complex::new(options.prec), None))),
             Vector(_) => Ok(Vector(Vec::new())),
-            _ => Err("not supported area data, if parametric have the 2nd arg start and end with the { } brackets"),
+            _ => Err(
+                "not supported area data, if parametric have the 2nd arg start and end with the { } brackets",
+            ),
         };
     }
     {
@@ -7249,14 +7240,7 @@ pub fn pow_nth(z: Complex, n: Complex) -> Complex
                 {
                     p *= &z;
                 }
-                if nr.is_sign_positive()
-                {
-                    p
-                }
-                else
-                {
-                    1 / p
-                }
+                if nr.is_sign_positive() { p } else { 1 / p }
             }
         }
         else

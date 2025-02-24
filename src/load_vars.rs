@@ -1,8 +1,8 @@
 use crate::{
-    complex::NumStr::Num, math::do_math, options::set_commands, parse::input_var, Colors, Number,
-    Options, Variable,
+    Colors, Number, Options, Variable, complex::NumStr::Num, math::do_math, options::set_commands,
+    parse::input_var,
 };
-use rug::{float::Constant::Pi, Float};
+use rug::{Float, float::Constant::Pi};
 pub fn get_file_vars(
     options: Options,
     vars: &mut Vec<Variable>,

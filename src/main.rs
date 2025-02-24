@@ -18,6 +18,8 @@ mod units;
 //fix ||x|-1|
 //lib, gui
 use crate::{
+    AngleType::Radians,
+    Notation::Normal,
     complex::NumStr,
     functions::{functions_with_args, options_list, units_list},
     graph::graph,
@@ -31,8 +33,6 @@ use crate::{
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
-    AngleType::Radians,
-    Notation::Normal,
 };
 use crossterm::{
     cursor::{DisableBlinking, EnableBlinking},
@@ -43,7 +43,7 @@ use std::{
     cmp::Ordering,
     env::args,
     fs::{File, OpenOptions},
-    io::{stdin, stdout, BufRead, BufReader, IsTerminal, Stdout, Write},
+    io::{BufRead, BufReader, IsTerminal, Stdout, Write, stdin, stdout},
     thread::JoinHandle,
     time::Instant,
 };

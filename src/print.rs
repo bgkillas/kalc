@@ -1,7 +1,12 @@
 use crate::{
+    AngleType::{Degrees, Gradians, Radians},
+    Colors, HowGraphing,
+    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
+    Number, Options, Units, Variable,
     complex::{
-        to_polar, NumStr,
+        NumStr,
         NumStr::{Matrix, Num, Vector},
+        to_polar,
     },
     fraction::fraction,
     help::help_for,
@@ -13,15 +18,11 @@ use crate::{
     },
     options::{equal_to, list_vars, silent_commands},
     parse::input_var,
-    AngleType::{Degrees, Gradians, Radians},
-    Colors, HowGraphing,
-    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
-    Number, Options, Units, Variable,
 };
 use rug::{
+    Complex, Float, Integer,
     float::Constant::Pi,
     ops::{CompleteRound, Pow},
-    Complex, Float, Integer,
 };
 use std::cmp::Ordering;
 #[allow(clippy::too_many_arguments)]
@@ -590,8 +591,20 @@ pub fn print_concurrent(
                             print!(
                                 "\x1b[J\x1b[G\ntoo long, will print on enter\x1b[G\x1b[A\x1b[K{}{}{}",
                                 prompt(options, &colors),
-                                to_output(&unmodified_input[start..end],vars, options.color==crate::Auto::True, &colors),
-                                if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
+                                to_output(
+                                    &unmodified_input[start..end],
+                                    vars,
+                                    options.color == crate::Auto::True,
+                                    &colors
+                                ),
+                                if options.color == crate::Auto::Auto
+                                {
+                                    "\x1b[0m"
+                                }
+                                else
+                                {
+                                    ""
+                                },
                             );
                             (0, input.2, true, true)
                         }
@@ -768,8 +781,20 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end],vars, options.color==crate::Auto::True, &colors),
-                    if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
+                    to_output(
+                        &unmodified_input[start..end],
+                        vars,
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
+                    if options.color == crate::Auto::Auto
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    },
                 );
                 (1, input.2, true, false)
             }
@@ -822,8 +847,20 @@ pub fn print_concurrent(
                 print!(
                     "\x1b[J\x1b[G\ntoo long, append '=' to see parsed input\x1b[G\x1b[A\x1b[K{}{}{}",
                     prompt(options, &colors),
-                    to_output(&unmodified_input[start..end],vars, options.color==crate::Auto::True, &colors),
-                    if options.color==crate::Auto::Auto { "\x1b[0m" } else { "" },
+                    to_output(
+                        &unmodified_input[start..end],
+                        vars,
+                        options.color == crate::Auto::True,
+                        &colors
+                    ),
+                    if options.color == crate::Auto::Auto
+                    {
+                        "\x1b[0m"
+                    }
+                    else
+                    {
+                        ""
+                    },
                 );
                 (1, input.2, true, false)
             }
@@ -874,7 +911,7 @@ pub fn print_concurrent(
             {
                 handle_err(s, vars, unmodified_input, options, &colors, start, end);
                 (1, HowGraphing::default(), false, false)
-            }
+            };
         }
     };
     let mut frac = 0;

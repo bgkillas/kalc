@@ -1,8 +1,8 @@
 use crate::{AngleType, Colors, Number, Options, Units};
 use rug::{
+    Complex, Float,
     float::Constant::Pi,
     ops::{CompleteRound, DivRounding, Pow},
-    Complex, Float,
 };
 use std::{
     collections::HashSet,
@@ -739,19 +739,19 @@ pub fn prefixes(mut unit: String, prec: u32) -> (String, Float)
         {
             "quetta" | "Q" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(30))
+                return (unit, Float::with_val(prec, 10).pow(30));
             }
             "ronna" | "R" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(27))
+                return (unit, Float::with_val(prec, 10).pow(27));
             }
             "yotta" | "Y" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(24))
+                return (unit, Float::with_val(prec, 10).pow(24));
             }
             "zetta" | "Z" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(21))
+                return (unit, Float::with_val(prec, 10).pow(21));
             }
             "exa" | "E" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(18)),
             "peta" | "P" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(15)),
@@ -764,44 +764,44 @@ pub fn prefixes(mut unit: String, prec: u32) -> (String, Float)
             "deci" | "d" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(-1)),
             "centi" | "c" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-2))
+                return (unit, Float::with_val(prec, 10).pow(-2));
             }
             "milli" | "m" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-3))
+                return (unit, Float::with_val(prec, 10).pow(-3));
             }
             "micro" | "μ" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-6))
+                return (unit, Float::with_val(prec, 10).pow(-6));
             }
             "nano" | "n" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 10).pow(-9)),
             "pico" | "p" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-12))
+                return (unit, Float::with_val(prec, 10).pow(-12));
             }
             "femto" | "f" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-15))
+                return (unit, Float::with_val(prec, 10).pow(-15));
             }
             "atto" | "a" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-18))
+                return (unit, Float::with_val(prec, 10).pow(-18));
             }
             "zepto" | "z" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-21))
+                return (unit, Float::with_val(prec, 10).pow(-21));
             }
             "yocto" | "y" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-24))
+                return (unit, Float::with_val(prec, 10).pow(-24));
             }
             "ronto" | "r" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-27))
+                return (unit, Float::with_val(prec, 10).pow(-27));
             }
             "qecto" | "q" if is_unit(&mut unit) =>
             {
-                return (unit, Float::with_val(prec, 10).pow(-30))
+                return (unit, Float::with_val(prec, 10).pow(-30));
             }
             "kibi" | "Ki" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(10)),
             "mebi" | "Mi" if is_unit(&mut unit) => return (unit, Float::with_val(prec, 2).pow(20)),

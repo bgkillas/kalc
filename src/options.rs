@@ -1,4 +1,8 @@
 use crate::{
+    AngleType::{Degrees, Gradians, Radians},
+    Auto, Colors, GraphType, HowGraphing,
+    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
+    Number, Options, Variable,
     complex::NumStr::{Matrix, Num, Vector},
     help::{help, help_for},
     load_vars::get_vars,
@@ -6,16 +10,12 @@ use crate::{
     misc::{insert_last, parsed_to_string, to_output},
     parse::input_var,
     print::{custom_units, get_output},
-    AngleType::{Degrees, Gradians, Radians},
-    Auto, Colors, GraphType, HowGraphing,
-    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
-    Number, Options, Variable,
 };
 use crossterm::{
     execute, terminal,
     terminal::{Clear, ClearType},
 };
-use rug::{float::Special::Nan, Complex, Float};
+use rug::{Complex, Float, float::Special::Nan};
 use std::{
     fs::File,
     io::{BufRead, BufReader, Stdout, Write},
@@ -750,11 +750,13 @@ pub fn set_commands(
                                     }
                                     else
                                     {
-                                        vec![do_math(parsed.0, *options, parsed.1.clone())
-                                            .unwrap_or(Num(Number::from(
-                                                Complex::new(options.prec),
-                                                None,
-                                            )))]
+                                        vec![
+                                            do_math(parsed.0, *options, parsed.1.clone())
+                                                .unwrap_or(Num(Number::from(
+                                                    Complex::new(options.prec),
+                                                    None,
+                                                ))),
+                                        ]
                                     };
                                     vars[i].funcvars = parsed.1;
                                 }
@@ -1382,28 +1384,40 @@ pub fn list_vars(vars: &[Variable], options: &Options, colors: &Colors) -> Strin
     out
 }
 pub fn equal_to(options: Options, colors: &Colors, vars: &[Variable], l: &str, last: &str)
-    -> String
+-> String
 {
     match l.replace(' ', "").as_str()
     {
         "colors" =>
         {
             format!(
-            "{}textc={} {}promptc={} {}imagc={} {}scic={} {}unitsc={} \x1b[0mbracketc={}\x1b[0m{}{}",
-            colors.text,
-            &colors.text[2..],
-            colors.prompt,
-            &colors.prompt[2..],
-            colors.imag,
-            &colors.imag[2..],
-            colors.sci,
-            &colors.sci[2..],
-            colors.units,
-            &colors.units[2..],
-            bracketcol(&colors.brackets),
-            colors.recol.iter().enumerate().map(|(i,a)| format!(" re{}col={}",i,formatcol(a))).collect::<Vec<String>>().concat(),
-            colors.imcol.iter().enumerate().map(|(i,a)| format!(" im{}col={}",i,formatcol(a))).collect::<Vec<String>>().concat(),
-        )
+                "{}textc={} {}promptc={} {}imagc={} {}scic={} {}unitsc={} \x1b[0mbracketc={}\x1b[0m{}{}",
+                colors.text,
+                &colors.text[2..],
+                colors.prompt,
+                &colors.prompt[2..],
+                colors.imag,
+                &colors.imag[2..],
+                colors.sci,
+                &colors.sci[2..],
+                colors.units,
+                &colors.units[2..],
+                bracketcol(&colors.brackets),
+                colors
+                    .recol
+                    .iter()
+                    .enumerate()
+                    .map(|(i, a)| format!(" re{}col={}", i, formatcol(a)))
+                    .collect::<Vec<String>>()
+                    .concat(),
+                colors
+                    .imcol
+                    .iter()
+                    .enumerate()
+                    .map(|(i, a)| format!(" im{}col={}", i, formatcol(a)))
+                    .collect::<Vec<String>>()
+                    .concat(),
+            )
         }
         "slowcheck" => format!("{}", options.slowcheck),
         "label" => format!("{},{},{}", colors.label.0, colors.label.1, colors.label.2),

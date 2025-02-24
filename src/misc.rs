@@ -1,4 +1,5 @@
 use crate::{
+    Colors, Options, Variable,
     complex::{
         NumStr,
         NumStr::{
@@ -12,11 +13,10 @@ use crate::{
     functions::functions,
     math::do_math,
     print::{custom_units, get_output},
-    Colors, Options, Variable,
 };
-use crossterm::event::{read, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, read};
 #[cfg(unix)]
-use libc::{ioctl, winsize, STDOUT_FILENO, TIOCGWINSZ};
+use libc::{STDOUT_FILENO, TIOCGWINSZ, ioctl, winsize};
 use std::{fs::File, io::Write};
 #[cfg(not(unix))]
 use term_size::dimensions;

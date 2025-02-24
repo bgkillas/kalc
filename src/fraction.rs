@@ -1,6 +1,6 @@
 // as per continued fraction expansion
-use crate::{complex::prime_factors, Colors, Number, Options};
-use rug::{float::Constant::Pi, ops::Pow, Complex, Float, Integer};
+use crate::{Colors, Number, Options, complex::prime_factors};
+use rug::{Complex, Float, Integer, float::Constant::Pi, ops::Pow};
 pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> String
 {
     if value.clone().fract().is_zero() || !value.is_finite() || options.prec < 128

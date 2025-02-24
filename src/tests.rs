@@ -1,4 +1,5 @@
 use crate::{
+    Number, Options,
     complex::NumStr::{
         Comma, Division, Exponent, Func, LeftBracket, Minus, Multiplication, Num, Plus,
         RightBracket,
@@ -6,9 +7,8 @@ use crate::{
     load_vars::get_vars,
     math::do_math,
     parse::input_var,
-    Number, Options,
 };
-use rug::{float::Constant::Pi, Complex};
+use rug::{Complex, float::Constant::Pi};
 #[test]
 fn test_math()
 {

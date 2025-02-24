@@ -1,6 +1,9 @@
 use crate::{
+    GraphType, HowGraphing,
+    Notation::SmallEngineering,
+    Number, Options, Variable,
     complex::{
-        pow_nth, NumStr,
+        NumStr,
         NumStr::{
             And, Comma, Converse, Conversion, Division, Equal, Exponent, Func, Greater,
             GreaterEqual, Implies, InternalMultiplication, LeftBracket, LeftCurlyBracket, Lesser,
@@ -8,18 +11,16 @@ use crate::{
             NotEqual, Num, Or, Plus, PlusMinus, Range, RightBracket, RightCurlyBracket, Root,
             ShiftLeft, ShiftRight, Tetration, Vector, Xor,
         },
+        pow_nth,
     },
     functions::functions,
     math::do_math,
     units::{is_unit, prefixes, to_unit},
-    GraphType, HowGraphing,
-    Notation::SmallEngineering,
-    Number, Options, Variable,
 };
 use rug::{
+    Complex,
     float::Special::{Infinity, Nan},
     ops::CompleteRound,
-    Complex,
 };
 #[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
@@ -3495,14 +3496,7 @@ pub fn input_var(
                 }
                 Comma if bracket == 0 && end == 0 =>
                 {
-                    if slope
-                    {
-                        end = k
-                    }
-                    else
-                    {
-                        start_to_end = true
-                    }
+                    if slope { end = k } else { start_to_end = true }
                 }
                 _ =>
                 {}

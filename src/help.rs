@@ -1,7 +1,7 @@
 pub fn help()
 {
     print!(
-             "Usage: kalc [FLAGS] equation_1 equation_2 equation_3...\x1b[G\n\
+        "Usage: kalc [FLAGS] equation_1 equation_2 equation_3...\x1b[G\n\
 FLAGS: --help (this message)\x1b[G\n\
 --help {{thing}} to get more detail on a function/option/feature, --help help to list all \"things\"\x1b[G\n\
 --interactive/-i allows interaction after finishing the equations given\x1b[G\n\
@@ -199,8 +199,9 @@ n=>ν, Ν=>Ν, o=>ο, O=>Ο, p=>π, P=>Π, q=>θ, Q=>Θ,\x1b[G\n\
 r=>ρ, R=>Ρ, s=>σ, S=>Σ, t=>τ, T=>Τ, u=>υ, U=>Υ,\x1b[G\n\
 w=>ω, W=>Ω, y=>ψ, Y=>Ψ, x=>χ, X=>Χ, z=>ζ, Z=>Ζ,\x1b[G\n\
 +=>±, ==>≈, `=>ⁱ, _=>∞, ;=>°\x1b[G\n\
-numbers/minus sign convert to superscript acting as exponents\x1b[G\n"
-,all_units());
+numbers/minus sign convert to superscript acting as exponents\x1b[G\n",
+        all_units()
+    );
 }
 fn all_units() -> &'static str
 {

@@ -7,9 +7,9 @@ readme = "README.md"
 keywords = ["cli", "calculator"]
 categories = ["command-line-interface", "command-line-utilities", "mathematics"]
 repository = "https://github.com/bgkillas/kalc"
-rust-version = "1.81.0"
+rust-version = "1.85.0"
 version = "1.4.2"
-edition = "2021"
+edition = "2024"
 
 [profile.release]
 lto = true
@@ -30,7 +30,7 @@ rayon = "1.10.0"
 term_size = "0.3.2"
 
 [target.'cfg(unix)'.dependencies]
-libc = "0.2.153"
+libc = "0.2.169"
 
 [dependencies.gmp-mpfr-sys]
 version = "1.6.4"

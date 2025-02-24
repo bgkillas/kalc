@@ -1,14 +1,7 @@
 use crate::{
+    AngleType::{Degrees, Gradians, Radians},
+    Number, Options, Units,
     complex::{
-        about_eq, add, and, area, atan, binomial, change_basis, char_poly, cofactor, coordinate,
-        cube, cubic, determinant, digamma, div, eigenvalues, eigenvectors, eq, erf, erfc, eta,
-        euleriannumbers, euleriannumbersint, extrema, gamma, gcd, ge, generalized_eigenvectors, gt,
-        hsv2rgb, identity, implies, incomplete_beta, incomplete_gamma, inverse, iter, jcf, kernel,
-        lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, nand, ne, nor,
-        not, nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm,
-        range, rcf, recursion, regularized_incomplete_beta, rem, root, rref, shl, shr, slog, slope,
-        solve, sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor, tetration, to,
-        to_cyl, to_polar, trace, transpose, unity, variance, xor, zeta,
         LimSide::{Both, Left, Right},
         NumStr,
         NumStr::{
@@ -18,20 +11,27 @@ use crate::{
             NotEqual, Num, Or, Plus, PlusMinus, Range, RightBracket, RightCurlyBracket, Root,
             ShiftLeft, ShiftRight, Tetration, Vector, Xor,
         },
+        about_eq, add, and, area, atan, binomial, change_basis, char_poly, cofactor, coordinate,
+        cube, cubic, determinant, digamma, div, eigenvalues, eigenvectors, eq, erf, erfc, eta,
+        euleriannumbers, euleriannumbersint, extrema, gamma, gcd, ge, generalized_eigenvectors, gt,
+        hsv2rgb, identity, implies, incomplete_beta, incomplete_gamma, inverse, iter, jcf, kernel,
+        lambertw, length, limit, lower_incomplete_gamma, minors, mul_units, mvec, nand, ne, nor,
+        not, nth_prime, or, pow_nth, prime_factors, quadratic, quartic, rand_gamma, rand_norm,
+        range, rcf, recursion, regularized_incomplete_beta, rem, root, rref, shl, shr, slog, slope,
+        solve, sort, sort_mat, sqr, sub, subfactorial, sum, surface_area, taylor, tetration, to,
+        to_cyl, to_polar, trace, transpose, unity, variance, xor, zeta,
     },
     fraction::{c_to_rational, rationalize},
     misc::do_math_with_var,
-    AngleType::{Degrees, Gradians, Radians},
-    Number, Options, Units,
 };
 use rug::{
+    Complex, Float, Integer,
     float::{
         Constant::Pi,
         Special::{Infinity, Nan},
     },
     integer::IsPrime,
     ops::Pow,
-    Complex, Float, Integer,
 };
 use std::{cmp::Ordering, ops::Rem, time::SystemTime};
 pub fn do_math(
@@ -1570,14 +1570,7 @@ pub fn do_math(
                                                 Some(x.units.unwrap_or_default().pow(i as f64)),
                                             ),
                                         );
-                                        if i == 0
-                                        {
-                                            sum = n
-                                        }
-                                        else
-                                        {
-                                            sum = add(&sum, &n)
-                                        }
+                                        if i == 0 { sum = n } else { sum = add(&sum, &n) }
                                     }
                                     Num(sum)
                                 }
@@ -3222,14 +3215,7 @@ pub fn do_math(
                                                 Some(x.units.unwrap_or_default().pow(i as f64)),
                                             ),
                                         );
-                                        if i == 0
-                                        {
-                                            sum = n
-                                        }
-                                        else
-                                        {
-                                            sum = add(&sum, &n)
-                                        }
+                                        if i == 0 { sum = n } else { sum = add(&sum, &n) }
                                     }
                                     Num(sum)
                                 }

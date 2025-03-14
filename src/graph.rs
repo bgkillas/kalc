@@ -530,7 +530,7 @@ pub fn graph(
                                 )
                             }
                         }
-                        else  if records[j]==0
+                        else if j < records.len() {if records[j] == 0
                             {
                             format!(
                             " NaN with lines lc'{}'t\"{}\",'{}'binary endian=little array={} format='%float64'origin={} with points pt {} lc'{}'t''",
@@ -548,8 +548,8 @@ pub fn graph(
                             format!(
                             " NaN with lines lc'{}'t\"{}\",'{}'binary endian=little record={} format='%float64'with points pt {} lc'{}'t''",
                             col, cap[j], f,records[j],func[n].2.point_style, col
-                        )
-                        }
+                        )}
+                        } else {String::new()}
                     })
                     .collect::<Vec<String>>()
                     .join(",")

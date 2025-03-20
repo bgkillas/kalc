@@ -142,7 +142,7 @@ dependencies = [
 
 [[package]]
 name = "kalc"
-version = "1.4.2"
+version = "1.4.3"
 dependencies = [
  "crossterm",
  "dirs",

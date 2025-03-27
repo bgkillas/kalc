@@ -1,6 +1,4 @@
 use crate::{
-    AngleType::{Degrees, Gradians, Radians},
-    Number, Options, Units,
     complex::{
         LimSide::{Both, Left, Right},
         NumStr,
@@ -23,6 +21,7 @@ use crate::{
     },
     fraction::{c_to_rational, rationalize},
     misc::do_math_with_var,
+    units::{AngleType, Number, Options, Units},
 };
 use rug::{
     Complex, Float, Integer,
@@ -410,9 +409,9 @@ pub fn do_math(
     i = 0;
     let to_deg = match options.angle
     {
-        Degrees => 180 / Complex::with_val(options.prec, Pi),
-        Radians => Complex::with_val(options.prec, 1),
-        Gradians => 200 / Complex::with_val(options.prec, Pi),
+        AngleType::Degrees => 180 / Complex::with_val(options.prec, Pi),
+        AngleType::Radians => Complex::with_val(options.prec, 1),
+        AngleType::Gradians => 200 / Complex::with_val(options.prec, Pi),
     };
     while i < function.len().saturating_sub(1)
     {

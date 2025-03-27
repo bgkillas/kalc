@@ -1,5 +1,4 @@
 use crate::{
-    Number, Options, Units,
     complex::NumStr::{
         Comma, Division, Exponent, Func, LeftBracket, LeftCurlyBracket, Matrix, Minus,
         Multiplication, Num, Plus, RightBracket, RightCurlyBracket, Vector,
@@ -7,6 +6,7 @@ use crate::{
     math::do_math,
     misc::{do_math_with_var, place_funcvar, place_var},
     parse::simplify,
+    units::{Number, Options, Units},
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rug::{

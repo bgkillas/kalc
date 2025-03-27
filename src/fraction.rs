@@ -1,5 +1,8 @@
 // as per continued fraction expansion
-use crate::{Colors, Number, Options, complex::prime_factors};
+use crate::{
+    complex::prime_factors,
+    units::{Auto, Colors, Number, Options},
+};
 use rug::{Complex, Float, Integer, float::Constant::Pi, ops::Pow};
 pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> String
 {
@@ -67,7 +70,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                             sign,
                             mul,
                             if i == 1 { "sqrt" } else { "cbrt" },
-                            if options.color == crate::Auto::True
+                            if options.color == Auto::True
                             {
                                 colors.brackets[n % colors.brackets.len()].to_owned()
                                     + "("
@@ -78,7 +81,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                                 "(".to_string()
                             },
                             num,
-                            if options.color == crate::Auto::True
+                            if options.color == Auto::True
                             {
                                 colors.brackets[n % colors.brackets.len()].to_owned()
                                     + ")"
@@ -156,7 +159,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                 }
                 else if i == 1 || i == 2
                 {
-                    let lb = if options.color == crate::Auto::True
+                    let lb = if options.color == Auto::True
                     {
                         colors.brackets[n % colors.brackets.len()].to_owned() + "(" + &colors.text
                     }
@@ -164,7 +167,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                     {
                         "(".to_string()
                     };
-                    let rb = if options.color == crate::Auto::True
+                    let rb = if options.color == Auto::True
                     {
                         colors.brackets[n % colors.brackets.len()].to_owned() + ")" + &colors.text
                     }
@@ -308,7 +311,7 @@ pub fn fraction(value: Float, options: Options, colors: &Colors, n: usize) -> St
                             {
                                 "/".to_owned() + "e"
                             }
-                            else if options.color == crate::Auto::True
+                            else if options.color == Auto::True
                             {
                                 format!(
                                     "/{}({}{}e{}){}",

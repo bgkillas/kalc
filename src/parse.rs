@@ -1,7 +1,4 @@
 use crate::{
-    GraphType, HowGraphing,
-    Notation::SmallEngineering,
-    Number, Options, Variable,
     complex::{
         NumStr,
         NumStr::{
@@ -15,7 +12,10 @@ use crate::{
     },
     functions::functions,
     math::do_math,
-    units::{is_unit, prefixes, to_unit},
+    units::{
+        GraphType, HowGraphing, Notation::SmallEngineering, Number, Options, Variable, is_unit,
+        prefixes, to_unit,
+    },
 };
 use rug::{
     Complex,

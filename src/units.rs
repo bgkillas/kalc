@@ -1,4 +1,7 @@
-use crate::{AngleType, Colors, Number, Options, Units};
+use crate::{
+    complex::NumStr,
+    units::{AngleType::Radians, Notation::Normal},
+};
 use rug::{
     Complex, Float,
     float::Constant::Pi,
@@ -12,6 +15,234 @@ use std::{
     net::TcpStream,
     time::SystemTime,
 };
+#[derive(Clone)]
+pub struct Variable
+{
+    pub name: Vec<char>,
+    pub parsed: Vec<NumStr>,
+    pub unparsed: String,
+    pub funcvars: Vec<(String, Vec<NumStr>)>,
+}
+#[derive(Clone, PartialEq, Copy)]
+pub struct Units
+{
+    pub second: f64,
+    pub meter: f64,
+    pub kilogram: f64,
+    pub ampere: f64,
+    pub kelvin: f64,
+    pub mole: f64,
+    pub candela: f64,
+    pub angle: f64,
+    pub byte: f64,
+    pub usd: f64,
+    pub unit: f64,
+}
+#[derive(Clone, PartialEq)]
+pub struct Number
+{
+    pub number: Complex,
+    pub units: Option<Units>,
+}
+#[derive(Clone)]
+pub struct Colors
+{
+    pub text: String,
+    pub prompt: String,
+    pub imag: String,
+    pub sci: String,
+    pub units: String,
+    pub brackets: Vec<String>,
+    pub recol: Vec<String>,
+    pub imcol: Vec<String>,
+    pub label: (String, String, String),
+    pub graphtofile: String,
+    pub default_units: Vec<(String, Number)>,
+}
+impl Default for Colors
+{
+    fn default() -> Self
+    {
+        Self {
+            text: "\x1b[0m".to_string(),
+            prompt: "\x1b[94m".to_string(),
+            imag: "\x1b[93m".to_string(),
+            sci: "\x1b[92m".to_string(),
+            units: "\x1b[96m".to_string(),
+            brackets: vec![
+                "\x1b[91m".to_string(),
+                "\x1b[92m".to_string(),
+                "\x1b[93m".to_string(),
+                "\x1b[94m".to_string(),
+                "\x1b[95m".to_string(),
+                "\x1b[96m".to_string(),
+            ],
+            recol: vec![
+                "#ff5555".to_string(),
+                "#5555ff".to_string(),
+                "#ff55ff".to_string(),
+                "#55ff55".to_string(),
+                "#55ffff".to_string(),
+                "#ffff55".to_string(),
+            ],
+            imcol: vec![
+                "#aa0000".to_string(),
+                "#0000aa".to_string(),
+                "#aa00aa".to_string(),
+                "#00aa00".to_string(),
+                "#00aaaa".to_string(),
+                "#aaaa00".to_string(),
+            ],
+            label: ("x".to_string(), "y".to_string(), "z".to_string()),
+            graphtofile: String::new(),
+            default_units: Vec::new(),
+        }
+    }
+}
+#[derive(Copy, Clone, PartialEq)]
+pub enum AngleType
+{
+    Radians,
+    Degrees,
+    Gradians,
+}
+#[derive(Copy, Clone, PartialEq)]
+pub enum Auto
+{
+    True,
+    False,
+    Auto,
+}
+#[derive(Default, Copy, Clone, PartialEq)]
+pub struct HowGraphing
+{
+    pub graph: bool,
+    pub x: bool,
+    pub y: bool,
+}
+#[derive(Copy, Clone, PartialEq)]
+pub struct Fractions
+{
+    pub num: bool,
+    pub vec: bool,
+    pub mat: bool,
+}
+#[derive(Copy, Clone, PartialEq)]
+pub enum Notation
+{
+    Normal,
+    Scientific,
+    LargeEngineering,
+    SmallEngineering,
+}
+#[derive(Copy, Clone, PartialEq)]
+pub enum GraphType
+{
+    Normal,
+    Domain,
+    DomainAlt,
+    Flat,
+    Depth,
+    None,
+}
+#[derive(Clone, Copy)]
+pub struct Options
+{
+    pub notation: Notation,
+    pub angle: AngleType,
+    pub graphtype: GraphType,
+    pub base: (i32, i32),
+    pub ticks: (f64, f64, f64),
+    pub onaxis: bool,
+    pub polar: bool,
+    pub frac: Fractions,
+    pub real_time_output: bool,
+    pub decimal_places: usize,
+    pub color: Auto,
+    pub prompt: bool,
+    pub comma: bool,
+    pub prec: u32,
+    pub graph_prec: u32,
+    pub xr: (f64, f64),
+    pub yr: (f64, f64),
+    pub zr: (f64, f64),
+    pub vxr: (f64, f64),
+    pub vyr: (f64, f64),
+    pub vzr: (f64, f64),
+    pub samples_2d: usize,
+    pub samples_3d: (usize, usize),
+    pub point_style: isize,
+    pub lines: Auto,
+    pub multi: bool,
+    pub tabbed: bool,
+    pub allow_vars: bool,
+    pub debug: bool,
+    pub slowcheck: u128,
+    pub interactive: bool,
+    pub surface: bool,
+    pub scale_graph: bool,
+    pub stay_interactive: bool,
+    pub graph_cli: bool,
+    pub units: bool,
+    pub si_units: bool,
+    pub window_size: (usize, usize),
+    pub keep_zeros: bool,
+    pub progress: bool,
+    pub keep_data_file: bool,
+}
+impl Default for Options
+{
+    fn default() -> Self
+    {
+        Self {
+            notation: Normal,
+            angle: Radians,
+            graphtype: GraphType::Normal,
+            base: (10, 10),
+            ticks: (16.0, 16.0, 16.0),
+            onaxis: true,
+            polar: false,
+            frac: Fractions {
+                num: true,
+                vec: true,
+                mat: false,
+            },
+            real_time_output: true,
+            decimal_places: 12,
+            color: Auto::Auto,
+            prompt: true,
+            comma: false,
+            prec: 512,
+            graph_prec: 128,
+            xr: (-8.0, 8.0),
+            yr: (-8.0, 8.0),
+            zr: (-8.0, 8.0),
+            vxr: (0.0, 0.0),
+            vyr: (0.0, 0.0),
+            vzr: (0.0, 0.0),
+            samples_2d: 8192,
+            samples_3d: (256, 256),
+            point_style: 0,
+            lines: Auto::Auto,
+            multi: true,
+            tabbed: false,
+            allow_vars: true,
+            debug: false,
+            slowcheck: 256,
+            interactive: true,
+            surface: false,
+            scale_graph: false,
+            stay_interactive: false,
+            graph_cli: false,
+            units: true,
+            si_units: false,
+            window_size: (0, 0),
+            keep_zeros: false,
+            progress: false,
+            keep_data_file: false,
+        }
+    }
+}
 impl Units
 {
     pub fn is_none(&self) -> bool

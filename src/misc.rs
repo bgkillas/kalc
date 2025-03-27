@@ -1,5 +1,4 @@
 use crate::{
-    Colors, Options, Variable,
     complex::{
         NumStr,
         NumStr::{
@@ -13,7 +12,9 @@ use crate::{
     functions::functions,
     math::do_math,
     print::{custom_units, get_output},
+    units::{Auto, Colors, Options, Variable},
 };
+#[cfg(feature = "bin-deps")]
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, read};
 #[cfg(unix)]
 use libc::{STDOUT_FILENO, TIOCGWINSZ, ioctl, winsize};
@@ -348,10 +349,10 @@ pub fn clearln(
         to_output(
             &input[start..end],
             vars,
-            options.color == crate::Auto::True,
+            options.color == Auto::True,
             colors
         ),
-        if options.color == crate::Auto::True
+        if options.color == Auto::True
         {
             "\x1b[0m"
         }
@@ -376,10 +377,10 @@ pub fn clear(
         to_output(
             &input[start..end],
             vars,
-            options.color == crate::Auto::True,
+            options.color == Auto::True,
             colors
         ),
-        if options.color == crate::Auto::True
+        if options.color == Auto::True
         {
             "\x1b[0m"
         }
@@ -523,10 +524,10 @@ pub fn handle_err(
         to_output(
             &input[start..end],
             vars,
-            options.color == crate::Auto::True,
+            options.color == Auto::True,
             colors
         ),
-        if options.color == crate::Auto::True
+        if options.color == Auto::True
         {
             "\x1b[0m"
         }
@@ -544,7 +545,7 @@ pub fn prompt(options: Options, colors: &Colors) -> String
     }
     else if options.prompt
     {
-        if options.color == crate::Auto::True
+        if options.color == Auto::True
         {
             format!("{}>{} ", colors.prompt, colors.text)
         }
@@ -553,7 +554,7 @@ pub fn prompt(options: Options, colors: &Colors) -> String
             "> ".to_string()
         }
     }
-    else if options.color == crate::Auto::True
+    else if options.color == Auto::True
     {
         colors.text.to_string()
     }
@@ -939,7 +940,7 @@ pub fn parsed_to_string(
                     n.0,
                     n.1,
                     n.2.unwrap_or_default(),
-                    if options.color == crate::Auto::True
+                    if options.color == Auto::True
                     {
                         "\x1b[0m"
                     }
@@ -962,7 +963,7 @@ pub fn parsed_to_string(
                         num.0,
                         num.1,
                         num.2.unwrap_or_default(),
-                        if options.color == crate::Auto::True
+                        if options.color == Auto::True
                         {
                             "\x1b[0m"
                         }
@@ -991,7 +992,7 @@ pub fn parsed_to_string(
                             num.0,
                             num.1,
                             num.2.unwrap_or_default(),
-                            if options.color == crate::Auto::True
+                            if options.color == Auto::True
                             {
                                 "\x1b[0m"
                             }
@@ -1050,7 +1051,7 @@ pub fn parsed_to_string(
     to_output(
         &out.chars().collect::<Vec<char>>(),
         vars,
-        options.color == crate::Auto::True,
+        options.color == Auto::True,
         colors,
     )
 }

@@ -18,9 +18,6 @@ mod units;
 //fix ||x|-1|
 //lib, gui
 use crate::{
-    AngleType::Radians,
-    Notation::Normal,
-    complex::NumStr,
     functions::{functions_with_args, options_list, units_list},
     graph::graph,
     help::help_for,
@@ -33,12 +30,12 @@ use crate::{
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
+    units::{Auto, Colors, HowGraphing, Options, Variable},
 };
 use crossterm::{
     cursor::{DisableBlinking, EnableBlinking},
     execute, terminal,
 };
-use rug::Complex;
 use std::{
     cmp::Ordering,
     env::args,
@@ -47,234 +44,6 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-#[derive(Clone)]
-pub struct Variable
-{
-    name: Vec<char>,
-    parsed: Vec<NumStr>,
-    unparsed: String,
-    funcvars: Vec<(String, Vec<NumStr>)>,
-}
-#[derive(Clone, PartialEq, Copy)]
-pub struct Units
-{
-    second: f64,
-    meter: f64,
-    kilogram: f64,
-    ampere: f64,
-    kelvin: f64,
-    mole: f64,
-    candela: f64,
-    angle: f64,
-    byte: f64,
-    usd: f64,
-    unit: f64,
-}
-#[derive(Clone, PartialEq)]
-pub struct Number
-{
-    number: Complex,
-    units: Option<Units>,
-}
-#[derive(Clone)]
-pub struct Colors
-{
-    text: String,
-    prompt: String,
-    imag: String,
-    sci: String,
-    units: String,
-    brackets: Vec<String>,
-    recol: Vec<String>,
-    imcol: Vec<String>,
-    label: (String, String, String),
-    graphtofile: String,
-    default_units: Vec<(String, Number)>,
-}
-impl Default for Colors
-{
-    fn default() -> Self
-    {
-        Self {
-            text: "\x1b[0m".to_string(),
-            prompt: "\x1b[94m".to_string(),
-            imag: "\x1b[93m".to_string(),
-            sci: "\x1b[92m".to_string(),
-            units: "\x1b[96m".to_string(),
-            brackets: vec![
-                "\x1b[91m".to_string(),
-                "\x1b[92m".to_string(),
-                "\x1b[93m".to_string(),
-                "\x1b[94m".to_string(),
-                "\x1b[95m".to_string(),
-                "\x1b[96m".to_string(),
-            ],
-            recol: vec![
-                "#ff5555".to_string(),
-                "#5555ff".to_string(),
-                "#ff55ff".to_string(),
-                "#55ff55".to_string(),
-                "#55ffff".to_string(),
-                "#ffff55".to_string(),
-            ],
-            imcol: vec![
-                "#aa0000".to_string(),
-                "#0000aa".to_string(),
-                "#aa00aa".to_string(),
-                "#00aa00".to_string(),
-                "#00aaaa".to_string(),
-                "#aaaa00".to_string(),
-            ],
-            label: ("x".to_string(), "y".to_string(), "z".to_string()),
-            graphtofile: String::new(),
-            default_units: Vec::new(),
-        }
-    }
-}
-#[derive(Copy, Clone, PartialEq)]
-pub enum AngleType
-{
-    Radians,
-    Degrees,
-    Gradians,
-}
-#[derive(Copy, Clone, PartialEq)]
-pub enum Auto
-{
-    True,
-    False,
-    Auto,
-}
-#[derive(Default, Copy, Clone, PartialEq)]
-pub struct HowGraphing
-{
-    graph: bool,
-    x: bool,
-    y: bool,
-}
-#[derive(Copy, Clone, PartialEq)]
-pub struct Fractions
-{
-    num: bool,
-    vec: bool,
-    mat: bool,
-}
-#[derive(Copy, Clone, PartialEq)]
-pub enum Notation
-{
-    Normal,
-    Scientific,
-    LargeEngineering,
-    SmallEngineering,
-}
-#[derive(Copy, Clone, PartialEq)]
-pub enum GraphType
-{
-    Normal,
-    Domain,
-    DomainAlt,
-    Flat,
-    Depth,
-    None,
-}
-#[derive(Clone, Copy)]
-pub struct Options
-{
-    notation: Notation,
-    angle: AngleType,
-    graphtype: GraphType,
-    base: (i32, i32),
-    ticks: (f64, f64, f64),
-    onaxis: bool,
-    polar: bool,
-    frac: Fractions,
-    real_time_output: bool,
-    decimal_places: usize,
-    color: Auto,
-    prompt: bool,
-    comma: bool,
-    prec: u32,
-    graph_prec: u32,
-    xr: (f64, f64),
-    yr: (f64, f64),
-    zr: (f64, f64),
-    vxr: (f64, f64),
-    vyr: (f64, f64),
-    vzr: (f64, f64),
-    samples_2d: usize,
-    samples_3d: (usize, usize),
-    point_style: isize,
-    lines: Auto,
-    multi: bool,
-    tabbed: bool,
-    allow_vars: bool,
-    debug: bool,
-    slowcheck: u128,
-    interactive: bool,
-    surface: bool,
-    scale_graph: bool,
-    stay_interactive: bool,
-    graph_cli: bool,
-    units: bool,
-    si_units: bool,
-    window_size: (usize, usize),
-    keep_zeros: bool,
-    progress: bool,
-    keep_data_file: bool,
-}
-impl Default for Options
-{
-    fn default() -> Self
-    {
-        Self {
-            notation: Normal,
-            angle: Radians,
-            graphtype: GraphType::Normal,
-            base: (10, 10),
-            ticks: (16.0, 16.0, 16.0),
-            onaxis: true,
-            polar: false,
-            frac: Fractions {
-                num: true,
-                vec: true,
-                mat: false,
-            },
-            real_time_output: true,
-            decimal_places: 12,
-            color: Auto::Auto,
-            prompt: true,
-            comma: false,
-            prec: 512,
-            graph_prec: 128,
-            xr: (-8.0, 8.0),
-            yr: (-8.0, 8.0),
-            zr: (-8.0, 8.0),
-            vxr: (0.0, 0.0),
-            vyr: (0.0, 0.0),
-            vzr: (0.0, 0.0),
-            samples_2d: 8192,
-            samples_3d: (256, 256),
-            point_style: 0,
-            lines: Auto::Auto,
-            multi: true,
-            tabbed: false,
-            allow_vars: true,
-            debug: false,
-            slowcheck: 256,
-            interactive: true,
-            surface: false,
-            scale_graph: false,
-            stay_interactive: false,
-            graph_cli: false,
-            units: true,
-            si_units: false,
-            window_size: (0, 0),
-            keep_zeros: false,
-            progress: false,
-            keep_data_file: false,
-        }
-    }
-}
 fn main()
 {
     let mut colors = Colors::default();

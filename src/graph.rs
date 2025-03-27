@@ -3,9 +3,6 @@ use crate::misc::get_terminal_dimensions;
 #[cfg(unix)]
 use crate::misc::get_terminal_dimensions_pixel;
 use crate::{
-    Auto, Colors, GraphType,
-    GraphType::{Depth, Domain, DomainAlt, Flat, Normal},
-    HowGraphing, Number, Options, Variable,
     complex::{
         NumStr,
         NumStr::{Func, Matrix, Num, Vector},
@@ -16,6 +13,11 @@ use crate::{
     misc::{place_funcvar, place_funcvarxy, place_var, place_varxy, prompt},
     options::silent_commands,
     parse::{input_var, simplify},
+    units::{
+        Auto, Colors, GraphType,
+        GraphType::{Depth, Domain, DomainAlt, Flat, Normal},
+        HowGraphing, Number, Options, Variable,
+    },
 };
 use rug::{Complex, Float, float::Constant::Pi, ops::Pow};
 use std::{

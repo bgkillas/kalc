@@ -1,8 +1,4 @@
 use crate::{
-    AngleType::{Degrees, Gradians, Radians},
-    Auto, Colors, GraphType, HowGraphing,
-    Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
-    Number, Options, Variable,
     complex::NumStr::{Matrix, Num, Vector},
     help::{help, help_for},
     load_vars::get_vars,
@@ -10,6 +6,12 @@ use crate::{
     misc::{insert_last, parsed_to_string, to_output},
     parse::input_var,
     print::{custom_units, get_output},
+    units::{
+        AngleType::{Degrees, Gradians, Radians},
+        Auto, Colors, GraphType, HowGraphing,
+        Notation::{LargeEngineering, Normal, Scientific, SmallEngineering},
+        Number, Options, Variable,
+    },
 };
 use crossterm::{
     execute, terminal,

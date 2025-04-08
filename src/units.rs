@@ -2,13 +2,16 @@ use crate::{
     complex::NumStr,
     units::{AngleType::Radians, Notation::Normal},
 };
+#[cfg(feature = "bin-deps")]
+use rug::ops::CompleteRound;
 use rug::{
     Complex, Float,
     float::Constant::Pi,
-    ops::{CompleteRound, DivRounding, Pow},
+    ops::{DivRounding, Pow},
 };
+use std::collections::HashSet;
+#[cfg(feature = "bin-deps")]
 use std::{
-    collections::HashSet,
     fs,
     fs::File,
     io::{BufRead, BufReader, Read, Write},
@@ -1911,6 +1914,7 @@ pub fn to_unit(unit: String, mut num: Float, options: Options) -> (Number, Optio
         }
         _ =>
         {
+            #[cfg(feature = "bin-deps")]
             if get_new_currency_data()
             {
                 let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned()
@@ -1934,6 +1938,7 @@ pub fn to_unit(unit: String, mut num: Float, options: Options) -> (Number, Optio
     }
     (Number::from(num.into(), Some(units)), add)
 }
+#[cfg(feature = "bin-deps")]
 fn get_new_currency_data() -> bool
 {
     let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc/kalc.currency";

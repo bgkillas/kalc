@@ -1,3 +1,4 @@
+#[cfg(feature = "bin-deps")]
 #[cfg(not(unix))]
 use crate::misc::get_terminal_dimensions;
 #[cfg(unix)]
@@ -141,7 +142,14 @@ pub fn graph(
         }
         else
         {
-            &dirs::cache_dir().unwrap().to_str().unwrap().to_owned()
+            #[cfg(feature = "bin-deps")]
+            {
+                &dirs::cache_dir().unwrap().to_str().unwrap().to_owned()
+            }
+            #[cfg(not(feature = "bin-deps"))]
+            {
+                "/tmp"
+            }
         };
         let data_dir = &(base_dir.to_owned() + "/kalc/" + &fastrand::u64(..).to_string());
         if fs::read_dir(data_dir).is_ok()
@@ -312,7 +320,7 @@ pub fn graph(
                 if d2_or_d3.0
                 {
                     #[cfg(not(unix))]
-                    let (x, y) = if options.window_size.0 != 0
+                    let (x, y) = if options.window_size.0 != 0 || cfg!(feature = "bin-deps")
                     {
                         options.window_size
                     }
@@ -321,7 +329,7 @@ pub fn graph(
                         get_terminal_dimensions()
                     };
                     #[cfg(unix)]
-                    let (x, y) = if options.window_size.0 != 0
+                    let (x, y) = if options.window_size.0 != 0 || cfg!(feature = "bin-deps")
                     {
                         options.window_size
                     }

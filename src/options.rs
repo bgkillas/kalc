@@ -13,6 +13,7 @@ use crate::{
         Number, Options, Variable,
     },
 };
+#[cfg(feature = "bin-deps")]
 use crossterm::{
     execute, terminal,
     terminal::{Clear, ClearType},
@@ -1167,6 +1168,7 @@ pub fn commands(options: &mut Options, lines: &[String], input: &[char], stdout:
         }
         "clear" =>
         {
+            #[cfg(feature = "bin-deps")]
             execute!(stdout, Clear(ClearType::Purge)).unwrap();
             print!("\x1b[H\x1b[J");
             stdout.flush().unwrap();
@@ -1254,6 +1256,7 @@ pub fn commands(options: &mut Options, lines: &[String], input: &[char], stdout:
         {
             print!("\x1b[G\x1b[A\x1b[J");
             stdout.flush().unwrap();
+            #[cfg(feature = "bin-deps")]
             terminal::disable_raw_mode().unwrap();
             process::exit(0);
         }

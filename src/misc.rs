@@ -16,11 +16,13 @@ use crate::{
 };
 #[cfg(feature = "bin-deps")]
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, read};
+#[cfg(feature = "bin-deps")]
 #[cfg(unix)]
 use libc::{STDOUT_FILENO, TIOCGWINSZ, ioctl, winsize};
 use std::{fs::File, io::Write};
 #[cfg(not(unix))]
 use term_size::dimensions;
+#[cfg(feature = "bin-deps")]
 #[cfg(unix)]
 pub fn get_terminal_dimensions() -> (usize, usize)
 {
@@ -36,6 +38,7 @@ pub fn get_terminal_dimensions() -> (usize, usize)
         }
     }
 }
+#[cfg(feature = "bin-deps")]
 #[cfg(unix)]
 pub fn get_terminal_dimensions_pixel() -> (usize, usize)
 {
@@ -51,6 +54,7 @@ pub fn get_terminal_dimensions_pixel() -> (usize, usize)
         }
     }
 }
+#[cfg(feature = "bin-deps")]
 #[cfg(not(unix))]
 pub fn get_terminal_dimensions() -> (usize, usize)
 {
@@ -63,6 +67,17 @@ pub fn get_terminal_dimensions() -> (usize, usize)
         (80, 80)
     }
 }
+#[cfg(not(feature = "bin-deps"))]
+pub fn get_terminal_dimensions() -> (usize, usize)
+{
+    (usize::MAX, usize::MAX)
+}
+#[cfg(not(feature = "bin-deps"))]
+pub fn get_terminal_dimensions_pixel() -> (usize, usize)
+{
+    (usize::MAX, usize::MAX)
+}
+#[cfg(feature = "bin-deps")]
 pub fn digraph(char: Option<char>) -> char
 {
     match if let Some(c) = char
@@ -169,6 +184,7 @@ pub fn convert(c: &char) -> char
         _ => '\0',
     }
 }
+#[cfg(feature = "bin-deps")]
 pub fn read_single_char() -> char
 {
     match match read()
@@ -508,7 +524,14 @@ pub fn handle_err(
     end: usize,
 )
 {
-    let num = err.len().div_ceil(get_terminal_dimensions().0) - 1;
+    let num = if cfg!(feature = "bin-deps")
+    {
+        err.len().div_ceil(get_terminal_dimensions().0) - 1
+    }
+    else
+    {
+        err.len()
+    };
     print!(
         "\x1b[J\x1b[G\n{}{}\x1b[G\x1b[A\x1b[K{}{}{}",
         err,

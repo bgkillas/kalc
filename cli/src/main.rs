@@ -1,23 +1,8 @@
-mod complex;
-mod fraction;
-mod functions;
-mod graph;
-mod help;
-mod load_vars;
-mod math;
-mod misc;
-mod options;
-mod parse;
-mod print;
-#[cfg(test)]
-mod tests;
-mod units;
-//make dependencys optional via features
-//add symbolica as an optional feature
-//rayon-ize graphs, and maybe area
-//fix ||x|-1|
-//lib, gui
-use crate::{
+use crossterm::{
+    cursor::{DisableBlinking, EnableBlinking},
+    execute, terminal,
+};
+use kalc_lib::{
     functions::{functions_with_args, options_list, units_list},
     graph::graph,
     help::help_for,
@@ -31,10 +16,6 @@ use crate::{
     parse::input_var,
     print::{print_answer, print_concurrent},
     units::{Auto, Colors, HowGraphing, Options, Variable},
-};
-use crossterm::{
-    cursor::{DisableBlinking, EnableBlinking},
-    execute, terminal,
 };
 use std::{
     cmp::Ordering,

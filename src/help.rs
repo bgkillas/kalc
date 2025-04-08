@@ -2,9 +2,17 @@ const MSG: &str = include_str!("../README.md");
 pub fn help()
 {
     let lines = MSG.lines();
-    let p = lines.clone().position(|l| l == "# usage").unwrap()+3;
+    let p = lines.clone().position(|l| l == "# usage").unwrap() + 3;
     let e = lines.clone().skip(p).position(|l| l == "```").unwrap() - 1;
-    println!("{}", lines.skip(p).take(e).map(|l| l.to_string()).collect::<Vec<String>>().join("\x1b[G\n"));
+    println!(
+        "{}",
+        lines
+            .skip(p)
+            .take(e)
+            .map(|l| l.to_string())
+            .collect::<Vec<String>>()
+            .join("\x1b[G\n")
+    );
 }
 fn all_units() -> &'static str
 {

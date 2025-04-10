@@ -193,6 +193,7 @@ dependencies = [
 [[package]]
 name = "kalc-lib"
 version = "1.4.3"
+source = "git+https://github.com/bgkillas/kalc-lib#83fdd652c67834f29be66b3bcde57a46e8c18e77"
 dependencies = [
  "crossterm",
  "dirs",

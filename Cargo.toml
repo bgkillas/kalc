@@ -21,4 +21,4 @@ opt-level = 1
 [dependencies]
 crossterm = "0.29.0"
 dirs = "6.0.0"
-kalc-lib = {path="kalc-lib", features=["bin-deps"]}
+kalc-lib = {git="https://github.com/bgkillas/kalc-lib", features=["bin-deps"]}

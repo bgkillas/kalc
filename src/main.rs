@@ -19,9 +19,13 @@ use kalc_lib::{
 };
 use std::{
     cmp::Ordering,
+    env,
     env::args,
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, IsTerminal, Stdout, Write, stdin, stdout},
+    path::{Path, PathBuf},
+    process::Command,
+    thread,
     thread::JoinHandle,
     time::Instant,
 };
@@ -2250,45 +2254,78 @@ fn main()
         }
         else if graphable.graph
         {
-            let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
-                .split('#')
-                .map(String::from)
-                .collect();
-            let watch = if options.debug
+            if let Some(path) = find_it("kalc-plot")
             {
-                Some(Instant::now())
+                handles.push(thread::spawn(move || {
+                    let _ = Command::new(path)
+                        .arg(input.iter().collect::<String>())
+                        .spawn()
+                        .unwrap()
+                        .wait();
+                }));
             }
             else
             {
-                None
-            };
-            if options.graph_cli
-            {
-                if options.interactive
+                let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
+                    .split('#')
+                    .map(String::from)
+                    .collect();
+                let watch = if options.debug
                 {
-                    terminal::disable_raw_mode().unwrap();
+                    Some(Instant::now())
                 }
-                graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                    .join()
-                    .unwrap();
-                if options.interactive
+                else
                 {
-                    terminal::enable_raw_mode().unwrap();
+                    None
+                };
+                if options.graph_cli
+                {
+                    if options.interactive
+                    {
+                        terminal::disable_raw_mode().unwrap();
+                    }
+                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                        .join()
+                        .unwrap();
+                    if options.interactive
+                    {
+                        terminal::enable_raw_mode().unwrap();
+                    }
                 }
-            }
-            else
-            {
-                handles.push(graph(
-                    inputs,
-                    vars.clone(),
-                    options,
-                    watch,
-                    colors.clone(),
-                    false,
-                ));
+                else
+                {
+                    handles.push(graph(
+                        inputs,
+                        vars.clone(),
+                        options,
+                        watch,
+                        colors.clone(),
+                        false,
+                    ));
+                }
             }
         }
     }
+}
+fn find_it<P>(exe_name: P) -> Option<PathBuf>
+where
+    P: AsRef<Path>,
+{
+    env::var_os("PATH").and_then(|paths| {
+        env::split_paths(&paths)
+            .filter_map(|dir| {
+                let full_path = dir.join(&exe_name);
+                if full_path.is_file()
+                {
+                    Some(full_path)
+                }
+                else
+                {
+                    None
+                }
+            })
+            .next()
+    })
 }
 fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut Stdout)
 {

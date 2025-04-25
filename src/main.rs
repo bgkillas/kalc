@@ -15,7 +15,7 @@ use kalc_lib::{
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
-    units::{Auto, Colors, HowGraphing, Options, Variable},
+    units::{Auto, Colors, Data, HowGraphing, Options, Variable},
 };
 use std::{
     cmp::Ordering,
@@ -24,7 +24,7 @@ use std::{
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, IsTerminal, Stdout, Write, stdin, stdout},
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
     thread,
     thread::JoinHandle,
     time::Instant,
@@ -234,14 +234,14 @@ fn main()
                                             add_var(le, r, i, &mut vars, options, true, true, true)
                                         {
                                             err = true;
-                                            println!("\x1b[G\x1b[K{}", s)
+                                            println!("\x1b[G\x1b[K{s}")
                                         }
                                     }
                                     else if let Err(s) =
                                         add_var(le, r, i, &mut vars, options, true, true, false)
                                     {
                                         err = true;
-                                        println!("\x1b[G\x1b[K{}", s)
+                                        println!("\x1b[G\x1b[K{s}")
                                     }
                                     continue 'upper;
                                 }
@@ -254,7 +254,7 @@ fn main()
                                         add_var(le, r, i, &mut vars, options, false, false, false)
                                     {
                                         err = true;
-                                        println!("\x1b[G\x1b[K{}", s)
+                                        println!("\x1b[G\x1b[K{s}")
                                     }
                                     continue 'upper;
                                 }
@@ -263,7 +263,7 @@ fn main()
                                 add_var(le, r, 0, &mut vars, options, false, false, false)
                             {
                                 err = true;
-                                println!("\x1b[G\x1b[K{}", s)
+                                println!("\x1b[G\x1b[K{s}")
                             }
                         }
                     }
@@ -277,13 +277,13 @@ fn main()
         {
             if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false)
             {
-                println!("{}", s);
+                println!("{s}");
                 std::process::exit(1);
             }
         }
         if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false)
         {
-            println!("{}", s);
+            println!("{s}");
             std::process::exit(1);
         }
     }
@@ -381,7 +381,7 @@ fn main()
                                 if let Err(s) =
                                     set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                                 {
-                                    println!("{}", s);
+                                    println!("{s}");
                                     continue 'main;
                                 }
                             }
@@ -605,7 +605,7 @@ fn main()
                         {
                             if !input.is_empty() && !input.starts_with(&['#']) && frac != 0
                             {
-                                print!("\x1b[{}B", frac);
+                                print!("\x1b[{frac}B");
                             }
                             if c == '\x14' || c == '\x06'
                             {
@@ -1415,7 +1415,7 @@ fn main()
                             else if placement == s
                             {
                                 placement = 0;
-                                print!("\x1b[{}D", s);
+                                print!("\x1b[{s}D");
                             }
                             else
                             {
@@ -1803,7 +1803,7 @@ fn main()
                                     else if placement == xxpos
                                     {
                                         placement = 0;
-                                        print!("\x1b[{}D", xxpos);
+                                        print!("\x1b[{xxpos}D");
                                     }
                                     else
                                     {
@@ -2256,12 +2256,21 @@ fn main()
         {
             if let Some(path) = find_it("kalc-plot")
             {
+                let data = Data {
+                    vars: vars.clone(),
+                    options,
+                };
                 handles.push(thread::spawn(move || {
-                    let _ = Command::new(path)
+                    let mut plot = Command::new(path)
+                        .arg("-d")
                         .arg(input.iter().collect::<String>())
+                        .stdin(Stdio::piped())
                         .spawn()
-                        .unwrap()
-                        .wait();
+                        .unwrap();
+                    let stdin = plot.stdin.as_mut().unwrap();
+                    let data = serde_json::to_string(&data).unwrap();
+                    write!(stdin, "{data}").unwrap();
+                    plot.wait().unwrap();
                 }));
             }
             else

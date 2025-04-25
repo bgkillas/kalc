@@ -2254,64 +2254,65 @@ fn main()
         }
         else if graphable.graph
         {
-            if let Some(path) = find_it("kalc-plot")
+            if !options.gnuplot
             {
-                let data = Data {
-                    vars: vars.clone(),
-                    options,
-                };
-                handles.push(thread::spawn(move || {
-                    let mut plot = Command::new(path)
-                        .arg("-d")
-                        .arg(input.iter().collect::<String>())
-                        .stdin(Stdio::piped())
-                        .spawn()
-                        .unwrap();
-                    let stdin = plot.stdin.as_mut().unwrap();
-                    let data = serde_json::to_string(&data).unwrap();
-                    write!(stdin, "{data}").unwrap();
-                    plot.wait().unwrap();
-                }));
+                if let Some(path) = find_it("kalc-plot")
+                {
+                    let data = Data {
+                        vars: vars.clone(),
+                        options,
+                    };
+                    handles.push(thread::spawn(move || {
+                        let mut plot = Command::new(path)
+                            .arg("-d")
+                            .arg(input.iter().collect::<String>())
+                            .stdin(Stdio::piped())
+                            .spawn()
+                            .unwrap();
+                        let stdin = plot.stdin.as_mut().unwrap();
+                        let data = serde_json::to_string(&data).unwrap();
+                        write!(stdin, "{data}").unwrap();
+                        plot.wait().unwrap();
+                    }));
+                    continue;
+                }
+            }
+            let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
+                .split('#')
+                .map(String::from)
+                .collect();
+            let watch = if options.debug
+            {
+                Some(Instant::now())
             }
             else
             {
-                let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
-                    .split('#')
-                    .map(String::from)
-                    .collect();
-                let watch = if options.debug
+                None
+            };
+            if options.graph_cli
+            {
+                if options.interactive
                 {
-                    Some(Instant::now())
+                    terminal::disable_raw_mode().unwrap();
                 }
-                else
+                graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                    .join()
+                    .unwrap();
+                if options.interactive
                 {
-                    None
-                };
-                if options.graph_cli
-                {
-                    if options.interactive
-                    {
-                        terminal::disable_raw_mode().unwrap();
-                    }
-                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                        .join()
-                        .unwrap();
-                    if options.interactive
-                    {
-                        terminal::enable_raw_mode().unwrap();
-                    }
+                    terminal::enable_raw_mode().unwrap();
                 }
-                else
-                {
-                    handles.push(graph(
-                        inputs,
-                        vars.clone(),
-                        options,
-                        watch,
-                        colors.clone(),
-                        false,
-                    ));
-                }
+            }
+            else
+            {
+                handles.push(graph(
+                    inputs,
+                    vars.clone(),
+                    options,
+                    watch,
+                    colors.clone(),
+                    false,
+                ));
             }
         }
     }

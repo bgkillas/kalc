@@ -136,6 +136,7 @@ FLAGS: --help (this message)
 --ticks=[num](,[num](,[num])) sets amount of ticks, optionally set different x/y/z ticks, -2 will be auto, -1 will be at every whole number, 0 will be none
 --onaxis toggles showing the ticks on the x/y/z axis on by default for 2d, off by default for 3d
 --prompt toggles the prompt
+--gnuplot toggles using gnuplot instead of kalc plot
 --color=true/false/auto toggles color output, toggled by default when running from arguments
 --comma toggles comma seperation
 --graph toggles graphing

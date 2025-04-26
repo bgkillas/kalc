@@ -7,7 +7,7 @@ keywords = ["cli", "calculator"]
 categories = ["command-line-interface", "command-line-utilities", "mathematics"]
 repository = "https://github.com/bgkillas/kalc"
 rust-version = "1.85.0"
-version = "1.4.3"
+version = "1.5.0"
 edition = "2024"
 
 [profile.release]
@@ -22,4 +22,4 @@ opt-level = 1
 crossterm = "0.29.0"
 dirs = "6.0.0"
 serde_json = "1.0.140"
-kalc-lib = {path="../kalc-lib", features=["bin-deps"]}#git="https://github.com/bgkillas/kalc-lib", features=["bin-deps"]}
+kalc-lib = {path="../kalc-lib", features=["bin-deps"]}

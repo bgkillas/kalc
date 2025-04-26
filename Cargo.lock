@@ -200,6 +200,8 @@ dependencies = [
 [[package]]
 name = "kalc-lib"
 version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ee414a8ecd4539f24c04b0c3cda915ef9174fbef4db46bcd34cb84c1224b13f"
 dependencies = [
  "crossterm",
  "dirs",

@@ -17,6 +17,11 @@ config defaults listed in kalc.config
 
 # install instructions
 
+## kalc-plot
+
+[kalc-plot](https://github.com/bgkillas/kalc-plot) is the plotting software i made for this, may want to try this instead of gnuplot,
+just must be in the system path and then it will prefer kalc-plot over gnuplot
+
 ### linux
 
 use aur or run

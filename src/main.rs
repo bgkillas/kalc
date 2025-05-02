@@ -118,119 +118,124 @@ fn main() -> Result<(), Error>
         if options.allow_vars && !default
         {
             options.base = (10, 10);
-            let file = File::open(&file_path).unwrap_or(File::create(file_path).unwrap());
-            let lines = BufReader::new(file)
-                .lines()
-                .filter_map(|l| {
-                    let l = l.unwrap();
-                    l.starts_with('#').not().then_some(l)
-                })
-                .collect::<Vec<String>>();
-            let mut split;
-            let mut blacklist = if options.interactive || options.stay_interactive
+            if let Ok(file) = File::open(&file_path)
             {
-                Vec::new()
-            }
-            else
-            {
-                vars.iter()
-                    .map(|v| v.name.iter().collect::<String>())
-                    .collect::<Vec<String>>()
-            };
-            'upper: for i in lines.clone()
-            {
-                split = i.splitn(2, '=');
-                let l = split.next().unwrap().to_string();
-                let left = if l.contains('(')
+                let lines = BufReader::new(file)
+                    .lines()
+                    .filter_map(|l| {
+                        let l = l.unwrap();
+                        l.starts_with('#').not().then_some(l)
+                    })
+                    .collect::<Vec<String>>();
+                let mut split;
+                let mut blacklist = if options.interactive || options.stay_interactive
                 {
-                    l.split('(').next().unwrap().to_owned()
+                    Vec::new()
                 }
                 else
                 {
-                    l.clone()
+                    vars.iter()
+                        .map(|v| v.name.iter().collect::<String>())
+                        .collect::<Vec<String>>()
                 };
-                if options.interactive
-                    || options.stay_interactive
-                    || (!blacklist.contains(&l) && {
-                        let mut b = false;
-                        let mut word = String::new();
-                        for c in argsj.chars()
-                        {
-                            if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
+                'upper: for i in lines.clone()
+                {
+                    split = i.splitn(2, '=');
+                    let l = split.next().unwrap().to_string();
+                    let left = if l.contains('(')
+                    {
+                        l.split('(').next().unwrap().to_owned()
+                    }
+                    else
+                    {
+                        l.clone()
+                    };
+                    if options.interactive
+                        || options.stay_interactive
+                        || (!blacklist.contains(&l) && {
+                            let mut b = false;
+                            let mut word = String::new();
+                            for c in argsj.chars()
                             {
-                                word.push(c)
-                            }
-                            else
-                            {
-                                if l.contains('(')
+                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
                                 {
-                                    b = word.trim_end_matches('\'').trim_end_matches('`') == left
-                                        && matches!(c, '(' | '{' | '[' | '|');
+                                    word.push(c)
                                 }
                                 else
                                 {
-                                    b = word == left;
+                                    if l.contains('(')
+                                    {
+                                        b = word.trim_end_matches('\'').trim_end_matches('`')
+                                            == left
+                                            && matches!(c, '(' | '{' | '[' | '|');
+                                    }
+                                    else
+                                    {
+                                        b = word == left;
+                                    }
+                                    if b
+                                    {
+                                        break;
+                                    }
+                                    word.clear()
                                 }
-                                if b
-                                {
-                                    break;
-                                }
-                                word.clear()
                             }
-                        }
-                        b
-                    })
-                {
-                    if let Some(r) = split.next()
+                            b
+                        })
                     {
-                        let le = l.chars().collect::<Vec<char>>();
-                        if !options.interactive && !options.stay_interactive
+                        if let Some(r) = split.next()
                         {
-                            blacklist.push(l);
-                            get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
-                        }
-                        for (i, v) in vars.iter().enumerate()
-                        {
-                            if v.name.split(|c| c == &'(').next() == le.split(|c| c == &'(').next()
-                                && v.name.contains(&'(') == le.contains(&'(')
-                                && v.name.iter().filter(|c| c == &&',').count()
-                                    == le.iter().filter(|c| c == &&',').count()
+                            let le = l.chars().collect::<Vec<char>>();
+                            if !options.interactive && !options.stay_interactive
                             {
-                                if r == "null"
+                                blacklist.push(l);
+                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
+                            }
+                            for (i, v) in vars.iter().enumerate()
+                            {
+                                if v.name.split(|c| c == &'(').next()
+                                    == le.split(|c| c == &'(').next()
+                                    && v.name.contains(&'(') == le.contains(&'(')
+                                    && v.name.iter().filter(|c| c == &&',').count()
+                                        == le.iter().filter(|c| c == &&',').count()
                                 {
-                                    if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, true, true, true)
+                                    if r == "null"
+                                    {
+                                        if let Err(s) =
+                                            add_var(le, r, i, &mut vars, options, true, true, true)
+                                        {
+                                            err = true;
+                                            println!("\x1b[G\x1b[K{s}")
+                                        }
+                                    }
+                                    else if let Err(s) =
+                                        add_var(le, r, i, &mut vars, options, true, true, false)
                                     {
                                         err = true;
                                         println!("\x1b[G\x1b[K{s}")
                                     }
+                                    continue 'upper;
                                 }
-                                else if let Err(s) =
-                                    add_var(le, r, i, &mut vars, options, true, true, false)
-                                {
-                                    err = true;
-                                    println!("\x1b[G\x1b[K{s}")
-                                }
-                                continue 'upper;
                             }
-                        }
-                        for (i, j) in vars.iter().enumerate()
-                        {
-                            if j.name.len() <= le.len()
+                            for (i, j) in vars.iter().enumerate()
                             {
-                                if let Err(s) =
-                                    add_var(le, r, i, &mut vars, options, false, false, false)
+                                if j.name.len() <= le.len()
                                 {
-                                    err = true;
-                                    println!("\x1b[G\x1b[K{s}")
+                                    if let Err(s) =
+                                        add_var(le, r, i, &mut vars, options, false, false, false)
+                                    {
+                                        err = true;
+                                        println!("\x1b[G\x1b[K{s}")
+                                    }
+                                    continue 'upper;
                                 }
-                                continue 'upper;
                             }
-                        }
-                        if let Err(s) = add_var(le, r, 0, &mut vars, options, false, false, false)
-                        {
-                            err = true;
-                            println!("\x1b[G\x1b[K{s}")
+                            if let Err(s) =
+                                add_var(le, r, 0, &mut vars, options, false, false, false)
+                            {
+                                err = true;
+                                println!("\x1b[G\x1b[K{s}")
+                            }
                         }
                     }
                 }

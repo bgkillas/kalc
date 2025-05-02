@@ -22,7 +22,6 @@ use std::{
     env::{self, args},
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Error, IsTerminal, Stdout, Write, stdin, stdout},
-    ops::Not,
     path::{Path, PathBuf},
     process::{Command, Stdio},
     thread::{self, JoinHandle},
@@ -109,10 +108,8 @@ fn main() -> Result<(), Error> {
         if let Ok(file) = File::open(&file_path) {
             let lines = BufReader::new(file)
                 .lines()
-                .filter_map(|l| {
-                    let l = l.unwrap();
-                    l.starts_with('#').not().then_some(l)
-                })
+                .map(Result::unwrap)
+                .filter_map(|l| (!l.starts_with('#') && !l.is_empty()).then_some(l))
                 .collect::<Vec<String>>();
             let mut split;
             let mut blacklist = if options.interactive || options.stay_interactive {

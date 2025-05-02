@@ -18,18 +18,17 @@ use kalc_lib::{
     units::{Auto, Colors, Data, HowGraphing, Options, Variable},
 };
 use std::{
-    cmp::Ordering,
-    env,
-    env::args,
+    cmp::{Ordering, min},
+    env::{self, args},
     fs::{File, OpenOptions},
-    io::{BufRead, BufReader, IsTerminal, Stdout, Write, stdin, stdout},
+    io::{BufRead, BufReader, Error, IsTerminal, Stdout, Write, stdin, stdout},
+    ops::Not,
     path::{Path, PathBuf},
     process::{Command, Stdio},
-    thread,
-    thread::JoinHandle,
+    thread::{self, JoinHandle},
     time::Instant,
 };
-fn main()
+fn main() -> Result<(), Error>
 {
     let mut colors = Colors::default();
     let mut options = Options::default();
@@ -53,72 +52,51 @@ fn main()
         }
         if let Ok(s) = arg_opts(&mut options, &mut colors, &mut args, &Vec::new(), true)
         {
-            if s
-            {
-                default = true
-            }
+            default = s;
         }
     }
     if !stdin().is_terminal()
     {
-        let mut lines = Vec::new();
-        for line in stdin().lock().lines()
-        {
-            if !line.as_ref().unwrap().is_empty()
-            {
-                if let Ok(line) = line
-                {
-                    if !line.starts_with('#') && !line.is_empty()
-                    {
-                        lines.push(line);
-                    }
-                }
-            }
-        }
+        let lines: Vec<String> = stdin()
+            .lock()
+            .lines()
+            .map(Result::unwrap)
+            .filter(|l| !l.is_empty() && l.starts_with("#"))
+            .collect();
         args.splice(0..0, lines);
     }
     options.interactive = args.is_empty();
     let mut stdout = stdout();
     if options.interactive
     {
-        if options.color == Auto::Auto
-        {
-            options.color = Auto::True;
-        }
-        terminal::enable_raw_mode().unwrap();
+        options.color.auto_set(true);
+        terminal::enable_raw_mode()?;
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color == Auto::True
-            {
-                "\x1b[0m"
-            }
-            else
-            {
-                ""
-            }
+            options
+                .color
+                .as_bool()
+                .then_some("\x1b[0m")
+                .unwrap_or_default()
         );
-        stdout.flush().unwrap();
+        stdout.flush()?;
     }
     for arg in args.iter_mut()
     {
-        if (arg.starts_with('\'') && arg.ends_with('\''))
-            || (arg.starts_with('\"') && arg.ends_with('\"'))
+        let c = arg.as_bytes();
+        if c[0] == c[arg.len() - 1] && matches!(c[0], b'\'' | b'"')
         {
             arg.remove(0);
             arg.pop();
         }
     }
+
     let file_path = dir.clone() + "/kalc.vars";
-    let mut vars: Vec<Variable> = if options.allow_vars
-        && (options.interactive || options.stay_interactive)
-    {
-        get_vars(options)
-    }
-    else
-    {
-        Vec::new()
-    };
+    let mut vars: Vec<Variable> = (options.allow_vars
+        && (options.interactive || options.stay_interactive))
+        .then(|| get_vars(options))
+        .unwrap_or_default();
     let mut err = false;
     let base = options.base;
     let mut argsj = args.join(" ");
@@ -126,7 +104,7 @@ fn main()
     {
         argsj += " ";
         let file_path = dir.clone() + "/kalc.config";
-        argsj += &BufReader::new(File::open(file_path).unwrap())
+        argsj += &BufReader::new(File::open(file_path)?)
             .lines()
             .map(|a| a.unwrap())
             .collect::<Vec<String>>()
@@ -140,185 +118,166 @@ fn main()
         if options.allow_vars && !default
         {
             options.base = (10, 10);
-            if let Ok(file) = File::open(file_path)
+            let file = File::open(&file_path).unwrap_or(File::create(file_path).unwrap());
+            let lines = BufReader::new(file)
+                .lines()
+                .filter_map(|l| {
+                    let l = l.unwrap();
+                    l.starts_with('#').not().then_some(l)
+                })
+                .collect::<Vec<String>>();
+            let mut split;
+            let mut blacklist = if options.interactive || options.stay_interactive
             {
-                let lines = BufReader::new(file)
-                    .lines()
-                    .filter_map(|l| {
-                        let l = l.unwrap();
-                        if !l.starts_with('#') && !l.is_empty()
-                        {
-                            Some(l)
-                        }
-                        else
-                        {
-                            None
-                        }
-                    })
-                    .collect::<Vec<String>>();
-                let mut split;
-                let mut blacklist = if options.interactive || options.stay_interactive
+                Vec::new()
+            }
+            else
+            {
+                vars.iter()
+                    .map(|v| v.name.iter().collect::<String>())
+                    .collect::<Vec<String>>()
+            };
+            'upper: for i in lines.clone()
+            {
+                split = i.splitn(2, '=');
+                let l = split.next().unwrap().to_string();
+                let left = if l.contains('(')
                 {
-                    Vec::new()
+                    l.split('(').next().unwrap().to_owned()
                 }
                 else
                 {
-                    vars.iter()
-                        .map(|v| v.name.iter().collect::<String>())
-                        .collect::<Vec<String>>()
+                    l.clone()
                 };
-                'upper: for i in lines.clone()
-                {
-                    split = i.splitn(2, '=');
-                    let l = split.next().unwrap().to_string();
-                    let left = if l.contains('(')
-                    {
-                        l.split('(').next().unwrap().to_owned()
-                    }
-                    else
-                    {
-                        l.clone()
-                    };
-                    if options.interactive
-                        || options.stay_interactive
-                        || (!blacklist.contains(&l) && {
-                            let mut b = false;
-                            let mut word = String::new();
-                            for c in argsj.chars()
+                if options.interactive
+                    || options.stay_interactive
+                    || (!blacklist.contains(&l) && {
+                        let mut b = false;
+                        let mut word = String::new();
+                        for c in argsj.chars()
+                        {
+                            if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
                             {
-                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
+                                word.push(c)
+                            }
+                            else
+                            {
+                                if l.contains('(')
                                 {
-                                    word.push(c)
+                                    b = word.trim_end_matches('\'').trim_end_matches('`') == left
+                                        && matches!(c, '(' | '{' | '[' | '|');
                                 }
                                 else
                                 {
-                                    if l.contains('(')
-                                    {
-                                        b = word.trim_end_matches('\'').trim_end_matches('`')
-                                            == left
-                                            && matches!(c, '(' | '{' | '[' | '|');
-                                    }
-                                    else
-                                    {
-                                        b = word == left;
-                                    }
-                                    if b
-                                    {
-                                        break;
-                                    }
-                                    word.clear()
+                                    b = word == left;
                                 }
-                            }
-                            b
-                        })
-                    {
-                        if let Some(r) = split.next()
-                        {
-                            let le = l.chars().collect::<Vec<char>>();
-                            if !options.interactive && !options.stay_interactive
-                            {
-                                blacklist.push(l);
-                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
-                            }
-                            for (i, v) in vars.iter().enumerate()
-                            {
-                                if v.name.split(|c| c == &'(').next()
-                                    == le.split(|c| c == &'(').next()
-                                    && v.name.contains(&'(') == le.contains(&'(')
-                                    && v.name.iter().filter(|c| c == &&',').count()
-                                        == le.iter().filter(|c| c == &&',').count()
+                                if b
                                 {
-                                    if r == "null"
-                                    {
-                                        if let Err(s) =
-                                            add_var(le, r, i, &mut vars, options, true, true, true)
-                                        {
-                                            err = true;
-                                            println!("\x1b[G\x1b[K{s}")
-                                        }
-                                    }
-                                    else if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, true, true, false)
-                                    {
-                                        err = true;
-                                        println!("\x1b[G\x1b[K{s}")
-                                    }
-                                    continue 'upper;
+                                    break;
                                 }
+                                word.clear()
                             }
-                            for (i, j) in vars.iter().enumerate()
+                        }
+                        b
+                    })
+                {
+                    if let Some(r) = split.next()
+                    {
+                        let le = l.chars().collect::<Vec<char>>();
+                        if !options.interactive && !options.stay_interactive
+                        {
+                            blacklist.push(l);
+                            get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
+                        }
+                        for (i, v) in vars.iter().enumerate()
+                        {
+                            if v.name.split(|c| c == &'(').next() == le.split(|c| c == &'(').next()
+                                && v.name.contains(&'(') == le.contains(&'(')
+                                && v.name.iter().filter(|c| c == &&',').count()
+                                    == le.iter().filter(|c| c == &&',').count()
                             {
-                                if j.name.len() <= le.len()
+                                if r == "null"
                                 {
                                     if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, false, false, false)
+                                        add_var(le, r, i, &mut vars, options, true, true, true)
                                     {
                                         err = true;
                                         println!("\x1b[G\x1b[K{s}")
                                     }
-                                    continue 'upper;
                                 }
+                                else if let Err(s) =
+                                    add_var(le, r, i, &mut vars, options, true, true, false)
+                                {
+                                    err = true;
+                                    println!("\x1b[G\x1b[K{s}")
+                                }
+                                continue 'upper;
                             }
-                            if let Err(s) =
-                                add_var(le, r, 0, &mut vars, options, false, false, false)
+                        }
+                        for (i, j) in vars.iter().enumerate()
+                        {
+                            if j.name.len() <= le.len()
                             {
-                                err = true;
-                                println!("\x1b[G\x1b[K{s}")
+                                if let Err(s) =
+                                    add_var(le, r, i, &mut vars, options, false, false, false)
+                                {
+                                    err = true;
+                                    println!("\x1b[G\x1b[K{s}")
+                                }
+                                continue 'upper;
                             }
+                        }
+                        if let Err(s) = add_var(le, r, 0, &mut vars, options, false, false, false)
+                        {
+                            err = true;
+                            println!("\x1b[G\x1b[K{s}")
                         }
                     }
                 }
             }
         }
     }
+    let file_path = dir.clone() + "/kalc.config";
+
+    if !check.is_empty()
     {
-        let file_path = dir.clone() + "/kalc.config";
-        if !check.is_empty()
-        {
-            if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false)
-            {
-                println!("{s}");
-                std::process::exit(1);
-            }
-        }
-        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false)
+        if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false)
         {
             println!("{s}");
             std::process::exit(1);
         }
     }
+
+    if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false)
+    {
+        println!("{s}");
+        std::process::exit(1);
+    }
+
     if options.interactive && err
     {
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color == Auto::True
-            {
-                "\x1b[0m"
-            }
-            else
-            {
-                ""
-            }
+            options
+                .color
+                .as_bool()
+                .then_some("\x1b[0m")
+                .unwrap_or_default()
         );
-        stdout.flush().unwrap();
+        stdout.flush()?;
     }
     options.base = base;
     let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive
     {
-        if options.color == Auto::Auto
-        {
-            options.color = Auto::True;
-        }
+        options.color.auto_set(true);
         let file_path = &(dir.clone() + "/kalc.history");
-        if File::open(file_path).is_err()
-        {
-            File::create(file_path).unwrap();
-        }
+        File::open(file_path).unwrap_or_else(|_| File::create(file_path).unwrap());
+
         (
-            Some(OpenOptions::new().append(true).open(file_path).unwrap()),
+            Some(OpenOptions::new().append(true).open(file_path)?),
             Some(
-                BufReader::new(File::open(file_path).unwrap())
+                BufReader::new(File::open(file_path)?)
                     .lines()
                     .map(|l| l.unwrap())
                     .collect::<Vec<String>>(),
@@ -327,14 +286,12 @@ fn main()
     }
     else
     {
-        if options.color == Auto::Auto
-        {
-            options.color = Auto::False;
-        }
+        options.color.auto_set(false);
         (None, None)
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
+
     'main: loop
     {
         let mut input = Vec::new();
@@ -343,14 +300,7 @@ fn main()
         let mut last = Vec::new();
         if !args.is_empty()
         {
-            let watch = if options.debug
-            {
-                Some(Instant::now())
-            }
-            else
-            {
-                None
-            };
+            let watch = options.debug.then_some(Instant::now());
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
@@ -381,7 +331,7 @@ fn main()
                                 if let Err(s) =
                                     set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                                 {
-                                    println!("{s}");
+                                    eprintln!("{s}");
                                     continue 'main;
                                 }
                             }
@@ -425,7 +375,7 @@ fn main()
                     Ok(f) => f,
                     Err(s) =>
                     {
-                        println!("{}: {}", input.iter().collect::<String>(), s);
+                        eprintln!("{}: {s}", input.iter().collect::<String>());
                         continue;
                     }
                 };
@@ -436,18 +386,17 @@ fn main()
                         Ok(n) => print_answer(n, options, &colors),
                         Err(s) =>
                         {
-                            println!("{}: {}", input.iter().collect::<String>(), s);
+                            eprintln!("{}: {s}", input.iter().collect::<String>());
                             continue;
                         }
                     }
-                    if let Some(time) = watch
-                    {
-                        println!(" {}", time.elapsed().as_nanos());
-                    }
-                    else
-                    {
-                        println!();
-                    }
+
+                    println!(
+                        " {}",
+                        watch
+                            .and_then(|t| Some(t.elapsed().as_nanos().to_string()))
+                            .unwrap_or_default()
+                    );
                 }
             }
         }
@@ -457,7 +406,7 @@ fn main()
             {
                 if options.stay_interactive
                 {
-                    setup_for_interactive(&colors, &mut options, &mut stdout)
+                    setup_for_interactive(&colors, &mut options, &mut stdout)?
                 }
                 else
                 {
@@ -470,31 +419,26 @@ fn main()
             }
             let mut long = false;
             let mut frac = 0;
+            let mut placement = 0;
             let mut current = Vec::new();
             let mut lines = unmod_lines.clone().unwrap();
             let mut i = lines.len();
-            let mut placement = 0;
             last = if i == 0
             {
-                Vec::new()
+                "".chars()
             }
             else if lines[i - 1].ends_with('\t')
             {
-                lines[i - 1][..lines[i - 1].len() - 1]
-                    .chars()
-                    .collect::<Vec<char>>()
+                lines[i - 1][..lines[i - 1].len() - 1].chars()
             }
             else
             {
-                lines[i - 1].chars().collect::<Vec<char>>()
-            };
-            let mut start = 0;
-            let mut end = 0;
-            let mut slow = false;
-            let mut firstslow = false;
-            let mut xxbool = false;
-            let mut xxstart = false;
-            let mut xxpos = 0;
+                lines[i - 1].chars()
+            }
+            .collect();
+
+            let [mut start, mut end, mut xxpos] = [0; 3];
+            let [mut slow, mut firstslow, mut xxbool, mut xxstart] = [false; 4];
             let mut lastd = get_terminal_dimensions();
             loop
             {
@@ -507,14 +451,8 @@ fn main()
                         lastd = d;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
-                            end = input.len()
-                        }
-                        if placement > end
-                        {
-                            placement = end
-                        }
+                        end = min(end, input.len());
+                        placement = min(placement, end);
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();
@@ -650,14 +588,8 @@ fn main()
                                 }
                             }
                         }
-                        if end > input.len()
-                        {
-                            end = input.len()
-                        }
-                        if start >= end
-                        {
-                            start = end;
-                        }
+                        end = min(end, input.len());
+                        start = min(start, end);
                         if i == lines.len()
                         {
                             current.clone_from(&input);
@@ -735,10 +667,7 @@ fn main()
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
-                            end = input.len()
-                        }
+                        end = min(end, input.len());
                         if i == lines.len()
                         {
                             current.clone_from(&input);
@@ -819,10 +748,7 @@ fn main()
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
-                            end = input.len()
-                        }
+                        end = min(end, input.len());
                         if i == lines.len()
                         {
                             current.clone_from(&input);
@@ -954,10 +880,7 @@ fn main()
                     {
                         //ctrl+k
                         cut = input.drain(placement..).collect();
-                        if end >= input.len()
-                        {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();
@@ -1334,10 +1257,7 @@ fn main()
                             placement -= 1;
                             end = start + get_terminal_dimensions().0
                                 - if options.prompt { 3 } else { 1 };
-                            if end > input.len()
-                            {
-                                end = input.len()
-                            }
+                            end = min(end, input.len());
                             clearln(&input, &vars, start, end, options, &colors);
                             print!("\x1b[{}D", end - placement)
                         }
@@ -1352,10 +1272,7 @@ fn main()
                         //right
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
-                            end = input.len()
-                        }
+                        end = min(end, input.len());
                         if placement == end && end != input.len()
                         {
                             start += 1;
@@ -1759,10 +1676,7 @@ fn main()
                             {
                                 Ordering::Greater =>
                                 {
-                                    if placement >= input.len()
-                                    {
-                                        placement = input.len()
-                                    }
+                                    placement = min(placement, input.len());
                                     if placement >= end
                                     {
                                         start = placement.saturating_sub(
@@ -1810,8 +1724,7 @@ fn main()
                                         print!("\x1b[{}D", xxpos - placement);
                                     }
                                 }
-                                _ =>
-                                {}
+                                _ => (),
                             }
                             xxbool = false
                         }
@@ -1856,14 +1769,8 @@ fn main()
                                 }
                             }
                         }
-                        if end > input.len()
-                        {
-                            end = input.len()
-                        }
-                        if start >= end
-                        {
-                            start = end;
-                        }
+                        end = min(end, input.len());
+                        start = min(start, end);
                         if i == lines.len()
                         {
                             current.clone_from(&input);
@@ -1951,10 +1858,7 @@ fn main()
                             }
                             cut = input.drain(placement..placement + pos).collect();
                         }
-                        if end >= input.len()
-                        {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
                         if options.real_time_output && !slow
                         {
                             execute!(stdout, DisableBlinking).unwrap();
@@ -2279,28 +2183,24 @@ fn main()
             }
             let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
                 .split('#')
-                .map(String::from)
+                .map(str::to_owned)
                 .collect();
-            let watch = if options.debug
-            {
-                Some(Instant::now())
-            }
-            else
-            {
-                None
-            };
+            let watch = options.debug.then_some(Instant::now());
             if options.graph_cli
             {
                 if options.interactive
                 {
-                    terminal::disable_raw_mode().unwrap();
+                    terminal::disable_raw_mode()?;
+                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                        .join()
+                        .unwrap();
+                    terminal::enable_raw_mode()?;
                 }
-                graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                    .join()
-                    .unwrap();
-                if options.interactive
+                else
                 {
-                    terminal::enable_raw_mode().unwrap();
+                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                        .join()
+                        .unwrap();
                 }
             }
             else
@@ -2316,7 +2216,9 @@ fn main()
             }
         }
     }
+    Ok(())
 }
+
 fn find_it<P>(exe_name: P) -> Option<PathBuf>
 where
     P: AsRef<Path>,
@@ -2325,22 +2227,20 @@ where
         env::split_paths(&paths)
             .filter_map(|dir| {
                 let full_path = dir.join(&exe_name);
-                if full_path.is_file()
-                {
-                    Some(full_path)
-                }
-                else
-                {
-                    None
-                }
+                full_path.is_file().then_some(full_path)
             })
             .next()
     })
 }
-fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut Stdout)
+
+fn setup_for_interactive(
+    colors: &Colors,
+    options: &mut Options,
+    stdout: &mut Stdout,
+) -> Result<(), Error>
 {
     options.interactive = true;
-    terminal::enable_raw_mode().unwrap();
+    terminal::enable_raw_mode()?;
     print!(
         "\x1b[G\x1b[K{}{}",
         prompt(*options, colors),
@@ -2353,5 +2253,6 @@ fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut St
             ""
         }
     );
-    stdout.flush().unwrap();
+    stdout.flush()?;
+    Ok(())
 }

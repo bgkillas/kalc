@@ -34,7 +34,7 @@ fn main() -> Result<(), Error> {
     let mut args = args().collect::<Vec<String>>();
     let mut default = false;
     let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc";
-    std::fs::create_dir_all(dir.clone()).unwrap();
+    std::fs::create_dir_all(dir.clone())?;
     let mut check = Vec::new();
     {
         let file_path = dir.clone() + "/kalc.config";
@@ -105,104 +105,98 @@ fn main() -> Result<(), Error> {
     if !options.interactive && options.allow_vars && !options.stay_interactive {
         get_cli_vars(options, argsj.clone(), &mut vars)
     }
-    {
-        if options.allow_vars && !default {
-            options.base = (10, 10);
-            if let Ok(file) = File::open(&file_path) {
-                let lines = BufReader::new(file)
-                    .lines()
-                    .filter_map(|l| {
-                        let l = l.unwrap();
-                        l.starts_with('#').not().then_some(l)
-                    })
-                    .collect::<Vec<String>>();
-                let mut split;
-                let mut blacklist = if options.interactive || options.stay_interactive {
-                    Vec::new()
+    if options.allow_vars && !default {
+        options.base = (10, 10);
+        if let Ok(file) = File::open(&file_path) {
+            let lines = BufReader::new(file)
+                .lines()
+                .filter_map(|l| {
+                    let l = l.unwrap();
+                    l.starts_with('#').not().then_some(l)
+                })
+                .collect::<Vec<String>>();
+            let mut split;
+            let mut blacklist = if options.interactive || options.stay_interactive {
+                Vec::new()
+            } else {
+                vars.iter()
+                    .map(|v| v.name.iter().collect::<String>())
+                    .collect::<Vec<String>>()
+            };
+            'upper: for i in lines.clone() {
+                split = i.splitn(2, '=');
+                let l = split.next().unwrap().to_string();
+                let left = if l.contains('(') {
+                    l.split('(').next().unwrap().to_owned()
                 } else {
-                    vars.iter()
-                        .map(|v| v.name.iter().collect::<String>())
-                        .collect::<Vec<String>>()
+                    l.clone()
                 };
-                'upper: for i in lines.clone() {
-                    split = i.splitn(2, '=');
-                    let l = split.next().unwrap().to_string();
-                    let left = if l.contains('(') {
-                        l.split('(').next().unwrap().to_owned()
-                    } else {
-                        l.clone()
-                    };
-                    if options.interactive
-                        || options.stay_interactive
-                        || (!blacklist.contains(&l) && {
-                            let mut b = false;
-                            let mut word = String::new();
-                            for c in argsj.chars() {
-                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_') {
-                                    word.push(c)
+                if options.interactive
+                    || options.stay_interactive
+                    || (!blacklist.contains(&l) && {
+                        let mut b = false;
+                        let mut word = String::new();
+                        for c in argsj.chars() {
+                            if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_') {
+                                word.push(c)
+                            } else {
+                                if l.contains('(') {
+                                    b = word.trim_end_matches('\'').trim_end_matches('`') == left
+                                        && matches!(c, '(' | '{' | '[' | '|');
                                 } else {
-                                    if l.contains('(') {
-                                        b = word.trim_end_matches('\'').trim_end_matches('`')
-                                            == left
-                                            && matches!(c, '(' | '{' | '[' | '|');
-                                    } else {
-                                        b = word == left;
-                                    }
-                                    if b {
-                                        break;
-                                    }
-                                    word.clear()
+                                    b = word == left;
                                 }
-                            }
-                            b
-                        })
-                    {
-                        if let Some(r) = split.next() {
-                            let le = l.chars().collect::<Vec<char>>();
-                            if !options.interactive && !options.stay_interactive {
-                                blacklist.push(l);
-                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
-                            }
-                            for (i, v) in vars.iter().enumerate() {
-                                if v.name.split(|c| c == &'(').next()
-                                    == le.split(|c| c == &'(').next()
-                                    && v.name.contains(&'(') == le.contains(&'(')
-                                    && v.name.iter().filter(|c| c == &&',').count()
-                                        == le.iter().filter(|c| c == &&',').count()
-                                {
-                                    if r == "null" {
-                                        if let Err(s) =
-                                            add_var(le, r, i, &mut vars, options, true, true, true)
-                                        {
-                                            err = true;
-                                            println!("\x1b[G\x1b[K{s}")
-                                        }
-                                    } else if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, true, true, false)
-                                    {
-                                        err = true;
-                                        println!("\x1b[G\x1b[K{s}")
-                                    }
-                                    continue 'upper;
+                                if b {
+                                    break;
                                 }
+                                word.clear()
                             }
-                            for (i, j) in vars.iter().enumerate() {
-                                if j.name.len() <= le.len() {
-                                    if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, false, false, false)
-                                    {
-                                        err = true;
-                                        println!("\x1b[G\x1b[K{s}")
-                                    }
-                                    continue 'upper;
-                                }
-                            }
-                            if let Err(s) =
-                                add_var(le, r, 0, &mut vars, options, false, false, false)
+                        }
+                        b
+                    })
+                {
+                    if let Some(r) = split.next() {
+                        let le = l.chars().collect::<Vec<char>>();
+                        if !options.interactive && !options.stay_interactive {
+                            blacklist.push(l);
+                            get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
+                        }
+                        for (i, v) in vars.iter().enumerate() {
+                            if v.name.split(|c| c == &'(').next() == le.split(|c| c == &'(').next()
+                                && v.name.contains(&'(') == le.contains(&'(')
+                                && v.name.iter().filter(|c| c == &&',').count()
+                                    == le.iter().filter(|c| c == &&',').count()
                             {
-                                err = true;
-                                println!("\x1b[G\x1b[K{s}")
+                                if r == "null" {
+                                    if let Err(s) =
+                                        add_var(le, r, i, &mut vars, options, true, true, true)
+                                    {
+                                        err = true;
+                                        println!("\x1b[G\x1b[K{s}")
+                                    }
+                                } else if let Err(s) =
+                                    add_var(le, r, i, &mut vars, options, true, true, false)
+                                {
+                                    err = true;
+                                    println!("\x1b[G\x1b[K{s}")
+                                }
+                                continue 'upper;
                             }
+                        }
+                        for (i, j) in vars.iter().enumerate() {
+                            if j.name.len() <= le.len() {
+                                if let Err(s) =
+                                    add_var(le, r, i, &mut vars, options, false, false, false)
+                                {
+                                    err = true;
+                                    println!("\x1b[G\x1b[K{s}")
+                                }
+                                continue 'upper;
+                            }
+                        }
+                        if let Err(s) = add_var(le, r, 0, &mut vars, options, false, false, false) {
+                            err = true;
+                            println!("\x1b[G\x1b[K{s}")
                         }
                     }
                 }
@@ -263,7 +257,7 @@ fn main() -> Result<(), Error> {
         let mut varcheck = false;
         let mut last = Vec::new();
         if !args.is_empty() {
-            let watch = options.debug.then_some(Instant::now());
+            let watch = options.debug.then(Instant::now);
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
@@ -345,7 +339,7 @@ fn main() -> Result<(), Error> {
                     println!(
                         " {}",
                         watch
-                            .and_then(|t| Some(t.elapsed().as_nanos().to_string()))
+                            .map(|t| t.elapsed().as_nanos().to_string())
                             .unwrap_or_default()
                     );
                 }
@@ -395,7 +389,7 @@ fn main() -> Result<(), Error> {
                             placement = end;
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -439,7 +433,7 @@ fn main() -> Result<(), Error> {
                 match c {
                     '\n' | '\x14' | '\x09' | '\x06' => {
                         if c != '\x14' && c != '\x06' {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
@@ -475,7 +469,7 @@ fn main() -> Result<(), Error> {
                                 } else {
                                     print!("\x1b[G\n\x1b[J");
                                 }
-                                terminal::disable_raw_mode().unwrap();
+                                terminal::disable_raw_mode()?;
                                 std::process::exit(0);
                             }
                         }
@@ -513,7 +507,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -577,7 +571,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -643,7 +637,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -707,7 +701,7 @@ fn main() -> Result<(), Error> {
                         end -= placement;
                         placement = 0;
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -747,7 +741,7 @@ fn main() -> Result<(), Error> {
                             end = input.len();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -787,7 +781,7 @@ fn main() -> Result<(), Error> {
                         cut.extend(input.drain(placement..));
                         input.extend(cut);
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -825,7 +819,7 @@ fn main() -> Result<(), Error> {
                         if placement < input.len() && placement != 0 {
                             input.swap(placement - 1, placement);
                             if options.real_time_output && !slow {
-                                execute!(stdout, DisableBlinking).unwrap();
+                                execute!(stdout, DisableBlinking)?;
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input,
                                     &last,
@@ -863,7 +857,7 @@ fn main() -> Result<(), Error> {
                         //ctrl+l
                         print!("\x1b[H\x1b[J");
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -963,7 +957,7 @@ fn main() -> Result<(), Error> {
                             };
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1032,7 +1026,7 @@ fn main() -> Result<(), Error> {
                             };
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1199,8 +1193,7 @@ fn main() -> Result<(), Error> {
                                 if f.starts_with(&word)
                                     && !bank.iter().any(|b| {
                                         b.contains('(')
-                                            && b.split('(').next().unwrap()
-                                                == f.split('(').next().unwrap()
+                                            && b.split('(').next() == f.split('(').next()
                                     })
                                 {
                                     bank_temp.push(f.to_string())
@@ -1212,8 +1205,7 @@ fn main() -> Result<(), Error> {
                                 if f.starts_with(&word)
                                     && !bank.iter().any(|b| {
                                         b.contains('(')
-                                            && b.split('(').next().unwrap()
-                                                == f.split('(').next().unwrap()
+                                            && b.split('(').next() == f.split('(').next()
                                     })
                                 {
                                     bank_temp.push(f.to_string())
@@ -1226,8 +1218,7 @@ fn main() -> Result<(), Error> {
                                     if f.starts_with(&word)
                                         && !bank.iter().any(|b| {
                                             b.contains('(')
-                                                && b.split('(').next().unwrap()
-                                                    == f.split('(').next().unwrap()
+                                                && b.split('(').next() == f.split('(').next()
                                         })
                                     {
                                         bank_temp.push(f.to_string())
@@ -1272,7 +1263,7 @@ fn main() -> Result<(), Error> {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
                                 if options.real_time_output && !slow && var {
-                                    execute!(stdout, DisableBlinking).unwrap();
+                                    execute!(stdout, DisableBlinking)?;
                                     (frac, graphable, long, varcheck) = print_concurrent(
                                         &input,
                                         &last,
@@ -1469,7 +1460,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1534,7 +1525,7 @@ fn main() -> Result<(), Error> {
                             end = input.len();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1612,7 +1603,7 @@ fn main() -> Result<(), Error> {
                         }
                         input.splice(placement..placement, second.clone());
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1665,7 +1656,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1706,7 +1697,7 @@ fn main() -> Result<(), Error> {
                         }
                     }
                 }
-                stdout.flush().unwrap();
+                stdout.flush()?;
             }
             commands(&mut options, &lines, &input, &mut stdout);
             if !varcheck {
@@ -1720,8 +1711,8 @@ fn main() -> Result<(), Error> {
                     }
                 );
             }
-            stdout.flush().unwrap();
-            execute!(stdout, EnableBlinking).unwrap();
+            stdout.flush()?;
+            execute!(stdout, EnableBlinking)?;
             if input.is_empty() {
                 continue;
             }
@@ -1763,13 +1754,14 @@ fn main() -> Result<(), Error> {
                     }
                 );
             }
-            stdout.flush().unwrap()
+            stdout.flush()?
         } else if graphable.graph {
             if !options.gnuplot {
                 if let Some(path) = find_it("kalc-plot") {
                     let data = Data {
                         vars: vars.clone(),
                         options,
+                        colors: colors.clone(),
                     };
                     handles.push(thread::spawn(move || {
                         let mut plot = Command::new(path)

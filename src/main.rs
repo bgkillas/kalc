@@ -53,12 +53,11 @@ fn main() -> Result<(), Error> {
         }
     }
     if !stdin().is_terminal() {
-        let lines: Vec<String> = stdin()
+        let lines = stdin()
             .lock()
             .lines()
             .map(Result::unwrap)
-            .filter(|l| !l.is_empty() && l.starts_with("#"))
-            .collect();
+            .filter(|l| !l.is_empty() && !l.starts_with("#"));
         args.splice(0..0, lines);
     }
     options.interactive = args.is_empty();
@@ -337,9 +336,9 @@ fn main() -> Result<(), Error> {
                     }
 
                     println!(
-                        " {}",
+                        "{}",
                         watch
-                            .map(|t| t.elapsed().as_nanos().to_string())
+                            .map(|t| " ".to_owned() + &t.elapsed().as_nanos().to_string())
                             .unwrap_or_default()
                     );
                 }
@@ -382,12 +381,8 @@ fn main() -> Result<(), Error> {
                         lastd = d;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len() {
-                            end = input.len();
-                        };
-                        if placement > end {
-                            placement = end;
-                        }
+                        end = end.min(input.len());
+                        placement = placement.min(end);
                         if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(

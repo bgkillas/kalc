@@ -19,23 +19,21 @@ use kalc_lib::{
 };
 use std::{
     cmp::Ordering,
-    env,
-    env::args,
+    env::{self, args},
     fs::{File, OpenOptions},
-    io::{BufRead, BufReader, IsTerminal, Stdout, Write, stdin, stdout},
+    io::{BufRead, BufReader, Error, IsTerminal, Stdout, Write, stdin, stdout},
     path::{Path, PathBuf},
     process::{Command, Stdio},
-    thread,
-    thread::JoinHandle,
+    thread::{self, JoinHandle},
     time::Instant,
 };
-fn main() {
+fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
     let mut options = Options::default();
     let mut args = args().collect::<Vec<String>>();
     let mut default = false;
     let dir = dirs::config_dir().unwrap().to_str().unwrap().to_owned() + "/kalc";
-    std::fs::create_dir_all(dir.clone()).unwrap();
+    std::fs::create_dir_all(dir.clone())?;
     let mut check = Vec::new();
     {
         let file_path = dir.clone() + "/kalc.config";
@@ -50,64 +48,53 @@ fn main() {
             check = s;
         }
         if let Ok(s) = arg_opts(&mut options, &mut colors, &mut args, &Vec::new(), true) {
-            if s {
-                default = true
-            }
+            default = s;
         }
     }
     if !stdin().is_terminal() {
-        let mut lines = Vec::new();
-        for line in stdin().lock().lines() {
-            if !line.as_ref().unwrap().is_empty() {
-                if let Ok(line) = line {
-                    if !line.starts_with('#') && !line.is_empty() {
-                        lines.push(line);
-                    }
-                }
-            }
-        }
+        let lines = stdin()
+            .lock()
+            .lines()
+            .map(Result::unwrap)
+            .filter(|l| !l.is_empty() && !l.starts_with("#"));
         args.splice(0..0, lines);
     }
     options.interactive = args.is_empty();
     let mut stdout = stdout();
     if options.interactive {
-        if options.color == Auto::Auto {
-            options.color = Auto::True;
-        }
-        terminal::enable_raw_mode().unwrap();
+        options.color.auto_set(true);
+        terminal::enable_raw_mode()?;
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color == Auto::True {
-                "\x1b[0m"
-            } else {
-                ""
-            }
+            options
+                .color
+                .as_bool()
+                .then_some("\x1b[0m")
+                .unwrap_or_default()
         );
-        stdout.flush().unwrap();
+        stdout.flush()?;
     }
     for arg in args.iter_mut() {
-        if (arg.starts_with('\'') && arg.ends_with('\''))
-            || (arg.starts_with('\"') && arg.ends_with('\"'))
-        {
+        let c = arg.as_bytes();
+        if c[0] == c[arg.len() - 1] && matches!(c[0], b'\'' | b'"') {
             arg.remove(0);
             arg.pop();
         }
     }
+
     let file_path = dir.clone() + "/kalc.vars";
-    let mut vars: Vec<Variable> =
-        if options.allow_vars && (options.interactive || options.stay_interactive) {
-            get_vars(options)
-        } else {
-            Vec::new()
-        };
+    let mut vars: Vec<Variable> = (options.allow_vars
+        && (options.interactive || options.stay_interactive))
+        .then(|| get_vars(options))
+        .unwrap_or_default();
     let mut err = false;
     let base = options.base;
     let mut argsj = args.join(" ");
     if !check.is_empty() {
         argsj += " ";
         let file_path = dir.clone() + "/kalc.config";
-        argsj += &BufReader::new(File::open(file_path).unwrap())
+        argsj += &BufReader::new(File::open(file_path)?)
             .lines()
             .map(|a| a.unwrap())
             .collect::<Vec<String>>()
@@ -116,176 +103,157 @@ fn main() {
     if !options.interactive && options.allow_vars && !options.stay_interactive {
         get_cli_vars(options, argsj.clone(), &mut vars)
     }
-    {
-        if options.allow_vars && !default {
-            options.base = (10, 10);
-            if let Ok(file) = File::open(file_path) {
-                let lines = BufReader::new(file)
-                    .lines()
-                    .filter_map(|l| {
-                        let l = l.unwrap();
-                        if !l.starts_with('#') && !l.is_empty() {
-                            Some(l)
-                        } else {
-                            None
-                        }
-                    })
-                    .collect::<Vec<String>>();
-                let mut split;
-                let mut blacklist = if options.interactive || options.stay_interactive {
-                    Vec::new()
+    if options.allow_vars && !default {
+        options.base = (10, 10);
+        if let Ok(file) = File::open(&file_path) {
+            let lines = BufReader::new(file)
+                .lines()
+                .map(Result::unwrap)
+                .filter_map(|l| (!l.starts_with('#') && !l.is_empty()).then_some(l))
+                .collect::<Vec<String>>();
+            let mut split;
+            let mut blacklist = if options.interactive || options.stay_interactive {
+                Vec::new()
+            } else {
+                vars.iter()
+                    .map(|v| v.name.iter().collect::<String>())
+                    .collect::<Vec<String>>()
+            };
+            'upper: for i in lines.clone() {
+                split = i.splitn(2, '=');
+                let l = split.next().unwrap().to_string();
+                let left = if l.contains('(') {
+                    l.split('(').next().unwrap().to_owned()
                 } else {
-                    vars.iter()
-                        .map(|v| v.name.iter().collect::<String>())
-                        .collect::<Vec<String>>()
+                    l.clone()
                 };
-                'upper: for i in lines.clone() {
-                    split = i.splitn(2, '=');
-                    let l = split.next().unwrap().to_string();
-                    let left = if l.contains('(') {
-                        l.split('(').next().unwrap().to_owned()
-                    } else {
-                        l.clone()
-                    };
-                    if options.interactive
-                        || options.stay_interactive
-                        || (!blacklist.contains(&l) && {
-                            let mut b = false;
-                            let mut word = String::new();
-                            for c in argsj.chars() {
-                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_') {
-                                    word.push(c)
+                if options.interactive
+                    || options.stay_interactive
+                    || (!blacklist.contains(&l) && {
+                        let mut b = false;
+                        let mut word = String::new();
+                        for c in argsj.chars() {
+                            if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_') {
+                                word.push(c)
+                            } else {
+                                if l.contains('(') {
+                                    b = word.trim_end_matches('\'').trim_end_matches('`') == left
+                                        && matches!(c, '(' | '{' | '[' | '|');
                                 } else {
-                                    if l.contains('(') {
-                                        b = word.trim_end_matches('\'').trim_end_matches('`')
-                                            == left
-                                            && matches!(c, '(' | '{' | '[' | '|');
-                                    } else {
-                                        b = word == left;
-                                    }
-                                    if b {
-                                        break;
-                                    }
-                                    word.clear()
+                                    b = word == left;
                                 }
-                            }
-                            b
-                        })
-                    {
-                        if let Some(r) = split.next() {
-                            let le = l.chars().collect::<Vec<char>>();
-                            if !options.interactive && !options.stay_interactive {
-                                blacklist.push(l);
-                                get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
-                            }
-                            for (i, v) in vars.iter().enumerate() {
-                                if v.name.split(|c| c == &'(').next()
-                                    == le.split(|c| c == &'(').next()
-                                    && v.name.contains(&'(') == le.contains(&'(')
-                                    && v.name.iter().filter(|c| c == &&',').count()
-                                        == le.iter().filter(|c| c == &&',').count()
-                                {
-                                    if r == "null" {
-                                        if let Err(s) =
-                                            add_var(le, r, i, &mut vars, options, true, true, true)
-                                        {
-                                            err = true;
-                                            println!("\x1b[G\x1b[K{s}")
-                                        }
-                                    } else if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, true, true, false)
-                                    {
-                                        err = true;
-                                        println!("\x1b[G\x1b[K{s}")
-                                    }
-                                    continue 'upper;
+                                if b {
+                                    break;
                                 }
+                                word.clear()
                             }
-                            for (i, j) in vars.iter().enumerate() {
-                                if j.name.len() <= le.len() {
-                                    if let Err(s) =
-                                        add_var(le, r, i, &mut vars, options, false, false, false)
-                                    {
-                                        err = true;
-                                        println!("\x1b[G\x1b[K{s}")
-                                    }
-                                    continue 'upper;
-                                }
-                            }
-                            if let Err(s) =
-                                add_var(le, r, 0, &mut vars, options, false, false, false)
+                        }
+                        b
+                    })
+                {
+                    if let Some(r) = split.next() {
+                        let le = l.chars().collect::<Vec<char>>();
+                        if !options.interactive && !options.stay_interactive {
+                            blacklist.push(l);
+                            get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
+                        }
+                        for (i, v) in vars.iter().enumerate() {
+                            if v.name.split(|c| c == &'(').next() == le.split(|c| c == &'(').next()
+                                && v.name.contains(&'(') == le.contains(&'(')
+                                && v.name.iter().filter(|c| c == &&',').count()
+                                    == le.iter().filter(|c| c == &&',').count()
                             {
-                                err = true;
-                                println!("\x1b[G\x1b[K{s}")
+                                if r == "null" {
+                                    if let Err(s) =
+                                        add_var(le, r, i, &mut vars, options, true, true, true)
+                                    {
+                                        err = true;
+                                        println!("\x1b[G\x1b[K{s}")
+                                    }
+                                } else if let Err(s) =
+                                    add_var(le, r, i, &mut vars, options, true, true, false)
+                                {
+                                    err = true;
+                                    println!("\x1b[G\x1b[K{s}")
+                                }
+                                continue 'upper;
                             }
+                        }
+                        for (i, j) in vars.iter().enumerate() {
+                            if j.name.len() <= le.len() {
+                                if let Err(s) =
+                                    add_var(le, r, i, &mut vars, options, false, false, false)
+                                {
+                                    err = true;
+                                    println!("\x1b[G\x1b[K{s}")
+                                }
+                                continue 'upper;
+                            }
+                        }
+                        if let Err(s) = add_var(le, r, 0, &mut vars, options, false, false, false) {
+                            err = true;
+                            println!("\x1b[G\x1b[K{s}")
                         }
                     }
                 }
             }
         }
     }
-    {
-        let file_path = dir.clone() + "/kalc.config";
-        if !check.is_empty() {
-            if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false) {
-                println!("{s}");
-                std::process::exit(1);
-            }
-        }
-        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false) {
+    let file_path = dir.clone() + "/kalc.config";
+
+    if !check.is_empty() {
+        if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false) {
             println!("{s}");
             std::process::exit(1);
         }
     }
+
+    if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false) {
+        println!("{s}");
+        std::process::exit(1);
+    }
+
     if options.interactive && err {
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color == Auto::True {
-                "\x1b[0m"
-            } else {
-                ""
-            }
+            options
+                .color
+                .as_bool()
+                .then_some("\x1b[0m")
+                .unwrap_or_default()
         );
-        stdout.flush().unwrap();
+        stdout.flush()?;
     }
     options.base = base;
     let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive {
-        if options.color == Auto::Auto {
-            options.color = Auto::True;
-        }
+        options.color.auto_set(true);
         let file_path = &(dir.clone() + "/kalc.history");
-        if File::open(file_path).is_err() {
-            File::create(file_path).unwrap();
-        }
+        File::open(file_path).unwrap_or_else(|_| File::create(file_path).unwrap());
+
         (
-            Some(OpenOptions::new().append(true).open(file_path).unwrap()),
+            Some(OpenOptions::new().append(true).open(file_path)?),
             Some(
-                BufReader::new(File::open(file_path).unwrap())
+                BufReader::new(File::open(file_path)?)
                     .lines()
                     .map(|l| l.unwrap())
                     .collect::<Vec<String>>(),
             ),
         )
     } else {
-        if options.color == Auto::Auto {
-            options.color = Auto::False;
-        }
+        options.color.auto_set(false);
         (None, None)
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
+
     'main: loop {
         let mut input = Vec::new();
         let mut graphable = HowGraphing::default();
         let mut varcheck = false;
         let mut last = Vec::new();
         if !args.is_empty() {
-            let watch = if options.debug {
-                Some(Instant::now())
-            } else {
-                None
-            };
+            let watch = options.debug.then(Instant::now);
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
@@ -312,7 +280,7 @@ fn main() {
                                 if let Err(s) =
                                     set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                                 {
-                                    println!("{s}");
+                                    eprintln!("{s}");
                                     continue 'main;
                                 }
                             }
@@ -351,7 +319,7 @@ fn main() {
                 ) {
                     Ok(f) => f,
                     Err(s) => {
-                        println!("{}: {}", input.iter().collect::<String>(), s);
+                        eprintln!("{}: {s}", input.iter().collect::<String>());
                         continue;
                     }
                 };
@@ -359,21 +327,23 @@ fn main() {
                     match do_math(output, options, funcvar) {
                         Ok(n) => print_answer(n, options, &colors),
                         Err(s) => {
-                            println!("{}: {}", input.iter().collect::<String>(), s);
+                            eprintln!("{}: {s}", input.iter().collect::<String>());
                             continue;
                         }
                     }
-                    if let Some(time) = watch {
-                        println!(" {}", time.elapsed().as_nanos());
-                    } else {
-                        println!();
-                    }
+
+                    println!(
+                        "{}",
+                        watch
+                            .map(|t| " ".to_owned() + &t.elapsed().as_nanos().to_string())
+                            .unwrap_or_default()
+                    );
                 }
             }
         } else {
             if !options.interactive {
                 if options.stay_interactive {
-                    setup_for_interactive(&colors, &mut options, &mut stdout)
+                    setup_for_interactive(&colors, &mut options, &mut stdout)?
                 } else {
                     for handle in handles {
                         handle.join().unwrap();
@@ -383,26 +353,21 @@ fn main() {
             }
             let mut long = false;
             let mut frac = 0;
+            let mut placement = 0;
             let mut current = Vec::new();
             let mut lines = unmod_lines.clone().unwrap();
             let mut i = lines.len();
-            let mut placement = 0;
             last = if i == 0 {
-                Vec::new()
+                "".chars()
             } else if lines[i - 1].ends_with('\t') {
-                lines[i - 1][..lines[i - 1].len() - 1]
-                    .chars()
-                    .collect::<Vec<char>>()
+                lines[i - 1][..lines[i - 1].len() - 1].chars()
             } else {
-                lines[i - 1].chars().collect::<Vec<char>>()
-            };
-            let mut start = 0;
-            let mut end = 0;
-            let mut slow = false;
-            let mut firstslow = false;
-            let mut xxbool = false;
-            let mut xxstart = false;
-            let mut xxpos = 0;
+                lines[i - 1].chars()
+            }
+            .collect();
+
+            let [mut start, mut end, mut xxpos] = [0; 3];
+            let [mut slow, mut firstslow, mut xxbool, mut xxstart] = [false; 4];
             let mut lastd = get_terminal_dimensions();
             loop {
                 let c = read_single_char();
@@ -413,14 +378,10 @@ fn main() {
                         lastd = d;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len() {
-                            end = input.len()
-                        }
-                        if placement > end {
-                            placement = end
-                        }
+                        end = end.min(input.len());
+                        placement = placement.min(end);
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -464,7 +425,7 @@ fn main() {
                 match c {
                     '\n' | '\x14' | '\x09' | '\x06' => {
                         if c != '\x14' && c != '\x06' {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
@@ -500,7 +461,7 @@ fn main() {
                                 } else {
                                     print!("\x1b[G\n\x1b[J");
                                 }
-                                terminal::disable_raw_mode().unwrap();
+                                terminal::disable_raw_mode()?;
                                 std::process::exit(0);
                             }
                         }
@@ -527,9 +488,9 @@ fn main() {
                             }
                         }
                         if end > input.len() {
-                            end = input.len()
+                            end = input.len();
                         }
-                        if start >= end {
+                        if start > end {
                             start = end;
                         }
                         if i == lines.len() {
@@ -538,7 +499,7 @@ fn main() {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -594,7 +555,7 @@ fn main() {
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
                         if end > input.len() {
-                            end = input.len()
+                            end = input.len();
                         }
                         if i == lines.len() {
                             current.clone_from(&input);
@@ -602,7 +563,7 @@ fn main() {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -660,7 +621,7 @@ fn main() {
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
                         if end > input.len() {
-                            end = input.len()
+                            end = input.len();
                         }
                         if i == lines.len() {
                             current.clone_from(&input);
@@ -668,7 +629,7 @@ fn main() {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -732,7 +693,7 @@ fn main() {
                         end -= placement;
                         placement = 0;
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -768,11 +729,11 @@ fn main() {
                     '\x19' => {
                         //ctrl+k
                         cut = input.drain(placement..).collect();
-                        if end >= input.len() {
+                        if end > input.len() {
                             end = input.len();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -812,7 +773,7 @@ fn main() {
                         cut.extend(input.drain(placement..));
                         input.extend(cut);
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -850,7 +811,7 @@ fn main() {
                         if placement < input.len() && placement != 0 {
                             input.swap(placement - 1, placement);
                             if options.real_time_output && !slow {
-                                execute!(stdout, DisableBlinking).unwrap();
+                                execute!(stdout, DisableBlinking)?;
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input,
                                     &last,
@@ -888,7 +849,7 @@ fn main() {
                         //ctrl+l
                         print!("\x1b[H\x1b[J");
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -988,7 +949,7 @@ fn main() {
                             };
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1057,7 +1018,7 @@ fn main() {
                             };
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1082,7 +1043,7 @@ fn main() {
                             end = start + get_terminal_dimensions().0
                                 - if options.prompt { 3 } else { 1 };
                             if end > input.len() {
-                                end = input.len()
+                                end = input.len();
                             }
                             clearln(&input, &vars, start, end, options, &colors);
                             print!("\x1b[{}D", end - placement)
@@ -1096,7 +1057,7 @@ fn main() {
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
                         if end > input.len() {
-                            end = input.len()
+                            end = input.len();
                         }
                         if placement == end && end != input.len() {
                             start += 1;
@@ -1224,8 +1185,7 @@ fn main() {
                                 if f.starts_with(&word)
                                     && !bank.iter().any(|b| {
                                         b.contains('(')
-                                            && b.split('(').next().unwrap()
-                                                == f.split('(').next().unwrap()
+                                            && b.split('(').next() == f.split('(').next()
                                     })
                                 {
                                     bank_temp.push(f.to_string())
@@ -1237,8 +1197,7 @@ fn main() {
                                 if f.starts_with(&word)
                                     && !bank.iter().any(|b| {
                                         b.contains('(')
-                                            && b.split('(').next().unwrap()
-                                                == f.split('(').next().unwrap()
+                                            && b.split('(').next() == f.split('(').next()
                                     })
                                 {
                                     bank_temp.push(f.to_string())
@@ -1251,8 +1210,7 @@ fn main() {
                                     if f.starts_with(&word)
                                         && !bank.iter().any(|b| {
                                             b.contains('(')
-                                                && b.split('(').next().unwrap()
-                                                    == f.split('(').next().unwrap()
+                                                && b.split('(').next() == f.split('(').next()
                                         })
                                     {
                                         bank_temp.push(f.to_string())
@@ -1297,7 +1255,7 @@ fn main() {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
                                 if options.real_time_output && !slow && var {
-                                    execute!(stdout, DisableBlinking).unwrap();
+                                    execute!(stdout, DisableBlinking)?;
                                     (frac, graphable, long, varcheck) = print_concurrent(
                                         &input,
                                         &last,
@@ -1410,8 +1368,8 @@ fn main() {
                             (placement, xxpos) = (xxpos, placement);
                             match placement.cmp(&xxpos) {
                                 Ordering::Greater => {
-                                    if placement >= input.len() {
-                                        placement = input.len()
+                                    if placement > input.len() {
+                                        placement = input.len();
                                     }
                                     if placement >= end {
                                         start = placement.saturating_sub(
@@ -1447,7 +1405,7 @@ fn main() {
                                         print!("\x1b[{}D", xxpos - placement);
                                     }
                                 }
-                                _ => {}
+                                _ => (),
                             }
                             xxbool = false
                         } else {
@@ -1483,9 +1441,9 @@ fn main() {
                             }
                         }
                         if end > input.len() {
-                            end = input.len()
+                            end = input.len();
                         }
-                        if start >= end {
+                        if start > end {
                             start = end;
                         }
                         if i == lines.len() {
@@ -1494,7 +1452,7 @@ fn main() {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1555,11 +1513,11 @@ fn main() {
                             }
                             cut = input.drain(placement..placement + pos).collect();
                         }
-                        if end >= input.len() {
+                        if end > input.len() {
                             end = input.len();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1637,7 +1595,7 @@ fn main() {
                         }
                         input.splice(placement..placement, second.clone());
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1690,7 +1648,7 @@ fn main() {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1731,7 +1689,7 @@ fn main() {
                         }
                     }
                 }
-                stdout.flush().unwrap();
+                stdout.flush()?;
             }
             commands(&mut options, &lines, &input, &mut stdout);
             if !varcheck {
@@ -1745,8 +1703,8 @@ fn main() {
                     }
                 );
             }
-            stdout.flush().unwrap();
-            execute!(stdout, EnableBlinking).unwrap();
+            stdout.flush()?;
+            execute!(stdout, EnableBlinking)?;
             if input.is_empty() {
                 continue;
             }
@@ -1788,7 +1746,7 @@ fn main() {
                     }
                 );
             }
-            stdout.flush().unwrap()
+            stdout.flush()?
         } else if graphable.graph {
             if !options.gnuplot {
                 if let Some(path) = find_it("kalc-plot") {
@@ -1814,22 +1772,20 @@ fn main() {
             }
             let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
                 .split('#')
-                .map(String::from)
+                .map(str::to_owned)
                 .collect();
-            let watch = if options.debug {
-                Some(Instant::now())
-            } else {
-                None
-            };
+            let watch = options.debug.then_some(Instant::now());
             if options.graph_cli {
                 if options.interactive {
-                    terminal::disable_raw_mode().unwrap();
-                }
-                graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                    .join()
-                    .unwrap();
-                if options.interactive {
-                    terminal::enable_raw_mode().unwrap();
+                    terminal::disable_raw_mode()?;
+                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                        .join()
+                        .unwrap();
+                    terminal::enable_raw_mode()?;
+                } else {
+                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                        .join()
+                        .unwrap();
                 }
             } else {
                 handles.push(graph(
@@ -1843,7 +1799,9 @@ fn main() {
             }
         }
     }
+    Ok(())
 }
+
 fn find_it<P>(exe_name: P) -> Option<PathBuf>
 where
     P: AsRef<Path>,
@@ -1852,18 +1810,19 @@ where
         env::split_paths(&paths)
             .filter_map(|dir| {
                 let full_path = dir.join(&exe_name);
-                if full_path.is_file() {
-                    Some(full_path)
-                } else {
-                    None
-                }
+                full_path.is_file().then_some(full_path)
             })
             .next()
     })
 }
-fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut Stdout) {
+
+fn setup_for_interactive(
+    colors: &Colors,
+    options: &mut Options,
+    stdout: &mut Stdout,
+) -> Result<(), Error> {
     options.interactive = true;
-    terminal::enable_raw_mode().unwrap();
+    terminal::enable_raw_mode()?;
     print!(
         "\x1b[G\x1b[K{}{}",
         prompt(*options, colors),
@@ -1873,5 +1832,6 @@ fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut St
             ""
         }
     );
-    stdout.flush().unwrap();
+    stdout.flush()?;
+    Ok(())
 }

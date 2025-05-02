@@ -1795,6 +1795,7 @@ fn main() {
                     let data = Data {
                         vars: vars.clone(),
                         options,
+                        colors: colors.clone(),
                     };
                     handles.push(thread::spawn(move || {
                         let mut plot = Command::new(path)

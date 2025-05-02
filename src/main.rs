@@ -395,7 +395,7 @@ fn main() -> Result<(), Error> {
                             placement = end;
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -439,7 +439,7 @@ fn main() -> Result<(), Error> {
                 match c {
                     '\n' | '\x14' | '\x09' | '\x06' => {
                         if c != '\x14' && c != '\x06' {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
@@ -475,7 +475,7 @@ fn main() -> Result<(), Error> {
                                 } else {
                                     print!("\x1b[G\n\x1b[J");
                                 }
-                                terminal::disable_raw_mode().unwrap();
+                                terminal::disable_raw_mode()?;
                                 std::process::exit(0);
                             }
                         }
@@ -513,7 +513,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -577,7 +577,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -643,7 +643,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -707,7 +707,7 @@ fn main() -> Result<(), Error> {
                         end -= placement;
                         placement = 0;
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -747,7 +747,7 @@ fn main() -> Result<(), Error> {
                             end = input.len();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -787,7 +787,7 @@ fn main() -> Result<(), Error> {
                         cut.extend(input.drain(placement..));
                         input.extend(cut);
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -825,7 +825,7 @@ fn main() -> Result<(), Error> {
                         if placement < input.len() && placement != 0 {
                             input.swap(placement - 1, placement);
                             if options.real_time_output && !slow {
-                                execute!(stdout, DisableBlinking).unwrap();
+                                execute!(stdout, DisableBlinking)?;
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input,
                                     &last,
@@ -863,7 +863,7 @@ fn main() -> Result<(), Error> {
                         //ctrl+l
                         print!("\x1b[H\x1b[J");
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -963,7 +963,7 @@ fn main() -> Result<(), Error> {
                             };
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1032,7 +1032,7 @@ fn main() -> Result<(), Error> {
                             };
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1272,7 +1272,7 @@ fn main() -> Result<(), Error> {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
                                 if options.real_time_output && !slow && var {
-                                    execute!(stdout, DisableBlinking).unwrap();
+                                    execute!(stdout, DisableBlinking)?;
                                     (frac, graphable, long, varcheck) = print_concurrent(
                                         &input,
                                         &last,
@@ -1469,7 +1469,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1534,7 +1534,7 @@ fn main() -> Result<(), Error> {
                             end = input.len();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1612,7 +1612,7 @@ fn main() -> Result<(), Error> {
                         }
                         input.splice(placement..placement, second.clone());
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1665,7 +1665,7 @@ fn main() -> Result<(), Error> {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
                         if options.real_time_output && !slow {
-                            execute!(stdout, DisableBlinking).unwrap();
+                            execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
                                 &last,
@@ -1706,7 +1706,7 @@ fn main() -> Result<(), Error> {
                         }
                     }
                 }
-                stdout.flush().unwrap();
+                stdout.flush()?;
             }
             commands(&mut options, &lines, &input, &mut stdout);
             if !varcheck {
@@ -1720,8 +1720,8 @@ fn main() -> Result<(), Error> {
                     }
                 );
             }
-            stdout.flush().unwrap();
-            execute!(stdout, EnableBlinking).unwrap();
+            stdout.flush()?;
+            execute!(stdout, EnableBlinking)?;
             if input.is_empty() {
                 continue;
             }
@@ -1763,7 +1763,7 @@ fn main() -> Result<(), Error> {
                     }
                 );
             }
-            stdout.flush().unwrap()
+            stdout.flush()?
         } else if graphable.graph {
             if !options.gnuplot {
                 if let Some(path) = find_it("kalc-plot") {

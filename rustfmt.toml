@@ -1,3 +1,0 @@
-control_brace_style="AlwaysNextLine"
-brace_style="AlwaysNextLine"
-imports_granularity="Crate"

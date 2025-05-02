@@ -29,8 +29,7 @@ use std::{
     thread::JoinHandle,
     time::Instant,
 };
-fn main()
-{
+fn main() {
     let mut colors = Colors::default();
     let mut options = Options::default();
     let mut args = args().collect::<Vec<String>>();
@@ -47,29 +46,21 @@ fn main()
             &Vec::new(),
             Vec::new(),
             true,
-        )
-        {
+        ) {
             check = s;
         }
-        if let Ok(s) = arg_opts(&mut options, &mut colors, &mut args, &Vec::new(), true)
-        {
-            if s
-            {
+        if let Ok(s) = arg_opts(&mut options, &mut colors, &mut args, &Vec::new(), true) {
+            if s {
                 default = true
             }
         }
     }
-    if !stdin().is_terminal()
-    {
+    if !stdin().is_terminal() {
         let mut lines = Vec::new();
-        for line in stdin().lock().lines()
-        {
-            if !line.as_ref().unwrap().is_empty()
-            {
-                if let Ok(line) = line
-                {
-                    if !line.starts_with('#') && !line.is_empty()
-                    {
+        for line in stdin().lock().lines() {
+            if !line.as_ref().unwrap().is_empty() {
+                if let Ok(line) = line {
+                    if !line.starts_with('#') && !line.is_empty() {
                         lines.push(line);
                     }
                 }
@@ -79,29 +70,23 @@ fn main()
     }
     options.interactive = args.is_empty();
     let mut stdout = stdout();
-    if options.interactive
-    {
-        if options.color == Auto::Auto
-        {
+    if options.interactive {
+        if options.color == Auto::Auto {
             options.color = Auto::True;
         }
         terminal::enable_raw_mode().unwrap();
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color == Auto::True
-            {
+            if options.color == Auto::True {
                 "\x1b[0m"
-            }
-            else
-            {
+            } else {
                 ""
             }
         );
         stdout.flush().unwrap();
     }
-    for arg in args.iter_mut()
-    {
+    for arg in args.iter_mut() {
         if (arg.starts_with('\'') && arg.ends_with('\''))
             || (arg.starts_with('\"') && arg.ends_with('\"'))
         {
@@ -110,20 +95,16 @@ fn main()
         }
     }
     let file_path = dir.clone() + "/kalc.vars";
-    let mut vars: Vec<Variable> = if options.allow_vars
-        && (options.interactive || options.stay_interactive)
-    {
-        get_vars(options)
-    }
-    else
-    {
-        Vec::new()
-    };
+    let mut vars: Vec<Variable> =
+        if options.allow_vars && (options.interactive || options.stay_interactive) {
+            get_vars(options)
+        } else {
+            Vec::new()
+        };
     let mut err = false;
     let base = options.base;
     let mut argsj = args.join(" ");
-    if !check.is_empty()
-    {
+    if !check.is_empty() {
         argsj += " ";
         let file_path = dir.clone() + "/kalc.config";
         argsj += &BufReader::new(File::open(file_path).unwrap())
@@ -132,51 +113,38 @@ fn main()
             .collect::<Vec<String>>()
             .join(" ");
     }
-    if !options.interactive && options.allow_vars && !options.stay_interactive
-    {
+    if !options.interactive && options.allow_vars && !options.stay_interactive {
         get_cli_vars(options, argsj.clone(), &mut vars)
     }
     {
-        if options.allow_vars && !default
-        {
+        if options.allow_vars && !default {
             options.base = (10, 10);
-            if let Ok(file) = File::open(file_path)
-            {
+            if let Ok(file) = File::open(file_path) {
                 let lines = BufReader::new(file)
                     .lines()
                     .filter_map(|l| {
                         let l = l.unwrap();
-                        if !l.starts_with('#') && !l.is_empty()
-                        {
+                        if !l.starts_with('#') && !l.is_empty() {
                             Some(l)
-                        }
-                        else
-                        {
+                        } else {
                             None
                         }
                     })
                     .collect::<Vec<String>>();
                 let mut split;
-                let mut blacklist = if options.interactive || options.stay_interactive
-                {
+                let mut blacklist = if options.interactive || options.stay_interactive {
                     Vec::new()
-                }
-                else
-                {
+                } else {
                     vars.iter()
                         .map(|v| v.name.iter().collect::<String>())
                         .collect::<Vec<String>>()
                 };
-                'upper: for i in lines.clone()
-                {
+                'upper: for i in lines.clone() {
                     split = i.splitn(2, '=');
                     let l = split.next().unwrap().to_string();
-                    let left = if l.contains('(')
-                    {
+                    let left = if l.contains('(') {
                         l.split('(').next().unwrap().to_owned()
-                    }
-                    else
-                    {
+                    } else {
                         l.clone()
                     };
                     if options.interactive
@@ -184,26 +152,18 @@ fn main()
                         || (!blacklist.contains(&l) && {
                             let mut b = false;
                             let mut word = String::new();
-                            for c in argsj.chars()
-                            {
-                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_')
-                                {
+                            for c in argsj.chars() {
+                                if c.is_alphanumeric() || matches!(c, '\'' | '`' | '_') {
                                     word.push(c)
-                                }
-                                else
-                                {
-                                    if l.contains('(')
-                                    {
+                                } else {
+                                    if l.contains('(') {
                                         b = word.trim_end_matches('\'').trim_end_matches('`')
                                             == left
                                             && matches!(c, '(' | '{' | '[' | '|');
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         b = word == left;
                                     }
-                                    if b
-                                    {
+                                    if b {
                                         break;
                                     }
                                     word.clear()
@@ -212,32 +172,27 @@ fn main()
                             b
                         })
                     {
-                        if let Some(r) = split.next()
-                        {
+                        if let Some(r) = split.next() {
                             let le = l.chars().collect::<Vec<char>>();
-                            if !options.interactive && !options.stay_interactive
-                            {
+                            if !options.interactive && !options.stay_interactive {
                                 blacklist.push(l);
                                 get_file_vars(options, &mut vars, lines.clone(), r, &mut blacklist);
                             }
-                            for (i, v) in vars.iter().enumerate()
-                            {
+                            for (i, v) in vars.iter().enumerate() {
                                 if v.name.split(|c| c == &'(').next()
                                     == le.split(|c| c == &'(').next()
                                     && v.name.contains(&'(') == le.contains(&'(')
                                     && v.name.iter().filter(|c| c == &&',').count()
                                         == le.iter().filter(|c| c == &&',').count()
                                 {
-                                    if r == "null"
-                                    {
+                                    if r == "null" {
                                         if let Err(s) =
                                             add_var(le, r, i, &mut vars, options, true, true, true)
                                         {
                                             err = true;
                                             println!("\x1b[G\x1b[K{s}")
                                         }
-                                    }
-                                    else if let Err(s) =
+                                    } else if let Err(s) =
                                         add_var(le, r, i, &mut vars, options, true, true, false)
                                     {
                                         err = true;
@@ -246,10 +201,8 @@ fn main()
                                     continue 'upper;
                                 }
                             }
-                            for (i, j) in vars.iter().enumerate()
-                            {
-                                if j.name.len() <= le.len()
-                                {
+                            for (i, j) in vars.iter().enumerate() {
+                                if j.name.len() <= le.len() {
                                     if let Err(s) =
                                         add_var(le, r, i, &mut vars, options, false, false, false)
                                     {
@@ -273,46 +226,36 @@ fn main()
     }
     {
         let file_path = dir.clone() + "/kalc.config";
-        if !check.is_empty()
-        {
-            if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false)
-            {
+        if !check.is_empty() {
+            if let Err(s) = file_opts(&mut options, &mut colors, &file_path, &vars, check, false) {
                 println!("{s}");
                 std::process::exit(1);
             }
         }
-        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false)
-        {
+        if let Err(s) = arg_opts(&mut options, &mut colors, &mut args, &vars, false) {
             println!("{s}");
             std::process::exit(1);
         }
     }
-    if options.interactive && err
-    {
+    if options.interactive && err {
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            if options.color == Auto::True
-            {
+            if options.color == Auto::True {
                 "\x1b[0m"
-            }
-            else
-            {
+            } else {
                 ""
             }
         );
         stdout.flush().unwrap();
     }
     options.base = base;
-    let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive
-    {
-        if options.color == Auto::Auto
-        {
+    let (mut file, mut unmod_lines) = if options.interactive || options.stay_interactive {
+        if options.color == Auto::Auto {
             options.color = Auto::True;
         }
         let file_path = &(dir.clone() + "/kalc.history");
-        if File::open(file_path).is_err()
-        {
+        if File::open(file_path).is_err() {
             File::create(file_path).unwrap();
         }
         (
@@ -324,31 +267,23 @@ fn main()
                     .collect::<Vec<String>>(),
             ),
         )
-    }
-    else
-    {
-        if options.color == Auto::Auto
-        {
+    } else {
+        if options.color == Auto::Auto {
             options.color = Auto::False;
         }
         (None, None)
     };
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
-    'main: loop
-    {
+    'main: loop {
         let mut input = Vec::new();
         let mut graphable = HowGraphing::default();
         let mut varcheck = false;
         let mut last = Vec::new();
-        if !args.is_empty()
-        {
-            let watch = if options.debug
-            {
+        if !args.is_empty() {
+            let watch = if options.debug {
                 Some(Instant::now())
-            }
-            else
-            {
+            } else {
                 None
             };
             input = args.remove(0).chars().collect();
@@ -360,13 +295,10 @@ fn main()
                 {
                     let split = input.split(|c| c == &';');
                     let count = split.clone().count();
-                    if count != 1
-                    {
+                    if count != 1 {
                         unparsed = split.clone().next_back().unwrap().to_vec();
-                        for (i, s) in split.enumerate()
-                        {
-                            if i == count - 1
-                            {
+                        for (i, s) in split.enumerate() {
+                            if i == count - 1 {
                                 break;
                             }
                             silent_commands(
@@ -376,8 +308,7 @@ fn main()
                                     .filter(|&c| !c.is_whitespace())
                                     .collect::<Vec<char>>(),
                             );
-                            if s.contains(&'=')
-                            {
+                            if s.contains(&'=') {
                                 if let Err(s) =
                                     set_commands_or_vars(&mut colors, &mut options, &mut vars, s)
                                 {
@@ -388,13 +319,10 @@ fn main()
                         }
                     }
                     let tempinput = unparsed.iter().collect::<String>();
-                    if tempinput.starts_with("help ")
-                    {
+                    if tempinput.starts_with("help ") {
                         println!("{}", help_for(tempinput.splitn(2, ' ').last().unwrap()));
                         continue;
-                    }
-                    else if tempinput.ends_with('=')
-                    {
+                    } else if tempinput.ends_with('=') {
                         println!(
                             "{}",
                             equal_to(
@@ -420,49 +348,34 @@ fn main()
                     false,
                     &mut Vec::new(),
                     None,
-                )
-                {
+                ) {
                     Ok(f) => f,
-                    Err(s) =>
-                    {
+                    Err(s) => {
                         println!("{}: {}", input.iter().collect::<String>(), s);
                         continue;
                     }
                 };
-                if !graphable.graph && !varcheck
-                {
-                    match do_math(output, options, funcvar)
-                    {
+                if !graphable.graph && !varcheck {
+                    match do_math(output, options, funcvar) {
                         Ok(n) => print_answer(n, options, &colors),
-                        Err(s) =>
-                        {
+                        Err(s) => {
                             println!("{}: {}", input.iter().collect::<String>(), s);
                             continue;
                         }
                     }
-                    if let Some(time) = watch
-                    {
+                    if let Some(time) = watch {
                         println!(" {}", time.elapsed().as_nanos());
-                    }
-                    else
-                    {
+                    } else {
                         println!();
                     }
                 }
             }
-        }
-        else
-        {
-            if !options.interactive
-            {
-                if options.stay_interactive
-                {
+        } else {
+            if !options.interactive {
+                if options.stay_interactive {
                     setup_for_interactive(&colors, &mut options, &mut stdout)
-                }
-                else
-                {
-                    for handle in handles
-                    {
+                } else {
+                    for handle in handles {
                         handle.join().unwrap();
                     }
                     break;
@@ -474,18 +387,13 @@ fn main()
             let mut lines = unmod_lines.clone().unwrap();
             let mut i = lines.len();
             let mut placement = 0;
-            last = if i == 0
-            {
+            last = if i == 0 {
                 Vec::new()
-            }
-            else if lines[i - 1].ends_with('\t')
-            {
+            } else if lines[i - 1].ends_with('\t') {
                 lines[i - 1][..lines[i - 1].len() - 1]
                     .chars()
                     .collect::<Vec<char>>()
-            }
-            else
-            {
+            } else {
                 lines[i - 1].chars().collect::<Vec<char>>()
             };
             let mut start = 0;
@@ -496,27 +404,22 @@ fn main()
             let mut xxstart = false;
             let mut xxpos = 0;
             let mut lastd = get_terminal_dimensions();
-            loop
-            {
+            loop {
                 let c = read_single_char();
                 let watch = Instant::now();
                 {
                     let d = get_terminal_dimensions();
-                    if lastd != d
-                    {
+                    if lastd != d {
                         lastd = d;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
-                        if placement > end
-                        {
+                        if placement > end {
                             placement = end
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -528,14 +431,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -546,38 +446,29 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if options.debug
-                        {
+                        if options.debug {
                             let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}\x1b[{}D",
                                 time,
                                 time.to_string().len() + 1 + end - placement
                             );
-                        }
-                        else if end - placement != 0
-                        {
+                        } else if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
                 }
-                match c
-                {
-                    '\n' | '\x14' | '\x09' | '\x06' =>
-                    {
-                        if c != '\x14' && c != '\x06'
-                        {
+                match c {
+                    '\n' | '\x14' | '\x09' | '\x06' => {
+                        if c != '\x14' && c != '\x06' {
                             execute!(stdout, DisableBlinking).unwrap();
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
                         if (!options.real_time_output || long || (slow && !firstslow))
@@ -597,24 +488,16 @@ fn main()
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                         }
-                        if c == '\x09'
-                        {
+                        if c == '\x09' {
                             clear(&input, &vars, start, end, options, &colors);
-                        }
-                        else
-                        {
-                            if !input.is_empty() && !input.starts_with(&['#']) && frac != 0
-                            {
+                        } else {
+                            if !input.is_empty() && !input.starts_with(&['#']) && frac != 0 {
                                 print!("\x1b[{frac}B");
                             }
-                            if c == '\x14' || c == '\x06'
-                            {
-                                if input.is_empty()
-                                {
+                            if c == '\x14' || c == '\x06' {
+                                if input.is_empty() {
                                     print!("\x1b[G\x1b[J");
-                                }
-                                else
-                                {
+                                } else {
                                     print!("\x1b[G\n\x1b[J");
                                 }
                                 terminal::disable_raw_mode().unwrap();
@@ -624,50 +507,37 @@ fn main()
                         print!("\x1b[G\n\x1b[K");
                         break;
                     }
-                    '\x03' =>
-                    {
+                    '\x03' => {
                         //ctrl+backspace
-                        if placement != 0 && end_word(input[placement - 1])
-                        {
+                        if placement != 0 && end_word(input[placement - 1]) {
                             placement -= 1;
                             input.remove(placement);
-                        }
-                        else
-                        {
-                            for (i, c) in input[..placement].iter().rev().enumerate()
-                            {
-                                if c.is_whitespace() || i + 1 == placement
-                                {
+                        } else {
+                            for (i, c) in input[..placement].iter().rev().enumerate() {
+                                if c.is_whitespace() || i + 1 == placement {
                                     input.drain(placement - i - 1..placement);
                                     placement -= i + 1;
                                     break;
                                 }
-                                if end_word(*c)
-                                {
+                                if end_word(*c) {
                                     input.drain(placement - i..placement);
                                     placement -= i;
                                     break;
                                 }
                             }
                         }
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
-                        if start >= end
-                        {
+                        if start >= end {
                             start = end;
                         }
-                        if i == lines.len()
-                        {
+                        if i == lines.len() {
                             current.clone_from(&input);
-                        }
-                        else
-                        {
+                        } else {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -679,14 +549,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -697,58 +564,44 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if options.debug
-                        {
+                        if options.debug {
                             let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}\x1b[{}D",
                                 time,
                                 time.to_string().len() + 1 + end - placement
                             );
-                        }
-                        else if end - placement != 0
-                        {
+                        } else if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
-                        if input.is_empty()
-                        {
+                        if input.is_empty() {
                             slow = false;
                             clear(&input, &vars, start, end, options, &colors);
                         }
                     }
-                    '\x08' =>
-                    {
+                    '\x08' => {
                         //backspace
-                        if placement - start == 0 && start != 0
-                        {
+                        if placement - start == 0 && start != 0 {
                             start -= 1;
                         }
-                        if placement != 0
-                        {
+                        if placement != 0 {
                             placement -= 1;
                             input.remove(placement);
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
-                        if i == lines.len()
-                        {
+                        if i == lines.len() {
                             current.clone_from(&input);
-                        }
-                        else
-                        {
+                        } else {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -760,14 +613,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -778,61 +628,46 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if options.debug
-                        {
+                        if options.debug {
                             let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}\x1b[{}D",
                                 time,
                                 time.to_string().len() + 1 + end - placement
                             );
-                        }
-                        else if end - placement != 0
-                        {
+                        } else if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
-                        if input.is_empty()
-                        {
+                        if input.is_empty() {
                             slow = false;
                             clear(&input, &vars, start, end, options, &colors);
                         }
                     }
-                    '\x7F' =>
-                    {
+                    '\x7F' => {
                         //delete
-                        if placement == input.len()
-                        {
+                        if placement == input.len() {
                             continue;
                         }
-                        if placement - start == 0 && start != 0
-                        {
+                        if placement - start == 0 && start != 0 {
                             start -= 1;
                         }
-                        if !input.is_empty()
-                        {
+                        if !input.is_empty() {
                             input.remove(placement);
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
-                        if i == lines.len()
-                        {
+                        if i == lines.len() {
                             current.clone_from(&input);
-                        }
-                        else
-                        {
+                        } else {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -844,14 +679,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -862,32 +694,25 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if options.debug
-                        {
+                        if options.debug {
                             let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}\x1b[{}D",
                                 time,
                                 time.to_string().len() + 1 + end - placement
                             );
-                        }
-                        else if end - placement != 0
-                        {
+                        } else if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
-                        if input.is_empty()
-                        {
+                        if input.is_empty() {
                             slow = false;
                             clear(&input, &vars, start, end, options, &colors);
                         }
                     }
-                    '\x11' =>
-                    {
+                    '\x11' => {
                         //end
                         placement = input.len();
                         end = input.len();
@@ -895,22 +720,18 @@ fn main()
                             > input.len()
                         {
                             0
-                        }
-                        else
-                        {
+                        } else {
                             input.len()
                                 - (get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 })
                         };
                         clearln(&input, &vars, start, end, options, &colors);
                     }
-                    '\x18' =>
-                    {
+                    '\x18' => {
                         //ctrl+u
                         cut = input.drain(..placement).collect();
                         end -= placement;
                         placement = 0;
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -922,14 +743,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -940,26 +758,20 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\x19' =>
-                    {
+                    '\x19' => {
                         //ctrl+k
                         cut = input.drain(placement..).collect();
-                        if end >= input.len()
-                        {
+                        if end >= input.len() {
                             end = input.len();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -971,14 +783,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -989,25 +798,20 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\x17' =>
-                    {
+                    '\x17' => {
                         //ctrl+y
                         let mut cut = cut.clone();
                         end += cut.len();
                         cut.extend(input.drain(placement..));
                         input.extend(cut);
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1019,14 +823,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -1037,24 +838,18 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\x16' =>
-                    {
+                    '\x16' => {
                         //ctrl+t
-                        if placement < input.len() && placement != 0
-                        {
+                        if placement < input.len() && placement != 0 {
                             input.swap(placement - 1, placement);
-                            if options.real_time_output && !slow
-                            {
+                            if options.real_time_output && !slow {
                                 execute!(stdout, DisableBlinking).unwrap();
                                 (frac, graphable, long, varcheck) = print_concurrent(
                                     &input,
@@ -1066,14 +861,11 @@ fn main()
                                     end,
                                     false,
                                 );
-                                if watch.elapsed().as_millis() > options.slowcheck
-                                {
+                                if watch.elapsed().as_millis() > options.slowcheck {
                                     firstslow = true;
                                     slow = true;
                                 }
-                            }
-                            else if options.real_time_output && firstslow
-                            {
+                            } else if options.real_time_output && firstslow {
                                 firstslow = false;
                                 handle_err(
                                     "too slow, will print on enter",
@@ -1084,23 +876,18 @@ fn main()
                                     start,
                                     end,
                                 )
-                            }
-                            else
-                            {
+                            } else {
                                 clearln(&input, &vars, start, end, options, &colors);
                             }
-                            if end - placement != 0
-                            {
+                            if end - placement != 0 {
                                 print!("\x1b[{}D", end - placement)
                             }
                         }
                     }
-                    '\x15' =>
-                    {
+                    '\x15' => {
                         //ctrl+l
                         print!("\x1b[H\x1b[J");
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1112,14 +899,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -1130,18 +914,14 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\x10' =>
-                    {
+                    '\x10' => {
                         //home
                         placement = 0;
                         start = 0;
@@ -1149,30 +929,24 @@ fn main()
                             > input.len()
                         {
                             input.len()
-                        }
-                        else
-                        {
+                        } else {
                             get_terminal_dimensions().0 - if options.prompt { 3 } else { 1 }
                         };
                         clearln(&input, &vars, start, end, options, &colors);
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\x1D' | '\x05' =>
-                    {
+                    '\x1D' | '\x05' => {
                         //up history
                         i -= if i > 0 { 1 } else { 0 };
-                        if lines.is_empty()
-                        {
+                        if lines.is_empty() {
                             continue;
                         }
                         input = lines[i].clone().chars().collect::<Vec<char>>();
                         slow = input.ends_with(&['\t']);
 
-                        if slow && options.real_time_output
-                        {
+                        if slow && options.real_time_output {
                             input.pop();
                             firstslow = false;
                             placement = input.len();
@@ -1182,9 +956,7 @@ fn main()
                                 > input.len()
                             {
                                 0
-                            }
-                            else
-                            {
+                            } else {
                                 input.len()
                                     - (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 })
@@ -1198,11 +970,8 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
-                            if slow
-                            {
+                        } else {
+                            if slow {
                                 input.pop();
                             }
                             placement = input.len();
@@ -1212,16 +981,13 @@ fn main()
                                 > input.len()
                             {
                                 0
-                            }
-                            else
-                            {
+                            } else {
                                 input.len()
                                     - (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 })
                             };
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1235,28 +1001,21 @@ fn main()
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                             firstslow = slow
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
                     }
-                    '\x1E' | '\x04' =>
-                    {
+                    '\x1E' | '\x04' => {
                         //down history
                         i += 1;
-                        if i >= lines.len()
-                        {
+                        if i >= lines.len() {
                             i = lines.len();
                             input.clone_from(&current);
-                        }
-                        else
-                        {
+                        } else {
                             input = lines[i].clone().chars().collect::<Vec<char>>();
                         }
                         slow = input.ends_with(&['\t']);
-                        if slow && options.real_time_output
-                        {
+                        if slow && options.real_time_output {
                             input.pop();
                             firstslow = false;
                             placement = input.len();
@@ -1266,9 +1025,7 @@ fn main()
                                 > input.len()
                             {
                                 0
-                            }
-                            else
-                            {
+                            } else {
                                 input.len()
                                     - (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 })
@@ -1282,11 +1039,8 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
-                            if slow
-                            {
+                        } else {
+                            if slow {
                                 input.pop();
                             }
                             placement = input.len();
@@ -1296,16 +1050,13 @@ fn main()
                                 > input.len()
                             {
                                 0
-                            }
-                            else
-                            {
+                            } else {
                                 input.len()
                                     - (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 })
                             };
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1319,213 +1070,157 @@ fn main()
                             );
                             slow = watch.elapsed().as_millis() > options.slowcheck;
                             firstslow = slow;
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
                     }
-                    '\x1B' =>
-                    {
+                    '\x1B' => {
                         //left
-                        if placement - start == 0 && placement != 0 && start != 0
-                        {
+                        if placement - start == 0 && placement != 0 && start != 0 {
                             start -= 1;
                             placement -= 1;
                             end = start + get_terminal_dimensions().0
                                 - if options.prompt { 3 } else { 1 };
-                            if end > input.len()
-                            {
+                            if end > input.len() {
                                 end = input.len()
                             }
                             clearln(&input, &vars, start, end, options, &colors);
                             print!("\x1b[{}D", end - placement)
-                        }
-                        else if placement != 0
-                        {
+                        } else if placement != 0 {
                             placement -= 1;
                             print!("\x08");
                         }
                     }
-                    '\x1C' =>
-                    {
+                    '\x1C' => {
                         //right
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
-                        if placement == end && end != input.len()
-                        {
+                        if placement == end && end != input.len() {
                             start += 1;
                             placement += 1;
                             end += 1;
                             clearln(&input, &vars, start, end, options, &colors)
-                        }
-                        else if placement != input.len()
-                        {
+                        } else if placement != input.len() {
                             placement += 1;
                             print!("\x1b[C")
                         }
                     }
-                    '\x12' =>
-                    {
+                    '\x12' => {
                         //ctrl+left
-                        if placement != 0
-                        {
+                        if placement != 0 {
                             let s = placement;
                             let mut hit = false;
-                            for (i, j) in input[..s].iter().enumerate().rev()
-                            {
-                                if !j.is_alphanumeric()
-                                {
-                                    if hit
-                                    {
+                            for (i, j) in input[..s].iter().enumerate().rev() {
+                                if !j.is_alphanumeric() {
+                                    if hit {
                                         hit = false;
                                         placement = i + 1;
                                         break;
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     hit = true;
                                 }
                             }
-                            if hit
-                            {
+                            if hit {
                                 placement = 0;
                             }
-                            if placement <= start
-                            {
+                            if placement <= start {
                                 end = placement
                                     + (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 });
-                                if end > input.len()
-                                {
+                                if end > input.len() {
                                     end = input.len()
                                 }
                                 start = placement;
                                 clearln(&input, &vars, start, end, options, &colors);
-                                if end - placement != 0
-                                {
+                                if end - placement != 0 {
                                     print!("\x1b[{}D", end - placement)
                                 }
-                            }
-                            else if placement == s
-                            {
+                            } else if placement == s {
                                 placement = 0;
                                 print!("\x1b[{s}D");
-                            }
-                            else
-                            {
+                            } else {
                                 print!("\x1b[{}D", s - placement);
                             }
                         }
                     }
-                    '\x13' =>
-                    {
+                    '\x13' => {
                         //ctrl+right
-                        if placement != input.len()
-                        {
+                        if placement != input.len() {
                             let s = placement;
                             let mut hit = false;
-                            for (i, j) in input[s + 1..].iter().enumerate()
-                            {
-                                if !j.is_alphanumeric()
-                                {
-                                    if hit
-                                    {
+                            for (i, j) in input[s + 1..].iter().enumerate() {
+                                if !j.is_alphanumeric() {
+                                    if hit {
                                         hit = false;
                                         placement += i + 1;
                                         break;
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     hit = true;
                                 }
                             }
-                            if hit
-                            {
+                            if hit {
                                 placement = input.len();
                             }
-                            if placement >= end
-                            {
+                            if placement >= end {
                                 start = placement.saturating_sub(
                                     get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 },
                                 );
                                 end = placement;
                                 clearln(&input, &vars, start, end, options, &colors)
-                            }
-                            else if placement == s
-                            {
+                            } else if placement == s {
                                 placement = input.len();
                                 print!("\x1b[{}C", input.len() - s);
-                            }
-                            else
-                            {
+                            } else {
                                 print!("\x1b[{}C", placement - s);
                             }
                         }
                     }
-                    '\x1F' =>
-                    {
+                    '\x1F' => {
                         //tab completion
                         let mut word = String::new();
                         let mut wait = false;
                         let mut count = 0;
                         let mut start_pos = placement;
-                        for (i, c) in input[..placement].iter().rev().enumerate()
-                        {
-                            if !wait
-                            {
+                        for (i, c) in input[..placement].iter().rev().enumerate() {
+                            if !wait {
                                 if c.is_alphabetic()
                                     || matches!(*c, '°' | '\'' | '`' | '_' | '∫' | '$' | '¢')
                                 {
                                     word.insert(0, *c)
-                                }
-                                else if i == 0
-                                {
+                                } else if i == 0 {
                                     wait = true
-                                }
-                                else
-                                {
+                                } else {
                                     break;
                                 }
                             }
-                            if wait
-                            {
-                                if c == &'(' || c == &'{'
-                                {
+                            if wait {
+                                if c == &'(' || c == &'{' {
                                     count -= 1;
-                                }
-                                else if c == &')' || c == &'}'
-                                {
+                                } else if c == &')' || c == &'}' {
                                     count += 1;
                                 }
-                                if count == -1
-                                {
+                                if count == -1 {
                                     wait = false;
                                     start_pos -= i;
                                 }
                             }
                         }
-                        if !word.is_empty()
-                        {
+                        if !word.is_empty() {
                             let mut bank = Vec::new();
-                            for v in &vars
-                            {
+                            for v in &vars {
                                 let s = v.name.iter().collect::<String>();
-                                if s.starts_with(&word)
-                                {
+                                if s.starts_with(&word) {
                                     bank.push(s)
                                 }
                             }
                             let mut bank_temp = Vec::new();
-                            for f in functions_with_args()
-                            {
+                            for f in functions_with_args() {
                                 if f.starts_with(&word)
                                     && !bank.iter().any(|b| {
                                         b.contains('(')
@@ -1538,8 +1233,7 @@ fn main()
                             }
                             bank.extend(bank_temp);
                             let mut bank_temp = Vec::new();
-                            for f in options_list()
-                            {
+                            for f in options_list() {
                                 if f.starts_with(&word)
                                     && !bank.iter().any(|b| {
                                         b.contains('(')
@@ -1551,11 +1245,9 @@ fn main()
                                 }
                             }
                             bank.extend(bank_temp);
-                            if options.units
-                            {
+                            if options.units {
                                 let mut bank_temp = Vec::new();
-                                for f in units_list()
-                                {
+                                for f in units_list() {
                                     if f.starts_with(&word)
                                         && !bank.iter().any(|b| {
                                             b.contains('(')
@@ -1570,11 +1262,9 @@ fn main()
                             }
                             bank.sort();
                             let mut var = false;
-                            if bank.len() == 1
-                            {
+                            if bank.len() == 1 {
                                 let mut w = bank[0].to_string();
-                                if w.contains('(')
-                                {
+                                if w.contains('(') {
                                     w = w.split('(').next().unwrap().to_string();
                                     if (placement == input.len() || input[placement] != '(')
                                         && input[placement - 1] != '('
@@ -1582,9 +1272,7 @@ fn main()
                                     {
                                         w.push('(')
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     var = true
                                 }
                                 let w = w.chars().collect::<Vec<char>>();
@@ -1596,28 +1284,19 @@ fn main()
                                 end = start + get_terminal_dimensions().0
                                     - if options.prompt { 3 } else { 1 }
                                     + 1;
-                                if end > input.len()
-                                {
+                                if end > input.len() {
                                     end = input.len()
-                                }
-                                else if placement == end
-                                {
+                                } else if placement == end {
                                     start += 1;
-                                }
-                                else
-                                {
+                                } else {
                                     end -= 1;
                                 }
-                                if i == lines.len()
-                                {
+                                if i == lines.len() {
                                     current.clone_from(&input);
-                                }
-                                else
-                                {
+                                } else {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
-                                if options.real_time_output && !slow && var
-                                {
+                                if options.real_time_output && !slow && var {
                                     execute!(stdout, DisableBlinking).unwrap();
                                     (frac, graphable, long, varcheck) = print_concurrent(
                                         &input,
@@ -1629,14 +1308,11 @@ fn main()
                                         end,
                                         false,
                                     );
-                                    if watch.elapsed().as_millis() > options.slowcheck
-                                    {
+                                    if watch.elapsed().as_millis() > options.slowcheck {
                                         firstslow = true;
                                         slow = true;
                                     }
-                                }
-                                else if options.real_time_output && firstslow && var
-                                {
+                                } else if options.real_time_output && firstslow && var {
                                     firstslow = false;
                                     handle_err(
                                         "too slow, will print on enter",
@@ -1647,32 +1323,23 @@ fn main()
                                         start,
                                         end,
                                     )
-                                }
-                                else
-                                {
+                                } else {
                                     clear(&input, &vars, start, end, options, &colors);
                                 }
-                                if end - placement != 0
-                                {
+                                if end - placement != 0 {
                                     print!("\x1b[{}D", end - placement)
                                 }
-                            }
-                            else if !bank.is_empty()
-                            {
+                            } else if !bank.is_empty() {
                                 let mut k = 0;
                                 let mut char = '\0';
                                 'upper: for n in
                                     0..bank.iter().fold(usize::MAX, |min, str| min.min(str.len()))
                                 {
-                                    for b in &bank
-                                    {
+                                    for b in &bank {
                                         let c = b.chars().nth(n).unwrap();
-                                        if char == '\0'
-                                        {
+                                        if char == '\0' {
                                             char = c
-                                        }
-                                        else if c != char
-                                        {
+                                        } else if c != char {
                                             break 'upper;
                                         }
                                     }
@@ -1687,43 +1354,31 @@ fn main()
                                 end = start + get_terminal_dimensions().0
                                     - if options.prompt { 3 } else { 1 }
                                     + 1;
-                                if end > input.len()
-                                {
+                                if end > input.len() {
                                     end = input.len()
-                                }
-                                else if placement == end
-                                {
+                                } else if placement == end {
                                     start += 1;
-                                }
-                                else
-                                {
+                                } else {
                                     end -= 1;
                                 }
-                                if i == lines.len()
-                                {
+                                if i == lines.len() {
                                     current.clone_from(&input);
-                                }
-                                else
-                                {
+                                } else {
                                     lines[i] = input.clone().iter().collect::<String>();
                                 }
                                 clear(&input, &vars, start, end, options, &colors);
-                                if end - placement != 0
-                                {
+                                if end - placement != 0 {
                                     print!("\x1b[{}D", end - placement)
                                 }
                             }
-                            if !var && !bank.is_empty()
-                            {
+                            if !var && !bank.is_empty() {
                                 let width = get_terminal_dimensions().0;
                                 let mut n = 1;
                                 let tab = bank.iter().fold(0, |max, str| max.max(str.len())) + 3;
                                 let mut len = 0;
                                 print!("\x1b[G\n\x1b[K");
-                                for b in bank
-                                {
-                                    if len + tab > width
-                                    {
+                                for b in bank {
+                                    if len + tab > width {
                                         len = 0;
                                         n += 1;
                                         print!("\x1b[G\n\x1b[K")
@@ -1749,105 +1404,76 @@ fn main()
                             }
                         }
                     }
-                    '\x0E' =>
-                    {
+                    '\x0E' => {
                         //ctrl+xx
-                        if xxbool
-                        {
+                        if xxbool {
                             (placement, xxpos) = (xxpos, placement);
-                            match placement.cmp(&xxpos)
-                            {
-                                Ordering::Greater =>
-                                {
-                                    if placement >= input.len()
-                                    {
+                            match placement.cmp(&xxpos) {
+                                Ordering::Greater => {
+                                    if placement >= input.len() {
                                         placement = input.len()
                                     }
-                                    if placement >= end
-                                    {
+                                    if placement >= end {
                                         start = placement.saturating_sub(
                                             get_terminal_dimensions().0
                                                 - if options.prompt { 3 } else { 1 },
                                         );
                                         end = placement;
                                         clearln(&input, &vars, start, end, options, &colors)
-                                    }
-                                    else if placement == xxpos
-                                    {
+                                    } else if placement == xxpos {
                                         placement = input.len();
                                         print!("\x1b[{}C", input.len() - xxpos);
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         print!("\x1b[{}C", placement - xxpos);
                                     }
                                 }
-                                Ordering::Less =>
-                                {
-                                    if placement <= start
-                                    {
+                                Ordering::Less => {
+                                    if placement <= start {
                                         end = placement
                                             + (get_terminal_dimensions().0
                                                 - if options.prompt { 3 } else { 1 });
-                                        if end > input.len()
-                                        {
+                                        if end > input.len() {
                                             end = input.len()
                                         }
                                         start = placement;
                                         clearln(&input, &vars, start, end, options, &colors);
-                                        if end - placement != 0
-                                        {
+                                        if end - placement != 0 {
                                             print!("\x1b[{}D", end - placement)
                                         }
-                                    }
-                                    else if placement == xxpos
-                                    {
+                                    } else if placement == xxpos {
                                         placement = 0;
                                         print!("\x1b[{xxpos}D");
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         print!("\x1b[{}D", xxpos - placement);
                                     }
                                 }
-                                _ =>
-                                {}
+                                _ => {}
                             }
                             xxbool = false
-                        }
-                        else
-                        {
+                        } else {
                             xxbool = true;
                             continue;
                         }
-                        if xxstart
-                        {
+                        if xxstart {
                             xxpos = 0;
                         }
                         xxstart = !xxstart;
                     }
-                    '\x0D' =>
-                    {
+                    '\x0D' => {
                         //ctrl+w
-                        if placement != 0 && end_word(input[placement - 1])
-                        {
+                        if placement != 0 && end_word(input[placement - 1]) {
                             placement -= 1;
                             cut = vec![input.remove(placement)];
-                        }
-                        else
-                        {
-                            for (i, c) in input[..placement].iter().rev().enumerate()
-                            {
-                                if c.is_whitespace() || i + 1 == placement
-                                {
+                        } else {
+                            for (i, c) in input[..placement].iter().rev().enumerate() {
+                                if c.is_whitespace() || i + 1 == placement {
                                     cut = input
                                         .drain(placement - i - 1..placement)
                                         .collect::<Vec<char>>();
                                     placement -= i + 1;
                                     break;
                                 }
-                                if end_word(*c)
-                                {
+                                if end_word(*c) {
                                     cut = input
                                         .drain(placement - i..placement)
                                         .collect::<Vec<char>>();
@@ -1856,24 +1482,18 @@ fn main()
                                 }
                             }
                         }
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
                         }
-                        if start >= end
-                        {
+                        if start >= end {
                             start = end;
                         }
-                        if i == lines.len()
-                        {
+                        if i == lines.len() {
                             current.clone_from(&input);
-                        }
-                        else
-                        {
+                        } else {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1885,14 +1505,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -1903,60 +1520,45 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if options.debug
-                        {
+                        if options.debug {
                             let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}\x1b[{}D",
                                 time,
                                 time.to_string().len() + 1 + end - placement
                             );
-                        }
-                        else if end - placement != 0
-                        {
+                        } else if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
-                        if input.is_empty()
-                        {
+                        if input.is_empty() {
                             slow = false;
                             clear(&input, &vars, start, end, options, &colors);
                         }
                     }
-                    '\x0C' =>
-                    {
+                    '\x0C' => {
                         //alt+d
-                        if placement < input.len() && end_word(input[placement])
-                        {
+                        if placement < input.len() && end_word(input[placement]) {
                             cut = vec![input.remove(placement)];
-                        }
-                        else
-                        {
+                        } else {
                             let mut pos = 0;
-                            for (i, c) in input[placement..].iter().enumerate()
-                            {
-                                if c.is_whitespace() || placement + i + 1 == input.len()
-                                {
+                            for (i, c) in input[placement..].iter().enumerate() {
+                                if c.is_whitespace() || placement + i + 1 == input.len() {
                                     pos = i + 1;
                                 }
-                                if end_word(*c)
-                                {
+                                if end_word(*c) {
                                     pos = i;
                                     break;
                                 }
                             }
                             cut = input.drain(placement..placement + pos).collect();
                         }
-                        if end >= input.len()
-                        {
+                        if end >= input.len() {
                             end = input.len();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -1968,14 +1570,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -1986,35 +1585,25 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\x0F' =>
-                    {
+                    '\x0F' => {
                         //alt+t
                         let first;
-                        if placement < input.len() && end_word(input[placement])
-                        {
+                        if placement < input.len() && end_word(input[placement]) {
                             first = vec![input.remove(placement)];
-                        }
-                        else
-                        {
+                        } else {
                             let mut pos = 0;
-                            for (i, c) in input[placement..].iter().enumerate()
-                            {
-                                if c.is_whitespace() || placement + i + 1 == input.len()
-                                {
+                            for (i, c) in input[placement..].iter().enumerate() {
+                                if c.is_whitespace() || placement + i + 1 == input.len() {
                                     pos = i + 1;
                                 }
-                                if end_word(*c)
-                                {
+                                if end_word(*c) {
                                     pos = i;
                                     break;
                                 }
@@ -2022,22 +1611,16 @@ fn main()
                             first = input.drain(placement..placement + pos).collect();
                         }
                         let second;
-                        if placement != 0 && end_word(input[placement - 1])
-                        {
+                        if placement != 0 && end_word(input[placement - 1]) {
                             second = vec![input.remove(placement)];
-                        }
-                        else
-                        {
+                        } else {
                             let mut pos = 0;
-                            for (i, c) in input[..placement].iter().rev().enumerate()
-                            {
-                                if end_word(*c)
-                                {
+                            for (i, c) in input[..placement].iter().rev().enumerate() {
+                                if end_word(*c) {
                                     pos = i;
                                     break;
                                 }
-                                if c.is_whitespace() || i + 1 == placement
-                                {
+                                if c.is_whitespace() || i + 1 == placement {
                                     pos = i + 1;
                                     break;
                                 }
@@ -2049,13 +1632,11 @@ fn main()
                         placement -= second.len();
                         input.splice(placement..placement, first.clone());
                         placement += first.len();
-                        if placement > input.len()
-                        {
+                        if placement > input.len() {
                             placement = input.len() - 1
                         }
                         input.splice(placement..placement, second.clone());
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -2067,14 +1648,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -2085,47 +1663,33 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if end - placement != 0
-                        {
+                        if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\0' =>
-                    {}
-                    _ =>
-                    {
+                    '\0' => {}
+                    _ => {
                         input.insert(placement, c);
                         placement += 1;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 }
                             + 1;
-                        if end > input.len()
-                        {
+                        if end > input.len() {
                             end = input.len()
-                        }
-                        else if placement == end
-                        {
+                        } else if placement == end {
                             start += 1;
-                        }
-                        else
-                        {
+                        } else {
                             end -= 1;
                         }
-                        if i == lines.len()
-                        {
+                        if i == lines.len() {
                             current.clone_from(&input);
-                        }
-                        else
-                        {
+                        } else {
                             lines[i] = input.clone().iter().collect::<String>();
                         }
-                        if options.real_time_output && !slow
-                        {
+                        if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking).unwrap();
                             (frac, graphable, long, varcheck) = print_concurrent(
                                 &input,
@@ -2137,14 +1701,11 @@ fn main()
                                 end,
                                 false,
                             );
-                            if watch.elapsed().as_millis() > options.slowcheck
-                            {
+                            if watch.elapsed().as_millis() > options.slowcheck {
                                 firstslow = true;
                                 slow = true;
                             }
-                        }
-                        else if options.real_time_output && firstslow
-                        {
+                        } else if options.real_time_output && firstslow {
                             firstslow = false;
                             handle_err(
                                 "too slow, will print on enter",
@@ -2155,22 +1716,17 @@ fn main()
                                 start,
                                 end,
                             )
-                        }
-                        else
-                        {
+                        } else {
                             clearln(&input, &vars, start, end, options, &colors);
                         }
-                        if options.debug
-                        {
+                        if options.debug {
                             let time = watch.elapsed().as_nanos();
                             print!(
                                 " {}\x1b[{}D",
                                 time,
                                 time.to_string().len() + 1 + end - placement
                             );
-                        }
-                        else if end - placement != 0
-                        {
+                        } else if end - placement != 0 {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
@@ -2178,25 +1734,20 @@ fn main()
                 stdout.flush().unwrap();
             }
             commands(&mut options, &lines, &input, &mut stdout);
-            if !varcheck
-            {
+            if !varcheck {
                 print!(
                     "{}{}",
                     prompt(options, &colors),
-                    if options.color == Auto::True
-                    {
+                    if options.color == Auto::True {
                         "\x1b[0m"
-                    }
-                    else
-                    {
+                    } else {
                         ""
                     }
                 );
             }
             stdout.flush().unwrap();
             execute!(stdout, EnableBlinking).unwrap();
-            if input.is_empty()
-            {
+            if input.is_empty() {
                 continue;
             }
             write(
@@ -2207,57 +1758,40 @@ fn main()
                 last.iter().collect::<String>(),
             );
         }
-        if varcheck
-        {
-            if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, &input)
-            {
-                if !s.is_empty()
-                {
+        if varcheck {
+            if let Err(s) = set_commands_or_vars(&mut colors, &mut options, &mut vars, &input) {
+                if !s.is_empty() {
                     print!(
                         "\x1b[G\x1b[A\x1b[K{}\x1b[G\n{}",
                         s,
                         prompt(options, &colors)
                     );
-                }
-                else
-                {
+                } else {
                     print!(
                         "{}{}",
                         prompt(options, &colors),
-                        if options.color == Auto::True
-                        {
+                        if options.color == Auto::True {
                             "\x1b[0m"
-                        }
-                        else
-                        {
+                        } else {
                             ""
                         }
                     );
                 }
-            }
-            else
-            {
+            } else {
                 print!(
                     "{}{}",
                     prompt(options, &colors),
-                    if options.color == Auto::True
-                    {
+                    if options.color == Auto::True {
                         "\x1b[0m"
-                    }
-                    else
-                    {
+                    } else {
                         ""
                     }
                 );
             }
             stdout.flush().unwrap()
-        }
-        else if graphable.graph
-        {
-            if !options.gnuplot
-            {
-                if let Some(path) = find_it("kalc-plot")
-                {
+        } else if graphable.graph {
+            if !options.gnuplot {
+                if let Some(path) = find_it("kalc-plot") {
                     let data = Data {
                         vars: vars.clone(),
                         options,
@@ -2281,30 +1815,22 @@ fn main()
                 .split('#')
                 .map(String::from)
                 .collect();
-            let watch = if options.debug
-            {
+            let watch = if options.debug {
                 Some(Instant::now())
-            }
-            else
-            {
+            } else {
                 None
             };
-            if options.graph_cli
-            {
-                if options.interactive
-                {
+            if options.graph_cli {
+                if options.interactive {
                     terminal::disable_raw_mode().unwrap();
                 }
                 graph(inputs, vars.clone(), options, watch, colors.clone(), true)
                     .join()
                     .unwrap();
-                if options.interactive
-                {
+                if options.interactive {
                     terminal::enable_raw_mode().unwrap();
                 }
-            }
-            else
-            {
+            } else {
                 handles.push(graph(
                     inputs,
                     vars.clone(),
@@ -2325,31 +1851,24 @@ where
         env::split_paths(&paths)
             .filter_map(|dir| {
                 let full_path = dir.join(&exe_name);
-                if full_path.is_file()
-                {
+                if full_path.is_file() {
                     Some(full_path)
-                }
-                else
-                {
+                } else {
                     None
                 }
             })
             .next()
     })
 }
-fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut Stdout)
-{
+fn setup_for_interactive(colors: &Colors, options: &mut Options, stdout: &mut Stdout) {
     options.interactive = true;
     terminal::enable_raw_mode().unwrap();
     print!(
         "\x1b[G\x1b[K{}{}",
         prompt(*options, colors),
-        if options.color == Auto::True
-        {
+        if options.color == Auto::True {
             &colors.text
-        }
-        else
-        {
+        } else {
             ""
         }
     );

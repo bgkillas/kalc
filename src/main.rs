@@ -15,10 +15,10 @@ use kalc_lib::{
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
-    units::{Auto, Colors, Data, HowGraphing, Options, Variable},
+    units::{Colors, Data, HowGraphing, Options, Variable},
 };
 use std::{
-    cmp::Ordering,
+    cmp::{Ordering, min},
     env::{self, args},
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Error, IsTerminal, Stdout, Write, stdin, stdout},
@@ -27,6 +27,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Instant,
 };
+
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
     let mut options = Options::default();
@@ -96,13 +97,15 @@ fn main() -> Result<(), Error> {
         let file_path = dir.clone() + "/kalc.config";
         argsj += &BufReader::new(File::open(file_path)?)
             .lines()
-            .map(|a| a.unwrap())
+            .map(Result::unwrap)
             .collect::<Vec<String>>()
             .join(" ");
     }
+
     if !options.interactive && options.allow_vars && !options.stay_interactive {
         get_cli_vars(options, argsj.clone(), &mut vars)
     }
+
     if options.allow_vars && !default {
         options.base = (10, 10);
         if let Ok(file) = File::open(&file_path) {
@@ -160,8 +163,8 @@ fn main() -> Result<(), Error> {
                         for (i, v) in vars.iter().enumerate() {
                             if v.name.split(|c| c == &'(').next() == le.split(|c| c == &'(').next()
                                 && v.name.contains(&'(') == le.contains(&'(')
-                                && v.name.iter().filter(|c| c == &&',').count()
-                                    == le.iter().filter(|c| c == &&',').count()
+                                && v.name.iter().filter(|&&c| c == ',').count()
+                                    == le.iter().filter(|&&c| c == ',').count()
                             {
                                 if r == "null" {
                                     if let Err(s) =
@@ -236,7 +239,7 @@ fn main() -> Result<(), Error> {
             Some(
                 BufReader::new(File::open(file_path)?)
                     .lines()
-                    .map(|l| l.unwrap())
+                    .map(Result::unwrap)
                     .collect::<Vec<String>>(),
             ),
         )
@@ -253,7 +256,7 @@ fn main() -> Result<(), Error> {
         let mut varcheck = false;
         let mut last = Vec::new();
         if !args.is_empty() {
-            let watch = options.debug.then(Instant::now);
+            let watch = options.debug.then(|| Instant::now());
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;
@@ -378,8 +381,8 @@ fn main() -> Result<(), Error> {
                         lastd = d;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        end = end.min(input.len());
-                        placement = placement.min(end);
+                        end = min(end, input.len());
+                        placement = min(placement, end);
                         if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
@@ -429,9 +432,7 @@ fn main() -> Result<(), Error> {
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len() {
-                            end = input.len()
-                        }
+                        end = min(end, input.len());
                         if (!options.real_time_output || long || (slow && !firstslow))
                             && (!input.is_empty() && !input.starts_with(&['#']))
                             && c != '\x14'
@@ -456,11 +457,10 @@ fn main() -> Result<(), Error> {
                                 print!("\x1b[{frac}B");
                             }
                             if c == '\x14' || c == '\x06' {
-                                if input.is_empty() {
-                                    print!("\x1b[G\x1b[J");
-                                } else {
-                                    print!("\x1b[G\n\x1b[J");
-                                }
+                                print!(
+                                    "\x1b[G{}\x1b[J",
+                                    input.is_empty().then_some('\n').unwrap_or_default()
+                                );
                                 terminal::disable_raw_mode()?;
                                 std::process::exit(0);
                             }
@@ -487,12 +487,8 @@ fn main() -> Result<(), Error> {
                                 }
                             }
                         }
-                        if end > input.len() {
-                            end = input.len();
-                        }
-                        if start > end {
-                            start = end;
-                        }
+                        end = min(end, input.len());
+                        start = min(start, end);
                         if i == lines.len() {
                             current.clone_from(&input);
                         } else {
@@ -554,9 +550,7 @@ fn main() -> Result<(), Error> {
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len() {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
                         if i == lines.len() {
                             current.clone_from(&input);
                         } else {
@@ -620,9 +614,8 @@ fn main() -> Result<(), Error> {
                         }
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len() {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
+                        start = min(start, end);
                         if i == lines.len() {
                             current.clone_from(&input);
                         } else {
@@ -729,9 +722,7 @@ fn main() -> Result<(), Error> {
                     '\x19' => {
                         //ctrl+k
                         cut = input.drain(placement..).collect();
-                        if end > input.len() {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
                         if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
@@ -1042,9 +1033,7 @@ fn main() -> Result<(), Error> {
                             placement -= 1;
                             end = start + get_terminal_dimensions().0
                                 - if options.prompt { 3 } else { 1 };
-                            if end > input.len() {
-                                end = input.len();
-                            }
+                            end = min(end, input.len());
                             clearln(&input, &vars, start, end, options, &colors);
                             print!("\x1b[{}D", end - placement)
                         } else if placement != 0 {
@@ -1056,9 +1045,7 @@ fn main() -> Result<(), Error> {
                         //right
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        if end > input.len() {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
                         if placement == end && end != input.len() {
                             start += 1;
                             placement += 1;
@@ -1092,9 +1079,7 @@ fn main() -> Result<(), Error> {
                                 end = placement
                                     + (get_terminal_dimensions().0
                                         - if options.prompt { 3 } else { 1 });
-                                if end > input.len() {
-                                    end = input.len()
-                                }
+                                end = min(end, input.len());
                                 start = placement;
                                 clearln(&input, &vars, start, end, options, &colors);
                                 if end - placement != 0 {
@@ -1173,52 +1158,36 @@ fn main() -> Result<(), Error> {
                             }
                         }
                         if !word.is_empty() {
-                            let mut bank = Vec::new();
-                            for v in &vars {
-                                let s = v.name.iter().collect::<String>();
-                                if s.starts_with(&word) {
-                                    bank.push(s)
-                                }
-                            }
-                            let mut bank_temp = Vec::new();
-                            for f in functions_with_args() {
-                                if f.starts_with(&word)
-                                    && !bank.iter().any(|b| {
-                                        b.contains('(')
-                                            && b.split('(').next() == f.split('(').next()
-                                    })
-                                {
-                                    bank_temp.push(f.to_string())
-                                }
-                            }
-                            bank.extend(bank_temp);
-                            let mut bank_temp = Vec::new();
-                            for f in options_list() {
-                                if f.starts_with(&word)
-                                    && !bank.iter().any(|b| {
-                                        b.contains('(')
-                                            && b.split('(').next() == f.split('(').next()
-                                    })
-                                {
-                                    bank_temp.push(f.to_string())
-                                }
-                            }
-                            bank.extend(bank_temp);
-                            if options.units {
-                                let mut bank_temp = Vec::new();
-                                for f in units_list() {
-                                    if f.starts_with(&word)
+                            let mut bank: Vec<String> = vars
+                                .iter()
+                                .filter_map(|v| {
+                                    v.name
+                                        .starts_with(&word.chars().collect::<Vec<char>>()[..])
+                                        .then_some(v.name.iter().collect())
+                                })
+                                .collect();
+
+                            let bank_temp: Vec<String> = functions_with_args()
+                                .iter()
+                                .chain(options_list().iter())
+                                .chain(
+                                    options
+                                        .units
+                                        .then_some(units_list().iter())
+                                        .unwrap_or_default(),
+                                )
+                                .filter_map(|f| {
+                                    (f.starts_with(&word)
                                         && !bank.iter().any(|b| {
                                             b.contains('(')
                                                 && b.split('(').next() == f.split('(').next()
-                                        })
-                                    {
-                                        bank_temp.push(f.to_string())
-                                    }
-                                }
-                                bank.extend(bank_temp);
-                            }
-                            bank.sort();
+                                        }))
+                                    .then_some(f.to_string())
+                                })
+                                .collect();
+
+                            bank.extend(bank_temp);
+                            bank.sort_unstable();
                             let mut var = false;
                             if bank.len() == 1 {
                                 let mut w = bank[0].to_string();
@@ -1347,7 +1316,7 @@ fn main() -> Result<(), Error> {
                                         to_output(
                                             &b.chars().collect::<Vec<char>>(),
                                             &vars,
-                                            options.color == Auto::True,
+                                            options.color.as_bool(),
                                             &colors
                                         ),
                                         " ".repeat(tab - b.chars().count())
@@ -1368,9 +1337,7 @@ fn main() -> Result<(), Error> {
                             (placement, xxpos) = (xxpos, placement);
                             match placement.cmp(&xxpos) {
                                 Ordering::Greater => {
-                                    if placement > input.len() {
-                                        placement = input.len();
-                                    }
+                                    placement = min(placement, input.len());
                                     if placement >= end {
                                         start = placement.saturating_sub(
                                             get_terminal_dimensions().0
@@ -1390,9 +1357,7 @@ fn main() -> Result<(), Error> {
                                         end = placement
                                             + (get_terminal_dimensions().0
                                                 - if options.prompt { 3 } else { 1 });
-                                        if end > input.len() {
-                                            end = input.len()
-                                        }
+                                        end = min(end, input.len());
                                         start = placement;
                                         clearln(&input, &vars, start, end, options, &colors);
                                         if end - placement != 0 {
@@ -1440,12 +1405,8 @@ fn main() -> Result<(), Error> {
                                 }
                             }
                         }
-                        if end > input.len() {
-                            end = input.len();
-                        }
-                        if start > end {
-                            start = end;
-                        }
+                        end = min(end, input.len());
+                        start = min(start, end);
                         if i == lines.len() {
                             current.clone_from(&input);
                         } else {
@@ -1513,9 +1474,7 @@ fn main() -> Result<(), Error> {
                             }
                             cut = input.drain(placement..placement + pos).collect();
                         }
-                        if end > input.len() {
-                            end = input.len();
-                        }
+                        end = min(end, input.len());
                         if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
@@ -1628,7 +1587,7 @@ fn main() -> Result<(), Error> {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\0' => {}
+                    '\0' => (),
                     _ => {
                         input.insert(placement, c);
                         placement += 1;
@@ -1693,15 +1652,10 @@ fn main() -> Result<(), Error> {
             }
             commands(&mut options, &lines, &input, &mut stdout);
             if !varcheck {
-                print!(
-                    "{}{}",
-                    prompt(options, &colors),
-                    if options.color == Auto::True {
-                        "\x1b[0m"
-                    } else {
-                        ""
-                    }
-                );
+                print!("{}", prompt(options, &colors));
+                if options.color.as_bool() {
+                    print!("\x1b[0m");
+                }
             }
             stdout.flush()?;
             execute!(stdout, EnableBlinking)?;
@@ -1728,7 +1682,7 @@ fn main() -> Result<(), Error> {
                     print!(
                         "{}{}",
                         prompt(options, &colors),
-                        if options.color == Auto::True {
+                        if options.color.as_bool() {
                             "\x1b[0m"
                         } else {
                             ""
@@ -1739,7 +1693,7 @@ fn main() -> Result<(), Error> {
                 print!(
                     "{}{}",
                     prompt(options, &colors),
-                    if options.color == Auto::True {
+                    if options.color.as_bool() {
                         "\x1b[0m"
                     } else {
                         ""
@@ -1826,7 +1780,7 @@ fn setup_for_interactive(
     print!(
         "\x1b[G\x1b[K{}{}",
         prompt(*options, colors),
-        if options.color == Auto::True {
+        if options.color.as_bool() {
             &colors.text
         } else {
             ""

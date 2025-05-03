@@ -1178,20 +1178,6 @@ fn main() -> Result<(), Error> {
                                 .collect();
 
                             bank.extend(bank_temp);
-                            let bank_temp: Vec<String> = options_list()
-                                .iter()
-                                .chain(options_list().iter())
-                                .filter_map(|f| {
-                                    (f.starts_with(&word)
-                                        && !bank.iter().any(|b| {
-                                            b.contains('(')
-                                                && b.split('(').next() == f.split('(').next()
-                                        }))
-                                    .then_some(f.to_string())
-                                })
-                                .collect();
-
-                            bank.extend(bank_temp);
                             if options.units {
                                 let bank_temp: Vec<String> = units_list()
                                     .iter()

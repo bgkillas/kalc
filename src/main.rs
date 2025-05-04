@@ -27,6 +27,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Instant,
 };
+
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
     let mut options = Options::default();
@@ -100,9 +101,11 @@ fn main() -> Result<(), Error> {
             .collect::<Vec<String>>()
             .join(" ");
     }
+
     if !options.interactive && options.allow_vars && !options.stay_interactive {
         get_cli_vars(options, argsj.clone(), &mut vars)
     }
+
     if options.allow_vars && !default {
         options.base = (10, 10);
         if let Ok(file) = File::open(&file_path) {
@@ -160,8 +163,8 @@ fn main() -> Result<(), Error> {
                         for (i, v) in vars.iter().enumerate() {
                             if v.name.split(|c| c == &'(').next() == le.split(|c| c == &'(').next()
                                 && v.name.contains(&'(') == le.contains(&'(')
-                                && v.name.iter().filter(|c| c == &&',').count()
-                                    == le.iter().filter(|c| c == &&',').count()
+                                && v.name.iter().filter(|&&c| c == ',').count()
+                                    == le.iter().filter(|&&c| c == ',').count()
                             {
                                 if r == "null" {
                                     if let Err(s) =
@@ -378,8 +381,8 @@ fn main() -> Result<(), Error> {
                         lastd = d;
                         end = start + get_terminal_dimensions().0
                             - if options.prompt { 3 } else { 1 };
-                        end = end.min(input.len());
-                        placement = placement.min(end);
+                        end = min(end, input.len());
+                        placement = min(placement, end);
                         if options.real_time_output && !slow {
                             execute!(stdout, DisableBlinking)?;
                             (frac, graphable, long, varcheck) = print_concurrent(
@@ -1167,6 +1170,12 @@ fn main() -> Result<(), Error> {
                             let bank_temp: Vec<String> = functions_with_args()
                                 .iter()
                                 .chain(options_list().iter())
+                                .chain(
+                                    options
+                                        .units
+                                        .then_some(units_list().iter())
+                                        .unwrap_or_default(),
+                                )
                                 .filter_map(|f| {
                                     (f.starts_with(&word)
                                         && !bank.iter().any(|b| {
@@ -1178,21 +1187,7 @@ fn main() -> Result<(), Error> {
                                 .collect();
 
                             bank.extend(bank_temp);
-                            if options.units {
-                                let bank_temp: Vec<String> = units_list()
-                                    .iter()
-                                    .filter_map(|f| {
-                                        (f.starts_with(&word)
-                                            && !bank.iter().any(|b| {
-                                                b.contains('(')
-                                                    && b.split('(').next() == f.split('(').next()
-                                            }))
-                                        .then_some(f.to_string())
-                                    })
-                                    .collect();
-                                bank.extend(bank_temp);
-                            }
-                            bank.sort();
+                            bank.sort_unstable();
                             let mut var = false;
                             if bank.len() == 1 {
                                 let mut w = bank[0].to_string();
@@ -1592,7 +1587,7 @@ fn main() -> Result<(), Error> {
                             print!("\x1b[{}D", end - placement)
                         }
                     }
-                    '\0' => {}
+                    '\0' => (),
                     _ => {
                         input.insert(placement, c);
                         placement += 1;

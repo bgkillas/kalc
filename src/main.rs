@@ -256,7 +256,7 @@ fn main() -> Result<(), Error> {
         let mut varcheck = false;
         let mut last = Vec::new();
         if !args.is_empty() {
-            let watch = options.debug.then(|| Instant::now());
+            let watch = options.debug.then(Instant::now);
             input = args.remove(0).chars().collect();
             let output;
             let funcvar;

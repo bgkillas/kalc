@@ -68,11 +68,11 @@ fn main() -> Result<(), Error> {
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            options
-                .color
-                .as_bool()
-                .then_some("\x1b[0m")
-                .unwrap_or_default()
+            if options.color.as_bool() {
+                "\x1b[0m"
+            } else {
+                ""
+            }
         );
         stdout.flush()?;
     }
@@ -85,10 +85,12 @@ fn main() -> Result<(), Error> {
     }
 
     let file_path = dir.clone() + "/kalc.vars";
-    let mut vars: Vec<Variable> = (options.allow_vars
-        && (options.interactive || options.stay_interactive))
-        .then(|| get_vars(options))
-        .unwrap_or_default();
+    let mut vars: Vec<Variable> =
+        if options.allow_vars && (options.interactive || options.stay_interactive) {
+            get_vars(options)
+        } else {
+            Default::default()
+        };
     let mut err = false;
     let base = options.base;
     let mut argsj = args.join(" ");
@@ -220,11 +222,11 @@ fn main() -> Result<(), Error> {
         print!(
             "\x1b[G\x1b[K{}{}",
             prompt(options, &colors),
-            options
-                .color
-                .as_bool()
-                .then_some("\x1b[0m")
-                .unwrap_or_default()
+            if options.color.as_bool() {
+                "\x1b[0m"
+            } else {
+                ""
+            }
         );
         stdout.flush()?;
     }
@@ -457,10 +459,7 @@ fn main() -> Result<(), Error> {
                                 print!("\x1b[{frac}B");
                             }
                             if c == '\x14' || c == '\x06' {
-                                print!(
-                                    "\x1b[G{}\x1b[J",
-                                    input.is_empty().then_some('\n').unwrap_or_default()
-                                );
+                                print!("\x1b[G{}\x1b[J", if input.is_empty() { "\n" } else { "" });
                                 terminal::disable_raw_mode()?;
                                 std::process::exit(0);
                             }
@@ -1171,10 +1170,12 @@ fn main() -> Result<(), Error> {
                                 .iter()
                                 .chain(options_list().iter())
                                 .chain(
-                                    options
-                                        .units
-                                        .then_some(units_list().iter())
-                                        .unwrap_or_default(),
+                                    if options.units {
+                                        units_list()
+                                    } else {
+                                        Default::default()
+                                    }
+                                    .iter(),
                                 )
                                 .filter_map(|f| {
                                     (f.starts_with(&word)

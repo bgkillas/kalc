@@ -27,7 +27,6 @@ use std::{
     thread::{self, JoinHandle},
     time::Instant,
 };
-
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
     let mut options = Options::default();
@@ -1718,8 +1717,12 @@ fn main() -> Result<(), Error> {
                             .spawn()
                             .unwrap();
                         let stdin = plot.stdin.as_mut().unwrap();
-                        let data = serde_json::to_string(&data).unwrap();
-                        write!(stdin, "{data}").unwrap();
+                        bincode::serde::encode_into_std_write(
+                            data,
+                            stdin,
+                            bincode::config::standard(),
+                        )
+                        .unwrap();
                         plot.wait().unwrap();
                     }));
                     continue;

@@ -119,6 +119,7 @@ cargo build --release
 ```
 Usage: kalc [FLAGS] equation_1 equation_2 equation_3...
 FLAGS: --help (this message)
+--man prints a kalc.1 manpage
 --help {thing} to get more detail on a function/option/feature, --help help to list all "things"
 --interactive/-i allows interaction after finishing the equations given
 --units toggles units

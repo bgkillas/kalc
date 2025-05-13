@@ -2,8 +2,8 @@ use crossterm::{
     cursor::{DisableBlinking, EnableBlinking},
     execute, terminal,
 };
+use kalc_lib::misc::get_word_bank;
 use kalc_lib::{
-    functions::{functions_with_args, options_list, units_list},
     graph::graph,
     help::help_for,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
@@ -1156,38 +1156,7 @@ fn main() -> Result<(), Error> {
                             }
                         }
                         if !word.is_empty() {
-                            let mut bank: Vec<String> = vars
-                                .iter()
-                                .filter_map(|v| {
-                                    v.name
-                                        .starts_with(&word.chars().collect::<Vec<char>>()[..])
-                                        .then_some(v.name.iter().collect())
-                                })
-                                .collect();
-
-                            let bank_temp: Vec<String> = functions_with_args()
-                                .iter()
-                                .chain(options_list().iter())
-                                .chain(
-                                    if options.units {
-                                        units_list()
-                                    } else {
-                                        Default::default()
-                                    }
-                                    .iter(),
-                                )
-                                .filter_map(|f| {
-                                    (f.starts_with(&word)
-                                        && !bank.iter().any(|b| {
-                                            b.contains('(')
-                                                && b.split('(').next() == f.split('(').next()
-                                        }))
-                                    .then_some(f.to_string())
-                                })
-                                .collect();
-
-                            bank.extend(bank_temp);
-                            bank.sort_unstable();
+                            let bank = get_word_bank(&word, &vars, options);
                             let mut var = false;
                             if bank.len() == 1 {
                                 let mut w = bank[0].to_string();

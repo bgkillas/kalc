@@ -1686,12 +1686,9 @@ fn main() -> Result<(), Error> {
                             .spawn()
                             .unwrap();
                         let stdin = plot.stdin.as_mut().unwrap();
-                        bincode::serde::encode_into_std_write(
-                            data,
-                            stdin,
-                            bincode::config::standard(),
-                        )
-                        .unwrap();
+                        stdin
+                            .write_all(&bitcode::serialize(&data).unwrap())
+                            .unwrap();
                         plot.wait().unwrap();
                     }));
                     continue;

@@ -1686,9 +1686,9 @@ fn main() -> Result<(), Error> {
                             .spawn()
                             .unwrap();
                         let stdin = plot.stdin.as_mut().unwrap();
-                        stdin
-                            .write_all(&bitcode::serialize(&data).unwrap())
-                            .unwrap();
+                        let data = bitcode::serialize(&data).unwrap();
+                        stdin.write_all(&data.len().to_be_bytes()).unwrap();
+                        stdin.write_all(&data).unwrap();
                         plot.wait().unwrap();
                     }));
                     continue;

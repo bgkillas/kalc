@@ -167,7 +167,8 @@ FLAGS: --help (this message)
 
 - flags can be executed in runtime just without the dashes
 - '~' will find the var value which makes the left side and right side equal each other, via newtons method starting at 0
-- '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2
+- '~~' will find the var value which makes the left side and right side equal each other, via newtons method starting at -2/0/2, another will solve some imaginary values
+- '===' given f(x)===b, will compute isolate(x,f(x)-b)
 - any function with ' appeneded to the name will be converted like f'(x) goes to slope(t,f(t),x)
 - any function with ` appeneded to the name will be converted like f`(x) goes to area(t,f(t),0,x)
 - "colors=" to see color settings
@@ -248,6 +249,7 @@ Functions:
 - taylor(x,f(x),a,n(,p)), nth degree taylor approximation accurate around a, evaluated at point p, given no p, gives polynomial
 - area(x,f(x),from,to(,nth)(,0) ), length(x,f(x),from,to), surfacearea(a,b,z(a,b),startb,endb,starta,enda)
 - solve(x,f(x) (,point)) employs newtons method to find the root of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails
+- isolate(x,f(x)) attempts to find solutions to f(x)=0, will attempt to list all if finitely many
 - extrema(x,f(x) (,point)) employs newtons method to find the extrema of a function at a starting point, assumes 0 if no point given, outputs Nan if newton method fails, outputs {x,y,positive/negitive concavity}
 - iter(x,f(x),p,n), f(x) iterated n times at point p, add ",1" to args to show steps
 - set(a,f(a),val), sets the var 'a' to the value 'val'

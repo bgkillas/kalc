@@ -10,6 +10,11 @@ rust-version = "1.85.0"
 version = "1.5.0"
 edition = "2024"
 
+[features]
+default=[]
+force-cross=["kalc-lib/force-cross"]
+system-libs=["kalc-lib/system-libs"]
+
 [profile.release]
 lto = true
 strip = true

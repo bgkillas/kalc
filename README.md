@@ -213,7 +213,7 @@ Order of Operations:
 - and(&&), or(||), not(¬), xor, nand, nor, implies, converse
 
 Functions:
-- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), sincos(x)={sin(x),cos(x)}, cossin(x)={cos(x),sin(x)}
+- sin, cos, tan, asin, acos, atan, atan(x,y), atan2(y,x), hypot(y,x), sincos(x)={sin(x),cos(x)}, cossin(x)={cos(x),sin(x)}
 - csc, sec, cot, acsc, asec, acot
 - sinh, cosh, tanh, asinh, acosh, atanh
 - csch, sech, coth, acsch, asech, acoth

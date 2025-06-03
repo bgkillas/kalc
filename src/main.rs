@@ -1672,6 +1672,7 @@ fn main() -> Result<(), Error> {
             }
             stdout.flush()?
         } else if graphable.graph {
+            #[cfg(feature = "kalc-plot")]
             if !options.gnuplot {
                 if let Some(path) = find_it("kalc-plot") {
                     let data = Data {
@@ -1686,47 +1687,53 @@ fn main() -> Result<(), Error> {
                             .stdin(Stdio::piped())
                             .spawn()
                             .unwrap();
-                        let stdin = plot.stdin.as_mut().unwrap();
-                        let data = bitcode::serialize(&data).unwrap();
-                        stdin.write_all(&data.len().to_be_bytes()).unwrap();
-                        stdin.write_all(&data).unwrap();
+                        #[cfg(feature = "serde")]
+                        {
+                            let stdin = plot.stdin.as_mut().unwrap();
+                            let data = bitcode::serialize(&data).unwrap();
+                            stdin.write_all(&data.len().to_be_bytes()).unwrap();
+                            stdin.write_all(&data).unwrap();
+                        }
                         plot.wait().unwrap();
                     }));
                     continue;
                 }
             }
-            let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
-                .split('#')
-                .map(str::to_owned)
-                .collect();
-            let watch = options.debug.then_some(Instant::now());
-            if options.graph_cli {
-                if options.interactive {
-                    terminal::disable_raw_mode()?;
-                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                        .join()
-                        .unwrap();
-                    terminal::enable_raw_mode()?;
+            #[cfg(feature = "gnuplot")]
+            {
+                let inputs: Vec<String> = insert_last(&input, &last.iter().collect::<String>())
+                    .split('#')
+                    .map(str::to_owned)
+                    .collect();
+                let watch = options.debug.then_some(Instant::now());
+                if options.graph_cli {
+                    if options.interactive {
+                        terminal::disable_raw_mode()?;
+                        graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                            .join()
+                            .unwrap();
+                        terminal::enable_raw_mode()?;
+                    } else {
+                        graph(inputs, vars.clone(), options, watch, colors.clone(), true)
+                            .join()
+                            .unwrap();
+                    }
                 } else {
-                    graph(inputs, vars.clone(), options, watch, colors.clone(), true)
-                        .join()
-                        .unwrap();
+                    handles.push(graph(
+                        inputs,
+                        vars.clone(),
+                        options,
+                        watch,
+                        colors.clone(),
+                        false,
+                    ));
                 }
-            } else {
-                handles.push(graph(
-                    inputs,
-                    vars.clone(),
-                    options,
-                    watch,
-                    colors.clone(),
-                    false,
-                ));
             }
         }
     }
     Ok(())
 }
-
+#[cfg(feature = "kalc-plot")]
 fn find_it<P>(exe_name: P) -> Option<PathBuf>
 where
     P: AsRef<Path>,

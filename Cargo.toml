@@ -11,9 +11,15 @@ version = "1.5.0"
 edition = "2024"
 
 [features]
-default=[]
+default=["serde", "rayon", "rug", "fastnum","gnuplot","kalc-plot"]
 force-cross=["kalc-lib/force-cross"]
 system-libs=["kalc-lib/system-libs"]
+serde=["kalc-lib/serde", "dep:bitcode"]
+rayon=["kalc-lib/rayon"]
+rug=["kalc-lib/rug"]
+fastnum=["kalc-lib/fastnum"]
+gnuplot=["kalc-lib/gnuplot"]
+kalc-plot=[]
 
 [profile.release]
 lto = true
@@ -29,5 +35,5 @@ opt-level = 1
 [dependencies]
 crossterm = "0.29.0"
 dirs = "6.0.0"
-bitcode = {version="0.6.6", features = ["serde"]}
-kalc-lib = {version = "1.5.0", path="../kalc-lib", features=["bin-deps"]}
+bitcode = {version="0.6.6", features = ["serde"], optional = true}
+kalc-lib = {version = "1.5.0", path="../kalc-lib", default-features = false, features=["bin-deps","fastrand"]}

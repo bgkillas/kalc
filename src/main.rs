@@ -2,9 +2,12 @@ use crossterm::{
     cursor::{DisableBlinking, EnableBlinking},
     execute, terminal,
 };
+#[cfg(feature = "gnuplot")]
+use kalc_lib::graph::graph;
 use kalc_lib::misc::get_word_bank;
+#[cfg(all(feature = "kalc-plot", feature = "serde"))]
+use kalc_lib::units::Data;
 use kalc_lib::{
-    graph::graph,
     help::help_for,
     load_vars::{add_var, get_cli_vars, get_file_vars, get_vars, set_commands_or_vars},
     math::do_math,
@@ -15,17 +18,22 @@ use kalc_lib::{
     options::{arg_opts, commands, equal_to, file_opts, silent_commands},
     parse::input_var,
     print::{print_answer, print_concurrent},
-    units::{Colors, Data, HowGraphing, Options, Variable},
+    units::{Colors, HowGraphing, Options, Variable},
 };
+#[cfg(any(feature = "kalc-plot", feature = "gnuplot"))]
+use std::thread::{self, JoinHandle};
 use std::{
     cmp::{Ordering, min},
-    env::{self, args},
+    env::args,
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Error, IsTerminal, Stdout, Write, stdin, stdout},
+    time::Instant,
+};
+#[cfg(feature = "kalc-plot")]
+use std::{
+    env,
     path::{Path, PathBuf},
     process::{Command, Stdio},
-    thread::{self, JoinHandle},
-    time::Instant,
 };
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
@@ -248,6 +256,7 @@ fn main() -> Result<(), Error> {
         options.color.auto_set(false);
         (None, None)
     };
+    #[cfg(any(feature = "gnuplot", feature = "kalc-plot"))]
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
     let mut cut: Vec<char> = Vec::new();
 
@@ -255,7 +264,10 @@ fn main() -> Result<(), Error> {
         let mut input = Vec::new();
         let mut graphable = HowGraphing::default();
         let mut varcheck = false;
+        #[cfg(feature = "gnuplot")]
         let mut last = Vec::new();
+        #[cfg(not(feature = "gnuplot"))]
+        let last: Vec<char>;
         if !args.is_empty() {
             let watch = options.debug.then(Instant::now);
             input = args.remove(0).chars().collect();
@@ -350,6 +362,7 @@ fn main() -> Result<(), Error> {
                 if options.stay_interactive {
                     setup_for_interactive(&colors, &mut options, &mut stdout)?
                 } else {
+                    #[cfg(any(feature = "gnuplot", feature = "kalc-plot"))]
                     for handle in handles {
                         handle.join().unwrap();
                     }
@@ -1675,6 +1688,7 @@ fn main() -> Result<(), Error> {
             #[cfg(feature = "kalc-plot")]
             if !options.gnuplot {
                 if let Some(path) = find_it("kalc-plot") {
+                    #[cfg(feature = "serde")]
                     let data = Data {
                         vars: vars.clone(),
                         options,

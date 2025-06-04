@@ -4,7 +4,7 @@ use crossterm::{
 };
 #[cfg(feature = "gnuplot")]
 use kalc_lib::graph::graph;
-use kalc_lib::misc::get_word_bank;
+use kalc_lib::misc::{get_word_bank, spawn_cmd};
 #[cfg(all(feature = "kalc-plot", feature = "serde"))]
 use kalc_lib::units::Data;
 use kalc_lib::{
@@ -33,7 +33,7 @@ use std::{
 use std::{
     env,
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Stdio,
 };
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
@@ -1694,8 +1694,10 @@ fn main() -> Result<(), Error> {
                         options,
                         colors: colors.clone(),
                     };
-                    handles.push(thread::spawn(move || {
-                        let mut plot = Command::new(path)
+                    #[allow(clippy::zombie_processes)]
+                    #[allow(unused_unsafe)]
+                    handles.push(thread::spawn(move || unsafe {
+                        let mut plot = spawn_cmd(path)
                             .arg("-d")
                             .arg(input.iter().collect::<String>())
                             .stdin(Stdio::piped())
@@ -1708,7 +1710,8 @@ fn main() -> Result<(), Error> {
                             stdin.write_all(&data.len().to_be_bytes()).unwrap();
                             stdin.write_all(&data).unwrap();
                         }
-                        plot.wait().unwrap();
+                        #[cfg(not(unix))]
+                        plot.wait().unwrap()
                     }));
                     continue;
                 }

@@ -4,7 +4,7 @@ use crossterm::{
 };
 #[cfg(feature = "gnuplot")]
 use kalc_lib::graph::graph;
-use kalc_lib::misc::{get_word_bank, spawn_cmd};
+use kalc_lib::misc::get_word_bank;
 #[cfg(all(feature = "kalc-plot", feature = "serde"))]
 use kalc_lib::units::Data;
 use kalc_lib::{
@@ -1697,7 +1697,7 @@ fn main() -> Result<(), Error> {
                     #[allow(clippy::zombie_processes)]
                     #[allow(unused_unsafe)]
                     handles.push(thread::spawn(move || unsafe {
-                        let mut plot = spawn_cmd(path)
+                        let mut plot = kalc_lib::misc::spawn_cmd(path)
                             .arg("-d")
                             .arg(input.iter().collect::<String>())
                             .stdin(Stdio::piped())

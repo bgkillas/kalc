@@ -24,9 +24,9 @@ jobs:
        - name: fmt
          run: cargo fmt --check
        - name: lint-min
-         run: cargo clippy --no-default-features --features "rug,fastnum"
+         run: cargo clippy --no-default-features --features "rug,fastnum" -- -D clippy::all
        - name: lint-all
-         run: cargo clippy
+         run: cargo clippy -- -D clippy::all
   lint-windows:
      runs-on: windows-latest
      steps:
@@ -88,7 +88,7 @@ jobs:
            PATH: /mingw64/bin:$PATH
            CC: clang
          run: |
-          cargo clippy --no-default-features --features "rug,fastnum"
+          cargo clippy --no-default-features --features "rug,fastnum" -- -D clippy::all
        - name: lint-full
          shell: msys2 {0}
          env:
@@ -98,7 +98,7 @@ jobs:
            PATH: /mingw64/bin:$PATH
            CC: clang
          run: |
-          cargo clippy
+          cargo clippy -- -D clippy::all
   lint-macos:
      runs-on: macos-latest
      steps:
@@ -111,6 +111,6 @@ jobs:
        - name: fmt
          run: cargo fmt --check
        - name: lint-min
-         run: cargo clippy --no-default-features --features "rug,fastnum"
+         run: cargo clippy --no-default-features --features "rug,fastnum" -- -D clippy::all
        - name: lint-all
-         run: cargo clippy
+         run: cargo clippy -- -D clippy::all

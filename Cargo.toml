@@ -36,4 +36,5 @@ opt-level = 1
 crossterm = "0.29.0"
 dirs = "6.0.0"
 bitcode = {version="0.6.6", features = ["serde"], optional = true}
-kalc-lib = {version = "1.5.0", path="../kalc-lib", default-features = false, features=["bin-deps","fastrand"]}
+#kalc-lib = {version = "1.5.1", path="../kalc-lib", default-features = false, features=["bin-deps","fastrand"]}
+kalc-lib = {version = "1.5.1",default-features = false, features=["bin-deps","fastrand"]}

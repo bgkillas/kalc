@@ -1711,7 +1711,7 @@ fn main() -> Result<(), Error> {
                             stdin.write_all(&data).unwrap();
                         }
                         #[cfg(not(unix))]
-                        plot.wait().unwrap()
+                        plot.wait().unwrap();
                     }));
                     continue;
                 }

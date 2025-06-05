@@ -20,7 +20,7 @@ jobs:
          run: |
            cd ..
            git clone https://github.com/bgkillas/kalc-lib
-           cd kalc-plot
+           cd kalc
        - name: fmt
          run: cargo fmt --check
        - name: lint-min
@@ -35,7 +35,7 @@ jobs:
          run: |
            cd ..
            git clone https://github.com/bgkillas/kalc-lib
-           cd kalc-plot
+           cd kalc
        - name: Install Rust
          uses: actions-rs/toolchain@v1
          with:
@@ -107,7 +107,7 @@ jobs:
          run: |
            cd ..
            git clone https://github.com/bgkillas/kalc-lib
-           cd kalc-plot
+           cd kalc
        - name: fmt
          run: cargo fmt --check
        - name: lint-min

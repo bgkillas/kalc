@@ -11,8 +11,8 @@ jobs:
       run: |
         cd ..
         git clone https://github.com/bgkillas/kalc-lib
-        cd kalc-plot
-    - name: Build egui-full
+        cd kalc
+    - name: Build linux
       run: cargo build --release
     - uses: actions/upload-artifact@v4
       with:
@@ -26,8 +26,8 @@ jobs:
       run: |
         cd ..
         git clone https://github.com/bgkillas/kalc-lib
-        cd kalc-plot
-    - name: Build egui-full
+        cd kalc
+    - name: Build macos
       run: cargo build --release
     - uses: actions/upload-artifact@v4
       with:
@@ -41,7 +41,7 @@ jobs:
       run: |
         cd ..
         git clone https://github.com/bgkillas/kalc-lib
-        cd kalc-plot
+        cd kalc
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -75,7 +75,7 @@ jobs:
          llvm
          ninja
        msystem: MINGW64
-    - name: Build egui-full
+    - name: Build windows
       shell: msys2 {0}
       env:
         CARGO_HOME: /mingw64/.cargo

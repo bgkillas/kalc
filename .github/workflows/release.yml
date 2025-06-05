@@ -1,0 +1,90 @@
+name: release
+
+on: [push, pull_request]
+
+jobs:
+  build-egui-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: depends
+      run: |
+        cd ..
+        git clone https://github.com/bgkillas/kalc-lib
+        cd kalc-plot
+    - name: Build egui-full
+      run: cargo build --release
+    - uses: actions/upload-artifact@v4
+      with:
+        name: kalc-linux
+        path: target/release/kalc
+  build-egui-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: depends
+      run: |
+        cd ..
+        git clone https://github.com/bgkillas/kalc-lib
+        cd kalc-plot
+    - name: Build egui-full
+      run: cargo build --release
+    - uses: actions/upload-artifact@v4
+      with:
+        name: kalc-macos
+        path: target/release/kalc
+  build-egui-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: depends
+      run: |
+        cd ..
+        git clone https://github.com/bgkillas/kalc-lib
+        cd kalc-plot
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+       toolchain: stable
+       target: x86_64-pc-windows-gnu
+       profile: minimal
+       override: true
+    - name: Install MSYS2 and GMP
+      uses: msys2/setup-msys2@v2
+      with:
+       update: true
+       install: >-
+         base-devel
+         mingw-w64-x86_64-rust
+         mingw-w64-x86_64-gcc
+         mingw-w64-x86_64-pkg-config
+         mingw-w64-x86_64-gmp
+         mingw-w64-x86_64-mpfr
+         mingw-w64-x86_64-make
+         mingw-w64-x86_64-clang
+         m4
+         make
+         python
+         openssl
+         git
+         mingw-w64-x86_64-gn
+         mingw-w64-x86_64-fontconfig
+         mingw-w64-x86_64-libpng
+         mingw-w64-x86_64-freetype
+         expat
+         llvm
+         ninja
+       msystem: MINGW64
+    - name: Build egui-full
+      shell: msys2 {0}
+      env:
+        CARGO_HOME: /mingw64/.cargo
+        RUSTUP_HOME: /mingw64/.rustup
+        PKG_CONFIG_PATH: /mingw64/lib/pkgconfig
+        PATH: /mingw64/bin:$PATH
+        CC: clang
+      run: cargo build --release
+    - uses: actions/upload-artifact@v4
+      with:
+        name: kalc.exe
+        path: target/release/kalc.exe

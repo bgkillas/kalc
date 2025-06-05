@@ -33,6 +33,21 @@ jobs:
       with:
         name: kalc-macos
         path: target/release/kalc
+  build-egui-macos-x86_64:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v4
+    - name: depends
+      run: |
+        cd ..
+        git clone https://github.com/bgkillas/kalc-lib
+        cd kalc
+    - name: Build macos
+      run: cargo build --release
+    - uses: actions/upload-artifact@v4
+      with:
+        name: kalc-macos-x86_64
+        path: target/release/kalc
   build-egui-windows:
     runs-on: windows-latest
     steps:

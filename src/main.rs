@@ -1772,6 +1772,17 @@ where
             None
         },
     )
+    .or(
+        if if cfg!(target_os = "macos") {
+            fs::exists("./kalc-plot.exe").unwrap_or(false)
+        } else {
+            false
+        } {
+            Some(PathBuf::from("./kalc-plot.exe"))
+        } else {
+            None
+        },
+    )
     .or(env::var_os("PATH").and_then(|paths| {
         env::split_paths(&paths)
             .filter_map(|dir| {

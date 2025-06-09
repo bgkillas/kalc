@@ -1756,7 +1756,7 @@ fn find_it<P>(exe_name: P) -> Option<PathBuf>
 where
     P: AsRef<Path>,
 {
-    (if fs::exists("./kalc-plot").unwrap_or(false) {
+    (if fs::exists("./kalc-plot").unwrap_or(false) && !Path::is_dir("./kalc-plot".as_ref()) {
         Some(PathBuf::from("./kalc-plot"))
     } else {
         None

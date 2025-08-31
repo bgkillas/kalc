@@ -60,6 +60,7 @@ dependencys are: rust>=1.79.0, diffutils, gcc, m4, make
 
 ```
 git clone https://github.com/bgkillas/kalc
+git clone https://github.com/bgkillas/kalc-lib
 cd kalc
 cargo build --release
 ./target/release/kalc
@@ -79,6 +80,7 @@ launch MSYS2 MinGW and run
 pacman -Syu pacman-mirrors
 pacman -S git diffutils m4 make mingw-w64-x86_64-gcc
 git clone https://github.com/bgkillas/kalc
+git clone https://github.com/bgkillas/kalc-lib
 cd kalc
 mkdir /mnt
 mount C: /mnt
@@ -110,6 +112,7 @@ install developer tools via ```xcode-select --install```
 
 ```
 git clone https://github.com/bgkillas/kalc
+git clone https://github.com/bgkillas/kalc-lib
 cd kalc
 cargo build --release
 ./target/release/kalc

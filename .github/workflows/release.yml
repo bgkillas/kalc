@@ -34,7 +34,7 @@ jobs:
         name: kalc-macos
         path: target/release/kalc
   build-egui-macos-x86_64:
-    runs-on: macos-13
+    runs-on: macos-15-intel
     steps:
     - uses: actions/checkout@v4
     - name: depends

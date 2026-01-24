@@ -36,6 +36,9 @@ use std::{
     path::{Path, PathBuf},
     process::Stdio,
 };
+pub type I = rug::Integer;
+pub type F = rug::Float;
+pub type C = rug::Complex;
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
     let mut options = Options::default();
@@ -93,7 +96,7 @@ fn main() -> Result<(), Error> {
     }
 
     let file_path = dir.clone() + "/kalc.vars";
-    let mut vars: Vec<Variable> =
+    let mut vars: Vec<Variable<I, F, C>> =
         if options.allow_vars && (options.interactive || options.stay_interactive) {
             get_vars(options)
         } else {
@@ -1634,7 +1637,7 @@ fn main() -> Result<(), Error> {
                 }
                 stdout.flush()?;
             }
-            commands(&mut options, &lines, &input, &mut stdout);
+            commands::<I, F, C>(&mut options, &lines, &input, &mut stdout);
             if !varcheck {
                 print!("{}", prompt(options, &colors));
                 if options.color.as_bool() {
@@ -1793,8 +1796,12 @@ where
     }))
 }
 
-fn setup_for_interactive(
-    colors: &Colors,
+fn setup_for_interactive<
+    Integer: kalc_lib::types::Integer<Float, Complex>,
+    Float: kalc_lib::types::Float<Integer, Complex>,
+    Complex: kalc_lib::types::Complex<Integer, Float>,
+>(
+    colors: &Colors<Integer, Float, Complex>,
     options: &mut Options,
     stdout: &mut Stdout,
 ) -> Result<(), Error> {

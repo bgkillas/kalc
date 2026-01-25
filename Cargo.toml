@@ -37,4 +37,3 @@ crossterm = "0.29.0"
 dirs = "6.0.0"
 bitcode = {version="0.6.9", features = ["serde"], optional = true}
 kalc-lib = {version = "1.5.1", path="../kalc-lib", default-features = false, features=["bin-deps","fastrand"]}
-rug = "1.28.1"

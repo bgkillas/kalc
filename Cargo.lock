@@ -203,12 +203,13 @@ dependencies = [
 
 [[package]]
 name = "fastnum"
-version = "0.2.10"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4451747a4f0b0237f73f79227f7842926ba640e774d46b70b86eebb8c60e5af"
+checksum = "4089ab2dfd45d8ddc92febb5ca80644389d5ebb954f40231274a3f18341762e2"
 dependencies = [
- "autocfg",
  "bnum",
+ "num-integer",
+ "num-traits",
  "serde",
 ]
 
@@ -253,7 +254,6 @@ dependencies = [
  "crossterm",
  "dirs",
  "kalc-lib",
- "rug",
 ]
 
 [[package]]
@@ -331,6 +331,24 @@ dependencies = [
  "log",
  "wasi",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "num-integer"
+version = "0.1.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7969661fd2958a5cb096e56c8e1ad0444ac2bbcd0061bd28660485a44879858f"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "num-traits"
+version = "0.2.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]

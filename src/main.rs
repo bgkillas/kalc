@@ -36,9 +36,12 @@ use std::{
     path::{Path, PathBuf},
     process::Stdio,
 };
-pub type I = rug::Integer;
-pub type F = rug::Float;
-pub type C = rug::Complex;
+//pub type I = kalc_lib::rug::Integer;
+//pub type F = kalc_lib::rug::Float;
+//pub type C = kalc_lib::rug::Complex;
+pub type I = kalc_lib::types::f64::Integer;
+pub type F = kalc_lib::types::f64::Float;
+pub type C = kalc_lib::types::f64::Complex;
 fn main() -> Result<(), Error> {
     let mut colors = Colors::default();
     let mut options = Options::default();
